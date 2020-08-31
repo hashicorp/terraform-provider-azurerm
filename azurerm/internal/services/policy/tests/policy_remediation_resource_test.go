@@ -32,25 +32,6 @@ func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPolicyRemediation_atSubscriptionWithDiscoveryMode(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPolicyRemediation_atSubscriptionWithDiscoveryMode(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyRemediationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 
@@ -81,6 +62,25 @@ func TestAccAzureRMPolicyRemediation_atResourceGroup(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPolicyRemediation_atResourceGroup(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyRemediationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMPolicyRemediation_atResourceGroupWithDiscoveryMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPolicyRemediation_atResourceGroupWithDiscoveryMode(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyRemediationExists(data.ResourceName),
 				),
@@ -291,74 +291,6 @@ resource "azurerm_policy_remediation" "test" {
 `, data.RandomString)
 }
 
-func testAccAzureRMPolicyRemediation_atSubscriptionWithDiscoveryMode(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_subscription" "current" {}
-
-resource "azurerm_policy_definition" "test" {
-  name         = "acctestDef-%[1]s"
-  policy_type  = "Custom"
-  mode         = "All"
-  display_name = "my-policy-definition"
-
-  policy_rule = <<POLICY_RULE
-    {
-    "if": {
-      "not": {
-        "field": "location",
-        "in": "[parameters('allowedLocations')]"
-      }
-    },
-    "then": {
-      "effect": "audit"
-    }
-  }
-POLICY_RULE
-
-  parameters = <<PARAMETERS
-    {
-    "allowedLocations": {
-      "type": "Array",
-      "metadata": {
-        "description": "The list of allowed locations for resources.",
-        "displayName": "Allowed locations",
-        "strongType": "location"
-      }
-    }
-  }
-PARAMETERS
-}
-
-resource "azurerm_policy_assignment" "test" {
-  name                 = "acctestAssign-%[1]s"
-  scope                = data.azurerm_subscription.current.id
-  policy_definition_id = azurerm_policy_definition.test.id
-  description          = "Policy Assignment created via an Acceptance Test"
-  display_name         = "My Example Policy Assignment"
-
-  parameters = <<PARAMETERS
-{
-  "allowedLocations": {
-    "value": [ "West Europe" ]
-  }
-}
-PARAMETERS
-}
-
-resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestremediation-%[1]s"
-  scope                = azurerm_policy_assignment.test.scope
-  policy_assignment_id = azurerm_policy_assignment.test.id
-
-  resource_discovery_mode = "ReEvaluateCompliance"
-}
-`, data.RandomString)
-}
-
 func testAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -523,6 +455,77 @@ resource "azurerm_policy_remediation" "test" {
   name                 = "acctestremediation-%[1]s"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
+}
+`, data.RandomString, data.Locations.Primary)
+}
+
+func testAccAzureRMPolicyRemediation_atResourceGroupWithDiscoveryMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-policy-%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestDef-%[1]s"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "my-policy-definition"
+
+  policy_rule = <<POLICY_RULE
+    {
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+    {
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "acctestAssign-%[1]s"
+  scope                = azurerm_resource_group.test.id
+  policy_definition_id = azurerm_policy_definition.test.id
+  description          = "Policy Assignment created via an Acceptance Test"
+  display_name         = "My Example Policy Assignment"
+
+  parameters = <<PARAMETERS
+{
+  "allowedLocations": {
+    "value": [ "West Europe" ]
+  }
+}
+PARAMETERS
+}
+
+resource "azurerm_policy_remediation" "test" {
+  name                 = "acctestremediation-%[1]s"
+  scope                = azurerm_policy_assignment.test.scope
+  policy_assignment_id = azurerm_policy_assignment.test.id
+
+  resource_discovery_mode = "ReEvaluateCompliance"
 }
 `, data.RandomString, data.Locations.Primary)
 }

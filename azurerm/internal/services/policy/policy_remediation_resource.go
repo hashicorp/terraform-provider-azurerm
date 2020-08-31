@@ -205,6 +205,22 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
+	// we have to cancel the remediation first before deleting it when the resource_discovery_mode is set to ReEvaluateCompliance
+	// therefore we first retrieve the remediation to see if the resource_discovery_mode is switched to ReEvaluateCompliance
+	existing, err := RemediationGetAtScope(ctx, client, id.Name, id.PolicyScopeId)
+	if err != nil {
+		if utils.ResponseWasNotFound(existing.Response) {
+			return nil
+		}
+		return fmt.Errorf("retrieving Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
+	}
+
+	if existing.RemediationProperties != nil && existing.RemediationProperties.ResourceDiscoveryMode == policyinsights.ReEvaluateCompliance {
+		if err := cancelRemediation(ctx, client, id.Name, id.PolicyScopeId); err != nil {
+			return fmt.Errorf("cancelling Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
+		}
+	}
+
 	switch scope := id.PolicyScopeId.(type) {
 	case parse.ScopeAtSubscription:
 		_, err = client.DeleteAtSubscription(ctx, scope.SubscriptionId, id.Name)
@@ -222,6 +238,25 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func cancelRemediation(ctx context.Context, client *policyinsights.RemediationsClient, name string, scopeId parse.PolicyScopeId) error {
+	switch scopeId := scopeId.(type) {
+	case parse.ScopeAtSubscription:
+		_, err := client.CancelAtSubscription(ctx, scopeId.SubscriptionId, name)
+		return err
+	case parse.ScopeAtResourceGroup:
+		_, err := client.CancelAtResourceGroup(ctx, scopeId.SubscriptionId, scopeId.ResourceGroup, name)
+		return err
+	case parse.ScopeAtResource:
+		_, err := client.CancelAtResource(ctx, scopeId.ScopeId(), name)
+		return err
+	case parse.ScopeAtManagementGroup:
+		_, err := client.CancelAtManagementGroup(ctx, scopeId.ManagementGroupName, name)
+		return err
+	default:
+		return fmt.Errorf("nvalid scope type")
+	}
 }
 
 // RemediationGetAtScope is a wrapper of the 4 Get functions on RemediationsClient, combining them into one to simplify code.
