@@ -39,7 +39,7 @@ func CdnProfileID(input string) (*CdnProfileId, error) {
 	return &profile, nil
 }
 
-func (id CdnProfileId) ID(subscription string) string {
+func (id CdnProfileId) ID(subscriptionId string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s",
 		subscription, id.ResourceGroup, id.Name)
 }
