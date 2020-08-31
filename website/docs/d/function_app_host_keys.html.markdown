@@ -25,7 +25,7 @@ data "azurerm_function_app_host_keys" "example" {
 
 The following arguments are supported:
 
-- `name` - The name of the Function App resource.
+- `name` - The name of the Function App.
 
 - `resource_group_name` - The name of the Resource Group where the Function App exists.
 
