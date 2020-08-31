@@ -96,7 +96,7 @@ func resourceArmFirewall() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validateAzureFirewallSubnetName,
+							ValidateFunc: validateAzureFirewallManagementSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
@@ -484,10 +484,21 @@ func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string
 		return warnings, errors
 	}
 	subnetName := parsed.Path["subnets"]
-	res := strings.Split(k, ".")[0]
-	if subnetName != "AzureFirewallSubnet" && res == "ip_configuration" {
-		errors = append(errors, fmt.Errorf("The name of the subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
-	} else if subnetName != "AzureFirewallManagementSubnet" && res == "management_ip_configuration" {
+	if subnetName != "AzureFirewallSubnet" {
+		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
+	}
+
+	return warnings, errors
+}
+
+func validateAzureFirewallManagementSubnetName(v interface{}, k string) (warnings []string, errors []error) {
+	parsed, err := azure.ParseAzureResourceID(v.(string))
+	if err != nil {
+		errors = append(errors, fmt.Errorf("Error parsing Azure Resource ID %q", v.(string)))
+		return warnings, errors
+	}
+	subnetName := parsed.Path["subnets"]
+	if subnetName != "AzureFirewallManagementSubnet" {
 		errors = append(errors, fmt.Errorf("The name of the management subnet for %q must be exactly 'AzureFirewallManagementSubnet' to be used for the Azure Firewall resource", k))
 	}
 
