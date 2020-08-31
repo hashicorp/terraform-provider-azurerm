@@ -1,4 +1,4 @@
-package keyvault
+package operationalinsights
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,8 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the the Azure management API provides a RESTful set of web services that interact with Azure Key
-// Vault.
+// OperationsClient is the operational Insights Client
 type OperationsClient struct {
 	BaseClient
 }
@@ -42,7 +41,7 @@ func NewOperationsClientWithBaseURI(baseURI string, subscriptionID string) Opera
 	return OperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List lists all of the available Key Vault Rest API operations.
+// List lists all of the available OperationalInsights Rest API operations.
 func (client OperationsClient) List(ctx context.Context) (result OperationListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
@@ -57,20 +56,20 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.OperationsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "operationalinsights.OperationsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.olr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "keyvault.OperationsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "operationalinsights.OperationsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result.olr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.OperationsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "operationalinsights.OperationsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
@@ -78,7 +77,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -86,7 +85,7 @@ func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request,
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/Microsoft.KeyVault/operations"),
+		autorest.WithPath("/providers/Microsoft.OperationalInsights/operations"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -113,7 +112,7 @@ func (client OperationsClient) ListResponder(resp *http.Response) (result Operat
 func (client OperationsClient) listNextResults(ctx context.Context, lastResults OperationListResult) (result OperationListResult, err error) {
 	req, err := lastResults.operationListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "keyvault.OperationsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "operationalinsights.OperationsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -121,11 +120,11 @@ func (client OperationsClient) listNextResults(ctx context.Context, lastResults 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "keyvault.OperationsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "operationalinsights.OperationsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "keyvault.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "operationalinsights.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }

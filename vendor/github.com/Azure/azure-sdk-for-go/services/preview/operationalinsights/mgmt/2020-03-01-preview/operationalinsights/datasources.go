@@ -44,8 +44,8 @@ func NewDataSourcesClientWithBaseURI(baseURI string, subscriptionID string) Data
 
 // CreateOrUpdate create or update a data source.
 // Parameters:
-// resourceGroupName - the name of the resource group to get. The name is case insensitive.
-// workspaceName - name of the Log Analytics Workspace that will contain the datasource
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 // dataSourceName - the name of the datasource resource.
 // parameters - the parameters required to create or update a datasource.
 func (client DataSourcesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, dataSourceName string, parameters DataSource) (result DataSource, err error) {
@@ -64,8 +64,14 @@ func (client DataSourcesClient) CreateOrUpdate(ctx context.Context, resourceGrou
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 4, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}},
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.DataSourcesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -99,7 +105,7 @@ func (client DataSourcesClient) CreateOrUpdatePreparer(ctx context.Context, reso
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2015-11-01-preview"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -134,8 +140,8 @@ func (client DataSourcesClient) CreateOrUpdateResponder(resp *http.Response) (re
 
 // Delete deletes a data source instance.
 // Parameters:
-// resourceGroupName - the name of the resource group to get. The name is case insensitive.
-// workspaceName - name of the Log Analytics Workspace that contains the datasource.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 // dataSourceName - name of the datasource.
 func (client DataSourcesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, dataSourceName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
@@ -152,7 +158,13 @@ func (client DataSourcesClient) Delete(ctx context.Context, resourceGroupName st
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 4, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.DataSourcesClient", "Delete", err.Error())
 	}
 
@@ -186,7 +198,7 @@ func (client DataSourcesClient) DeletePreparer(ctx context.Context, resourceGrou
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2015-11-01-preview"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -218,8 +230,8 @@ func (client DataSourcesClient) DeleteResponder(resp *http.Response) (result aut
 
 // Get gets a datasource instance.
 // Parameters:
-// resourceGroupName - the name of the resource group to get. The name is case insensitive.
-// workspaceName - name of the Log Analytics Workspace that contains the datasource.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 // dataSourceName - name of the datasource
 func (client DataSourcesClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, dataSourceName string) (result DataSource, err error) {
 	if tracing.IsEnabled() {
@@ -236,7 +248,13 @@ func (client DataSourcesClient) Get(ctx context.Context, resourceGroupName strin
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 4, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.DataSourcesClient", "Get", err.Error())
 	}
 
@@ -270,7 +288,7 @@ func (client DataSourcesClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2015-11-01-preview"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -303,8 +321,8 @@ func (client DataSourcesClient) GetResponder(resp *http.Response) (result DataSo
 
 // ListByWorkspace gets the first page of data source instances in a workspace with the link to the next page.
 // Parameters:
-// resourceGroupName - the name of the resource group to get. The name is case insensitive.
-// workspaceName - the workspace that contains the data sources.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 // filter - the filter to apply on the operation.
 // skiptoken - starting point of the collection of data source instances.
 func (client DataSourcesClient) ListByWorkspace(ctx context.Context, resourceGroupName string, workspaceName string, filter string, skiptoken string) (result DataSourceListResultPage, err error) {
@@ -322,7 +340,13 @@ func (client DataSourcesClient) ListByWorkspace(ctx context.Context, resourceGro
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 4, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.DataSourcesClient", "ListByWorkspace", err.Error())
 	}
 
@@ -356,7 +380,7 @@ func (client DataSourcesClient) ListByWorkspacePreparer(ctx context.Context, res
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2015-11-01-preview"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,

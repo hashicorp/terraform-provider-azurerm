@@ -502,6 +502,26 @@ func TestAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(
 	})
 }
 
+func TestAccAzureRMApplicationGateway_probesWithPort(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_probesWithPort(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "probe.0.port", "8082"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMApplicationGateway_backendHttpSettingsHostName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	hostName := "example.com"
@@ -3132,6 +3152,98 @@ resource "azurerm_application_gateway" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMApplicationGateway_probesWithPort(data acceptance.TestData) string {
+	template := testAccAzureRMApplicationGateway_template(data)
+	return fmt.Sprintf(`
+%s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  probe1_name                    = "${azurerm_virtual_network.test.name}-probe1"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "test_standard" {
+  name                = "acctest-pubip-%d-standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+  allocation_method   = "Static"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
+    capacity = 1
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.test_standard.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    probe_name            = local.probe1_name
+    protocol              = "Http"
+    request_timeout       = 1
+  }
+
+  probe {
+    name                = local.probe1_name
+    protocol            = "Http"
+    port                = "8082"
+    path                = "/test"
+    host                = "azure.com"
+    timeout             = 120
+    interval            = 300
+    unhealthy_threshold = 8
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMApplicationGateway_backendHttpSettingsHostName(data acceptance.TestData, hostName string, pick bool) string {
