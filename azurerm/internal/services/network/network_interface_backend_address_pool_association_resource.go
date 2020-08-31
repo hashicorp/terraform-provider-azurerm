@@ -119,11 +119,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 		for _, existingPool := range *p.LoadBalancerBackendAddressPools {
 			if id := existingPool.ID; id != nil {
 				if *id == backendAddressPoolId {
-					if features.ShouldResourcesBeImported() {
-						return tf.ImportAsExistsError("azurerm_network_interface_backend_address_pool_association", resourceId)
-					}
-
-					continue
+					return tf.ImportAsExistsError("azurerm_network_interface_backend_address_pool_association", resourceId)
 				}
 
 				pools = append(pools, existingPool)

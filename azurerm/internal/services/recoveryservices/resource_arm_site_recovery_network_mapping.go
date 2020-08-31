@@ -104,7 +104,7 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 		}
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) &&

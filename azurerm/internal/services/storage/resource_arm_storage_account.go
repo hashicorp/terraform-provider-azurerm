@@ -616,17 +616,15 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(storageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
-			}
+	existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
 	}
 
 	accountKind := d.Get("account_kind").(string)

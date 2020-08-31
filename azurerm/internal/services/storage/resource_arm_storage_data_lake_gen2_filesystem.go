@@ -99,17 +99,15 @@ func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta
 
 	id := client.GetResourceID(storageID.Name, fileSystemName)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existence of existing File System %q (Account %q): %+v", fileSystemName, storageID.Name, err)
-			}
-		}
-
+	resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id)
+			return fmt.Errorf("Error checking for existence of existing File System %q (Account %q): %+v", fileSystemName, storageID.Name, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_filesystem", id)
 	}
 
 	log.Printf("[INFO] Creating File System %q in Storage Account %q.", fileSystemName, storageID.Name)

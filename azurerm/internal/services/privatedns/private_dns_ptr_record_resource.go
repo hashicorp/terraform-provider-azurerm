@@ -85,7 +85,7 @@ func resourceArmPrivateDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta int
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, privatedns.PTR, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

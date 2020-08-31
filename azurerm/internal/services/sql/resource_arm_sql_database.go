@@ -374,7 +374,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	zoneRedundant := d.Get("zone_redundant").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

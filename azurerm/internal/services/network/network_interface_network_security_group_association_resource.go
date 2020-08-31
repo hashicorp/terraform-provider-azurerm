@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -98,10 +97,8 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.Resourc
 
 	// first double-check it doesn't exist
 	resourceId := fmt.Sprintf("%s|%s", networkInterfaceId, networkSecurityGroupId)
-	if features.ShouldResourcesBeImported() {
-		if props.NetworkSecurityGroup != nil {
-			return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceId)
-		}
+	if props.NetworkSecurityGroup != nil {
+		return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceId)
 	}
 
 	props.NetworkSecurityGroup = &network.SecurityGroup{

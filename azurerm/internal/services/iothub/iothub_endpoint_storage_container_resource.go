@@ -168,7 +168,7 @@ func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceDat
 	for _, existingEndpoint := range *routing.Endpoints.StorageContainers {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, endpointName) {
-				if d.IsNewResource() && features.ShouldResourcesBeImported() {
+				if d.IsNewResource() {
 					return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", resourceId)
 				}
 				endpoints = append(endpoints, storageContainerEndpoint)

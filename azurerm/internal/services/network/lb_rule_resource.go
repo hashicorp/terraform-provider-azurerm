@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -178,7 +177,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 	existingRule, existingRuleIndex, exists := FindLoadBalancerRuleByName(loadBalancer, name)
 	if exists {
 		if name == *existingRule.Name {
-			if features.ShouldResourcesBeImported() && d.IsNewResource() {
+			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.ID)
 			}
 
