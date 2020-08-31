@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `ip_configuration` - (Required) An `ip_configuration` block as documented below.
 
-* `management_ip_configuration` - (Optional) The management IP configuration has the exact same configuration as an `ip_configuration` block documented below. Only one `management_ip_configuration` block is allowed. This block is needed when the firewall will be used to force tunnel traffic to a different device, e.g. on-prem firewall or an NVA in Azure. Adding or removing this block this forces a new resource to be created.
+* `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which can be used to force-tunnel traffic. Changing this forces a new resource to be created.
 
 * `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`
 
