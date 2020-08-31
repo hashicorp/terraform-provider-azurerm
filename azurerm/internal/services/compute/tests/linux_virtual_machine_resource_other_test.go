@@ -77,6 +77,34 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsUpdated(t *testing.
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmAgent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_otherAllowExtensionOperationsDisabledWithoutVmAgent(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_otherAllowExtensionOperationsEnabledWithoutVmAgent(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "true"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
@@ -469,6 +497,80 @@ resource "azurerm_linux_virtual_machine" "test" {
   size                       = "Standard_F2"
   admin_username             = "adminuser"
   allow_extension_operations = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_otherAllowExtensionOperationsDisabledWithoutVmAgent(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                       = "acctestVM-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  admin_username             = "adminuser"
+  allow_extension_operations = false
+  provision_vm_agent         = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_otherAllowExtensionOperationsEnabledWithoutVmAgent(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                       = "acctestVM-%d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  admin_username             = "adminuser"
+  allow_extension_operations = true
+  provision_vm_agent         = false
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
