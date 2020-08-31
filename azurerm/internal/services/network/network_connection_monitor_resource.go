@@ -712,7 +712,7 @@ func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) (*[]network
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		if v["disable"].(bool) == false {
+		if !v["disable"].(bool) {
 			hasEnabledTestGroup = true
 		}
 
