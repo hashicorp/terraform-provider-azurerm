@@ -399,31 +399,17 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				},
 			},
 
-			"output": {
+			"output_workspace_resource_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				Computed: true,
 				// Allow to switch workspace from specified one to default one.
 				// 1. Set `output = []` in tfconfig to switch workspace from specified one to default one.
 				// 2. Remove `output = []` from tfconfig to ensure no diff.
 				ConfigMode: schema.SchemaConfigModeAttr,
-				Computed:   true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"workspace_resource_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
-						},
-
-						"type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(network.Workspace),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Workspace),
-							}, false),
-						},
-					},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
 				},
 			},
 
@@ -466,7 +452,7 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
 			Endpoints:          expandArmNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()),
 			Notes:              utils.String(d.Get("notes").(string)),
-			Outputs:            expandArmNetworkConnectionMonitorOutput(d.Get("output").(*schema.Set).List()),
+			Outputs:            expandArmNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
 			TestConfigurations: expandArmNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*schema.Set).List()),
 			TestGroups:         testGroup,
 		},
@@ -523,7 +509,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	if props := resp.ConnectionMonitorResultProperties; props != nil {
 		d.Set("notes", props.Notes)
 
-		if err := d.Set("output", flattenArmNetworkConnectionMonitorOutput(props.Outputs)); err != nil {
+		if err := d.Set("output_workspace_resource_ids", flattenArmNetworkConnectionMonitorOutput(props.Outputs)); err != nil {
 			return fmt.Errorf("setting `output`: %+v", err)
 		}
 
@@ -752,12 +738,10 @@ func expandArmNetworkConnectionMonitorOutput(input []interface{}) *[]network.Con
 	results := make([]network.ConnectionMonitorOutput, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
-
 		result := network.ConnectionMonitorOutput{
-			Type: network.OutputType(v["type"].(string)),
+			Type: network.Workspace,
 			WorkspaceSettings: &network.ConnectionMonitorWorkspaceSettings{
-				WorkspaceResourceID: utils.String(v["workspace_resource_id"].(string)),
+				WorkspaceResourceID: utils.String(item.(string)),
 			},
 		}
 
@@ -1055,22 +1039,12 @@ func flattenArmNetworkConnectionMonitorOutput(input *[]network.ConnectionMonitor
 	}
 
 	for _, item := range *input {
-		var outputType network.OutputType
-		if item.Type != "" {
-			outputType = item.Type
-		}
-
 		var workspaceResourceId string
 		if item.WorkspaceSettings != nil && item.WorkspaceSettings.WorkspaceResourceID != nil {
 			workspaceResourceId = *item.WorkspaceSettings.WorkspaceResourceID
 		}
 
-		v := map[string]interface{}{
-			"type":                  outputType,
-			"workspace_resource_id": workspaceResourceId,
-		}
-
-		results = append(results, v)
+		results = append(results, workspaceResourceId)
 	}
 
 	return results

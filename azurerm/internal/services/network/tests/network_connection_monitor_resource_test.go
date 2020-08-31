@@ -119,15 +119,13 @@ func testAccAzureRMNetworkConnectionMonitor_vmBasic(t *testing.T) {
 func testAccAzureRMNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
-	autoStart := "false"
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data, autoStart),
+				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
 				),
@@ -152,7 +150,7 @@ func testAccAzureRMNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data, "true"),
+				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
 				),
@@ -615,7 +613,7 @@ resource "azurerm_network_connection_monitor" "test" {
 `, config, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data acceptance.TestData, autoStart string) string {
+func testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data acceptance.TestData) string {
 	config := testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data)
 	return fmt.Sprintf(`
 %s
