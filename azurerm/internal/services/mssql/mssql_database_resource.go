@@ -122,7 +122,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.FloatAtLeast(0),
+				ValidateFunc: validate.MsSqlDatabaseMinCapacity,
 			},
 
 			"restore_point_in_time": {
