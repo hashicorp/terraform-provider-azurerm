@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -130,9 +132,10 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 							ForceNew: true,
 						},
 						"security_group_id": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IsUUID,
 						},
 					},
 				},
@@ -358,10 +361,8 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
-		if restProxyProp := props.KafkaRestProperties; restProxyProp != nil {
-			if err := d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
-				return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
-			}
+		if err := d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
+			return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
 		}
 	}
 

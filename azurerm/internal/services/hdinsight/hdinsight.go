@@ -757,15 +757,13 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 	s := &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
+		Required: required,
+		Optional: !required,
 		Elem: &schema.Resource{
 			Schema: result,
 		},
 	}
-	if required {
-		s.Required = true
-	} else {
-		s.Optional = true
-	}
+
 	return s
 }
 
