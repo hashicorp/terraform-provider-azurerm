@@ -133,7 +133,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 							Type:       schema.TypeMap,
 							Optional:   true,
 							Computed:   true,
-							Deprecated: "Deprecated in favor of `parameter_values`",
+							Deprecated: "Deprecated in favour of `parameter_values`",
 						},
 
 						"parameter_values": {
@@ -445,7 +445,9 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]
 
 		parameters := make(map[string]*policy.ParameterValuesValue)
 		if p, ok := v["parameter_values"]; ok {
-			_ = json.Unmarshal([]byte(p.(string)), &parameters) // this is ensured by schema validation
+			if err := json.Unmarshal([]byte(p.(string)), &parameters); err != nil {
+				return nil, fmt.Errorf("unmarshalling `parameter_values`: %+v", err)
+			}
 		}
 		if p, ok := v["parameters"]; ok {
 			m := p.(map[string]interface{})
