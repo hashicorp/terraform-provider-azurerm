@@ -1,5 +1,5 @@
 resource "azurerm_key_vault" "example" {
-  name                = "examplekv1234560"
+  name                = "${var.prefix}examplekv"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -35,7 +35,7 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_key_vault_certificate" "example" {
-  name         = "acctestcert1234560"
+  name         = "${var.prefix}acctestcert"
   key_vault_id = azurerm_key_vault.example.id
 
   certificate_policy {
@@ -79,7 +79,7 @@ resource "azurerm_key_vault_certificate" "example" {
         "keyEncipherment",
       ]
 
-      subject            = "CN=exampleservicefabric.${var.location}.cloudapp.azure.com"
+      subject            = "CN=${var.prefix}servicefabric.${var.location}.cloudapp.azure.com"
       validity_in_months = 12
     }
   }

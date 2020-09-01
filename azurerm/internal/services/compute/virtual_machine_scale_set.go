@@ -1416,7 +1416,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 
 func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0)
-	if input == nil {
+	if input == nil || input.Extensions == nil {
 		return result, nil
 	}
 

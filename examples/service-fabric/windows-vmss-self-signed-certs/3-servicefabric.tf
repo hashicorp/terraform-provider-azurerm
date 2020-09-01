@@ -1,12 +1,12 @@
 
 resource "azurerm_service_fabric_cluster" "example" {
-  name                = "exampleservicefabric"
+  name                = "${var.prefix}servicefabric"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "https://exampleservicefabric.${var.location}.cloudapp.azure.com:19080"
+  management_endpoint = "https://${var.prefix}servicefabric.${var.location}.cloudapp.azure.com:19080"
 
   node_type {
     name                 = "Windows"
@@ -18,12 +18,12 @@ resource "azurerm_service_fabric_cluster" "example" {
 
 
   reverse_proxy_certificate {
-    thumbprint = azurerm_key_vault_certificate.example.thumbprint
+    thumbprint      = azurerm_key_vault_certificate.example.thumbprint
     x509_store_name = "My"
   }
-  
+
   certificate {
-    thumbprint = azurerm_key_vault_certificate.example.thumbprint
+    thumbprint      = azurerm_key_vault_certificate.example.thumbprint
     x509_store_name = "My"
   }
 
@@ -34,15 +34,16 @@ resource "azurerm_service_fabric_cluster" "example" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "example" {
-  name                = "examplesf"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  sku                 = "Standard_D1_v2"
-  instances           = azurerm_service_fabric_cluster.example.node_type[0].instance_count
-  admin_password      = "P@55w0rd1234!"
-  admin_username      = "adminuser"
-  overprovision       = false
-  upgrade_mode        = "Automatic"
+  name                 = "${var.prefix}examplesf"
+  computer_name_prefix = var.prefix
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  sku                  = "Standard_D1_v2"
+  instances            = azurerm_service_fabric_cluster.example.node_type[0].instance_count
+  admin_password       = "P@55w0rd1234!"
+  admin_username       = "adminuser"
+  overprovision        = false
+  upgrade_mode         = "Automatic"
 
 
   source_image_reference {
@@ -83,7 +84,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
   }
 
   extension {
-    name                       = "ServiceFabricNode"
+    name                       = "${var.prefix}ServiceFabricNode"
     publisher                  = "Microsoft.Azure.ServiceFabric"
     type                       = "ServiceFabricNode"
     type_handler_version       = "1.1"
@@ -97,7 +98,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
       "enableParallelJobs" = true
       "certificate" = {
         "commonNames" = [
-          "exampleservicefabric.${var.location}.cloudapp.azure.com",
+          "${var.prefix}servicefabric.${var.location}.cloudapp.azure.com",
         ]
         "x509StoreName" = "My"
       }

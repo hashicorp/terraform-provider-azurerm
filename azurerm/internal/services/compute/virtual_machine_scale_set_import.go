@@ -111,6 +111,8 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 					d.Set("extension", updatedExtensions)
 				}
 			}
+		} else {
+			d.Set("extension", map[string]interface{}{})
 		}
 
 		return []*schema.ResourceData{d}, nil
