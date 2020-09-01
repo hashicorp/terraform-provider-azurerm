@@ -2,6 +2,8 @@ package loganalytics
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"log"
 	"regexp"
 	"strings"
@@ -10,11 +12,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -39,10 +38,11 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"log_analytics_workspace_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     validate.LogAnalyticsWorkspaceID,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"name": {
@@ -109,7 +109,7 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -143,12 +143,12 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("retrieving Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -162,22 +162,13 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 
 func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
-	workspaceClient := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := parse.LogAnalyticsSavedSearchID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	workspace, err := workspaceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName)
-	if err != nil {
-		if utils.ResponseWasNotFound(workspace.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf(" making Read request on AzureRM Log Analytics workspaces %q: %+v", id.Name, err)
-	}
+	workspaceId := parse.NewLogAnalyticsWorkspaceID(id.WorkspaceName, id.ResourceGroup).ID(meta.(*clients.Client).Account.SubscriptionId)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
@@ -185,20 +176,22 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on AzureRM Log Analytics Saved Search %q (WorkSpace %q / Resource Group %q): %s", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("log_analytics_workspace_id", workspace.ID)
+	d.Set("log_analytics_workspace_id", workspaceId)
 
 	if props := resp.SavedSearchProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
 		d.Set("category", props.Category)
 		d.Set("query", props.Query)
 		d.Set("function_alias", props.FunctionAlias)
+		functionParams := make([]string, 0)
 		if props.FunctionParameters != nil {
-			d.Set("function_parameters", strings.Split(*props.FunctionParameters, ", "))
+			functionParams = strings.Split(*props.FunctionParameters, ", ")
 		}
+		d.Set("function_parameters", functionParams)
 	}
 
 	return nil
@@ -213,9 +206,8 @@ func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
-	if err != nil {
-		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Saved Search %q (WorkSpace %q / Resource Group %q): %s", id.Name, id.WorkspaceName, id.ResourceGroup, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+		return fmt.Errorf("deleting Saved Search %q (Log Analytics Workspace %q / Resource Group %q): %s", id.Name, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
 	return nil

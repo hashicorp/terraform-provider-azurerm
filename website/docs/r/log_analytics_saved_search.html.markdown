@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Log Analytics Saved Search. Changing this forces a new resource to be created.
 
-* `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Work Space that the Saved Search will be associated with. Changing this forces a new resource to be created.
+* `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Workspace that the Saved Search will be associated with. Changing this forces a new resource to be created.
 
 * `display_name` - (Required) The name that Saved Search will be displayed as. Changing this forces a new resource to be created.
 
@@ -71,7 +71,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Log Analytics Saved Search can be imported using the `resource id`, e.g.
+Log Analytics Saved Searches can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_log_analytics_saved_search.search1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/search1
