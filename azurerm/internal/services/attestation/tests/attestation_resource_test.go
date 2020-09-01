@@ -218,7 +218,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-attestation-%d"
+  name     = "acctestRG-attestation-%d"
   location = "%s"
 }
 `, data.RandomInteger, "uksouth")
