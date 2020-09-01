@@ -932,7 +932,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 		if features.VMSSExtensionsBeta() {
 			extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
 			if err != nil {
-				return fmt.Errorf("failed flettening `extension`: %+v", err)
+				return fmt.Errorf("failed flattening `extension`: %+v", err)
 			}
 			d.Set("extension", extensionProfile)
 		}
