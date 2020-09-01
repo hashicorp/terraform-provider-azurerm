@@ -9,6 +9,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_key_vault_key` - updating the latest version of the key when updating metadata [GH-8304]
+* `azurerm_key_vault_secret` - updating the latest version of the secret when updating metadata [GH-8304]
 * `azurerm_linux_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) [GH-8001]
 * `azurerm_network_interface_application_gateway_association` - handling the Network Interface being deleted during a refresh [GH-8267]
 * `azurerm_network_interface_application_security_group_association` - handling the Network Interface being deleted during a refresh [GH-8267]
