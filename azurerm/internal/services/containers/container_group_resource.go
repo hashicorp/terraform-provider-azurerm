@@ -71,10 +71,9 @@ func resourceArmContainerGroup() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 				/* Container groups deployed to a virtual network don't currently support exposing containers directly to the internet with a public IP address or a fully qualified domain name.
 				 * Name resolution for Azure resources in the virtual network via the internal Azure DNS is not supported
-				 * You cannot use a managed identity in a container group deployed to a virtual network.
 				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
 				 * https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#preview-limitations */
-				ConflictsWith: []string{"dns_name_label", "identity"},
+				ConflictsWith: []string{"dns_name_label"},
 			},
 
 			"os_type": {
