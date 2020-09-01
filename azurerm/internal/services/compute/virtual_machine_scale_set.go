@@ -1421,51 +1421,45 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 	}
 
 	for k, v := range *input.Extensions {
-		ext := make(map[string]interface{})
 		name := ""
 		if v.Name != nil {
 			name = *v.Name
 		}
-		ext["name"] = name
+
+		autoUpgradeMinorVersion := false
+		forceUpdateTag := ""
+		provisionAfterExtension := make([]interface{}, 0)
+		protectedSettings := ""
+		extPublisher := ""
+		extSettings := ""
+		extType := ""
+		extTypeVersion := ""
 
 		if props := v.VirtualMachineScaleSetExtensionProperties; props != nil {
-			extPublisher := ""
 			if props.Publisher != nil {
 				extPublisher = *props.Publisher
 			}
-			ext["publisher"] = extPublisher
 
-			extType := ""
 			if props.Type != nil {
 				extType = *props.Type
 			}
-			ext["type"] = extType
 
-			extTypeVersion := ""
 			if props.TypeHandlerVersion != nil {
 				extTypeVersion = *props.TypeHandlerVersion
 			}
-			ext["type_handler_version"] = extTypeVersion
 
-			autoUpgradeMinorVersion := false
 			if props.AutoUpgradeMinorVersion != nil {
 				autoUpgradeMinorVersion = *props.AutoUpgradeMinorVersion
 			}
-			ext["auto_upgrade_minor_version"] = autoUpgradeMinorVersion
 
-			forceUpdateTag := ""
 			if props.ForceUpdateTag != nil {
 				forceUpdateTag = *props.ForceUpdateTag
 			}
-			ext["force_update_tag"] = forceUpdateTag
 
-			provisionAfterExtension := make([]interface{}, 0)
 			if props.ProvisionAfterExtensions != nil {
 				provisionAfterExtension = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
 			}
-			ext["provision_after_extensions"] = provisionAfterExtension
 
-			extSettings := ""
 			if props.Settings != nil {
 				extSettingsRaw, err := structure.FlattenJsonToString(props.Settings.(map[string]interface{}))
 				if err != nil {
@@ -1473,18 +1467,25 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 				}
 				extSettings = extSettingsRaw
 			}
-			ext["settings"] = extSettings
-
-			// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
-			protectedSettings := ""
-			if protectedSettingsFromConfig, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
-				if protectedSettingsFromConfig.(string) != "" && protectedSettingsFromConfig.(string) != "{}" {
-					protectedSettings = protectedSettingsFromConfig.(string)
-				}
-			}
-			ext["protected_settings"] = protectedSettings
 		}
-		result = append(result, ext)
+		// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
+		if protectedSettingsFromConfig, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
+			if protectedSettingsFromConfig.(string) != "" && protectedSettingsFromConfig.(string) != "{}" {
+				protectedSettings = protectedSettingsFromConfig.(string)
+			}
+		}
+
+		result = append(result, map[string]interface{}{
+			"name":                       name,
+			"auto_upgrade_minor_version": autoUpgradeMinorVersion,
+			"force_update_tag":           forceUpdateTag,
+			"provision_after_extensions": provisionAfterExtension,
+			"protected_settings":         protectedSettings,
+			"publisher":                  extPublisher,
+			"settings":                   extSettings,
+			"type":                       extType,
+			"type_handler_version":       extTypeVersion,
+		})
 	}
 	return result, nil
 }
