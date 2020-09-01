@@ -7,13 +7,13 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-azure-helpers/resourceproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
+	rmResourceProviders "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
 )
 
 // since this depends on GetAuthConfig which lives in this package
 // unfortunately this has to live in a different package to the other func
 
-func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
+func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	config := GetAuthConfig(t)
 	if config == nil {
 		return
@@ -43,8 +43,8 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	}
 
 	availableResourceProviders := providerList.Values()
-	requiredResourceProviders := provider.RequiredResourceProviders()
-	err = provider.EnsureResourceProvidersAreRegistered(ctx, *client, availableResourceProviders, requiredResourceProviders)
+	requiredResourceProviders := rmResourceProviders.Required()
+	err = rmResourceProviders.EnsureRegistered(ctx, *client, availableResourceProviders, requiredResourceProviders)
 	if err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}
