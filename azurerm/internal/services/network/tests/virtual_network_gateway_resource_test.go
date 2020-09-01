@@ -217,9 +217,9 @@ func TestAccAzureRMVirtualNetworkGateway_vpnClientConfigAzureAdAuth(t *testing.T
 				Config: testAccAzureRMVirtualNetworkGateway_vpnClientConfigAzureAdAuth(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "vpn_client_configuration.0.aad_tenant"),
+					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_tenant", fmt.Sprintf("https://login.microsoftonline.com/%s/", data.Client().TenantID)),
 					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_audience", "41b23e61-6c1e-4545-b367-cd054e0ed4b4"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "vpn_client_configuration.0.aad_issuer"),
+					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.aad_issuer", fmt.Sprintf("https://sts.windows.net/%s/", data.Client().TenantID)),
 					resource.TestCheckResourceAttr(data.ResourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "1"),
 				),
 			},
@@ -653,9 +653,6 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -702,12 +699,12 @@ resource "azurerm_virtual_network_gateway" "test" {
     address_space        = ["10.2.0.0/24"]
     vpn_client_protocols = ["OpenVPN"]
 
-    aad_tenant = format("https://login.microsoftonline.com/%s/", data.azurerm_client_config.current.tenant_id)
+    aad_tenant   = "https://login.microsoftonline.com/%s/"
     aad_audience = "41b23e61-6c1e-4545-b367-cd054e0ed4b4"
-    aad_issuer = format("https://sts.windows.net/%s/", data.azurerm_client_config.current.tenant_id)
+    aad_issuer   = "https://sts.windows.net/%s/"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
 }
 
 func testAccAzureRMVirtualNetworkGateway_vpnClientConfigOpenVPN(data acceptance.TestData) string {
