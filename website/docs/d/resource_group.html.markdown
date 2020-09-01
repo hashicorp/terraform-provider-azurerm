@@ -1,5 +1,5 @@
 ---
-subcategory: "Base"
+subcategory: "TODO - pick from: Base|Management|Template"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_resource_group"
 description: |-
@@ -26,7 +26,7 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The Name of this Resource Group.
+* `name` - (Required) The name of this Resource Group.
 
 ## Attributes Reference
 
