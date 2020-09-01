@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -119,11 +118,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 		for _, existingPool := range *p.LoadBalancerBackendAddressPools {
 			if id := existingPool.ID; id != nil {
 				if *id == backendAddressPoolId {
-					if features.ShouldResourcesBeImported() {
-						return tf.ImportAsExistsError("azurerm_network_interface_backend_address_pool_association", resourceId)
-					}
-
-					continue
+					return tf.ImportAsExistsError("azurerm_network_interface_backend_address_pool_association", resourceId)
 				}
 
 				pools = append(pools, existingPool)

@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -167,7 +166,7 @@ func resourceArmIotHubDPSSharedAccessPolicyCreateUpdate(d *schema.ResourceData, 
 		existingAccessPolicy := accessPolicyIterator.Value()
 
 		if strings.EqualFold(*existingAccessPolicy.KeyName, keyName) {
-			if features.ShouldResourcesBeImported() && d.IsNewResource() {
+			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_iothub_dps_shared_access_policy", resourceID)
 			}
 			accessPolicies = append(accessPolicies, expandedAccessPolicy)

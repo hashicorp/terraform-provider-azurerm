@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -104,10 +103,8 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 
 	name := d.Get("name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		if connection, _ := findVirtualHubConnection(name, virtualHub); connection != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_hub_connection", *connection.ID)
-		}
+	if connection, _ := findVirtualHubConnection(name, virtualHub); connection != nil {
+		return tf.ImportAsExistsError("azurerm_virtual_hub_connection", *connection.ID)
 	}
 
 	props := *virtualHub.VirtualHubProperties
