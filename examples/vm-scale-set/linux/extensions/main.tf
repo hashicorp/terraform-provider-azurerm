@@ -54,11 +54,19 @@ resource "azurerm_linux_virtual_machine_scale_set" "main" {
     caching              = "ReadWrite"
   }
 
-  # NOTE: whilst you can specify multiple disks, the LUN needs to be unique for each
-  data_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-    disk_size_gb         = 10
-    lun                  = 10
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Azure.Extensions"
+    type                       = "CustomScript"
+    type_handler_version       = "2.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
   }
 }

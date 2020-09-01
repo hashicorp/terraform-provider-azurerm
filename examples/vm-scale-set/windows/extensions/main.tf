@@ -30,9 +30,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "main" {
   admin_username       = "adminuser"
   admin_password       = "P@ssw0rd1234!"
   computer_name_prefix = var.prefix
-  eviction_policy      = "Delete"
-  priority             = "Spot"
-  max_bid_price        = 0.5
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -56,4 +53,25 @@ resource "azurerm_windows_virtual_machine_scale_set" "main" {
     storage_account_type = "Standard_LRS"
     caching              = "ReadWrite"
   }
+
+  extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Compute"
+    type                       = "CustomScriptExtension"
+    type_handler_version       = "1.10"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({ "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\"" })
+
+    protected_settings = jsonencode({ "managedIdentity" = {} })
+  }
+
+  extension {
+    name                       = "AADLoginForWindows"
+    publisher                  = "Microsoft.Azure.ActiveDirectory"
+    type                       = "AADLoginForWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+  }
+
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -135,6 +136,8 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 					string(compute.Delete),
 				}, false),
 			},
+
+			"extension": VirtualMachineScaleSetExtensionsSchema(),
 
 			"health_probe_id": {
 				Type:         schema.TypeString,
@@ -262,15 +265,15 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	exists, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error checking for existing Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		if !utils.ResponseWasNotFound(exists.Response) {
+			return fmt.Errorf("checking for existing Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(resp.Response) {
-		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", *resp.ID)
+	if !utils.ResponseWasNotFound(exists.Response) {
+		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", *exists.ID)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -394,6 +397,15 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 		},
 	}
 
+	if features.VMSSExtensionsBeta() {
+		if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
+			virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	if adminPassword, ok := d.GetOk("admin_password"); ok {
 		virtualMachineProfile.OsProfile.AdminPassword = utils.String(adminPassword.(string))
 	}
@@ -488,7 +500,7 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
 
 	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-	resp, err = client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -728,6 +740,18 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		update.Sku = sku
 	}
 
+	if features.VMSSExtensionsBeta() {
+		if d.HasChange("extension") {
+			updateInstances = true
+
+			extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+			if err != nil {
+				return err
+			}
+			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
+		}
+	}
+
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -904,6 +928,14 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 			if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
 				return fmt.Errorf("Error setting `terminate_notification`: %+v", err)
 			}
+		}
+
+		if features.VMSSExtensionsBeta() {
+			extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
+			if err != nil {
+				return fmt.Errorf("failed flattening `extension`: %+v", err)
+			}
+			d.Set("extension", extensionProfile)
 		}
 	}
 
