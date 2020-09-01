@@ -24,7 +24,7 @@ resource "azurerm_service_fabric_cluster" "example" {
   location             = azurerm_resource_group.example.location
   reliability_level    = "Bronze"
   upgrade_mode         = "Manual"
-  cluster_code_version = "6.5.639.9590"
+  cluster_code_version = "7.1.456.959"
   vm_image             = "Windows"
   management_endpoint  = "https://example:80"
 
@@ -36,7 +36,7 @@ resource "azurerm_service_fabric_cluster" "example" {
     http_endpoint_port   = 80
   }
 }
-}
+
 ```
 ## Argument Reference
 
