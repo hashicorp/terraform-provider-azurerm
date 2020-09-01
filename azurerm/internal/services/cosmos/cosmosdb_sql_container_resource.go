@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
@@ -126,19 +125,17 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 	account := d.Get("account_name").(string)
 	partitionkeypaths := d.Get("partition_key_path").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", name, account, database, err)
-			}
-		} else {
-			if existing.ID == nil && *existing.ID == "" {
-				return fmt.Errorf("Error generating import ID for Cosmos SQL Container %q (Account: %q, Database: %q)", name, account, database)
-			}
-
-			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_container", *existing.ID)
+	existing, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of creating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", name, account, database, err)
 		}
+	} else {
+		if existing.ID == nil && *existing.ID == "" {
+			return fmt.Errorf("Error generating import ID for Cosmos SQL Container %q (Account: %q, Database: %q)", name, account, database)
+		}
+
+		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_container", *existing.ID)
 	}
 
 	db := documentdb.SQLContainerCreateUpdateParameters{

@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,7 +27,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Default:  false,
 				},
 
-				"cors": azure.SchemaWebCorsSettings(),
+				"cors": SchemaWebCorsSettings(),
 
 				"ftps_state": {
 					Type:     schema.TypeString,
@@ -135,7 +134,7 @@ func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
 					Computed: true,
 				},
 
-				"cors": azure.SchemaWebCorsSettings(),
+				"cors": SchemaWebCorsSettings(),
 
 				"use_32_bit_worker_process": {
 					Type:     schema.TypeBool,
@@ -328,7 +327,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 
 	if v, ok := config["cors"]; ok {
 		corsSettings := v.(interface{})
-		expand := azure.ExpandWebCorsSettings(corsSettings)
+		expand := ExpandWebCorsSettings(corsSettings)
 		siteConfig.Cors = &expand
 	}
 
@@ -426,7 +425,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
 
-	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
+	result["cors"] = FlattenWebCorsSettings(input.Cors)
 
 	if input.AutoSwapSlotName != nil {
 		result["auto_swap_slot_name"] = *input.AutoSwapSlotName

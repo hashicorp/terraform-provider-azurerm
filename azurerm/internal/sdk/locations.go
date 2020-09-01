@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/Azure/go-autorest/autorest/azure"
 )
 
 type SupportedLocations struct {
@@ -25,7 +27,11 @@ type metaDataResponse struct {
 }
 
 // AvailableAzureLocations returns a list of the Azure Locations which are available on the specified endpoint
-func AvailableAzureLocations(ctx context.Context, endpoint string) (*SupportedLocations, error) {
+func AvailableAzureLocations(ctx context.Context, env *azure.Environment) (*SupportedLocations, error) {
+	// e.g. https://management.azure.com/ but we need management.azure.com
+	endpoint := strings.TrimPrefix(env.ResourceManagerEndpoint, "https://")
+	endpoint = strings.TrimSuffix(endpoint, "/")
+
 	uri := fmt.Sprintf("https://%s//metadata/endpoints?api-version=2018-01-01", endpoint)
 	client := http.Client{
 		Transport: &http.Transport{
@@ -54,7 +60,35 @@ func AvailableAzureLocations(ctx context.Context, endpoint string) (*SupportedLo
 		}
 	}
 
+	// TODO: remove this once Microsoft fixes the API
+	// the Azure API returns the india locations the wrong way around
+	// e.g. 'southindia' is returned as 'indiasouth'
+	// so we need to conditionally switch these out until Microsoft fixes the API
+	// $ az account list-locations -o table | grep india
+	//  Central India             centralindia         (Asia Pacific) Central India
+	//  South India               southindia           (Asia Pacific) South India
+	//  West India                westindia            (Asia Pacific) West India
+	if env.Name == azure.PublicCloud.Name && locations != nil {
+		out := *locations
+		out = switchLocationIfExists("indiacentral", "centralindia", out)
+		out = switchLocationIfExists("indiasouth", "southindia", out)
+		out = switchLocationIfExists("indiawest", "westindia", out)
+		locations = &out
+	}
+
 	return &SupportedLocations{
 		Locations: locations,
 	}, nil
+}
+
+func switchLocationIfExists(find, replace string, locations []string) []string {
+	out := locations
+
+	for i, v := range out {
+		if v == find {
+			out[i] = replace
+		}
+	}
+
+	return locations
 }
