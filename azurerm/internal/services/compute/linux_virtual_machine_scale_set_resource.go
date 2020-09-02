@@ -381,9 +381,6 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority: priority,
-		SecurityProfile: &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
-		},
 		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
 			AdminUsername:      utils.String(d.Get("admin_username").(string)),
 			ComputerNamePrefix: utils.String(computerNamePrefix),
@@ -430,6 +427,12 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 
 	if v, ok := d.GetOk("custom_data"); ok {
 		virtualMachineProfile.OsProfile.CustomData = utils.String(v.(string))
+	}
+
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		}
 	}
 
 	// Azure API: "Authentication using either SSH or by user name and password must be enabled in Linux profile."

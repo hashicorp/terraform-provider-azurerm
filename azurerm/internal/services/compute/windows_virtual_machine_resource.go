@@ -381,9 +381,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
 			},
-			SecurityProfile: &compute.SecurityProfile{
-				EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
-			},
 			OsProfile: &compute.OSProfile{
 				AdminPassword:            utils.String(adminPassword),
 				AdminUsername:            utils.String(adminUsername),
@@ -437,6 +434,12 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
 		params.Host = &compute.SubResource{
 			ID: utils.String(v.(string)),
+		}
+	}
+
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
 		}
 	}
 

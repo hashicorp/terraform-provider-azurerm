@@ -356,9 +356,6 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
 			},
-			SecurityProfile: &compute.SecurityProfile{
-				EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
-			},
 			OsProfile: &compute.OSProfile{
 				AdminUsername:            utils.String(adminUsername),
 				ComputerName:             utils.String(computerName),
@@ -390,6 +387,12 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 			DiagnosticsProfile:     bootDiagnostics,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		}
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
