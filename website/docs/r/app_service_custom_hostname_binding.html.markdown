@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `app_service_name` - (Required) The name of the App Service in which to add the Custom Hostname Binding. Changing this forces a new resource to be created.
 
--> **NOTE:** As the App Service is a family of several services and contains the function app, so Custom Hostname Binding also can be added into the function app.
+-> **NOTE:** As the App Service is a family of services and contains the function app, so Custom Hostname Binding also can be added into the function app.
 
 * `resource_group_name` - (Required) The name of the resource group in which the App Service exists. Changing this forces a new resource to be created.
 
