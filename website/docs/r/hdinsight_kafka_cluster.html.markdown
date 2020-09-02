@@ -322,8 +322,6 @@ A `monitor` block supports the following:
 
 A `rest_proxy` block supports the following:
 
-* `security_group_name` - (Required) The Azure Active Directory Security Group name.
-
 * `security_group_id` - (Required) The Azure Active Directory Security Group ID.
 
 

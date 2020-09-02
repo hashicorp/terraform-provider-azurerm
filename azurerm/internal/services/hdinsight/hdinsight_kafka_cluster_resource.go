@@ -1,9 +1,12 @@
 package hdinsight
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
@@ -126,11 +129,6 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"security_group_name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
 						"security_group_id": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -165,6 +163,7 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interface{}) error {
+	groupClient := meta.(*clients.Client).AzureAD.GroupsClient
 	client := meta.(*clients.Client).HDInsight.ClustersClient
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -222,6 +221,11 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
+	kafkaRestProperty, err := expandKafkaRestProxyProperty(ctx, groupClient, d.Get("rest_proxy").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding kafka rest proxy property")
+	}
+
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
@@ -240,11 +244,12 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
-			KafkaRestProperties: expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{})),
+			KafkaRestProperties: kafkaRestProperty,
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
 	}
+
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("failure creating HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -390,18 +395,28 @@ func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface
 	}
 }
 
-func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestProperties {
+func expandKafkaRestProxyProperty(ctx context.Context, client *graphrbac.GroupsClient, input []interface{}) (*hdinsight.KafkaRestProperties, error) {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return nil, nil
 	}
 
 	raw := input[0].(map[string]interface{})
+	groupId := raw["security_group_id"].(string)
+
+	// Current API requires users further specify the "security_group_name" in the client group info of the kafka rest property,
+	// which is unnecessary as user already specify the "security_group_id".
+	// https://github.com/Azure/azure-rest-api-specs/issues/10667
+	res, err := client.Get(ctx, groupId)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving AAD gruop %s: %v", groupId, err)
+	}
+
 	return &hdinsight.KafkaRestProperties{
 		ClientGroupInfo: &hdinsight.ClientGroupInfo{
-			GroupName: utils.String(raw["security_group_name"].(string)),
-			GroupID:   utils.String(raw["security_group_id"].(string)),
+			GroupID:   &groupId,
+			GroupName: res.DisplayName,
 		},
-	}
+	}, nil
 }
 
 func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []interface{} {
@@ -410,11 +425,6 @@ func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []inter
 	}
 
 	groupInfo := input.ClientGroupInfo
-
-	groupName := ""
-	if groupInfo.GroupName != nil {
-		groupName = *groupInfo.GroupName
-	}
 	groupId := ""
 	if groupInfo.GroupID != nil {
 		groupId = *groupInfo.GroupID
@@ -422,8 +432,7 @@ func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []inter
 
 	return []interface{}{
 		map[string]interface{}{
-			"security_group_name": groupName,
-			"security_group_id":   groupId,
+			"security_group_id": groupId,
 		},
 	}
 }
