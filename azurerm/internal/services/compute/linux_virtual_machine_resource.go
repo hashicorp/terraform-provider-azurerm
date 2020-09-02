@@ -860,6 +860,14 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		update.VirtualMachineProperties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 	}
 
+	if d.HasChange("encryption_at_host_enabled") {
+		shouldUpdate = true
+
+		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		}
+	}
+
 	if instanceView.Statuses != nil {
 		for _, status := range *instanceView.Statuses {
 			if status.Code == nil {

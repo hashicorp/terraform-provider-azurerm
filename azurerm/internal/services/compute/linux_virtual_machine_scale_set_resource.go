@@ -713,6 +713,15 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
+	if d.HasChange("encryption_at_host_enabled") {
+		updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		}
+		//if encryptionAtHostEnabled := d.Get("encryption_at_host_enabled").(bool); encryptionAtHostEnabled {
+		//	updateProps.VirtualMachineProfile.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled)
+		//}
+	}
+
 	if d.HasChange("automatic_instance_repair") {
 		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 		updateProps.AutomaticRepairsPolicy = ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
