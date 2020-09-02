@@ -19,7 +19,8 @@ data "azurerm_function_app_host_keys" "example" {
 }
 ```
 
-~> **Note:** The unencrypted value of FunctionKeys, MasterKey and SystemKeys will be stored in the raw state as plain-text.
+~> **Note:** All arguments including the secret value will be stored in the raw state as plain-text.
+[Read more about sensitive data in state](/docs/state/sensitive-data.html).asterKey and SystemKeys will be stored in the raw state as plain-text.
 
 ## Argument Reference
 
