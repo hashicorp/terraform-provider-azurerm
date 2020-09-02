@@ -2,13 +2,19 @@
 
 ENHANCEMENTS:
 
+**Opt-In beta:** This release introduces an opt-in beta for in-line Virtual Machine Scale Set Extensions. This functionality enables the resource to be used with Azure Service Fabric and other extensions that may require creation time inclusion on Scale Set members.  Please see the documentation for `azurerm_windows_virtual_machine_scale_set` and `azurerm_linux_virtual_machine_scale_set` for information.
+
 * dependencies: updating `loganalytics` to `2020-03-01-preview` [GH-8234]
 * `azurerm_api_management_subscription` - Support `allow_tracing property` [GH-7969]
 * `azurerm_application_gateway ` - Add support for `probe.properties.port` [GH-8278]
+* `azurerm_linux_virtual_machine_scale_set` - Beta support for `extension` blocks [GH-8222]
 * `azurerm_log_analytics_workspace`- the `sku` value is now optional and defaults to `PerGB2018` [GH-8272]
+* `azurerm_windows_virtual_machine_scale_set` - Beta support for `extension` blocks [GH-8222]
 
 BUG FIXES:
 
+* `azurerm_key_vault_key` - updating the latest version of the key when updating metadata [GH-8304]
+* `azurerm_key_vault_secret` - updating the latest version of the secret when updating metadata [GH-8304]
 * `azurerm_linux_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) [GH-8001]
 * `azurerm_network_interface_application_gateway_association` - handling the Network Interface being deleted during a refresh [GH-8267]
 * `azurerm_network_interface_application_security_group_association` - handling the Network Interface being deleted during a refresh [GH-8267]

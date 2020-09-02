@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -301,7 +300,7 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 	}
 	times := append(make([]date.Time, 0), date.Time{Time: dateOfDay})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err2 := client.Get(ctx, vaultName, resourceGroup, policyName)
 		if err2 != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
