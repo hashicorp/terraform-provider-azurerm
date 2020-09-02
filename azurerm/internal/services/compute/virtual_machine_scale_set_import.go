@@ -3,6 +3,8 @@ package compute
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -94,6 +96,23 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 
 		if !hasSshKeys {
 			d.Set("admin_password", "ignored-as-imported")
+		}
+
+		if features.VMSSExtensionsBeta() {
+			if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.ExtensionProfile != nil {
+				if extensionsProfile := vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.ExtensionProfile; extensionsProfile != nil {
+					for _, v := range *extensionsProfile.Extensions {
+						v.ProtectedSettings = ""
+					}
+					updatedExtensions, err := flattenVirtualMachineScaleSetExtensions(extensionsProfile, d)
+					if err != nil {
+						return []*schema.ResourceData{}, fmt.Errorf("could not read VMSS extensions data for %q (resource group %q)", id.Name, id.ResourceGroup)
+					}
+					d.Set("extension", updatedExtensions)
+				}
+			}
+		} else {
+			d.Set("extension", []map[string]interface{}{})
 		}
 
 		return []*schema.ResourceData{d}, nil

@@ -28,6 +28,7 @@ Databricks
 Dev Test
 DevSpace
 HDInsight
+Hardware Security Module
 Healthcare
 IoT Central
 IoT Hub
@@ -59,5 +60,6 @@ Service Fabric
 Spring Cloud
 Storage
 Stream Analytics
+Synapse
 Template
 Time Series Insights

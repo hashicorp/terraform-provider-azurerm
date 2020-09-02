@@ -173,7 +173,7 @@ The following arguments are supported:
 
 A `additional_capabilities` block supports the following:
 
-* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`. Changing this forces a new resource to be created.
+* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`.
 
 ---
 
@@ -259,6 +259,18 @@ A `secret` block supports the following:
 
 ---
 
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+
+---
+
 A `winrm_listener` block supports the following:
 
 * `Protocol` - (Required) Specifies Specifies the protocol of listener. Possible values are `Http` or `Https`
@@ -290,18 +302,6 @@ An `identity` block exports the following:
 * `principal_id` - The ID of the System Managed Service Principal.
 
 * `tenant_id` - The ID of the Tenant the System Managed Service Principal is assigned in.
-
----
-
-`source_image_reference` supports the following:
-
-* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
-
-* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
-
-* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
-
-* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ## Timeouts
 

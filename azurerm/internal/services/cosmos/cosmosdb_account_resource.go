@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
@@ -103,6 +104,13 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				),
 			},
 
+			"enable_free_tier": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"enable_automatic_failover": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -168,7 +176,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Computed: true,
 						},
 
-						"location": azure.SchemaLocationWithoutForceNew(),
+						"location": location.SchemaWithoutForceNew(),
 
 						"failover_priority": {
 							Type:         schema.TypeInt,
@@ -198,6 +206,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								"EnableMongo",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
+								"DisableRateLimitingResponses",
 							}, true),
 						},
 					},
@@ -325,6 +334,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
+	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 
@@ -351,6 +361,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			DatabaseAccountOfferType:      utils.String(offerType),
 			IPRules:                       common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
+			EnableFreeTier:                utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                     &geoLocations,
@@ -403,6 +414,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
+	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 
@@ -439,6 +451,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			DatabaseAccountOfferType:      utils.String(offerType),
 			IPRules:                       common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
+			EnableFreeTier:                utils.Bool(enableFreeTier),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
@@ -537,6 +550,8 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
 	d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(resp.IPRules))
 	d.Set("endpoint", resp.DocumentEndpoint)
+
+	d.Set("enable_free_tier", resp.EnableFreeTier)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 )
 
@@ -12,8 +13,8 @@ var supportedLocations *[]string
 
 // CacheSupportedLocations attempts to retrieve the supported locations from the Azure MetaData Service
 // and caches them, for used in enhanced validation
-func CacheSupportedLocations(ctx context.Context, endpoint string) {
-	locs, err := sdk.AvailableAzureLocations(ctx, endpoint)
+func CacheSupportedLocations(ctx context.Context, env *azure.Environment) {
+	locs, err := sdk.AvailableAzureLocations(ctx, env)
 	if err != nil {
 		log.Printf("[DEBUG] error retrieving locations: %s. Enhanced validation will be unavailable", err)
 		return

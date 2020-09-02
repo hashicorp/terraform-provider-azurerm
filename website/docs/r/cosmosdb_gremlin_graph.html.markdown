@@ -50,6 +50,8 @@ resource "azurerm_cosmosdb_gremlin_graph" "example" {
 }
 ```
 
+-> **NOTE:** The CosmosDB Account needs to have the `EnableGremlin` capability enabled to use this resource - which can be done by adding this to the `capabilities` list within the `azurerm_cosmosdb_account` resource.
+
 ## Argument Reference
 
 The following arguments are supported:

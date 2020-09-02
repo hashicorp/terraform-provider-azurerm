@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -119,7 +118,7 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 	for _, existingEndpoint := range *routing.Endpoints.EventHubs {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, endpointName) {
-				if d.IsNewResource() && features.ShouldResourcesBeImported() {
+				if d.IsNewResource() {
 					return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", resourceId)
 				}
 				endpoints = append(endpoints, eventhubEndpoint)

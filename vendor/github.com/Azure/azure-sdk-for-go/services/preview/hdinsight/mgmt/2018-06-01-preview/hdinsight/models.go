@@ -516,6 +516,12 @@ type AutoscaleCapacity struct {
 	MaxInstanceCount *int32 `json:"maxInstanceCount,omitempty"`
 }
 
+// AutoscaleConfigurationUpdateParameter the autoscale configuration update parameter.
+type AutoscaleConfigurationUpdateParameter struct {
+	// Autoscale - The autoscale configuration.
+	Autoscale *Autoscale `json:"autoscale,omitempty"`
+}
+
 // AutoscaleRecurrence schedule-based autoscale request parameters
 type AutoscaleRecurrence struct {
 	// TimeZone - The time zone for the autoscale schedule times
@@ -732,6 +738,8 @@ type ClusterCreateProperties struct {
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// DiskEncryptionProperties - The disk encryption properties.
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
+	// EncryptionInTransitProperties - The encryption-in-transit properties.
+	EncryptionInTransitProperties *EncryptionInTransitProperties `json:"encryptionInTransitProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
 	// NetworkSettings - The network settings.
@@ -808,6 +816,8 @@ type ClusterGetProperties struct {
 	ConnectivityEndpoints *[]ConnectivityEndpoint `json:"connectivityEndpoints,omitempty"`
 	// DiskEncryptionProperties - The disk encryption properties.
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
+	// EncryptionInTransitProperties - The encryption-in-transit properties.
+	EncryptionInTransitProperties *EncryptionInTransitProperties `json:"encryptionInTransitProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
 	// NetworkSettings - The network settings.
@@ -1167,6 +1177,29 @@ func (future *ClustersRotateDiskEncryptionKeyFuture) Result(client ClustersClien
 	return
 }
 
+// ClustersUpdateAutoScaleConfigurationFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ClustersUpdateAutoScaleConfigurationFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ClustersUpdateAutoScaleConfigurationFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersUpdateAutoScaleConfigurationFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateAutoScaleConfigurationFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ClustersUpdateGatewaySettingsFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type ClustersUpdateGatewaySettingsFuture struct {
@@ -1263,6 +1296,12 @@ type DiskEncryptionProperties struct {
 	EncryptionAlgorithm JSONWebKeyEncryptionAlgorithm `json:"encryptionAlgorithm,omitempty"`
 	// MsiResourceID - Resource ID of Managed Identity that is used to access the key vault.
 	MsiResourceID *string `json:"msiResourceId,omitempty"`
+}
+
+// EncryptionInTransitProperties the encryption-in-transit properties.
+type EncryptionInTransitProperties struct {
+	// IsEncryptionInTransitEnabled - Indicates whether or not inter cluster node communication is encrypted in transit.
+	IsEncryptionInTransitEnabled *bool `json:"isEncryptionInTransitEnabled,omitempty"`
 }
 
 // ErrorResponse describes the format of Error response.

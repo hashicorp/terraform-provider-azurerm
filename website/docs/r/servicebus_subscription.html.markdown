@@ -76,6 +76,8 @@ The following arguments are supported:
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward Dead Letter messages to.
 
+* `status` - (Optional) The status of the Subscription. Possible values are `Active`,`ReceiveDisabled`, or `Disabled`. Defaults to `Active`.
+
 ## Attributes Reference
 
 The following attributes are exported:

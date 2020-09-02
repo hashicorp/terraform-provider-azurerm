@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -364,7 +363,7 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -646,18 +645,19 @@ func expandAzureRmMonitorAutoScaleSettingNotifications(input []interface{}) *[]i
 	for _, v := range input {
 		notificationRaw := v.(map[string]interface{})
 
-		emailsRaw := notificationRaw["email"].([]interface{})
-		emailRaw := emailsRaw[0].(map[string]interface{})
-		email := expandAzureRmMonitorAutoScaleSettingNotificationEmail(emailRaw)
-
 		configsRaw := notificationRaw["webhook"].([]interface{})
 		webhooks := expandAzureRmMonitorAutoScaleSettingNotificationWebhook(configsRaw)
 
 		notification := insights.AutoscaleNotification{
-			Email:     email,
 			Operation: utils.String("scale"),
 			Webhooks:  webhooks,
 		}
+
+		emailsRaw := notificationRaw["email"].([]interface{})
+		if len(emailsRaw) > 0 && emailsRaw[0] != nil {
+			notification.Email = expandAzureRmMonitorAutoScaleSettingNotificationEmail(emailsRaw[0].(map[string]interface{}))
+		}
+
 		notifications = append(notifications, notification)
 	}
 
@@ -685,6 +685,9 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 	webhooks := make([]insights.WebhookNotification, 0)
 
 	for _, v := range input {
+		if v == nil {
+			continue
+		}
 		webhookRaw := v.(map[string]interface{})
 
 		webhook := insights.WebhookNotification{

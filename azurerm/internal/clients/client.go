@@ -37,6 +37,7 @@ import (
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
+	hsm "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm/client"
 	iotcentral "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
 	timeseriesinsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/client"
@@ -78,6 +79,7 @@ import (
 	storage "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
 	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
+	synapse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/client"
 	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
 	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
 )
@@ -118,6 +120,7 @@ type Client struct {
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Frontdoor             *frontdoor.Client
+	HSM                   *hsm.Client
 	HDInsight             *hdinsight.Client
 	HealthCare            *healthcare.Client
 	IoTCentral            *iotcentral.Client
@@ -161,6 +164,7 @@ type Client struct {
 	StreamAnalytics       *streamAnalytics.Client
 	Subscription          *subscription.Client
 	Sql                   *sql.Client
+	Synapse               *synapse.Client
 	TrafficManager        *trafficManager.Client
 	Web                   *web.Client
 }
@@ -202,6 +206,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
+	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
 	client.IoTCentral = iotcentral.NewClient(o)
@@ -245,6 +250,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Storage = storage.NewClient(o)
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
+	client.Synapse = synapse.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.Web = web.NewClient(o)
 

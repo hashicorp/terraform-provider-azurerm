@@ -47,6 +47,8 @@ The following attributes are exported:
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
+* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account.
+
 * `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
 
 * `capabilities` - Capabilities enabled on this Cosmos DB account.

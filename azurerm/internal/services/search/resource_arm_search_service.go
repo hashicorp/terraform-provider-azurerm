@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
+	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -103,6 +102,12 @@ func resourceArmSearchService() *schema.Resource {
 				},
 			},
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -117,9 +122,15 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
+
+	publicNetworkAccess := search.Enabled
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		publicNetworkAccess = search.Disabled
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, nil)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -137,8 +148,10 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		Sku: &search.Sku{
 			Name: search.SkuName(skuName),
 		},
-		ServiceProperties: &search.ServiceProperties{},
-		Tags:              tags.Expand(t),
+		ServiceProperties: &search.ServiceProperties{
+			PublicNetworkAccess: publicNetworkAccess,
+		},
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
@@ -204,6 +217,8 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		if count := props.ReplicaCount; count != nil {
 			d.Set("replica_count", int(*count))
 		}
+
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess != "Disabled")
 	}
 
 	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
@@ -216,7 +231,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	queryKeysClient := meta.(*clients.Client).Search.QueryKeysClient
 	queryKeysResp, err := queryKeysClient.ListBySearchService(ctx, id.ResourceGroup, id.Name, nil)
 	if err == nil {
-		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Value))
+		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Values()))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -245,10 +260,10 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func flattenSearchQueryKeys(input *[]search.QueryKey) []interface{} {
+func flattenSearchQueryKeys(input []search.QueryKey) []interface{} {
 	results := make([]interface{}, 0)
 
-	for _, v := range *input {
+	for _, v := range input {
 		result := make(map[string]interface{})
 
 		if v.Name != nil {
