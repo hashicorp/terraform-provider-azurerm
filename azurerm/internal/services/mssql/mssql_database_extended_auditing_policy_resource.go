@@ -22,6 +22,7 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicy() *schema.Resource {
 		Read:   resourceArmMsSqlDatabaseExtendedAuditingPolicyRead,
 		Update: resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate,
 		Delete: resourceArmMsSqlDatabaseExtendedAuditingPolicyDelete,
+
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.MssqlDatabaseExtendedAuditingPolicyID(id)
 			return err

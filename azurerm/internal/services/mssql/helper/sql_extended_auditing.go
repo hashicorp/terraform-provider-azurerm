@@ -12,7 +12,7 @@ func ExtendedAuditingSchema() *schema.Schema {
 		Type:       schema.TypeList,
 		Optional:   true,
 		Computed:   true,
-		Deprecated: "all `extended_auditing_policy` properties have been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
+		Deprecated: "the `extended_auditing_policy` block has been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
 		ConfigMode: schema.SchemaConfigModeAttr,
 		MaxItems:   1,
 		Elem: &schema.Resource{
