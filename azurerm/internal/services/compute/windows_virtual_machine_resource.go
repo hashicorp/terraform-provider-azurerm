@@ -657,6 +657,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	encryptionAtHostEnabled := false
+	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
+		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	}
+	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+
 	d.Set("virtual_machine_id", props.VMID)
 
 	zone := ""

@@ -1007,6 +1007,12 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 			}
 			d.Set("extension", extensionProfile)
 		}
+
+		encryptionAtHostEnabled := false
+		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
+			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+		}
+		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 	}
 
 	if err := d.Set("zones", resp.Zones); err != nil {

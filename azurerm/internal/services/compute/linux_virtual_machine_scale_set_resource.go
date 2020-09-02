@@ -948,6 +948,12 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 			}
 			d.Set("extension", extensionProfile)
 		}
+
+		encryptionAtHostEnabled := false
+		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
+			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+		}
+		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 	}
 
 	if policy := props.UpgradePolicy; policy != nil {
