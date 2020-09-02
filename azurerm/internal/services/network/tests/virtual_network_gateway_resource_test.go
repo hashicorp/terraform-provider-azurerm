@@ -680,7 +680,6 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  depends_on          = [azurerm_public_ip.test]
   name                = "acctestvng-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
