@@ -560,9 +560,22 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 	if existing.VirtualMachineScaleSetProperties == nil {
 		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
+	if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
+		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
+	}
+	if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile == nil {
+		return fmt.Errorf("Error retrieving Windows Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile,storageProfile` was nil", id.Name, id.ResourceGroup)
+	}
 
 	updateProps := compute.VirtualMachineScaleSetUpdateProperties{
-		VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{},
+		VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{
+			// if an image reference has been configured previously (it has to be), we would better to include that in this
+			// update request to avoid some circumstances that the API will complain ImageReference is null
+			// issue tracking: https://github.com/Azure/azure-rest-api-specs/issues/10322
+			StorageProfile: &compute.VirtualMachineScaleSetUpdateStorageProfile{
+				ImageReference: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.ImageReference,
+			},
+		},
 		// if an upgrade policy's been configured previously (which it will have) it must be threaded through
 		// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
 		UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
@@ -664,16 +677,18 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 		updateInstances = true
 
-		storageProfile := &compute.VirtualMachineScaleSetUpdateStorageProfile{}
+		if updateProps.VirtualMachineProfile.StorageProfile == nil {
+			updateProps.VirtualMachineProfile.StorageProfile = &compute.VirtualMachineScaleSetUpdateStorageProfile{}
+		}
 
 		if d.HasChange("data_disk") {
 			dataDisksRaw := d.Get("data_disk").([]interface{})
-			storageProfile.DataDisks = ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
+			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
 		}
 
 		if d.HasChange("os_disk") {
 			osDiskRaw := d.Get("os_disk").([]interface{})
-			storageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
+			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 		}
 
 		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
@@ -684,10 +699,8 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 				return err
 			}
 
-			storageProfile.ImageReference = sourceImageReference
+			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 		}
-
-		updateProps.VirtualMachineProfile.StorageProfile = storageProfile
 	}
 
 	if d.HasChange("network_interface") {
