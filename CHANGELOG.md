@@ -1,8 +1,10 @@
 ## 2.26.0 (Unreleased)
 
-ENHANCEMENTS:
+UPGRADE NOTES:
 
 **Opt-In beta:** This release introduces an opt-in beta for in-line Virtual Machine Scale Set Extensions. This functionality enables the resource to be used with Azure Service Fabric and other extensions that may require creation time inclusion on Scale Set members.  Please see the documentation for `azurerm_windows_virtual_machine_scale_set` and `azurerm_linux_virtual_machine_scale_set` for information.
+
+ENHANCEMENTS:
 
 * dependencies: updating `loganalytics` to `2020-03-01-preview` [GH-8234]
 * `azurerm_api_management_subscription` - Support `allow_tracing property` [GH-7969]
@@ -13,6 +15,8 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cdn_endpoint` - fixing the casing of the Resource ID to be consistent [GH-8237]
+* `azurerm_cdn_profile` - fixing the casing of the Resource ID to be consistent [GH-8237]
 * `azurerm_key_vault_key` - updating the latest version of the key when updating metadata [GH-8304]
 * `azurerm_key_vault_secret` - updating the latest version of the secret when updating metadata [GH-8304]
 * `azurerm_linux_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) [GH-8001]
