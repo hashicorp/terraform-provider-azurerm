@@ -71,7 +71,7 @@ func dataSourceArmFunctionAppHostKeysRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("master_key", res.MasterKey)
-	
+
 	defaultFunctionKey := ""
 	if v, ok := res.FunctionKeys["default"]; ok {
 		defaultFunctionKey = *v
