@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `api_name` - (Required) The name of the API on which to configure the Diagnostics Logs. Changing this forces a new API Management Service API Diagnostics Logs to be created.
 
-* `identifier` - (Required) Identifier of the Diagnostics Logs. Changing this forces a new API Management Service API Diagnostics Logs to be created.
+* `identifier` - (Required) Identifier of the Diagnostics Logs. Possible values are `applicationinsights` and `azuremonitor`. Changing this forces a new API Management Service API Diagnostics Logs to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the API Management Service API Diagnostics Logs should exist. Changing this forces a new API Management Service API Diagnostics Logs to be created.
 
@@ -102,7 +102,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-API Management Service API Diagnostics Logss can be imported using the `resource id`, e.g.
+API Management Service API Diagnostics Logs can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_api_management_api_diagnostic.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/diagnostics/diagnostic1/loggers/logger1

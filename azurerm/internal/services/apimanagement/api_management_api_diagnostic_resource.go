@@ -138,7 +138,9 @@ func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta inte
 	d.Set("identifier", resp.Name)
 	d.Set("resource_group_name", diagnosticId.ResourceGroup)
 	d.Set("api_management_name", diagnosticId.ServiceName)
-	d.Set("api_management_logger_id", resp.LoggerID)
+	if props := resp.DiagnosticContractProperties; props != nil {
+		d.Set("api_management_logger_id", props.LoggerID)
+	}
 
 	return nil
 }
