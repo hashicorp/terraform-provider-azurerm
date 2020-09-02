@@ -717,9 +717,6 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 		}
-		//if encryptionAtHostEnabled := d.Get("encryption_at_host_enabled").(bool); encryptionAtHostEnabled {
-		//	updateProps.VirtualMachineProfile.SecurityProfile.EncryptionAtHost = utils.Bool(encryptionAtHostEnabled)
-		//}
 	}
 
 	if d.HasChange("automatic_instance_repair") {
