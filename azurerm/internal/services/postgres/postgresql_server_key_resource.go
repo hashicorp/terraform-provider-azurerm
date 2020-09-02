@@ -122,18 +122,18 @@ func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta int
 
 	future, err := keysClient.CreateOrUpdate(ctx, serverID.Name, *name, param, serverID.ResourceGroup)
 	if err != nil {
-		return fmt.Errorf("creating/updating PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", name, serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("creating/updating PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", *name, serverID.ResourceGroup, serverID.Name, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, keysClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", name, serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("waiting for creation/update of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", *name, serverID.ResourceGroup, serverID.Name, err)
 	}
 
 	resp, err := keysClient.Get(ctx, serverID.ResourceGroup, serverID.Name, *name)
 	if err != nil {
-		return fmt.Errorf("retrieving PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", name, serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("retrieving PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", *name, serverID.ResourceGroup, serverID.Name, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("nil or empty ID returned for PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", name, serverID.ResourceGroup, serverID.Name, err)
+		return fmt.Errorf("nil or empty ID returned for PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", *name, serverID.ResourceGroup, serverID.Name, err)
 	}
 
 	d.SetId(*resp.ID)
