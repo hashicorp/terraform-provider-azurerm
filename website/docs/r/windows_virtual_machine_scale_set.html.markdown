@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `enable_automatic_updates` - (Optional) Are automatic updates enabled for this Virtual Machine? Defaults to `true`.
 
-* `encryption_at_host_enabled` - (Optional) Should Azure encrypt the data stored on the VM host at rest and flows encrypted to the Storage service.
+* `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
