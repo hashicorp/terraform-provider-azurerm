@@ -5,6 +5,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -142,6 +143,38 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "value", "szechuan"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultSecret_updatingValueChangedExternally(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultSecret_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
+					updateKeyVaultSecretValue(data.ResourceName, "mad-scientist"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: testAccAzureRMKeyVaultSecret_updateTags(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+				),
+			},
+			{
+				Config:   testAccAzureRMKeyVaultSecret_updateTags(data),
+				PlanOnly: true,
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -299,6 +332,43 @@ func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.Test
 	}
 }
 
+func updateKeyVaultSecretValue(resourceName, value string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
+		vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+		name := rs.Primary.Attributes["name"]
+		keyVaultId := rs.Primary.Attributes["key_vault_id"]
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+		}
+
+		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		if err != nil {
+			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+		}
+		if !ok {
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			return nil
+		}
+
+		updated := keyvault.SecretSetParameters{
+			Value: utils.String(value),
+		}
+		if _, err = client.SetSecret(ctx, vaultBaseUrl, name, updated); err != nil {
+			return fmt.Errorf("updating secret: %+v", err)
+		}
+		return nil
+	}
+}
+
 func testAccAzureRMKeyVaultSecret_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -345,6 +415,60 @@ resource "azurerm_key_vault_secret" "test" {
   name         = "secret-%s"
   value        = "rick-and-morty"
   key_vault_id = azurerm_key_vault.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultSecret_updateTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "premium"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%s"
+  value        = "mad-scientist"
+  key_vault_id = azurerm_key_vault.test.id
+
+  tags = {
+    Rick = "Morty"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

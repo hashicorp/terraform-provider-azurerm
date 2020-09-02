@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -93,12 +92,10 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if features.ShouldResourcesBeImported() {
-			if nsg := props.NetworkSecurityGroup; nsg != nil {
-				// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
-				if nsg.ID != nil && subnet.ID != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_network_security_group_association", *subnet.ID)
-				}
+		if nsg := props.NetworkSecurityGroup; nsg != nil {
+			// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
+			if nsg.ID != nil && subnet.ID != nil {
+				return tf.ImportAsExistsError("azurerm_subnet_network_security_group_association", *subnet.ID)
 			}
 		}
 

@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
@@ -308,17 +307,15 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	locks.ByName(name, virtualMachineResourceName)
 	defer locks.UnlockByName(name, virtualMachineResourceName)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-
+	resp, err := client.Get(ctx, resourceGroup, name, "")
+	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_windows_virtual_machine", *resp.ID)
+			return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_windows_virtual_machine", *resp.ID)
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
@@ -748,12 +745,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	if d.HasChange("allow_extension_operations") {
-		provisionVMAgent := d.Get("provision_vm_agent").(bool)
 		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
-
-		if !provisionVMAgent && allowExtensionOperations {
-			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
-		}
 
 		shouldUpdate = true
 
@@ -872,6 +864,18 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if d.HasChange("additional_capabilities") {
+		shouldUpdate = true
+
+		if d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+			shouldShutDown = true
+			shouldDeallocate = true
+		}
+
+		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+		update.VirtualMachineProperties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 	}
 
 	if instanceView.Statuses != nil {

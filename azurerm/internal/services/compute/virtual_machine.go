@@ -29,7 +29,6 @@ func virtualMachineAdditionalCapabilitiesSchema() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
-					ForceNew: true,
 				},
 			},
 		},

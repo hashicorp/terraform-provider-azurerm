@@ -23,6 +23,7 @@ func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
 				Config: testAccAzureRMAPIManagementSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "true"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
@@ -64,34 +65,42 @@ func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "submitted"),
+				Config: testAccAzureRMAPIManagementSubscription_update(data, "submitted", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "submitted"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "true"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "active"),
+				Config: testAccAzureRMAPIManagementSubscription_update(data, "active", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "suspended"),
+				Config: testAccAzureRMAPIManagementSubscription_update(data, "suspended", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "suspended"),
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "cancelled"),
+				Config: testAccAzureRMAPIManagementSubscription_update(data, "cancelled", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "cancelled"),
+				),
+			},
+			{
+				Config: testAccAzureRMAPIManagementSubscription_update(data, "active", "false"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "false"),
 				),
 			},
 		},
@@ -111,6 +120,7 @@ func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "false"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
@@ -202,7 +212,7 @@ resource "azurerm_api_management_subscription" "import" {
 `, template)
 }
 
-func testAccAzureRMAPIManagementSubscription_update(data acceptance.TestData, state string) string {
+func testAccAzureRMAPIManagementSubscription_update(data acceptance.TestData, state string, allow_tracing string) string {
 	template := testAccAzureRMAPIManagementSubscription_template(data)
 	return fmt.Sprintf(`
 %s
@@ -214,8 +224,9 @@ resource "azurerm_api_management_subscription" "test" {
   product_id          = azurerm_api_management_product.test.id
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "%s"
+  allow_tracing       = "%s"
 }
-`, template, state)
+`, template, state, allow_tracing)
 }
 
 func testAccAzureRMAPIManagementSubscription_complete(data acceptance.TestData) string {
@@ -230,6 +241,7 @@ resource "azurerm_api_management_subscription" "test" {
   product_id          = azurerm_api_management_product.test.id
   display_name        = "Butter Parser API Enterprise Edition"
   state               = "active"
+  allow_tracing       = "false"
 }
 `, template)
 }
