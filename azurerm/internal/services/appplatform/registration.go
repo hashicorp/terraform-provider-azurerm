@@ -28,7 +28,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_spring_cloud_app":     resourceArmSpringCloudApp(),
-		"azurerm_spring_cloud_service": resourceArmSpringCloudService(),
+		"azurerm_spring_cloud_app":         resourceArmSpringCloudApp(),
+		"azurerm_spring_cloud_certificate": resourceArmSpringCloudCertificate(),
+		"azurerm_spring_cloud_service":     resourceArmSpringCloudService(),
 	}
 }

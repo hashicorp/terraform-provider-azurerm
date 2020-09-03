@@ -7,6 +7,7 @@ import (
 
 type Client struct {
 	FirewallRulesClient      *synapse.IPFirewallRulesClient
+	SparkPoolClient          *synapse.BigDataPoolsClient
 	WorkspaceClient          *synapse.WorkspacesClient
 	WorkspaceAadAdminsClient *synapse.WorkspaceAadAdminsClient
 }
@@ -14,6 +15,10 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&firewallRuleClient.Client, o.ResourceManagerAuthorizer)
+
+	// the service team hopes to rename it to sparkPool, so rename the sdk here
+	sparkPoolClient := synapse.NewBigDataPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sparkPoolClient.Client, o.ResourceManagerAuthorizer)
 
 	workspaceClient := synapse.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceClient.Client, o.ResourceManagerAuthorizer)
@@ -23,6 +28,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		FirewallRulesClient:      &firewallRuleClient,
+		SparkPoolClient:          &sparkPoolClient,
 		WorkspaceClient:          &workspaceClient,
 		WorkspaceAadAdminsClient: &workspaceAadAdminsClient,
 	}

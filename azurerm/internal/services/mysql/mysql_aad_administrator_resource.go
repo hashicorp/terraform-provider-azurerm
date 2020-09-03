@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -74,7 +73,7 @@ func resourceArmMySQLAdministratorCreateUpdate(d *schema.ResourceData, meta inte
 	objectId := uuid.FromStringOrNil(d.Get("object_id").(string))
 	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, serverName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
