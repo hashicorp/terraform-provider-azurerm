@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/parse"
@@ -67,8 +66,7 @@ func resourceArmSpringCloudApp() *schema.Resource {
 							// other two enum: 'UserAssigned', 'SystemAssignedUserAssigned' are not supported for now
 							ValidateFunc: validation.StringInSlice([]string{
 								string(appplatform.SystemAssigned),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 
 						"principal_id": {
@@ -120,10 +118,10 @@ func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, app)
 	if err != nil {
-		return fmt.Errorf("creating/updating Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/update Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/updation of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name, "")

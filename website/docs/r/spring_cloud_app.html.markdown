@@ -49,11 +49,11 @@ The following arguments are supported:
 
 * `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) A Managed Service Identity block as defined below.
+* `identity` - (Optional) An `identity` block as defined below.
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible value is `SystemAssigned`.
 
@@ -63,11 +63,9 @@ The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Application.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Spring Cloud Application.
-
 ---
 
-A `identity` block exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Spring Cloud Application.
 
