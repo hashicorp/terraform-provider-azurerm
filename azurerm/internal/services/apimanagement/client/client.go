@@ -39,6 +39,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	apiClient := apimanagement.NewAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiClient.Client, o.ResourceManagerAuthorizer)
 
+	apiDiagnosticClient := apimanagement.NewDiagnosticClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiDiagnosticClient.Client, o.ResourceManagerAuthorizer)
+
 	apiPoliciesClient := apimanagement.NewAPIPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -116,6 +119,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		ApiClient:                  &apiClient,
+		ApiDiagnosticClient:        &apiDiagnosticClient,
 		ApiPoliciesClient:          &apiPoliciesClient,
 		ApiOperationsClient:        &apiOperationsClient,
 		ApiOperationPoliciesClient: &apiOperationPoliciesClient,
