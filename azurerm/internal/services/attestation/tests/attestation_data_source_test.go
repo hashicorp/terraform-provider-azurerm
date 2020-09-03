@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMAttestationProvider_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_attestation", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_attestation_provider", "test")
 	randStr := strings.ToLower(acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
