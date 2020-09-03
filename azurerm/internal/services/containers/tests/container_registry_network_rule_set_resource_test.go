@@ -181,7 +181,7 @@ resource "azurerm_container_registry_network_ruleset" "test" {
 	  default_action = "Deny"
 	  ip_rule {
 		action   = "Allow"
-		ip_range = "43.227.131.248"
+		ip_range = "43.0.0.0/24"
 	  }
 	}
 }
