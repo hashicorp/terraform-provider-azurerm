@@ -2849,8 +2849,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
+    storage_account_type   = "Standard_LRS"
+    caching                = "ReadWrite"
     disk_encryption_set_id = azurerm_disk_encryption_set.test.id
   }
 

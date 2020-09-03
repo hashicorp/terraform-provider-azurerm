@@ -2076,7 +2076,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-encryption_at_host_enabled = %t
+  encryption_at_host_enabled = %t
 }
 `, template, enabled)
 }
@@ -2098,9 +2098,9 @@ resource "azurerm_windows_virtual_machine" "test" {
   ]
 
   os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+    caching                = "ReadWrite"
+    storage_account_type   = "Standard_LRS"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
   }
 
   source_image_reference {
@@ -2110,7 +2110,7 @@ disk_encryption_set_id = azurerm_disk_encryption_set.test.id
     version   = "latest"
   }
 
-encryption_at_host_enabled = %t
+  encryption_at_host_enabled = %t
 
   depends_on = [
     azurerm_role_assignment.disk-encryption-read-keyvault,
