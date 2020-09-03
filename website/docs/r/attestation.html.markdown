@@ -91,7 +91,7 @@ The following Attributes are exported:
 
 * `attest_uri` - The (Endpoint|URI) of the Attestation Service.
 
-* `trust_model` - Trust model for the attestation service instance.
+* `trust_model` - Trust model used for the Attestation Service.
 
 ## Timeouts
 
