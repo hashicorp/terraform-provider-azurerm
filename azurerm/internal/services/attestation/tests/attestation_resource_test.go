@@ -148,7 +148,7 @@ func testCheckAzureRMAttestationExists(resourceName string) resource.TestCheckFu
 		}
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Attestation AttestationProvider %q does not exist", id.Name)
+				return fmt.Errorf("bad: Attestation Provider %q does not exist", id.Name)
 			}
 			return fmt.Errorf("bad: Get on Attestation.ProviderClient: %+v", err)
 		}
