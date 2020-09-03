@@ -137,6 +137,8 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				}, false),
 			},
 
+			"extension": VirtualMachineScaleSetExtensionsSchema(),
+
 			"health_probe_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -263,17 +265,15 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existing Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
+	exists, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(exists.Response) {
+			return fmt.Errorf("checking for existing Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", *resp.ID)
-		}
+	if !utils.ResponseWasNotFound(exists.Response) {
+		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", *exists.ID)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -395,6 +395,15 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 			OsDisk:         osDisk,
 			DataDisks:      dataDisks,
 		},
+	}
+
+	if features.VMSSExtensionsBeta() {
+		if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
+			virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if adminPassword, ok := d.GetOk("admin_password"); ok {
@@ -524,9 +533,22 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 	if existing.VirtualMachineScaleSetProperties == nil {
 		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
+	if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile == nil {
+		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
+	}
+	if existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile == nil {
+		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile,storageProfile` was nil", id.Name, id.ResourceGroup)
+	}
 
 	updateProps := compute.VirtualMachineScaleSetUpdateProperties{
-		VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{},
+		VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{
+			// if an image reference has been configured previously (it has to be), we would better to include that in this
+			// update request to avoid some circumstances that the API will complain ImageReference is null
+			// issue tracking: https://github.com/Azure/azure-rest-api-specs/issues/10322
+			StorageProfile: &compute.VirtualMachineScaleSetUpdateStorageProfile{
+				ImageReference: existing.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile.ImageReference,
+			},
+		},
 		// if an upgrade policy's been configured previously (which it will have) it must be threaded through
 		// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
 		UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
@@ -624,16 +646,18 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 		updateInstances = true
 
-		storageProfile := &compute.VirtualMachineScaleSetUpdateStorageProfile{}
+		if updateProps.VirtualMachineProfile.StorageProfile == nil {
+			updateProps.VirtualMachineProfile.StorageProfile = &compute.VirtualMachineScaleSetUpdateStorageProfile{}
+		}
 
 		if d.HasChange("data_disk") {
 			dataDisksRaw := d.Get("data_disk").([]interface{})
-			storageProfile.DataDisks = ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
+			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
 		}
 
 		if d.HasChange("os_disk") {
 			osDiskRaw := d.Get("os_disk").([]interface{})
-			storageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
+			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 		}
 
 		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
@@ -644,10 +668,8 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 				return err
 			}
 
-			storageProfile.ImageReference = sourceImageReference
+			updateProps.VirtualMachineProfile.StorageProfile.ImageReference = sourceImageReference
 		}
-
-		updateProps.VirtualMachineProfile.StorageProfile = storageProfile
 	}
 
 	if d.HasChange("network_interface") {
@@ -729,6 +751,18 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		}
 
 		update.Sku = sku
+	}
+
+	if features.VMSSExtensionsBeta() {
+		if d.HasChange("extension") {
+			updateInstances = true
+
+			extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+			if err != nil {
+				return err
+			}
+			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
+		}
 	}
 
 	if d.HasChange("tags") {
@@ -907,6 +941,14 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 			if err := d.Set("terminate_notification", FlattenVirtualMachineScaleSetScheduledEventsProfile(scheduleProfile)); err != nil {
 				return fmt.Errorf("Error setting `terminate_notification`: %+v", err)
 			}
+		}
+
+		if features.VMSSExtensionsBeta() {
+			extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
+			if err != nil {
+				return fmt.Errorf("failed flattening `extension`: %+v", err)
+			}
+			d.Set("extension", extensionProfile)
 		}
 	}
 

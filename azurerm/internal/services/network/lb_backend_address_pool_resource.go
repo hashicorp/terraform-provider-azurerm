@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -114,7 +113,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	existingPool, existingPoolIndex, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
 	if exists {
 		if name == *existingPool.Name {
-			if features.ShouldResourcesBeImported() && d.IsNewResource() {
+			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", *existingPool.ID)
 			}
 

@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -89,12 +88,10 @@ func resourceArmSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta i
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if features.ShouldResourcesBeImported() {
-			// check if the resources are imported
-			if gateway := props.NatGateway; gateway != nil {
-				if gateway.ID != nil && subnet.ID != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_nat_gateway_association", *subnet.ID)
-				}
+		// check if the resources are imported
+		if gateway := props.NatGateway; gateway != nil {
+			if gateway.ID != nil && subnet.ID != nil {
+				return tf.ImportAsExistsError("azurerm_subnet_nat_gateway_association", *subnet.ID)
 			}
 		}
 		props.NatGateway = &network.SubResource{
