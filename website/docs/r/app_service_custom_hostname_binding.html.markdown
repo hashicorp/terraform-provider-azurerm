@@ -3,13 +3,13 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_custom_hostname_binding"
 description: |-
-  Manages a Hostname Binding within an App Service.
+  Manages a Hostname Binding within an App Service (or Function App).
 
 ---
 
 # azurerm_app_service_custom_hostname_binding
 
-Manages a Hostname Binding within an App Service.
+Manages a Hostname Binding within an App Service (or Function App).
 
 ## Example Usage
 
@@ -61,8 +61,6 @@ The following arguments are supported:
 ~> **NOTE:** A CNAME needs to be configured from this Hostname to the Azure Website - otherwise Azure will reject the Hostname Binding.
 
 * `app_service_name` - (Required) The name of the App Service in which to add the Custom Hostname Binding. Changing this forces a new resource to be created.
-
--> **NOTE:** As the App Service is a family of services and contains the function app, so Custom Hostname Binding also can be added into the function app.
 
 * `resource_group_name` - (Required) The name of the resource group in which the App Service exists. Changing this forces a new resource to be created.
 
