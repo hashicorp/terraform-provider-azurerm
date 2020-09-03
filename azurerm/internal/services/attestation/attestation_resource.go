@@ -129,7 +129,7 @@ func resourceArmAttestationCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Attestation %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Attestation %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
