@@ -52,7 +52,7 @@ func dataSourceArmAttestationRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving Attestation %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Attestation %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Attestation Provider %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
