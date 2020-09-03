@@ -104,7 +104,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-attestation providers can be imported using the `resource id`, e.g.
+Attestation Providers can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_attestation_provider.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Attestation/attestationProviders/provider1
