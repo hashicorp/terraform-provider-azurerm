@@ -87,7 +87,7 @@ The following arguments are supported:
 
 The following Attributes are exported: 
 
-* `id` - The ID of the attestation provider.
+* `id` - The ID of the Attestation Provider.
 
 * `attest_uri` - The (Endpoint|URI) of the Attestation Service.
 
