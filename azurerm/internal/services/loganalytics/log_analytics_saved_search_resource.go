@@ -42,6 +42,7 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     validate.LogAnalyticsWorkspaceID,
+				// https://github.com/Azure/azure-rest-api-specs/issues/9330
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -49,6 +50,7 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
+				// https://github.com/Azure/azure-rest-api-specs/issues/9330
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
