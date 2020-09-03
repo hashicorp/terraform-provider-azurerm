@@ -60,7 +60,7 @@ The following Attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Attestation Provider.
-* `read` - (Defaults to 5 minutes) Used when retrieving the attestation provider.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Attestation Provider.
 * `update` - (Defaults to 30 minutes) Used when updating the attestation provider.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Attestation Provider.
 
