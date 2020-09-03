@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"fmt"
+	"time"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -14,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"time"
 )
 
 func resourceArmMSSQLManagedDatabase() *schema.Resource {
@@ -44,16 +44,18 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlDatabaseName,
 			},
 
+
 			"managed_instance_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:     	  true,
+				Default:		"SQL_Latin1_General_CP1_CI_AS",
 			},
 
 			"restore_point_in_time": {
@@ -64,8 +66,8 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 			},
 
 			"catalog_collation": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.DATABASEDEFAULT),
 					string(sql.SQLLatin1GeneralCP1CIAS),
@@ -75,7 +77,7 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
+				ForceNew:     true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.ManagedDatabaseCreateModeDefault),
@@ -87,26 +89,29 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 			},
 
 			"storage_container_uri": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
 			},
+
 
 			"source_database_id": {
 				Type:             schema.TypeString,
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
+				ForceNew:		  true,
 			},
 
 			"restorable_dropped_database_id": {
 				Type:             schema.TypeString,
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
+				ForceNew:		  true,
 			},
 
 			"storage_container_sas_token": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Sensitive: 		  true,
 			},
 
 			"recoverable_database_id": {
@@ -114,56 +119,57 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
 				Computed:         true,
-				ForceNew:         true,
+				ForceNew:		  true,
 			},
 
 			"longterm_retention_backup_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Optional:         true,
 			},
 
 			"auto_complete_restore": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:             schema.TypeBool,
+				Optional:         true,
 			},
 
+			
 			"last_backup_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
 			},
 
 			"tags": tags.Schema(),
 
 			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:             schema.TypeString,
+				Computed:         true,
 			},
 
 			"status": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:             schema.TypeString,
+				Computed:         true,
 			},
 
 			"creation_date": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:             schema.TypeString,
+				Computed:         true,
 			},
 
 			"earliest_restore_point": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:             schema.TypeString,
+				Computed:         true,
 			},
 
 			"default_secondary_location": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:             schema.TypeString,
+				Computed:         true,
 			},
 
 			"failover_group_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:             schema.TypeString,
+				Computed:         true,
 			},
+			 
 		},
 	}
 }
@@ -180,14 +186,14 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 	id, err := azure.ParseAzureResourceID(managedInstanceId)
 	managedInstanceName := id.Path["managedInstances"]
 	resourceGroup := id.ResourceGroup
-
+	
 	instanceResponse, err := managedInstanceClient.Get(ctx, resourceGroup, managedInstanceName)
 	if err != nil {
-		return fmt.Errorf("making Read request on managed SQL instance %q (Resource Group %q): %s", managedInstanceName, resourceGroup, err)
+		return fmt.Errorf("making Read request on managed SQL instance %q (Resource Group %q): %s",managedInstanceName, resourceGroup, err)
 	}
 
 	location := *instanceResponse.Location
-
+	
 	if location == "" {
 		return fmt.Errorf("Location is empty from making Read request on managed instance %q", managedInstanceName)
 	}
@@ -208,17 +214,19 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	parameters := sql.ManagedDatabase{
-		Location:                  utils.String(location),
-		Tags:                      tags.Expand(t),
-		ManagedDatabaseProperties: &sql.ManagedDatabaseProperties{},
+	parameters := sql.ManagedDatabase {
+		Location: utils.String(location),
+		Tags:     tags.Expand(t),
+		ManagedDatabaseProperties: &sql.ManagedDatabaseProperties{
+		},
 	}
+
 
 	if d.HasChange("create_mode") {
 		if createMode == string(sql.ManagedDatabaseCreateModePointInTimeRestore) {
 			_, sourceDatabaseExists := d.GetOk("source_database_id")
 			_, restorePointExists := d.GetOk("restore_point_in_time")
-			if !sourceDatabaseExists || !restorePointExists {
+			if  !sourceDatabaseExists ||  !restorePointExists {
 				return fmt.Errorf("could not create managed database %q in managed instance %q (Resource Group %q) in restore in point create mode. Source database id and restore point in time values should be supplied.", name, managedInstanceName, resourceGroup)
 			}
 		}
@@ -234,13 +242,13 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 		}
 
 		if createMode == string(sql.ManagedDatabaseCreateModeRecovery) {
-			if _, recoverableDatabaseExists := d.GetOk("recoverable_database_id"); !recoverableDatabaseExists {
+			if _, recoverableDatabaseExists := d.GetOk("recoverable_database_id"); !recoverableDatabaseExists  {
 				return fmt.Errorf("could not create managed database %q in managed instance %q (Resource Group %q) in recovery mode. recoverable_database_id value should be supplied.", name, managedInstanceName, resourceGroup)
 			}
 		}
 
 		if createMode == string(sql.ManagedDatabaseCreateModeRestoreLongTermRetentionBackup) {
-			if _, longtimeRetentionBackupExists := d.GetOk("longterm_retention_backup_id"); !longtimeRetentionBackupExists {
+			if _, longtimeRetentionBackupExists := d.GetOk("longterm_retention_backup_id"); !longtimeRetentionBackupExists  {
 				return fmt.Errorf("could not create managed database %q in managed instance %q (Resource Group %q) in long term retention backup mode. long_term_retention_backup_id value should be supplied.", name, managedInstanceName, resourceGroup)
 			}
 		}
@@ -277,7 +285,7 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 			return fmt.Errorf("'storage_container_uri' is supported only for create_mode %s", string(sql.ManagedDatabaseCreateModeRestoreExternalBackup))
 		}
 		storageContainerUri := v.(string)
-		parameters.ManagedDatabaseProperties.StorageContainerURI = utils.String(storageContainerUri)
+		parameters.ManagedDatabaseProperties.StorageContainerURI  = utils.String(storageContainerUri)
 	}
 
 	if v, exists := d.GetOk("source_database_id"); exists {
@@ -285,12 +293,12 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 			return fmt.Errorf("'source_database_id' is supported only for create_mode %s", string(sql.ManagedDatabaseCreateModePointInTimeRestore))
 		}
 		sourceDatabaseId := v.(string)
-		parameters.ManagedDatabaseProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
+		parameters.ManagedDatabaseProperties.SourceDatabaseID   = utils.String(sourceDatabaseId)
 	}
 
 	if v, exists := d.GetOk("restorable_dropped_database_id"); exists {
 		restorableDroppedDatabaseId := v.(string)
-		parameters.ManagedDatabaseProperties.RestorableDroppedDatabaseID = utils.String(restorableDroppedDatabaseId)
+		parameters.ManagedDatabaseProperties.RestorableDroppedDatabaseID  = utils.String(restorableDroppedDatabaseId)
 	}
 
 	if v, exists := d.GetOk("storage_container_sas_token"); exists {
@@ -298,7 +306,7 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 			return fmt.Errorf("'storage_container_sas_token' is supported only for create_mode %s", string(sql.ManagedDatabaseCreateModeRestoreExternalBackup))
 		}
 		storageAccountSasToken := v.(string)
-		parameters.ManagedDatabaseProperties.StorageContainerSasToken = utils.String(storageAccountSasToken)
+		parameters.ManagedDatabaseProperties.StorageContainerSasToken  = utils.String(storageAccountSasToken)
 	}
 
 	if v, exists := d.GetOk("recoverable_database_id"); exists {
@@ -306,7 +314,7 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 			return fmt.Errorf("'recoverable_database_id' is supported only for create_mode %s", string(sql.ManagedDatabaseCreateModeRecovery))
 		}
 		recoverableDatabaseId := v.(string)
-		parameters.ManagedDatabaseProperties.RecoverableDatabaseID = utils.String(recoverableDatabaseId)
+		parameters.ManagedDatabaseProperties.RecoverableDatabaseID  = utils.String(recoverableDatabaseId)
 	}
 
 	if v, exists := d.GetOk("longterm_retention_backup_id"); exists {
@@ -314,7 +322,7 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 			return fmt.Errorf("'longterm_retention_backup_id' is supported only for create_mode %s", string(sql.ManagedDatabaseCreateModeRestoreLongTermRetentionBackup))
 		}
 		longtermRetentionBackupId := v.(string)
-		parameters.ManagedDatabaseProperties.LongTermRetentionBackupResourceID = utils.String(longtermRetentionBackupId)
+		parameters.ManagedDatabaseProperties.LongTermRetentionBackupResourceID  = utils.String(longtermRetentionBackupId)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, managedInstanceName, name, parameters)
@@ -326,6 +334,7 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error waiting on create/update request for Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
 	}
 
+	time.Sleep(20 * time.Second)
 	result, err := client.Get(ctx, resourceGroup, managedInstanceName, name)
 	if err != nil {
 		return fmt.Errorf("Error making get request for Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
@@ -346,6 +355,7 @@ func resourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interface{
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
+	managedInstanceId, _ := azure.GetDatabaseParentId(d.Id())
 	if err != nil {
 		return err
 	}
@@ -362,21 +372,26 @@ func resourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interface{
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("type", resp.Type)
-	d.Set("managed_instance_name", managedInstanceName)
+	d.Set("managed_instance_id", managedInstanceId)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := resp.ManagedDatabaseProperties; props != nil {
-		fmt.Println(string(props.CreateMode))
+
+	if props := resp.ManagedDatabaseProperties; props != nil { 
+		d.Set("collation", props.Collation)
 		d.Set("status", props.Status)
-		d.Set("creation_date", props.CreationDate.UTC())
-		d.Set("earliest_restore_point", props.EarliestRestorePoint.UTC())
-		d.Set("restore_point_in_time", props.RestorePointInTime.UTC())
+		if props.CreationDate != nil && props.CreationDate.String() !="" {
+			d.Set("creation_date", props.CreationDate.String())
+		}
+		if props.EarliestRestorePoint != nil && props.EarliestRestorePoint.String() !="" {
+			d.Set("earliest_restore_point", props.EarliestRestorePoint.String())
+		}
+		if props.RestorePointInTime != nil && props.RestorePointInTime.String() !="" {
+			d.Set("restore_point_in_time", props.RestorePointInTime.String())
+		}
 		d.Set("default_secondary_location", props.DefaultSecondaryLocation)
-		d.Set("catalog_collation", string(props.CatalogCollation))
-		d.Set("create_mode", string(props.CreateMode))
 		d.Set("storage_container_uri", props.StorageContainerURI)
 		d.Set("failover_group_id", props.FailoverGroupID)
 	}
@@ -406,3 +421,4 @@ func resourceArmMSSQLManagedDatabaseDelete(d *schema.ResourceData, meta interfac
 
 	return future.WaitForCompletionRef(ctx, client.Client)
 }
+

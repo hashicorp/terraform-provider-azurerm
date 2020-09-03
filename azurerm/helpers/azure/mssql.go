@@ -2,7 +2,8 @@ package azure
 
 import (
 	"fmt"
-
+	"net/url"
+	"strings"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -199,4 +200,60 @@ func ValidateManagedInstanceTimeZones() schema.SchemaValidateFunc {
 		"Line Islands Standard Time",
 	}
 	return validation.StringInSlice(acceptedTimeZones, true)
+}
+
+func GetDatabaseParentId(id string) (*string, error) {
+	idURL, err := url.ParseRequestURI(id)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot parse Azure ID: %s", err)
+	}
+
+	path := idURL.Path
+
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
+
+	components := strings.Split(path, "/")
+
+	// We should have an even number of key-value pairs.
+	if len(components)%2 != 0 {
+		return nil, fmt.Errorf("The number of path segments is not divisible by 2 in %q", path)
+	}
+
+	var subscriptionID string
+	var resourceGroup string
+	var providers string
+	var server string
+	var managedInstance string
+
+	// Put the constituent key-value pairs into a map
+	for current := 0; current < len(components); current += 2 {
+		key := components[current]
+		value := components[current+1]
+
+		// Check key/value for empty strings.
+		if key == "" || value == "" {
+			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
+		}
+
+		if key == "subscriptions" {
+			subscriptionID = value
+		} else if key == "resourceGroups"  {
+			resourceGroup = value
+		} else if key == "providers" && value == "Microsoft.Sql"  {
+			providers = value
+		} else if key == "managedInstances" {
+			managedInstance = value
+		} else if key == "servers" {
+			server = value
+		}
+	}
+
+	var databaseParentComponents = []string{"/subscriptions", subscriptionID,  "resourceGroups", resourceGroup, "providers", providers, "managedInstances", managedInstance}
+	if  server != "" {
+		databaseParentComponents[6] = "servers"
+		databaseParentComponents[7] = server
+	} 
+	var parentId = strings.Join(databaseParentComponents, "/")
+	return &parentId, nil
 }
