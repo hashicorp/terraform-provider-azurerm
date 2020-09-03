@@ -197,6 +197,13 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_application_insights" "test" {
+  name                = "acctestai-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
 resource "azurerm_spring_cloud_service" "test" {
   name                = "acctest-sc-%d"
   location            = azurerm_resource_group.test.location
@@ -233,12 +240,16 @@ resource "azurerm_spring_cloud_service" "test" {
     }
   }
 
+  trace {
+    instrumentation_key = azurerm_application_insights.test.instrumentation_key
+  }
+
   tags = {
     Env     = "Test"
     version = "1"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMSpringCloudService_requiresImport(data acceptance.TestData) string {

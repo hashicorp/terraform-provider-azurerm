@@ -122,7 +122,6 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteSender(req *http.Request
 func (client StaticSitesClient) CreateOrUpdateStaticSiteResponder(resp *http.Response) (result StaticSiteARMResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteBuildFunctionAppSettings
 func (client StaticSitesClient) CreateOrUpdateStaticSiteBuildFunctionAppSettingsResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -298,7 +296,6 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteCustomDomainSender(req *
 func (client StaticSitesClient) CreateOrUpdateStaticSiteCustomDomainResponder(resp *http.Response) (result StaticSiteCustomDomainOverviewARMResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -385,7 +382,6 @@ func (client StaticSitesClient) CreateOrUpdateStaticSiteFunctionAppSettingsSende
 func (client StaticSitesClient) CreateOrUpdateStaticSiteFunctionAppSettingsResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -471,7 +467,6 @@ func (client StaticSitesClient) CreateUserRolesInvitationLinkSender(req *http.Re
 func (client StaticSitesClient) CreateUserRolesInvitationLinkResponder(resp *http.Response) (result StaticSiteUserInvitationResponseResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -555,7 +550,6 @@ func (client StaticSitesClient) DeleteStaticSiteSender(req *http.Request) (*http
 func (client StaticSitesClient) DeleteStaticSiteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -640,7 +634,6 @@ func (client StaticSitesClient) DeleteStaticSiteBuildSender(req *http.Request) (
 func (client StaticSitesClient) DeleteStaticSiteBuildResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -725,7 +718,6 @@ func (client StaticSitesClient) DeleteStaticSiteCustomDomainSender(req *http.Req
 func (client StaticSitesClient) DeleteStaticSiteCustomDomainResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -812,7 +804,6 @@ func (client StaticSitesClient) DeleteStaticSiteUserSender(req *http.Request) (*
 func (client StaticSitesClient) DeleteStaticSiteUserResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -895,7 +886,6 @@ func (client StaticSitesClient) DetachStaticSiteSender(req *http.Request) (*http
 func (client StaticSitesClient) DetachStaticSiteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -978,7 +968,6 @@ func (client StaticSitesClient) GetStaticSiteSender(req *http.Request) (*http.Re
 func (client StaticSitesClient) GetStaticSiteResponder(resp *http.Response) (result StaticSiteARMResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1064,7 +1053,6 @@ func (client StaticSitesClient) GetStaticSiteBuildSender(req *http.Request) (*ht
 func (client StaticSitesClient) GetStaticSiteBuildResponder(resp *http.Response) (result StaticSiteBuildARMResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1149,7 +1137,6 @@ func (client StaticSitesClient) GetStaticSiteBuildsSender(req *http.Request) (*h
 func (client StaticSitesClient) GetStaticSiteBuildsResponder(resp *http.Response) (result StaticSiteBuildCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1269,7 +1256,6 @@ func (client StaticSitesClient) GetStaticSitesByResourceGroupSender(req *http.Re
 func (client StaticSitesClient) GetStaticSitesByResourceGroupResponder(resp *http.Response) (result StaticSiteCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1378,7 +1364,6 @@ func (client StaticSitesClient) ListSender(req *http.Request) (*http.Response, e
 func (client StaticSitesClient) ListResponder(resp *http.Response) (result StaticSiteCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1501,7 +1486,6 @@ func (client StaticSitesClient) ListStaticSiteBuildFunctionAppSettingsSender(req
 func (client StaticSitesClient) ListStaticSiteBuildFunctionAppSettingsResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1588,7 +1572,6 @@ func (client StaticSitesClient) ListStaticSiteBuildFunctionsSender(req *http.Req
 func (client StaticSitesClient) ListStaticSiteBuildFunctionsResponder(resp *http.Response) (result StaticSiteFunctionOverviewCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1710,7 +1693,6 @@ func (client StaticSitesClient) ListStaticSiteCustomDomainsSender(req *http.Requ
 func (client StaticSitesClient) ListStaticSiteCustomDomainsResponder(resp *http.Response) (result StaticSiteCustomDomainOverviewCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1831,7 +1813,6 @@ func (client StaticSitesClient) ListStaticSiteFunctionAppSettingsSender(req *htt
 func (client StaticSitesClient) ListStaticSiteFunctionAppSettingsResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1916,7 +1897,6 @@ func (client StaticSitesClient) ListStaticSiteFunctionsSender(req *http.Request)
 func (client StaticSitesClient) ListStaticSiteFunctionsResponder(resp *http.Response) (result StaticSiteFunctionOverviewCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2037,7 +2017,6 @@ func (client StaticSitesClient) ListStaticSiteSecretsSender(req *http.Request) (
 func (client StaticSitesClient) ListStaticSiteSecretsResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2124,7 +2103,6 @@ func (client StaticSitesClient) ListStaticSiteUsersSender(req *http.Request) (*h
 func (client StaticSitesClient) ListStaticSiteUsersResponder(resp *http.Response) (result StaticSiteUserCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2247,7 +2225,6 @@ func (client StaticSitesClient) ResetStaticSiteAPIKeySender(req *http.Request) (
 func (client StaticSitesClient) ResetStaticSiteAPIKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -2334,7 +2311,6 @@ func (client StaticSitesClient) UpdateStaticSiteSender(req *http.Request) (*http
 func (client StaticSitesClient) UpdateStaticSiteResponder(resp *http.Response) (result StaticSiteARMResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2425,7 +2401,6 @@ func (client StaticSitesClient) UpdateStaticSiteUserSender(req *http.Request) (*
 func (client StaticSitesClient) UpdateStaticSiteUserResponder(resp *http.Response) (result StaticSiteUserARMResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2512,7 +2487,6 @@ func (client StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSiteSender
 func (client StaticSitesClient) ValidateCustomDomainCanBeAddedToStaticSiteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

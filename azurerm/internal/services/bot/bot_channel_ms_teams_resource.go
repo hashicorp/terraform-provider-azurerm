@@ -46,9 +46,12 @@ func resourceArmBotChannelMsTeams() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// issue: https://github.com/Azure/azure-rest-api-specs/issues/9809
+			// this field could not update to empty, so add `Computed: true` to avoid diff
 			"calling_web_hook": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.BotMSTeamsCallingWebHook(),
 			},
 
@@ -84,9 +87,8 @@ func resourceArmBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}
 	channel := botservice.BotChannel{
 		Properties: botservice.MsTeamsChannel{
 			Properties: &botservice.MsTeamsChannelProperties{
-				EnableCalling:  utils.Bool(d.Get("enable_calling").(bool)),
-				CallingWebHook: utils.String(d.Get("calling_web_hook").(string)),
-				IsEnabled:      utils.Bool(true),
+				EnableCalling: utils.Bool(d.Get("enable_calling").(bool)),
+				IsEnabled:     utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameMsTeamsChannel1,
 		},
@@ -94,17 +96,22 @@ func resourceArmBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}
 		Kind:     botservice.KindBot,
 	}
 
+	if v, ok := d.GetOk("calling_web_hook"); ok {
+		channel, _ := channel.Properties.AsMsTeamsChannel()
+		channel.Properties.CallingWebHook = utils.String(v.(string))
+	}
+
 	if _, err := client.Create(ctx, resourceGroup, botName, botservice.ChannelNameMsTeamsChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("creating Channel MsTeams for Bot %q (Resource Group %q): %+v", botName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
 	if err != nil {
-		return fmt.Errorf("Error making get request for Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("retrieving Channel MsTeams for Bot %q (Resource Group %q): %+v", botName, resourceGroup, err)
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for Channel MsTeams for Bot %q (Resource Group %q): %+v", botName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -172,19 +179,8 @@ func resourceArmBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameMsTeamsChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("updating Channel MsTeams for Bot %q (Resource Group %q): %+v", botName, resourceGroup, err)
 	}
-
-	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
-	if err != nil {
-		return fmt.Errorf("Error making get request for Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
-	}
-
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Channel MsTeams for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
-	}
-
-	d.SetId(*resp.ID)
 
 	return resourceArmBotChannelMsTeamsRead(d, meta)
 }
@@ -204,7 +200,7 @@ func resourceArmBotChannelMsTeamsDelete(d *schema.ResourceData, meta interface{}
 	resp, err := client.Delete(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Channel MsTeams for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
+			return fmt.Errorf("deleting Channel MsTeams for Bot %q (Resource Group %q): %+v", botName, id.ResourceGroup, err)
 		}
 	}
 

@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -272,7 +272,7 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 		Target:                    []string{"NotFound"},
 		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, id),
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
+		ContinuousTargetOccurence: 20,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 

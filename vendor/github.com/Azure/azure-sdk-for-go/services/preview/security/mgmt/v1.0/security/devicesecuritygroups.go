@@ -83,7 +83,7 @@ func (client DeviceSecurityGroupsClient) CreateOrUpdate(ctx context.Context, res
 func (client DeviceSecurityGroupsClient) CreateOrUpdatePreparer(ctx context.Context, resourceID string, deviceSecurityGroupName string, deviceSecurityGroup DeviceSecurityGroup) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deviceSecurityGroupName": autorest.Encode("path", deviceSecurityGroupName),
-		"resourceId":              autorest.Encode("path", resourceID),
+		"resourceId":              resourceID,
 	}
 
 	const APIVersion = "2017-08-01-preview"
@@ -112,7 +112,6 @@ func (client DeviceSecurityGroupsClient) CreateOrUpdateSender(req *http.Request)
 func (client DeviceSecurityGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result DeviceSecurityGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -160,7 +159,7 @@ func (client DeviceSecurityGroupsClient) Delete(ctx context.Context, resourceID 
 func (client DeviceSecurityGroupsClient) DeletePreparer(ctx context.Context, resourceID string, deviceSecurityGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deviceSecurityGroupName": autorest.Encode("path", deviceSecurityGroupName),
-		"resourceId":              autorest.Encode("path", resourceID),
+		"resourceId":              resourceID,
 	}
 
 	const APIVersion = "2017-08-01-preview"
@@ -187,7 +186,6 @@ func (client DeviceSecurityGroupsClient) DeleteSender(req *http.Request) (*http.
 func (client DeviceSecurityGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -234,7 +232,7 @@ func (client DeviceSecurityGroupsClient) Get(ctx context.Context, resourceID str
 func (client DeviceSecurityGroupsClient) GetPreparer(ctx context.Context, resourceID string, deviceSecurityGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"deviceSecurityGroupName": autorest.Encode("path", deviceSecurityGroupName),
-		"resourceId":              autorest.Encode("path", resourceID),
+		"resourceId":              resourceID,
 	}
 
 	const APIVersion = "2017-08-01-preview"
@@ -261,7 +259,6 @@ func (client DeviceSecurityGroupsClient) GetSender(req *http.Request) (*http.Res
 func (client DeviceSecurityGroupsClient) GetResponder(resp *http.Response) (result DeviceSecurityGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -308,7 +305,7 @@ func (client DeviceSecurityGroupsClient) List(ctx context.Context, resourceID st
 // ListPreparer prepares the List request.
 func (client DeviceSecurityGroupsClient) ListPreparer(ctx context.Context, resourceID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceId": autorest.Encode("path", resourceID),
+		"resourceId": resourceID,
 	}
 
 	const APIVersion = "2017-08-01-preview"
@@ -335,7 +332,6 @@ func (client DeviceSecurityGroupsClient) ListSender(req *http.Request) (*http.Re
 func (client DeviceSecurityGroupsClient) ListResponder(resp *http.Response) (result DeviceSecurityGroupList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -10,6 +10,7 @@ var services = mapOf(
         "authorization" to "Authorization",
         "automation" to "Automation",
         "batch" to "Batch",
+        "blueprints" to "Blueprints",
         "bot" to "Bot",
         "cdn" to "CDN",
         "cognitive" to "Cognitive Services",
@@ -29,6 +30,7 @@ var services = mapOf(
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
         "frontdoor" to "FrontDoor",
+        "hsm" to "Hardware Security Module",
         "hdinsight" to "HDInsight",
         "healthcare" to "Health Care",
         "iothub" to "IoT Hub",
@@ -71,6 +73,7 @@ var services = mapOf(
         "storage" to "Storage",
         "streamanalytics" to "Stream Analytics",
         "subscription" to "Subscription",
+        "synapse" to "Synapse",
         "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
         "web" to "Web"

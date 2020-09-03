@@ -257,7 +257,7 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 	// Since this isn't a real object, just modifying an existing object
 	// "Delete" doesn't really make sense it should really be a "Revert to Default"
 	// So instead of the Delete func actually deleting the Storage Account I am
-	// making it reset the Storage Account to it's default state
+	// making it reset the Storage Account to its default state
 	props := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			Encryption: &storage.Encryption{

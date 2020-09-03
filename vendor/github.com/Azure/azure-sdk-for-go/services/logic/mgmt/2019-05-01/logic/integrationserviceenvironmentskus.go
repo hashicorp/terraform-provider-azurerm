@@ -112,7 +112,6 @@ func (client IntegrationServiceEnvironmentSkusClient) ListSender(req *http.Reque
 func (client IntegrationServiceEnvironmentSkusClient) ListResponder(resp *http.Response) (result IntegrationServiceEnvironmentSkuList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
@@ -102,7 +101,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"allow_extension_operations": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 				Default:  true,
 			},
 
@@ -304,17 +302,15 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	locks.ByName(name, virtualMachineResourceName)
 	defer locks.UnlockByName(name, virtualMachineResourceName)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-
+	resp, err := client.Get(ctx, resourceGroup, name, "")
+	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_windows_virtual_machine", *resp.ID)
+			return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_windows_virtual_machine", *resp.ID)
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
@@ -740,6 +736,18 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.VirtualMachineProperties.OsProfile = &profile
 	}
 
+	if d.HasChange("allow_extension_operations") {
+		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
 	if d.HasChange("identity") {
 		shouldUpdate = true
 
@@ -848,6 +856,48 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if d.HasChange("additional_capabilities") {
+		shouldUpdate = true
+
+		if d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+			shouldShutDown = true
+			shouldDeallocate = true
+		}
+
+		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+		update.VirtualMachineProperties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
+	}
+
+	if instanceView.Statuses != nil {
+		for _, status := range *instanceView.Statuses {
+			if status.Code == nil {
+				continue
+			}
+
+			// could also be the provisioning state which we're not bothered with here
+			state := strings.ToLower(*status.Code)
+			if !strings.HasPrefix(state, "powerstate/") {
+				continue
+			}
+
+			state = strings.TrimPrefix(state, "powerstate/")
+			switch strings.ToLower(state) {
+			case "deallocated":
+				// VM already deallocated, no shutdown and deallocation needed anymore
+				shouldShutDown = false
+				shouldDeallocate = false
+			case "deallocating":
+				// VM is deallocating
+				// To make sure we do not start updating before this action has finished,
+				// only skip the shutdown and send another deallocation request if shouldDeallocate == true
+				shouldShutDown = false
+			case "stopped":
+				// VM already stopped, no shutdown needed anymore
+				shouldShutDown = false
+			}
+		}
 	}
 
 	if shouldShutDown {

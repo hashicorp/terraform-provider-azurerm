@@ -124,7 +124,6 @@ func (client BaseClient) CheckDNSNameAvailabilitySender(req *http.Request) (*htt
 func (client BaseClient) CheckDNSNameAvailabilityResponder(resp *http.Response) (result DNSNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client BaseClient) DeleteBastionShareableLinkSender(req *http.Request) (fu
 func (client BaseClient) DeleteBastionShareableLinkResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -282,7 +280,6 @@ func (client BaseClient) DisconnectActiveSessionsSender(req *http.Request) (*htt
 func (client BaseClient) DisconnectActiveSessionsResponder(resp *http.Response) (result BastionSessionDeleteResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -399,7 +396,6 @@ func (client BaseClient) GeneratevirtualwanvpnserverconfigurationvpnprofileSende
 func (client BaseClient) GeneratevirtualwanvpnserverconfigurationvpnprofileResponder(resp *http.Response) (result VpnProfileResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -481,7 +477,6 @@ func (client BaseClient) GetActiveSessionsResponder(resp *http.Response) (result
 func (client BaseClient) getActiveSessionsResponder(resp *http.Response) (result BastionActiveSessionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -596,7 +591,6 @@ func (client BaseClient) GetBastionShareableLinkSender(req *http.Request) (*http
 func (client BaseClient) GetBastionShareableLinkResponder(resp *http.Response) (result BastionShareableLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -718,7 +712,6 @@ func (client BaseClient) PutBastionShareableLinkResponder(resp *http.Response) (
 func (client BaseClient) putBastionShareableLinkResponder(resp *http.Response) (result BastionShareableLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -829,7 +822,6 @@ func (client BaseClient) SupportedSecurityProvidersSender(req *http.Request) (*h
 func (client BaseClient) SupportedSecurityProvidersResponder(resp *http.Response) (result VirtualWanSecurityProviders, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

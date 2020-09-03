@@ -5,14 +5,16 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -58,10 +60,20 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				ValidateFunc: validation.IntBetween(0, 5),
 			},
 
+			"proximity_placement_group_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ProximityPlacementGroupID,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
 			"single_placement_group": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
+				Default:  false,
 			},
 
 			// the VMO mode can only be deployed into one zone for now, and its zone will also be assigned to all its VM instances
@@ -106,6 +118,12 @@ func resourceArmOrchestratedVirtualMachineScaleSetCreateUpdate(d *schema.Resourc
 			SinglePlacementGroup:     utils.Bool(d.Get("single_placement_group").(bool)),
 		},
 		Zones: azure.ExpandZones(d.Get("zones").([]interface{})),
+	}
+
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		props.VirtualMachineScaleSetProperties.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
@@ -158,6 +176,11 @@ func resourceArmOrchestratedVirtualMachineScaleSetRead(d *schema.ResourceData, m
 	if props := resp.VirtualMachineScaleSetProperties; props != nil {
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 		d.Set("single_placement_group", props.SinglePlacementGroup)
+		proximityPlacementGroupID := ""
+		if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
+			proximityPlacementGroupID = *props.ProximityPlacementGroup.ID
+		}
+		d.Set("proximity_placement_group_id", proximityPlacementGroupID)
 		d.Set("unique_id", props.UniqueID)
 	}
 

@@ -1,11 +1,14 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -142,7 +144,7 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	locks.ByName(name, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -218,6 +220,21 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
+	log.Printf("[DEBUG] Waiting for Express Route Circuit %q (Resource Group %q) to be able to be queried", name, resGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Exists"},
+		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, resGroup, name),
+		PollInterval:              3 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error for Express Route Circuit %q (Resource Group %q) to be able to be queried: %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -327,5 +344,20 @@ func flattenExpressRouteCircuitSku(sku *network.ExpressRouteCircuitSku) []interf
 			"tier":   string(sku.Tier),
 			"family": string(sku.Family),
 		},
+	}
+}
+
+func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *network.ExpressRouteCircuitsClient, resGroup, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return nil, "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("Error polling to check if the Express Route Circuit has been created: %+v", err)
+		}
+
+		return res, "Exists", nil
 	}
 }

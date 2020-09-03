@@ -109,7 +109,6 @@ func (client PartnerTopicsClient) ActivateSender(req *http.Request) (*http.Respo
 func (client PartnerTopicsClient) ActivateResponder(resp *http.Response) (result PartnerTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -185,7 +184,6 @@ func (client PartnerTopicsClient) DeactivateSender(req *http.Request) (*http.Res
 func (client PartnerTopicsClient) DeactivateResponder(resp *http.Response) (result PartnerTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -261,7 +259,6 @@ func (client PartnerTopicsClient) DeleteSender(req *http.Request) (future Partne
 func (client PartnerTopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -336,7 +333,6 @@ func (client PartnerTopicsClient) GetSender(req *http.Request) (*http.Response, 
 func (client PartnerTopicsClient) GetResponder(resp *http.Response) (result PartnerTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -425,7 +421,6 @@ func (client PartnerTopicsClient) ListByResourceGroupSender(req *http.Request) (
 func (client PartnerTopicsClient) ListByResourceGroupResponder(resp *http.Response) (result PartnerTopicsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -549,7 +544,6 @@ func (client PartnerTopicsClient) ListBySubscriptionSender(req *http.Request) (*
 func (client PartnerTopicsClient) ListBySubscriptionResponder(resp *http.Response) (result PartnerTopicsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -665,7 +659,6 @@ func (client PartnerTopicsClient) UpdateSender(req *http.Request) (*http.Respons
 func (client PartnerTopicsClient) UpdateResponder(resp *http.Response) (result PartnerTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

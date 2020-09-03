@@ -122,7 +122,6 @@ func (client StorageAccountsClient) AddSender(req *http.Request) (*http.Response
 func (client StorageAccountsClient) AddResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -199,7 +198,6 @@ func (client StorageAccountsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client StorageAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -276,7 +274,6 @@ func (client StorageAccountsClient) GetSender(req *http.Request) (*http.Response
 func (client StorageAccountsClient) GetResponder(resp *http.Response) (result StorageAccountInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,7 +354,6 @@ func (client StorageAccountsClient) GetStorageContainerSender(req *http.Request)
 func (client StorageAccountsClient) GetStorageContainerResponder(resp *http.Response) (result StorageContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,7 +469,6 @@ func (client StorageAccountsClient) ListByAccountSender(req *http.Request) (*htt
 func (client StorageAccountsClient) ListByAccountResponder(resp *http.Response) (result StorageAccountInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -592,7 +587,6 @@ func (client StorageAccountsClient) ListSasTokensSender(req *http.Request) (*htt
 func (client StorageAccountsClient) ListSasTokensResponder(resp *http.Response) (result SasTokenInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -709,7 +703,6 @@ func (client StorageAccountsClient) ListStorageContainersSender(req *http.Reques
 func (client StorageAccountsClient) ListStorageContainersResponder(resp *http.Response) (result StorageContainerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -832,7 +825,6 @@ func (client StorageAccountsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client StorageAccountsClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

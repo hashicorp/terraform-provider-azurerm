@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -73,6 +72,12 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
+			"hosting_environment_profile_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"friendly_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -130,13 +135,14 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
+	hostingEnvironmentProfileId := d.Get("hosting_environment_profile_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if pfxBlob == "" && keyVaultSecretId == "" {
 		return fmt.Errorf("Either `pfx_blob` or `key_vault_secret_id` must be set")
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -155,6 +161,12 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 		},
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
+	}
+
+	if len(hostingEnvironmentProfileId) > 0 {
+		certificate.CertificateProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+			ID: &hostingEnvironmentProfileId,
+		}
 	}
 
 	if pfxBlob != "" {
@@ -237,6 +249,10 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 		d.Set("issue_date", props.IssueDate.Format(time.RFC3339))
 		d.Set("expiration_date", props.ExpirationDate.Format(time.RFC3339))
 		d.Set("thumbprint", props.Thumbprint)
+
+		if hep := props.HostingEnvironmentProfile; hep != nil {
+			d.Set("hosting_environment_profile_id", hep.ID)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

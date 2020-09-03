@@ -4,6 +4,7 @@ type UserFeatures struct {
 	VirtualMachine         VirtualMachineFeatures
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
+	Network                NetworkFeatures
 }
 
 type VirtualMachineFeatures struct {
@@ -17,4 +18,8 @@ type VirtualMachineScaleSetFeatures struct {
 type KeyVaultFeatures struct {
 	PurgeSoftDeleteOnDestroy    bool
 	RecoverSoftDeletedKeyVaults bool
+}
+
+type NetworkFeatures struct {
+	RelaxedLocking bool
 }

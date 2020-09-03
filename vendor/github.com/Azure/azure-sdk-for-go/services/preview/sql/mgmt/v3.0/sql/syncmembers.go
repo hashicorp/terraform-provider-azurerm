@@ -89,7 +89,7 @@ func (client SyncMembersClient) CreateOrUpdatePreparer(ctx context.Context, reso
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -121,7 +121,6 @@ func (client SyncMembersClient) CreateOrUpdateSender(req *http.Request) (future 
 func (client SyncMembersClient) CreateOrUpdateResponder(resp *http.Response) (result SyncMember, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -174,7 +173,7 @@ func (client SyncMembersClient) DeletePreparer(ctx context.Context, resourceGrou
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -204,7 +203,6 @@ func (client SyncMembersClient) DeleteSender(req *http.Request) (future SyncMemb
 func (client SyncMembersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -262,7 +260,7 @@ func (client SyncMembersClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -286,7 +284,6 @@ func (client SyncMembersClient) GetSender(req *http.Request) (*http.Response, er
 func (client SyncMembersClient) GetResponder(resp *http.Response) (result SyncMember, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -344,7 +341,7 @@ func (client SyncMembersClient) ListBySyncGroupPreparer(ctx context.Context, res
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -368,7 +365,6 @@ func (client SyncMembersClient) ListBySyncGroupSender(req *http.Request) (*http.
 func (client SyncMembersClient) ListBySyncGroupResponder(resp *http.Response) (result SyncMemberListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -465,7 +461,7 @@ func (client SyncMembersClient) ListMemberSchemasPreparer(ctx context.Context, r
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -489,7 +485,6 @@ func (client SyncMembersClient) ListMemberSchemasSender(req *http.Request) (*htt
 func (client SyncMembersClient) ListMemberSchemasResponder(resp *http.Response) (result SyncFullSchemaPropertiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -579,7 +574,7 @@ func (client SyncMembersClient) RefreshMemberSchemaPreparer(ctx context.Context,
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -609,7 +604,6 @@ func (client SyncMembersClient) RefreshMemberSchemaSender(req *http.Request) (fu
 func (client SyncMembersClient) RefreshMemberSchemaResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -662,7 +656,7 @@ func (client SyncMembersClient) UpdatePreparer(ctx context.Context, resourceGrou
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -694,7 +688,6 @@ func (client SyncMembersClient) UpdateSender(req *http.Request) (future SyncMemb
 func (client SyncMembersClient) UpdateResponder(resp *http.Response) (result SyncMember, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

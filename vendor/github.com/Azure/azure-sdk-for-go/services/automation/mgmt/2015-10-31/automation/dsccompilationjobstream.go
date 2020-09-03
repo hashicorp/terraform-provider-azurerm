@@ -122,7 +122,6 @@ func (client DscCompilationJobStreamClient) ListByJobSender(req *http.Request) (
 func (client DscCompilationJobStreamClient) ListByJobResponder(resp *http.Response) (result JobStreamListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

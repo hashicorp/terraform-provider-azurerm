@@ -105,7 +105,6 @@ func (client ResourceProviderCommonClient) GetSubscriptionQuotaSender(req *http.
 func (client ResourceProviderCommonClient) GetSubscriptionQuotaResponder(resp *http.Response) (result UserSubscriptionQuotaListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

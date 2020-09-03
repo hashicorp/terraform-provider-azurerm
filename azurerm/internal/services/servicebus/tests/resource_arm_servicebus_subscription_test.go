@@ -174,6 +174,43 @@ func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t 
 	})
 }
 
+func TestAccAzureRMServiceBusSubscription_status(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Active"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusSubscription_status(data, "Disabled"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusSubscription_status(data, "ReceiveDisabled"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "ReceiveDisabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusSubscription_status(data, "Active"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Active"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.SubscriptionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -324,4 +361,9 @@ resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
 `
 	return fmt.Sprintf(forwardToTf, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		"forward_dead_lettered_messages_to = \"${azurerm_servicebus_topic.forward_dl_messages_to.name}\"\n", data.RandomInteger)
+}
+
+func testAccAzureRMServiceBusSubscription_status(data acceptance.TestData, status string) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		fmt.Sprintf("status = \"%s\"", status))
 }

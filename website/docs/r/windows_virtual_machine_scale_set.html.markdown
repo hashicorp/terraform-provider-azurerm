@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below.
 
-* `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic`.
+* `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This can only be specified when `upgrade_mode` is set to `Automatic`.
 
 * `automatic_instance_repair` - (Optional) A `automatic_instance_repair` block as defined below. To enable the automatic instance repair, this Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
@@ -130,6 +130,10 @@ The following arguments are supported:
 
 * `enable_automatic_updates` - (Optional) Are automatic updates enabled for this Virtual Machine? Defaults to `true`.
 
+* `extension` - (Optional) One or more `extension` blocks as defined below
+
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
+
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
@@ -144,7 +148,7 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
-* `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `false`.
+* `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `true`.
 
 * `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
@@ -263,6 +267,38 @@ A `data_disk` block supports the following:
 A `diff_disk_settings` block supports the following:
 
 `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
+
+---
+
+An `extension` block supports the following:
+
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
+
+* `name` - (Required) The name for the Virtual Machine Scale Set Extension.
+
+* `publisher` - (Required) Specifies the Publisher of the Extension.
+
+* `type` - (Required) Specifies the Type of the Extension.
+
+* `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
+
+* `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to `true`.
+
+* `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
+
+* `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
+
+~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
+
+-> **Note:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
+
+* `provision_after_extensions` - (Optional) An ordered list of Extension names which this should be provisioned after.
+
+* `settings` - (Optional) A JSON String which specifies Settings for the Extension.
+
+~> **NOTE:** Keys within the `settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
+
+-> **Note:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
 ---
 

@@ -17,23 +17,23 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 	// Azure only being happy about provisioning one per region at once
 	// (which our test suite can't easily workaround)
 	testCases := map[string]map[string]func(t *testing.T){
-		"basic": {
-			"basic":          testAccAzureRMNetworkWatcher_basic,
-			"requiresImport": testAccAzureRMNetworkWatcher_requiresImport,
-			"complete":       testAccAzureRMNetworkWatcher_complete,
-			"update":         testAccAzureRMNetworkWatcher_update,
-			"disappears":     testAccAzureRMNetworkWatcher_disappears,
-		},
-		"DataSource": {
-			"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
-		},
-		"PacketCaptureOld": {
-			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
-			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccAzureRMPacketCapture_withFilters,
-			"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
-		},
+		//"basic": {
+		//	"basic":          testAccAzureRMNetworkWatcher_basic,
+		//	"requiresImport": testAccAzureRMNetworkWatcher_requiresImport,
+		//	"complete":       testAccAzureRMNetworkWatcher_complete,
+		//	"update":         testAccAzureRMNetworkWatcher_update,
+		//	"disappears":     testAccAzureRMNetworkWatcher_disappears,
+		//},
+		//"DataSource": {
+		//	"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
+		//},
+		//"PacketCaptureOld": {
+		//	"localDisk":                  testAccAzureRMPacketCapture_localDisk,
+		//	"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
+		//	"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
+		//	"withFilters":                testAccAzureRMPacketCapture_withFilters,
+		//	"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
+		//},
 		"ConnectionMonitor": {
 			"addressBasic":              testAccAzureRMNetworkConnectionMonitor_addressBasic,
 			"addressComplete":           testAccAzureRMNetworkConnectionMonitor_addressComplete,
@@ -46,22 +46,22 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"bothDestinationsInvalid":   testAccAzureRMNetworkConnectionMonitor_conflictingDestinations,
 			"requiresImport":            testAccAzureRMNetworkConnectionMonitor_requiresImport,
 		},
-		"PacketCapture": {
-			"localDisk":                  testAccAzureRMNetworkPacketCapture_localDisk,
-			"storageAccount":             testAccAzureRMNetworkPacketCapture_storageAccount,
-			"storageAccountAndLocalDisk": testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk,
-			"withFilters":                testAccAzureRMNetworkPacketCapture_withFilters,
-			"requiresImport":             testAccAzureRMNetworkPacketCapture_requiresImport,
-		},
-		"FlowLog": {
-			"basic":                testAccAzureRMNetworkWatcherFlowLog_basic,
-			"disabled":             testAccAzureRMNetworkWatcherFlowLog_disabled,
-			"reenabled":            testAccAzureRMNetworkWatcherFlowLog_reenabled,
-			"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
-			"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
-			"trafficAnalytics":     testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
-			"version":              testAccAzureRMNetworkWatcherFlowLog_version,
-		},
+		//"PacketCapture": {
+		//	"localDisk":                  testAccAzureRMNetworkPacketCapture_localDisk,
+		//	"storageAccount":             testAccAzureRMNetworkPacketCapture_storageAccount,
+		//	"storageAccountAndLocalDisk": testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk,
+		//	"withFilters":                testAccAzureRMNetworkPacketCapture_withFilters,
+		//	"requiresImport":             testAccAzureRMNetworkPacketCapture_requiresImport,
+		//},
+		//"FlowLog": {
+		//	"basic":                testAccAzureRMNetworkWatcherFlowLog_basic,
+		//	"disabled":             testAccAzureRMNetworkWatcherFlowLog_disabled,
+		//	"reenabled":            testAccAzureRMNetworkWatcherFlowLog_reenabled,
+		//	"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
+		//	"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
+		//	"trafficAnalytics":     testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
+		//	"version":              testAccAzureRMNetworkWatcherFlowLog_version,
+		//},
 	}
 
 	for group, m := range testCases {

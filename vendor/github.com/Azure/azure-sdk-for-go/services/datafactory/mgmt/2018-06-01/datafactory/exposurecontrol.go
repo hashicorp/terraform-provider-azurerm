@@ -112,7 +112,6 @@ func (client ExposureControlClient) GetFeatureValueSender(req *http.Request) (*h
 func (client ExposureControlClient) GetFeatureValueResponder(resp *http.Response) (result ExposureControlResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client ExposureControlClient) GetFeatureValueByFactorySender(req *http.Req
 func (client ExposureControlClient) GetFeatureValueByFactoryResponder(resp *http.Response) (result ExposureControlResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

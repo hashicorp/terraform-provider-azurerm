@@ -123,7 +123,6 @@ func (client Client) CheckExistenceSender(req *http.Request) (*http.Response, er
 func (client Client) CheckExistenceResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -214,7 +213,6 @@ func (client Client) CreateOrUpdateSender(req *http.Request) (*http.Response, er
 func (client Client) CreateOrUpdateResponder(resp *http.Response) (result GenericResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -303,7 +301,6 @@ func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
 func (client Client) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -391,7 +388,6 @@ func (client Client) GetSender(req *http.Request) (*http.Response, error) {
 func (client Client) GetResponder(resp *http.Response) (result GenericResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -477,7 +473,6 @@ func (client Client) ListSender(req *http.Request) (*http.Response, error) {
 func (client Client) ListResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -600,7 +595,6 @@ func (client Client) MoveResourcesSender(req *http.Request) (future MoveResource
 func (client Client) MoveResourcesResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -692,7 +686,6 @@ func (client Client) UpdateSender(req *http.Request) (future UpdateFuture, err e
 func (client Client) UpdateResponder(resp *http.Response) (result GenericResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

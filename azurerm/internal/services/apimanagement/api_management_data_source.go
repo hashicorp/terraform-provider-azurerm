@@ -100,6 +100,11 @@ func dataSourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
+			"developer_portal_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"management_api_url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -215,6 +220,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("gateway_url", props.GatewayURL)
 		d.Set("gateway_regional_url", props.GatewayRegionalURL)
 		d.Set("portal_url", props.PortalURL)
+		d.Set("developer_portal_url", props.DeveloperPortalURL)
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)

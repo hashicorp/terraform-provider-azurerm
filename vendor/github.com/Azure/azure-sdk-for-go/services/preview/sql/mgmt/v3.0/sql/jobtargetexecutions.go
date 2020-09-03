@@ -125,7 +125,6 @@ func (client JobTargetExecutionsClient) GetSender(req *http.Request) (*http.Resp
 func (client JobTargetExecutionsClient) GetResponder(resp *http.Response) (result JobExecution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -237,7 +236,6 @@ func (client JobTargetExecutionsClient) ListByJobExecutionSender(req *http.Reque
 func (client JobTargetExecutionsClient) ListByJobExecutionResponder(resp *http.Response) (result JobExecutionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,7 +386,6 @@ func (client JobTargetExecutionsClient) ListByStepSender(req *http.Request) (*ht
 func (client JobTargetExecutionsClient) ListByStepResponder(resp *http.Response) (result JobExecutionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

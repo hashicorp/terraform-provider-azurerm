@@ -134,13 +134,51 @@ func PossibleAssessedResourceTypeValues() []AssessedResourceType {
 	return []AssessedResourceType{AssessedResourceTypeAdditionalData, AssessedResourceTypeContainerRegistryVulnerability, AssessedResourceTypeServerVulnerabilityAssessment, AssessedResourceTypeSQLServerVulnerability}
 }
 
+// AuthenticationProvisioningState enumerates the values for authentication provisioning state.
+type AuthenticationProvisioningState string
+
+const (
+	// Expired the connection is expired
+	Expired AuthenticationProvisioningState = "Expired"
+	// IncorrectPolicy Incorrect policy of the connector
+	IncorrectPolicy AuthenticationProvisioningState = "IncorrectPolicy"
+	// Invalid Invalid connector
+	Invalid AuthenticationProvisioningState = "Invalid"
+	// Valid Valid connector
+	Valid AuthenticationProvisioningState = "Valid"
+)
+
+// PossibleAuthenticationProvisioningStateValues returns an array of possible values for the AuthenticationProvisioningState const type.
+func PossibleAuthenticationProvisioningStateValues() []AuthenticationProvisioningState {
+	return []AuthenticationProvisioningState{Expired, IncorrectPolicy, Invalid, Valid}
+}
+
+// AuthenticationType enumerates the values for authentication type.
+type AuthenticationType string
+
+const (
+	// AuthenticationTypeAuthenticationDetailsProperties ...
+	AuthenticationTypeAuthenticationDetailsProperties AuthenticationType = "AuthenticationDetailsProperties"
+	// AuthenticationTypeAwsAssumeRole ...
+	AuthenticationTypeAwsAssumeRole AuthenticationType = "awsAssumeRole"
+	// AuthenticationTypeAwsCreds ...
+	AuthenticationTypeAwsCreds AuthenticationType = "awsCreds"
+	// AuthenticationTypeGcpCredentials ...
+	AuthenticationTypeGcpCredentials AuthenticationType = "gcpCredentials"
+)
+
+// PossibleAuthenticationTypeValues returns an array of possible values for the AuthenticationType const type.
+func PossibleAuthenticationTypeValues() []AuthenticationType {
+	return []AuthenticationType{AuthenticationTypeAuthenticationDetailsProperties, AuthenticationTypeAwsAssumeRole, AuthenticationTypeAwsCreds, AuthenticationTypeGcpCredentials}
+}
+
 // AutoProvision enumerates the values for auto provision.
 type AutoProvision string
 
 const (
-	// AutoProvisionOff Do not install security agent on the VMs automatically
+	// AutoProvisionOff Do not install Azure Arc agent on the VMs automatically
 	AutoProvisionOff AutoProvision = "Off"
-	// AutoProvisionOn Install missing security agent on VMs automatically
+	// AutoProvisionOn Install missing Azure Arc agent on VMs automatically
 	AutoProvisionOn AutoProvision = "On"
 )
 
@@ -225,6 +263,21 @@ const (
 // PossibleConnectionTypeValues returns an array of possible values for the ConnectionType const type.
 func PossibleConnectionTypeValues() []ConnectionType {
 	return []ConnectionType{External, Internal}
+}
+
+// ControlType enumerates the values for control type.
+type ControlType string
+
+const (
+	// BuiltIn Azure Security Center managed assessments
+	BuiltIn ControlType = "BuiltIn"
+	// Custom Non Azure Security Center managed assessments
+	Custom ControlType = "Custom"
+)
+
+// PossibleControlTypeValues returns an array of possible values for the ControlType const type.
+func PossibleControlTypeValues() []ControlType {
+	return []ControlType{BuiltIn, Custom}
 }
 
 // Direction enumerates the values for direction.
@@ -342,6 +395,19 @@ func PossibleExecutableValues() []Executable {
 	return []Executable{ExecutableAudit, ExecutableEnforce, ExecutableNone}
 }
 
+// ExpandControlsEnum enumerates the values for expand controls enum.
+type ExpandControlsEnum string
+
+const (
+	// Definition Add definition object for each control
+	Definition ExpandControlsEnum = "definition"
+)
+
+// PossibleExpandControlsEnumValues returns an array of possible values for the ExpandControlsEnum const type.
+func PossibleExpandControlsEnumValues() []ExpandControlsEnum {
+	return []ExpandControlsEnum{Definition}
+}
+
 // ExternalSecuritySolutionKind enumerates the values for external security solution kind.
 type ExternalSecuritySolutionKind string
 
@@ -399,6 +465,23 @@ const (
 // PossibleFileTypeValues returns an array of possible values for the FileType const type.
 func PossibleFileTypeValues() []FileType {
 	return []FileType{FileTypeDll, FileTypeExe, FileTypeExecutable, FileTypeMsi, FileTypeScript, FileTypeUnknown}
+}
+
+// HybridComputeProvisioningState enumerates the values for hybrid compute provisioning state.
+type HybridComputeProvisioningState string
+
+const (
+	// HybridComputeProvisioningStateExpired the service principal details are expired
+	HybridComputeProvisioningStateExpired HybridComputeProvisioningState = "Expired"
+	// HybridComputeProvisioningStateInvalid Invalid service principal details.
+	HybridComputeProvisioningStateInvalid HybridComputeProvisioningState = "Invalid"
+	// HybridComputeProvisioningStateValid Valid service principal details.
+	HybridComputeProvisioningStateValid HybridComputeProvisioningState = "Valid"
+)
+
+// PossibleHybridComputeProvisioningStateValues returns an array of possible values for the HybridComputeProvisioningState const type.
+func PossibleHybridComputeProvisioningStateValues() []HybridComputeProvisioningState {
+	return []HybridComputeProvisioningState{HybridComputeProvisioningStateExpired, HybridComputeProvisioningStateInvalid, HybridComputeProvisioningStateValid}
 }
 
 // Issue enumerates the values for issue.
@@ -487,6 +570,26 @@ const (
 // PossibleOperatorValues returns an array of possible values for the Operator const type.
 func PossibleOperatorValues() []Operator {
 	return []Operator{Contains, EndsWith, Equals, GreaterThan, GreaterThanOrEqualTo, LesserThan, LesserThanOrEqualTo, NotEquals, StartsWith}
+}
+
+// PermissionProperty enumerates the values for permission property.
+type PermissionProperty string
+
+const (
+	// AWSAmazonSSMAutomationRole The permission provides for EC2 Automation service to execute activities
+	// defined within Automation documents.
+	AWSAmazonSSMAutomationRole PermissionProperty = "AWS::AmazonSSMAutomationRole"
+	// AWSAWSSecurityHubReadOnlyAccess This permission provides read only access to AWS Security Hub resources.
+	AWSAWSSecurityHubReadOnlyAccess PermissionProperty = "AWS::AWSSecurityHubReadOnlyAccess"
+	// AWSSecurityAudit This permission grants access to read security configuration metadata.
+	AWSSecurityAudit PermissionProperty = "AWS::SecurityAudit"
+	// GCPSecurityCenterAdminViewer This permission provides read only access to GCP Security Command Center.
+	GCPSecurityCenterAdminViewer PermissionProperty = "GCP::Security Center Admin Viewer"
+)
+
+// PossiblePermissionPropertyValues returns an array of possible values for the PermissionProperty const type.
+func PossiblePermissionPropertyValues() []PermissionProperty {
+	return []PermissionProperty{AWSAmazonSSMAutomationRole, AWSAWSSecurityHubReadOnlyAccess, AWSSecurityAudit, GCPSecurityCenterAdminViewer}
 }
 
 // PricingTier enumerates the values for pricing tier.
@@ -633,6 +736,23 @@ func PossibleReportedSeverityValues() []ReportedSeverity {
 	return []ReportedSeverity{High, Information, Low, Silent}
 }
 
+// RuleState enumerates the values for rule state.
+type RuleState string
+
+const (
+	// RuleStateDisabled ...
+	RuleStateDisabled RuleState = "Disabled"
+	// RuleStateEnabled ...
+	RuleStateEnabled RuleState = "Enabled"
+	// RuleStateExpired ...
+	RuleStateExpired RuleState = "Expired"
+)
+
+// PossibleRuleStateValues returns an array of possible values for the RuleState const type.
+func PossibleRuleStateValues() []RuleState {
+	return []RuleState{RuleStateDisabled, RuleStateEnabled, RuleStateExpired}
+}
+
 // Script enumerates the values for script.
 type Script string
 
@@ -759,17 +879,17 @@ func PossibleStatusValues() []Status {
 type StatusReason string
 
 const (
-	// Expired ...
-	Expired StatusReason = "Expired"
-	// NewerRequestInitiated ...
-	NewerRequestInitiated StatusReason = "NewerRequestInitiated"
-	// UserRequested ...
-	UserRequested StatusReason = "UserRequested"
+	// StatusReasonExpired ...
+	StatusReasonExpired StatusReason = "Expired"
+	// StatusReasonNewerRequestInitiated ...
+	StatusReasonNewerRequestInitiated StatusReason = "NewerRequestInitiated"
+	// StatusReasonUserRequested ...
+	StatusReasonUserRequested StatusReason = "UserRequested"
 )
 
 // PossibleStatusReasonValues returns an array of possible values for the StatusReason const type.
 func PossibleStatusReasonValues() []StatusReason {
-	return []StatusReason{Expired, NewerRequestInitiated, UserRequested}
+	return []StatusReason{StatusReasonExpired, StatusReasonNewerRequestInitiated, StatusReasonUserRequested}
 }
 
 // SubAssessmentStatusCode enumerates the values for sub assessment status code.
@@ -1687,6 +1807,242 @@ func (ap AlertProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// AlertsSuppressionRule describes the suppression rule
+type AlertsSuppressionRule struct {
+	autorest.Response                `json:"-"`
+	*AlertsSuppressionRuleProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AlertsSuppressionRule.
+func (asr AlertsSuppressionRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asr.AlertsSuppressionRuleProperties != nil {
+		objectMap["properties"] = asr.AlertsSuppressionRuleProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AlertsSuppressionRule struct.
+func (asr *AlertsSuppressionRule) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var alertsSuppressionRuleProperties AlertsSuppressionRuleProperties
+				err = json.Unmarshal(*v, &alertsSuppressionRuleProperties)
+				if err != nil {
+					return err
+				}
+				asr.AlertsSuppressionRuleProperties = &alertsSuppressionRuleProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				asr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				asr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				asr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// AlertsSuppressionRuleProperties describes AlertsSuppressionRule properties
+type AlertsSuppressionRuleProperties struct {
+	// AlertType - Type of the alert to automatically suppress. For all alert types, use '*'
+	AlertType *string `json:"alertType,omitempty"`
+	// LastModifiedUtc - READ-ONLY; The last time this rule was modified
+	LastModifiedUtc *date.Time `json:"lastModifiedUtc,omitempty"`
+	// ExpirationDateUtc - Expiration date of the rule, if value is not provided or provided as null this field will default to the maximum allowed expiration date.
+	ExpirationDateUtc *date.Time `json:"expirationDateUtc,omitempty"`
+	// Reason - The reason for dismissing the alert
+	Reason *string `json:"reason,omitempty"`
+	// State - Possible states of the rule. Possible values include: 'RuleStateEnabled', 'RuleStateDisabled', 'RuleStateExpired'
+	State RuleState `json:"state,omitempty"`
+	// Comment - Any comment regarding the rule
+	Comment *string `json:"comment,omitempty"`
+	// SuppressionAlertsScope - The suppression conditions
+	SuppressionAlertsScope *SuppressionAlertsScope `json:"suppressionAlertsScope,omitempty"`
+}
+
+// AlertsSuppressionRulesList suppression rules list for subscription.
+type AlertsSuppressionRulesList struct {
+	autorest.Response `json:"-"`
+	Value             *[]AlertsSuppressionRule `json:"value,omitempty"`
+	// NextLink - READ-ONLY; URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// AlertsSuppressionRulesListIterator provides access to a complete listing of AlertsSuppressionRule
+// values.
+type AlertsSuppressionRulesListIterator struct {
+	i    int
+	page AlertsSuppressionRulesListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *AlertsSuppressionRulesListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsSuppressionRulesListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *AlertsSuppressionRulesListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter AlertsSuppressionRulesListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter AlertsSuppressionRulesListIterator) Response() AlertsSuppressionRulesList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter AlertsSuppressionRulesListIterator) Value() AlertsSuppressionRule {
+	if !iter.page.NotDone() {
+		return AlertsSuppressionRule{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the AlertsSuppressionRulesListIterator type.
+func NewAlertsSuppressionRulesListIterator(page AlertsSuppressionRulesListPage) AlertsSuppressionRulesListIterator {
+	return AlertsSuppressionRulesListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (asrl AlertsSuppressionRulesList) IsEmpty() bool {
+	return asrl.Value == nil || len(*asrl.Value) == 0
+}
+
+// alertsSuppressionRulesListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (asrl AlertsSuppressionRulesList) alertsSuppressionRulesListPreparer(ctx context.Context) (*http.Request, error) {
+	if asrl.NextLink == nil || len(to.String(asrl.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(asrl.NextLink)))
+}
+
+// AlertsSuppressionRulesListPage contains a page of AlertsSuppressionRule values.
+type AlertsSuppressionRulesListPage struct {
+	fn   func(context.Context, AlertsSuppressionRulesList) (AlertsSuppressionRulesList, error)
+	asrl AlertsSuppressionRulesList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *AlertsSuppressionRulesListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsSuppressionRulesListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.asrl)
+	if err != nil {
+		return err
+	}
+	page.asrl = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *AlertsSuppressionRulesListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page AlertsSuppressionRulesListPage) NotDone() bool {
+	return !page.asrl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page AlertsSuppressionRulesListPage) Response() AlertsSuppressionRulesList {
+	return page.asrl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page AlertsSuppressionRulesListPage) Values() []AlertsSuppressionRule {
+	if page.asrl.IsEmpty() {
+		return nil
+	}
+	return *page.asrl.Value
+}
+
+// Creates a new instance of the AlertsSuppressionRulesListPage type.
+func NewAlertsSuppressionRulesListPage(getNextPage func(context.Context, AlertsSuppressionRulesList) (AlertsSuppressionRulesList, error)) AlertsSuppressionRulesListPage {
+	return AlertsSuppressionRulesListPage{fn: getNextPage}
+}
+
 // AllowedConnectionsList list of all possible traffic between Azure resources
 type AllowedConnectionsList struct {
 	autorest.Response `json:"-"`
@@ -2369,6 +2725,104 @@ func (asp *AtaSolutionProperties) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// BasicAuthenticationDetailsProperties settings for cloud authentication management
+type BasicAuthenticationDetailsProperties interface {
+	AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool)
+	AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool)
+	AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool)
+	AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool)
+}
+
+// AuthenticationDetailsProperties settings for cloud authentication management
+type AuthenticationDetailsProperties struct {
+	// AuthenticationProvisioningState - READ-ONLY; State of the multi-cloud connector. Possible values include: 'Valid', 'Invalid', 'Expired', 'IncorrectPolicy'
+	AuthenticationProvisioningState AuthenticationProvisioningState `json:"authenticationProvisioningState,omitempty"`
+	// GrantedPermissions - READ-ONLY; The permissions detected in the cloud account.
+	GrantedPermissions *[]PermissionProperty `json:"grantedPermissions,omitempty"`
+	// AuthenticationType - Possible values include: 'AuthenticationTypeAuthenticationDetailsProperties', 'AuthenticationTypeAwsCreds', 'AuthenticationTypeAwsAssumeRole', 'AuthenticationTypeGcpCredentials'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+}
+
+func unmarshalBasicAuthenticationDetailsProperties(body []byte) (BasicAuthenticationDetailsProperties, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["authenticationType"] {
+	case string(AuthenticationTypeAwsCreds):
+		var acadp AwsCredsAuthenticationDetailsProperties
+		err := json.Unmarshal(body, &acadp)
+		return acadp, err
+	case string(AuthenticationTypeAwsAssumeRole):
+		var aaradp AwAssumeRoleAuthenticationDetailsProperties
+		err := json.Unmarshal(body, &aaradp)
+		return aaradp, err
+	case string(AuthenticationTypeGcpCredentials):
+		var gcdp GcpCredentialsDetailsProperties
+		err := json.Unmarshal(body, &gcdp)
+		return gcdp, err
+	default:
+		var adp AuthenticationDetailsProperties
+		err := json.Unmarshal(body, &adp)
+		return adp, err
+	}
+}
+func unmarshalBasicAuthenticationDetailsPropertiesArray(body []byte) ([]BasicAuthenticationDetailsProperties, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	adpArray := make([]BasicAuthenticationDetailsProperties, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		adp, err := unmarshalBasicAuthenticationDetailsProperties(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		adpArray[index] = adp
+	}
+	return adpArray, nil
+}
+
+// MarshalJSON is the custom marshaler for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) MarshalJSON() ([]byte, error) {
+	adp.AuthenticationType = AuthenticationTypeAuthenticationDetailsProperties
+	objectMap := make(map[string]interface{})
+	if adp.AuthenticationType != "" {
+		objectMap["authenticationType"] = adp.AuthenticationType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAwsCredsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAwAssumeRoleAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsGcpCredentialsDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool) {
+	return &adp, true
+}
+
+// AsBasicAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsBasicAuthenticationDetailsProperties() (BasicAuthenticationDetailsProperties, bool) {
+	return &adp, true
 }
 
 // Automation the security automation resource.
@@ -3242,6 +3696,127 @@ type AutoProvisioningSettingProperties struct {
 	AutoProvision AutoProvision `json:"autoProvision,omitempty"`
 }
 
+// AwAssumeRoleAuthenticationDetailsProperties AWS cloud account connector based assume role, the role
+// enables delegating access to your AWS resources. The role is composed of role arn and external id, for
+// more details, refer to <a
+// href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html">Creating a Role to
+// Delegate Permissions to an IAM User (write only)</a>
+type AwAssumeRoleAuthenticationDetailsProperties struct {
+	// AccountID - READ-ONLY; The ID of the cloud account
+	AccountID *string `json:"accountId,omitempty"`
+	// AwsAssumeRoleArn - Assumed role ID is an identifier that you can use to create temporary security credentials.
+	AwsAssumeRoleArn *string `json:"awsAssumeRoleArn,omitempty"`
+	// AwsExternalID - A unique identifier that is required when you assume a role in another account.
+	AwsExternalID *string `json:"awsExternalId,omitempty"`
+	// AuthenticationProvisioningState - READ-ONLY; State of the multi-cloud connector. Possible values include: 'Valid', 'Invalid', 'Expired', 'IncorrectPolicy'
+	AuthenticationProvisioningState AuthenticationProvisioningState `json:"authenticationProvisioningState,omitempty"`
+	// GrantedPermissions - READ-ONLY; The permissions detected in the cloud account.
+	GrantedPermissions *[]PermissionProperty `json:"grantedPermissions,omitempty"`
+	// AuthenticationType - Possible values include: 'AuthenticationTypeAuthenticationDetailsProperties', 'AuthenticationTypeAwsCreds', 'AuthenticationTypeAwsAssumeRole', 'AuthenticationTypeGcpCredentials'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) MarshalJSON() ([]byte, error) {
+	aaradp.AuthenticationType = AuthenticationTypeAwsAssumeRole
+	objectMap := make(map[string]interface{})
+	if aaradp.AwsAssumeRoleArn != nil {
+		objectMap["awsAssumeRoleArn"] = aaradp.AwsAssumeRoleArn
+	}
+	if aaradp.AwsExternalID != nil {
+		objectMap["awsExternalId"] = aaradp.AwsExternalID
+	}
+	if aaradp.AuthenticationType != "" {
+		objectMap["authenticationType"] = aaradp.AuthenticationType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAwsCredsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAwAssumeRoleAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool) {
+	return &aaradp, true
+}
+
+// AsGcpCredentialsDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsBasicAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsBasicAuthenticationDetailsProperties() (BasicAuthenticationDetailsProperties, bool) {
+	return &aaradp, true
+}
+
+// AwsCredsAuthenticationDetailsProperties AWS cloud account connector based credentials, the credentials
+// is composed of access key id and secret key, for more details, refer to <a
+// href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html">Creating an IAM User in
+// Your AWS Account (write only)</a>
+type AwsCredsAuthenticationDetailsProperties struct {
+	// AccountID - READ-ONLY; The ID of the cloud account
+	AccountID *string `json:"accountId,omitempty"`
+	// AwsAccessKeyID - Public key element of the AWS credential object (write only)
+	AwsAccessKeyID *string `json:"awsAccessKeyId,omitempty"`
+	// AwsSecretAccessKey - Secret key element of the AWS credential object (write only)
+	AwsSecretAccessKey *string `json:"awsSecretAccessKey,omitempty"`
+	// AuthenticationProvisioningState - READ-ONLY; State of the multi-cloud connector. Possible values include: 'Valid', 'Invalid', 'Expired', 'IncorrectPolicy'
+	AuthenticationProvisioningState AuthenticationProvisioningState `json:"authenticationProvisioningState,omitempty"`
+	// GrantedPermissions - READ-ONLY; The permissions detected in the cloud account.
+	GrantedPermissions *[]PermissionProperty `json:"grantedPermissions,omitempty"`
+	// AuthenticationType - Possible values include: 'AuthenticationTypeAuthenticationDetailsProperties', 'AuthenticationTypeAwsCreds', 'AuthenticationTypeAwsAssumeRole', 'AuthenticationTypeGcpCredentials'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) MarshalJSON() ([]byte, error) {
+	acadp.AuthenticationType = AuthenticationTypeAwsCreds
+	objectMap := make(map[string]interface{})
+	if acadp.AwsAccessKeyID != nil {
+		objectMap["awsAccessKeyId"] = acadp.AwsAccessKeyID
+	}
+	if acadp.AwsSecretAccessKey != nil {
+		objectMap["awsSecretAccessKey"] = acadp.AwsSecretAccessKey
+	}
+	if acadp.AuthenticationType != "" {
+		objectMap["authenticationType"] = acadp.AuthenticationType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAwsCredsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool) {
+	return &acadp, true
+}
+
+// AsAwAssumeRoleAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsGcpCredentialsDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsBasicAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsBasicAuthenticationDetailsProperties() (BasicAuthenticationDetailsProperties, bool) {
+	return &acadp, true
+}
+
 // AzureResourceDetails details of the Azure resource that was assessed
 type AzureResourceDetails struct {
 	// ID - READ-ONLY; Azure resource Id of the assessed resource
@@ -3278,6 +3853,12 @@ func (ard AzureResourceDetails) AsResourceDetails() (*ResourceDetails, bool) {
 // AsBasicResourceDetails is the BasicResourceDetails implementation for AzureResourceDetails.
 func (ard AzureResourceDetails) AsBasicResourceDetails() (BasicResourceDetails, bool) {
 	return &ard, true
+}
+
+// AzureResourceLink describes an Azure resource with kind
+type AzureResourceLink struct {
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
 }
 
 // CefExternalSecuritySolution represents a security solution which sends CEF logs to an OMS workspace
@@ -3763,6 +4344,265 @@ type ConnectedResource struct {
 type ConnectedWorkspace struct {
 	// ID - Azure resource ID of the connected OMS workspace
 	ID *string `json:"id,omitempty"`
+}
+
+// ConnectorSetting the connector setting
+type ConnectorSetting struct {
+	autorest.Response `json:"-"`
+	// ConnectorSettingProperties - Connector setting data
+	*ConnectorSettingProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectorSetting.
+func (cs ConnectorSetting) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cs.ConnectorSettingProperties != nil {
+		objectMap["properties"] = cs.ConnectorSettingProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ConnectorSetting struct.
+func (cs *ConnectorSetting) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var connectorSettingProperties ConnectorSettingProperties
+				err = json.Unmarshal(*v, &connectorSettingProperties)
+				if err != nil {
+					return err
+				}
+				cs.ConnectorSettingProperties = &connectorSettingProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				cs.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cs.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cs.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ConnectorSettingList for a subscription, list of all cloud account connectors and their settings
+type ConnectorSettingList struct {
+	autorest.Response `json:"-"`
+	// Value - List of all the cloud account connector settings
+	Value *[]ConnectorSetting `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ConnectorSettingListIterator provides access to a complete listing of ConnectorSetting values.
+type ConnectorSettingListIterator struct {
+	i    int
+	page ConnectorSettingListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ConnectorSettingListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectorSettingListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ConnectorSettingListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ConnectorSettingListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ConnectorSettingListIterator) Response() ConnectorSettingList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ConnectorSettingListIterator) Value() ConnectorSetting {
+	if !iter.page.NotDone() {
+		return ConnectorSetting{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ConnectorSettingListIterator type.
+func NewConnectorSettingListIterator(page ConnectorSettingListPage) ConnectorSettingListIterator {
+	return ConnectorSettingListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (csl ConnectorSettingList) IsEmpty() bool {
+	return csl.Value == nil || len(*csl.Value) == 0
+}
+
+// connectorSettingListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (csl ConnectorSettingList) connectorSettingListPreparer(ctx context.Context) (*http.Request, error) {
+	if csl.NextLink == nil || len(to.String(csl.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(csl.NextLink)))
+}
+
+// ConnectorSettingListPage contains a page of ConnectorSetting values.
+type ConnectorSettingListPage struct {
+	fn  func(context.Context, ConnectorSettingList) (ConnectorSettingList, error)
+	csl ConnectorSettingList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ConnectorSettingListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectorSettingListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.csl)
+	if err != nil {
+		return err
+	}
+	page.csl = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ConnectorSettingListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ConnectorSettingListPage) NotDone() bool {
+	return !page.csl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ConnectorSettingListPage) Response() ConnectorSettingList {
+	return page.csl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ConnectorSettingListPage) Values() []ConnectorSetting {
+	if page.csl.IsEmpty() {
+		return nil
+	}
+	return *page.csl.Value
+}
+
+// Creates a new instance of the ConnectorSettingListPage type.
+func NewConnectorSettingListPage(getNextPage func(context.Context, ConnectorSettingList) (ConnectorSettingList, error)) ConnectorSettingListPage {
+	return ConnectorSettingListPage{fn: getNextPage}
+}
+
+// ConnectorSettingProperties describes properties of an connector setting
+type ConnectorSettingProperties struct {
+	// HybridComputeSettings - Settings for hybrid compute management, these settings are relevant only Arc autoProvision (Hybrid Compute).
+	HybridComputeSettings *HybridComputeSettingsProperties `json:"hybridComputeSettings,omitempty"`
+	// AuthenticationDetails - Settings for authentication management, these settings are relevant only for the cloud connector.
+	AuthenticationDetails BasicAuthenticationDetailsProperties `json:"authenticationDetails,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for ConnectorSettingProperties struct.
+func (csp *ConnectorSettingProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "hybridComputeSettings":
+			if v != nil {
+				var hybridComputeSettings HybridComputeSettingsProperties
+				err = json.Unmarshal(*v, &hybridComputeSettings)
+				if err != nil {
+					return err
+				}
+				csp.HybridComputeSettings = &hybridComputeSettings
+			}
+		case "authenticationDetails":
+			if v != nil {
+				authenticationDetails, err := unmarshalBasicAuthenticationDetailsProperties(*v)
+				if err != nil {
+					return err
+				}
+				csp.AuthenticationDetails = authenticationDetails
+			}
+		}
+	}
+
+	return nil
 }
 
 // Contact contact details for security issues
@@ -5062,6 +5902,123 @@ func (essp *ExternalSecuritySolutionProperties) UnmarshalJSON(body []byte) error
 	return nil
 }
 
+// GcpCredentialsDetailsProperties GCP cloud account connector based service to service credentials, the
+// credentials is composed of organization id and json api key (write only)</a>
+type GcpCredentialsDetailsProperties struct {
+	// OrganizationID - The Organization ID of the GCP cloud account
+	OrganizationID *string `json:"organizationId,omitempty"`
+	// Type - Type field of the API key (write only)
+	Type *string `json:"type,omitempty"`
+	// ProjectID - Project Id field of the API key (write only)
+	ProjectID *string `json:"projectId,omitempty"`
+	// PrivateKeyID - Private key Id field of the API key (write only)
+	PrivateKeyID *string `json:"privateKeyId,omitempty"`
+	// PrivateKey - Private key field of the API key (write only)
+	PrivateKey *string `json:"privateKey,omitempty"`
+	// ClientEmail - Client email field of the API key (write only)
+	ClientEmail *string `json:"clientEmail,omitempty"`
+	// ClientID - Client Id field of the API key (write only)
+	ClientID *string `json:"clientId,omitempty"`
+	// AuthURI - Auth Uri field of the API key (write only)
+	AuthURI *string `json:"authUri,omitempty"`
+	// TokenURI - Token Uri field of the API key (write only)
+	TokenURI *string `json:"tokenUri,omitempty"`
+	// AuthProviderX509CertURL - Auth provider x509 certificate url field of the API key (write only)
+	AuthProviderX509CertURL *string `json:"authProviderX509CertUrl,omitempty"`
+	// ClientX509CertURL - Client x509 certificate url field of the API key (write only)
+	ClientX509CertURL *string `json:"clientX509CertUrl,omitempty"`
+	// AuthenticationProvisioningState - READ-ONLY; State of the multi-cloud connector. Possible values include: 'Valid', 'Invalid', 'Expired', 'IncorrectPolicy'
+	AuthenticationProvisioningState AuthenticationProvisioningState `json:"authenticationProvisioningState,omitempty"`
+	// GrantedPermissions - READ-ONLY; The permissions detected in the cloud account.
+	GrantedPermissions *[]PermissionProperty `json:"grantedPermissions,omitempty"`
+	// AuthenticationType - Possible values include: 'AuthenticationTypeAuthenticationDetailsProperties', 'AuthenticationTypeAwsCreds', 'AuthenticationTypeAwsAssumeRole', 'AuthenticationTypeGcpCredentials'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) MarshalJSON() ([]byte, error) {
+	gcdp.AuthenticationType = AuthenticationTypeGcpCredentials
+	objectMap := make(map[string]interface{})
+	if gcdp.OrganizationID != nil {
+		objectMap["organizationId"] = gcdp.OrganizationID
+	}
+	if gcdp.Type != nil {
+		objectMap["type"] = gcdp.Type
+	}
+	if gcdp.ProjectID != nil {
+		objectMap["projectId"] = gcdp.ProjectID
+	}
+	if gcdp.PrivateKeyID != nil {
+		objectMap["privateKeyId"] = gcdp.PrivateKeyID
+	}
+	if gcdp.PrivateKey != nil {
+		objectMap["privateKey"] = gcdp.PrivateKey
+	}
+	if gcdp.ClientEmail != nil {
+		objectMap["clientEmail"] = gcdp.ClientEmail
+	}
+	if gcdp.ClientID != nil {
+		objectMap["clientId"] = gcdp.ClientID
+	}
+	if gcdp.AuthURI != nil {
+		objectMap["authUri"] = gcdp.AuthURI
+	}
+	if gcdp.TokenURI != nil {
+		objectMap["tokenUri"] = gcdp.TokenURI
+	}
+	if gcdp.AuthProviderX509CertURL != nil {
+		objectMap["authProviderX509CertUrl"] = gcdp.AuthProviderX509CertURL
+	}
+	if gcdp.ClientX509CertURL != nil {
+		objectMap["clientX509CertUrl"] = gcdp.ClientX509CertURL
+	}
+	if gcdp.AuthenticationType != "" {
+		objectMap["authenticationType"] = gcdp.AuthenticationType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAwsCredsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAwAssumeRoleAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsGcpCredentialsDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool) {
+	return &gcdp, true
+}
+
+// AsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsBasicAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsBasicAuthenticationDetailsProperties() (BasicAuthenticationDetailsProperties, bool) {
+	return &gcdp, true
+}
+
+// HybridComputeSettingsProperties settings for hybrid compute management
+type HybridComputeSettingsProperties struct {
+	// HybridComputeProvisioningState - READ-ONLY; State of the service principal and its secret. Possible values include: 'HybridComputeProvisioningStateValid', 'HybridComputeProvisioningStateInvalid', 'HybridComputeProvisioningStateExpired'
+	HybridComputeProvisioningState HybridComputeProvisioningState `json:"hybridComputeProvisioningState,omitempty"`
+	// AutoProvision - Whether or not to automatically install Azure Arc (hybrid compute) agents on machines. Possible values include: 'AutoProvisionOn', 'AutoProvisionOff'
+	AutoProvision AutoProvision `json:"autoProvision,omitempty"`
+	// ResourceGroupName - The name of the resource group where Arc (Hybrid Compute) connectors are connected.
+	ResourceGroupName *string `json:"resourceGroupName,omitempty"`
+	// Region - The location where the meta data of machines will be stored
+	Region *string `json:"region,omitempty"`
+	// ProxyServer - For a non-Azure machine that is not connected directly to the internet, specify a proxy server that the non-Azure machine can use.
+	ProxyServer *ProxyServerProperties `json:"proxyServer,omitempty"`
+	// ServicePrincipal - An object to access resources that are secured by an Azure AD tenant.
+	ServicePrincipal *ServicePrincipalProperties `json:"servicePrincipal,omitempty"`
+}
+
 // InformationProtectionKeyword the information type keyword.
 type InformationProtectionKeyword struct {
 	// Pattern - The keyword pattern.
@@ -5659,7 +6616,7 @@ type JitNetworkAccessRequestPort struct {
 	EndTimeUtc *date.Time `json:"endTimeUtc,omitempty"`
 	// Status - The status of the port. Possible values include: 'Revoked', 'Initiated'
 	Status Status `json:"status,omitempty"`
-	// StatusReason - A description of why the `status` has its value. Possible values include: 'Expired', 'UserRequested', 'NewerRequestInitiated'
+	// StatusReason - A description of why the `status` has its value. Possible values include: 'StatusReasonExpired', 'StatusReasonUserRequested', 'StatusReasonNewerRequestInitiated'
 	StatusReason StatusReason `json:"statusReason,omitempty"`
 	// MappedPort - The port which is mapped to this port's `number` in the Azure Firewall, if applicable
 	MappedPort *int32 `json:"mappedPort,omitempty"`
@@ -6177,6 +7134,15 @@ type ProtectionMode struct {
 	Script Script `json:"script,omitempty"`
 	// Executable - Possible values include: 'ExecutableAudit', 'ExecutableEnforce', 'ExecutableNone'
 	Executable Executable `json:"executable,omitempty"`
+}
+
+// ProxyServerProperties for a non-Azure machine that is not connected directly to the internet, specify a
+// proxy server that the non-Azure machine can use.
+type ProxyServerProperties struct {
+	// IP - Proxy server IP
+	IP *string `json:"ip,omitempty"`
+	// Port - Proxy server port
+	Port *string `json:"port,omitempty"`
 }
 
 // PublisherInfo represents the publisher information of a process/rule
@@ -7006,6 +7972,894 @@ type Rule struct {
 	IPAddresses *[]string `json:"ipAddresses,omitempty"`
 }
 
+// ScopeElement a more specific scope used to identify the alerts to suppress.
+type ScopeElement struct {
+	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
+	AdditionalProperties map[string]interface{} `json:""`
+	// Field - The alert entity type to suppress by.
+	Field *string `json:"field,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScopeElement.
+func (se ScopeElement) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if se.Field != nil {
+		objectMap["field"] = se.Field
+	}
+	for k, v := range se.AdditionalProperties {
+		objectMap[k] = v
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ScopeElement struct.
+func (se *ScopeElement) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if se.AdditionalProperties == nil {
+					se.AdditionalProperties = make(map[string]interface{})
+				}
+				se.AdditionalProperties[k] = additionalProperties
+			}
+		case "field":
+			if v != nil {
+				var field string
+				err = json.Unmarshal(*v, &field)
+				if err != nil {
+					return err
+				}
+				se.Field = &field
+			}
+		}
+	}
+
+	return nil
+}
+
+// ScoreDetails calculation result data
+type ScoreDetails struct {
+	// Max - READ-ONLY; Maximum score available
+	Max *int32 `json:"max,omitempty"`
+	// Current - READ-ONLY; Current score
+	Current *float64 `json:"current,omitempty"`
+}
+
+// SecureScoreControlDefinitionItem information about the security control.
+type SecureScoreControlDefinitionItem struct {
+	*SecureScoreControlDefinitionItemProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecureScoreControlDefinitionItem.
+func (sscdi SecureScoreControlDefinitionItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sscdi.SecureScoreControlDefinitionItemProperties != nil {
+		objectMap["properties"] = sscdi.SecureScoreControlDefinitionItemProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SecureScoreControlDefinitionItem struct.
+func (sscdi *SecureScoreControlDefinitionItem) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var secureScoreControlDefinitionItemProperties SecureScoreControlDefinitionItemProperties
+				err = json.Unmarshal(*v, &secureScoreControlDefinitionItemProperties)
+				if err != nil {
+					return err
+				}
+				sscdi.SecureScoreControlDefinitionItemProperties = &secureScoreControlDefinitionItemProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sscdi.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sscdi.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sscdi.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// SecureScoreControlDefinitionItemProperties security Control Definition Properties.
+type SecureScoreControlDefinitionItemProperties struct {
+	// DisplayName - READ-ONLY; User friendly display name of the control
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - READ-ONLY; User friendly description of the control
+	Description *string `json:"description,omitempty"`
+	// MaxScore - READ-ONLY; Maximum control score (0..10)
+	MaxScore *int32 `json:"maxScore,omitempty"`
+	// Source - READ-ONLY; Source object from which the control was created
+	Source *SecureScoreControlDefinitionSource `json:"source,omitempty"`
+	// AssessmentDefinitions - READ-ONLY; Array of assessments metadata IDs that are included in this security control
+	AssessmentDefinitions *[]AzureResourceLink `json:"assessmentDefinitions,omitempty"`
+}
+
+// SecureScoreControlDefinitionList list of security controls definition
+type SecureScoreControlDefinitionList struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Collection of security controls definition in this page
+	Value *[]SecureScoreControlDefinitionItem `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// SecureScoreControlDefinitionListIterator provides access to a complete listing of
+// SecureScoreControlDefinitionItem values.
+type SecureScoreControlDefinitionListIterator struct {
+	i    int
+	page SecureScoreControlDefinitionListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *SecureScoreControlDefinitionListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SecureScoreControlDefinitionListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SecureScoreControlDefinitionListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter SecureScoreControlDefinitionListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter SecureScoreControlDefinitionListIterator) Response() SecureScoreControlDefinitionList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter SecureScoreControlDefinitionListIterator) Value() SecureScoreControlDefinitionItem {
+	if !iter.page.NotDone() {
+		return SecureScoreControlDefinitionItem{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the SecureScoreControlDefinitionListIterator type.
+func NewSecureScoreControlDefinitionListIterator(page SecureScoreControlDefinitionListPage) SecureScoreControlDefinitionListIterator {
+	return SecureScoreControlDefinitionListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (sscdl SecureScoreControlDefinitionList) IsEmpty() bool {
+	return sscdl.Value == nil || len(*sscdl.Value) == 0
+}
+
+// secureScoreControlDefinitionListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (sscdl SecureScoreControlDefinitionList) secureScoreControlDefinitionListPreparer(ctx context.Context) (*http.Request, error) {
+	if sscdl.NextLink == nil || len(to.String(sscdl.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(sscdl.NextLink)))
+}
+
+// SecureScoreControlDefinitionListPage contains a page of SecureScoreControlDefinitionItem values.
+type SecureScoreControlDefinitionListPage struct {
+	fn    func(context.Context, SecureScoreControlDefinitionList) (SecureScoreControlDefinitionList, error)
+	sscdl SecureScoreControlDefinitionList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *SecureScoreControlDefinitionListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SecureScoreControlDefinitionListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.sscdl)
+	if err != nil {
+		return err
+	}
+	page.sscdl = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SecureScoreControlDefinitionListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page SecureScoreControlDefinitionListPage) NotDone() bool {
+	return !page.sscdl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page SecureScoreControlDefinitionListPage) Response() SecureScoreControlDefinitionList {
+	return page.sscdl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page SecureScoreControlDefinitionListPage) Values() []SecureScoreControlDefinitionItem {
+	if page.sscdl.IsEmpty() {
+		return nil
+	}
+	return *page.sscdl.Value
+}
+
+// Creates a new instance of the SecureScoreControlDefinitionListPage type.
+func NewSecureScoreControlDefinitionListPage(getNextPage func(context.Context, SecureScoreControlDefinitionList) (SecureScoreControlDefinitionList, error)) SecureScoreControlDefinitionListPage {
+	return SecureScoreControlDefinitionListPage{fn: getNextPage}
+}
+
+// SecureScoreControlDefinitionSource the type of the security control (For example, BuiltIn)
+type SecureScoreControlDefinitionSource struct {
+	// SourceType - The type of security control (for example, BuiltIn). Possible values include: 'BuiltIn', 'Custom'
+	SourceType ControlType `json:"sourceType,omitempty"`
+}
+
+// SecureScoreControlDetails details of the security control, its score, and the health status of the
+// relevant resources.
+type SecureScoreControlDetails struct {
+	*SecureScoreControlScoreDetails `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecureScoreControlDetails.
+func (sscd SecureScoreControlDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sscd.SecureScoreControlScoreDetails != nil {
+		objectMap["properties"] = sscd.SecureScoreControlScoreDetails
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SecureScoreControlDetails struct.
+func (sscd *SecureScoreControlDetails) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var secureScoreControlScoreDetails SecureScoreControlScoreDetails
+				err = json.Unmarshal(*v, &secureScoreControlScoreDetails)
+				if err != nil {
+					return err
+				}
+				sscd.SecureScoreControlScoreDetails = &secureScoreControlScoreDetails
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sscd.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sscd.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sscd.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// SecureScoreControlList list of security controls
+type SecureScoreControlList struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Collection of security controls in this page
+	Value *[]SecureScoreControlDetails `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// SecureScoreControlListIterator provides access to a complete listing of SecureScoreControlDetails
+// values.
+type SecureScoreControlListIterator struct {
+	i    int
+	page SecureScoreControlListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *SecureScoreControlListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SecureScoreControlListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SecureScoreControlListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter SecureScoreControlListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter SecureScoreControlListIterator) Response() SecureScoreControlList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter SecureScoreControlListIterator) Value() SecureScoreControlDetails {
+	if !iter.page.NotDone() {
+		return SecureScoreControlDetails{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the SecureScoreControlListIterator type.
+func NewSecureScoreControlListIterator(page SecureScoreControlListPage) SecureScoreControlListIterator {
+	return SecureScoreControlListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (sscl SecureScoreControlList) IsEmpty() bool {
+	return sscl.Value == nil || len(*sscl.Value) == 0
+}
+
+// secureScoreControlListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (sscl SecureScoreControlList) secureScoreControlListPreparer(ctx context.Context) (*http.Request, error) {
+	if sscl.NextLink == nil || len(to.String(sscl.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(sscl.NextLink)))
+}
+
+// SecureScoreControlListPage contains a page of SecureScoreControlDetails values.
+type SecureScoreControlListPage struct {
+	fn   func(context.Context, SecureScoreControlList) (SecureScoreControlList, error)
+	sscl SecureScoreControlList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *SecureScoreControlListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SecureScoreControlListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.sscl)
+	if err != nil {
+		return err
+	}
+	page.sscl = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SecureScoreControlListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page SecureScoreControlListPage) NotDone() bool {
+	return !page.sscl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page SecureScoreControlListPage) Response() SecureScoreControlList {
+	return page.sscl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page SecureScoreControlListPage) Values() []SecureScoreControlDetails {
+	if page.sscl.IsEmpty() {
+		return nil
+	}
+	return *page.sscl.Value
+}
+
+// Creates a new instance of the SecureScoreControlListPage type.
+func NewSecureScoreControlListPage(getNextPage func(context.Context, SecureScoreControlList) (SecureScoreControlList, error)) SecureScoreControlListPage {
+	return SecureScoreControlListPage{fn: getNextPage}
+}
+
+// SecureScoreControlScore calculation result data
+type SecureScoreControlScore struct {
+	// Max - READ-ONLY; Maximum control score (0..10)
+	Max *int32 `json:"max,omitempty"`
+	// Current - READ-ONLY; Actual score for the control = (achieved points / total points) * max score. if total points is zeroed, the return number is 0.00
+	Current *float64 `json:"current,omitempty"`
+}
+
+// SecureScoreControlScoreDetails calculation result data in control level
+type SecureScoreControlScoreDetails struct {
+	// DisplayName - READ-ONLY; User friendly display name of the control
+	DisplayName *string `json:"displayName,omitempty"`
+	// ScoreDetails - Actual score object for the control
+	*ScoreDetails `json:"score,omitempty"`
+	// HealthyResourceCount - READ-ONLY; Number of healthy resources in the control
+	HealthyResourceCount *int32 `json:"healthyResourceCount,omitempty"`
+	// UnhealthyResourceCount - READ-ONLY; Number of unhealthy resources in the control
+	UnhealthyResourceCount *int32 `json:"unhealthyResourceCount,omitempty"`
+	// NotApplicableResourceCount - READ-ONLY; Number of not applicable resources in the control
+	NotApplicableResourceCount *int32                            `json:"notApplicableResourceCount,omitempty"`
+	Definition                 *SecureScoreControlDefinitionItem `json:"definition,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecureScoreControlScoreDetails.
+func (sscsd SecureScoreControlScoreDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sscsd.ScoreDetails != nil {
+		objectMap["score"] = sscsd.ScoreDetails
+	}
+	if sscsd.Definition != nil {
+		objectMap["definition"] = sscsd.Definition
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SecureScoreControlScoreDetails struct.
+func (sscsd *SecureScoreControlScoreDetails) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "displayName":
+			if v != nil {
+				var displayName string
+				err = json.Unmarshal(*v, &displayName)
+				if err != nil {
+					return err
+				}
+				sscsd.DisplayName = &displayName
+			}
+		case "score":
+			if v != nil {
+				var scoreDetails ScoreDetails
+				err = json.Unmarshal(*v, &scoreDetails)
+				if err != nil {
+					return err
+				}
+				sscsd.ScoreDetails = &scoreDetails
+			}
+		case "healthyResourceCount":
+			if v != nil {
+				var healthyResourceCount int32
+				err = json.Unmarshal(*v, &healthyResourceCount)
+				if err != nil {
+					return err
+				}
+				sscsd.HealthyResourceCount = &healthyResourceCount
+			}
+		case "unhealthyResourceCount":
+			if v != nil {
+				var unhealthyResourceCount int32
+				err = json.Unmarshal(*v, &unhealthyResourceCount)
+				if err != nil {
+					return err
+				}
+				sscsd.UnhealthyResourceCount = &unhealthyResourceCount
+			}
+		case "notApplicableResourceCount":
+			if v != nil {
+				var notApplicableResourceCount int32
+				err = json.Unmarshal(*v, &notApplicableResourceCount)
+				if err != nil {
+					return err
+				}
+				sscsd.NotApplicableResourceCount = &notApplicableResourceCount
+			}
+		case "definition":
+			if v != nil {
+				var definition SecureScoreControlDefinitionItem
+				err = json.Unmarshal(*v, &definition)
+				if err != nil {
+					return err
+				}
+				sscsd.Definition = &definition
+			}
+		}
+	}
+
+	return nil
+}
+
+// SecureScoreItem secure score item data model
+type SecureScoreItem struct {
+	autorest.Response `json:"-"`
+	// SecureScoreItemProperties - READ-ONLY; Secure score item
+	*SecureScoreItemProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecureScoreItem.
+func (ssi SecureScoreItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SecureScoreItem struct.
+func (ssi *SecureScoreItem) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var secureScoreItemProperties SecureScoreItemProperties
+				err = json.Unmarshal(*v, &secureScoreItemProperties)
+				if err != nil {
+					return err
+				}
+				ssi.SecureScoreItemProperties = &secureScoreItemProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssi.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssi.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssi.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// SecureScoreItemProperties describes properties of a calculated secure score.
+type SecureScoreItemProperties struct {
+	// DisplayName - READ-ONLY; The initiative’s name
+	DisplayName *string `json:"displayName,omitempty"`
+	// ScoreDetails - READ-ONLY; score object
+	*ScoreDetails `json:"score,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SecureScoreItemProperties.
+func (ssip SecureScoreItemProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SecureScoreItemProperties struct.
+func (ssip *SecureScoreItemProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "displayName":
+			if v != nil {
+				var displayName string
+				err = json.Unmarshal(*v, &displayName)
+				if err != nil {
+					return err
+				}
+				ssip.DisplayName = &displayName
+			}
+		case "score":
+			if v != nil {
+				var scoreDetails ScoreDetails
+				err = json.Unmarshal(*v, &scoreDetails)
+				if err != nil {
+					return err
+				}
+				ssip.ScoreDetails = &scoreDetails
+			}
+		}
+	}
+
+	return nil
+}
+
+// SecureScoresList list of secure scores
+type SecureScoresList struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Collection of secure scores in this page
+	Value *[]SecureScoreItem `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// SecureScoresListIterator provides access to a complete listing of SecureScoreItem values.
+type SecureScoresListIterator struct {
+	i    int
+	page SecureScoresListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *SecureScoresListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SecureScoresListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SecureScoresListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter SecureScoresListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter SecureScoresListIterator) Response() SecureScoresList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter SecureScoresListIterator) Value() SecureScoreItem {
+	if !iter.page.NotDone() {
+		return SecureScoreItem{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the SecureScoresListIterator type.
+func NewSecureScoresListIterator(page SecureScoresListPage) SecureScoresListIterator {
+	return SecureScoresListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ssl SecureScoresList) IsEmpty() bool {
+	return ssl.Value == nil || len(*ssl.Value) == 0
+}
+
+// secureScoresListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ssl SecureScoresList) secureScoresListPreparer(ctx context.Context) (*http.Request, error) {
+	if ssl.NextLink == nil || len(to.String(ssl.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ssl.NextLink)))
+}
+
+// SecureScoresListPage contains a page of SecureScoreItem values.
+type SecureScoresListPage struct {
+	fn  func(context.Context, SecureScoresList) (SecureScoresList, error)
+	ssl SecureScoresList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *SecureScoresListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SecureScoresListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.ssl)
+	if err != nil {
+		return err
+	}
+	page.ssl = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SecureScoresListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page SecureScoresListPage) NotDone() bool {
+	return !page.ssl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page SecureScoresListPage) Response() SecureScoresList {
+	return page.ssl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page SecureScoresListPage) Values() []SecureScoreItem {
+	if page.ssl.IsEmpty() {
+		return nil
+	}
+	return *page.ssl.Value
+}
+
+// Creates a new instance of the SecureScoresListPage type.
+func NewSecureScoresListPage(getNextPage func(context.Context, SecureScoresList) (SecureScoresList, error)) SecureScoresListPage {
+	return SecureScoresListPage{fn: getNextPage}
+}
+
 // SensitivityLabel the sensitivity label.
 type SensitivityLabel struct {
 	// DisplayName - The name of the sensitivity label.
@@ -7073,6 +8927,14 @@ func (svp ServerVulnerabilityProperties) AsAdditionalData() (*AdditionalData, bo
 // AsBasicAdditionalData is the BasicAdditionalData implementation for ServerVulnerabilityProperties.
 func (svp ServerVulnerabilityProperties) AsBasicAdditionalData() (BasicAdditionalData, bool) {
 	return &svp, true
+}
+
+// ServicePrincipalProperties details of the service principal.
+type ServicePrincipalProperties struct {
+	// ApplicationID - Application id of service principal.
+	ApplicationID *string `json:"applicationId,omitempty"`
+	// Secret - A secret string that the application uses to prove its identity, also can be referred to as application password (write only).
+	Secret *string `json:"secret,omitempty"`
 }
 
 // Setting represents a security setting in Azure Security Center.
@@ -7643,6 +9505,12 @@ type SubAssessmentStatus struct {
 	Description *string `json:"description,omitempty"`
 	// Severity - READ-ONLY; The sub-assessment severity level. Possible values include: 'SeverityLow', 'SeverityMedium', 'SeverityHigh'
 	Severity Severity `json:"severity,omitempty"`
+}
+
+// SuppressionAlertsScope ...
+type SuppressionAlertsScope struct {
+	// AllOf - All the conditions inside need to be true in order to suppress the alert
+	AllOf *[]ScopeElement `json:"allOf,omitempty"`
 }
 
 // Tags a list of key value pairs that describe the resource.

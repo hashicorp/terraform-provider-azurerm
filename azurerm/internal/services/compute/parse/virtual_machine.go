@@ -11,10 +11,21 @@ type VirtualMachineId struct {
 	Name          string
 }
 
+func NewVirtualMachineId(resourceGroup, name string) VirtualMachineId {
+	return VirtualMachineId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id VirtualMachineId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func VirtualMachineID(input string) (*VirtualMachineId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse VM ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Virtual Machine ID %q: %+v", input, err)
 	}
 
 	vm := VirtualMachineId{

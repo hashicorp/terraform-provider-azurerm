@@ -128,7 +128,6 @@ func (client EnvironmentsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client EnvironmentsClient) CreateOrUpdateResponder(resp *http.Response) (result EnvironmentResourceModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client EnvironmentsClient) DeleteSender(req *http.Request) (*http.Response
 func (client EnvironmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -286,7 +284,6 @@ func (client EnvironmentsClient) GetSender(req *http.Request) (*http.Response, e
 func (client EnvironmentsClient) GetResponder(resp *http.Response) (result EnvironmentResourceModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,7 +358,6 @@ func (client EnvironmentsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client EnvironmentsClient) ListByResourceGroupResponder(resp *http.Response) (result EnvironmentListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -432,7 +428,6 @@ func (client EnvironmentsClient) ListBySubscriptionSender(req *http.Request) (*h
 func (client EnvironmentsClient) ListBySubscriptionResponder(resp *http.Response) (result EnvironmentListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -445,9 +440,8 @@ func (client EnvironmentsClient) ListBySubscriptionResponder(resp *http.Response
 // resourceGroupName - name of an Azure Resource group.
 // environmentName - the name of the Time Series Insights environment associated with the specified resource
 // group.
-// standardEnvironmentUpdateParameters - request object that contains the updated information for the
-// environment.
-func (client EnvironmentsClient) Update(ctx context.Context, resourceGroupName string, environmentName string, standardEnvironmentUpdateParameters StandardEnvironmentUpdateParameters) (result EnvironmentsUpdateFuture, err error) {
+// environmentUpdateParameters - request object that contains the updated information for the environment.
+func (client EnvironmentsClient) Update(ctx context.Context, resourceGroupName string, environmentName string, environmentUpdateParameters EnvironmentUpdateParameters) (result EnvironmentsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/EnvironmentsClient.Update")
 		defer func() {
@@ -458,7 +452,7 @@ func (client EnvironmentsClient) Update(ctx context.Context, resourceGroupName s
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, environmentName, standardEnvironmentUpdateParameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, environmentName, environmentUpdateParameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "timeseriesinsights.EnvironmentsClient", "Update", nil, "Failure preparing request")
 		return
@@ -474,7 +468,7 @@ func (client EnvironmentsClient) Update(ctx context.Context, resourceGroupName s
 }
 
 // UpdatePreparer prepares the Update request.
-func (client EnvironmentsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, environmentName string, standardEnvironmentUpdateParameters StandardEnvironmentUpdateParameters) (*http.Request, error) {
+func (client EnvironmentsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, environmentName string, environmentUpdateParameters EnvironmentUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"environmentName":   autorest.Encode("path", environmentName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -491,7 +485,7 @@ func (client EnvironmentsClient) UpdatePreparer(ctx context.Context, resourceGro
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.TimeSeriesInsights/environments/{environmentName}", pathParameters),
-		autorest.WithJSON(standardEnvironmentUpdateParameters),
+		autorest.WithJSON(environmentUpdateParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -513,7 +507,6 @@ func (client EnvironmentsClient) UpdateSender(req *http.Request) (future Environ
 func (client EnvironmentsClient) UpdateResponder(resp *http.Response) (result EnvironmentResourceModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

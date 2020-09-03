@@ -6,13 +6,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -79,7 +78,18 @@ func resourceArmFirewall() *schema.Resource {
 				},
 			},
 
-			"zones": azure.SchemaMultipleZones(),
+			"threat_intel_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(network.AzureFirewallThreatIntelModeAlert),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.AzureFirewallThreatIntelModeOff),
+					string(network.AzureFirewallThreatIntelModeAlert),
+					string(network.AzureFirewallThreatIntelModeDeny),
+				}, false),
+			},
+
+			"zones": azure.SchemaZones(),
 
 			"tags": tags.Schema(),
 		},
@@ -96,7 +106,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -135,6 +145,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Tags:     tags.Expand(t),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
 			IPConfigurations: ipConfigs,
+			ThreatIntelMode:  network.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string)),
 		},
 		Zones: zones,
 	}
@@ -212,6 +223,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
+		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {

@@ -56,6 +56,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The `georeplication_locations` is only supported on new resources with the `Premium` SKU.
 
+~> **NOTE:** The `georeplication_locations` list cannot contain the location where the Container Registry exists.
+
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
 `network_rule_set` supports the following:
@@ -67,6 +69,8 @@ The following arguments are supported:
 * `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
 
 ~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
+
+~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
 `ip_rule` supports the following:
 

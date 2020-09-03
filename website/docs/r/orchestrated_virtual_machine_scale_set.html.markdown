@@ -10,7 +10,9 @@ description: |-
 
 Manages an Orchestrated Virtual Machine Scale Set.
 
--> **Note:** Orchestrated Virtual Machine Scale Sets are in Public Preview - [more details can be found in the Azure Documentation](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
+-> **Note:** Orchestrated Virtual Machine Scale Sets are in Public Preview and it may receive breaking changes - [more details can be found in the Azure Documentation](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
+
+-> **Note:** Azure is planning to deprecate the `single_placement_group` attribute in the Orchestrated Virtual Machine Scale Set starting from api-version `2019-12-01` and there will be a breaking change in the Orchestrated Virtual Machine Scale Set.
 
 ## Example Usage
 
@@ -25,8 +27,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  platform_fault_domain_count = 5
-  single_placement_group      = true
+  platform_fault_domain_count = 1
 
   zones = ["1"]
 }
@@ -46,11 +47,9 @@ The following arguments are supported:
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
-* `single_placement_group` - (Required) Should the Orchestrated Virtual Machine Scale Set use single placement group? Changing this forces a new resource to be created.
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
-~> **NOTE:** Due to a limitation of the Azure API at this time, you can only assign `single_placement_group` to `true`.
-
-You cannot assign `single_placement_group` to `false` unless you have opted-in the private preview program of the orchestration mode of virtual machine scale sets.
+* `single_placement_group` - (Optional) Should the Orchestrated Virtual Machine Scale Set use single placement group? Defaults to `false`.
 
 * `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
 

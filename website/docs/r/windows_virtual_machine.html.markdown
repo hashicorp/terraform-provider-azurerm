@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
 
-* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Changing this forces a new resource to be created.
+* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine?
 
 * `availability_set_id` - (Optional) Specifies the ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 
@@ -173,7 +173,7 @@ The following arguments are supported:
 
 A `additional_capabilities` block supports the following:
 
-* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`. Changing this forces a new resource to be created.
+* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`.
 
 ---
 
@@ -229,8 +229,6 @@ A `os_disk` block supports the following:
 
 -> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
-~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
-
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine is sourced from.
 
 -> **NOTE:** If specified this must be equal to or larger than the size of the Image the Virtual Machine is based on. When creating a larger disk than exists in the image you'll need to repartition the disk to use the remaining space.
@@ -258,6 +256,18 @@ A `secret` block supports the following:
 * `certificate` - (Required) One or more `certificate` blocks as defined above.
 
 * `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
+
+---
+
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ---
 
@@ -292,18 +302,6 @@ An `identity` block exports the following:
 * `principal_id` - The ID of the System Managed Service Principal.
 
 * `tenant_id` - The ID of the Tenant the System Managed Service Principal is assigned in.
-
----
-
-`source_image_reference` supports the following:
-
-* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
-
-* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
-
-* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
-
-* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ## Timeouts
 

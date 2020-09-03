@@ -1,15 +1,17 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
@@ -148,17 +150,15 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 
 	id := client.GetResourceID(accountName, shareName)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetProperties(ctx, accountName, shareName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
-			}
-		}
-
+	existing, err := client.GetProperties(ctx, accountName, shareName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_storage_share", id)
+			return fmt.Errorf("Error checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_share", id)
 	}
 
 	log.Printf("[INFO] Creating Share %q in Storage Account %q", shareName, accountName)
@@ -166,8 +166,25 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		QuotaInGB: quota,
 		MetaData:  metaData,
 	}
-	if _, err := client.Create(ctx, accountName, shareName, input); err != nil {
-		return fmt.Errorf("Error creating Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
+
+	if resp, err := client.Create(ctx, accountName, shareName, input); err != nil {
+		// If we fail due to previous delete still in progress, then we can retry
+		if utils.ResponseWasConflict(resp) && strings.Contains(err.Error(), "ShareBeingDeleted") {
+			stateConf := &resource.StateChangeConf{
+				Pending:        []string{"waitingOnDelete"},
+				Target:         []string{"succeeded"},
+				Refresh:        storageShareCreateRefreshFunc(ctx, client, accountName, shareName, input),
+				PollInterval:   10 * time.Second,
+				NotFoundChecks: 180,
+				Timeout:        d.Timeout(schema.TimeoutCreate),
+			}
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("failed creating share: %+v", err)
+			}
+		} else {
+			return fmt.Errorf("failed creating share: %+v", err)
+		}
 	}
 
 	if _, err := client.SetACL(ctx, accountName, shareName, acls); err != nil {
@@ -373,4 +390,21 @@ func flattenStorageShareACLs(input shares.GetACLResult) []interface{} {
 	}
 
 	return result
+}
+
+func storageShareCreateRefreshFunc(ctx context.Context, client *shares.Client, accountName string, shareName string, input shares.CreateInput) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Create(ctx, accountName, shareName, input)
+		if err != nil {
+			if !utils.ResponseWasConflict(resp) {
+				return nil, "", err
+			}
+
+			if utils.ResponseWasConflict(resp) && strings.Contains(err.Error(), "ShareBeingDeleted") {
+				return nil, "waitingOnDelete", nil
+			}
+		}
+
+		return "succeeded", "succeeded", nil
+	}
 }

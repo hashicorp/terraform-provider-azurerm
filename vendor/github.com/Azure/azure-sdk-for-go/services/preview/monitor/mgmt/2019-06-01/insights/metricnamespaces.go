@@ -111,7 +111,6 @@ func (client MetricNamespacesClient) ListSender(req *http.Request) (*http.Respon
 func (client MetricNamespacesClient) ListResponder(resp *http.Response) (result MetricNamespaceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

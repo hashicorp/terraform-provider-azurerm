@@ -141,7 +141,6 @@ func (client StorageTargetsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client StorageTargetsClient) CreateOrUpdateResponder(resp *http.Response) (result StorageTarget, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -230,7 +229,6 @@ func (client StorageTargetsClient) DeleteSender(req *http.Request) (future Stora
 func (client StorageTargetsClient) DeleteResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -316,7 +314,6 @@ func (client StorageTargetsClient) GetSender(req *http.Request) (*http.Response,
 func (client StorageTargetsClient) GetResponder(resp *http.Response) (result StorageTarget, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -399,7 +396,6 @@ func (client StorageTargetsClient) ListByCacheSender(req *http.Request) (*http.R
 func (client StorageTargetsClient) ListByCacheResponder(resp *http.Response) (result StorageTargetsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -118,7 +118,6 @@ func (client JobVersionsClient) GetSender(req *http.Request) (*http.Response, er
 func (client JobVersionsClient) GetResponder(resp *http.Response) (result JobVersion, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client JobVersionsClient) ListByJobSender(req *http.Request) (*http.Respon
 func (client JobVersionsClient) ListByJobResponder(resp *http.Response) (result JobVersionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

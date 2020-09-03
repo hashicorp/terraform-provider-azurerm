@@ -53,6 +53,17 @@ func resourceArmSpringCloudService() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"sku_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "S0",
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"B0",
+					"S0",
+				}, false),
+			},
+
 			"config_server_git_setting": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -133,6 +144,20 @@ func resourceArmSpringCloudService() *schema.Resource {
 				},
 			},
 
+			"trace": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"instrumentation_key": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -159,7 +184,13 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resource := appplatform.ServiceResource{
 		Location: utils.String(location),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &appplatform.ClusterResourceProperties{
+			Trace: expandArmSpringCloudTrace(d.Get("trace").([]interface{})),
+		},
+		Sku: &appplatform.Sku{
+			Name: utils.String(d.Get("sku_name").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	gitProperty, err := expandArmSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
@@ -233,6 +264,10 @@ func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{
 					GitProperty: gitProperty,
 				},
 			},
+			Trace: expandArmSpringCloudTrace(d.Get("trace").([]interface{})),
+		},
+		Sku: &appplatform.Sku{
+			Name: utils.String(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -283,11 +318,18 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-
-	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
-		if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
-			if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
-				return fmt.Errorf("failure setting AzureRM Spring Cloud Service error: %+v", err)
+	if resp.Sku != nil {
+		d.Set("sku_name", resp.Sku.Name)
+	}
+	if resp.Properties != nil {
+		if err := d.Set("trace", flattenArmSpringCloudTrace(resp.Properties.Trace)); err != nil {
+			return fmt.Errorf("failure setting `trace`: %+v", err)
+		}
+		if resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
+			if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
+				if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
+					return fmt.Errorf("failure setting AzureRM Spring Cloud Service error: %+v", err)
+				}
 			}
 		}
 	}
@@ -420,6 +462,19 @@ func expandArmSpringCloudGitPatternRepository(input []interface{}) (*[]appplatfo
 		results = append(results, result)
 	}
 	return &results, nil
+}
+
+func expandArmSpringCloudTrace(input []interface{}) *appplatform.TraceProperties {
+	if len(input) == 0 || input[0] == nil {
+		return &appplatform.TraceProperties{
+			Enabled: utils.Bool(false),
+		}
+	}
+	v := input[0].(map[string]interface{})
+	return &appplatform.TraceProperties{
+		Enabled:                      utils.Bool(true),
+		AppInsightInstrumentationKey: utils.String(v["instrumentation_key"].(string)),
+	}
 }
 
 func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerGitProperty, d *schema.ResourceData) []interface{} {
@@ -617,4 +672,29 @@ func flattenArmSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRe
 	}
 
 	return results
+}
+
+func flattenArmSpringCloudTrace(input *appplatform.TraceProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	instrumentationKey := ""
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+	if input.AppInsightInstrumentationKey != nil {
+		instrumentationKey = *input.AppInsightInstrumentationKey
+	}
+
+	if !enabled {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"instrumentation_key": instrumentationKey,
+		},
+	}
 }

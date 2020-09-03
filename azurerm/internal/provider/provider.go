@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceproviders"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -95,6 +96,21 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
 				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china. Defaults to public.",
+			},
+
+			"metadata_host": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_HOSTNAME", ""),
+				Description: "The Hostname which should be used for the Azure Metadata Service.",
+			},
+
+			"metadata_url": {
+				Type:     schema.TypeString,
+				Optional: true,
+				// TODO: remove in 3.0
+				Deprecated:  "use `metadata_host` instead",
+				Description: "Deprecated - replaced by `metadata_host`.",
 			},
 
 			// Client Certificate specific fields
@@ -204,6 +220,15 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("The provider only supports 3 auxiliary tenant IDs")
 		}
 
+		metadataHost := d.Get("metadata_host").(string)
+		// TODO: remove in 3.0
+		// note: this is inline to avoid calling out deprecations for users not setting this
+		if v := d.Get("metadata_url").(string); v != "" {
+			metadataHost = v
+		} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
+			metadataHost = v
+		}
+
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),
 			ClientID:           d.Get("client_id").(string),
@@ -211,6 +236,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			TenantID:           d.Get("tenant_id").(string),
 			AuxiliaryTenantIDs: auxTenants,
 			Environment:        d.Get("environment").(string),
+			MetadataURL:        metadataHost, // TODO: rename this in Helpers too
 			MsiEndpoint:        d.Get("msi_endpoint").(string),
 			ClientCertPassword: d.Get("client_certificate_password").(string),
 			ClientCertPath:     d.Get("client_certificate_path").(string),
@@ -276,9 +302,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 			if !skipProviderRegistration {
 				availableResourceProviders := providerList.Values()
-				requiredResourceProviders := RequiredResourceProviders()
+				requiredResourceProviders := resourceproviders.Required()
 
-				err := EnsureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
+				err := resourceproviders.EnsureRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
 					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
 				}

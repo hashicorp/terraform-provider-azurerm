@@ -120,7 +120,6 @@ func (client WorkflowVersionTriggersClient) ListCallbackURLSender(req *http.Requ
 func (client WorkflowVersionTriggersClient) ListCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

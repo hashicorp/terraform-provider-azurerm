@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -186,17 +186,11 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 													Type:     schema.TypeInt,
 													Optional: true,
 													ForceNew: true,
-													ConflictsWith: []string{
-														"certificate_policy.0.lifetime_action.0.trigger.0.lifetime_percentage",
-													},
 												},
 												"lifetime_percentage": {
 													Type:     schema.TypeInt,
 													Optional: true,
 													ForceNew: true,
-													ConflictsWith: []string{
-														"certificate_policy.0.lifetime_action.0.trigger.0.days_before_expiry",
-													},
 												},
 											},
 										},
@@ -310,6 +304,44 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 			},
 
 			// Computed
+			"certificate_attribute": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"created": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
+						"expires": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"not_before": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"recovery_level": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"updated": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -349,17 +381,15 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
-			}
+	existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -418,6 +448,13 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, keyVaultBaseUrl, name),
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(schema.TimeoutCreate),
+		}
+		// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
+		// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
+		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
+		if policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+			stateConf.PollInterval = 30 * time.Second
+			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
@@ -504,6 +541,10 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
 		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
+	}
+
+	if err := d.Set("certificate_attribute", flattenKeyVaultCertificateAttribute(cert.Attributes)); err != nil {
+		return fmt.Errorf("setting Key Vault Certificate Attributes: %+v", err)
 	}
 
 	// Computed
@@ -772,6 +813,43 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	}
 
 	return []interface{}{policy}
+}
+
+func flattenKeyVaultCertificateAttribute(input *keyvault.CertificateAttributes) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	created := ""
+	expires := ""
+	notBefore := ""
+	updated := ""
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+	if input.Created != nil {
+		created = time.Time(*input.Created).Format(time.RFC3339)
+	}
+	if input.Expires != nil {
+		expires = time.Time(*input.Expires).Format(time.RFC3339)
+	}
+	if input.NotBefore != nil {
+		notBefore = time.Time(*input.NotBefore).Format(time.RFC3339)
+	}
+	if input.Updated != nil {
+		updated = time.Time(*input.Updated).Format(time.RFC3339)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"created":        created,
+			"enabled":        enabled,
+			"expires":        expires,
+			"not_before":     notBefore,
+			"recovery_level": string(input.RecoveryLevel),
+			"updated":        updated,
+		},
+	}
 }
 
 type KeyVaultCertificateImportParameters struct {

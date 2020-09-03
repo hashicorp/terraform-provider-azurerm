@@ -93,7 +93,7 @@ resource "azurerm_application_gateway" "network" {
     path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
-    request_timeout       = 1
+    request_timeout       = 60
   }
 
   http_listener {
@@ -167,7 +167,7 @@ The following arguments are supported:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
-* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
 
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
@@ -302,6 +302,8 @@ A `http_listener` block supports the following:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+
 ---
 
 A `identity` block supports the following:
@@ -352,6 +354,8 @@ A `probe` block support the following:
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
 
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from http settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
+
 * `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
 
 * `match` - (Optional) A `match` block as defined above.
@@ -375,6 +379,8 @@ A `request_routing_rule` block supports the following:
 * `redirect_configuration_name` - (Optional) The Name of the Redirect Configuration which should be used for this Routing Rule. Cannot be set if either `backend_address_pool_name` or `backend_http_settings_name` is set.
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
+
+-> **NOTE:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 

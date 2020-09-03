@@ -123,7 +123,6 @@ func (client ContentKeyPoliciesClient) CreateOrUpdateSender(req *http.Request) (
 func (client ContentKeyPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ContentKeyPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client ContentKeyPoliciesClient) DeleteSender(req *http.Request) (*http.Re
 func (client ContentKeyPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -278,7 +276,6 @@ func (client ContentKeyPoliciesClient) GetSender(req *http.Request) (*http.Respo
 func (client ContentKeyPoliciesClient) GetResponder(resp *http.Response) (result ContentKeyPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -356,7 +353,6 @@ func (client ContentKeyPoliciesClient) GetPolicyPropertiesWithSecretsSender(req 
 func (client ContentKeyPoliciesClient) GetPolicyPropertiesWithSecretsResponder(resp *http.Response) (result ContentKeyPolicyProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -446,7 +442,6 @@ func (client ContentKeyPoliciesClient) ListSender(req *http.Request) (*http.Resp
 func (client ContentKeyPoliciesClient) ListResponder(resp *http.Response) (result ContentKeyPolicyCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -564,7 +559,6 @@ func (client ContentKeyPoliciesClient) UpdateSender(req *http.Request) (*http.Re
 func (client ContentKeyPoliciesClient) UpdateResponder(resp *http.Response) (result ContentKeyPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

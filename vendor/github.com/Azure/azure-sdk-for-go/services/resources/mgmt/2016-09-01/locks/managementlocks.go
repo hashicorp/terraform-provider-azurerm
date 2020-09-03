@@ -131,7 +131,6 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevelSender(req
 func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -234,7 +233,6 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceLevelSender(req *htt
 func (client ManagementLocksClient) CreateOrUpdateAtResourceLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,7 +322,6 @@ func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevelSender(req 
 func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -415,7 +412,6 @@ func (client ManagementLocksClient) CreateOrUpdateByScopeSender(req *http.Reques
 func (client ManagementLocksClient) CreateOrUpdateByScopeResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -501,7 +497,6 @@ func (client ManagementLocksClient) DeleteAtResourceGroupLevelSender(req *http.R
 func (client ManagementLocksClient) DeleteAtResourceGroupLevelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -594,7 +589,6 @@ func (client ManagementLocksClient) DeleteAtResourceLevelSender(req *http.Reques
 func (client ManagementLocksClient) DeleteAtResourceLevelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -669,7 +663,6 @@ func (client ManagementLocksClient) DeleteAtSubscriptionLevelSender(req *http.Re
 func (client ManagementLocksClient) DeleteAtSubscriptionLevelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -743,7 +736,6 @@ func (client ManagementLocksClient) DeleteByScopeSender(req *http.Request) (*htt
 func (client ManagementLocksClient) DeleteByScopeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -826,7 +818,6 @@ func (client ManagementLocksClient) GetAtResourceGroupLevelSender(req *http.Requ
 func (client ManagementLocksClient) GetAtResourceGroupLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -918,7 +909,6 @@ func (client ManagementLocksClient) GetAtResourceLevelSender(req *http.Request) 
 func (client ManagementLocksClient) GetAtResourceLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -992,7 +982,6 @@ func (client ManagementLocksClient) GetAtSubscriptionLevelSender(req *http.Reque
 func (client ManagementLocksClient) GetAtSubscriptionLevelResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1067,7 +1056,6 @@ func (client ManagementLocksClient) GetByScopeSender(req *http.Request) (*http.R
 func (client ManagementLocksClient) GetByScopeResponder(resp *http.Response) (result ManagementLockObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1154,7 +1142,6 @@ func (client ManagementLocksClient) ListAtResourceGroupLevelSender(req *http.Req
 func (client ManagementLocksClient) ListAtResourceGroupLevelResponder(resp *http.Response) (result ManagementLockListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1287,7 +1274,6 @@ func (client ManagementLocksClient) ListAtResourceLevelSender(req *http.Request)
 func (client ManagementLocksClient) ListAtResourceLevelResponder(resp *http.Response) (result ManagementLockListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1401,7 +1387,6 @@ func (client ManagementLocksClient) ListAtSubscriptionLevelSender(req *http.Requ
 func (client ManagementLocksClient) ListAtSubscriptionLevelResponder(resp *http.Response) (result ManagementLockListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1520,7 +1505,6 @@ func (client ManagementLocksClient) ListByScopeSender(req *http.Request) (*http.
 func (client ManagementLocksClient) ListByScopeResponder(resp *http.Response) (result ManagementLockListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

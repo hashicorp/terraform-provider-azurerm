@@ -49,6 +49,7 @@ The following arguments are supported:
 * `input_mapping_default_values` - (Optional) A `input_mapping_default_values` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `input_mapping_fields` supports the following:
