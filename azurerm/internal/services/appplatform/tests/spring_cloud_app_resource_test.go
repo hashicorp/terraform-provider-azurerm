@@ -49,6 +49,60 @@ func TestAccAzureRMSpringCloudApp_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSpringCloudApp_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSpringCloudApp_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMSpringCloudApp_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSpringCloudApp_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSpringCloudApp_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSpringCloudApp_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSpringCloudAppExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMSpringCloudAppExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -123,6 +177,23 @@ resource "azurerm_spring_cloud_app" "import" {
   service_name        = azurerm_spring_cloud_app.test.service_name
 }
 `, template)
+}
+
+func testAccAzureRMSpringCloudApp_complete(data acceptance.TestData) string {
+	template := testAccAzureRMSpringCloudApp_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_spring_cloud_app" "test" {
+  name                = "acctest-sca-%d"
+  resource_group_name = azurerm_spring_cloud_service.test.resource_group_name
+  service_name        = azurerm_spring_cloud_service.test.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMSpringCloudApp_template(data acceptance.TestData) string {
