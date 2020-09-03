@@ -213,6 +213,7 @@ func testCheckAzureRMAttestationDestroy(s *terraform.State) error {
 // currently only supported in "East US 2", "West Central US" & "UK South"
 func testAccAzureRMAttestation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+// TODO: switch to using regular regions when this is supported
 provider "azurerm" {
   features {}
 }
