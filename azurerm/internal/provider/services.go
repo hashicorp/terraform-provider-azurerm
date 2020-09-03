@@ -34,6 +34,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights"
@@ -75,6 +76,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
@@ -113,6 +115,7 @@ func SupportedServices() []common.ServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		frontdoor.Registration{},
+		hsm.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
 		iothub.Registration{},
@@ -155,6 +158,7 @@ func SupportedServices() []common.ServiceRegistration {
 		storage.Registration{},
 		streamanalytics.Registration{},
 		subscription.Registration{},
+		synapse.Registration{},
 		iottimeseriesinsights.Registration{},
 		trafficmanager.Registration{},
 		web.Registration{},

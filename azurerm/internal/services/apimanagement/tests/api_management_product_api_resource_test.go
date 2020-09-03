@@ -41,7 +41,7 @@ func TestAccAzureRMAPIManagementProductApi_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMAPIManagementProductApi_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAPIManagementProductGroupExists(data.ResourceName),
+					testCheckAzureRMAPIManagementProductApiExists(data.ResourceName),
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMAPIManagementProductApi_requiresImport),

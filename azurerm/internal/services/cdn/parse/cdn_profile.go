@@ -9,7 +9,13 @@ import (
 type CdnProfileId struct {
 	ResourceGroup string
 	Name          string
-	ProfileName   string
+}
+
+func NewCdnProfileID(resourceGroup, name string) CdnProfileId {
+	return CdnProfileId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
 }
 
 func CdnProfileID(input string) (*CdnProfileId, error) {
@@ -31,4 +37,9 @@ func CdnProfileID(input string) (*CdnProfileId, error) {
 	}
 
 	return &profile, nil
+}
+
+func (id CdnProfileId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s",
+		subscriptionId, id.ResourceGroup, id.Name)
 }

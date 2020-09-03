@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -67,7 +68,7 @@ func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFu
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: azure.ValidateAutomationRunbookName(),
+			ValidateFunc: validate.AutomationRunbookName(),
 		},
 
 		"description": {
@@ -102,7 +103,7 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 		"automation_account_name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: azure.ValidateAutomationRunbookName(),
+			ValidateFunc: validate.AutomationRunbookName(),
 		},
 
 		"description": {

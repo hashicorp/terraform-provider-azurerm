@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -176,6 +176,12 @@ func resourceArmKeyVault() *schema.Resource {
 				Optional: true,
 			},
 
+			"soft_delete_retention_days": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(7, 90),
+			},
+
 			"tags": tags.Schema(),
 
 			// Computed
@@ -269,8 +275,15 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// This settings can only be set if it is true, if set when value is false API returns errors
-	if softDeleteEnabled := d.Get("soft_delete_enabled").(bool); softDeleteEnabled {
-		parameters.Properties.EnableSoftDelete = utils.Bool(softDeleteEnabled)
+	softDeleteEnabled := d.Get("soft_delete_enabled").(bool)
+	if softDeleteEnabled {
+		parameters.Properties.EnableSoftDelete = utils.Bool(true)
+
+		if softDeleteRetentionInDays := d.Get("soft_delete_retention_days").(int); softDeleteRetentionInDays != 0 {
+			parameters.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(softDeleteRetentionInDays))
+		}
+	} else {
+		parameters.Properties.EnableSoftDelete = utils.Bool(false)
 	}
 	if purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool); purgeProtectionEnabled {
 		parameters.Properties.EnablePurgeProtection = utils.Bool(purgeProtectionEnabled)
@@ -483,6 +496,26 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		update.Properties.EnableSoftDelete = utils.Bool(newValue)
 	}
 
+	if d.HasChange("soft_delete_retention_days") {
+		if update.Properties == nil {
+			update.Properties = &keyvault.VaultPatchProperties{}
+		}
+
+		// existing.Properties guaranteed non-nil above
+		var oldValue int32 = 0
+		if existing.Properties.SoftDeleteRetentionInDays != nil {
+			oldValue = *existing.Properties.SoftDeleteRetentionInDays
+		}
+
+		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
+		// hence the double-checking here
+		if oldValue != 0 {
+			return fmt.Errorf("updating Key Vault %q (Resource Group %q): once Soft Delete has been Enabled it's not possible to change `soft_delete_retention_days`", name, resourceGroup)
+		}
+
+		update.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(d.Get("soft_delete_retention_days").(int)))
+	}
+
 	if d.HasChange("tenant_id") {
 		if update.Properties == nil {
 			update.Properties = &keyvault.VaultPatchProperties{}
@@ -540,6 +573,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
 		d.Set("soft_delete_enabled", props.EnableSoftDelete)
+		d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 

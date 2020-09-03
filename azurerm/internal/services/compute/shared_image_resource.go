@@ -112,6 +112,34 @@ func resourceArmSharedImage() *schema.Resource {
 				Optional: true,
 			},
 
+			"purchase_plan": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"publisher": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"product": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"privacy_statement_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -167,6 +195,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 			ReleaseNoteURI:      utils.String(d.Get("release_note_uri").(string)),
 			OsType:              compute.OperatingSystemTypes(d.Get("os_type").(string)),
 			HyperVGeneration:    compute.HyperVGeneration(d.Get("hyper_v_generation").(string)),
+			PurchasePlan:        expandGalleryImagePurchasePlan(d.Get("purchase_plan").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -239,6 +268,10 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 
 		if err := d.Set("identifier", flattenGalleryImageIdentifier(props.Identifier)); err != nil {
 			return fmt.Errorf("Error setting `identifier`: %+v", err)
+		}
+
+		if err := d.Set("purchase_plan", flattenGalleryImagePurchasePlan(props.PurchasePlan)); err != nil {
+			return fmt.Errorf("Error setting `purchase_plan`: %+v", err)
 		}
 	}
 
@@ -341,6 +374,56 @@ func flattenGalleryImageIdentifier(input *compute.GalleryImageIdentifier) []inte
 			"offer":     offer,
 			"publisher": publisher,
 			"sku":       sku,
+		},
+	}
+}
+
+func expandGalleryImagePurchasePlan(input []interface{}) *compute.ImagePurchasePlan {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := compute.ImagePurchasePlan{
+		Name: utils.String(v["name"].(string)),
+	}
+
+	if publisher := v["publisher"].(string); publisher != "" {
+		result.Publisher = &publisher
+	}
+
+	if product := v["product"].(string); product != "" {
+		result.Product = &product
+	}
+
+	return &result
+}
+
+func flattenGalleryImagePurchasePlan(input *compute.ImagePurchasePlan) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	publisher := ""
+	if input.Publisher != nil {
+		publisher = *input.Publisher
+	}
+
+	product := ""
+	if input.Product != nil {
+		product = *input.Product
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":      name,
+			"publisher": publisher,
+			"product":   product,
 		},
 	}
 }

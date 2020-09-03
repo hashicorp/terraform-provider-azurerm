@@ -33,7 +33,7 @@ resource "azurerm_subnet" "bastion" {
   name                      = "${azurerm_resource_group.example.name}-bastion"
   virtual_network_name      = "${azurerm_virtual_network.example.name}"
   resource_group_name       = "${azurerm_resource_group.example.name}"
-  address_prefix            = "10.0.0.128/25"
+  address_prefixes          = ["10.0.0.128/25"]
   network_security_group_id = "${azurerm_network_security_group.bastion.id}"
 }
 
@@ -73,6 +73,6 @@ resource "azurerm_subnet" "web" {
   name                      = "${azurerm_resource_group.example.name}-web"
   virtual_network_name      = "${azurerm_virtual_network.example.name}"
   resource_group_name       = "${azurerm_resource_group.example.name}"
-  address_prefix            = "10.0.1.0/24"
+  address_prefixes          = ["10.0.1.0/24"]
   network_security_group_id = "${azurerm_network_security_group.web.id}"
 }

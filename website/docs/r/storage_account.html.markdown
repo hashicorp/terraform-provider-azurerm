@@ -97,9 +97,15 @@ The following arguments are supported:
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information. Defaults to `true`.
 
+* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_0` for new storage accounts.
+
+-> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud.
+
 * `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `false`.
 
-* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created. 
+-> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud.
+
+* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
 -> **NOTE:** When this is set to `true` the `account_tier` argument must be set to `Standard`
 
@@ -115,7 +121,7 @@ The following arguments are supported:
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
-~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2`
+~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
@@ -245,7 +251,7 @@ A `static_website` block supports the following:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The storage account Resource ID.
+* `id` - The ID of the Storage Account.
 
 * `primary_location` - The primary location of the storage account.
 
