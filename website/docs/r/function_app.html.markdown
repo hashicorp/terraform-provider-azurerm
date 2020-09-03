@@ -39,11 +39,12 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
 ## Example Usage (in a Consumption Plan)
@@ -75,11 +76,12 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
 ## Example Usage (Linux)
@@ -112,12 +114,13 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
-  os_type                   = "linux"
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+  os_type                    = "linux"
 }
 ```
 ## Argument Reference
