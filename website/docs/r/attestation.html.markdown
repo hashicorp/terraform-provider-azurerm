@@ -81,7 +81,7 @@ The following arguments are supported:
 
 -> **NOTE:** If the `policy_signing_certificate_data` argument contains more than one valid X.509 certificate only the first certificate will be used.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the attestation provider.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Attestation Provider.
 
 ## Attributes Reference
 
