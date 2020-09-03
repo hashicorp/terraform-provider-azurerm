@@ -63,7 +63,6 @@ func resourceArmLogicAppIntegrationAccount() *schema.Resource {
 			"integration_service_environment_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.IntegrationServiceEnvironmentID,
 			},
@@ -93,16 +92,18 @@ func resourceArmLogicAppIntegrationAccountCreateUpdate(d *schema.ResourceData, m
 	}
 
 	account := logic.IntegrationAccount{
-		IntegrationAccountProperties: &logic.IntegrationAccountProperties{},
-		Location:                     utils.String(location.Normalize(d.Get("location").(string))),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Sku: &logic.IntegrationAccountSku{
 			Name: logic.IntegrationAccountSkuName(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
-		account.IntegrationAccountProperties.IntegrationServiceEnvironment = &logic.IntegrationServiceEnvironment{
-			ID: utils.String(iseID.(string)),
+		account.IntegrationAccountProperties = &logic.IntegrationAccountProperties{
+			IntegrationServiceEnvironment: &logic.IntegrationServiceEnvironment{
+				ID: utils.String(iseID.(string)),
+			},
 		}
 	}
 
