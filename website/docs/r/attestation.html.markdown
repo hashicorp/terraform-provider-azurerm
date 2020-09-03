@@ -69,7 +69,7 @@ EOT
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this attestation provider. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Attestation Provider. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the attestation provider should exist. Changing this forces a new resource to be created.
 
