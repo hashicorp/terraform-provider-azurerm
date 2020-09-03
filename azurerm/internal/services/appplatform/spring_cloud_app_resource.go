@@ -99,7 +99,7 @@ func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interfac
 
 	serviceResp, err := servicesClient.Get(ctx, resourceGroup, serviceName)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve Spring Cloud Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("unable to retrieve Spring Cloud Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
 	if d.IsNewResource() {
