@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceAttestation() *schema.Resource {
+func dataSourceAttestationProvider() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmAttestationRead,
+		Read: dataSourceArmAttestationProviderRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -31,12 +31,22 @@ func dataSourceAttestation() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
+			"attestation_uri": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"trust_model": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
-func dataSourceArmAttestationRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmAttestationProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -51,13 +61,20 @@ func dataSourceArmAttestationRead(d *schema.ResourceData, meta interface{}) erro
 		}
 		return fmt.Errorf("retrieving Attestation %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Attestation Provider %q (Resource Group %q)", name, resourceGroup)
-	}
 
-	d.SetId(*resp.ID)
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if props := resp.StatusResult; props != nil {
+		d.Set("attestation_uri", props.AttestURI)
+		d.Set("trust_model", props.TrustModel)
+	}
+
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for Attestation Provider %q (Resource Group %q)", name, resourceGroup)
+	}
+	d.SetId(*resp.ID)
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }

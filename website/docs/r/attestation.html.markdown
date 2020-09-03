@@ -18,50 +18,12 @@ resource "azurerm_resource_group" "example" {
   location = "UK South"
 }
 
-resource "azurerm_attestation" "example" {
-  name                = "example-attestationprovider"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-}
-```
-
-## Example Usage with PEM File
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "UK South"
-}
-
-resource "azurerm_attestation" "example" {
+resource "azurerm_attestation_provider" "example" {
   name                = "example-attestationprovider"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
   policy_signing_certificate_data = file("./example/cert.pem")
-}
-```
-
-## Example Usage with PEM Certificate String
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "UK South"
-}
-
-resource "azurerm_attestation" "example" {
-  name                = "example-attestationprovider"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-
-  policy_signing_certificate_data = <<EOT
------BEGIN CERTIFICATE-----
-MIIBzDCCAS2gAwIBAgIBATAKBggqhkjOPQQDBDAQMQ4wDAYDVQQKEwVFTkNPTTAe
-...
-lXOCt2Yf4dsFsijuvzbJBdx75d4Ef5TRHPcg+PHNZgg=
------END CERTIFICATE-----
-EOT
 }
 ```
 
@@ -89,7 +51,7 @@ The following Attributes are exported:
 
 * `id` - The ID of the Attestation Provider.
 
-* `attest_uri` - The (Endpoint|URI) of the Attestation Service.
+* `attestation_uri` - The (Endpoint|URI) of the Attestation Service.
 
 * `trust_model` - Trust model used for the Attestation Service.
 

@@ -10,28 +10,32 @@ import (
 	"encoding/pem"
 	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAttestation_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
+func TestAccAzureRMAttestationProvider_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	randStr := strings.ToLower(acctest.RandString(10))
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAttestationDestroy,
+		CheckDestroy: testCheckAzureRMAttestationProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAttestation_basic(data),
+				Config: testAccAzureRMAttestationProvider_basic(data, randStr),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationExists(data.ResourceName),
+					testCheckAzureRMAttestationProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -39,26 +43,29 @@ func TestAccAzureRMAttestation_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAttestation_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
+func TestAccAzureRMAttestationProvider_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	randStr := strings.ToLower(acctest.RandString(10))
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAttestationDestroy,
+		CheckDestroy: testCheckAzureRMAttestationProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAttestation_basic(data),
+				Config: testAccAzureRMAttestationProvider_basic(data, randStr),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationExists(data.ResourceName),
+					testCheckAzureRMAttestationProviderExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMAttestation_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMAttestationProvider_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMAttestation_completeString(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
+func TestAccAzureRMAttestationProvider_completeString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	randStr := strings.ToLower(acctest.RandString(10))
 	testCertificate, err := testAzureRMGenerateTestCertificate("ENCOM")
 	if err != nil {
 		t.Fatalf("Test case failed: '%+v'", err)
@@ -67,12 +74,12 @@ func TestAccAzureRMAttestation_completeString(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAttestationDestroy,
+		CheckDestroy: testCheckAzureRMAttestationProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAttestation_completeString(data, testCertificate),
+				Config: testAccAzureRMAttestationProvider_completeString(data, randStr, testCertificate),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationExists(data.ResourceName),
+					testCheckAzureRMAttestationProviderExists(data.ResourceName),
 				),
 			},
 			// must ignore policy_signing_certificate since the API does not return these values
@@ -81,18 +88,19 @@ func TestAccAzureRMAttestation_completeString(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAttestation_completeFile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
+func TestAccAzureRMAttestationProvider_completeFile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	randStr := strings.ToLower(acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAttestationDestroy,
+		CheckDestroy: testCheckAzureRMAttestationProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAttestation_completeFile(data),
+				Config: testAccAzureRMAttestationProvider_completeFile(data, randStr),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationExists(data.ResourceName),
+					testCheckAzureRMAttestationProviderExists(data.ResourceName),
 				),
 			},
 			// must ignore policy_signing_certificate since the API does not return these values
@@ -101,32 +109,33 @@ func TestAccAzureRMAttestation_completeFile(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAttestation_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
+func TestAccAzureRMAttestationProvider_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation_provider", "test")
+	randStr := strings.ToLower(acctest.RandString(10))
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAttestationDestroy,
+		CheckDestroy: testCheckAzureRMAttestationProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAttestation_basic(data),
+				Config: testAccAzureRMAttestationProvider_basic(data, randStr),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationExists(data.ResourceName),
+					testCheckAzureRMAttestationProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAttestation_update(data),
+				Config: testAccAzureRMAttestationProvider_update(data, randStr),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationExists(data.ResourceName),
+					testCheckAzureRMAttestationProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAttestation_basic(data),
+				Config: testAccAzureRMAttestationProvider_basic(data, randStr),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationExists(data.ResourceName),
+					testCheckAzureRMAttestationProviderExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -134,7 +143,7 @@ func TestAccAzureRMAttestation_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMAttestationExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMAttestationProviderExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Attestation.ProviderClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -188,12 +197,12 @@ func testAzureRMGenerateTestCertificate(organization string) (string, error) {
 	return encoded.String(), nil
 }
 
-func testCheckAzureRMAttestationDestroy(s *terraform.State) error {
+func testCheckAzureRMAttestationProviderDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Attestation.ProviderClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_attestation" {
+		if rs.Type != "azurerm_attestation_provider" {
 			continue
 		}
 		id, err := parse.AttestationId(rs.Primary.ID)
@@ -211,7 +220,7 @@ func testCheckAzureRMAttestationDestroy(s *terraform.State) error {
 }
 
 // currently only supported in "East US 2", "West Central US" & "UK South"
-func testAccAzureRMAttestation_template(data acceptance.TestData) string {
+func testAccAzureRMAttestationProvider_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 // TODO: switch to using regular regions when this is supported
 provider "azurerm" {
@@ -225,26 +234,26 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, "uksouth")
 }
 
-func testAccAzureRMAttestation_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAttestation_template(data)
+func testAccAzureRMAttestationProvider_basic(data acceptance.TestData, randStr string) string {
+	template := testAccAzureRMAttestationProvider_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_attestation" "test" {
-  name                = "ap%d"
+resource "azurerm_attestation_provider" "test" {
+  name                = "acctestap%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
-`, template, data.RandomInteger)
+`, template, randStr)
 }
 
-func testAccAzureRMAttestation_update(data acceptance.TestData) string {
-	template := testAccAzureRMAttestation_template(data)
+func testAccAzureRMAttestationProvider_update(data acceptance.TestData, randStr string) string {
+	template := testAccAzureRMAttestationProvider_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_attestation" "test" {
-  name                = "ap%d"
+resource "azurerm_attestation_provider" "test" {
+  name                = "acctestap%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -252,29 +261,31 @@ resource "azurerm_attestation" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, randStr)
 }
 
-func testAccAzureRMAttestation_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMAttestation_basic(data)
+func testAccAzureRMAttestationProvider_requiresImport(data acceptance.TestData) string {
+	randStr := strings.ToLower(acctest.RandString(10))
+	config := testAccAzureRMAttestationProvider_basic(data, randStr)
+
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_attestation" "import" {
-  name                = azurerm_attestation.test.name
-  resource_group_name = azurerm_attestation.test.resource_group_name
-  location            = azurerm_attestation.test.location
+resource "azurerm_attestation_provider" "import" {
+  name                = azurerm_attestation_provider.test.name
+  resource_group_name = azurerm_attestation_provider.test.resource_group_name
+  location            = azurerm_attestation_provider.test.location
 }
 `, config)
 }
 
-func testAccAzureRMAttestation_completeString(data acceptance.TestData, testCertificate string) string {
-	template := testAccAzureRMAttestation_template(data)
+func testAccAzureRMAttestationProvider_completeString(data acceptance.TestData, randStr string, testCertificate string) string {
+	template := testAccAzureRMAttestationProvider_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_attestation" "test" {
-  name                = "ap%d"
+resource "azurerm_attestation_provider" "test" {
+  name                = "acctestap%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -286,16 +297,16 @@ EOT
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger, testCertificate)
+`, template, randStr, testCertificate)
 }
 
-func testAccAzureRMAttestation_completeFile(data acceptance.TestData) string {
-	template := testAccAzureRMAttestation_template(data)
+func testAccAzureRMAttestationProvider_completeFile(data acceptance.TestData, randStr string) string {
+	template := testAccAzureRMAttestationProvider_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_attestation" "test" {
-  name                = "ap%d"
+resource "azurerm_attestation_provider" "test" {
+  name                = "acctestap%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -305,5 +316,5 @@ resource "azurerm_attestation" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, randStr)
 }

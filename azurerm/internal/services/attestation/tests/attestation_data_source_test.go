@@ -2,37 +2,39 @@ package tests
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMAttestation_basic(t *testing.T) {
+func TestAccDataSourceAzureRMAttestationProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_attestation", "test")
+	randStr := strings.ToLower(acctest.RandString(10))
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAttestationDestroy,
+		CheckDestroy: testCheckAzureRMAttestationProviderDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAttestation_basic(data),
+				Config: testAccDataSourceAttestationProvider_basic(data, randStr),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
+					testCheckAzureRMAttestationProviderExists(data.ResourceName),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAttestation_basic(data acceptance.TestData) string {
-	config := testAccAzureRMAttestation_basic(data)
+func testAccDataSourceAttestationProvider_basic(data acceptance.TestData, randStr string) string {
+	config := testAccAzureRMAttestationProvider_basic(data, randStr)
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_attestation" "test" {
+data "azurerm_attestation_provider" "test" {
   name                = azurerm_attestation.test.name
   resource_group_name = azurerm_attestation.test.resource_group_name
 }
