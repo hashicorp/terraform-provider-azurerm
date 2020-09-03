@@ -36,7 +36,7 @@ func testAccDataSourceAttestationProvider_basic(data acceptance.TestData, randSt
 
 data "azurerm_attestation_provider" "test" {
   name                = azurerm_attestation_provider.test.name
-  resource_group_name = azurerm_attestation.test.resource_group_name
+  resource_group_name = azurerm_attestation_provider.test.resource_group_name
 }
 `, config)
 }
