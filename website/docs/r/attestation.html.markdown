@@ -89,7 +89,7 @@ The following Attributes are exported:
 
 * `id` - The ID of the attestation provider.
 
-* `attest_uri` - Gets the uri of attestation service.
+* `attest_uri` - The (Endpoint|URI) of the Attestation Service.
 
 * `trust_model` - Trust model for the attestation service instance.
 
