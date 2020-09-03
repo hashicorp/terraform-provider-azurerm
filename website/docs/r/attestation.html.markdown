@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_attestation
 
-Manages a Attestation Resource.
+Manages a Attestation Provider.
 
 ## Example Usage
 
