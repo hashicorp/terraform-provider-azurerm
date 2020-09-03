@@ -55,7 +55,7 @@ The following arguments are supported:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible values are `None` or `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible value is `SystemAssigned`.
 
 ## Attributes Reference
 

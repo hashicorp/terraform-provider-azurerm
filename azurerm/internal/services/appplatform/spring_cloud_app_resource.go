@@ -66,7 +66,6 @@ func resourceArmSpringCloudApp() *schema.Resource {
 							Required: true,
 							// other two enum: 'UserAssigned', 'SystemAssignedUserAssigned' are not supported for now
 							ValidateFunc: validation.StringInSlice([]string{
-								string(appplatform.None),
 								string(appplatform.SystemAssigned),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
