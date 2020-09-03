@@ -4,6 +4,10 @@ UPGRADE NOTES:
 
 * **Opt-In Beta:** This release introduces an opt-in beta for in-line Virtual Machine Scale Set Extensions. This functionality enables the resource to be used with Azure Service Fabric and other extensions that may require creation time inclusion on Scale Set members. Please see the documentation for `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` for information.
 
+FEATURES:
+
+* **New Resource:** `azurerm_log_analytics_saved_search` [GH-8253]
+
 ENHANCEMENTS:
 
 * dependencies: updating `loganalytics` to `2020-03-01-preview` [GH-8234]
