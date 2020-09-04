@@ -57,6 +57,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Academic",
+					"AnomalyDetector",
 					"Bing.Autosuggest",
 					"Bing.Autosuggest.v7",
 					"Bing.CustomSearch",
