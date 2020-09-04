@@ -331,16 +331,11 @@ func testAccAzureRMLogicAppWorkflow_integrationServiceEnvironment(data acceptanc
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-logic-%d"
-  location = "%s"
-}
-
 resource "azurerm_logic_app_workflow" "test" {
   name                               = "acctestlaw-%d"
   location                           = azurerm_resource_group.test.location
   resource_group_name                = azurerm_resource_group.test.name
   integration_service_environment_id = azurerm_integration_service_environment.test.id
 }
-`, template, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, template, data.RandomInteger)
 }
