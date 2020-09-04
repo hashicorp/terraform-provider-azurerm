@@ -68,6 +68,16 @@ func TestApiManagementApiDiagnosticID(t *testing.T) {
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/APIs/api1/diagnostics/applicationinsights",
 			Expected: nil,
 		},
+		{
+			Name:  "From ACC test",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200904094049117016/providers/Microsoft.ApiManagement/service/acctestAM-200904094049117016/apis/acctestAMA-200904094049117016/diagnostics/applicationinsights",
+			Expected: &ApiManagementApiDiagnosticId{
+				Name:          "applicationinsights",
+				ApiName:       "acctestAMA-200904094049117016",
+				ServiceName:   "acctestAM-200904094049117016",
+				ResourceGroup: "acctestRG-200904094049117016",
+			},
+		},
 	}
 
 	for _, v := range testData {
