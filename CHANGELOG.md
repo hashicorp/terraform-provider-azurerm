@@ -7,6 +7,10 @@ ENHANCEMENTS:
 * `azurerm_spring_cloud_app` - support for the `identity` block [GH-8336]
 * `azurerm_virtual_network_gateway` - support for `aad_audience`, `aad_issuer` and `aad_tenant` within the `vpn_client_configuration` block [GH-8294]
 
+FEATURES:
+* **New Data Source** `azurerm_attestation_provider` - ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
+* **New Resource:** `azurerm_attestation_provider` ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
+
 ## 2.26.0 (September 04, 2020)
 
 UPGRADE NOTES:
@@ -14,8 +18,6 @@ UPGRADE NOTES:
 * **Opt-In Beta:** This release introduces an opt-in beta for in-line Virtual Machine Scale Set Extensions. This functionality enables the resource to be used with Azure Service Fabric and other extensions that may require creation time inclusion on Scale Set members. Please see the documentation for `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` for information.
 
 FEATURES:
-* **New Data Source** `azurerm_attestation_provider` - ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
-* **New Resource:** `azurerm_attestation_provider` ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
 * **New Resource:** `azurerm_log_analytics_saved_search` ([#8253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8253))
 
 ENHANCEMENTS:
