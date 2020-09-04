@@ -1,4 +1,4 @@
-## 2.26.0 (Unreleased)
+## 2.26.0 (September 04, 2020)
 
 UPGRADE NOTES:
 
@@ -6,32 +6,32 @@ UPGRADE NOTES:
 
 FEATURES:
 
-* **New Resource:** `azurerm_log_analytics_saved_search` [GH-8253]
+* **New Resource:** `azurerm_log_analytics_saved_search` ([#8253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8253))
 
 ENHANCEMENTS:
 
-* dependencies: updating `loganalytics` to `2020-03-01-preview` [GH-8234]
-* `azurerm_api_management_subscription` - Support `allow_tracing property` [GH-7969]
-* `azurerm_application_gateway ` - Add support for `probe.properties.port` [GH-8278]
-* `azurerm_linux_virtual_machine_scale_set` - Beta support for `extension` blocks [GH-8222]
-* `azurerm_log_analytics_workspace`- the `sku` value is now optional and defaults to `PerGB2018` [GH-8272]
-* `azurerm_windows_virtual_machine_scale_set` - Beta support for `extension` blocks [GH-8222]
+* dependencies: updating `loganalytics` to `2020-03-01-preview` ([#8234](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8234))
+* `azurerm_api_management_subscription` - Support `allow_tracing property` ([#7969](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7969))
+* `azurerm_application_gateway ` - Add support for `probe.properties.port` ([#8278](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8278))
+* `azurerm_linux_virtual_machine_scale_set` - Beta support for `extension` blocks ([#8222](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8222))
+* `azurerm_log_analytics_workspace`- the `sku` value is now optional and defaults to `PerGB2018` ([#8272](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8272))
+* `azurerm_windows_virtual_machine_scale_set` - Beta support for `extension` blocks ([#8222](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8222))
 
 BUG FIXES:
 
-* `azurerm_cdn_endpoint` - fixing the casing of the Resource ID to be consistent [GH-8237]
-* `azurerm_cdn_profile` - fixing the casing of the Resource ID to be consistent [GH-8237]
-* `azurerm_key_vault_key` - updating the latest version of the key when updating metadata [GH-8304]
-* `azurerm_key_vault_secret` - updating the latest version of the secret when updating metadata [GH-8304]
-* `azurerm_linux_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) [GH-8001]
-* `azurerm_linux_virtual_machine_scale_set` - working around a bug in the Azure API by always sending the existing Storage Image Reference during updates [GH-7983]
-* `azurerm_network_interface_application_gateway_association` - handling the Network Interface being deleted during a refresh [GH-8267]
-* `azurerm_network_interface_application_security_group_association` - handling the Network Interface being deleted during a refresh [GH-8267]
-* `azurerm_network_interface_backend_address_pool_association` - handling the Network Interface being deleted during a refresh [GH-8267]
-* `azurerm_network_interface_nat_rule_association_resource` - handling the Network Interface being deleted during a refresh [GH-8267]
-* `azurerm_network_interface_network_security_group_association` - handling the Network Interface being deleted during a refresh [GH-8267]
-* `azurerm_windows_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) [GH-8001]
-* `azurerm_windows_virtual_machine_scale_set` - working around a bug in the Azure API by always sending the existing Storage Image Reference during updates [GH-7983]
+* `azurerm_cdn_endpoint` - fixing the casing of the Resource ID to be consistent ([#8237](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8237))
+* `azurerm_cdn_profile` - fixing the casing of the Resource ID to be consistent ([#8237](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8237))
+* `azurerm_key_vault_key` - updating the latest version of the key when updating metadata ([#8304](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8304))
+* `azurerm_key_vault_secret` - updating the latest version of the secret when updating metadata ([#8304](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8304))
+* `azurerm_linux_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) ([#8001](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8001))
+* `azurerm_linux_virtual_machine_scale_set` - working around a bug in the Azure API by always sending the existing Storage Image Reference during updates ([#7983](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7983))
+* `azurerm_network_interface_application_gateway_association` - handling the Network Interface being deleted during a refresh ([#8267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8267))
+* `azurerm_network_interface_application_security_group_association` - handling the Network Interface being deleted during a refresh ([#8267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8267))
+* `azurerm_network_interface_backend_address_pool_association` - handling the Network Interface being deleted during a refresh ([#8267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8267))
+* `azurerm_network_interface_nat_rule_association_resource` - handling the Network Interface being deleted during a refresh ([#8267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8267))
+* `azurerm_network_interface_network_security_group_association` - handling the Network Interface being deleted during a refresh ([#8267](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8267))
+* `azurerm_windows_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) ([#8001](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8001))
+* `azurerm_windows_virtual_machine_scale_set` - working around a bug in the Azure API by always sending the existing Storage Image Reference during updates ([#7983](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7983))
 
 ## 2.25.0 (August 27, 2020)
 
