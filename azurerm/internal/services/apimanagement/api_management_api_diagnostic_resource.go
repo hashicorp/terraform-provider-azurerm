@@ -111,7 +111,7 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmApiManagementDiagnosticRead(d, meta)
+	return resourceArmApiManagementApiDiagnosticRead(d, meta)
 }
 
 func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta interface{}) error {

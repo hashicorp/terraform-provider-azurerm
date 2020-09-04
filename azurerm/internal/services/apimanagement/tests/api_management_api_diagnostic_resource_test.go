@@ -63,7 +63,7 @@ func TestAccAzureRMApiManagementApiDiagnostic_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		CheckDestroy: testCheckAzureRMApiManagementApiDiagnosticDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiDiagnostic_basic(data),
