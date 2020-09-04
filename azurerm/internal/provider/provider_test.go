@@ -2,6 +2,8 @@ package provider
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"testing"
 	"time"
 
@@ -12,6 +14,11 @@ func TestProvider(t *testing.T) {
 	if err := TestAzureProvider().(*schema.Provider).InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
+}
+
+func TestMain(m *testing.M) {
+	acctest.UseBinaryDriver("azurerm", AzureProvider)
+	resource.TestMain(m)
 }
 
 func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
