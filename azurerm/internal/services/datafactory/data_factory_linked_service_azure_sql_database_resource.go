@@ -71,6 +71,31 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabase() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"service_principal": {
+				Type: schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type: schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"password": {
+							Type: schema.TypeString,
+							Required: true,
+							Sensitive: true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"tenant": {
+							Type: schema.TypeString,
+							
+						},
+					},
+				},
+			},
+
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
