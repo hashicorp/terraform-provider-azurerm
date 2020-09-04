@@ -707,13 +707,9 @@ func expandArmNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]network
 
 func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) (*[]network.ConnectionMonitorTestGroup, error) {
 	results := make([]network.ConnectionMonitorTestGroup, 0)
-	hasEnabledTestGroup := false
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		if !v["disable"].(bool) {
-			hasEnabledTestGroup = true
-		}
 
 		result := network.ConnectionMonitorTestGroup{
 			Name:               utils.String(v["name"].(string)),
@@ -724,10 +720,6 @@ func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) (*[]network
 		}
 
 		results = append(results, result)
-	}
-
-	if len(input) > 0 && !hasEnabledTestGroup {
-		return nil, fmt.Errorf("connection monitor must have at least one enabled test group")
 	}
 
 	return &results, nil
