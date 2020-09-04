@@ -440,11 +440,6 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 		}
 	}
 
-	testGroup, err := expandArmNetworkConnectionMonitorTestGroup(d.Get("test_group").(*schema.Set).List())
-	if err != nil {
-		return fmt.Errorf("expanding `test_group`: %s", err)
-	}
-
 	properties := network.ConnectionMonitor{
 		Location: utils.String(location),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -453,7 +448,7 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 			Notes:              utils.String(d.Get("notes").(string)),
 			Outputs:            expandArmNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
 			TestConfigurations: expandArmNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*schema.Set).List()),
-			TestGroups:         testGroup,
+			TestGroups:         expandArmNetworkConnectionMonitorTestGroup(d.Get("test_group").(*schema.Set).List()),
 		},
 	}
 
@@ -705,7 +700,7 @@ func expandArmNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]network
 	return &results
 }
 
-func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) (*[]network.ConnectionMonitorTestGroup, error) {
+func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) *[]network.ConnectionMonitorTestGroup {
 	results := make([]network.ConnectionMonitorTestGroup, 0)
 
 	for _, item := range input {
@@ -722,7 +717,7 @@ func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) (*[]network
 		results = append(results, result)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func expandArmNetworkConnectionMonitorOutput(input []interface{}) *[]network.ConnectionMonitorOutput {
