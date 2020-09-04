@@ -8,7 +8,7 @@ ENHANCEMENTS:
 * `azurerm_virtual_network_gateway` - support for `aad_audience`, `aad_issuer` and `aad_tenant` within the `vpn_client_configuration` block [GH-8294]
 
 FEATURES:
-* **New Data Source** `azurerm_attestation_provider` - ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
+* **New Data Source** `azurerm_attestation_provider` ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
 * **New Resource:** `azurerm_attestation_provider` ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
 
 ## 2.26.0 (September 04, 2020)
