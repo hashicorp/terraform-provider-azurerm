@@ -267,27 +267,27 @@ resource "azurerm_resource_group" "test" {
 
 func testAccAzureRMResourceGroup_multipleSubscriptions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
+provider "azurerm1" {
   features {}
-  alias = "first"
+  source = "hashicorp/azurerm"
 }
 
-provider "azurerm" {
+provider "azurerm2" {
   features {}
-  alias = "second"
   subscription_id = "%s"
+  source = "hashicorp/azurerm"
 }
 
 resource "azurerm_resource_group" "test" {
+  provider = azurerm1
   name     = "acctestRG-%d"
   location = "%s"
-  provider = "azurerm.first"
 }
 
 resource "azurerm_resource_group" "test1" {
+  provider = azurerm2
   name     = "acctestRG-%d"
   location = "%s"
-  provider = "azurerm.second"
 }
 `, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
