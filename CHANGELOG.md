@@ -1,4 +1,9 @@
 ## 2.27.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_cosmosdb_account` - supporting the value `AllowSelfServeUpgradeToMongo36` for the `name` field within the `capabilities` block [GH-8335]
+
 ## 2.26.0 (September 04, 2020)
 
 UPGRADE NOTES:
