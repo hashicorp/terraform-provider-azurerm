@@ -2,7 +2,10 @@ package tests
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -10,6 +13,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
+
+func TestMain(m *testing.M) {
+	acctest.UseBinaryDriver("azurerm", provider.AzureProvider)
+	resource.TestMain(m)
+}
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
@@ -21,6 +29,25 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMResourceGroup_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMResourceGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMResourceGroup_multipleSubscriptions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMResourceGroup_multipleSubscriptions(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceGroupExists(data.ResourceName),
 				),
@@ -236,4 +263,31 @@ resource "azurerm_resource_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMResourceGroup_multipleSubscriptions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+  alias = "first"
+}
+
+provider "azurerm" {
+  features {}
+  alias = "second"
+  subscription_id = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+  provider = "azurerm.first"
+}
+
+resource "azurerm_resource_group" "test1" {
+  name     = "acctestRG-%d"
+  location = "%s"
+  provider = "azurerm.second"
+}
+`, os.Getenv("ARM_SUBSCRIPTION_ID_ALT"), data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
