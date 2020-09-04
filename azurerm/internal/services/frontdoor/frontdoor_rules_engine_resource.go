@@ -46,7 +46,7 @@ func resourceArmFrontDoorRulesEngine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorName,
+				ValidateFunc: validate.FrontDoorRulesEngineName,
 			},
 
 			"front_door_name": {

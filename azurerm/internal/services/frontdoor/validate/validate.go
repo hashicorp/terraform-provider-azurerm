@@ -16,6 +16,13 @@ func FrontDoorName(i interface{}, k string) (_ []string, errors []error) {
 	return nil, nil
 }
 
+func FrontDoorRulesEngineName(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `^([A-Za-z])([A-Za-z\d]{0,255})$`); !m {
+		return nil, append(regexErrs, fmt.Errorf(`%q must begin with a letter, be between 1 and 256 characters in length and may contain only letters or numbers.`, k))
+	}
+	return nil, nil
+}
+
 func FrontDoorWAFName(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `(^[a-zA-Z])([\da-zA-Z]{0,127})$`); !m {
 		return nil, append(regexErrs, fmt.Errorf(`%q must be between 1 and 128 characters in length, must begin with a letter and may only contain letters and numbers.`, k))
