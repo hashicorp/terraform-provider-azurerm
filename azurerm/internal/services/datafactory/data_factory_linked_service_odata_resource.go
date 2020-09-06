@@ -91,15 +91,13 @@ func resourceArmDataFactoryLinkedServiceOData() *schema.Resource {
 			"tenant": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				// ValidateFunc: validation.StringIsValidRegExp("[a-z 0-9]{8}-[a-z 0-9]{4}-[a-z 0-9]{4}-[a-z 0-9]{4}-[a-z 0-9]{12}"),
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"service_principal_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				// ValidateFunc: validation.StringIsValidRegExp("[a-z 0-9]{8}-[a-z 0-9]{4}-[a-z 0-9]{4}-[a-z 0-9]{4}-[a-z 0-9]{12}"),
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"aad_service_principal_credential_type": {
