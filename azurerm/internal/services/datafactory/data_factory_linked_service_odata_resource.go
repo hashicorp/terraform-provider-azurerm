@@ -53,8 +53,8 @@ func resourceArmDataFactoryLinkedServiceOData() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"authentication_type": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(datafactory.ODataAuthenticationTypeAadServicePrincipal),
 					string(datafactory.ODataAuthenticationTypeAnonymous),
