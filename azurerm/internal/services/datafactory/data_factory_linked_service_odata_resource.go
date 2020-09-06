@@ -82,6 +82,41 @@ func resourceArmDataFactoryLinkedServiceOData() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"aad_resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"tenant": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				// ValidateFunc: validation.StringIsValidRegExp("[a-z 0-9]{8}-[a-z 0-9]{4}-[a-z 0-9]{4}-[a-z 0-9]{4}-[a-z 0-9]{12}"),
+			},
+
+			"service_principal_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				// ValidateFunc: validation.StringIsValidRegExp("[a-z 0-9]{8}-[a-z 0-9]{4}-[a-z 0-9]{4}-[a-z 0-9]{4}-[a-z 0-9]{12}"),
+			},
+
+			"aad_service_principal_credential_type": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(datafactory.ServicePrincipalCert),
+					string(datafactory.ServicePrincipalKey),
+				}, false),
+			},
+
+			"service_principal_key": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
