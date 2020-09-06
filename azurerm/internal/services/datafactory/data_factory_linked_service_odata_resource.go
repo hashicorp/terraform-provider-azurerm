@@ -55,7 +55,12 @@ func resourceArmDataFactoryLinkedServiceOData() *schema.Resource {
 			"authentication_type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(datafactory.ODataAuthenticationTypeAadServicePrincipal),
+					string(datafactory.ODataAuthenticationTypeAnonymous),
+					string(datafactory.ODataAuthenticationTypeBasic),
+					string(datafactory.ODataAuthenticationTypeWindows),
+				}, false),
 			},
 
 			"url": {
