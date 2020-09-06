@@ -153,8 +153,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 		odataLinkedService.ODataLinkedServiceTypeProperties = servicePrincipalAuthProperties
 	}
 
-	if authenticationType == "Anonymous" {
-		// TODO string compare with datafactory.ODataAuthenticationTypeAnonymous
+	if authenticationType == string(datafactory.ODataAuthenticationTypeAnonymous) {
 		anonAuthProperties := &datafactory.ODataLinkedServiceTypeProperties{
 			AuthenticationType: datafactory.ODataAuthenticationType(authenticationType),
 			URL:                utils.String(url),
@@ -162,8 +161,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 		odataLinkedService.ODataLinkedServiceTypeProperties = anonAuthProperties
 	}
 
-	if authenticationType == "Basic" || authenticationType == "Windows" {
-		// TODO string compare with datafactory.ODataAuthenticationTypeBasic
+	if authenticationType == string(datafactory.ODataAuthenticationTypeBasic) || authenticationType == string(datafactory.ODataAuthenticationTypeWindows) {
 		username := d.Get("username").(string)
 		password := d.Get("password").(string)
 		passwordSecureString := datafactory.SecureString{
