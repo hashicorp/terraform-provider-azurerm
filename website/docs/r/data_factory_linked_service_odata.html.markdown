@@ -43,6 +43,19 @@ resource "azurerm_data_factory_linked_service_odata" "basic" {
   username            = "emma"
   password            = "Ch4ngeM3!"
 }
+
+resource "azurerm_data_factory_linked_service_odata" "aad_sp_key" {
+  name                                  = "example"
+  resource_group_name                   = azurerm_resource_group.example.name
+  data_factory_name                     = azurerm_data_factory.example.name
+  authentication_type                   = "AadServicePrincipal"
+  url                                   = "https://services.odata.org/v4/TripPinServiceRW/People"
+  service_principal_id                  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  aad_service_principal_credential_type = "ServicePrincipalKey"
+  tenant                                = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  aad_resource_id                       = "xxx"
+  service_principal_key                 = "xxx"
+}
 ```
 
 ## Argument Reference

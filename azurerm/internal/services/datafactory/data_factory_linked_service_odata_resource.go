@@ -173,24 +173,49 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 	authenticationType := d.Get("authentication_type").(string)
 
 	if authenticationType == string(datafactory.ODataAuthenticationTypeAadServicePrincipal) {
+
 		servicePrincipalId := d.Get("service_principal_id").(string)
 		aadServicePrincipalCredentialType := d.Get("aad_service_principal_credential_type").(string)
 		tenant := d.Get("tenant").(string)
 		aadResourceID := d.Get("aad_resource_id").(string)
-		servicePrincipalKeySecureString := datafactory.SecureString{
-			Value: utils.String(d.Get("service_principal_key").(string)),
-			Type:  datafactory.TypeSecureString,
+
+		if aadServicePrincipalCredentialType == string(datafactory.ServicePrincipalCert) {
+			servicePrincipalEmbeddedCertSecureString := datafactory.SecureString{
+				Value: utils.String(d.Get("service_principal_embedded_cert").(string)),
+				Type:  datafactory.TypeSecureString,
+			}
+			servicePrincipalEmbeddedCertPasswordSecureString := datafactory.SecureString{
+				Value: utils.String(d.Get("service_principal_embedded_cert_password").(string)),
+				Type:  datafactory.TypeSecureString,
+			}
+			servicePrincipalAuthProperties := &datafactory.ODataLinkedServiceTypeProperties{
+				AuthenticationType:                   datafactory.ODataAuthenticationType(authenticationType),
+				URL:                                  utils.String(url),
+				ServicePrincipalID:                   utils.String(servicePrincipalId),
+				AadServicePrincipalCredentialType:    datafactory.ODataAadServicePrincipalCredentialType(aadServicePrincipalCredentialType),
+				ServicePrincipalEmbeddedCert:         &servicePrincipalEmbeddedCertSecureString,
+				ServicePrincipalEmbeddedCertPassword: &servicePrincipalEmbeddedCertPasswordSecureString,
+				Tenant:                               utils.String(tenant),
+				AadResourceID:                        utils.String(aadResourceID),
+			}
+			odataLinkedService.ODataLinkedServiceTypeProperties = servicePrincipalAuthProperties
+
+		} else if aadServicePrincipalCredentialType == string(datafactory.ServicePrincipalKey) {
+			servicePrincipalKeySecureString := datafactory.SecureString{
+				Value: utils.String(d.Get("service_principal_key").(string)),
+				Type:  datafactory.TypeSecureString,
+			}
+			servicePrincipalAuthProperties := &datafactory.ODataLinkedServiceTypeProperties{
+				AuthenticationType:                datafactory.ODataAuthenticationType(authenticationType),
+				URL:                               utils.String(url),
+				ServicePrincipalID:                utils.String(servicePrincipalId),
+				AadServicePrincipalCredentialType: datafactory.ODataAadServicePrincipalCredentialType(aadServicePrincipalCredentialType),
+				ServicePrincipalKey:               &servicePrincipalKeySecureString,
+				Tenant:                            utils.String(tenant),
+				AadResourceID:                     utils.String(aadResourceID),
+			}
+			odataLinkedService.ODataLinkedServiceTypeProperties = servicePrincipalAuthProperties
 		}
-		servicePrincipalAuthProperties := &datafactory.ODataLinkedServiceTypeProperties{
-			AuthenticationType:                datafactory.ODataAuthenticationType(authenticationType),
-			URL:                               utils.String(url),
-			ServicePrincipalID:                utils.String(servicePrincipalId),
-			AadServicePrincipalCredentialType: datafactory.ODataAadServicePrincipalCredentialType(aadServicePrincipalCredentialType),
-			ServicePrincipalKey:               &servicePrincipalKeySecureString,
-			Tenant:                            utils.String(tenant),
-			AadResourceID:                     utils.String(aadResourceID),
-		}
-		odataLinkedService.ODataLinkedServiceTypeProperties = servicePrincipalAuthProperties
 	}
 
 	if authenticationType == string(datafactory.ODataAuthenticationTypeAnonymous) {
