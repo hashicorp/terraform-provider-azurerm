@@ -2,10 +2,8 @@ package tests
 
 import (
 	"fmt"
-	// "os"
 	"testing"
 
-	// "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -54,7 +52,8 @@ func TestAccAzureRMDataSourceLoadBalancerRule_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "protocol"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "frontend_port"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "backend_port"),
-					//optional parameters - probe_id and backend_address_pool_id are missing in testAccAzureRMDataSourceLoadBalancerRule_complete config
+					resource.TestCheckResourceAttrSet(data.ResourceName, "backend_address_pool_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "probe_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "enable_floating_ip"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "enable_tcp_reset"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "disable_outbound_snat"),
@@ -122,14 +121,4 @@ data "azurerm_lb_rule" "test" {
   loadbalancer_id	    = azurerm_lb_rule.test.loadbalancer_id
 }
 `, testAccAzureRMLoadBalancerRule_template(data, "Standard"), backendPoolName, probeName, lbRuleName)
-	// 	resource := testAccAzureRMLoadBalancerRule_complete(data, name)
-	// 	return fmt.Sprintf(`
-	// %s
-
-	// data "azurerm_lb_rule" "test" {
-	//   name                = azurerm_lb_rule.test.name
-	//   resource_group_name = azurerm_lb_rule.test.resource_group_name
-	//   loadbalancer_id	    = azurerm_lb_rule.test.loadbalancer_id
-	// }
-	// `, resource)
 }
