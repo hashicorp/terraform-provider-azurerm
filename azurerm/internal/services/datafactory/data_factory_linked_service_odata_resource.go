@@ -114,6 +114,18 @@ func resourceArmDataFactoryLinkedServiceOData() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+			"service_principal_embedded_cert": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"service_principal_embedded_cert_password": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 
 			"description": {
 				Type:         schema.TypeString,
