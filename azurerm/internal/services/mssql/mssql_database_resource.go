@@ -447,7 +447,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
 		d.Set("collation", props.Collation)
 		d.Set("elastic_pool_id", props.ElasticPoolID)
-		d.Set("license_type", props.LicenseType)
+		d.Set("license_type", d.Get("license_type").(string))
 		if props.MaxSizeBytes != nil {
 			d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
 		}
