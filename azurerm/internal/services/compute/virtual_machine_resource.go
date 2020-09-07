@@ -1014,7 +1014,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	// disks have actually been deleted.
 
 	log.Printf("[INFO] verifying virtual machine %q is deleted", name)
-	virtualMachine, err = client.Get(ctx, resGroup, name, "")
+	virtualMachine, _ = client.Get(ctx, resGroup, name, "")
 
 	if !utils.ResponseWasNotFound(virtualMachine.Response) {
 		log.Printf("[INFO] virtual machine still exists, waiting on virtual machine %q to be deleted", name)
