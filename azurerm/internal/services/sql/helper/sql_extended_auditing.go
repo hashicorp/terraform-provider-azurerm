@@ -19,7 +19,7 @@ func ExtendedAuditingSchema() *schema.Schema {
 			Schema: map[string]*schema.Schema{
 				"storage_account_access_key": {
 					Type:         schema.TypeString,
-					Optional:     true,
+					Required:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},

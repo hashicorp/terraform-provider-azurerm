@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
@@ -82,6 +83,20 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.Resour
 	dbId, err := parse.MsSqlDatabaseID(d.Get("database_id").(string))
 	if err != nil {
 		return err
+	}
+
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, dbId.ResourceGroup, dbId.MsSqlServer, dbId.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Failed to check for presence of existing Database %q Sql Auditing (MsSql Server %q / Resource Group %q): %s", dbId.Name, dbId.MsSqlServer, dbId.ResourceGroup, err)
+			}
+		}
+
+		// if state is not disabled, we should import it.
+		if existing.ID != nil && *existing.ID != "" && existing.ExtendedDatabaseBlobAuditingPolicyProperties != nil && existing.ExtendedDatabaseBlobAuditingPolicyProperties.State != sql.BlobAuditingPolicyStateDisabled {
+			return tf.ImportAsExistsError("azurerm_mssql_database_extended_auditing_policy", *existing.ID)
+		}
 	}
 
 	params := sql.ExtendedDatabaseBlobAuditingPolicy{

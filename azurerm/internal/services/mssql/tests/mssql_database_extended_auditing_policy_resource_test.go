@@ -32,6 +32,25 @@ func TestAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseExtendedAuditingPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExtendedAuditingPolicyExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_requiresImport),
+		},
+	})
+}
+
 func TestAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database_extended_auditing_policy", "test")
 
@@ -208,6 +227,19 @@ resource "azurerm_mssql_database_extended_auditing_policy" "test" {
 `, template)
 }
 
+func testAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database_extended_auditing_policy" "import" {
+  database_id                = azurerm_mssql_database.test.id
+  storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+`, template)
+}
+
 func testAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_complete(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlDatabaseExtendedAuditingPolicy_template(data)
 	return fmt.Sprintf(`
@@ -303,14 +335,10 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-data "azuread_service_principal" "test" {
-  display_name = azurerm_mssql_server.test.name
-}
-
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = data.azuread_service_principal.test.object_id
+  principal_id         = azurerm_mssql_server.test.identity.0.principal_id
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "test" {
