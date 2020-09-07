@@ -183,7 +183,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"is_zone_redundant": {
+						"zone_redundant": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -807,7 +807,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData) ([]documen
 		location := documentdb.Location{
 			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
-			IsZoneRedundant:  utils.Bool(data["is_zone_redundant"].(bool)),
+			IsZoneRedundant:  utils.Bool(data["zone_redundant"].(bool)),
 		}
 
 		locations = append(locations, location)
@@ -895,7 +895,7 @@ func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccou
 			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
 			// there is not zone redundancy information in the FailoverPolicies currently, we have to search it by `id` in the Locations property.
-			"is_zone_redundant": findZoneRedundant(account.Locations, id),
+			"zone_redundant": findZoneRedundant(account.Locations, id),
 		}
 
 		locationSet.Add(lb)
@@ -961,7 +961,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	if m, ok := v.(map[string]interface{}); ok {
 		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
-		isZoneRedundant := m["is_zone_redundant"].(bool)
+		isZoneRedundant := m["zone_redundant"].(bool)
 
 		buf.WriteString(fmt.Sprintf("%s-%d-%v", location, priority, isZoneRedundant))
 	}

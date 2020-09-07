@@ -44,7 +44,6 @@ resource "azurerm_cosmosdb_account" "db" {
   }
 
   geo_location {
-    prefix            = "tfex-cosmos-db-${random_integer.ri.result}-customid"
     location          = azurerm_resource_group.rg.location
     failover_priority = 0
   }
@@ -98,7 +97,7 @@ The following arguments are supported:
 * `prefix` - (Optional) The string used to generate the document endpoints for this region. If not specified it defaults to `${cosmosdb_account.name}-${location}`. Changing this causes the location to be deleted and re-provisioned and cannot be changed for the location with failover priority `0`.
 * `location` - (Required) The name of the Azure region to host replicated data.
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
-* `is_zone_redundant` - (Optional) Should zone redundancy be enabled for this region? Defaults to `false`.
+* `zone_redundant` - (Optional) Should zone redundancy be enabled for this region? Defaults to `false`.
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
