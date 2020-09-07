@@ -135,6 +135,7 @@ func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("making Read request for Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, err)
 	}
 
+	d.Set("api_name", diagnosticId.ApiName)
 	d.Set("identifier", resp.Name)
 	d.Set("resource_group_name", diagnosticId.ResourceGroup)
 	d.Set("api_management_name", diagnosticId.ServiceName)
