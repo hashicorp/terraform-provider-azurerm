@@ -136,6 +136,8 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 
 			"custom_data": base64.OptionalSchema(true),
 
+			"data_disk": virtualMachineDataDiskSchema(),
+
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -367,6 +369,17 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	osDiskRaw := d.Get("os_disk").([]interface{})
 	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Windows)
 
+	dataDisks := &[]compute.DataDisk{}
+
+	// TODO - put beta env var flag here
+	if true {
+		dataDiskRaw := d.Get("data_disk").([]interface{})
+		dataDisks, err = expandVirtualMachineDataDisks(dataDiskRaw)
+		if err != nil {
+			return err
+		}
+	}
+
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandWindowsSecrets(secretsRaw)
 
@@ -408,10 +421,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 			StorageProfile: &compute.StorageProfile{
 				ImageReference: sourceImageReference,
 				OsDisk:         osDisk,
-
-				// Data Disks are instead handled via the Association resource - as such we can send an empty value here
-				// but for Updates this'll need to be nil, else any associations will be overwritten
-				DataDisks: &[]compute.DataDisk{},
+				DataDisks:      dataDisks,
 			},
 
 			// Optional

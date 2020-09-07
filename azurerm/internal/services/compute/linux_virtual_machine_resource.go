@@ -134,6 +134,8 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 
 			"custom_data": base64.OptionalSchema(true),
 
+			"data_disk": virtualMachineDataDiskSchema(),
+
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -336,6 +338,17 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	osDiskRaw := d.Get("os_disk").([]interface{})
 	osDisk := expandVirtualMachineOSDisk(osDiskRaw, compute.Linux)
 
+	dataDisks := &[]compute.DataDisk{}
+
+	// TODO - put beta env var flag here
+	if true {
+		dataDiskRaw := d.Get("data_disk").([]interface{})
+		dataDisks, err = expandVirtualMachineDataDisks(dataDiskRaw)
+		if err != nil {
+			return err
+		}
+	}
+
 	secretsRaw := d.Get("secret").([]interface{})
 	secrets := expandLinuxSecrets(secretsRaw)
 
@@ -378,10 +391,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 			StorageProfile: &compute.StorageProfile{
 				ImageReference: sourceImageReference,
 				OsDisk:         osDisk,
-
-				// Data Disks are instead handled via the Association resource - as such we can send an empty value here
-				// but for Updates this'll need to be nil, else any associations will be overwritten
-				DataDisks: &[]compute.DataDisk{},
+				DataDisks:      dataDisks,
 			},
 
 			// Optional
@@ -629,6 +639,16 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
+		}
+
+		// TODO beta env var here
+		if true {
+			if dataDisks := profile.DataDisks; dataDisks != nil {
+				flattenedDataDisks, err := flattenVirtualMachineDataDisks(dataDisks, d)
+				if err != nil {
+					return fmt.Errorf("flattening `data_disk`: %+v", err)
+				}
+			}
 		}
 	}
 
@@ -1028,6 +1048,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
+	disksClient := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1078,7 +1099,6 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion
 	if deleteOSDisk {
 		log.Printf("[DEBUG] Deleting OS Disk from Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-		disksClient := meta.(*clients.Client).Compute.DisksClient
 		managedDiskId := ""
 		if props := existing.VirtualMachineProperties; props != nil && props.StorageProfile != nil && props.StorageProfile.OsDisk != nil {
 			if disk := props.StorageProfile.OsDisk.ManagedDisk; disk != nil && disk.ID != nil {
@@ -1147,7 +1167,36 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 		if _, err := deleteWait.WaitForState(); err != nil {
 			return fmt.Errorf("waiting for the deletion of Linux Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 		}
-	}
 
+		// TODO - put beta env var flag here
+		if true {
+			log.Printf("checking for data disks that should be deleted on termination for %q (resource group %q)", id.Name, id.ResourceGroup)
+			if dataDisks, ok := d.GetOk("data_disk"); ok {
+				for _, v := range dataDisks.([]interface{}) {
+					disk := v.(map[string]interface{})
+					if disk["delete_on_termination"].(bool) {
+						diskId, err := parse.ManagedDiskID(disk["managed_disk_id"].(string))
+						if err != nil {
+							return fmt.Errorf("failed to parse ID for data disk for deletion")
+						}
+						log.Printf("[DEBUG] Attempting to delete data disk %q (resource group %q)", diskId.Name, diskId.ResourceGroup)
+
+						diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.Name)
+						if err != nil {
+							// Should we just log and continue as OS Disk, since there may be more than one?
+							return fmt.Errorf("deleting Data Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+						}
+
+						if !response.WasNotFound(diskDeleteFuture.Response()) {
+							if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
+								// Should we just log and continue as OS Disk, since there may be more than one?
+								return fmt.Errorf("failed waiting to delete Data Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	return nil
 }

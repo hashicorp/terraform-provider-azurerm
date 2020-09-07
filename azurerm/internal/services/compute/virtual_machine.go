@@ -283,6 +283,103 @@ func virtualMachineOSDiskSchema() *schema.Schema {
 	}
 }
 
+func virtualMachineDataDiskSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"caching": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.CachingTypesNone),
+						string(compute.CachingTypesReadOnly),
+						string(compute.CachingTypesReadWrite),
+					}, false),
+				},
+
+				"lun": {
+					Type:         schema.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"storage_account_type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.StandardLRS),
+						string(compute.PremiumLRS),
+						string(compute.StandardSSDLRS),
+						string(compute.UltraSSDLRS),
+					}, false),
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+
+				// Optional
+				"delete_on_termination": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"disk_encryption_set_id": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.DiskEncryptionSetID,
+				},
+
+				"disk_size_gb": {
+					Type:         schema.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validateManagedDiskSizeGB,
+				},
+
+				"image_reference_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
+				"vhd_uri": {
+					Type:     schema.TypeString,
+					Computed: true,
+					Optional: true,
+				},
+
+				"write_accelerator_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				// Computed only
+				"disk_iops_read_write": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+
+				"disk_mbps_read_write": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+
+				"managed_disk_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
 func expandVirtualMachineOSDisk(input []interface{}, osType compute.OperatingSystemTypes) *compute.OSDisk {
 	raw := input[0].(map[string]interface{})
 	disk := compute.OSDisk{
@@ -404,4 +501,116 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 			"write_accelerator_enabled": writeAcceleratorEnabled,
 		},
 	}, nil
+}
+
+func expandVirtualMachineDataDisks(input []interface{}) (*[]compute.DataDisk, error) {
+	result := make([]compute.DataDisk, 0)
+
+	if len(input) == 0 {
+		return &result, nil
+	}
+
+	for _, v := range input {
+		disk := v.(map[string]interface{})
+		name := disk["name"].(string)
+		dataDisk := compute.DataDisk{
+			Name:    &name,
+			Lun:     utils.Int32(int32(disk["lun"].(int))),
+			Caching: compute.CachingTypes(disk["caching"].(string)),
+			ManagedDisk: &compute.ManagedDiskParameters{
+				StorageAccountType: compute.StorageAccountTypes(disk["storage_account_type"].(string)),
+			},
+		}
+
+		if vhd, ok := disk["vhd_urk"]; ok {
+			dataDisk.Vhd = &compute.VirtualHardDisk{
+				URI: utils.String(vhd.(string)),
+			}
+		}
+
+		if imageRefId, ok := disk["image_reference_id"]; ok {
+			dataDisk.Image = &compute.VirtualHardDisk{
+				URI: utils.String(imageRefId.(string)),
+			}
+		}
+
+		if writeAccelerator, ok := disk["write_accelerator_enabled"]; ok {
+			dataDisk.WriteAcceleratorEnabled = utils.Bool(writeAccelerator.(bool))
+		}
+
+		if diskEncryptionSet, ok := disk["disk_encryption_set_id"]; ok {
+			dataDisk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+				ID: utils.String(diskEncryptionSet.(string)),
+			}
+		}
+
+		if diskSizeGb, ok := disk["disk_size_gb"]; ok {
+			dataDisk.DiskSizeGB = utils.Int32(int32(diskSizeGb.(int)))
+		}
+
+		result = append(result, dataDisk)
+	}
+
+	return &result, nil
+}
+
+func flattenVirtualMachineDataDisks(input *[]compute.DataDisk, d *schema.ResourceData) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		dataDisk := make(map[string]interface{})
+		dataDisk["name"] = *v.Name
+		dataDisk["lun"] = int(*v.Lun)
+		dataDisk["caching"] = string(v.Caching)
+		storageAccountType := ""
+		managedDiskID := ""
+		diskEncryptionSetID := ""
+		if v.ManagedDisk != nil {
+			storageAccountType = string(v.ManagedDisk.StorageAccountType)
+			if v.ManagedDisk.ID != nil {
+				managedDiskID = *v.ManagedDisk.ID
+			}
+			if v.ManagedDisk.DiskEncryptionSet != nil && v.ManagedDisk.DiskEncryptionSet.ID != nil {
+				diskEncryptionSetID = *v.ManagedDisk.DiskEncryptionSet.ID
+			}
+		}
+		dataDisk["storage_account_type"] = storageAccountType
+		dataDisk["managed_disk_id"] = managedDiskID
+		dataDisk["disk_encryption_set_id"] = diskEncryptionSetID
+		dataDisk["disk_size_gb"] = int(*v.DiskSizeGB)
+
+		vhdURI := ""
+		if v.Vhd != nil {
+			vhdURI = *v.Vhd.URI
+		}
+		dataDisk["vhd_uri"] = vhdURI
+
+		imageID := ""
+		if v.Image != nil {
+			imageID = *v.Image.URI
+		}
+		dataDisk["image_reference_id"] = imageID
+
+		dataDisk["write_accelerator_enabled"] = *v.WriteAcceleratorEnabled
+		dataDisk["disk_iops_read_write"] = int(*v.DiskIOPSReadWrite)
+		dataDisk["disk_mbps_read_write"] = int(*v.DiskMBpsReadWrite)
+
+		deleteOnTermination := false
+		if dataDisksInConfigRaw, ok := d.GetOk("data_disk"); ok {
+			dataDisksInConfig := dataDisksInConfigRaw.([]map[string]interface{})
+			for _, dc := range dataDisksInConfig {
+				if dc["name"] == *v.Name {
+					deleteOnTermination = dc["delete_on_termination"].(bool)
+				}
+			}
+		}
+		dataDisk["delete_on_termination"] = deleteOnTermination
+
+		result = append(result, dataDisk)
+	}
+
+	return result, nil
 }
