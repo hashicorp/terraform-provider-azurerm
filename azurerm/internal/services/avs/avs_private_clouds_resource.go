@@ -97,73 +97,6 @@ func resourceArmAvsPrivateCloud() *schema.Resource {
 				ValidateFunc: validation.IsCIDR,
 			},
 
-			"identity_source": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"alias": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"base_group_dn": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"base_user_dn": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"domain": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"password": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"primary_server_url": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-						},
-
-						"secondary_server_url": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-						},
-
-						"ssl_enabled": {
-							Type:     schema.TypeBool,
-							Required: true,
-						},
-
-						"username": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
-			},
-
 			"internet_connected": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -289,7 +222,6 @@ func resourceArmAvsPrivateCloudCreate(d *schema.ResourceData, meta interface{}) 
 				ClusterSize: utils.Int32(int32(d.Get("management_cluster.0.cluster_size").(int))),
 			},
 			NetworkBlock:    utils.String(d.Get("network_block").(string)),
-			IdentitySources: expandArmPrivateCloudIdentitySourceArray(d.Get("identity_source").(*schema.Set).List()),
 			Internet:        internet,
 			NsxtPassword:    utils.String(d.Get("nsxt_password").(string)),
 			VcenterPassword: utils.String(d.Get("vcenter_password").(string)),
@@ -348,9 +280,7 @@ func resourceArmAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) er
 		if err := d.Set("circuit", flattenArmPrivateCloudCircuit(props.Circuit)); err != nil {
 			return fmt.Errorf("setting `circuit`: %+v", err)
 		}
-		//if err := d.Set("identity_source", flattenArmPrivateCloudIdentitySourceArray(props.IdentitySources)); err != nil {
-		//	return fmt.Errorf("setting `identity_source`: %+v", err)
-		//}
+
 		d.Set("internet_connected", props.Internet == avs.Enabled)
 		d.Set("hcx_cloud_manager_endpoint", props.Endpoints.HcxCloudManager)
 		d.Set("nsxt_manager_endpoint", props.Endpoints.NsxtManager)
@@ -390,9 +320,7 @@ func resourceArmAvsPrivateCloudUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 		privateCloudUpdate.PrivateCloudUpdateProperties.Internet = internet
 	}
-	if d.HasChange("identity_source") {
-		privateCloudUpdate.PrivateCloudUpdateProperties.IdentitySources = expandArmPrivateCloudIdentitySourceArray(d.Get("identity_source").(*schema.Set).List())
-	}
+
 	if d.HasChange("tags") {
 		privateCloudUpdate.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -427,31 +355,6 @@ func resourceArmAvsPrivateCloudDelete(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("waiting on deleting future for Avs PrivateCloud %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	return nil
-}
-
-func expandArmPrivateCloudIdentitySourceArray(input []interface{}) *[]avs.IdentitySource {
-	results := make([]avs.IdentitySource, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		sSL := avs.SslEnumDisabled
-		if v["ssl_enabled"].(bool) {
-			sSL = avs.SslEnumEnabled
-		}
-		result := avs.IdentitySource{
-			Name:            utils.String(v["name"].(string)),
-			Alias:           utils.String(v["alias"].(string)),
-			Domain:          utils.String(v["domain"].(string)),
-			BaseUserDN:      utils.String(v["base_user_dn"].(string)),
-			BaseGroupDN:     utils.String(v["base_group_dn"].(string)),
-			PrimaryServer:   utils.String(v["primary_server_url"].(string)),
-			SecondaryServer: utils.String(v["secondary_server_url"].(string)),
-			Ssl:             sSL,
-			Username:        utils.String(v["username"].(string)),
-			Password:        utils.String(v["password"].(string)),
-		}
-		results = append(results, result)
-	}
-	return &results
 }
 
 func flattenArmPrivateCloudManagementCluster(input *avs.ManagementCluster) []interface{} {
@@ -505,65 +408,4 @@ func flattenArmPrivateCloudCircuit(input *avs.Circuit) []interface{} {
 			"secondary_subnet":                 secondarySubnet,
 		},
 	}
-}
-
-func flattenArmPrivateCloudIdentitySourceArray(input *[]avs.IdentitySource) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		var name string
-		if item.Name != nil {
-			name = *item.Name
-		}
-		var alias string
-		if item.Alias != nil {
-			alias = *item.Alias
-		}
-		var baseGroupDn string
-		if item.BaseGroupDN != nil {
-			baseGroupDn = *item.BaseGroupDN
-		}
-		var baseUserDn string
-		if item.BaseUserDN != nil {
-			baseUserDn = *item.BaseUserDN
-		}
-		var domain string
-		if item.Domain != nil {
-			domain = *item.Domain
-		}
-		var password string
-		if item.Password != nil {
-			password = *item.Password
-		}
-		var primaryServer string
-		if item.PrimaryServer != nil {
-			primaryServer = *item.PrimaryServer
-		}
-		var secondaryServer string
-		if item.SecondaryServer != nil {
-			secondaryServer = *item.SecondaryServer
-		}
-		sSL := item.Ssl == avs.SslEnumEnabled
-		var username string
-		if item.Username != nil {
-			username = *item.Username
-		}
-		v := map[string]interface{}{
-			"name":                 name,
-			"alias":                alias,
-			"base_group_dn":        baseGroupDn,
-			"base_user_dn":         baseUserDn,
-			"domain":               domain,
-			"password":             password,
-			"primary_server_url":   primaryServer,
-			"secondary_server_url": secondaryServer,
-			"ssl_enabled":          sSL,
-			"username":             username,
-		}
-		results = append(results, v)
-	}
-	return results
 }
