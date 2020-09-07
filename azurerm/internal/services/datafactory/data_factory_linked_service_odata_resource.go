@@ -183,7 +183,6 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 	authenticationType := d.Get("authentication_type").(string)
 
 	if authenticationType == string(datafactory.ODataAuthenticationTypeAadServicePrincipal) {
-
 		servicePrincipalId := d.Get("service_principal_id").(string)
 		aadServicePrincipalCredentialType := d.Get("aad_service_principal_credential_type").(string)
 		tenant := d.Get("tenant").(string)
@@ -209,7 +208,6 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 				AadResourceID:                        utils.String(aadResourceID),
 			}
 			odataLinkedService.ODataLinkedServiceTypeProperties = servicePrincipalAuthProperties
-
 		} else if aadServicePrincipalCredentialType == string(datafactory.ServicePrincipalKey) {
 			servicePrincipalKeySecureString := datafactory.SecureString{
 				Value: utils.String(d.Get("service_principal_key").(string)),
