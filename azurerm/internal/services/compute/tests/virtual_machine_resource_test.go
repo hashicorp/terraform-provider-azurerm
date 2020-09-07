@@ -35,6 +35,32 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachine_withSameName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
+
+	var vm compute.VirtualMachine
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachine_winTimeZone(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualMachine_winTimeZone(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists(data.ResourceName, &vm),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 
