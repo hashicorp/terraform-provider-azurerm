@@ -6,12 +6,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -639,7 +641,7 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
@@ -765,7 +767,7 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 
 	ipAddress, err := determineVirtualMachineIPAddress(ctx, meta, read.VirtualMachineProperties)
 	if err != nil {
-		return fmt.Errorf("Error determining IP Address for Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("determining IP Address for Virtual Machine %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	provisionerType := "ssh"
@@ -802,7 +804,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Virtual Machine %s: %+v", name, err)
+		return fmt.Errorf("making Read request on Azure Virtual Machine %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -813,11 +815,11 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if err := d.Set("plan", flattenAzureRmVirtualMachinePlan(resp.Plan)); err != nil {
-		return fmt.Errorf("Error setting `plan`: %#v", err)
+		return fmt.Errorf("setting `plan`: %#v", err)
 	}
 
 	if err := d.Set("identity", flattenAzureRmVirtualMachineIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.VirtualMachineProperties; props != nil {
@@ -838,16 +840,16 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 		if profile := props.StorageProfile; profile != nil {
 			if err := d.Set("storage_image_reference", schema.NewSet(resourceArmVirtualMachineStorageImageReferenceHash, flattenAzureRmVirtualMachineImageReference(profile.ImageReference))); err != nil {
-				return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Image Reference error: %#v", err)
+				return fmt.Errorf("setting Virtual Machine Storage Image Reference error: %#v", err)
 			}
 
 			if osDisk := profile.OsDisk; osDisk != nil {
 				diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(d, osDisk.ManagedDisk, meta)
 				if err != nil {
-					return fmt.Errorf("Error flattening `storage_os_disk`: %#v", err)
+					return fmt.Errorf("flattening `storage_os_disk`: %#v", err)
 				}
 				if err := d.Set("storage_os_disk", flattenAzureRmVirtualMachineOsDisk(osDisk, diskInfo)); err != nil {
-					return fmt.Errorf("Error setting `storage_os_disk`: %#v", err)
+					return fmt.Errorf("setting `storage_os_disk`: %#v", err)
 				}
 			}
 
@@ -856,46 +858,46 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 				for i, dataDisk := range *dataDisks {
 					diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(d, dataDisk.ManagedDisk, meta)
 					if err != nil {
-						return fmt.Errorf("[DEBUG] Error getting managed data disk detailed information: %#v", err)
+						return fmt.Errorf("getting managed data disk detailed information: %#v", err)
 					}
 					disksInfo[i] = diskInfo
 				}
 				if err := d.Set("storage_data_disk", flattenAzureRmVirtualMachineDataDisk(dataDisks, disksInfo)); err != nil {
-					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Data Disks error: %#v", err)
+					return fmt.Errorf("setting Virtual Machine Storage Data Disks error: %#v", err)
 				}
 			}
 		}
 
 		if profile := props.OsProfile; profile != nil {
 			if err := d.Set("os_profile", schema.NewSet(resourceArmVirtualMachineStorageOsProfileHash, flattenAzureRmVirtualMachineOsProfile(profile))); err != nil {
-				return fmt.Errorf("Error setting `os_profile`: %#v", err)
+				return fmt.Errorf("setting `os_profile`: %#v", err)
 			}
 
 			if err := d.Set("os_profile_linux_config", schema.NewSet(resourceArmVirtualMachineStorageOsProfileLinuxConfigHash, flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(profile.LinuxConfiguration))); err != nil {
-				return fmt.Errorf("Error setting `os_profile_linux_config`: %+v", err)
+				return fmt.Errorf("setting `os_profile_linux_config`: %+v", err)
 			}
 
 			if err := d.Set("os_profile_windows_config", schema.NewSet(resourceArmVirtualMachineStorageOsProfileWindowsConfigHash, flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(profile.WindowsConfiguration))); err != nil {
-				return fmt.Errorf("Error setting `os_profile_windows_config`: %+v", err)
+				return fmt.Errorf("setting `os_profile_windows_config`: %+v", err)
 			}
 
 			if err := d.Set("os_profile_secrets", flattenAzureRmVirtualMachineOsProfileSecrets(profile.Secrets)); err != nil {
-				return fmt.Errorf("Error setting `os_profile_secrets`: %+v", err)
+				return fmt.Errorf("setting `os_profile_secrets`: %+v", err)
 			}
 		}
 
 		if profile := props.DiagnosticsProfile; profile != nil {
 			if err := d.Set("boot_diagnostics", flattenAzureRmVirtualMachineDiagnosticsProfile(profile.BootDiagnostics)); err != nil {
-				return fmt.Errorf("Error setting `boot_diagnostics`: %#v", err)
+				return fmt.Errorf("setting `boot_diagnostics`: %#v", err)
 			}
 		}
 		if err := d.Set("additional_capabilities", flattenAzureRmVirtualMachineAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
-			return fmt.Errorf("Error setting `additional_capabilities`: %#v", err)
+			return fmt.Errorf("setting `additional_capabilities`: %#v", err)
 		}
 
 		if profile := props.NetworkProfile; profile != nil {
 			if err := d.Set("network_interface_ids", flattenAzureRmVirtualMachineNetworkInterfaces(profile)); err != nil {
-				return fmt.Errorf("Error flattening `network_interface_ids`: %#v", err)
+				return fmt.Errorf("flattening `network_interface_ids`: %#v", err)
 			}
 
 			if profile.NetworkInterfaces != nil {
@@ -931,16 +933,16 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 
 	virtualMachine, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("deleting Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Machine %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	// delete OS Disk if opted in
@@ -952,18 +954,18 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 
 		props := virtualMachine.VirtualMachineProperties
 		if props == nil {
-			return fmt.Errorf("Error deleting Disks for Virtual Machine %q - `props` was nil", name)
+			return fmt.Errorf("deleting Disks for Virtual Machine %q - `props` was nil", name)
 		}
 		storageProfile := props.StorageProfile
 		if storageProfile == nil {
-			return fmt.Errorf("Error deleting Disks for Virtual Machine %q - `storageProfile` was nil", name)
+			return fmt.Errorf("deleting Disks for Virtual Machine %q - `storageProfile` was nil", name)
 		}
 
 		if deleteOsDisk {
 			log.Printf("[INFO] delete_os_disk_on_termination is enabled, deleting disk from %s", name)
 			osDisk := storageProfile.OsDisk
 			if osDisk == nil {
-				return fmt.Errorf("Error deleting OS Disk for Virtual Machine %q - `osDisk` was nil", name)
+				return fmt.Errorf("deleting OS Disk for Virtual Machine %q - `osDisk` was nil", name)
 			}
 			if osDisk.Vhd == nil && osDisk.ManagedDisk == nil {
 				return fmt.Errorf("Unable to determine OS Disk Type to Delete it for Virtual Machine %q", name)
@@ -971,11 +973,11 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 
 			if osDisk.Vhd != nil {
 				if err = resourceArmVirtualMachineDeleteVhd(ctx, storageClient, osDisk.Vhd); err != nil {
-					return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
+					return fmt.Errorf("deleting OS Disk VHD: %+v", err)
 				}
 			} else if osDisk.ManagedDisk != nil {
 				if err = resourceArmVirtualMachineDeleteManagedDisk(d, osDisk.ManagedDisk, meta); err != nil {
-					return fmt.Errorf("Error deleting OS Managed Disk: %+v", err)
+					return fmt.Errorf("deleting OS Managed Disk: %+v", err)
 				}
 			}
 		}
@@ -986,24 +988,58 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 
 			dataDisks := storageProfile.DataDisks
 			if dataDisks == nil {
-				return fmt.Errorf("Error deleting Data Disks for Virtual Machine %q: `dataDisks` was nil", name)
+				return fmt.Errorf("deleting Data Disks for Virtual Machine %q: `dataDisks` was nil", name)
 			}
 
 			for _, disk := range *dataDisks {
 				if disk.Vhd == nil && disk.ManagedDisk == nil {
-					return fmt.Errorf("Unable to determine Data Disk Type to Delete it for Virtual Machine %q / Disk %q", name, *disk.Name)
+					return fmt.Errorf("unable to determine Data Disk Type to Delete it for Virtual Machine %q / Disk %q", name, *disk.Name)
 				}
 
 				if disk.Vhd != nil {
 					if err = resourceArmVirtualMachineDeleteVhd(ctx, storageClient, disk.Vhd); err != nil {
-						return fmt.Errorf("Error deleting Data Disk VHD: %+v", err)
+						return fmt.Errorf("deleting Data Disk VHD: %+v", err)
 					}
 				} else if disk.ManagedDisk != nil {
 					if err = resourceArmVirtualMachineDeleteManagedDisk(d, disk.ManagedDisk, meta); err != nil {
-						return fmt.Errorf("Error deleting Data Managed Disk: %+v", err)
+						return fmt.Errorf("deleting Data Managed Disk: %+v", err)
 					}
 				}
 			}
+		}
+	}
+
+	// Need to add a get and a state wait to avoid bug in network API where the attached disk(s) are not actually deleted
+	// Service team indicated that we need to do a get after VM delete call returns to verify that the VM and all attached
+	// disks have actually been deleted.
+
+	log.Printf("[INFO] verifying virtual machine %q is deleted", name)
+	virtualMachine, err = client.Get(ctx, resGroup, name, "")
+
+	if !utils.ResponseWasNotFound(virtualMachine.Response) {
+		log.Printf("[INFO] virtual machine still exists, waiting on virtual machine %q to be deleted", name)
+
+		deleteWait := &resource.StateChangeConf{
+			Pending:    []string{"200"},
+			Target:     []string{"404"},
+			MinTimeout: 30 * time.Second,
+			Timeout:    d.Timeout(schema.TimeoutDelete),
+			Refresh: func() (interface{}, string, error) {
+				log.Printf("[INFO] checking on state of virtual machine %q", name)
+				resp, err := client.Get(ctx, resGroup, name, "")
+
+				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return resp, strconv.Itoa(resp.StatusCode), nil
+					}
+					return nil, "nil", fmt.Errorf("polling for the status of virtual machine %q (Resource Group %q): %v", name, resGroup, err)
+				}
+				return resp, strconv.Itoa(resp.StatusCode), nil
+			},
+		}
+
+		if _, err := deleteWait.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for the deletion of virtual machine %q (Resource Group %q): %v", name, resGroup, err)
 		}
 	}
 
@@ -1021,31 +1057,31 @@ func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intS
 	uri := *vhd.URI
 	id, err := blobs.ParseResourceID(uri)
 	if err != nil {
-		return fmt.Errorf("Error parsing %q: %s", uri, err)
+		return fmt.Errorf("parsing %q: %s", uri, err)
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q (Disk %q)!", id.AccountName, uri)
+		return fmt.Errorf("unable to locate Storage Account %q (Disk %q)", id.AccountName, uri)
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error building Blobs Client: %s", err)
+		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
 	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Blobs Client: %s", err)
+		return fmt.Errorf("building Blobs Client: %s", err)
 	}
 
 	input := blobs.DeleteInput{
 		DeleteSnapshots: false,
 	}
 	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
@@ -1073,11 +1109,11 @@ func resourceArmVirtualMachineDeleteManagedDisk(d *schema.ResourceData, disk *co
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Managed Disk %q (Resource Group %q) %+v", name, resGroup, err)
+		return fmt.Errorf("deleting Managed Disk %q (Resource Group %q) %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Managed Disk %q (Resource Group %q) %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for deletion of Managed Disk %q (Resource Group %q) %+v", name, resGroup, err)
 	}
 
 	return nil
@@ -1479,7 +1515,7 @@ func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSPr
 	}
 
 	if profile.LinuxConfiguration == nil && profile.WindowsConfiguration == nil {
-		return nil, fmt.Errorf("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified.")
+		return nil, fmt.Errorf("either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified.")
 	}
 
 	if _, ok := d.GetOk("os_profile_secrets"); ok {
@@ -1689,13 +1725,13 @@ func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.Data
 		}
 
 		if vhdURI != "" && managedDiskID != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
+			return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 		}
 		if vhdURI != "" && managedDiskType != "" {
-			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
+			return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 		}
 		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.Attach)) {
-			return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
+			return nil, fmt.Errorf("must specify `vhd_uri` or `managed_disk_id` to attach")
 		}
 
 		if v := config["caching"].(string); v != "" {
@@ -1760,7 +1796,7 @@ func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute
 	imageReference := compute.ImageReference{}
 
 	if imageID != "" && publisher != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
+		return nil, fmt.Errorf("conflict between `id` and `publisher` (only one or the other can be used)")
 	}
 
 	if imageID != "" {
@@ -1845,14 +1881,14 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 
 	// BEGIN: code to be removed after GH-13016 is merged
 	if vhdURI != "" && managedDiskID != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
+		return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 	}
 	if vhdURI != "" && managedDiskType != "" {
-		return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
+		return nil, fmt.Errorf("conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 	}
 	// END: code to be removed after GH-13016 is merged
 	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(compute.Attach)) {
-		return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
+		return nil, fmt.Errorf("must specify `vhd_uri` or `managed_disk_id` to attach")
 	}
 
 	if v := config["image_uri"].(string); v != "" {
@@ -1952,14 +1988,14 @@ func resourceArmVirtualMachineGetManagedDiskInfo(d *schema.ResourceData, disk *c
 	diskId := *disk.ID
 	id, err := azure.ParseAzureResourceID(diskId)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing Disk ID %q: %+v", diskId, err)
+		return nil, fmt.Errorf("parsing Disk ID %q: %+v", diskId, err)
 	}
 
 	resourceGroup := id.ResourceGroup
 	name := id.Path["disks"]
 	diskResp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("retrieving Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return &diskResp, nil
@@ -1994,7 +2030,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 
 				nic, err := nicClient.Get(ctx, resourceGroup, name, "")
 				if err != nil {
-					return "", fmt.Errorf("Error obtaining NIC %q (Resource Group %q): %+v", name, resourceGroup, err)
+					return "", fmt.Errorf("obtaining NIC %q (Resource Group %q): %+v", name, resourceGroup, err)
 				}
 
 				networkInterface = &nic
@@ -2021,7 +2057,7 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 
 					pip, err := pipClient.Get(ctx, resourceGroup, name, "")
 					if err != nil {
-						return "", fmt.Errorf("Error obtaining Public IP %q (Resource Group %q): %+v", name, resourceGroup, err)
+						return "", fmt.Errorf("obtaining Public IP %q (Resource Group %q): %+v", name, resourceGroup, err)
 					}
 
 					if pipProps := pip.PublicIPAddressPropertiesFormat; pipProps != nil {
