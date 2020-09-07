@@ -908,16 +908,14 @@ func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
 	if locations == nil {
 		return false
 	}
-	isZoneRedundant := false
 	for _, location := range *locations {
 		if location.ID != nil && *location.ID == id {
 			if location.IsZoneRedundant != nil {
-				isZoneRedundant = *location.IsZoneRedundant
+				return *location.IsZoneRedundant
 			}
-			return isZoneRedundant
 		}
 	}
-	return isZoneRedundant
+	return false
 }
 
 func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *schema.Set {
