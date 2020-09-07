@@ -196,6 +196,37 @@ func testAccAzureRMCosmosDBAccount_completeWith(t *testing.T, kind documentdb.Da
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_completeZoneRedundant_mongo(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_completeZoneRedundantWith(t, documentdb.MongoDB)
+}
+
+func TestAccAzureRMCosmosDBAccount_completeZoneRedundant_global(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_completeZoneRedundantWith(t, documentdb.GlobalDocumentDB)
+}
+
+func TestAccAzureRMCosmosDBAccount_completeZoneRedundant_parse(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_completeZoneRedundantWith(t, documentdb.Parse)
+}
+
+func testAccAzureRMCosmosDBAccount_completeZoneRedundantWith(t *testing.T, kind documentdb.DatabaseAccountKind) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_completeWithZoneRedundant(data, kind, documentdb.Eventual),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDBAccount_update_mongo(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_updateWith(t, documentdb.MongoDB)
 }
@@ -631,7 +662,54 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = "%[5]s"
     failover_priority = 1
-    zone_redundant = true
+  }
+
+  geo_location {
+    location          = "%[6]s"
+    failover_priority = 2
+  }
+}
+`, testAccAzureRMCosmosDBAccount_completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+}
+
+func testAccAzureRMCosmosDBAccount_completeWithZoneRedundant(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%[3]s"
+
+  consistency_policy {
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 300
+    max_staleness_prefix    = 170000
+  }
+
+  is_virtual_network_filter_enabled = true
+
+  virtual_network_rule {
+    id = azurerm_subnet.subnet1.id
+  }
+
+  virtual_network_rule {
+    id = azurerm_subnet.subnet2.id
+  }
+
+  enable_multiple_write_locations = true
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+
+  geo_location {
+    location          = "%[5]s"
+    failover_priority = 1
+    zone_redundant    = true
   }
 
   geo_location {
