@@ -12,7 +12,7 @@ func StorageShareDirectoryName(v interface{}, k string) (warnings []string, erro
 	// File share names can contain only uppercase and lowercase letters, numbers, and hyphens,
 	// and must begin and end with a letter or a number.
 	// However they can be nested (e.g. foo/bar) with at most one level.
-	if !regexp.MustCompile(`^[A-Za-z0-9]{1,}[A-Za-z0-9-]{0,1}[A-Za-z0-9]{1,}(/[A-Za-z0-9]{1,}[A-Za-z0-9-]{0,1}[A-Za-z0-9]{1,})?$`).MatchString(value) {
+	if !regexp.MustCompile(`^[A-Za-z0-9]{1,}[A-Za-z0-9-]{0,}[A-Za-z0-9]{1,}(/[A-Za-z0-9]{1,}[A-Za-z0-9-]{0,}[A-Za-z0-9]{1,})?$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf("%s must contain only uppercase and lowercase alphanumeric characters, numbers and hyphens. It must start and end with a letter and end only with a number or letter and can only be nested one level", k))
 	}
 

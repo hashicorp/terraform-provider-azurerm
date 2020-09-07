@@ -60,6 +60,10 @@ func TestValidateStorageShareDirectoryName(t *testing.T) {
 			Expected: false,
 		},
 		{
+			Input:    "123-test-abc/hjg-345-test",
+			Expected: true,
+		},
+		{
 			Input:    "Abc123",
 			Expected: true,
 		},
