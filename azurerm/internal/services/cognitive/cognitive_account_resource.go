@@ -208,12 +208,12 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if d.Get("kind").(string) == "QnAMaker" && *props.Properties.APIProperties.QnaRuntimeEndpoint == "" {
-		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
-	}
-
-	if v, ok := d.GetOk("qna_runtime_endpoint"); ok {
-		props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
+	if kind := d.Get("kind"); kind == "QnAMaker" {
+		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
+			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
