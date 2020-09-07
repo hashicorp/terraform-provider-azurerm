@@ -89,7 +89,7 @@ func testCheckAzureRMApiManagementApiDiagnosticDestroy(s *terraform.State) error
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name, diagnosticId.ApiName)
+		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.Name)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -117,7 +117,7 @@ func testCheckAzureRMApiManagementApiDiagnosticExists(resourceName string) resou
 			return err
 		}
 
-		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name, diagnosticId.ApiName)
+		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName, diagnosticId.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: API Management Diagnostic %q (Resource Group %q / API Management Service %q / API %q) does not exist", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.ApiName)
