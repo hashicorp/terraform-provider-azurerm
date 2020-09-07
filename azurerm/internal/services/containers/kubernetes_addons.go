@@ -360,6 +360,10 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
 			workspaceID = *workspaceResourceID
 		}
+		// This is a workaround for issue: https://github.com/Azure/azure-rest-api-specs/issues/10716
+		if workspaceResourceID := omsAgent.Config["loganalyticsworkspaceresourceid"]; workspaceResourceID != nil {
+			workspaceID = *workspaceResourceID
+		}
 
 		omsagentIdentity := flattenKubernetesClusterOmsAgentIdentityProfile(omsAgent.Identity)
 
