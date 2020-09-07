@@ -219,7 +219,7 @@ func testAccAzureRMCosmosDBAccount_zoneRedundantWith(t *testing.T, kind document
 			{
 				Config: testAccAzureRMCosmosDBAccount_zoneRedundant(data, kind),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+					testCheckAzureRMCosmosDBAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
