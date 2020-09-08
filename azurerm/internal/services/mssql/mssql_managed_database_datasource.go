@@ -2,12 +2,12 @@ package mssql
 
 import (
 	"fmt"
-	"time"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"time"
 )
 
 func dataSourceArmMSSQLManagedDatabase() *schema.Resource {
@@ -25,13 +25,13 @@ func dataSourceArmMSSQLManagedDatabase() *schema.Resource {
 			},
 
 			"managed_instance_name": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"resource_group": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"managed_instance_id": {
@@ -65,13 +65,13 @@ func dataSourceArmMSSQLManagedDatabase() *schema.Resource {
 			},
 
 			"earliest_restore_point": {
-				Type:             schema.TypeString,
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"default_secondary_location": {
-				Type:             schema.TypeString,
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -108,13 +108,13 @@ func dataSourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interfac
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := resp.ManagedDatabaseProperties; props != nil { 
+	if props := resp.ManagedDatabaseProperties; props != nil {
 		d.Set("collation", props.Collation)
 		d.Set("status", props.Status)
-		if props.CreationDate != nil && props.CreationDate.String() !="" {
+		if props.CreationDate != nil && props.CreationDate.String() != "" {
 			d.Set("creation_date", props.CreationDate.String())
 		}
-		if props.EarliestRestorePoint != nil && props.EarliestRestorePoint.String() !="" {
+		if props.EarliestRestorePoint != nil && props.EarliestRestorePoint.String() != "" {
 			d.Set("earliest_restore_point", props.EarliestRestorePoint.String())
 		}
 		d.Set("default_secondary_location", props.DefaultSecondaryLocation)

@@ -2,11 +2,11 @@ package azure
 
 import (
 	"fmt"
-	"net/url"
-	"strings"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"net/url"
+	"strings"
 )
 
 // Your server name can contain only lowercase letters, numbers, and '-', but can't start or end with '-' or have more than 63 characters.
@@ -238,9 +238,9 @@ func GetDatabaseParentId(id string) (*string, error) {
 
 		if key == "subscriptions" {
 			subscriptionID = value
-		} else if key == "resourceGroups"  {
+		} else if key == "resourceGroups" {
 			resourceGroup = value
-		} else if key == "providers" && value == "Microsoft.Sql"  {
+		} else if key == "providers" && value == "Microsoft.Sql" {
 			providers = value
 		} else if key == "managedInstances" {
 			managedInstance = value
@@ -249,11 +249,11 @@ func GetDatabaseParentId(id string) (*string, error) {
 		}
 	}
 
-	var databaseParentComponents = []string{"/subscriptions", subscriptionID,  "resourceGroups", resourceGroup, "providers", providers, "managedInstances", managedInstance}
-	if  server != "" {
+	var databaseParentComponents = []string{"/subscriptions", subscriptionID, "resourceGroups", resourceGroup, "providers", providers, "managedInstances", managedInstance}
+	if server != "" {
 		databaseParentComponents[6] = "servers"
 		databaseParentComponents[7] = server
-	} 
+	}
 	var parentId = strings.Join(databaseParentComponents, "/")
 	return &parentId, nil
 }
