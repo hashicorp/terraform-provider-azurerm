@@ -2,6 +2,7 @@ package eventhub
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -25,8 +26,8 @@ func dataSourceEventHubConsumerGroup() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.Any(
 					azure.ValidateEventHubConsumerName(),
-					validation.StringInSlice([]string{"$Default"},
-					)
+					validation.StringInSlice([]string{"$Default"}, false),
+					),
 			},
 
 			"namespace_name": {
