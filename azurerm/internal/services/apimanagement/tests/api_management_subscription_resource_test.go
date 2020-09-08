@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
+func TestAccAzureRMApiManagementSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
+func TestAccAzureRMApiManagementSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -56,7 +56,7 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
+func TestAccAzureRMApiManagementSubscription_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -107,7 +107,7 @@ func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
+func TestAccAzureRMApiManagementSubscription_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

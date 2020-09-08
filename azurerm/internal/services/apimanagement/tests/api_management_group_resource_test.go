@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
+func TestAccAzureRMApiManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,7 +32,7 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
+func TestAccAzureRMApiManagementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -53,7 +53,7 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
+func TestAccAzureRMApiManagementGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
+func TestAccAzureRMApiManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

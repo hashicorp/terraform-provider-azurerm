@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementProductGroup_basic(t *testing.T) {
+func TestAccAzureRMApiManagementProductGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +30,7 @@ func TestAccAzureRMAPIManagementProductGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementProductGroup_requiresImport(t *testing.T) {
+func TestAccAzureRMApiManagementProductGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
+func TestAccAzureRMApiManagementProperty_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestAccAzureRMAPIManagementProperty_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
+func TestAccAzureRMApiManagementProperty_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_property", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

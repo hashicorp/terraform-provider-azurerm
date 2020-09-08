@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementAuthorizationServer_basic(t *testing.T) {
+func TestAccAzureRMApiManagementAuthorizationServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -30,7 +30,7 @@ func TestAccAzureRMAPIManagementAuthorizationServer_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementAuthorizationServer_requiresImport(t *testing.T) {
+func TestAccAzureRMApiManagementAuthorizationServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,7 +49,7 @@ func TestAccAzureRMAPIManagementAuthorizationServer_requiresImport(t *testing.T)
 	})
 }
 
-func TestAccAzureRMAPIManagementAuthorizationServer_complete(t *testing.T) {
+func TestAccAzureRMApiManagementAuthorizationServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_authorization_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
