@@ -17,7 +17,7 @@ const (
 	aciConnectorKey           = "aciConnectorLinux"
 	azurePolicyKey            = "azurepolicy"
 	kubernetesDashboardKey    = "kubeDashboard"
-	httpApplicationRoutingKey = "httpApplicationRouting"
+	httpApplicationRoutingKey = "httpapplicationrouting"
 	omsAgentKey               = "omsagent"
 )
 
@@ -327,7 +327,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 		}
 
 		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+		if v := httpApplicationRouting.Config["httpapplicationroutingzonename"]; v != nil {
 			zoneName = *v
 		}
 

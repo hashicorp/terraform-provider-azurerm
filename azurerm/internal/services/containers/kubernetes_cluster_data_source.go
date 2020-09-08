@@ -745,14 +745,14 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values := make(map[string]interface{})
 
 	routes := make([]interface{}, 0)
-	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+	if httpApplicationRouting := profile["httpapplicationrouting"]; httpApplicationRouting != nil {
 		enabled := false
 		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
 		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+		if v := httpApplicationRouting.Config["httpapplicationroutingzonename"]; v != nil {
 			zoneName = *v
 		}
 
