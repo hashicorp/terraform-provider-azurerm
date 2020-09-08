@@ -32,6 +32,18 @@ resource "azurerm_cosmosdb_account" "db" {
 
   enable_automatic_failover = true
 
+  capabilities {
+    name = "EnableAggregationPipeline"
+  }
+
+  capabilities {
+    name = "mongoEnableDocLevelTTL"
+  }
+
+  capabilities {
+    name = "MongoDBv3.4"
+  }
+
   consistency_policy {
     consistency_level       = "BoundedStaleness"
     max_interval_in_seconds = 10
