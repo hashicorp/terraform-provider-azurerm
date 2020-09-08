@@ -22,12 +22,12 @@ func dataSourceEventHubConsumerGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.Any(
 					azure.ValidateEventHubConsumerName(),
 					validation.StringInSlice([]string{"$Default"}, false),
-					),
+				),
 			},
 
 			"namespace_name": {
