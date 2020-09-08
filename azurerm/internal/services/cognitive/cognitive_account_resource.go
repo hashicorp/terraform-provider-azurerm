@@ -1,19 +1,20 @@
 package cognitive
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -137,9 +138,6 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	kind := d.Get("kind").(string)
 
-	locks.ByName(name, cognitiveAccountResourceName)
-	defer locks.UnlockByName(name, cognitiveAccountResourceName)
-
 	if d.IsNewResource() {
 		existing, err := client.GetProperties(ctx, resourceGroup, name)
 		if err != nil {
@@ -180,6 +178,18 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Creating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, resourceGroup, name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Cognitive Account (%s) to become available: %s", d.Get("name"), err)
+	}
+
 	read, err := client.GetProperties(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -199,9 +209,6 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-
-	locks.ByName(id.Name, cognitiveAccountResourceName)
-	defer locks.UnlockByName(id.Name, cognitiveAccountResourceName)
 
 	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
 	if err != nil {
@@ -298,9 +305,6 @@ func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	locks.ByName(id.Name, cognitiveAccountResourceName)
-	defer locks.UnlockByName(id.Name, cognitiveAccountResourceName)
-
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
@@ -328,4 +332,15 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 		Name: utils.String(skuName),
 		Tier: tier,
 	}, nil
+}
+
+func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservices.AccountsClient, resourceGroupName string, cognitiveAccountName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.GetProperties(ctx, resourceGroupName, cognitiveAccountName)
+		if err != nil {
+			return nil, "", fmt.Errorf("issuing read request in cognitiveAccountStateRefreshFunc to Azure ARM for Cognitive Account '%s' (RG: '%s'): %s", cognitiveAccountName, resourceGroupName, err)
+		}
+
+		return res, string(res.Properties.ProvisioningState), nil
+	}
 }
