@@ -22,8 +22,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var cognitiveAccountResourceName = "azurerm_cognitive_account"
-
 func resourceArmCognitiveAccount() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmCognitiveAccountCreate,
