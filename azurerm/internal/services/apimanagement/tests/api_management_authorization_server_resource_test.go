@@ -20,7 +20,7 @@ func TestAccAzureRMApiManagementAuthorizationServer_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementAuthorizationServer_basic(data),
+				Config: testAccAzureRMApiManagementAuthorizationServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
@@ -39,12 +39,12 @@ func TestAccAzureRMApiManagementAuthorizationServer_requiresImport(t *testing.T)
 		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementAuthorizationServer_basic(data),
+				Config: testAccAzureRMApiManagementAuthorizationServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMAPIManagementAuthorizationServer_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementAuthorizationServer_requiresImport),
 		},
 	})
 }
@@ -58,7 +58,7 @@ func TestAccAzureRMApiManagementAuthorizationServer_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementAuthorizationServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementAuthorizationServer_complete(data),
+				Config: testAccAzureRMApiManagementAuthorizationServer_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
@@ -120,8 +120,8 @@ func testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName string)
 	}
 }
 
-func testAccAzureRMAPIManagementAuthorizationServer_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementAuthorizationServer_template(data)
+func testAccAzureRMApiManagementAuthorizationServer_basic(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementAuthorizationServer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -145,8 +145,8 @@ resource "azurerm_api_management_authorization_server" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementAuthorizationServer_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementAuthorizationServer_basic(data)
+func testAccAzureRMApiManagementAuthorizationServer_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementAuthorizationServer_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,8 +167,8 @@ resource "azurerm_api_management_authorization_server" "import" {
 `, template)
 }
 
-func testAccAzureRMAPIManagementAuthorizationServer_complete(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementAuthorizationServer_template(data)
+func testAccAzureRMApiManagementAuthorizationServer_complete(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementAuthorizationServer_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -204,7 +204,7 @@ resource "azurerm_api_management_authorization_server" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementAuthorizationServer_template(data acceptance.TestData) string {
+func testAccAzureRMApiManagementAuthorizationServer_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

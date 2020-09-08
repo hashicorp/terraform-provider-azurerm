@@ -20,7 +20,7 @@ func TestAccAzureRMApiManagementCertificate_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementCertificate_basic(data),
+				Config: testAccAzureRMApiManagementCertificate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementCertificateExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "expiration"),
@@ -51,12 +51,12 @@ func TestAccAzureRMApiManagementCertificate_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementCertificate_basic(data),
+				Config: testAccAzureRMApiManagementCertificate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementCertificateExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMAPIManagementCertificate_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementCertificate_requiresImport),
 		},
 	})
 }
@@ -113,7 +113,7 @@ func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resourc
 	}
 }
 
-func testAccAzureRMAPIManagementCertificate_basic(data acceptance.TestData) string {
+func testAccAzureRMApiManagementCertificate_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -143,8 +143,8 @@ resource "azurerm_api_management_certificate" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementCertificate_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementCertificate_basic(data)
+func testAccAzureRMApiManagementCertificate_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementCertificate_basic(data)
 	return fmt.Sprintf(`
 %s
 

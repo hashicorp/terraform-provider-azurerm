@@ -20,7 +20,7 @@ func TestAccAzureRMApiManagementProductGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementProductGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementProductGroup_basic(data),
+				Config: testAccAzureRMApiManagementProductGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementProductGroupExists(data.ResourceName),
 				),
@@ -39,12 +39,12 @@ func TestAccAzureRMApiManagementProductGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementProductGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementProductGroup_basic(data),
+				Config: testAccAzureRMApiManagementProductGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementProductGroupExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMAPIManagementProductGroup_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementProductGroup_requiresImport),
 		},
 	})
 }
@@ -102,7 +102,7 @@ func testCheckAzureRMAPIManagementProductGroupExists(resourceName string) resour
 	}
 }
 
-func testAccAzureRMAPIManagementProductGroup_basic(data acceptance.TestData) string {
+func testAccAzureRMApiManagementProductGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,8 +149,8 @@ resource "azurerm_api_management_product_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementProductGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementProductGroup_basic(data)
+func testAccAzureRMApiManagementProductGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementProductGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 

@@ -20,7 +20,7 @@ func TestAccAzureRMApiManagementNamedValue_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementNamedValueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementNamedValue_basic(data),
+				Config: testAccAzureRMApiManagementNamedValue_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
 				),
@@ -39,14 +39,14 @@ func TestAccAzureRMApiManagementNamedValue_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementNamedValueDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementNamedValue_basic(data),
+				Config: testAccAzureRMApiManagementNamedValue_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAPIManagementNamedValue_update(data),
+				Config: testAccAzureRMApiManagementNamedValue_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
 				),
@@ -112,7 +112,7 @@ func testCheckAzureRMAPIManagementNamedValueExists(resourceName string) resource
 
  */
 
-func testAccAzureRMAPIManagementNamedValue_basic(data acceptance.TestData) string {
+func testAccAzureRMApiManagementNamedValue_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -144,7 +144,7 @@ resource "azurerm_api_management_named_value" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementNamedValue_update(data acceptance.TestData) string {
+func testAccAzureRMApiManagementNamedValue_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
