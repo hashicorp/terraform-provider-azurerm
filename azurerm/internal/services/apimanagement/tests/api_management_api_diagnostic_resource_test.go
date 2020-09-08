@@ -220,26 +220,11 @@ resource "azurerm_api_management_logger" "test2" {
   }
 }
 
-resource "azurerm_api_management_api" "test2" {
-  name                = "acctestAMA-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  revision            = "1"
-  display_name        = "Test API"
-  path                = "test"
-  protocols           = ["https"]
-
-  import {
-    content_format = "swagger-link-json"
-    content_value  = "http://conferenceapi.azurewebsites.net/?format=json"
-  }
-}
-
 resource "azurerm_api_management_api_diagnostic" "test" {
   identifier               = "applicationinsights"
   resource_group_name      = azurerm_resource_group.test.name
   api_management_name      = azurerm_api_management.test.name
-  api_name                 = azurerm_api_management_api.test2.name
+  api_name                 = azurerm_api_management_api.test.name
   api_management_logger_id = azurerm_api_management_logger.test2.id
 }
 `, config, data.RandomInteger)
