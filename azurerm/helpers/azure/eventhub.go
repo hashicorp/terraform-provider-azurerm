@@ -32,6 +32,13 @@ func ValidateEventHubConsumerName() schema.SchemaValidateFunc {
 	)
 }
 
+func ValidateEventHubConsumerDataSourceName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z0-9]([-._$$a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
+		"The consumer group name can contain only letters, numbers, periods (.), hyphens (-),and underscores (_), up to 50 characters, and it must begin and end with a letter or number.",
+	)
+}
+
 func ValidateEventHubAuthorizationRuleName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z0-9]([-._a-zA-Z0-9]{0,48}[a-zA-Z0-9])?$"),
