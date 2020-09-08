@@ -13,6 +13,10 @@ ENHANCEMENTS:
 * `azurerm_spring_cloud_app` - support for the `identity` block [GH-8336]
 * `azurerm_virtual_network_gateway` - support for `aad_audience`, `aad_issuer` and `aad_tenant` within the `vpn_client_configuration` block [GH-8294]
 
+BUG FIXES:
+
+* `azurerm_windows_virtual_machine` and `azurerm_linux_virtual_machine` - Add WaitForState on VM delete ([#8383](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8383))
+
 ## 2.26.0 (September 04, 2020)
 
 UPGRADE NOTES:
