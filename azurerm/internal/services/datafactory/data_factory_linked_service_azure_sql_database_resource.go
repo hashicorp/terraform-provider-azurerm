@@ -2,6 +2,7 @@ package datafactory
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -120,21 +121,14 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseCreateUpdate(d *schema.R
 		}
 	}
 
-	connectionString := d.Get("connection_string").(string)
-	secureString := datafactory.SecureString{
-		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
-	}
-
-	sqlProperties := &datafactory.AzureSQLDatabaseLinkedServiceTypeProperties{
-		ConnectionString: &secureString,
-	}
-
-	description := d.Get("description").(string)
-
 	azureSQLDatabaseLinkedService := &datafactory.AzureSQLDatabaseLinkedService{
-		Description: &description,
-		AzureSQLDatabaseLinkedServiceTypeProperties: sqlProperties,
+		Description: utils.String(d.Get("description").(string)),
+		AzureSQLDatabaseLinkedServiceTypeProperties: &datafactory.AzureSQLDatabaseLinkedServiceTypeProperties{
+			ConnectionString: &datafactory.SecureString{
+				Value: utils.String(d.Get("connection_string").(string)),
+				Type:  datafactory.TypeSecureString,
+			},
+		},
 		Type: datafactory.TypeAzureSQLDatabase,
 	}
 
@@ -182,31 +176,28 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseRead(d *schema.ResourceD
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataFactoryLinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DataFactory, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.DataFactory, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("data_factory_name", id.DataFactory)
 
 	sql, ok := resp.Properties.AsAzureSQLDatabaseLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureSQLDatabase, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", id.Name, id.DataFactory, id.ResourceGroup, datafactory.TypeAzureSQLDatabase, *resp.Type)
 	}
 
 	d.Set("additional_properties", sql.AdditionalProperties)
@@ -236,18 +227,15 @@ func resourceArmDataFactoryLinkedServiceAzureSQLDatabaseDelete(d *schema.Resourc
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataFactoryLinkedServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["linkedservices"]
 
-	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
+	response, err := client.Delete(ctx, id.ResourceGroup, id.DataFactory, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("deleting Data Factory Linked Service AzureSQLDatabase %q (Data Factory %q / Resource Group %q): %+v", id.Name, id.DataFactory, id.ResourceGroup, err)
 		}
 	}
 
