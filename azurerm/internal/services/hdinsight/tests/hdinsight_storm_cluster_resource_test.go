@@ -11,9 +11,9 @@ import (
 func TestAccAzureRMHDInsightStormCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMHDInsightStormCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_basic(data),
@@ -58,9 +58,9 @@ func TestAccAzureRMHDInsightStormCluster_requiresImport(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_basic(data),
@@ -100,9 +100,9 @@ func TestAccAzureRMHDInsightStormCluster_update(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_sshKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_sshKeys(data),
@@ -126,9 +126,9 @@ func TestAccAzureRMHDInsightStormCluster_sshKeys(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_virtualNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_virtualNetwork(data),
@@ -152,9 +152,9 @@ func TestAccAzureRMHDInsightStormCluster_virtualNetwork(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_complete(data),
@@ -178,9 +178,9 @@ func TestAccAzureRMHDInsightStormCluster_complete(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_tls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_tls(data),
@@ -204,9 +204,9 @@ func TestAccAzureRMHDInsightStormCluster_tls(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_allMetastores(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_allMetastores(data),
@@ -233,9 +233,9 @@ func TestAccAzureRMHDInsightStormCluster_allMetastores(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_hiveMetastore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_hiveMetastore(data),
@@ -252,9 +252,9 @@ func TestAccAzureRMHDInsightStormCluster_hiveMetastore(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_updateMetastore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_hiveMetastore(data),
@@ -299,9 +299,9 @@ func TestAccAzureRMHDInsightStormCluster_updateMetastore(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_monitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_monitor(data),
@@ -325,9 +325,9 @@ func TestAccAzureRMHDInsightStormCluster_monitor(t *testing.T) {
 func TestAccAzureRMHDInsightStormCluster_updateMonitor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			// No monitor
 			{

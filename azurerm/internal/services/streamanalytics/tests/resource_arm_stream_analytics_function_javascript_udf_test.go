@@ -15,9 +15,9 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data),
@@ -52,9 +52,9 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data),

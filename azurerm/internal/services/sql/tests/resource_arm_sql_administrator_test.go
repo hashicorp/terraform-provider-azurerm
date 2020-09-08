@@ -15,9 +15,9 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlAdministrator_basic(data),
@@ -41,9 +41,9 @@ func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlAdministrator_basic(data),
@@ -64,9 +64,9 @@ func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlAdministratorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlAdministrator_basic(data),

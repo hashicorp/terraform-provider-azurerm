@@ -17,9 +17,9 @@ func TestAccAzureRMApiManagementIdentityProviderMicrosoft_basic(t *testing.T) {
 	config := testAccAzureRMApiManagementIdentityProviderMicrosoft_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -38,9 +38,9 @@ func TestAccAzureRMApiManagementIdentityProviderMicrosoft_update(t *testing.T) {
 	updateConfig := testAccAzureRMApiManagementIdentityProviderMicrosoft_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -66,9 +66,9 @@ func TestAccAzureRMApiManagementIdentityProviderMicrosoft_requiresImport(t *test
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_microsoft", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderMicrosoft_basic(data),

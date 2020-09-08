@@ -17,9 +17,9 @@ func TestAccAzureRMDataFactoryTriggerSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryTriggerScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryTriggerScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryTriggerSchedule_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMDataFactoryTriggerSchedule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryTriggerScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryTriggerScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryTriggerSchedule_basic(data),

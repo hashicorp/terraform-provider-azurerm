@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ips", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_prefix(data),
@@ -37,9 +37,9 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_attached(data),
@@ -64,9 +64,9 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 	dynamicDataSourceName := "data.azurerm_public_ips.dynamic"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPublicIPs_allocationType(data),

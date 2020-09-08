@@ -14,9 +14,9 @@ func TestAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(t *testing.T) 
 	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceLoadBalancerBackEndAddressPool_basic(data, addressPoolName),

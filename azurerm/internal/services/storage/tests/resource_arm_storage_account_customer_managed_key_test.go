@@ -18,9 +18,9 @@ func TestAccAzureRMStorageAccountCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageAccountCustomerManagedKey_basic(data),
@@ -46,9 +46,9 @@ func TestAccAzureRMStorageAccountCustomerManagedKey_requiresImport(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageAccountCustomerManagedKey_basic(data),
@@ -65,9 +65,9 @@ func TestAccAzureRMStorageAccountCustomerManagedKey_updateKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageAccountCustomerManagedKey_basic(data),

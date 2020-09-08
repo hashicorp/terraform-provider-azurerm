@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMKustoCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kusto_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKustoCluster_basic(data),

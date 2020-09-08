@@ -13,9 +13,9 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherAllowExtensionOperationsDefault(data),
@@ -33,9 +33,9 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDisabled(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherAllowExtensionOperationsDisabled(data),
@@ -53,9 +53,9 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsUpdated(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherAllowExtensionOperationsDefault(data),
@@ -81,9 +81,9 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmAge
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherAllowExtensionOperationsDisabledWithoutVmAgent(data),
@@ -109,9 +109,9 @@ func TestAccLinuxVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				// Enabled
@@ -145,9 +145,9 @@ func TestAccLinuxVirtualMachine_otherComputerNameDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherComputerNameDefault(data),
@@ -165,9 +165,9 @@ func TestAccLinuxVirtualMachine_otherComputerNameDefaultInvalid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config:      testLinuxVirtualMachine_otherComputerNameDefaultInvalid(data),
@@ -181,9 +181,9 @@ func TestAccLinuxVirtualMachine_otherComputerNameCustom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherComputerNameCustom(data),
@@ -201,9 +201,9 @@ func TestAccLinuxVirtualMachine_otherCustomData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherCustomData(data),
@@ -220,9 +220,9 @@ func TestAccLinuxVirtualMachine_otherPrioritySpot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherPrioritySpot(data),
@@ -239,9 +239,9 @@ func TestAccLinuxVirtualMachine_otherPrioritySpotMaxBidPrice(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				// expensive, but guarantees this test will pass
@@ -267,9 +267,9 @@ func TestAccLinuxVirtualMachine_otherProvisionVMAgentDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherProvisionVMAgentDefault(data),
@@ -287,9 +287,9 @@ func TestAccLinuxVirtualMachine_otherProvisionVMAgentDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherProvisionVMAgentDisabled(data),
@@ -307,9 +307,9 @@ func TestAccLinuxVirtualMachine_otherRequiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_authSSH(data),
@@ -326,9 +326,9 @@ func TestAccLinuxVirtualMachine_otherSecret(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherSecret(data),
@@ -360,9 +360,9 @@ func TestAccLinuxVirtualMachine_otherTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherTags(data),
@@ -386,9 +386,9 @@ func TestAccLinuxVirtualMachine_otherUltraSsdDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherUltraSsdDefault(data),
@@ -406,9 +406,9 @@ func TestAccLinuxVirtualMachine_otherUltraSsdEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherUltraSsdEnabled(data),
@@ -426,9 +426,9 @@ func TestAccLinuxVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_otherUltraSsdDefault(data),

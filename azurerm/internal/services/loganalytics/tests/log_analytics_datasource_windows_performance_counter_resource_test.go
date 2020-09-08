@@ -16,9 +16,9 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_basic(t *test
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_performance_counter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_basic(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_complete(t *t
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_performance_counter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_complete(data),
@@ -62,9 +62,9 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_update(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_performance_counter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_basic(data),
@@ -96,9 +96,9 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_requiresImpor
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_performance_counter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsDataSourceWindowsPerformanceCounterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsPerformanceCounter_basic(data),

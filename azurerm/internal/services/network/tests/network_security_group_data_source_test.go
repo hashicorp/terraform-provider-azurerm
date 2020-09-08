@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMNetworkSecurityGroupBasic(data),
@@ -32,9 +32,9 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_rules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMNetworkSecurityGroupWithRules(data),
@@ -61,9 +61,9 @@ func TestAccDataSourceAzureRMNetworkSecurityGroup_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_security_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMNetworkSecurityGroupTags(data),

@@ -15,9 +15,9 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_avro(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_avro(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_csv(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_csv(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_json(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data),
@@ -97,9 +97,9 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsReferenceInputBlob_json(data),

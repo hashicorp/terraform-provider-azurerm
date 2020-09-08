@@ -16,9 +16,9 @@ func TestAccAzureRMIntegrationServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIntegrationServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIntegrationServiceEnvironment_basic(data),
@@ -47,9 +47,9 @@ func TestAccAzureRMIntegrationServiceEnvironment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIntegrationServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIntegrationServiceEnvironment_complete(data),
@@ -79,9 +79,9 @@ func TestAccAzureRMIntegrationServiceEnvironment_developer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIntegrationServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIntegrationServiceEnvironment_developer(data),
@@ -111,9 +111,9 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIntegrationServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIntegrationServiceEnvironment_basic(data),
@@ -179,9 +179,9 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 func TestAccAzureRMIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_integration_service_environment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIntegrationServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIntegrationServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIntegrationServiceEnvironment_complete(data),

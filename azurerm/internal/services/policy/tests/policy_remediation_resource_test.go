@@ -17,9 +17,9 @@ func TestAccAzureRMPolicyRemediation_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyRemediationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPolicyRemediation_atSubscription(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyRemediationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMPolicyRemediation_atResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyRemediationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPolicyRemediation_atResourceGroup(data),
@@ -81,9 +81,9 @@ func TestAccAzureRMPolicyRemediation_atManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyRemediationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPolicyRemediation_atManagementGroup(data),
@@ -102,9 +102,9 @@ func TestAccAzureRMPolicyRemediation_atResource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyRemediationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPolicyRemediation_atResource(data),
@@ -123,9 +123,9 @@ func TestAccAzureRMPolicyRemediation_updateLocation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyRemediationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPolicyRemediation_atResourceGroup(data),
@@ -150,9 +150,9 @@ func TestAccAzureRMPolicyRemediation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_remediation", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyRemediationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyRemediationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPolicyRemediation_atResourceGroup(data),

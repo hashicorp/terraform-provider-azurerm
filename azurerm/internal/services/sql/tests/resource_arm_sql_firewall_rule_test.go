@@ -15,9 +15,9 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlFirewallRule_basic(data),
@@ -43,9 +43,9 @@ func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlFirewallRule_basic(data),
@@ -64,9 +64,9 @@ func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlFirewallRule_basic(data),

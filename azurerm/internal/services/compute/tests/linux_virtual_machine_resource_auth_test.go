@@ -12,9 +12,9 @@ func TestAccLinuxVirtualMachine_authPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_authPassword(data),
@@ -33,9 +33,9 @@ func TestAccLinuxVirtualMachine_authPasswordAndSSH(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_authPasswordAndSSH(data),
@@ -54,9 +54,9 @@ func TestAccLinuxVirtualMachine_authSSH(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_authSSH(data),
@@ -73,9 +73,9 @@ func TestAccLinuxVirtualMachine_authSSHMultipleKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_authSSHMultiple(data),

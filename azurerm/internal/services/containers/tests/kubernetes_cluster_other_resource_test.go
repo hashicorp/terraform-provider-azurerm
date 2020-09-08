@@ -37,9 +37,9 @@ func testAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_basicAvailabilitySetConfig(data),
@@ -73,9 +73,9 @@ func testAccAzureRMKubernetesCluster_basicVMSS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_basicVMSSConfig(data),
@@ -109,9 +109,9 @@ func testAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_basicVMSSConfig(data),
@@ -136,9 +136,9 @@ func testAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_linuxProfileConfig(data),
@@ -167,9 +167,9 @@ func testAccAzureRMKubernetesCluster_autoScalingError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_autoScalingEnabled(data),
@@ -198,9 +198,9 @@ func testAccAzureRMKubernetesCluster_autoScalingErrorMax(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_autoScalingEnabledUpdateMax(data),
@@ -222,9 +222,9 @@ func testAccAzureRMKubernetesCluster_autoScalingErrorMin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_autoScalingEnabledUpdateMin(data),
@@ -249,9 +249,9 @@ func testAccAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
 	labels3 := map[string]string{}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_nodeLabelsConfig(data, labels1),
@@ -287,9 +287,9 @@ func testAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_nodeTaintsConfig(data),
@@ -312,9 +312,9 @@ func testAccAzureRMKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_nodeResourceGroupConfig(data),
@@ -336,9 +336,9 @@ func testAccAzureRMKubernetesCluster_upgradeSkuTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_freeSkuConfig(data),
@@ -367,9 +367,9 @@ func testAccAzureRMKubernetesCluster_paidSku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_paidSkuConfig(data),
@@ -391,9 +391,9 @@ func testAccAzureRMKubernetesCluster_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_upgradeConfig(data, olderKubernetesVersion),
@@ -422,9 +422,9 @@ func testAccAzureRMKubernetesCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_tagsConfig(data),
@@ -453,9 +453,9 @@ func testAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_windowsProfileConfig(data),
@@ -488,9 +488,9 @@ func testAccAzureRMKubernetesCluster_diskEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_diskEncryptionConfig(data),

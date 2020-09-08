@@ -19,9 +19,9 @@ func TestAccAzureRMDedicatedHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHost_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMDedicatedHost_autoReplaceOnFailure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Enabled
@@ -74,9 +74,9 @@ func TestAccAzureRMDedicatedHost_licenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHost_licenceType(data, "None"),
@@ -114,9 +114,9 @@ func TestAccAzureRMDedicatedHost_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHost_complete(data),
@@ -133,9 +133,9 @@ func TestAccAzureRMDedicatedHost_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHost_basic(data),
@@ -159,9 +159,9 @@ func TestAccAzureRMDedicatedHost_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHost_basic(data),

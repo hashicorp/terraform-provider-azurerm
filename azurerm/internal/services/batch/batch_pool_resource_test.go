@@ -19,9 +19,9 @@ func TestAccBatchPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPool_basic(data),
@@ -48,9 +48,9 @@ func TestAccBatchPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPool_basic(data),
@@ -80,9 +80,9 @@ func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPool_fixedScale_complete(data),
@@ -113,9 +113,9 @@ func TestAccBatchPool_autoScale_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPool_autoScale_complete(data),
@@ -143,9 +143,9 @@ func TestAccBatchPool_completeUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPool_fixedScale_complete(data),
@@ -193,9 +193,9 @@ func TestAccBatchPoolStartTask_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPoolStartTask_basic(data),
@@ -237,9 +237,9 @@ func TestAccBatchPool_certificates(t *testing.T) {
 	certificate1ID := fmt.Sprintf("/subscriptions/%s/resourceGroups/testaccbatch%d/providers/Microsoft.Batch/batchAccounts/testaccbatch%s/certificates/sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda", subscriptionID, data.RandomInteger, data.RandomString)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPoolCertificates(data),
@@ -271,9 +271,9 @@ func TestAccBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccBatchPoolValidateResourceFileWithoutSource(data),
@@ -287,9 +287,9 @@ func TestAccBatchPool_container(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPoolContainerConfiguration(data),
@@ -315,9 +315,9 @@ func TestAccBatchPool_validateResourceFileWithMultipleSources(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccBatchPoolValidateResourceFileWithMultipleSources(data),
@@ -331,9 +331,9 @@ func TestAccBatchPool_validateResourceFileBlobPrefixWithoutAutoStorageContainerU
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(data),
@@ -347,9 +347,9 @@ func TestAccBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccBatchPoolValidateResourceFileHttpURLWithoutFilePath(data),
@@ -363,9 +363,9 @@ func TestAccBatchPool_customImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPoolCustomImageConfiguration(data),
@@ -392,9 +392,9 @@ func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPool_networkConfiguration(data),
@@ -425,9 +425,9 @@ func TestAccBatchPool_fixedScaleUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchPool_fixedScale_complete(data),

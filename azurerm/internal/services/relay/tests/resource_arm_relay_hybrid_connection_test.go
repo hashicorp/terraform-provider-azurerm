@@ -15,9 +15,9 @@ func TestAccAzureRMRelayHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRelayHybridConnection_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMRelayHybridConnection_full(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRelayHybridConnection_full(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMRelayHybridConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRelayHybridConnection_basic(data),
@@ -82,9 +82,9 @@ func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRelayHybridConnection_basic(data),

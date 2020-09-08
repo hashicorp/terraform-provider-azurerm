@@ -15,9 +15,9 @@ func TestAccAzureRMStreamAnalyticsOutputSql_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMStreamAnalyticsOutputSql_basic(t *testing.T) {
 func TestAccAzureRMStreamAnalyticsOutputSql_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(data),
@@ -58,9 +58,9 @@ func TestAccAzureRMStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsOutputSqlDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsOutputSql_basic(data),

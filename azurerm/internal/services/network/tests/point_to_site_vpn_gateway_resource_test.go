@@ -15,9 +15,9 @@ func TestAccAzureRMPointToSiteVPNGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMPointToSiteVPNGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_basic(data),
@@ -82,9 +82,9 @@ func TestAccAzureRMPointToSiteVPNGateway_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPointToSiteVPNGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPointToSiteVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMPointToSiteVPNGateway_tags(data),

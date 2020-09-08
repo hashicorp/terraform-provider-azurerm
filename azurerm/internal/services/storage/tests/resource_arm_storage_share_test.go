@@ -14,9 +14,9 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShare_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShare_basic(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShare_basic(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMStorageShare_deleteAndRecreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShare_basic(data),
@@ -104,9 +104,9 @@ func TestAccAzureRMStorageShare_metaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShare_metaData(data),
@@ -130,9 +130,9 @@ func TestAccAzureRMStorageShare_acl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShare_acl(data),
@@ -156,9 +156,9 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShare_basic(data),

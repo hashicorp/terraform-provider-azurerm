@@ -15,9 +15,9 @@ func TestAccAzureRMSiteRecoveryReplicationPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replication_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSiteRecoveryReplicationPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSiteRecoveryReplicationPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSiteRecoveryReplicationPolicy_basic(data),

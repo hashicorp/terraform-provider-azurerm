@@ -12,9 +12,9 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLinuxVirtualMachine_orchestratedZonal(data),
@@ -31,9 +31,9 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGr
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGroup(data),
@@ -50,9 +50,9 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedNonZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLinuxVirtualMachine_orchestratedNonZonal(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedMultipleZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLinuxVirtualMachine_orchestratedMultipleZonal(data),
@@ -88,9 +88,9 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedMultipleNonZonal(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLinuxVirtualMachine_orchestratedMultipleNonZonal(data),

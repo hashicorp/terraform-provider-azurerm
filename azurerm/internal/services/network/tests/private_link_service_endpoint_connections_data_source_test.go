@@ -12,8 +12,8 @@ func TestAccDataSourcePrivateLinkServiceEndpointConnections_complete(t *testing.
 	data := acceptance.BuildTestData(t, "data.azurerm_private_link_service_endpoint_connections", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourcePrivateLinkServiceEndpointConnections_complete(data),

@@ -17,9 +17,9 @@ func TestAccAzureRMMariaDbVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbVirtualNetworkRule_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMMariaDbVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbVirtualNetworkRule_basic(data),
@@ -61,9 +61,9 @@ func TestAccAzureRMMariaDbVirtualNetworkRule_switchSubnets(t *testing.T) {
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbVirtualNetworkRule_subnetSwitchPre(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMMariaDbVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbVirtualNetworkRule_basic(data),
@@ -109,9 +109,9 @@ func TestAccAzureRMMariaDbVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName3 := "azurerm_mariadb_virtual_network_rule.rule3"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbVirtualNetworkRule_multipleSubnets(data),

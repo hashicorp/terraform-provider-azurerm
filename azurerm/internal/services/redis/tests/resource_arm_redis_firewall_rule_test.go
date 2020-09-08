@@ -16,9 +16,9 @@ func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRedisFirewallRule_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMRedisFirewallRule_multi(t *testing.T) {
 	ruleTwo := "azurerm_redis_firewall_rule.double"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRedisFirewallRule_multi(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMRedisFirewallRule_multi(t *testing.T) {
 func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRedisFirewallRule_basic(data),
@@ -79,9 +79,9 @@ func TestAccAzureRMRedisFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRedisFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRedisFirewallRule_basic(data),

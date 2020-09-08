@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServiceEnvironment_basic(data),

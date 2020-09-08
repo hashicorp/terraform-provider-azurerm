@@ -17,9 +17,9 @@ func TestAccBlueprintAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBlueprintAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
@@ -36,9 +36,9 @@ func TestAccBlueprintAssignment_basicUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBlueprintAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
@@ -62,9 +62,9 @@ func TestAccBlueprintAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBlueprintAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
@@ -85,9 +85,9 @@ func TestAccBlueprintAssignment_subscriptionComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBlueprintAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlueprintAssignment_subscriptionComplete(data, "testAcc_subscriptionComplete", "v0.1_testAcc"),
@@ -105,9 +105,9 @@ func TestAccBlueprintAssignment_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBlueprintAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBlueprintAssignment_rootManagementGroup(data, "testAcc_basicRootManagementGroup", "v0.1_testAcc"),

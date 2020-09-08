@@ -15,9 +15,9 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testi
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceVirtualNetworkGatewayConnection_sitetosite(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testi
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceVirtualNetworkGatewayConnection_vnettovnet(data1, data2.RandomInteger, sharedKey),
@@ -62,9 +62,9 @@ func TestAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *test
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(data),

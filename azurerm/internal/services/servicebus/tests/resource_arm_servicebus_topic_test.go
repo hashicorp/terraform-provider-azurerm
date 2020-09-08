@@ -16,9 +16,9 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMServiceBusTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_basicDisabled(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_basic(data),
@@ -105,9 +105,9 @@ func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_basic(data),
@@ -130,9 +130,9 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_basic(data),
@@ -157,9 +157,9 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_basicPremium(data),
@@ -183,9 +183,9 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_basic(data),
@@ -208,9 +208,9 @@ func TestAccAzureRMServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusTopic_isoTimeSpanAttributes(data),

@@ -12,9 +12,9 @@ func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
@@ -31,9 +31,9 @@ func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_requiresImport(t
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
@@ -50,9 +50,9 @@ func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_update(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_basic(data),
@@ -74,9 +74,9 @@ func TestAccAzureRMFunctionAppSlotVirtualNetworkSwiftConnection_disappears(t *te
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(data),

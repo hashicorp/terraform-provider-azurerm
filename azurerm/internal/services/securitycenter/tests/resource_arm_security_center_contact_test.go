@@ -39,9 +39,9 @@ func testAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterContact_template("basic@example.com", "+1-555-555-5555", true, true),
@@ -61,9 +61,9 @@ func testAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 func testAccAzureRMSecurityCenterContact_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterContact_template("require@example.com", "+1-555-555-5555", true, true),
@@ -86,9 +86,9 @@ func testAccAzureRMSecurityCenterContact_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterContact_template("update@example.com", "+1-555-555-5555", true, true),
@@ -119,9 +119,9 @@ func testAccAzureRMSecurityCenterContact_phoneOptional(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterContactDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSecurityCenterContactDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterContact_templateWithoutPhone("basic@example.com", true, true),

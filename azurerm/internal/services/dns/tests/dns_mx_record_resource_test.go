@@ -17,9 +17,9 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsMxRecord_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMDnsMxRecord_rootrecord(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsMxRecord_rootrecord(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMDnsMxRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsMxRecord_basic(data),
@@ -79,9 +79,9 @@ func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsMxRecord_basic(data),
@@ -105,9 +105,9 @@ func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_mx_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsMxRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsMxRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsMxRecord_withTags(data),

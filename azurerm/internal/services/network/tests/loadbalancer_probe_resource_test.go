@@ -26,9 +26,9 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 		subscriptionID, data.RandomInteger, data.RandomInteger, probeName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerProbe_basic(data, probeName),
@@ -56,9 +56,9 @@ func TestAccAzureRMLoadBalancerProbe_requiresImport(t *testing.T) {
 		subscriptionID, data.RandomInteger, data.RandomInteger, probeName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerProbe_basic(data, probeName),
@@ -84,9 +84,9 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	probeName := fmt.Sprintf("probe-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerProbe_basic(data, probeName),
@@ -115,9 +115,9 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 	probe2Name := fmt.Sprintf("probe-%d", data2.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerProbe_multipleProbes(data1, probeName, probe2Name),
@@ -148,9 +148,9 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 	probeName := fmt.Sprintf("probe-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerProbe_updateProtocolBefore(data, probeName),
@@ -179,9 +179,9 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 	probeName := fmt.Sprintf("probe-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerProbe_basic(data, probeName),

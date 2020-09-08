@@ -18,8 +18,8 @@ func TestAccDataSourceArmStorageAccountBlobContainerSas_basic(t *testing.T) {
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(data, startDate, endDate),

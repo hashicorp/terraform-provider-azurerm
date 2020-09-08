@@ -15,9 +15,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data),
@@ -32,9 +32,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data),
@@ -51,9 +51,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(data),
@@ -105,9 +105,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data),
@@ -131,9 +131,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusSubscriptionRule_correlationFilter(data),
@@ -159,9 +159,9 @@ func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data),

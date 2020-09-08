@@ -15,9 +15,9 @@ func TestAccAzureRMPrivateLinkService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateLinkService_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMPrivateLinkService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateLinkService_basic(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateLinkService_basicIp(data),
@@ -101,9 +101,9 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateLinkService_moveSetup(data),
@@ -170,9 +170,9 @@ func TestAccAzureRMPrivateLinkService_enableProxyProtocol(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Enable
@@ -206,9 +206,9 @@ func TestAccAzureRMPrivateLinkService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateLinkServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateLinkServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateLinkService_complete(data),

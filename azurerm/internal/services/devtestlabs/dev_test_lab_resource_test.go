@@ -15,9 +15,9 @@ func TestAccDevTestLab_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLab_basic(data),
@@ -36,9 +36,9 @@ func TestAccDevTestLab_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLab_basic(data),
@@ -58,9 +58,9 @@ func TestAccDevTestLab_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLab_complete(data),

@@ -16,9 +16,9 @@ func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProduct_basic(data),
@@ -42,9 +42,9 @@ func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProduct_basic(data),
@@ -88,9 +88,9 @@ func TestAccAzureRMApiManagementProduct_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProduct_basic(data),
@@ -140,9 +140,9 @@ func TestAccAzureRMApiManagementProduct_subscriptionsLimit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProduct_subscriptionLimits(data),
@@ -162,9 +162,9 @@ func TestAccAzureRMApiManagementProduct_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProduct_complete(data),
@@ -189,9 +189,9 @@ func TestAccAzureRMApiManagementProduct_approvalRequiredError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProduct_approvalRequiredError(data),

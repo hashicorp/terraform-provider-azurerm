@@ -65,9 +65,9 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSnapshot_fromManagedDisk(data),
@@ -83,9 +83,9 @@ func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSnapshot_fromManagedDisk(data),
@@ -105,9 +105,9 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSnapshot_encryption(data),
@@ -124,9 +124,9 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSnapshot_fromManagedDisk(data),
@@ -148,9 +148,9 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSnapshot_extendingManagedDisk(data),
@@ -166,9 +166,9 @@ func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "second")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSnapshot_fromExistingSnapshot(data),
@@ -184,9 +184,9 @@ func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSnapshot_fromUnmanagedDisk(data),

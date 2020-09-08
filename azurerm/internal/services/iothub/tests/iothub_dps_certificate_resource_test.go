@@ -15,9 +15,9 @@ func TestAccAzureRMIotHubDPSCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPSCertificate_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPSCertificate_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMIotHubDPSCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDPSCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPSCertificate_basic(data),

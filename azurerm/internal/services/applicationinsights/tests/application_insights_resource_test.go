@@ -15,9 +15,9 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_basic(data, "web"),
@@ -35,9 +35,9 @@ func TestAccAzureRMApplicationInsights_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_basic(data, "web"),
@@ -58,9 +58,9 @@ func TestAccAzureRMApplicationInsights_basicJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_basic(data, "java"),
@@ -78,9 +78,9 @@ func TestAccAzureRMApplicationInsights_basicMobileCenter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_basic(data, "MobileCenter"),
@@ -98,9 +98,9 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_basic(data, "other"),
@@ -118,9 +118,9 @@ func TestAccAzureRMApplicationInsights_basicPhone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_basic(data, "phone"),
@@ -138,9 +138,9 @@ func TestAccAzureRMApplicationInsights_basicStore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_basic(data, "store"),
@@ -158,9 +158,9 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_basic(data, "ios"),
@@ -234,9 +234,9 @@ func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationInsights_complete(data, "web"),

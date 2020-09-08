@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMFunctionApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMFunctionApp_basic(data),
@@ -33,9 +33,9 @@ func TestAccDataSourceAzureRMFunctionApp_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMFunctionApp_appSettings(data),
@@ -52,9 +52,9 @@ func TestAccDataSourceAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMFunctionApp_connectionStrings(data),
@@ -73,9 +73,9 @@ func TestAccDataSourceAzureRMFunctionApp_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMFunctionApp_withSourceControl(data, "main"),
@@ -91,9 +91,9 @@ func TestAccDataSourceAzureRMFunctionApp_siteConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMFunctionApp_withSiteConfig(data),

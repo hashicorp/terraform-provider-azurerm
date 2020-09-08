@@ -26,9 +26,9 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 		subscriptionID, data.RandomInteger, data.RandomInteger, natPoolName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerNatPool_basic(data, natPoolName),
@@ -60,9 +60,9 @@ func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
 		subscriptionID, data.RandomInteger, data.RandomInteger, natPoolName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerNatPool_basic(data, natPoolName),
@@ -88,9 +88,9 @@ func TestAccAzureRMLoadBalancerNatPool_removal(t *testing.T) {
 	natPoolName := fmt.Sprintf("NatPool-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerNatPool_basic(data, natPoolName),
@@ -119,9 +119,9 @@ func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
 	natPool2Name := fmt.Sprintf("NatPool-%d", data2.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerNatPool_multiplePools(data, natPoolName, natPool2Name),
@@ -152,9 +152,9 @@ func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 	natPoolName := fmt.Sprintf("NatPool-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerNatPool_basic(data, natPoolName),

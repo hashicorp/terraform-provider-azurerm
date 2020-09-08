@@ -28,9 +28,9 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
@@ -63,9 +63,9 @@ func TestAccAzureRMImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
@@ -98,9 +98,9 @@ func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
@@ -132,9 +132,9 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
@@ -168,9 +168,9 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
@@ -200,9 +200,9 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
@@ -233,9 +233,9 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 	sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation

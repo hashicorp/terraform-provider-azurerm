@@ -20,9 +20,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
@@ -44,9 +44,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_storageBlob_attach(t *testin
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:  testAccAzureRMVirtualMachine_basicLinuxMachine(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(data),
@@ -95,9 +95,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_disappears(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
@@ -117,9 +117,9 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(t *tes
 	var vm, mirrorVm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachineUseExistingOsDiskImage(data),
@@ -141,9 +141,9 @@ func TestAccAzureRMVirtualMachine_withDataDisk(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_withDataDisk(data),
@@ -161,9 +161,9 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
@@ -195,9 +195,9 @@ func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
@@ -223,9 +223,9 @@ func TestAccAzureRMVirtualMachine_basicWindowsMachine(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicWindowsMachine(data),
@@ -243,9 +243,9 @@ func TestAccAzureRMVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_windowsUnattendedConfig(data, "Standard_D1_v2"),
@@ -263,9 +263,9 @@ func TestAccAzureRMVirtualMachine_windowsMachineResize(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_windowsUnattendedConfig(data, "Standard_D1_v2"),
@@ -289,9 +289,9 @@ func TestAccAzureRMVirtualMachine_diagnosticsProfile(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_diagnosticsProfile(data),
@@ -309,9 +309,9 @@ func TestAccAzureRMVirtualMachine_winRMConfig(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_winRMConfig(data),
@@ -329,9 +329,9 @@ func TestAccAzureRMVirtualMachine_deleteVHDOptOut(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_withDataDisk(data),
@@ -356,9 +356,9 @@ func TestAccAzureRMVirtualMachine_deleteVHDOptIn(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore(data),
@@ -382,9 +382,9 @@ func TestAccAzureRMVirtualMachine_ChangeComputerName(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_machineNameBeforeUpdate(data),
@@ -410,9 +410,9 @@ func TestAccAzureRMVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_withAvailabilitySet(data),
@@ -438,9 +438,9 @@ func TestAccAzureRMVirtualMachine_changeStorageImageReference(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore(data),
@@ -466,9 +466,9 @@ func TestAccAzureRMVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_basicLinuxMachine(data),
@@ -497,9 +497,9 @@ func TestAccAzureRMVirtualMachine_plan(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_plan(data),
@@ -517,9 +517,9 @@ func TestAccAzureRMVirtualMachine_changeSSHKey(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_linuxMachineWithSSH(data),
@@ -543,9 +543,9 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Destroy: false,
@@ -580,9 +580,9 @@ func TestAccAzureRMVirtualMachine_primaryNetworkInterfaceId(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(data),

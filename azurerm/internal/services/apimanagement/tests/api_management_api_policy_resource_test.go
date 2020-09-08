@@ -16,9 +16,9 @@ func TestAccAzureRMApiManagementAPIPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
@@ -40,9 +40,9 @@ func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementAPIPolicy_basic(data),
@@ -89,9 +89,9 @@ func TestAccAzureRMApiManagementAPIPolicy_customPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementAPIPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(data),

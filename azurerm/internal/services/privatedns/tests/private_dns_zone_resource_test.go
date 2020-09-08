@@ -14,9 +14,9 @@ import (
 func TestAccAzureRMPrivateDnsZone_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsZone_basic(data),
@@ -32,9 +32,9 @@ func TestAccAzureRMPrivateDnsZone_basic(t *testing.T) {
 func TestAccAzureRMPrivateDnsZone_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsZone_basic(data),
@@ -50,9 +50,9 @@ func TestAccAzureRMPrivateDnsZone_requiresImport(t *testing.T) {
 func TestAccAzureRMPrivateDnsZone_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsZone_withTags(data),

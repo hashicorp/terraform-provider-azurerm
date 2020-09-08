@@ -15,9 +15,9 @@ func TestAccAzureRMVPNServerConfiguration_azureAD(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMVPNServerConfiguration_azureAD(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMVPNServerConfiguration_certificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMVPNServerConfiguration_certificate(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMVPNServerConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMVPNServerConfiguration_certificate(data),
@@ -83,9 +83,9 @@ func TestAccAzureRMVPNServerConfiguration_radius(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMVPNServerConfiguration_radius(data),
@@ -102,9 +102,9 @@ func TestAccAzureRMVPNServerConfiguration_multipleAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMVPNServerConfiguration_azureAD(data),
@@ -135,9 +135,9 @@ func TestAccAzureRMVPNServerConfiguration_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVPNServerConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVPNServerConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAzureRMVPNServerConfiguration_tags(data),

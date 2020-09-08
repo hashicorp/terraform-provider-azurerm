@@ -15,9 +15,9 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubConsumerGroup_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubConsumerGroup_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubConsumerGroup_complete(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubConsumerGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubConsumerGroup_basic(data),

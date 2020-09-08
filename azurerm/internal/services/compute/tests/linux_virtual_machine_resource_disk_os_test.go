@@ -12,9 +12,9 @@ func TestAccLinuxVirtualMachine_diskOSBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSBasic(data),
@@ -31,9 +31,9 @@ func TestAccLinuxVirtualMachine_diskOSCachingType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSCachingType(data, "None"),
@@ -64,9 +64,9 @@ func TestAccLinuxVirtualMachine_diskOSCustomName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSCustomName(data),
@@ -83,9 +83,9 @@ func TestAccLinuxVirtualMachine_diskOSCustomSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSCustomSize(data, 30),
@@ -102,9 +102,9 @@ func TestAccLinuxVirtualMachine_diskOSCustomSizeExpanded(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSCustomSize(data, 30),
@@ -128,9 +128,9 @@ func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
@@ -147,9 +147,9 @@ func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data),
@@ -173,9 +173,9 @@ func TestAccLinuxVirtualMachine_diskOSEphemeral(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSEphemeral(data),
@@ -192,9 +192,9 @@ func TestAccLinuxVirtualMachine_diskOSStorageTypeStandardLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "Standard_LRS"),
@@ -211,9 +211,9 @@ func TestAccLinuxVirtualMachine_diskOSStorageTypeStandardSSDLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "StandardSSD_LRS"),
@@ -230,9 +230,9 @@ func TestAccLinuxVirtualMachine_diskOSStorageTypePremiumLRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "Premium_LRS"),
@@ -249,9 +249,9 @@ func TestAccLinuxVirtualMachine_diskOSStorageTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_diskOSStorageAccountType(data, "Standard_LRS"),
@@ -289,9 +289,9 @@ func TestAccLinuxVirtualMachine_diskOSWriteAcceleratorEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				// Enabled

@@ -17,9 +17,9 @@ func TestAccAzureRMDedicatedHostGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHostGroup_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMDedicatedHostGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHostGroup_basic(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMDedicatedHostGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHostGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHostGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHostGroup_complete(data),

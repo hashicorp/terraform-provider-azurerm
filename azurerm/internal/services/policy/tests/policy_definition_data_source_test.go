@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBuiltInPolicyDefinition("Allowed resource types"),
@@ -33,8 +33,8 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn_AtManagementGroup(t *testi
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup("Allowed resource types"),
@@ -50,8 +50,8 @@ func TestAccDataSourceAzureRMPolicyDefinition_customByDisplayName(t *testing.T) 
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPolicyDefinition_customByDisplayName(data),
@@ -73,8 +73,8 @@ func TestAccDataSourceAzureRMPolicyDefinition_customByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPolicyDefinition_customByName(data),

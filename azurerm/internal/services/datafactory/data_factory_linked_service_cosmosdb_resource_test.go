@@ -16,9 +16,9 @@ func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(data),
@@ -52,9 +52,9 @@ func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(data),
@@ -80,9 +80,9 @@ func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_update1(data),

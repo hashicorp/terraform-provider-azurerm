@@ -15,9 +15,9 @@ func TestAccDevTestLabSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLabSchedule_autoShutdownBasic(data),
@@ -52,9 +52,9 @@ func TestAccDevTestLabSchedule_autoStartupBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLabSchedule_autoStartupBasic(data),
@@ -88,9 +88,9 @@ func TestAccDevTestLabSchedule_concurrent(t *testing.T) {
 	secondResourceName := "azurerm_dev_test_schedule.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLabSchedule_concurrent(data),

@@ -11,9 +11,9 @@ import (
 func TestAccDataSourceAzureRMDiskEncryptionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_disk_encryption_set", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDiskEncryptionSet_basic(data),

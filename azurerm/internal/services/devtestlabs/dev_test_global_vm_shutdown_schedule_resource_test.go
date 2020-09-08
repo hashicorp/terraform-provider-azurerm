@@ -15,9 +15,9 @@ func TestAccDevTestLabGlobalVMShutdownSchedule_autoShutdownBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownBasic(data),
@@ -43,9 +43,9 @@ func TestAccDevTestLabGlobalVMShutdownSchedule_autoShutdownComplete(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownComplete(data),
@@ -71,9 +71,9 @@ func TestAccDevTestLabGlobalVMShutdownSchedule_autoShutdownUpdate(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_global_vm_shutdown_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLabGlobalVMShutdownScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLabGlobalVMShutdownSchedule_autoShutdownBasic(data),

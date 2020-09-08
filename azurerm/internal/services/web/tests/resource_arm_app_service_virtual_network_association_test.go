@@ -16,9 +16,9 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_requiresImport(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),
@@ -81,9 +81,9 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_disappears(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),

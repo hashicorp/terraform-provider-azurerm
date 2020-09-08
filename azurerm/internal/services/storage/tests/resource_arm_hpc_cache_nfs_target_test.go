@@ -17,9 +17,9 @@ func TestAccAzureRMHPCCacheNFSTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheNFSTargetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHPCCacheNFSTargetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMHPCCacheNFSTarget_usageModel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheNFSTargetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHPCCacheNFSTargetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheNFSTargetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHPCCacheNFSTargetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),
@@ -102,9 +102,9 @@ func TestAccAzureRMHPCCacheNFSTarget_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheNFSTargetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHPCCacheNFSTargetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHPCCacheNFSTarget_basic(data),

@@ -29,9 +29,9 @@ func testAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_addAgentConfig(data, 1),
@@ -59,9 +59,9 @@ func testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_manualScaleIgnoreChangesConfig(data),
@@ -91,9 +91,9 @@ func testAccAzureRMKubernetesCluster_removeAgent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_addAgentConfig(data, 2),
@@ -121,9 +121,9 @@ func testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_autoscaleNodeCountUnsetConfig(data),
@@ -156,9 +156,9 @@ func testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_autoscaleNoAvailabilityZonesConfig(data),
@@ -184,9 +184,9 @@ func testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_autoscaleWithAvailabilityZonesConfig(data),
@@ -215,9 +215,9 @@ func testAccAzureRMKubernetesCluster_autoScalingProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_autoScalingProfileConfig(data),

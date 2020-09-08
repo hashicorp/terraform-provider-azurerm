@@ -16,9 +16,9 @@ func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridEventSubscription_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMEventGridEventSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridEventSubscription_basic(data),
@@ -58,9 +58,9 @@ func TestAccAzureRMEventGridEventSubscription_eventHubID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridEventSubscription_eventHubID(data),
@@ -79,9 +79,9 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridEventSubscription_serviceBusQueueID(data),
@@ -100,9 +100,9 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridEventSubscription_serviceBusTopicID(data),
@@ -121,9 +121,9 @@ func TestAccAzureRMEventGridEventSubscription_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridEventSubscription_basic(data),
@@ -161,9 +161,9 @@ func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridEventSubscription_filter(data),
@@ -184,9 +184,9 @@ func TestAccAzureRMEventGridEventSubscription_advancedFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridEventSubscription_advancedFilter(data),

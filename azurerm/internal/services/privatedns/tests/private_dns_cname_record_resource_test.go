@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMPrivateDnsCNameRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsCNameRecord_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMPrivateDnsCNameRecord_basic(t *testing.T) {
 func TestAccAzureRMPrivateDnsCNameRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsCNameRecord_basic(data),
@@ -52,9 +52,9 @@ func TestAccAzureRMPrivateDnsCNameRecord_requiresImport(t *testing.T) {
 func TestAccAzureRMPrivateDnsCNameRecord_subdomain(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsCNameRecord_subdomain(data),
@@ -71,9 +71,9 @@ func TestAccAzureRMPrivateDnsCNameRecord_subdomain(t *testing.T) {
 func TestAccAzureRMPrivateDnsCNameRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsCNameRecord_basic(data),
@@ -94,9 +94,9 @@ func TestAccAzureRMPrivateDnsCNameRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMPrivateDnsCNameRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsCNameRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsCNameRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsCNameRecord_withTags(data),

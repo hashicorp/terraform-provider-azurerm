@@ -16,9 +16,9 @@ func TestAccBatchApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchApplicationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchApplication_template(data, ""),
@@ -36,9 +36,9 @@ func TestAccBatchApplication_update(t *testing.T) {
 	displayName := fmt.Sprintf("TestAccDisplayName-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchApplicationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchApplication_template(data, ""),

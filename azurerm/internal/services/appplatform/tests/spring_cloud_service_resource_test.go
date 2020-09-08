@@ -15,9 +15,9 @@ func TestAccAzureRMSpringCloudService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudService_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMSpringCloudService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudService_basic(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudService_complete(data),
@@ -103,9 +103,9 @@ func TestAccAzureRMSpringCloudService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudService_basic(data),

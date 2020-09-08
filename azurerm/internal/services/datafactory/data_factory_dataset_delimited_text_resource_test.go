@@ -74,9 +74,9 @@ func TestAccAzureRMDataFactoryDatasetDelimitedText_http(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryDatasetDelimitedText_http(data),
@@ -93,9 +93,9 @@ func TestAccAzureRMDataFactoryDatasetDelimitedText_http_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryDatasetDelimitedText_http_update1(data),
@@ -322,9 +322,9 @@ func TestAccAzureRMDataFactoryDatasetDelimitedText_blob(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_delimited_text", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryDatasetDelimitedTextDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryDatasetDelimitedText_blob(data),

@@ -16,9 +16,9 @@ func TestAccAzureRMMonitorActionRuleSuppression_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionRuleSuppressionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorActionRuleSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorActionRuleSuppression_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMMonitorActionRuleSuppression_basic(t *testing.T) {
 func TestAccAzureRMMonitorActionRuleSuppression_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionRuleSuppressionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorActionRuleSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorActionRuleSuppression_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMMonitorActionRuleSuppression_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionRuleSuppressionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorActionRuleSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorActionRuleSuppression_complete(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMMonitorActionRuleSuppression_updateSuppressionConfig(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_suppression", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionRuleSuppressionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorActionRuleSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorActionRuleSuppression_basic(data),

@@ -15,9 +15,9 @@ func TestAccAzureRMStorageShareDirectory_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShareDirectory_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMStorageShareDirectory_uppercase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShareDirectory_uppercase(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMStorageShareDirectory_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShareDirectory_basic(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMStorageShareDirectory_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShareDirectory_complete(data),
@@ -91,9 +91,9 @@ func TestAccAzureRMStorageShareDirectory_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShareDirectory_complete(data),
@@ -116,9 +116,9 @@ func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageShareDirectoryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageShareDirectory_nested(data),

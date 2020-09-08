@@ -16,9 +16,9 @@ func TestAccAzureRMEventHubCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubCluster_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMEventHubCluster_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubCluster_basic(data),

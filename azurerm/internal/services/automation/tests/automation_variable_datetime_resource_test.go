@@ -13,9 +13,9 @@ func TestAccAzureRMAutomationVariableDateTime_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationVariableDateTimeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationVariableDateTime_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMAutomationVariableDateTime_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationVariableDateTimeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationVariableDateTime_complete(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMAutomationVariableDateTime_basicCompleteUpdate(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationVariableDateTimeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationVariableDateTime_basic(data),

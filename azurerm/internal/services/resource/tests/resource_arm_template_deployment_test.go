@@ -20,9 +20,9 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTemplateDeployment_basicMultiple(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTemplateDeployment_basicMultiple(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTemplateDeployment_basicSingle(data),
@@ -77,9 +77,9 @@ func TestAccAzureRMTemplateDeployment_nestedTemplate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTemplateDeployment_nestedTemplate(data),
@@ -95,9 +95,9 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTemplateDeployment_withParams(data),
@@ -114,9 +114,9 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testaccAzureRMTemplateDeployment_withParamsBody(data),
@@ -133,9 +133,9 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTemplateDeployment_withOutputs(data),
@@ -161,9 +161,9 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTemplateDeploymentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMTemplateDeployment_withError(data),

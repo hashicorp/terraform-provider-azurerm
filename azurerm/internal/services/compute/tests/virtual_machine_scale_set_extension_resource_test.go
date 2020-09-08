@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachineScaleSetExtension_basicLinux(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
 func TestAccAzureRMVirtualMachineScaleSetExtension_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachineScaleSetExtension_basicWindows(data),
@@ -52,9 +52,9 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_requiresImport(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachineScaleSetExtension_basicLinux(data),
@@ -70,9 +70,9 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_requiresImport(t *testing.T) 
 func TestAccAzureRMVirtualMachineScaleSetExtension_autoUpgradeDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachineScaleSetExtension_autoUpgradeDisabled(data),
@@ -89,9 +89,9 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_extensionChaining(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "first")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachineScaleSetExtension_extensionChaining(data),
@@ -113,9 +113,9 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_extensionChaining(t *testing.
 func TestAccAzureRMVirtualMachineScaleSetExtension_forceUpdateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachineScaleSetExtension_forceUpdateTag(data, "first"),
@@ -138,9 +138,9 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_forceUpdateTag(t *testing.T) 
 func TestAccAzureRMVirtualMachineScaleSetExtension_protectedSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachineScaleSetExtension_protectedSettings(data),
@@ -156,9 +156,9 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_protectedSettings(t *testing.
 func TestAccAzureRMVirtualMachineScaleSetExtension_protectedSettingsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualMachineScaleSetExtension_protectedSettingsOnly(data),
@@ -174,9 +174,9 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_protectedSettingsOnly(t *test
 func TestAccAzureRMVirtualMachineScaleSetExtension_updateVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineScaleSetExtensionDestroy,
 		Steps: []resource.TestStep{
 			{
 				// old version

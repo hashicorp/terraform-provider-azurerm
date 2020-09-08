@@ -16,9 +16,9 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_basic(data),
@@ -77,9 +77,9 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.contoso.com"),
@@ -110,9 +110,9 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_withTags(data),
@@ -140,9 +140,9 @@ func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_optimized(data),
@@ -159,9 +159,9 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_geoFilters(data),
@@ -178,9 +178,9 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_fullFields(data),
@@ -208,9 +208,9 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data, "true", "false"),
@@ -236,9 +236,9 @@ func TestAccAzureRMCdnEndpoint_globalDeliveryRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_globalDeliveryRule(data),
@@ -279,9 +279,9 @@ func TestAccAzureRMCdnEndpoint_deliveryRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_deliveryRule(data),
@@ -349,9 +349,9 @@ func TestAccAzureRMCdnEndpoint_dnsAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnEndpoint_dnsAlias(data),

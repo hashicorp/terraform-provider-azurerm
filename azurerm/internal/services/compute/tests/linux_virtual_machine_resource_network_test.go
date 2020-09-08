@@ -18,9 +18,9 @@ func TestAccLinuxVirtualMachine_networkIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkIPv6(data),
@@ -39,9 +39,9 @@ func TestAccLinuxVirtualMachine_networkMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkMultiple(data),
@@ -86,9 +86,9 @@ func TestAccLinuxVirtualMachine_networkMultiplePublic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkMultiplePublic(data),
@@ -133,9 +133,9 @@ func TestAccLinuxVirtualMachine_networkPrivateDynamicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPrivateDynamicIP(data),
@@ -154,9 +154,9 @@ func TestAccLinuxVirtualMachine_networkPrivateStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPrivateStaticIP(data),
@@ -175,9 +175,9 @@ func TestAccLinuxVirtualMachine_networkPrivateUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPrivateDynamicIP(data),
@@ -205,9 +205,9 @@ func TestAccLinuxVirtualMachine_networkPublicDynamicPrivateDynamicIP(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPublicDynamicPrivateDynamicIP(data),
@@ -226,9 +226,9 @@ func TestAccLinuxVirtualMachine_networkPublicDynamicPrivateStaticIP(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPublicDynamicPrivateStaticIP(data),
@@ -247,9 +247,9 @@ func TestAccLinuxVirtualMachine_networkPublicDynamicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPublicDynamicPrivateDynamicIP(data),
@@ -277,9 +277,9 @@ func TestAccLinuxVirtualMachine_networkPublicStaticPrivateDynamicIP(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPublicStaticPrivateDynamicIP(data),
@@ -298,9 +298,9 @@ func TestAccLinuxVirtualMachine_networkPublicStaticPrivateStaticIP(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPublicStaticPrivateStaticIP(data),
@@ -319,9 +319,9 @@ func TestAccLinuxVirtualMachine_networkPublicStaticPrivateUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testLinuxVirtualMachine_networkPublicStaticPrivateDynamicIP(data),

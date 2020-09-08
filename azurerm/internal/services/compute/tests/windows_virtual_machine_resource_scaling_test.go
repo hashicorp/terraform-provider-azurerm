@@ -12,9 +12,9 @@ func TestAccWindowsVirtualMachine_scalingAdditionalCapabilitiesUltraSSD(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				// NOTE: this requires a large-ish machine to provision
@@ -34,9 +34,9 @@ func TestAccWindowsVirtualMachine_scalingAvailabilitySet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_scalingAvailabilitySet(data),
@@ -55,9 +55,9 @@ func TestAccWindowsVirtualMachine_scalingDedicatedHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_scalingDedicatedHost(data),
@@ -76,9 +76,9 @@ func TestAccWindowsVirtualMachine_scalingProximityPlacementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_scalingProximityPlacementGroup(data),
@@ -97,9 +97,9 @@ func TestAccWindowsVirtualMachine_scalingMachineSizeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_scalingMachineSize(data, "Standard_F2"),
@@ -136,9 +136,9 @@ func TestAccWindowsVirtualMachine_scalingZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_scalingZone(data),

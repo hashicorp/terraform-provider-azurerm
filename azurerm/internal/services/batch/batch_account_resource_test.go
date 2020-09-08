@@ -46,9 +46,9 @@ func TestAccBatchAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchAccount_basic(data),
@@ -65,9 +65,9 @@ func TestAccBatchAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchAccount_basic(data),
@@ -87,9 +87,9 @@ func TestAccBatchAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchAccount_complete(data),
@@ -119,9 +119,9 @@ func TestAccBatchAccount_userSubscription(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckBatchAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBatchAccount_userSubscription(data, tenantID),

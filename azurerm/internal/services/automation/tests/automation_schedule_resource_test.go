@@ -17,9 +17,9 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_oneTime_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_oneTime_basic(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_oneTime_complete(data, startTime),
@@ -77,9 +77,9 @@ func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_oneTime_basic(data),
@@ -97,9 +97,9 @@ func TestAccAzureRMAutomationSchedule_hourly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_basic(data, "Hour", 7),
@@ -114,9 +114,9 @@ func TestAccAzureRMAutomationSchedule_daily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_basic(data, "Day", 7),
@@ -131,9 +131,9 @@ func TestAccAzureRMAutomationSchedule_weekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_basic(data, "Week", 7),
@@ -148,9 +148,9 @@ func TestAccAzureRMAutomationSchedule_monthly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_basic(data, "Month", 7),
@@ -165,9 +165,9 @@ func TestAccAzureRMAutomationSchedule_weekly_advanced(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_week(data, "Monday"),
@@ -182,9 +182,9 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_day(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month(data, 2),
@@ -199,9 +199,9 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(data, "Monday", 2),

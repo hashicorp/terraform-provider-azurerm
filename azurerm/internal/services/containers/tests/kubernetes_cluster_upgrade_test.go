@@ -27,9 +27,9 @@ func testAccAzureRMKubernetesCluster_upgradeControlPlane(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_upgradeControlPlaneConfig(data, olderKubernetesVersion),
@@ -64,9 +64,9 @@ func testAccAzureRMKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogeth
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_upgradeControlPlaneDefaultNodePoolConfig(data, olderKubernetesVersion, olderKubernetesVersion),
@@ -99,9 +99,9 @@ func testAccAzureRMKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPha
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_upgradeControlPlaneDefaultNodePoolConfig(data, olderKubernetesVersion, olderKubernetesVersion),
@@ -143,9 +143,9 @@ func testAccAzureRMKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails(t *t
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesCluster_upgradeControlPlaneDefaultNodePoolConfig(data, olderKubernetesVersion, olderKubernetesVersion),
@@ -174,9 +174,9 @@ func testAccAzureRMKubernetesCluster_upgradeCustomNodePoolAfterControlPlane(t *t
 	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// all on the older version
@@ -225,9 +225,9 @@ func testAccAzureRMKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFail
 	nodePoolName := "azurerm_kubernetes_cluster_node_pool.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				// all on the older version

@@ -15,8 +15,8 @@ func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subscription", "current")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSubscription_currentConfig,
@@ -36,8 +36,8 @@ func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subscription", "specific")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSubscription_specificConfig(os.Getenv("ARM_SUBSCRIPTION_ID")),

@@ -15,9 +15,9 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryPipeline_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryPipeline_update1(data),
@@ -67,9 +67,9 @@ func TestAccAzureRMDataFactoryPipeline_activities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataFactoryPipelineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataFactoryPipeline_activities(data),

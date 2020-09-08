@@ -15,9 +15,9 @@ func TestAccAzureRMMariaDbFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbFirewallRule_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMMariaDbFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbFirewallRule_basic(data),

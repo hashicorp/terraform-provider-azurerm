@@ -17,9 +17,9 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubEndpointServiceBusQueue_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMIotHubEndpointServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testAccAzureRMIotHubEndpointServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubEndpointServiceBusQueue_basic(data),

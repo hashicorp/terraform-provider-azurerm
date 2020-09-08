@@ -18,9 +18,9 @@ func TestAccAzureRMIotHubSharedAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubSharedAccessPolicy_basic(data),
@@ -42,9 +42,9 @@ func TestAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(data),
@@ -58,9 +58,9 @@ func TestAccAzureRMIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubSharedAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubSharedAccessPolicy_basic(data),

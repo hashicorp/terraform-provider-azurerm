@@ -15,9 +15,9 @@ func TestAccDevTestLinuxVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLinuxVirtualMachine_basic(data),
@@ -41,9 +41,9 @@ func TestAccDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLinuxVirtualMachine_basic(data),
@@ -63,9 +63,9 @@ func TestAccDevTestLinuxVirtualMachine_basicSSH(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLinuxVirtualMachine_basicSSH(data),
@@ -90,9 +90,9 @@ func TestAccDevTestLinuxVirtualMachine_inboundNatRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLinuxVirtualMachine_inboundNatRules(data),
@@ -119,9 +119,9 @@ func TestAccDevTestLinuxVirtualMachine_updateStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestLinuxVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestLinuxVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestLinuxVirtualMachine_storage(data, "Standard"),

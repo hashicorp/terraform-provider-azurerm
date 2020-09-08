@@ -65,9 +65,9 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data),
@@ -85,9 +85,9 @@ func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data),
@@ -108,9 +108,9 @@ func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(data),
@@ -128,9 +128,9 @@ func testAccAzureRMExpressRouteCircuit_update(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data),
@@ -155,9 +155,9 @@ func testAccAzureRMExpressRouteCircuit_updateTags(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(data),
@@ -182,9 +182,9 @@ func testAccAzureRMExpressRouteCircuit_tierUpdate(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_sku(data, "Standard", "MeteredData"),
@@ -209,9 +209,9 @@ func testAccAzureRMExpressRouteCircuit_premiumMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_sku(data, "Premium", "MeteredData"),
@@ -231,9 +231,9 @@ func testAccAzureRMExpressRouteCircuit_premiumUnlimited(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_sku(data, "Premium", "UnlimitedData"),
@@ -253,9 +253,9 @@ func testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_allowClassicOperations(data, "false"),
@@ -280,9 +280,9 @@ func testAccAzureRMExpressRouteCircuit_bandwidthReduction(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuit_bandwidthReductionConfig(data, "100"),

@@ -16,9 +16,9 @@ func TestAccAzureRMApiManagementProductPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProductPolicy_basic(data),
@@ -40,9 +40,9 @@ func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProductPolicy_basic(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMApiManagementProductPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementProductPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementProductPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementProductPolicy_basic(data),

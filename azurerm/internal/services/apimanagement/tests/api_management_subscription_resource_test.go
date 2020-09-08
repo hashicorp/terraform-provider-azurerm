@@ -15,9 +15,9 @@ func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementSubscription_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementSubscription_basic(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementSubscription_update(data, "submitted", "true"),
@@ -111,9 +111,9 @@ func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementSubscription_complete(data),

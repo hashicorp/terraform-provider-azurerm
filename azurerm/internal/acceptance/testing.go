@@ -15,7 +15,7 @@ import (
 )
 
 var AzureProvider *schema.Provider
-var SupportedProviders map[string]terraform.ResourceProvider
+var SupportedProviders map[string]terraform.ResourceProviderFactory
 
 func PreCheck(t *testing.T) {
 	variables := []string{

@@ -15,9 +15,9 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementGroup_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementGroup_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementGroup_complete(data, "Test Group", "A test description."),
@@ -79,9 +79,9 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementGroup_complete(data, "Original Group", "The original description."),

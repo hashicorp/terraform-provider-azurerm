@@ -16,9 +16,9 @@ func TestAccAzureRMNetAppVolume_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppVolume_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppVolume_nfsv41(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMNetAppVolume_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppVolume_basic(data),
@@ -78,9 +78,9 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppVolume_complete(data),
@@ -103,9 +103,9 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppVolume_basic(data),
@@ -156,9 +156,9 @@ func TestAccAzureRMNetAppVolume_updateSubnet(t *testing.T) {
 	newSubnetId := fmt.Sprintf(uriTemplate, subscriptionID, resourceGroupName, newVNetName, newSubnetName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppVolume_basic(data),
@@ -184,9 +184,9 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppVolumeDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppVolume_complete(data),

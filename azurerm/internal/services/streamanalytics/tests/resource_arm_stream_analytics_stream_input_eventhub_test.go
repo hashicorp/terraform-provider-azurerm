@@ -15,9 +15,9 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_avro(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsStreamInputEventHub_avro(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_csv(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsStreamInputEventHub_csv(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_json(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsStreamInputEventHub_json(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsStreamInputEventHub_json(data),
@@ -97,9 +97,9 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_requiresImport(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsStreamInputEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsStreamInputEventHub_json(data),

@@ -13,9 +13,9 @@ func TestAccAzureRMAutomationConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionCustomDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationConnectionCustomDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationConnection_basic(data),
@@ -32,9 +32,9 @@ func TestAccAzureRMAutomationConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionCustomDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationConnectionCustomDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationConnection_basic(data),
@@ -51,9 +51,9 @@ func TestAccAzureRMAutomationConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionCustomDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationConnectionCustomDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationConnection_complete(data),
@@ -70,9 +70,9 @@ func TestAccAzureRMAutomationConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionCustomDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationConnectionCustomDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationConnection_basic(data),

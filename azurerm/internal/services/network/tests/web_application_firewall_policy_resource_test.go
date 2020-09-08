@@ -15,9 +15,9 @@ func TestAccAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMWebApplicationFirewallPolicy_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMWebApplicationFirewallPolicy_complete(data),
@@ -106,9 +106,9 @@ func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWebApplicationFirewallPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMWebApplicationFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMWebApplicationFirewallPolicy_basic(data),

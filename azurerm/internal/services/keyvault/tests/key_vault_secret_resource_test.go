@@ -19,9 +19,9 @@ func TestAccAzureRMKeyVaultSecret_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultSecret_basic(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMKeyVaultSecret_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultSecret_basic(data),
@@ -62,9 +62,9 @@ func TestAccAzureRMKeyVaultSecret_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultSecret_basic(data),
@@ -82,9 +82,9 @@ func TestAccAzureRMKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultSecret_basic(data),
@@ -102,9 +102,9 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultSecret_complete(data),
@@ -125,9 +125,9 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultSecret_basic(data),
@@ -151,9 +151,9 @@ func TestAccAzureRMKeyVaultSecret_updatingValueChangedExternally(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultSecret_basic(data),
@@ -183,9 +183,9 @@ func TestAccAzureRMKeyVaultSecret_recovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultSecretDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultSecret_softDeleteRecovery(data, false),

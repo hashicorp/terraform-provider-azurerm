@@ -17,9 +17,9 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMLocalNetworkGateway_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(data),
@@ -82,9 +82,9 @@ func TestAccAzureRMLocalNetworkGateway_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_tags(data),
@@ -103,9 +103,9 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(data),
@@ -125,9 +125,9 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(data),
@@ -157,9 +157,9 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(data),
@@ -189,9 +189,9 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_bgpSettingsComplete(data),
@@ -214,9 +214,9 @@ func TestAccAzureRMLocalNetworkGateway_updateAddressSpace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLocalNetworkGatewayConfig_multipleAddressSpace(data),

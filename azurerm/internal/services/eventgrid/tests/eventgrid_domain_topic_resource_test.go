@@ -16,9 +16,9 @@ func TestAccAzureRMEventGridDomainTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridDomainTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridDomainTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridDomainTopic_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMEventGridDomainTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridTopicDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridDomainTopic_basic(data),

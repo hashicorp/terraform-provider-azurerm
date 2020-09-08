@@ -15,9 +15,9 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateEndpoint_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMPrivateEndpoint_updateTag(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateEndpoint_basic(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMPrivateEndpoint_requestMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateEndpoint_requestMessage(data, "CATS: ALL YOUR BASE ARE BELONG TO US."),
@@ -106,9 +106,9 @@ func TestAccAzureRMPrivateEndpoint_privateDnsZoneGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),
@@ -128,9 +128,9 @@ func TestAccAzureRMPrivateEndpoint_privateDnsZoneRename(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),
@@ -160,9 +160,9 @@ func TestAccAzureRMPrivateEndpoint_privateDnsZoneUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),
@@ -192,9 +192,9 @@ func TestAccAzureRMPrivateEndpoint_privateDnsZoneRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateEndpoint_privateDnsZoneGroup(data),

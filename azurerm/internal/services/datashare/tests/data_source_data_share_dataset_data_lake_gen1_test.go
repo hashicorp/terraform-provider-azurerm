@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMDataShareDatasetDataLakeGen1_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_data_lake_gen1", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_data_lake_gen1"),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_data_lake_gen1"),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDataShareDatasetDataLakeGen1_basic(data),

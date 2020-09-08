@@ -16,9 +16,9 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderAADDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderAAD_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderAADDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderAAD_basic(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_requiresImport(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aad", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderAADDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderAAD_basic(data),

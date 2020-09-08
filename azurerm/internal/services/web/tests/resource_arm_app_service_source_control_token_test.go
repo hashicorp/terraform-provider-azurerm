@@ -19,9 +19,9 @@ func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 	tokenSecret := strings.ToLower(acctest.RandString(41))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSourceControlTokenDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSourceControlTokenDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSourceControlToken(token, tokenSecret),

@@ -15,9 +15,9 @@ func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_basicWindows(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_basicLinux(data),
@@ -65,9 +65,9 @@ func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_basicLinux(data),
@@ -84,9 +84,9 @@ func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_standardWindows(data),
@@ -104,9 +104,9 @@ func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_premiumWindows(data),
@@ -124,9 +124,9 @@ func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_premiumWindows(data),
@@ -152,9 +152,9 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_completeWindows(data),
@@ -182,9 +182,9 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_consumptionPlan(data),
@@ -202,9 +202,9 @@ func TestAccAzureRMAppServicePlan_linuxConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_linuxConsumptionPlan(data),
@@ -221,9 +221,9 @@ func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_premiumConsumptionPlan(data),
@@ -242,9 +242,9 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServicePlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServicePlan_basicWindowsContainer(data),

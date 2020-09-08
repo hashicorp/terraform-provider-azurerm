@@ -15,9 +15,9 @@ func TestAccAzureRMSiteRecoveryProtectionContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSiteRecoveryProtectionContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSiteRecoveryProtectionContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSiteRecoveryProtectionContainer_basic(data),

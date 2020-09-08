@@ -16,9 +16,9 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_authorization", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(data),
@@ -36,9 +36,9 @@ func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_authorization", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(data),
@@ -60,9 +60,9 @@ func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	secondResourceName := "azurerm_express_route_circuit_authorization.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(data),

@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMPrivateDnsTxtRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_txt_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsTxtRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsTxtRecord_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMPrivateDnsTxtRecord_basic(t *testing.T) {
 func TestAccAzureRMPrivateDnsTxtRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_txt_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsTxtRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsTxtRecord_basic(data),
@@ -52,9 +52,9 @@ func TestAccAzureRMPrivateDnsTxtRecord_requiresImport(t *testing.T) {
 func TestAccAzureRMPrivateDnsTxtRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_txt_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsTxtRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsTxtRecord_basic(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMPrivateDnsTxtRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMPrivateDnsTxtRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_txt_record", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPrivateDnsTxtRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPrivateDnsTxtRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPrivateDnsTxtRecord_withTags(data),

@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMAdvisorRecommendations_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckArmAdvisorRecommendations_basic,
@@ -37,8 +37,8 @@ func TestAccDataSourceAzureRMAdvisorRecommendations_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckArmAdvisorRecommendations_complete(data),
@@ -54,8 +54,8 @@ func TestAccDataSourceAzureRMAdvisorRecommendations_categoriesFilter(t *testing.
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckArmAdvisorRecommendations_categoriesFilter,

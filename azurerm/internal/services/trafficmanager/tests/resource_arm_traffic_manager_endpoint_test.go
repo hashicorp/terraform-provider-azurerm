@@ -17,9 +17,9 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	azureResourceName := "azurerm_traffic_manager_endpoint.testAzure"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_basic(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_basic(data),
@@ -62,9 +62,9 @@ func TestAccAzureRMTrafficManagerEndpoint_disappears(t *testing.T) {
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_basic(data),
@@ -86,9 +86,9 @@ func TestAccAzureRMTrafficManagerEndpoint_basicDisableExternal(t *testing.T) {
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_basic(data),
@@ -118,9 +118,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateWeight(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_weight(data),
@@ -149,9 +149,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateSubnets(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_subnets(data),
@@ -188,9 +188,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updateCustomeHeaders(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_headers(data),
@@ -224,9 +224,9 @@ func TestAccAzureRMTrafficManagerEndpoint_updatePriority(t *testing.T) {
 	secondResourceName := "azurerm_traffic_manager_endpoint.testExternalNew"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_priority(data),
@@ -254,9 +254,9 @@ func TestAccAzureRMTrafficManagerEndpoint_nestedEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "nested")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_nestedEndpoints(data),
@@ -273,9 +273,9 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_location(data),
@@ -297,9 +297,9 @@ func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTrafficManagerEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerEndpoint_geoMappings(data),

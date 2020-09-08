@@ -16,9 +16,9 @@ func TestAccAzureRMDataShareAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShareAccount_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMDataShareAccount_basic(t *testing.T) {
 func TestAccAzureRMDataShareAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShareAccount_basic(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMDataShareAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShareAccount_complete(data),
@@ -76,9 +76,9 @@ func TestAccAzureRMDataShareAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShareAccount_basic(data),

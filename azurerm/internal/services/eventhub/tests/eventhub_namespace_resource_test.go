@@ -16,9 +16,9 @@ func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMEventHubNamespace_basicWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_basicWithIdentity(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMEventHubNamespace_basicUpdateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_basic(data),
@@ -80,9 +80,9 @@ func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_basic(data),
@@ -102,9 +102,9 @@ func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_standard(data),
@@ -121,9 +121,9 @@ func TestAccAzureRMEventHubNamespace_standardWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_standardWithIdentity(data),
@@ -140,9 +140,9 @@ func TestAccAzureRMEventHubNamespace_standardUpdateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_standard(data),
@@ -166,9 +166,9 @@ func TestAccAzureRMEventHubNamespace_networkrule_iprule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_networkrule_iprule(data),
@@ -185,9 +185,9 @@ func TestAccAzureRMEventHubNamespace_networkrule_vnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_networkrule_vnet(data),
@@ -204,9 +204,9 @@ func TestAccAzureRMEventHubNamespace_networkruleVnetIpRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_networkruleVnetIpRule(data),
@@ -225,9 +225,9 @@ func TestAccAzureRMEventHubNamespace_readDefaultKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_basic(data),
@@ -247,9 +247,9 @@ func TestAccAzureRMEventHubNamespace_withAliasConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` in `azurerm_eventhub_namespace` after created `azurerm_eventhub_namespace` successfully since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
@@ -275,9 +275,9 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnits(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_maximumThroughputUnits(data),
@@ -294,9 +294,9 @@ func TestAccAzureRMEventHubNamespace_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_zoneRedundant(data),
@@ -313,9 +313,9 @@ func TestAccAzureRMEventHubNamespace_dedicatedClusterID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_dedicatedClusterID(data),
@@ -332,9 +332,9 @@ func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespaceNonStandardCasing(data),
@@ -355,9 +355,9 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_basic(data),
@@ -380,9 +380,9 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_capacity(data, 20),
@@ -399,9 +399,9 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_capacity(data, 20),
@@ -425,9 +425,9 @@ func TestAccAzureRMEventHubNamespace_BasicWithSkuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_basic(data),
@@ -452,9 +452,9 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_maximumThroughputUnits(data),
@@ -482,9 +482,9 @@ func TestAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(data),

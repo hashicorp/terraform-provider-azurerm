@@ -15,9 +15,9 @@ func TestAccAzureRMNetAppSnapshot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppSnapshot_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMNetAppSnapshot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppSnapshot_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMNetAppSnapshot_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppSnapshot_complete(data),
@@ -79,9 +79,9 @@ func TestAccAzureRMNetAppSnapshot_update(t *testing.T) {
 	newVolumeName := fmt.Sprintf("acctest-updated-NetAppVolume-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppSnapshotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppSnapshot_complete(data),

@@ -15,9 +15,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeDaily(data),
@@ -94,9 +94,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data),
@@ -125,9 +125,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
@@ -162,9 +162,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
@@ -199,9 +199,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
@@ -225,9 +225,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data),
@@ -251,9 +251,9 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data),

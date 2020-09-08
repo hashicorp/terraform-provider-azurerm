@@ -18,9 +18,9 @@ func TestAccAzureRMMsSqlVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMsSqlVirtualMachine_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMMsSqlVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMsSqlVirtualMachine_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMMsSqlVirtualMachine_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMsSqlVirtualMachine_complete(data),
@@ -88,9 +88,9 @@ func TestAccAzureRMMsSqlVirtualMachine_updateAutoPatching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMsSqlVirtualMachine_withAutoPatching(data),
@@ -124,9 +124,9 @@ func TestAccAzureRMMsSqlVirtualMachine_updateKeyVault(t *testing.T) {
 	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMsSqlVirtualMachine_withKeyVault(data, value),

@@ -11,8 +11,8 @@ import (
 func TestAccDataSourceAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_security_group", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceApplicationSecurityGroup_basic(data),
@@ -30,8 +30,8 @@ func TestAccDataSourceAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 func TestAccDataSourceAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_security_group", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceApplicationSecurityGroup_complete(data),

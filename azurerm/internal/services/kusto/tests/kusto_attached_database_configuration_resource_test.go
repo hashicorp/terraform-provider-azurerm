@@ -15,9 +15,9 @@ func TestAccAzureRMKustoAttachedDatabaseConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_attached_database_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoAttachedDatabaseConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoAttachedDatabaseConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoAttachedDatabaseConfiguration_basic(data),

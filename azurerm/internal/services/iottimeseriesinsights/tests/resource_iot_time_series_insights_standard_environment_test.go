@@ -17,9 +17,9 @@ func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_update(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_basic(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_complete(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_standard_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsStandardEnvironment_complete(data),

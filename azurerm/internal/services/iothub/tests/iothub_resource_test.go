@@ -15,9 +15,9 @@ func TestAccAzureRMIotHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMIotHub_ipFilterRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_ipFilterRules(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_basic(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMIotHub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_standard(data),
@@ -94,9 +94,9 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_customRoutes(data),
@@ -117,9 +117,9 @@ func TestAccAzureRMIotHub_removeEndpointsAndRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_customRoutes(data),
@@ -143,9 +143,9 @@ func TestAccAzureRMIotHub_fileUpload(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_fileUpload(data),
@@ -164,9 +164,9 @@ func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_fallbackRoute(data),

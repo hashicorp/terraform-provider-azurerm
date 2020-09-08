@@ -12,9 +12,9 @@ func TestAccWindowsVirtualMachine_identityNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_identityNone(data),
@@ -34,9 +34,9 @@ func TestAccWindowsVirtualMachine_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_identitySystemAssigned(data),
@@ -55,9 +55,9 @@ func TestAccWindowsVirtualMachine_identitySystemAssignedUserAssigned(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_identitySystemAssignedUserAssigned(data),
@@ -76,9 +76,9 @@ func TestAccWindowsVirtualMachine_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_identityUserAssigned(data),
@@ -106,9 +106,9 @@ func TestAccWindowsVirtualMachine_identityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_identityNone(data),

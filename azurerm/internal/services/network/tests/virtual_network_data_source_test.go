@@ -15,8 +15,8 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestvnet-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceArmVirtualNetwork_basic(data),
@@ -38,8 +38,8 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 	virtualNetworkName := fmt.Sprintf("acctestvnet-1-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceArmVirtualNetwork_peering(data),

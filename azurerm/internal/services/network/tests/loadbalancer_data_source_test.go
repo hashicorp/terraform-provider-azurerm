@@ -13,9 +13,9 @@ func TestAccAzureRMDataSourceLoadBalancer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_lb", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceLoadBalancer_basic(data),

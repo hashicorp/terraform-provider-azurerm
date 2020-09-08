@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMApiManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceApiManagementGroup_basic(data),

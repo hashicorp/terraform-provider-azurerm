@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMDataLakeStore_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDataLakeStore_basic(data),
@@ -30,8 +30,8 @@ func TestAccDataSourceAzureRMDataLakeStore_tier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDataLakeStore_tier(data),

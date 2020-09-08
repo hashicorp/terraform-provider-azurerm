@@ -46,7 +46,7 @@ func TestAccEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	requiredResourceProviders := rmResourceProviders.Required()
 	err = rmResourceProviders.EnsureRegistered(ctx, *client, availableResourceProviders, requiredResourceProviders)
 	if err != nil {
-		t.Fatalf("Error registering Resource Providers: %+v", err)
+		t.Fatalf("Error registering Resource ProviderFactories: %+v", err)
 	}
 
 	// refresh the list now things have been re-registered

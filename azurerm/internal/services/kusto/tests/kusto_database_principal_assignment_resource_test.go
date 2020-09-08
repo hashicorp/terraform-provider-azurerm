@@ -15,9 +15,9 @@ func TestAccAzureRMKustoDatabasePrincipalAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabasePrincipalAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoDatabasePrincipalAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoDatabasePrincipalAssignment_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMKustoDatabasePrincipalAssignment_requiresImport(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database_principal_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabasePrincipalAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoDatabasePrincipalAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoDatabasePrincipalAssignment_basic(data),

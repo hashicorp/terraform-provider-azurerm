@@ -13,9 +13,9 @@ func TestAccAzureRMAutomationVariableInt_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableIntDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationVariableIntDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationVariableInt_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMAutomationVariableInt_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableIntDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationVariableIntDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationVariableInt_complete(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMAutomationVariableInt_basicCompleteUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableIntDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationVariableIntDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationVariableInt_basic(data),

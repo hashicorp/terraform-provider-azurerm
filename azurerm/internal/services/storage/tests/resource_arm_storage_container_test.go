@@ -17,9 +17,9 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMStorageContainer_deleteAndRecreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_basic(data),
@@ -65,9 +65,9 @@ func TestAccAzureRMStorageContainer_basicAzureADAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_basicAzureADAuth(data),
@@ -84,9 +84,9 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_basic(data),
@@ -103,9 +103,9 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_update(data, "private"),
@@ -130,9 +130,9 @@ func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_metaData(data),
@@ -163,9 +163,9 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_basic(data),
@@ -183,9 +183,9 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_root(data),
@@ -203,9 +203,9 @@ func TestAccAzureRMStorageContainer_web(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageContainer_web(data),

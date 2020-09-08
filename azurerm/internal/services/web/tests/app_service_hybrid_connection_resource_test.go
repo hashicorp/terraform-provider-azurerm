@@ -15,9 +15,9 @@ func TestAccAzureRMAppServiceHybridConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceHybridConnection_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMAppServiceHybridConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceHybridConnection_basic(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMAppServiceHybridConnection_update(t *testing.T) {
 func TestAccAzureRMAppServiceHybridConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_hybrid_connection", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceHybridConnection_basic(data),

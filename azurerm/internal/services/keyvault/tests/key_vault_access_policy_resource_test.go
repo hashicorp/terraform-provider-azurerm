@@ -18,9 +18,9 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
@@ -40,9 +40,9 @@ func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
@@ -66,9 +66,9 @@ func TestAccAzureRMKeyVaultAccessPolicy_multiple(t *testing.T) {
 	resourceName2 := "azurerm_key_vault_access_policy.test_no_application_id"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultAccessPolicy_multiple(data),
@@ -104,9 +104,9 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultAccessPolicy_basic(data),
@@ -133,9 +133,9 @@ func TestAccAzureRMKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:             testAccAzureRMKeyVaultAccessPolicy_nonExistentVault(data),

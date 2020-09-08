@@ -17,9 +17,9 @@ func testAccAzureRMBotChannelDirectline_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelDirectlineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotChannelDirectlineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelDirectline_basicConfig(data),
@@ -36,9 +36,9 @@ func testAccAzureRMBotChannelDirectline_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelDirectlineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotChannelDirectlineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelDirectline_completeConfig(data),
@@ -55,9 +55,9 @@ func testAccAzureRMBotChannelDirectline_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_directline", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelDirectlineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotChannelDirectlineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelDirectline_basicConfig(data),

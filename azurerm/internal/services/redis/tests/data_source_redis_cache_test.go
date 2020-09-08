@@ -16,9 +16,9 @@ func TestAccDataSourceAzureRMRedisCache_standard(t *testing.T) {
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRedisCache_standardWithDataSource(data),

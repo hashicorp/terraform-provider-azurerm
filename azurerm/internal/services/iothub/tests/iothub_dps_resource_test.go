@@ -15,9 +15,9 @@ func TestAccAzureRMIotHubDPS_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPS_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMIotHubDPS_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPS_basic(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMIotHubDPS_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPS_basic(data),
@@ -86,9 +86,9 @@ func TestAccAzureRMIotHubDPS_linkedHubs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDPS_linkedHubs(data),

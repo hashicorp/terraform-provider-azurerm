@@ -16,8 +16,8 @@ func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 
 	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Standard"),

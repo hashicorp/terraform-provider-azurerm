@@ -16,9 +16,9 @@ func TestAccAzureRMTableEntity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTableEntityDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTableEntity_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTableEntityDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTableEntity_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMTableEntity_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMTableEntityDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMTableEntityDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTableEntity_basic(data),

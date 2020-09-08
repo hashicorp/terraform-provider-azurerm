@@ -11,9 +11,9 @@ import (
 func TestAccDataSourceAzureRMLogicAppIntegrationAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_logic_app_integration_account", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppIntegrationAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppIntegrationAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceLogicAppIntegrationAccount_basic(data),

@@ -15,9 +15,9 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLDatabase_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLDatabase_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMMySQLDatabase_charsetUppercase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLDatabase_charsetUppercase(data),
@@ -76,9 +76,9 @@ func TestAccAzureRMMySQLDatabase_charsetMixedcase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLDatabase_charsetMixedcase(data),

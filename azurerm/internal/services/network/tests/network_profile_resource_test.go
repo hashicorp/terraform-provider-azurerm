@@ -15,9 +15,9 @@ func TestAccAzureRMNetworkProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkProfile_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMNetworkProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkProfile_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMNetworkProfile_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkProfile_withTags(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMNetworkProfile_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkProfile_basic(data),

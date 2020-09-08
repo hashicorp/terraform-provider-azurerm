@@ -44,9 +44,9 @@ func TestAccDevTestVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestVirtualNetwork_basic(data),
@@ -64,9 +64,9 @@ func TestAccDevTestVirtualNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestVirtualNetwork_basic(data),
@@ -87,9 +87,9 @@ func TestAccDevTestVirtualNetwork_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDevTestVirtualNetwork_subnets(data),

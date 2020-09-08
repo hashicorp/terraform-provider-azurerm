@@ -15,9 +15,9 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_csv(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_csv(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(data),
@@ -97,9 +97,9 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStreamAnalyticsOutputServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStreamAnalyticsOutputServiceBusQueue_json(data),

@@ -17,9 +17,9 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMUserAssignedIdentity_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMUserAssignedIdentityDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMUserAssignedIdentityDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMUserAssignedIdentity_basic(data),

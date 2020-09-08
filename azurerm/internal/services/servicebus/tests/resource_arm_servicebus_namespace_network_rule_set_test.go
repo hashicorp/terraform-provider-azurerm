@@ -17,9 +17,9 @@ func TestAccAzureRMServiceBusNamespaceNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusNamespaceNetworkRule_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMServiceBusNamespaceNetworkRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusNamespaceNetworkRule_complete(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMServiceBusNamespaceNetworkRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusNamespaceNetworkRule_basic(data),
@@ -88,9 +88,9 @@ func TestAccAzureRMServiceBusNamespaceNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusNamespaceNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusNamespaceNetworkRule_basic(data),

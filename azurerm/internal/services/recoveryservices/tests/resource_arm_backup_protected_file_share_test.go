@@ -17,9 +17,9 @@ func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
@@ -41,9 +41,9 @@ func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectedFileShare_basic(data),
@@ -68,9 +68,9 @@ func TestAccAzureRMBackupProtectedFileShare_updateBackupPolicyId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedFileShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectedFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Create resources and link first backup policy id

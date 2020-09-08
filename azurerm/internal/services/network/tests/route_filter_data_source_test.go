@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMRouteFilter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_filter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRouteFilter_basic(data),
@@ -31,9 +31,9 @@ func TestAccDataSourceAzureRMRouteFilter_withRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_filter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRouteFilter_withRules(data),

@@ -37,9 +37,9 @@ func testAccAzureRMMarketplaceAgreement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_agreement", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMarketplaceAgreementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMarketplaceAgreement_basicConfig(),
@@ -58,9 +58,9 @@ func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_agreement", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMarketplaceAgreementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMarketplaceAgreement_basicConfig(),
@@ -80,9 +80,9 @@ func testAccAzureRMMarketplaceAgreement_agreementCanceled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_agreement", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMarketplaceAgreementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMarketplaceAgreement_basicConfig(),

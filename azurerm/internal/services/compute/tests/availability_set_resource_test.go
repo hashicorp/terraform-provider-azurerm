@@ -17,9 +17,9 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAvailabilitySet_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAvailabilitySet_basic(data),
@@ -62,9 +62,9 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAvailabilitySet_basic(data),
@@ -84,9 +84,9 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAvailabilitySet_withTags(data),
@@ -114,9 +114,9 @@ func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAvailabilitySet_withPPG(data),
@@ -134,9 +134,9 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAvailabilitySet_withDomainCounts(data),
@@ -155,9 +155,9 @@ func TestAccAzureRMAvailabilitySet_unmanaged(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAvailabilitySet_unmanaged(data),

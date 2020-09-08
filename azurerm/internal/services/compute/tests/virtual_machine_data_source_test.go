@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMVirtualMachine_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMVirtualMachine_basicLinux(data),
@@ -32,9 +32,9 @@ func TestAccDataSourceAzureRMVirtualMachine_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMVirtualMachine_basicWindows(data),

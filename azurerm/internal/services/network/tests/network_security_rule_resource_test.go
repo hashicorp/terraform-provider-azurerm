@@ -16,9 +16,9 @@ import (
 func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkSecurityRule_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMNetworkSecurityRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkSecurityRule_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkSecurityRule_basic(data),
@@ -77,9 +77,9 @@ func TestAccAzureRMNetworkSecurityRule_addingRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkSecurityRule_updateBasic(data),
@@ -101,9 +101,9 @@ func TestAccAzureRMNetworkSecurityRule_addingRules(t *testing.T) {
 func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkSecurityRule_augmented(data),
@@ -119,9 +119,9 @@ func TestAccAzureRMNetworkSecurityRule_augmented(t *testing.T) {
 func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_rule", "test1")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkSecurityRule_applicationSecurityGroups(data),

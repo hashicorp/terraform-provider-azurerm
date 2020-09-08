@@ -75,9 +75,9 @@ func TestAccAzureRMContainerRegistry_basic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_basic_basic(data),
@@ -94,9 +94,9 @@ func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Basic"),
@@ -116,9 +116,9 @@ func TestAccAzureRMContainerRegistry_basic_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Standard"),
@@ -135,9 +135,9 @@ func TestAccAzureRMContainerRegistry_basic_premium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Premium"),
@@ -154,9 +154,9 @@ func TestAccAzureRMContainerRegistry_basic_basic2Premium2basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_basic_basic(data),
@@ -187,9 +187,9 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_complete(data),
@@ -206,9 +206,9 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_complete(data),
@@ -233,9 +233,9 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	skuBasic := "Basic"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			// first config creates an ACR with locations
 			{
@@ -294,9 +294,9 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileIp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_networkAccessProfile_ip(data, "Premium"),
@@ -315,9 +315,9 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_basicManaged(data, "Premium"),
@@ -360,9 +360,9 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistry_networkAccessProfile_vnet(data),

@@ -58,9 +58,9 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelsRegistration_basicConfig(data),
@@ -77,9 +77,9 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelsRegistration_basicConfig(data),
@@ -103,9 +103,9 @@ func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channels_registration", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotChannelsRegistrationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelsRegistration_completeConfig(data),

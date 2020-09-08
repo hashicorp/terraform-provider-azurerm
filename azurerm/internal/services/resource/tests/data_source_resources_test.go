@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMResources_ByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMResources_template(data),
@@ -32,8 +32,8 @@ func TestAccDataSourceAzureRMResources_ByResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMResources_template(data),
@@ -52,8 +52,8 @@ func TestAccDataSourceAzureRMResources_ByResourceType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMResources_template(data),
@@ -72,8 +72,8 @@ func TestAccDataSourceAzureRMResources_FilteredByTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_resources", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMResources_template(data),

@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMSharedImageGallery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_gallery", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceSharedImageGallery_basic(data),
@@ -30,9 +30,9 @@ func TestAccDataSourceAzureRMSharedImageGallery_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_gallery", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageGalleryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSharedImageGalleryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceSharedImageGallery_complete(data),

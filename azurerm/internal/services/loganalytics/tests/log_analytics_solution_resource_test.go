@@ -15,8 +15,8 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(data),
@@ -33,8 +33,8 @@ func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsSolution_containerMonitoring(data),
@@ -54,8 +54,8 @@ func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsSolution_security(data),

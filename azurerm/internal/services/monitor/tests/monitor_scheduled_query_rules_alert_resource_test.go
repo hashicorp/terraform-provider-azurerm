@@ -17,9 +17,9 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionBasic(t *testing.T) 
 	ts := time.Now().Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_AlertDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorScheduledQueryRules_AlertDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_AlertingActionConfigBasic(data, ts),
@@ -37,9 +37,9 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionUpdate(t *testing.T)
 	ts := time.Now().Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_AlertDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorScheduledQueryRules_AlertDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_AlertingActionConfigBasic(data, ts),
@@ -63,9 +63,9 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionComplete(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_AlertDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorScheduledQueryRules_AlertDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_AlertingActionConfigComplete(data),
@@ -82,9 +82,9 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_AlertDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorScheduledQueryRules_AlertDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResourceConfig(data),

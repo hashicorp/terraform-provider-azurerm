@@ -12,8 +12,8 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceArmMonitorDiagnosticCategories_appService(data),
@@ -30,8 +30,8 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_diagnostic_categories", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data),

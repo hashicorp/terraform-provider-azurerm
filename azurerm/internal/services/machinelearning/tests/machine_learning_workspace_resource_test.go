@@ -16,9 +16,9 @@ func TestAccAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMachineLearningWorkspace_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMMachineLearningWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMachineLearningWorkspace_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMMachineLearningWorkspace_basicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMachineLearningWorkspace_basic(data),
@@ -86,9 +86,9 @@ func TestAccAzureRMMachineLearningWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMachineLearningWorkspace_complete(data),
@@ -110,9 +110,9 @@ func TestAccAzureRMMachineLearningWorkspace_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMachineLearningWorkspace_complete(data),

@@ -21,9 +21,9 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotChannelEmailDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelEmail_basicConfig(data),
@@ -46,9 +46,9 @@ func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_channel_email", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotChannelEmailDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotChannelEmail_basicConfig(data),

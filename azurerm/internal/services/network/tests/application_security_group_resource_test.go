@@ -15,9 +15,9 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationSecurityGroup_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationSecurityGroup_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMApplicationSecurityGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationSecurityGroup_complete(data),
@@ -76,9 +76,9 @@ func TestAccAzureRMApplicationSecurityGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationSecurityGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationSecurityGroup_basic(data),

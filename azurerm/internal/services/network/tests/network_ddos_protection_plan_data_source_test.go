@@ -12,9 +12,9 @@ func testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_network_ddos_protection_plan", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkDDoSProtectionPlanDataSource_basicConfig(data),

@@ -17,9 +17,9 @@ func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
@@ -40,9 +40,9 @@ func testAccAzureRMNetworkConnectionMonitor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
@@ -64,9 +64,9 @@ func testAccAzureRMNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	autoStart := "false"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data, autoStart),
@@ -90,9 +90,9 @@ func testAccAzureRMNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	autoStart := "true"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
@@ -120,9 +120,9 @@ func testAccAzureRMNetworkConnectionMonitor_vmBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data),
@@ -145,9 +145,9 @@ func testAccAzureRMNetworkConnectionMonitor_vmComplete(t *testing.T) {
 	autoStart := "false"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data, autoStart),
@@ -169,9 +169,9 @@ func testAccAzureRMNetworkConnectionMonitor_vmUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data),
@@ -199,9 +199,9 @@ func testAccAzureRMNetworkConnectionMonitor_destinationUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
@@ -233,9 +233,9 @@ func testAccAzureRMNetworkConnectionMonitor_missingDestination(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data),
@@ -249,9 +249,9 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinations(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data),

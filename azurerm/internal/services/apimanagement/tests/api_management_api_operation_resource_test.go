@@ -15,9 +15,9 @@ func TestAccAzureRMApiManagementApiOperation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiOperation_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMApiManagementApiOperation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiOperation_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMApiManagementApiOperation_customMethod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiOperation_customMethod(data),
@@ -73,9 +73,9 @@ func TestAccAzureRMApiManagementApiOperation_headers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiOperation_headers(data),
@@ -92,9 +92,9 @@ func TestAccAzureRMApiManagementApiOperation_requestRepresentations(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiOperation_requestRepresentation(data),
@@ -119,9 +119,9 @@ func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiOperationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementApiOperationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiOperation_representation(data),

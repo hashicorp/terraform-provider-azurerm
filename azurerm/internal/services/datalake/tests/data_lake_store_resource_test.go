@@ -16,9 +16,9 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStore_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStore_basic(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStore_tier(data),
@@ -79,9 +79,9 @@ func TestAccAzureRMDataLakeStore_encryptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStore_encryptionDisabled(data),
@@ -100,9 +100,9 @@ func TestAccAzureRMDataLakeStore_firewallUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStore_firewall(data, "Enabled", "Enabled"),
@@ -144,9 +144,9 @@ func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStore_withTags(data),

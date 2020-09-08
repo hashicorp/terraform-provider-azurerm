@@ -16,9 +16,9 @@ func TestAccAzureRMMaintenanceAssignmentVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceAssignmentVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceAssignmentVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMaintenanceAssignmentVirtualMachine_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMMaintenanceAssignmentVirtualMachine_requiresImport(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceAssignmentVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceAssignmentVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMaintenanceAssignmentVirtualMachine_basic(data),

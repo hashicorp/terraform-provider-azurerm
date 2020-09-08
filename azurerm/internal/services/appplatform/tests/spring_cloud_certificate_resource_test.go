@@ -15,9 +15,9 @@ func TestAccAzureRMSpringCloudCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudCertificate_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMSpringCloudCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudCertificate_basic(data),

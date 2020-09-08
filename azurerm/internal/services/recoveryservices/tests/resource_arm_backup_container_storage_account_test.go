@@ -16,9 +16,9 @@ func TestAccAzureRMBackupProtectionContainerStorageAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_container_storage_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionContainerStorageAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionContainerStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionContainerStorageAccount_basic(data),

@@ -17,9 +17,9 @@ func TestAccAzureRMMaintenanceConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMaintenanceConfiguration_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMMaintenanceConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMaintenanceConfiguration_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMMaintenanceConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMaintenanceConfiguration_complete(data),
@@ -78,9 +78,9 @@ func TestAccAzureRMMaintenanceConfiguration_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMaintenanceConfiguration_basic(data),

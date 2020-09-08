@@ -14,9 +14,9 @@ import (
 func TestAccAzureRMPolicyAssignment_basicCustom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyAssignment_basicCustom(data),
@@ -32,9 +32,9 @@ func TestAccAzureRMPolicyAssignment_basicCustom(t *testing.T) {
 func TestAccAzureRMPolicyAssignment_basicBuiltin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyAssignment_basicBuiltin(data),
@@ -51,9 +51,9 @@ func TestAccAzureRMPolicyAssignment_basicBuiltInSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyAssignment_basicBuiltInSet(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMPolicyAssignment_basicBuiltInSet(t *testing.T) {
 func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyAssignment_basicCustom(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
 func TestAccAzureRMPolicyAssignment_deployIfNotExists_policy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyAssignment_deployIfNotExists_policy(data),
@@ -105,9 +105,9 @@ func TestAccAzureRMPolicyAssignment_deployIfNotExists_policy(t *testing.T) {
 func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyAssignment_complete(data),
@@ -123,9 +123,9 @@ func TestAccAzureRMPolicyAssignment_complete(t *testing.T) {
 func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyAssignment_not_scopes(data),
@@ -141,9 +141,9 @@ func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
 func TestAccAzureRMPolicyAssignment_enforcement_mode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyAssignment_enforcement_mode(data),

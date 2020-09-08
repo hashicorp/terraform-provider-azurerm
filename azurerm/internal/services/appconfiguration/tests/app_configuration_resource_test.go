@@ -18,9 +18,9 @@ func TestAccAppConfigurationResource_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAppConfigurationResource_free(data),
@@ -37,9 +37,9 @@ func TestAccAppConfigurationResource_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAppConfigurationResource_standard(data),
@@ -56,9 +56,9 @@ func TestAccAppConfigurationResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAppConfigurationResource_free(data),
@@ -75,9 +75,9 @@ func TestAccAppConfigurationResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAppConfigurationResource_complete(data),
@@ -94,9 +94,9 @@ func TestAccAppConfigurationResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAppConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAppConfigurationResource_complete(data),

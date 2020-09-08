@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMRouteTable_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRouteTable_basic(data),
@@ -31,9 +31,9 @@ func TestAccDataSourceAzureRMRouteTable_singleRoute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRouteTable_singleRoute(data),
@@ -53,9 +53,9 @@ func TestAccDataSourceAzureRMRouteTable_multipleRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_route_table", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRouteTable_multipleRoutes(data),

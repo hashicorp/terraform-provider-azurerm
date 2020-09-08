@@ -15,9 +15,9 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAdvancedThreatProtectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAdvancedThreatProtectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, true),
@@ -48,9 +48,9 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 	t.Skip()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAdvancedThreatProtectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAdvancedThreatProtectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAdvancedThreatProtection_cosmosAccount(data, true, true),
@@ -82,9 +82,9 @@ func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAdvancedThreatProtectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAdvancedThreatProtectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, true),

@@ -17,9 +17,9 @@ import (
 func TestAccAzureRMDatabaseMigrationService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabaseMigrationServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDatabaseMigrationServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDatabaseMigrationService_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMDatabaseMigrationService_basic(t *testing.T) {
 func TestAccAzureRMDatabaseMigrationService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabaseMigrationServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDatabaseMigrationServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDatabaseMigrationService_complete(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMDatabaseMigrationService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabaseMigrationServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDatabaseMigrationServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDatabaseMigrationService_basic(data),
@@ -77,9 +77,9 @@ func TestAccAzureRMDatabaseMigrationService_requiresImport(t *testing.T) {
 func TestAccAzureRMDatabaseMigrationService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabaseMigrationServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDatabaseMigrationServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDatabaseMigrationService_basic(data),

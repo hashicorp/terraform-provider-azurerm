@@ -20,9 +20,9 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret),
@@ -41,9 +41,9 @@ func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevSpaceControllerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDevSpaceControllerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDevSpaceController_basic(data, clientId, clientSecret),

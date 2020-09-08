@@ -15,9 +15,9 @@ func TestAccAzureRMIotHubConsumerGroup_events(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubConsumerGroup_basic(data, "events"),
@@ -35,9 +35,9 @@ func TestAccAzureRMIotHubConsumerGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubConsumerGroup_basic(data, "events"),
@@ -58,9 +58,9 @@ func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubConsumerGroup_basic(data, "operationsMonitoringEvents"),
@@ -77,9 +77,9 @@ func TestAccAzureRMIotHubConsumerGroup_withSharedAccessPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubConsumerGroup_withSharedAccessPolicy(data, "events"),

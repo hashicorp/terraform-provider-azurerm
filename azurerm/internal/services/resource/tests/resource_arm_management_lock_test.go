@@ -16,9 +16,9 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMManagementLock_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyBasic(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_resourceGroupReadOnlyComplete(data),
@@ -73,9 +73,9 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_resourceGroupCanNotDeleteBasic(data),
@@ -92,9 +92,9 @@ func TestAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_resourceGroupCanNotDeleteComplete(data),
@@ -111,9 +111,9 @@ func TestAccAzureRMManagementLock_publicIPReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_publicIPReadOnlyBasic(data),
@@ -130,9 +130,9 @@ func TestAccAzureRMManagementLock_publicIPCanNotDeleteBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_publicIPCanNotDeleteBasic(data),
@@ -154,9 +154,9 @@ func TestAccAzureRMManagementLock_subscriptionReadOnlyBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_subscriptionReadOnlyBasic(data),
@@ -178,9 +178,9 @@ func TestAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_lock", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementLockDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementLockDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagementLock_subscriptionCanNotDeleteBasic(data),

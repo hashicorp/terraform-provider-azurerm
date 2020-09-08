@@ -15,9 +15,9 @@ func TestAccAzureRMExpressRouteGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteGateway_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMExpressRouteGateway_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteGateway_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMExpressRouteGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteGateway_basic(data),

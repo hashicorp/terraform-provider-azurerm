@@ -15,9 +15,9 @@ func TestAccAzureRMAppServiceCertificate_Pfx(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificatePfx(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMAppServiceCertificate_PfxNoPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificatePfxNoPassword(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificateKeyVault(data),

@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttpsEnabled(data),

@@ -14,9 +14,9 @@ import (
 func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationDscConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationDscConfiguration_basic(data),
@@ -40,9 +40,9 @@ func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationDscConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationDscConfiguration_basic(data),

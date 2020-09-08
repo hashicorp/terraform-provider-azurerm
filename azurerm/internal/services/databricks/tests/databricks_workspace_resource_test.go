@@ -87,9 +87,9 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDatabricksWorkspace_basic(data),
@@ -109,9 +109,9 @@ func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDatabricksWorkspace_basic(data),
@@ -128,9 +128,9 @@ func TestAccAzureRMDatabricksWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDatabricksWorkspace_complete(data),
@@ -153,9 +153,9 @@ func TestAccAzureRMDatabricksWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDatabricksWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDatabricksWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDatabricksWorkspace_complete(data),

@@ -15,8 +15,8 @@ func testAccDataSourceAzureRMNetworkWatcher_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestnw-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMNetworkWatcher_basicConfig(data),

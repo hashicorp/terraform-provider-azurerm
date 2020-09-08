@@ -17,9 +17,9 @@ func TestAccAzureRMCustomProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCustomProviderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCustomProviderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCustomProvider_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMCustomProvider_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCustomProviderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCustomProviderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCustomProvider_basic(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMCustomProvider_action(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_custom_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCustomProviderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCustomProviderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCustomProvider_action(data),

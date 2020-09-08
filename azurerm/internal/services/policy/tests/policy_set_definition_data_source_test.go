@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPolicySetDefinition_builtIn("Audit Windows VMs with a pending reboot"),
@@ -35,9 +35,9 @@ func TestAccDataSourceAzureRMPolicySetDefinition_customByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPolicySetDefinition_customByName(data),
@@ -58,9 +58,9 @@ func TestAccDataSourceAzureRMPolicySetDefinition_customByDisplayName(t *testing.
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_set_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPolicySetDefinition_customByDisplayName(data),

@@ -17,9 +17,9 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),
@@ -48,9 +48,9 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),
@@ -70,9 +70,9 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster_customer_managed_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),

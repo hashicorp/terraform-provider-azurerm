@@ -101,9 +101,9 @@ func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPPrefix_basic(data),
@@ -122,9 +122,9 @@ func TestAccAzureRMPublicIpPrefix_prefixLength31(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPPrefix_prefixLength31(data),
@@ -145,9 +145,9 @@ func TestAccAzureRMPublicIpPrefix_prefixLength24(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPPrefix_prefixLength24(data),
@@ -166,9 +166,9 @@ func TestAccAzureRMPublicIpPrefix_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPPrefix_withTags(data),
@@ -195,9 +195,9 @@ func TestAccAzureRMPublicIpPrefix_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPPrefix_basic(data),

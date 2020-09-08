@@ -15,9 +15,9 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPacketCapture_localDiskConfig(data),
@@ -34,9 +34,9 @@ func testAccAzureRMPacketCapture_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPacketCapture_localDiskConfig(data),
@@ -55,9 +55,9 @@ func testAccAzureRMPacketCapture_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPacketCapture_storageAccountConfig(data),
@@ -74,9 +74,9 @@ func testAccAzureRMPacketCapture_storageAccountAndLocalDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPacketCapture_storageAccountAndLocalDiskConfig(data),
@@ -93,9 +93,9 @@ func testAccAzureRMPacketCapture_withFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPacketCapture_localDiskConfigWithFilters(data),

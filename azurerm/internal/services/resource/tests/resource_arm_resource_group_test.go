@@ -16,6 +16,7 @@ import (
 
 func TestMain(m *testing.M) {
 	acctest.UseBinaryDriver("azurerm", provider.AzureProvider)
+	acctest.UseBinaryDriver("azurerm2", provider.AzureProvider)
 	resource.TestMain(m)
 }
 
@@ -23,9 +24,9 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMResourceGroup_basic(data),
@@ -42,9 +43,9 @@ func TestAccAzureRMResourceGroup_multipleSubscriptions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMResourceGroup_multipleSubscriptions(data),
@@ -61,9 +62,9 @@ func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMResourceGroup_basic(data),
@@ -80,9 +81,9 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			data.DisappearsStep(acceptance.DisappearsStepData{
 				Config:      testAccAzureRMResourceGroup_basic,
@@ -97,9 +98,9 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMResourceGroup_withTags(data),
@@ -267,19 +268,17 @@ resource "azurerm_resource_group" "test" {
 
 func testAccAzureRMResourceGroup_multipleSubscriptions(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm1" {
+provider "azurerm" {
   features {}
-  source = "hashicorp/azurerm"
 }
 
 provider "azurerm2" {
   features {}
   subscription_id = "%s"
-  source = "hashicorp/azurerm"
 }
 
 resource "azurerm_resource_group" "test" {
-  provider = azurerm1
+  provider = azurerm
   name     = "acctestRG-%d"
   location = "%s"
 }

@@ -17,9 +17,9 @@ func TestAccAzureRMCostManagementExportResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCostManagementExportResourceGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCostManagementExportResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCostManagementExportResourceGroup_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMCostManagementExportResourceGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_export_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCostManagementExportResourceGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCostManagementExportResourceGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCostManagementExportResourceGroup_basic(data),

@@ -16,9 +16,9 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotConnection_basicConfig(data),
@@ -35,9 +35,9 @@ func testAccAzureRMBotConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_connection", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBotConnectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBotConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBotConnection_completeConfig(data),

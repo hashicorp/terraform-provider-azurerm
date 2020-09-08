@@ -13,9 +13,9 @@ func TestAccDataSourceAzureRMPPostgreSqlServer_basic(t *testing.T) {
 	version := "9.5"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMPostgreSqlServer_basic(data, version),

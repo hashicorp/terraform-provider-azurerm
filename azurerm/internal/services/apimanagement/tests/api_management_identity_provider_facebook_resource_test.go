@@ -17,9 +17,9 @@ func TestAccAzureRMApiManagementIdentityProviderFacebook_basic(t *testing.T) {
 	config := testAccAzureRMApiManagementIdentityProviderFacebook_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -38,9 +38,9 @@ func TestAccAzureRMApiManagementIdentityProviderFacebook_update(t *testing.T) {
 	updateConfig := testAccAzureRMApiManagementIdentityProviderFacebook_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -66,9 +66,9 @@ func TestAccAzureRMApiManagementIdentityProviderFacebook_requiresImport(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_facebook", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderFacebookDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderFacebook_basic(data),

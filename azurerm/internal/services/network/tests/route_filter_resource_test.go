@@ -16,9 +16,9 @@ func TestAccAzureRMRouteFilter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRouteFilter_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMRouteFilter_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRouteFilter_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMRouteFilter_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRouteFilter_complete(data),
@@ -76,9 +76,9 @@ func TestAccAzureRMRouteFilter_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRouteFilter_basic(data),
@@ -96,9 +96,9 @@ func TestAccAzureRMRouteFilter_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRouteFilter_withTags(data),
@@ -125,9 +125,9 @@ func TestAccAzureRMRouteFilter_withRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route_filter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteFilterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteFilterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRouteFilter_withRules(data),

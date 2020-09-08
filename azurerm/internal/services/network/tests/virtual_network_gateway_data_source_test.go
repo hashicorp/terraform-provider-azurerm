@@ -12,9 +12,9 @@ func TestAccAzureRMDataSourceVirtualNetworkGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceVirtualNetworkGateway_basic(data),

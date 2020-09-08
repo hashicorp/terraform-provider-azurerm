@@ -81,9 +81,9 @@ func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkWatcher_basicConfig(data),
@@ -99,9 +99,9 @@ func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkWatcher_basicConfig(data),
@@ -120,9 +120,9 @@ func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
 func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkWatcher_completeConfig(data),
@@ -139,9 +139,9 @@ func testAccAzureRMNetworkWatcher_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkWatcher_basicConfig(data),
@@ -163,9 +163,9 @@ func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkWatcher_basicConfig(data),

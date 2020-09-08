@@ -17,9 +17,9 @@ func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsNsRecord_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMDnsNsRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsNsRecord_basic(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMDnsNsRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsNsRecord_basic(data),
@@ -85,9 +85,9 @@ func TestAccAzureRMDnsNsRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_ns_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsNsRecord_withTags(data),

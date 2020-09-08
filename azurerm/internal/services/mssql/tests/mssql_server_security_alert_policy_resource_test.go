@@ -16,9 +16,9 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(data),
@@ -40,9 +40,9 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_security_alert_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMssqlServerSecurityAlertPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(data),

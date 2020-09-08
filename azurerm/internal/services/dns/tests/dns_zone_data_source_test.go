@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDNSZone_basic(data),
@@ -30,9 +30,9 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDNSZone_tags(data),
@@ -51,9 +51,9 @@ func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 	resourceGroupName := fmt.Sprintf("acctestrg-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDNSZone_onlyName(data, resourceGroupName),

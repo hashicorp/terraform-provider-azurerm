@@ -53,9 +53,9 @@ func TestAccAzureRMFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFirewall_basic(data),
@@ -74,9 +74,9 @@ func TestAccAzureRMFirewall_withMultiplePublicIPs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFirewall_multiplePublicIps(data),
@@ -97,9 +97,9 @@ func TestAccAzureRMFirewall_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFirewall_basic(data),
@@ -119,9 +119,9 @@ func TestAccAzureRMFirewall_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFirewall_withTags(data),
@@ -151,9 +151,9 @@ func TestAccAzureRMFirewall_withZones(t *testing.T) {
 	zonesUpdate := []string{"1", "3"}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFirewall_withZones(data, zones),
@@ -181,9 +181,9 @@ func TestAccAzureRMFirewall_withoutZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFirewall_withoutZone(data),
@@ -200,9 +200,9 @@ func TestAccAzureRMFirewall_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFirewall_basic(data),

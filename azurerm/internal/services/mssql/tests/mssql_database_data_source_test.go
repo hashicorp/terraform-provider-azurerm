@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMMsSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMMsSqlDatabase_basic(data),
@@ -30,9 +30,9 @@ func TestAccDataSourceAzureRMMsSqlDatabase_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMMsSqlDatabase_complete(data),

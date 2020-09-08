@@ -16,9 +16,9 @@ func testAccDataSourceAzureRMMonitorLogProfile_storageaccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_log_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMMonitorLogProfile_storageaccountConfig(data),
@@ -41,9 +41,9 @@ func testAccDataSourceAzureRMMonitorLogProfile_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_monitor_log_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMMonitorLogProfile_eventhubConfig(data),

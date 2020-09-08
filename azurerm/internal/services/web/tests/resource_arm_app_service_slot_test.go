@@ -17,9 +17,9 @@ import (
 func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_basic(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_32Bit(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_alwaysOn(data),
@@ -95,9 +95,9 @@ func TestAccAzureRMAppServiceSlot_appCommandLine(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_appCommandLine(data),
@@ -116,9 +116,9 @@ func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_appSettings(data),
@@ -137,9 +137,9 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_clientAffinityEnabled(data, true),
@@ -156,9 +156,9 @@ func TestAccAzureRMAppServiceSlot_clientAffinityEnabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_clientAffinityEnabled(data, true),
@@ -182,9 +182,9 @@ func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_connectionStrings(data),
@@ -218,9 +218,9 @@ func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_corsSettings(data),
@@ -238,9 +238,9 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(data, tenantID),
@@ -264,9 +264,9 @@ func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectU
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(data, tenantID),
@@ -292,9 +292,9 @@ func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(data, tenantID),
@@ -319,9 +319,9 @@ func TestAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *test
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(data, tenantID),
@@ -345,9 +345,9 @@ func TestAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(t *tes
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(data, tenantID),
@@ -372,9 +372,9 @@ func TestAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(data, tenantID),
@@ -399,9 +399,9 @@ func TestAccAzureRMAppServiceSlot_aadAuthSettings(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_aadAuthSettings(data, tenantID),
@@ -424,9 +424,9 @@ func TestAccAzureRMAppServiceSlot_facebookAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_facebookAuthSettings(data),
@@ -448,9 +448,9 @@ func TestAccAzureRMAppServiceSlot_googleAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_googleAuthSettings(data),
@@ -470,9 +470,9 @@ func TestAccAzureRMAppServiceSlot_microsoftAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_microsoftAuthSettings(data),
@@ -493,9 +493,9 @@ func TestAccAzureRMAppServiceSlot_twitterAuthSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_twitterAuthSettings(data),
@@ -516,9 +516,9 @@ func TestAccAzureRMAppServiceSlot_multiAuthSettings(t *testing.T) {
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_aadAuthSettings(data, tenantID),
@@ -555,9 +555,9 @@ func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_defaultDocuments(data),
@@ -576,9 +576,9 @@ func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_enabled(data, false),
@@ -595,9 +595,9 @@ func TestAccAzureRMAppServiceSlot_enabledUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_enabled(data, false),
@@ -621,9 +621,9 @@ func TestAccAzureRMAppServiceSlot_httpsOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_httpsOnly(data, true),
@@ -640,9 +640,9 @@ func TestAccAzureRMAppServiceSlot_httpsOnlyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_httpsOnly(data, true),
@@ -666,9 +666,9 @@ func TestAccAzureRMAppServiceSlot_http2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_http2Enabled(data),
@@ -685,9 +685,9 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_oneIpRestriction(data),
@@ -704,9 +704,9 @@ func TestAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(data),
@@ -723,9 +723,9 @@ func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				// This configuration includes a single explicit ip_restriction
@@ -759,9 +759,9 @@ func TestAccAzureRMAppServiceSlot_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_manyIpRestrictions(data),
@@ -778,9 +778,9 @@ func TestAccAzureRMAppServiceSlot_scmUseMainIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_scmUseMainIPRestriction(data),
@@ -797,9 +797,9 @@ func TestAccAzureRMAppServiceSlot_scmOneIPRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_scmOneIPRestriction(data),
@@ -816,9 +816,9 @@ func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_localMySql(data),
@@ -835,9 +835,9 @@ func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_managedPipelineMode(data),
@@ -854,9 +854,9 @@ func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_tags(data),
@@ -883,9 +883,9 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_remoteDebugging(data),
@@ -903,9 +903,9 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsDotNet(data, "v2.0"),
@@ -922,9 +922,9 @@ func TestAccAzureRMAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_basic(data),
@@ -949,9 +949,9 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsDotNet(data, "v4.0"),
@@ -968,9 +968,9 @@ func TestAccAzureRMAppServiceSlot_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_userAssignedIdentity(data),
@@ -990,9 +990,9 @@ func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsDotNet(data, "v2.0"),
@@ -1016,9 +1016,9 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.7", "JETTY", "9.3"),
@@ -1037,9 +1037,9 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.8", "JETTY", "9.3"),
@@ -1058,9 +1058,9 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "11", "JETTY", "9.3"),
@@ -1079,9 +1079,9 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.7", "TOMCAT", "9.0"),
@@ -1100,9 +1100,9 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.8", "TOMCAT", "9.0"),
@@ -1121,9 +1121,9 @@ func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "11", "TOMCAT", "9.0"),
@@ -1142,9 +1142,9 @@ func TestAccAzureRMAppServiceSlot_windowsJava7Minor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.7.0_80", "TOMCAT", "9.0"),
@@ -1163,9 +1163,9 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Minor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsJava(data, "1.8.0_181", "TOMCAT", "9.0"),
@@ -1184,9 +1184,9 @@ func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsPHP(data),
@@ -1203,9 +1203,9 @@ func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_windowsPython(data),
@@ -1222,9 +1222,9 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_webSockets(data),
@@ -1241,9 +1241,9 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_enableManageServiceIdentity(data),
@@ -1262,9 +1262,9 @@ func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_minTls(data, "1.0"),
@@ -1289,9 +1289,9 @@ func TestAccAzureRMAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_applicationBlobStorageLogs(data),
@@ -1312,9 +1312,9 @@ func TestAccAzureRMAppServiceSlot_httpFileSystemLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_httpFileSystemLogs(data),
@@ -1333,9 +1333,9 @@ func TestAccAzureRMAppServiceSlot_httpBlobStorageLogs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_httpBlobStorageLogs(data),
@@ -1354,9 +1354,9 @@ func TestAccAzureRMAppServiceSlot_autoSwap(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceSlot_autoSwap(data),

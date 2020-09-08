@@ -17,9 +17,9 @@ func TestAccAzureRMMySSQLVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySSQLVirtualNetworkRule_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMMySSQLVirtualNetworkRule_badsubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySSQLVirtualNetworkRule_badsubnet(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMMySSQLVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySSQLVirtualNetworkRule_basic(data),
@@ -80,9 +80,9 @@ func TestAccAzureRMMySSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySSQLVirtualNetworkRule_subnetSwitchPre(data),
@@ -106,9 +106,9 @@ func TestAccAzureRMMySSQLVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySSQLVirtualNetworkRule_basic(data),
@@ -129,9 +129,9 @@ func TestAccAzureRMMySSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName3 := "azurerm_mysql_virtual_network_rule.rule3"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySSQLVirtualNetworkRule_multipleSubnets(data),

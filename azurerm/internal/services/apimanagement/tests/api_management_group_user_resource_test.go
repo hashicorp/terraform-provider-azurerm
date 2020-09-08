@@ -15,9 +15,9 @@ func TestAccAzureRMAPIManagementGroupUser_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group_user", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementGroupUserDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementGroupUser_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group_user", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementGroupUserDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementGroupUserDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementGroupUser_basic(data),

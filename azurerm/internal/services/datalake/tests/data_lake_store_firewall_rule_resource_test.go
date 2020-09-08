@@ -19,9 +19,9 @@ func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 	endIP := "2.2.2.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(data, startIP, endIP),
@@ -44,9 +44,9 @@ func TestAccAzureRMDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
 	endIP := "2.2.2.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(data, startIP, endIP),
@@ -66,9 +66,9 @@ func TestAccAzureRMDataLakeStoreFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(data, "1.1.1.1", "2.2.2.2"),
@@ -95,9 +95,9 @@ func TestAccAzureRMDataLakeStoreFirewallRule_azureServices(t *testing.T) {
 	azureServicesIP := "0.0.0.0"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStoreFirewallRule_basic(data, azureServicesIP, azureServicesIP),

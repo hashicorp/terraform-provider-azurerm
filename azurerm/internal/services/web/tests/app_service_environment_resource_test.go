@@ -15,9 +15,9 @@ func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceEnvironment_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
 func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceEnvironment_basic(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMAppServiceEnvironment_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceEnvironment_basic(data),
@@ -83,9 +83,9 @@ func TestAccAzureRMAppServiceEnvironment_tierAndScaleFactor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceEnvironment_tierAndScaleFactor(data),
@@ -104,9 +104,9 @@ func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	aspData := acceptance.BuildTestData(t, "azurerm_app_service_plan", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceEnvironment_withAppServicePlan(data),
@@ -124,9 +124,9 @@ func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(data),
@@ -144,9 +144,9 @@ func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	certData := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceEnvironment_withCertificatePfx(data),
@@ -163,9 +163,9 @@ func TestAccAzureRMAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceEnvironment_internalLoadBalancerAndWhitelistedIpRanges(data),

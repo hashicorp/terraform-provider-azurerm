@@ -16,9 +16,9 @@ func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_wan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualWan_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMVirtualWan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_wan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualWan_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_wan", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualWanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualWanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualWan_complete(data),

@@ -12,9 +12,9 @@ func TestAccAzureRMStorageAccountNetworkRules_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
@@ -31,9 +31,9 @@ func TestAccAzureRMStorageAccountNetworkRules_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageAccountNetworkRules_basic(data),
@@ -71,9 +71,9 @@ func TestAccAzureRMStorageAccountNetworkRules_empty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_network_rules", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageAccountNetworkRules_empty(data),

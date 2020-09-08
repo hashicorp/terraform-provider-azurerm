@@ -17,9 +17,9 @@ func TestAccAzureRMDataShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShare_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMDataShare_basic(t *testing.T) {
 func TestAccAzureRMDataShare_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShare_basic(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMDataShare_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShare_complete(data),
@@ -73,9 +73,9 @@ func TestAccAzureRMDataShare_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShare_basic(data),
@@ -108,9 +108,9 @@ func TestAccAzureRMDataShare_snapshotSchedule(t *testing.T) {
 	startTime2 := time.Now().Add(time.Hour * 8).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataShare_basic(data),

@@ -18,8 +18,8 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate_order", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServiceCertificateOrder_basic(data),
@@ -43,8 +43,8 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate_order", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServiceCertificateOrder_wildcard(data),
@@ -68,8 +68,8 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service_certificate_order", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAppServiceCertificateOrder_complete(data),

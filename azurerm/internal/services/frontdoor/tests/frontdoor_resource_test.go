@@ -14,9 +14,9 @@ import (
 func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_basic(data),
@@ -43,9 +43,9 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 func TestAccAzureRMFrontDoor_global(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_global(data),
@@ -64,9 +64,9 @@ func TestAccAzureRMFrontDoor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_basic(data),
@@ -82,9 +82,9 @@ func TestAccAzureRMFrontDoor_requiresImport(t *testing.T) {
 func TestAccAzureRMFrontDoor_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_basic(data),
@@ -114,9 +114,9 @@ func TestAccAzureRMFrontDoor_update(t *testing.T) {
 func TestAccAzureRMFrontDoor_multiplePools(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_multiplePools(data),
@@ -136,9 +136,9 @@ func TestAccAzureRMFrontDoor_multiplePools(t *testing.T) {
 func TestAccAzureRMFrontDoor_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_complete(data),
@@ -154,9 +154,9 @@ func TestAccAzureRMFrontDoor_complete(t *testing.T) {
 func TestAccAzureRMFrontDoor_waf(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_waf(data),
@@ -172,9 +172,9 @@ func TestAccAzureRMFrontDoor_waf(t *testing.T) {
 func TestAccAzureRMFrontDoor_EnableDisableCache(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_EnableCache(data),
@@ -211,9 +211,9 @@ func TestAccAzureRMFrontDoor_EnableDisableCache(t *testing.T) {
 func TestAccAzureRMFrontDoor_CustomHttps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoor_CustomHttpsEnabled(data),

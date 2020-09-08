@@ -78,9 +78,9 @@ func testAccAzureRMCosmosDBAccount_basicWith(t *testing.T, kind documentdb.Datab
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, consistency),
@@ -97,9 +97,9 @@ func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", documentdb.Eventual),
@@ -127,9 +127,9 @@ func testAccAzureRMCosmosDBAccount_updateConsistency(t *testing.T, kind document
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Strong),
@@ -181,9 +181,9 @@ func testAccAzureRMCosmosDBAccount_completeWith(t *testing.T, kind documentdb.Da
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_complete(data, kind, documentdb.Eventual),
@@ -212,9 +212,9 @@ func testAccAzureRMCosmosDBAccount_updateWith(t *testing.T, kind documentdb.Data
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
@@ -288,9 +288,9 @@ func testAccAzureRMCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentd
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_capabilities(data, kind, capabilities),
@@ -307,9 +307,9 @@ func TestAccAzureRMCosmosDBAccount_capabilitiesAdd(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}),
@@ -333,9 +333,9 @@ func TestAccAzureRMCosmosDBAccount_capabilitiesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableCassandra"}),
@@ -359,9 +359,9 @@ func TestAccAzureRMCosmosDBAccount_geoLocationsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", documentdb.Eventual),
@@ -392,9 +392,9 @@ func TestAccAzureRMCosmosDBAccount_freeTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_freeTier(data, "GlobalDocumentDB", documentdb.Eventual),
@@ -412,9 +412,9 @@ func TestAccAzureRMCosmosDBAccount_vNetFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDBAccount_vNetFilters(data),

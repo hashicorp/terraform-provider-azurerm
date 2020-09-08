@@ -16,9 +16,9 @@ import (
 func TestAccAzureRMPolicySetDefinition_builtInDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_builtInDeprecated(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMPolicySetDefinition_builtInDeprecated(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_builtIn(data),
@@ -52,9 +52,9 @@ func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_builtIn(data),
@@ -70,9 +70,9 @@ func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_customDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_customDeprecated(data),
@@ -88,9 +88,9 @@ func TestAccAzureRMPolicySetDefinition_customDeprecated(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_custom(data),
@@ -107,9 +107,9 @@ func TestAccAzureRMPolicySetDefinition_customWithPolicyReferenceID(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_customWithPolicyReferenceID(data),
@@ -125,9 +125,9 @@ func TestAccAzureRMPolicySetDefinition_customWithPolicyReferenceID(t *testing.T)
 func TestAccAzureRMPolicySetDefinition_managementGroupDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_managementGroupDeprecated(data),
@@ -143,9 +143,9 @@ func TestAccAzureRMPolicySetDefinition_managementGroupDeprecated(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_managementGroup(data),
@@ -161,9 +161,9 @@ func TestAccAzureRMPolicySetDefinition_managementGroup(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_metadataDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_metadataDeprecated(data),
@@ -179,9 +179,9 @@ func TestAccAzureRMPolicySetDefinition_metadataDeprecated(t *testing.T) {
 func TestAccAzureRMPolicySetDefinition_metadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicySetDefinition_metadata(data),

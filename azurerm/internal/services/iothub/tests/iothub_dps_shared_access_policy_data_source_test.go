@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMIotHubDpsSharedAccessPolicy_basic(data),

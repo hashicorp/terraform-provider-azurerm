@@ -16,9 +16,9 @@ func TestAccAzureRMDataLakeAnalyticsAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeAnalyticsAccount_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMDataLakeAnalyticsAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeAnalyticsAccount_basic(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMDataLakeAnalyticsAccount_tier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeAnalyticsAccount_tier(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMDataLakeAnalyticsAccount_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeAnalyticsAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeAnalyticsAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeAnalyticsAccount_withTags(data),

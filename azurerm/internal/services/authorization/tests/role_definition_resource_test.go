@@ -16,9 +16,9 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoleDefinition_basic(uuid.New().String(), data),
@@ -41,9 +41,9 @@ func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoleDefinition_basic(id, data),
@@ -63,9 +63,9 @@ func TestAccAzureRMRoleDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoleDefinition_complete(uuid.New().String(), data),
@@ -83,9 +83,9 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoleDefinition_basic(id, data),
@@ -116,9 +116,9 @@ func TestAccAzureRMRoleDefinition_updateEmptyId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoleDefinition_emptyId(data),
@@ -149,9 +149,9 @@ func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRoleDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoleDefinition_emptyId(data),

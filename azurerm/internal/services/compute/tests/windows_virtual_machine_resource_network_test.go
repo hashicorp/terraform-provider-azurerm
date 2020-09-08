@@ -18,9 +18,9 @@ func TestAccWindowsVirtualMachine_networkIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkIPv6(data),
@@ -41,9 +41,9 @@ func TestAccWindowsVirtualMachine_networkMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkMultiple(data),
@@ -94,9 +94,9 @@ func TestAccWindowsVirtualMachine_networkMultiplePublic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkMultiplePublic(data),
@@ -147,9 +147,9 @@ func TestAccWindowsVirtualMachine_networkPrivateDynamicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPrivateDynamicIP(data),
@@ -170,9 +170,9 @@ func TestAccWindowsVirtualMachine_networkPrivateStaticIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPrivateStaticIP(data),
@@ -193,9 +193,9 @@ func TestAccWindowsVirtualMachine_networkPrivateUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPrivateDynamicIP(data),
@@ -227,9 +227,9 @@ func TestAccWindowsVirtualMachine_networkPublicDynamicPrivateDynamicIP(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPublicDynamicPrivateDynamicIP(data),
@@ -250,9 +250,9 @@ func TestAccWindowsVirtualMachine_networkPublicDynamicPrivateStaticIP(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPublicDynamicPrivateStaticIP(data),
@@ -273,9 +273,9 @@ func TestAccWindowsVirtualMachine_networkPublicDynamicUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPublicDynamicPrivateDynamicIP(data),
@@ -307,9 +307,9 @@ func TestAccWindowsVirtualMachine_networkPublicStaticPrivateDynamicIP(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPublicStaticPrivateDynamicIP(data),
@@ -330,9 +330,9 @@ func TestAccWindowsVirtualMachine_networkPublicStaticPrivateStaticIP(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPublicStaticPrivateStaticIP(data),
@@ -353,9 +353,9 @@ func TestAccWindowsVirtualMachine_networkPublicStaticPrivateUpdate(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testWindowsVirtualMachine_networkPublicStaticPrivateDynamicIP(data),

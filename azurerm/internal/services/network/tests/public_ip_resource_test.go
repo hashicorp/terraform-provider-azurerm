@@ -17,9 +17,9 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_basic(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMPublicIpStatic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_basic(data),
@@ -64,9 +64,9 @@ func TestAccAzureRMPublicIpStatic_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_withZone(data),
@@ -88,9 +88,9 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_basic_withDNSLabel(data, dnl),
@@ -110,9 +110,9 @@ func TestAccAzureRMPublicIpStatic_standard_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_standard_withIPVersion(data, "IPv6"),
@@ -131,9 +131,9 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 	ipVersion := "Ipv6"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPDynamic_basic_withIPVersion(data, ipVersion),
@@ -151,9 +151,9 @@ func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_basic(data),
@@ -172,9 +172,9 @@ func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
 	ipVersion := "IPv4"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_basic_withIPVersion(data, ipVersion),
@@ -192,9 +192,9 @@ func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_standard(data),
@@ -211,9 +211,9 @@ func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_basic(data),
@@ -231,9 +231,9 @@ func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_idleTimeout(data),
@@ -251,9 +251,9 @@ func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_withTags(data),
@@ -280,9 +280,9 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_basic(data),
@@ -306,9 +306,9 @@ func TestAccAzureRMPublicIpStatic_standardPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_standardPrefix(data),
@@ -324,9 +324,9 @@ func TestAccAzureRMPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_standardPrefixWithTags(data),
@@ -353,9 +353,9 @@ func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPDynamic_basic(data),
@@ -372,9 +372,9 @@ func TestAccAzureRMPublicIpStatic_importIdError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_basic(data),
@@ -394,9 +394,9 @@ func TestAccAzureRMPublicIpStatic_canLabelBe63(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPublicIPStatic_canLabelBe63(data),

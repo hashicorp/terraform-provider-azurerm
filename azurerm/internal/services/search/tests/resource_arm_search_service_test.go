@@ -16,9 +16,9 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSearchService_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 func TestAccAzureRMSearchService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSearchService_basic(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSearchService_complete(data),
@@ -80,9 +80,9 @@ func TestAccAzureRMSearchService_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSearchService_basic(data),

@@ -16,9 +16,9 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basic(data, "5.6"),
@@ -35,9 +35,9 @@ func TestAccAzureRMMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basicWithIdentity(data, "5.6"),
@@ -54,9 +54,9 @@ func TestAccAzureRMMySQLServer_basicFiveSixWithIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basic(data, "5.6"),
@@ -80,9 +80,9 @@ func TestAccAzureRMMySQLServer_basicFiveSixDeprecated(t *testing.T) { // remove 
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basicDeprecated(data, "5.6"),
@@ -99,9 +99,9 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basic(data, "5.7"),
@@ -118,9 +118,9 @@ func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basic(data, "8.0"),
@@ -138,9 +138,9 @@ func TestAccAzureRMMySQLServer_autogrowOnly(t *testing.T) {
 	mysqlVersion := "5.7"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_autogrow(data, mysqlVersion),
@@ -164,9 +164,9 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basic(data, "5.7"),
@@ -183,9 +183,9 @@ func TestAccAzureRMMySQLServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_complete(data, "8.0"),
@@ -203,9 +203,9 @@ func TestAccAzureRMMySQLServer_update(t *testing.T) {
 	mysqlVersion := "8.0"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
@@ -251,9 +251,9 @@ func TestAccAzureRMMySQLServer_completeDeprecatedMigrate(t *testing.T) { // remo
 	mysqlVersion := "5.6"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_completeDeprecated(data, mysqlVersion),
@@ -278,9 +278,9 @@ func TestAccAzureRMMySQLServer_updateDeprecated(t *testing.T) { // remove in v3.
 	mysqlVersion := "5.6"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basicDeprecated(data, mysqlVersion),
@@ -311,9 +311,9 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_sku(data, "GP_Gen5_2"),
@@ -338,9 +338,9 @@ func TestAccAzureRMMySQLServer_createReplica(t *testing.T) {
 	mysqlVersion := "8.0"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
@@ -367,9 +367,9 @@ func TestAccAzureRMMySQLServer_createPointInTimeRestore(t *testing.T) {
 	mysqlVersion := "8.0"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),

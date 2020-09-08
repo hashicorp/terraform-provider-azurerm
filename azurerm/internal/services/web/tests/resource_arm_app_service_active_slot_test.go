@@ -12,8 +12,8 @@ func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		// Destroy actually does nothing so we just return nil
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{
@@ -31,8 +31,8 @@ func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_active_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		// Destroy actually does nothing so we just return nil
 		CheckDestroy: nil,
 		Steps: []resource.TestStep{

@@ -13,9 +13,9 @@ func TestAccDataSourceAzureRMCosmosDBAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMCosmosDBAccount_basic(data),
@@ -31,9 +31,9 @@ func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMCosmosDBAccount_complete(data),

@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSignalRService_basic(data),

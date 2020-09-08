@@ -16,9 +16,9 @@ func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_complete(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMSentinelAlertRuleMsSecurityIncident_requiresImport(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_ms_security_incident", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSentinelAlertRuleMsSecurityIncident_basic(data),

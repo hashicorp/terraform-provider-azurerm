@@ -16,9 +16,9 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServer_basic(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServer_basic(data),
@@ -58,9 +58,9 @@ func TestAccAzureRMSqlServer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServer_basic(data),
@@ -78,9 +78,9 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServer_withTags(data),
@@ -110,9 +110,9 @@ func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServer_withIdentity(data),
@@ -137,9 +137,9 @@ func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServer_basic(data),
@@ -170,9 +170,9 @@ func TestAccAzureRMSqlServer_updateWithBlobAuditingPolices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServer_withBlobAuditingPolices(data),

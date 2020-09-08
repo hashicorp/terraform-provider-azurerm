@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(data),
@@ -40,9 +40,9 @@ func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorDiagnosticSetting_eventhub(data),
@@ -62,9 +62,9 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspace(data),
@@ -86,9 +86,9 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *te
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data),
@@ -105,9 +105,9 @@ func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorDiagnosticSetting_storageAccount(data),
@@ -129,9 +129,9 @@ func TestAccAzureRMMonitorDiagnosticSetting_activityLog(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorDiagnosticSettingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorDiagnosticSetting_activityLog(data),

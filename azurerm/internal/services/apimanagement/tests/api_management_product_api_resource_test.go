@@ -15,9 +15,9 @@ func TestAccAzureRMAPIManagementProductApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_api", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementProductApiDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementProductApiDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementProductApi_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMAPIManagementProductApi_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product_api", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAPIManagementProductApiDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAPIManagementProductApiDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAPIManagementProductApi_basic(data),

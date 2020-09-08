@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMKeyVault_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKeyVault_basic(data),
@@ -37,9 +37,9 @@ func TestAccDataSourceAzureRMKeyVault_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKeyVault_complete(data),
@@ -63,9 +63,9 @@ func TestAccDataSourceAzureRMKeyVault_networkAcls(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKeyVault_networkAcls(data),
@@ -90,9 +90,9 @@ func TestAccDataSourceAzureRMKeyVault_softDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKeyVault_enableSoftDelete(data),

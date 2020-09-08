@@ -58,9 +58,9 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageQueue_basic(data),
@@ -77,9 +77,9 @@ func TestAccAzureRMStorageQueue_basicAzureADAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageQueue_basicAzureADAuth(data),
@@ -96,9 +96,9 @@ func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageQueue_basic(data),
@@ -115,9 +115,9 @@ func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageQueue_metaData(data),

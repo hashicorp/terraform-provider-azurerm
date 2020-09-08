@@ -15,9 +15,9 @@ func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBastionHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBastionHost_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMBastionHost_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBastionHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBastionHost_complete(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMBastionHost_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBastionHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBastionHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBastionHost_basic(data),

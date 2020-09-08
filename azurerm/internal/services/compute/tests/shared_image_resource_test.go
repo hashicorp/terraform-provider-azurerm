@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSharedImage_basic(data, ""),
@@ -34,9 +34,9 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 func TestAccAzureRMSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSharedImage_basic(data, "V2"),
@@ -55,9 +55,9 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSharedImage_basic(data, ""),
@@ -74,9 +74,9 @@ func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
 func TestAccAzureRMSharedImage_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSharedImage_complete(data, "V1"),
@@ -98,9 +98,9 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 func TestAccAzureRMSharedImage_specialized(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSharedImage_specialized(data, "V1"),

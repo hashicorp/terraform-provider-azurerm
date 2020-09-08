@@ -15,9 +15,9 @@ func TestAccAzureRMIoTCentralApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotCentralApplicationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotCentralApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotCentralApplication_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMIoTCentralApplication_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotCentralApplicationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotCentralApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotCentralApplication_complete(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMIoTCentralApplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotCentralApplicationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotCentralApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotCentralApplication_basic(data),
@@ -83,9 +83,9 @@ func TestAccAzureRMIoTCentralApplication_requiresImportErrorStep(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotCentralApplicationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotCentralApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotCentralApplication_basic(data),

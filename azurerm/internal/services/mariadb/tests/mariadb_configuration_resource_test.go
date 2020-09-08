@@ -15,9 +15,9 @@ func TestAccAzureRMMariaDbConfiguration_characterSetServer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbConfiguration_characterSetServer(data),
@@ -41,9 +41,9 @@ func TestAccAzureRMMariaDbConfiguration_interactiveTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbConfiguration_interactiveTimeout(data),
@@ -67,9 +67,9 @@ func TestAccAzureRMMariaDbConfiguration_logSlowAdminStatements(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbConfiguration_logSlowAdminStatements(data),

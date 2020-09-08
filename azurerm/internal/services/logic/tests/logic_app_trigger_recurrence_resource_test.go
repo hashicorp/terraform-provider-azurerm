@@ -12,9 +12,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Month", 1),
@@ -33,9 +33,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Month", 1),
@@ -57,9 +57,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_week(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Week", 2),
@@ -78,9 +78,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_day(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Day", 3),
@@ -99,9 +99,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_minute(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Minute", 4),
@@ -120,9 +120,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_second(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Second", 30),
@@ -141,9 +141,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_hour(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Hour", 4),
@@ -162,9 +162,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_basic(data, "Month", 1),
@@ -190,9 +190,9 @@ func TestAccAzureRMLogicAppTriggerRecurrence_startTime(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppTriggerRecurrence_startTime(data, "2020-01-01T01:02:03Z"),

@@ -15,9 +15,9 @@ func TestAccAzureRMSpringCloudApp_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudApp_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMSpringCloudApp_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudApp_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMSpringCloudApp_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudApp_complete(data),
@@ -74,9 +74,9 @@ func TestAccAzureRMSpringCloudApp_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudAppDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSpringCloudAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSpringCloudApp_basic(data),

@@ -16,9 +16,9 @@ func TestAccAzureRMSiteRecoveryNetworkMapping_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_network_mapping", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSiteRecoveryNetworkMappingDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSiteRecoveryNetworkMappingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSiteRecoveryNetworkMapping_basic(data),

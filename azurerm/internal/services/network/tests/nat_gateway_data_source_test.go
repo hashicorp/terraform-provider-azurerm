@@ -13,8 +13,8 @@ func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNatGateway_basic(data),
@@ -31,8 +31,8 @@ func TestAccDataSourceAzureRMNatGateway_complete(t *testing.T) {
 	// Using alt location because the resource currently in private preview and is only available in eastus2.
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNatGateway_complete(data),

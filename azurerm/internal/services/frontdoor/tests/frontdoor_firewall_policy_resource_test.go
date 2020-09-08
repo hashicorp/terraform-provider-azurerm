@@ -14,9 +14,9 @@ import (
 func TestAccAzureRMFrontDoorFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoorFirewallPolicy_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoorFirewallPolicy_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoorFirewallPolicy_update(data, false),
@@ -92,9 +92,9 @@ func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 func TestAccAzureRMFrontDoorFirewallPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFrontDoorFirewallPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMFrontDoorFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMFrontDoorFirewallPolicy_update(data, true),

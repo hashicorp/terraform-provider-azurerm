@@ -14,9 +14,9 @@ import (
 func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLConfiguration_backslashQuote(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLConfiguration_clientMinMessages(data),
@@ -64,9 +64,9 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(data),

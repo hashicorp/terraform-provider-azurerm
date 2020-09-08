@@ -17,9 +17,9 @@ func TestAccAzureRMDnsARecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsARecord_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMDnsARecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsARecord_basic(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMDnsARecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsARecord_basic(data),
@@ -85,9 +85,9 @@ func TestAccAzureRMDnsARecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsARecord_withTags(data),
@@ -114,9 +114,9 @@ func TestAccAzureRMDnsARecord_withAlias(t *testing.T) {
 	targetResourceName2 := "azurerm_public_ip.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsARecord_withAlias(data),
@@ -142,9 +142,9 @@ func TestAccAzureRMDnsARecord_RecordsToAlias(t *testing.T) {
 	targetResourceName := "azurerm_public_ip.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsARecord_AliasToRecordsUpdate(data),
@@ -171,9 +171,9 @@ func TestAccAzureRMDnsARecord_AliasToRecords(t *testing.T) {
 	targetResourceName := "azurerm_public_ip.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsARecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsARecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsARecord_AliasToRecords(data),

@@ -17,9 +17,9 @@ func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsAAAARecord_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMDnsAAAARecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsAAAARecord_basic(data),
@@ -59,9 +59,9 @@ func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsAAAARecord_basic(data),
@@ -85,9 +85,9 @@ func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsAAAARecord_withTags(data),
@@ -114,9 +114,9 @@ func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
 	targetResourceName2 := "azurerm_public_ip.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsAAAARecord_withAlias(data),
@@ -142,9 +142,9 @@ func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
 	targetResourceName := "azurerm_public_ip.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsAaaaRecord_AliasToRecordsUpdate(data),
@@ -171,9 +171,9 @@ func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
 	targetResourceName := "azurerm_public_ip.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsAaaaRecord_AliasToRecords(data),
@@ -199,9 +199,9 @@ func TestAccAzureRMDnsAAAARecord_uncompressed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDnsAAAARecord_uncompressed(data),

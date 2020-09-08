@@ -15,9 +15,9 @@ func TestAccAzureRMPowerBIEmbedded_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPowerBIEmbedded_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMPowerBIEmbedded_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPowerBIEmbedded_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMPowerBIEmbedded_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPowerBIEmbedded_complete(data),
@@ -77,9 +77,9 @@ func TestAccAzureRMPowerBIEmbedded_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_powerbi_embedded", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPowerBIEmbeddedDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPowerBIEmbeddedDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPowerBIEmbedded_basic(data),

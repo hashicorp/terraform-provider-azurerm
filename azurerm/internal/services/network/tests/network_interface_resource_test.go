@@ -14,9 +14,9 @@ import (
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_basic(data),
@@ -32,9 +32,9 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_basic(data),
@@ -51,9 +51,9 @@ func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 func TestAccAzureRMNetworkInterface_dnsServers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_dnsServers(data),
@@ -76,9 +76,9 @@ func TestAccAzureRMNetworkInterface_dnsServers(t *testing.T) {
 func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Enabled
@@ -111,9 +111,9 @@ func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				// Enabled
@@ -146,9 +146,9 @@ func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 func TestAccAzureRMNetworkInterface_internalDomainNameLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_internalDomainNameLabel(data, "1"),
@@ -171,9 +171,9 @@ func TestAccAzureRMNetworkInterface_internalDomainNameLabel(t *testing.T) {
 func TestAccAzureRMNetworkInterface_ipv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_ipv6(data),
@@ -191,9 +191,9 @@ func TestAccAzureRMNetworkInterface_ipv6(t *testing.T) {
 func TestAccAzureRMNetworkInterface_multipleIPConfigurations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_multipleIPConfigurations(data),
@@ -209,9 +209,9 @@ func TestAccAzureRMNetworkInterface_multipleIPConfigurations(t *testing.T) {
 func TestAccAzureRMNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(data),
@@ -227,9 +227,9 @@ func TestAccAzureRMNetworkInterface_multipleIPConfigurationsSecondaryAsPrimary(t
 func TestAccAzureRMNetworkInterface_publicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_publicIP(data),
@@ -259,9 +259,9 @@ func TestAccAzureRMNetworkInterface_publicIP(t *testing.T) {
 func TestAccAzureRMNetworkInterface_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_basic(data),
@@ -280,9 +280,9 @@ func TestAccAzureRMNetworkInterface_requiresImport(t *testing.T) {
 func TestAccAzureRMNetworkInterface_static(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_static(data),
@@ -298,9 +298,9 @@ func TestAccAzureRMNetworkInterface_static(t *testing.T) {
 func TestAccAzureRMNetworkInterface_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_tags(data),
@@ -323,9 +323,9 @@ func TestAccAzureRMNetworkInterface_tags(t *testing.T) {
 func TestAccAzureRMNetworkInterface_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_basic(data),
@@ -348,9 +348,9 @@ func TestAccAzureRMNetworkInterface_update(t *testing.T) {
 func TestAccAzureRMNetworkInterface_updateMultipleParameters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkInterface_withMultipleParameters(data),

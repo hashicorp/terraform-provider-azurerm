@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSqlDatabase_basic(data),
@@ -38,9 +38,9 @@ func TestAccDataSourceAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSqlDatabase_elasticPool(data),
@@ -61,9 +61,9 @@ func TestAccDataSourceAzureRMSqlDatabase_readScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSqlDatabase_readScale(data, true),

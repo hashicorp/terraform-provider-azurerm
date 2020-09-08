@@ -16,9 +16,9 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(data),
@@ -37,9 +37,9 @@ func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(data),
@@ -56,9 +56,9 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitPeering_msPeering(data),
@@ -77,9 +77,9 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting(t 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitPeering_msPeeringCustomerRouting(data),
@@ -100,9 +100,9 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpda
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(data),
@@ -129,9 +129,9 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t 
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMExpressRouteCircuitPeering_msPeeringWithRouteFilter(data),

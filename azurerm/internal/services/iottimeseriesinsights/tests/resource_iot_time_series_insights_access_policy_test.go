@@ -16,9 +16,9 @@ func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(data),

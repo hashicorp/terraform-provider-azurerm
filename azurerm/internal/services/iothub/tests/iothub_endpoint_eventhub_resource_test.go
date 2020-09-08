@@ -17,9 +17,9 @@ func TestAccAzureRMIotHubEndpointEventHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMIotHubEndpointStorageContainerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testAccAzureRMIotHubEndpointStorageContainerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubEndpointEventHub_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMIotHubEndpointEventHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_endpoint_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testAccAzureRMIotHubEndpointEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testAccAzureRMIotHubEndpointEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubEndpointEventHub_basic(data),

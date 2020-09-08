@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMSynapseSparkPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseSparkPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseSparkPool_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMSynapseSparkPool_basic(t *testing.T) {
 func TestAccAzureRMSynapseSparkPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseSparkPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseSparkPool_basic(data),
@@ -52,9 +52,9 @@ func TestAccAzureRMSynapseSparkPool_requiresImport(t *testing.T) {
 func TestAccAzureRMSynapseSparkPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseSparkPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseSparkPool_complete(data),
@@ -71,9 +71,9 @@ func TestAccAzureRMSynapseSparkPool_complete(t *testing.T) {
 func TestAccAzureRMSynapseSparkPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseSparkPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseSparkPool_basic(data),

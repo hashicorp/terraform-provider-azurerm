@@ -15,9 +15,9 @@ func TestAccAzureRMHPCCache_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHPCCacheDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHPCCache_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMHPCCache_basic(t *testing.T) {
 func TestAccAzureRMHPCCache_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHPCCacheDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMHPCCacheDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHPCCache_basic(data),

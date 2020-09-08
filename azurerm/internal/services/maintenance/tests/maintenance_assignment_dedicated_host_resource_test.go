@@ -16,9 +16,9 @@ func TestAccAzureRMMaintenanceAssignmentDedicatedHost_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dedicated_host", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMMaintenanceAssignmentDedicatedHost_requiresImport(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment_dedicated_host", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data),

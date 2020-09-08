@@ -11,8 +11,8 @@ import (
 func TestAccDataSourceAzureRMHDInsightCluster_hadoop(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_hadoop(data),
@@ -31,8 +31,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_hadoop(t *testing.T) {
 func TestAccDataSourceAzureRMHDInsightCluster_hbase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_hbase(data),
@@ -51,8 +51,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_hbase(t *testing.T) {
 func TestAccDataSourceAzureRMHDInsightCluster_interactiveQuery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_interactiveQuery(data),
@@ -71,8 +71,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_interactiveQuery(t *testing.T) {
 func TestAccDataSourceAzureRMHDInsightCluster_kafka(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_kafka(data),
@@ -91,8 +91,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_kafka(t *testing.T) {
 func TestAccDataSourceAzureRMHDInsightCluster_mlServices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_mlServices(data),
@@ -111,8 +111,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_mlServices(t *testing.T) {
 func TestAccDataSourceAzureRMHDInsightCluster_rserver(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_rserver(data),
@@ -131,8 +131,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_rserver(t *testing.T) {
 func TestAccDataSourceAzureRMHDInsightCluster_spark(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_spark(data),
@@ -152,8 +152,8 @@ func TestAccDataSourceAzureRMHDInsightCluster_storm(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceHDInsightCluster_storm(data),

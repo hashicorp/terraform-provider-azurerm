@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMKeyVaultCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKeyVaultCertificate_basic(data),
@@ -31,8 +31,8 @@ func TestAccDataSourceAzureRMKeyVaultCertificate_generated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKeyVaultCertificate_generated(data),

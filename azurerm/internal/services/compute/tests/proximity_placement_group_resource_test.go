@@ -16,9 +16,9 @@ func TestAccProximityPlacementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccProximityPlacementGroup_basic(data),
@@ -35,9 +35,9 @@ func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccProximityPlacementGroup_basic(data),
@@ -57,9 +57,9 @@ func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccProximityPlacementGroup_basic(data),
@@ -77,9 +77,9 @@ func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccProximityPlacementGroup_withTags(data),

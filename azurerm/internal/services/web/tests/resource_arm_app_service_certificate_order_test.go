@@ -20,9 +20,9 @@ func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_basic(data),
@@ -48,9 +48,9 @@ func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_wildcard(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_basic(data),
@@ -98,9 +98,9 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_complete(data, 4096),
@@ -128,9 +128,9 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_certificate_order", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_basic(data),

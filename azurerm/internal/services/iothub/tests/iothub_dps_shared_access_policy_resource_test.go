@@ -17,9 +17,9 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubDpsSharedAccessPolicy_basic(data),
@@ -45,9 +45,9 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_writeWithoutRead(data),
@@ -61,9 +61,9 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentReadWithoutRegistration(data),
@@ -77,9 +77,9 @@ func TestAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(t *t
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDpsSharedAccessPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMIotHubDpsSharedAccessPolicy_enrollmentWriteWithoutOthers(data),

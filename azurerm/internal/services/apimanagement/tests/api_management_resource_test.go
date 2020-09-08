@@ -15,9 +15,9 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_customProps(data),
@@ -73,9 +73,9 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_complete(data),
@@ -116,9 +116,9 @@ func TestAccAzureRMApiManagement_signInSignUpSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_signInSignUpSettings(data),
@@ -135,9 +135,9 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_policyXmlContent(data),
@@ -175,9 +175,9 @@ func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_virtualNetworkInternal(data),
@@ -195,9 +195,9 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurati
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
@@ -221,9 +221,9 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurati
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
@@ -304,9 +304,9 @@ func TestAccAzureRMApiManagement_identityUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identityUserAssigned(data),
@@ -323,9 +323,9 @@ func TestAccAzureRMApiManagement_identityNoneUpdateUserAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identityNone(data),
@@ -349,9 +349,9 @@ func TestAccAzureRMApiManagement_identityUserAssignedUpdateNone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identityUserAssigned(data),
@@ -375,9 +375,9 @@ func TestAccAzureRMApiManagement_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
@@ -394,9 +394,9 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUpdateNone(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
@@ -420,9 +420,9 @@ func TestAccAzureRMApiManagement_identityNoneUpdateSystemAssigned(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identityNone(data),
@@ -446,9 +446,9 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUserAssigned(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),
@@ -465,9 +465,9 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUserAssignedUpdateNone(t 
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),
@@ -491,9 +491,9 @@ func TestAccAzureRMApiManagement_identityNoneUpdateSystemAssignedUserAssigned(t 
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identityNone(data),
@@ -517,9 +517,9 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUserAssignedUpdateSystemA
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),
@@ -543,9 +543,9 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUserAssignedUpdateUserAss
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),

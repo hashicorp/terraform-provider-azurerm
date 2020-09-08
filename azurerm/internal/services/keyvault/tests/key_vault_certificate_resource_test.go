@@ -18,9 +18,9 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicImportPFX(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMKeyVaultCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicImportPFX(data),
@@ -61,9 +61,9 @@ func TestAccAzureRMKeyVaultCertificate_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
@@ -81,9 +81,9 @@ func TestAccAzureRMKeyVaultCertificate_disappearsWhenParentKeyVaultDeleted(t *te
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
@@ -101,9 +101,9 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
@@ -124,9 +124,9 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateUnknownIssuer(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicGenerateUnknownIssuer(data),
@@ -143,9 +143,9 @@ func TestAccAzureRMKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_softDeleteRecovery(data, false),
@@ -175,9 +175,9 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateSans(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicGenerateSans(data),
@@ -197,9 +197,9 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicGenerateTags(data),
@@ -219,9 +219,9 @@ func TestAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_basicExtendedKeyUsage(data),
@@ -242,9 +242,9 @@ func TestAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificate_emptyExtendedKeyUsage(data),

@@ -17,9 +17,9 @@ func TestAccAzureRMApiManagementIdentityProviderTwitter_basic(t *testing.T) {
 	config := testAccAzureRMApiManagementIdentityProviderTwitter_basic(data)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderTwitterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderTwitterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -38,9 +38,9 @@ func TestAccAzureRMApiManagementIdentityProviderTwitter_update(t *testing.T) {
 	updateConfig := testAccAzureRMApiManagementIdentityProviderTwitter_update(data)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderTwitterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderTwitterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -66,9 +66,9 @@ func TestAccAzureRMApiManagementIdentityProviderTwitter_requiresImport(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_twitter", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderTwitterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderTwitterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderTwitter_basic(data),

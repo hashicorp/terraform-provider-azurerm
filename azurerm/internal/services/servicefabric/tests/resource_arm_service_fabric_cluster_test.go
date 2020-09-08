@@ -16,9 +16,9 @@ func TestAccAzureRMServiceFabricCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
@@ -45,9 +45,9 @@ func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
@@ -91,9 +91,9 @@ func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
@@ -121,9 +121,9 @@ func TestAccAzureRMServiceFabricCluster_manualClusterCodeVersion(t *testing.T) {
 	codeVersion := "6.5.676.9590"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(data, codeVersion),
@@ -150,9 +150,9 @@ func TestAccAzureRMServiceFabricCluster_manualLatest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_manualClusterCodeVersion(data, ""),
@@ -171,9 +171,9 @@ func TestAccAzureRMServiceFabricCluster_addOnFeatures(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_addOnFeatures(data),
@@ -191,9 +191,9 @@ func TestAccAzureRMServiceFabricCluster_certificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_certificates(data),
@@ -216,9 +216,9 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_reverseProxyCertificates(data),
@@ -245,9 +245,9 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyNotSet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
@@ -277,9 +277,9 @@ func TestAccAzureRMServiceFabricCluster_reverseProxyUpdate(t *testing.T) {
 	configProxy := testAccAzureRMServiceFabricCluster_reverseProxyCertificates(data)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: configBasic,
@@ -338,9 +338,9 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateThumbprint(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_clientCertificateThumbprint(data),
@@ -367,9 +367,9 @@ func TestAccAzureRMServiceFabricCluster_clientCertificateCommonNames(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_clientCertificateCommonNames(data),
@@ -399,9 +399,9 @@ func TestAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(t
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_readerAdminClientCertificateThumbprint(data),
@@ -430,9 +430,9 @@ func TestAccAzureRMServiceFabricCluster_certificateCommonNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_certificateCommonNames(data),
@@ -454,9 +454,9 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectory(data),
@@ -483,9 +483,9 @@ func TestAccAzureRMServiceFabricCluster_azureActiveDirectoryDelete(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_azureActiveDirectory(data),
@@ -525,9 +525,9 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfig(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_diagnosticsConfig(data),
@@ -550,9 +550,9 @@ func TestAccAzureRMServiceFabricCluster_diagnosticsConfigDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_diagnosticsConfig(data),
@@ -582,9 +582,9 @@ func TestAccAzureRMServiceFabricCluster_fabricSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_fabricSettings(data),
@@ -605,9 +605,9 @@ func TestAccAzureRMServiceFabricCluster_fabricSettingsRemove(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_fabricSettings(data),
@@ -631,9 +631,9 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_nodeTypeCustomPorts(data),
@@ -657,9 +657,9 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_nodeTypeMultiple(data),
@@ -683,9 +683,9 @@ func TestAccAzureRMServiceFabricCluster_nodeTypesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_basic(data, 3),
@@ -709,9 +709,9 @@ func TestAccAzureRMServiceFabricCluster_nodeTypeProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_nodeTypeProperties(data),
@@ -733,9 +733,9 @@ func TestAccAzureRMServiceFabricCluster_tags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceFabricClusterDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceFabricClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceFabricCluster_tags(data),

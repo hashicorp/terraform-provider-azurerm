@@ -24,9 +24,9 @@ func TestAccAzureRMAutomationCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationCertificate_basic(data),
@@ -43,9 +43,9 @@ func TestAccAzureRMAutomationCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationCertificate_basic(data),
@@ -63,9 +63,9 @@ func TestAccAzureRMAutomationCertificate_complete(t *testing.T) {
 	testCertThumbprint := strings.TrimSpace(string(testCertThumbprintRaw))
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationCertificate_complete(data),
@@ -84,9 +84,9 @@ func TestAccAzureRMAutomationCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_certificate", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationCertificate_basic(data),

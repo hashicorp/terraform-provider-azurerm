@@ -16,9 +16,9 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoute_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMRoute_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoute_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMRoute_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoute_basic(data),
@@ -93,9 +93,9 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoute_basic(data),
@@ -113,9 +113,9 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRouteDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRouteDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoute_basic(data),

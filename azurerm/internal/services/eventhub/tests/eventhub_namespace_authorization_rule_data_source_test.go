@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceEventHubNamespaceAuthorizationRule_basic(data, true, true, true),
@@ -31,8 +31,8 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_withAliasConnect
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				// `primary_connection_string_alias` and `secondary_connection_string_alias` are still `nil` while `data.azurerm_eventhub_namespace_authorization_rule` is retrieving resource. since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.

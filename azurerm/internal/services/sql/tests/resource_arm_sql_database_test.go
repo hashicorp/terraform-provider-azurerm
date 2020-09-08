@@ -16,9 +16,9 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_basic(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_basic(data),
@@ -61,9 +61,9 @@ func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_basic(data),
@@ -81,9 +81,9 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_elasticPool(data),
@@ -101,9 +101,9 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_withTags(data),
@@ -127,9 +127,9 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_dataWarehouse(data),
@@ -153,9 +153,9 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 	formattedTime := timeToRestore.UTC().Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:                    testAccAzureRMSqlDatabase_basic(data),
@@ -180,9 +180,9 @@ func TestAccAzureRMSqlDatabase_collation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_basic(data),
@@ -206,9 +206,9 @@ func TestAccAzureRMSqlDatabase_requestedServiceObjectiveName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_requestedServiceObjectiveName(data, "S0"),
@@ -232,9 +232,9 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_threatDetectionPolicy(data, "Enabled"),
@@ -269,9 +269,9 @@ func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_readScale(data, true),
@@ -295,9 +295,9 @@ func TestAccAzureRMSqlDatabase_zoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_zoneRedundant(data, true),
@@ -399,9 +399,9 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_bacpac(data),
@@ -417,9 +417,9 @@ func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_basic(data),
@@ -455,9 +455,9 @@ func TestAccAzureRMSqlDatabase_withBlobAuditingPolicesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_withBlobAuditingPolices(data),
@@ -487,9 +487,9 @@ func TestAccAzureRMSqlDatabase_onlineSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlDatabase_onlineSecondaryMode(data),

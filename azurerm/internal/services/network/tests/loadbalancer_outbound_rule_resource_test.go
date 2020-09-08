@@ -26,9 +26,9 @@ func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 		subscriptionID, data.RandomInteger, data.RandomInteger, outboundRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data, outboundRuleName),
@@ -62,9 +62,9 @@ func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
 		subscriptionID, data.RandomInteger, data.RandomInteger, outboundRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data, outboundRuleName),
@@ -90,9 +90,9 @@ func TestAccAzureRMLoadBalancerOutboundRule_removal(t *testing.T) {
 	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data, outboundRuleName),
@@ -121,9 +121,9 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 	outboundRule2Name := fmt.Sprintf("OutboundRule-%d", data2.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerOutboundRule_multipleRules(data1, outboundRuleName, outboundRule2Name),
@@ -161,9 +161,9 @@ func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
 		subscriptionID, data.RandomInteger, data.RandomInteger, outboundRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(data, outboundRuleName),
@@ -192,9 +192,9 @@ func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerOutboundRule_basic(data, outboundRuleName),

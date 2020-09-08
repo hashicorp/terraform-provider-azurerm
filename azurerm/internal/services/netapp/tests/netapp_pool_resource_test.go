@@ -15,9 +15,9 @@ func TestAccAzureRMNetAppPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppPool_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMNetAppPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppPool_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMNetAppPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppPool_complete(data),
@@ -79,9 +79,9 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppPool_basic(data),

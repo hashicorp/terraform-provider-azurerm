@@ -15,9 +15,9 @@ func TestAccAzurePostgreSqlAdministrator_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzurePostgreSqlAdministratorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzurePostgreSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzurePostgreSqlAdministrator_basic(data),
@@ -41,9 +41,9 @@ func TestAccAzurePostgreSqlAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzurePostgreSqlAdministratorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzurePostgreSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzurePostgreSqlAdministrator_basic(data),
@@ -64,9 +64,9 @@ func TestAccAzurePostgreSqlAdministrator_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzurePostgreSqlAdministratorDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzurePostgreSqlAdministratorDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzurePostgreSqlAdministrator_basic(data),

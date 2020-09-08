@@ -15,9 +15,9 @@ func testAccAzureRMNetworkPacketCapture_localDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMNetworkPacketCapture_localDiskConfig(data),
@@ -34,9 +34,9 @@ func testAccAzureRMNetworkPacketCapture_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMNetworkPacketCapture_localDiskConfig(data),
@@ -55,9 +55,9 @@ func testAccAzureRMNetworkPacketCapture_storageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMNetworkPacketCapture_storageAccountConfig(data),
@@ -74,9 +74,9 @@ func testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMNetworkPacketCapture_storageAccountAndLocalDiskConfig(data),
@@ -93,9 +93,9 @@ func testAccAzureRMNetworkPacketCapture_withFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkPacketCaptureDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkPacketCaptureDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMNetworkPacketCapture_localDiskConfigWithFilters(data),

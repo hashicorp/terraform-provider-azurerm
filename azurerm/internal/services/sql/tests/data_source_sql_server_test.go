@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMSqlServer_basic(data),

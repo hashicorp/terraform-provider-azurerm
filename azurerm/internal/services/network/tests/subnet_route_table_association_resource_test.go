@@ -16,8 +16,8 @@ func TestAccAzureRMSubnetRouteTableAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		// intentional since this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -36,8 +36,8 @@ func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		// intentional since this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -59,8 +59,8 @@ func TestAccAzureRMSubnetRouteTableAssociation_updateSubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		// intentional since this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
@@ -86,8 +86,8 @@ func TestAccAzureRMSubnetRouteTableAssociation_deleted(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet_route_table_association", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		// intentional since this is a Virtual Resource
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{

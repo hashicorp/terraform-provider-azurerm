@@ -16,9 +16,9 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMVirtualNetworkPeering_requiresImport(t *testing.T) {
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualNetworkPeering_basic(data),
@@ -84,9 +84,9 @@ func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualNetworkPeering_basic(data),

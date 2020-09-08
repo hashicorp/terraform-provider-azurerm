@@ -12,8 +12,8 @@ func testAccDataSourceAzureRMNetAppAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNetAppAccount_basicConfig(data),

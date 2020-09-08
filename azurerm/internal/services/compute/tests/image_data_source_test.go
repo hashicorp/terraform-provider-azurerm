@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_image", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMImage_basic(data),
@@ -41,8 +41,8 @@ func TestAccDataSourceAzureRMImage_localFilter(t *testing.T) {
 	descDataSourceName := "data.azurerm_image.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				// We have to create the images first explicitly, then retrieve the data source, because in this case we do not have explicit dependency on the image resources

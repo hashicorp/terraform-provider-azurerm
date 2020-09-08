@@ -14,8 +14,8 @@ func TestAccDataSourceAzureRMRoleDefinition_basic(t *testing.T) {
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceRoleDefinition_basic(id, data),
@@ -42,8 +42,8 @@ func TestAccDataSourceAzureRMRoleDefinition_basicByName(t *testing.T) {
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceRoleDefinition_byName(id, data),
@@ -67,8 +67,8 @@ func TestAccDataSourceAzureRMRoleDefinition_basicByName(t *testing.T) {
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_contributor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Contributor"),
@@ -94,8 +94,8 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_contributor(t *testing.T) {
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_owner(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Owner"),
@@ -116,8 +116,8 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_owner(t *testing.T) {
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_reader(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Reader"),
@@ -138,8 +138,8 @@ func TestAccDataSourceAzureRMRoleDefinition_builtIn_reader(t *testing.T) {
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Virtual Machine Contributor"),

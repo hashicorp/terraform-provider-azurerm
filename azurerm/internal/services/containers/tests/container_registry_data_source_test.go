@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMContainerRegistry_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMContainerRegistry_basic(data),

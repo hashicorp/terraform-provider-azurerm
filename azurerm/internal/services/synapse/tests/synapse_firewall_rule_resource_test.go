@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMSynapseFirewallRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_firewall_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseFirewallRule_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMSynapseFirewallRule_basic(t *testing.T) {
 func TestAccAzureRMSynapseFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_firewall_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseFirewallRule_basic(data),
@@ -51,9 +51,9 @@ func TestAccAzureRMSynapseFirewallRule_requiresImport(t *testing.T) {
 func TestAccAzureRMSynapseFirewallRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_firewall_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseFirewallRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseFirewallRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseFirewallRule_basic(data),

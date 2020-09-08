@@ -11,9 +11,9 @@ import (
 func TestAccDataSourceAzureRMDataShareAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_account", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDataShareAccount_basic(data),

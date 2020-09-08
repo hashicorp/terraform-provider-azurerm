@@ -15,9 +15,9 @@ func TestAccAzureRMRelayNamespace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRelayNamespace_basic(data),
@@ -40,9 +40,9 @@ func TestAccAzureRMRelayNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRelayNamespace_basic(data),
@@ -64,9 +64,9 @@ func TestAccAzureRMRelayNamespace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRelayNamespaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMRelayNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRelayNamespace_complete(data),

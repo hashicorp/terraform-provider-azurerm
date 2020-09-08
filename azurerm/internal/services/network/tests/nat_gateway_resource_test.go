@@ -15,9 +15,9 @@ func TestAccAzureRMNatGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNatGateway_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMNatGateway_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNatGateway_complete(data),
@@ -58,9 +58,9 @@ func TestAccAzureRMNatGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNatGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNatGateway_basic(data),

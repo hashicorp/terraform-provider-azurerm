@@ -16,9 +16,9 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMManagementGroup_basic(),
@@ -35,9 +35,9 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMManagementGroup_basic(),
@@ -55,9 +55,9 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMManagementGroup_nested(),
@@ -77,9 +77,9 @@ func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMManagementGroup_multiLevel(),
@@ -100,9 +100,9 @@ func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
 
 func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMManagementGroup_nested(),
@@ -127,9 +127,9 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMManagementGroup_withName(data),
@@ -146,9 +146,9 @@ func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMManagementGroup_basic(),
@@ -173,9 +173,9 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMManagementGroup_basic(),

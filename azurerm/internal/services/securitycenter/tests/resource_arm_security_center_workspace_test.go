@@ -18,9 +18,9 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope),
@@ -43,9 +43,9 @@ func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope),
@@ -71,9 +71,9 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSecurityCenterWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope),

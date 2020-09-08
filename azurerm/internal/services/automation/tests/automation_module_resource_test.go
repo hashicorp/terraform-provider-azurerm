@@ -15,9 +15,9 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationModule_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationModule_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMAutomationModule_multipleModules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationModuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationModuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationModule_multipleModules(data),

@@ -18,6 +18,7 @@ func TestProvider(t *testing.T) {
 
 func TestMain(m *testing.M) {
 	acctest.UseBinaryDriver("azurerm", AzureProvider)
+	acctest.UseBinaryDriver("azurerm2", AzureProvider)
 	resource.TestMain(m)
 }
 

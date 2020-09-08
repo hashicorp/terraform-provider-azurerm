@@ -12,9 +12,9 @@ func testAccDataSourceAzureRMExpressRoute_basicMetered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_express_route_circuit", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMExpressRoute_basic(data),

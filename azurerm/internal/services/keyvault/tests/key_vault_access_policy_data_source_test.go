@@ -11,8 +11,8 @@ import (
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key Management"),
@@ -29,8 +29,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_key(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Secret Management"),
@@ -47,8 +47,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secret(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Certificate Management"),
@@ -65,8 +65,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_certificate(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key & Secret Management"),
@@ -83,8 +83,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecret(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key & Certificate Management"),
@@ -101,8 +101,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keyCertificate(t *testing.T) {
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Secret & Certificate Management"),
@@ -119,8 +119,8 @@ func TestAccDataSourceAzureRMKeyVaultAccessPolicy_secretCertificate(t *testing.T
 func TestAccDataSourceAzureRMKeyVaultAccessPolicy_keySecretCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_key_vault_access_policy", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceKeyVaultAccessPolicy("Key, Secret, & Certificate Management"),

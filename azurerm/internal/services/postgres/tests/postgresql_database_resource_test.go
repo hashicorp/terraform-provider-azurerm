@@ -14,9 +14,9 @@ import (
 func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLDatabase_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLDatabase_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
 func TestAccAzureRMPostgreSQLDatabase_collationWithHyphen(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLDatabase_collationWithHyphen(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMPostgreSQLDatabase_collationWithHyphen(t *testing.T) {
 func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLDatabase_charsetLowercase(data),
@@ -91,9 +91,9 @@ func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
 func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_database", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLDatabase_charsetMixedcase(data),

@@ -16,9 +16,9 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsEvent_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_complete(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsEvent_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMLogAnalyticsDataSourceWindowsEvent_requiresImport(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_datasource_windows_event", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMLogAnalyticsDataSourceWindowsEventDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceWindowsEvent_basic(data),

@@ -15,9 +15,9 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementOpenIDConnectProviderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementOpenIDConnectProvider_basic(data),

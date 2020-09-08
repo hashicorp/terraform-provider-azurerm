@@ -41,9 +41,9 @@ func testAccAzureRMNetworkDDoSProtectionPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkDDoSProtectionPlan_basicConfig(data),
@@ -61,9 +61,9 @@ func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkDDoSProtectionPlan_basicConfig(data),
@@ -83,9 +83,9 @@ func testAccAzureRMNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkDDoSProtectionPlan_withTagsConfig(data),
@@ -113,9 +113,9 @@ func testAccAzureRMNetworkDDoSProtectionPlan_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetworkDDoSProtectionPlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetworkDDoSProtectionPlan_basicConfig(data),

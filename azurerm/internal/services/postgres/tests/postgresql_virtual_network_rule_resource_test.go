@@ -16,9 +16,9 @@ import (
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(acctest-SN2-%d)$|(acctest-SN-[^1]%d)$", data.RandomInteger, data.RandomInteger)) // subnet 2 but not 1
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_subnetSwitchPre(data),
@@ -82,9 +82,9 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_basic(data),
@@ -103,9 +103,9 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName2 := "azurerm_postgresql_virtual_network_rule.rule2"
 	resourceName3 := "azurerm_postgresql_virtual_network_rule.rule3"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(data),
@@ -122,9 +122,9 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMPostgreSQLVirtualNetworkRule_ignoreEndpointValid(data),

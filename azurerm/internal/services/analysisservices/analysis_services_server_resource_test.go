@@ -19,9 +19,9 @@ func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAnalysisServicesServer_basic(data),
@@ -38,9 +38,9 @@ func TestAccAnalysisServicesServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAnalysisServicesServer_withTags(data),
@@ -69,9 +69,9 @@ func TestAccAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "All"),
@@ -102,9 +102,9 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 	config3 := testAccAzureRMAnalysisServicesServer_firewallSettings3(data, true)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config1,
@@ -153,9 +153,9 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	postAdminUsers := []string{email1, email2}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAnalysisServicesServer_adminUsers(data, preAdminUsers),
@@ -173,9 +173,9 @@ func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAnalysisServicesServer_serverFullName(data),
@@ -193,9 +193,9 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(data),
@@ -212,9 +212,9 @@ func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAnalysisServicesServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAnalysisServicesServer_basic(data),

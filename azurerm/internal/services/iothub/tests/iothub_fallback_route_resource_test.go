@@ -19,9 +19,9 @@ func TestAccAzureRMIotHubFallbackRoute_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubFallbackRouteDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubFallbackRoute_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMIotHubFallbackRoute_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_iothub_fallback_route", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubFallbackRouteDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubFallbackRouteDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHubFallbackRoute_basic(data),

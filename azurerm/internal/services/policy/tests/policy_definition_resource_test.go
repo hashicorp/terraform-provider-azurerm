@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyDefinition_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyDefinition_basic(data),
@@ -51,9 +51,9 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyDefinition_computedMetadata(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroyInMgmtGroup,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyDefinitionDestroyInMgmtGroup,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyDefinition_managementGroup(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 func TestAccAzureRMPolicyDefinition_metadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyDefinition_metadata(data),
@@ -106,9 +106,9 @@ func TestAccAzureRMPolicyDefinition_mode_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
 	number := data.RandomInteger
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyDefinition_mode(number, "All"),

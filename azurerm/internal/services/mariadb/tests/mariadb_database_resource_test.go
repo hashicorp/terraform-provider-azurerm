@@ -15,9 +15,9 @@ func TestAccAzureRMMariaDbDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbDatabase_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMMariaDbDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbDatabase_basic(data),

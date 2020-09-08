@@ -16,8 +16,8 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKubernetesServiceVersions_basic(data),
@@ -37,8 +37,8 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_filtered(t *testing.T) {
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKubernetesServiceVersions_filtered(data),
@@ -58,8 +58,8 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_nopreview(t *testing.T) {
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMKubernetesServiceVersions_nopreview(data),

@@ -16,9 +16,9 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderGoogle_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderGoogle_basic(data),
@@ -63,9 +63,9 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_requiresImport(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementIdentityProviderGoogleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderGoogle_basic(data),

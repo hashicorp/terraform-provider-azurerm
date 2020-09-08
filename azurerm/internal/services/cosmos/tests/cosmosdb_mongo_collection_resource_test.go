@@ -16,9 +16,9 @@ func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbMongoCollection_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbMongoCollection_complete(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbMongoCollection_basic(data),
@@ -92,9 +92,9 @@ func TestAccAzureRMCosmosDbMongoCollection_throughput(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbMongoCollection_throughput(data, 700),
@@ -125,9 +125,9 @@ func TestAccAzureRMCosmosDbMongoCollection_withIndex(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbMongoCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbMongoCollection_withIndex(data),

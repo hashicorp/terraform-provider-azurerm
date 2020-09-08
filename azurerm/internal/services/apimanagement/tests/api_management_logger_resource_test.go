@@ -15,9 +15,9 @@ func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
@@ -43,9 +43,9 @@ func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementLogger_basicEventHub(data),
@@ -66,9 +66,9 @@ func TestAccAzureRMApiManagementLogger_basicApplicationInsights(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(data),
@@ -94,9 +94,9 @@ func TestAccAzureRMApiManagementLogger_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementLogger_complete(data, "Logger from Terraform test", "false"),
@@ -123,9 +123,9 @@ func TestAccAzureRMApiManagementLogger_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementLoggerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementLoggerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementLogger_basicApplicationInsights(data),

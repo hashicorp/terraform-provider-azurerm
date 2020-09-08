@@ -16,9 +16,9 @@ func TestAccAzureRMSentinelAlertRuleScheduled_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSentinelAlertRuleScheduledDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMSentinelAlertRuleScheduled_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSentinelAlertRuleScheduledDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSentinelAlertRuleScheduled_complete(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMSentinelAlertRuleScheduled_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSentinelAlertRuleScheduledDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),
@@ -87,9 +87,9 @@ func TestAccAzureRMSentinelAlertRuleScheduled_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSentinelAlertRuleScheduledDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSentinelAlertRuleScheduledDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSentinelAlertRuleScheduled_basic(data),

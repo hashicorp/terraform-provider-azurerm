@@ -174,9 +174,9 @@ func TestAccAzureRMEventHub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHub_basic(data, 2),
@@ -193,9 +193,9 @@ func TestAccAzureRMEventHub_basicOnePartition(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHub_basic(data, 1),
@@ -213,9 +213,9 @@ func TestAccAzureRMEventHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHub_basic(data, 2),
@@ -235,9 +235,9 @@ func TestAccAzureRMEventHub_partitionCountUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHub_basic(data, 2),
@@ -261,9 +261,9 @@ func TestAccAzureRMEventHub_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHub_standard(data),
@@ -280,9 +280,9 @@ func TestAccAzureRMEventHub_captureDescription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHub_captureDescription(data, true),
@@ -301,9 +301,9 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHub_captureDescription(data, true),
@@ -327,9 +327,9 @@ func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHub_standard(data),

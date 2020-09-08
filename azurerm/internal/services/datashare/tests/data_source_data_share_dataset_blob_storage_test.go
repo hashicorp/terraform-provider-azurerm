@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMDataShareDatasetBlobStorage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share_dataset_blob_storage", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataShareDataSetDestroy("azurerm_data_share_dataset_blob_storage"),
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDataShareDatasetBlobStorage_basic(data),

@@ -16,9 +16,9 @@ func TestAccAzureRMManagedApplicationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagedApplicationDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagedApplicationDefinition_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMManagedApplicationDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagedApplicationDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagedApplicationDefinition_basic(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMManagedApplicationDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagedApplicationDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagedApplicationDefinition_complete(data),
@@ -73,9 +73,9 @@ func TestAccAzureRMManagedApplicationDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_application_definition", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMManagedApplicationDefinitionDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMManagedApplicationDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMManagedApplicationDefinition_basic(data),

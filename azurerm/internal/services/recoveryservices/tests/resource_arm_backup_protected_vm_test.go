@@ -16,9 +16,9 @@ func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectedVm_basic(data),
@@ -40,9 +40,9 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectedVm_basic(data),
@@ -64,9 +64,9 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectedVm_separateResourceGroups(data),
@@ -91,9 +91,9 @@ func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{ // Create resources and link first backup policy id
 				ResourceName: fBackupPolicyResourceName,

@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMIotHubDPS_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_iothub_dps", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIotHubDPSDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMIotHubDPSDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMIotHubDPS_basic(data),

@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMEventHubAuthorizationRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMEventHubAuthorizationRule_base(data, true, true, true),
@@ -37,9 +37,9 @@ func TestAccDataSourceAzureRMEventHubAuthorizationRule_withAliasConnectionString
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMEventHubAuthorizationRule_withAliasConnectionString(data),

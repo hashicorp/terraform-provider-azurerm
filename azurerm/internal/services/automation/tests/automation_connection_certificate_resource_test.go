@@ -13,9 +13,9 @@ func TestAccAzureRMAutomationConnectionCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationConnectionCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationConnectionCertificate_basic(data),
@@ -32,9 +32,9 @@ func TestAccAzureRMAutomationConnectionCertificate_requiresImport(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationScheduleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationConnectionCertificate_basic(data),
@@ -51,9 +51,9 @@ func TestAccAzureRMAutomationConnectionCertificate_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationConnectionCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationConnectionCertificate_complete(data),
@@ -70,9 +70,9 @@ func TestAccAzureRMAutomationConnectionCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionCertificateDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationConnectionCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationConnectionCertificate_basic(data),

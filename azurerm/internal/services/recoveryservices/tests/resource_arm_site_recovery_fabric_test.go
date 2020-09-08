@@ -15,9 +15,9 @@ func TestAccAzureRMSiteRecoveryFabric_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_fabric", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSiteRecoveryFabricDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSiteRecoveryFabricDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSiteRecoveryFabric_basic(data),

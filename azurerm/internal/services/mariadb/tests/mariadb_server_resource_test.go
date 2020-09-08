@@ -17,9 +17,9 @@ func TestAccAzureRMMariaDbServer_basicTenTwo(t *testing.T) {
 	version := "10.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_basic(data, version),
@@ -38,9 +38,9 @@ func TestAccAzureRMMariaDbServer_basicTenTwoDeprecated(t *testing.T) { // remove
 	version := "10.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_basicDeprecated(data, version),
@@ -59,9 +59,9 @@ func TestAccAzureRMMariaDbServer_basicTenThree(t *testing.T) {
 	version := "10.3"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_basic(data, version),
@@ -80,9 +80,9 @@ func TestAccAzureRMMariaDbServer_autogrowOnly(t *testing.T) {
 	version := "10.3"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_autogrow(data, version),
@@ -99,9 +99,9 @@ func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_basic(data, "10.3"),
@@ -118,9 +118,9 @@ func TestAccAzureRMMariaDbServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_complete(data, "10.3"),
@@ -138,9 +138,9 @@ func TestAccAzureRMMariaDbServer_update(t *testing.T) {
 	version := "10.3"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_basic(data, version),
@@ -172,9 +172,9 @@ func TestAccAzureRMMariaDbServer_completeDeprecatedMigrate(t *testing.T) { // re
 	version := "10.3"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_completeDeprecated(data, version),
@@ -199,9 +199,9 @@ func TestAccAzureRMMariaDbServer_updateDeprecated(t *testing.T) { // remove in v
 	version := "10.2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_basicDeprecated(data, version),
@@ -232,9 +232,9 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_sku(data, "GP_Gen5_32"),
@@ -259,9 +259,9 @@ func TestAccAzureRMMariaDbServer_createReplica(t *testing.T) {
 	version := "10.3"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_basic(data, version),
@@ -288,9 +288,9 @@ func TestAccAzureRMMariaDbServer_createPointInTimeRestore(t *testing.T) {
 	version := "10.3"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMariaDbServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMariaDbServer_basic(data, version),

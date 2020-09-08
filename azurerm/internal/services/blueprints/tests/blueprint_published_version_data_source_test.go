@@ -13,8 +13,8 @@ func TestAccDataSourceBlueprintPublishedVersion_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBlueprintPublishedVersion_atSubscription(data, "testAcc_basicSubscription", "v0.1_testAcc"),
@@ -33,8 +33,8 @@ func TestAccDataSourceBlueprintPublishedVersion_atRootManagementGroup(t *testing
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBlueprintPublishedVersion_atRootManagementGroup("testAcc_basicRootManagementGroup", "v0.1_testAcc"),
@@ -53,8 +53,8 @@ func TestAccDataSourceBlueprintPublishedVersion_atChildManagementGroup(t *testin
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceBlueprintPublishedVersion_atChildManagementGroup("testAcc_staticStubGroup", "testAcc_staticStubManagementGroup", "v0.1_testAcc"),

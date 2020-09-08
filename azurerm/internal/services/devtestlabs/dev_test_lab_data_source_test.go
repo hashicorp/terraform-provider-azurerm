@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMDevTestLab_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDevTestLab_basic(data),
@@ -30,8 +30,8 @@ func TestAccDataSourceAzureRMDevTestLab_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDevTestLab_complete(data),

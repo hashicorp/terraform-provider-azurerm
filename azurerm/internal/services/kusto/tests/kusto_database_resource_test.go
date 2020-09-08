@@ -15,9 +15,9 @@ func TestAccAzureRMKustoDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoDatabase_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMKustoDatabase_softDeletePeriod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoDatabase_softDeletePeriod(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKustoDatabaseDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKustoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKustoDatabase_hotCachePeriod(data),

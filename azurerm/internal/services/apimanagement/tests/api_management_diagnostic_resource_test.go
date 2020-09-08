@@ -16,9 +16,9 @@ func TestAccAzureRMApiManagementDiagnostic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDiagnosticDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDiagnosticDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementDiagnostic_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMApiManagementDiagnostic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDiagnosticDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDiagnosticDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementDiagnostic_basic(data),
@@ -61,9 +61,9 @@ func TestAccAzureRMApiManagementDiagnostic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_diagnostic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementDiagnostic_basic(data),

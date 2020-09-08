@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -82,9 +82,9 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -108,9 +108,9 @@ func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_Premium(data),
@@ -128,9 +128,9 @@ func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T
 func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -153,9 +153,9 @@ func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -178,9 +178,9 @@ func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -204,9 +204,9 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_lockDuration(data),
@@ -230,9 +230,9 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_isoTimeSpanAttributes(data),
@@ -252,9 +252,9 @@ func TestAccAzureRMServiceBusQueue_isoTimeSpanAttributes(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -277,9 +277,9 @@ func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_forwardTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -302,9 +302,9 @@ func TestAccAzureRMServiceBusQueue_forwardTo(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),
@@ -327,9 +327,9 @@ func TestAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_status(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMServiceBusQueueDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMServiceBusQueue_basic(data),

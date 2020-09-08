@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_machine_learning_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMachineLearningWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMachineLearningWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMachineLearningWorkspace_basic(data),

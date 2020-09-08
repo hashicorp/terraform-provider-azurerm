@@ -15,9 +15,9 @@ func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlFailoverGroup_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlFailoverGroup_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMSqlFailoverGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlFailoverGroup_basic(data),
@@ -73,9 +73,9 @@ func TestAccAzureRMSqlFailoverGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_failover_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlFailoverGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlFailoverGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlFailoverGroup_withTags(data),

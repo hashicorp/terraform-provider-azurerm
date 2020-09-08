@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMVirtualMachineScaleSet_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMVirtualMachineScaleSet_basicLinux(data),
@@ -31,9 +31,9 @@ func TestAccDataSourceAzureRMVirtualMachineScaleSet_basicWindows(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMVirtualMachineScaleSet_basicWindows(data),
@@ -51,9 +51,9 @@ func TestAccDataSourceAzureRMVirtualMachineScaleSet_orchestrated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMVirtualMachineScaleSet_orchestrated(data),

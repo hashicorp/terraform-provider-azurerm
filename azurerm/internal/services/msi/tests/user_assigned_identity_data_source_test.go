@@ -16,8 +16,8 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_user_assigned_identity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMUserAssignedIdentity_basic(data),

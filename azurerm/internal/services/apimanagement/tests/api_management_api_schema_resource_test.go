@@ -15,9 +15,9 @@ func TestAccAzureRMApiManagementApiSchema_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiSchemaDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementApiSchemaDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiSchema_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMApiManagementApiSchema_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiSchemaDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApiManagementApiSchemaDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApiManagementApiSchema_basic(data),

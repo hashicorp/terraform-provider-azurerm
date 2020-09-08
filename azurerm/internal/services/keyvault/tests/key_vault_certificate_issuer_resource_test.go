@@ -18,9 +18,9 @@ func TestAccAzureRMKeyVaultCertificateIssuer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateIssuerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
@@ -37,9 +37,9 @@ func TestAccAzureRMKeyVaultCertificateIssuer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateIssuerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
@@ -56,9 +56,9 @@ func TestAccAzureRMKeyVaultCertificateIssuer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateIssuerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificateIssuer_complete(data),
@@ -75,9 +75,9 @@ func TestAccAzureRMKeyVaultCertificateIssuer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateIssuerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
@@ -101,9 +101,9 @@ func TestAccAzureRMKeyVaultCertificateIssuer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateIssuerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
@@ -121,9 +121,9 @@ func TestAccAzureRMKeyVaultCertificateIssuer_disappearsWhenParentKeyVaultDeleted
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMKeyVaultCertificateIssuerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),

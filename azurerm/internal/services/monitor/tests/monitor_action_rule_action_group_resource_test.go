@@ -16,9 +16,9 @@ func TestAccAzureRMMonitorActionRuleActionGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionRuleActionGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorActionRuleActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorActionRuleActionGroup_basic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMMonitorActionRuleActionGroup_basic(t *testing.T) {
 func TestAccAzureRMMonitorActionRuleActionGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionRuleActionGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorActionRuleActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorActionRuleActionGroup_basic(data),
@@ -53,9 +53,9 @@ func TestAccAzureRMMonitorActionRuleActionGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionRuleActionGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorActionRuleActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorActionRuleActionGroup_complete(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMMonitorActionRuleActionGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_rule_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorActionRuleActionGroupDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorActionRuleActionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorActionRuleActionGroup_basic(data),

@@ -15,9 +15,9 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationCredential_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationCredential_basic(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationCredential_complete(data),

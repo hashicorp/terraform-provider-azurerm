@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMMsSqlElasticPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMMsSqlElasticPool_basic(data),
@@ -39,9 +39,9 @@ func TestAccDataSourceAzureRMMsSqlElasticPool_licenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMsSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMMsSqlElasticPool_basic(data),

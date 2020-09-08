@@ -16,9 +16,9 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnProfile_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnProfile_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnProfile_withTags(data),
@@ -88,9 +88,9 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnProfileNonStandardCasing(data),
@@ -111,9 +111,9 @@ func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnProfile_basic(data),
@@ -137,9 +137,9 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnProfile_standardAkamai(data),
@@ -157,9 +157,9 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCdnProfile_standardMicrosoft(data),

@@ -15,9 +15,9 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlElasticPool_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMSqlElasticPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlElasticPool_basic(data),
@@ -52,9 +52,9 @@ func TestAccAzureRMSqlElasticPool_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlElasticPool_basic(data),
@@ -72,9 +72,9 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSqlElasticPoolDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlElasticPool_basic(data),

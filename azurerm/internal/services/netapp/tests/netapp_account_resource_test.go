@@ -42,9 +42,9 @@ func testAccAzureRMNetAppAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppAccount_basicConfig(data),
@@ -61,9 +61,9 @@ func testAccAzureRMNetAppAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppAccount_basicConfig(data),
@@ -83,9 +83,9 @@ func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppAccount_completeConfig(data),
@@ -105,9 +105,9 @@ func testAccAzureRMNetAppAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMNetAppAccount_basicConfig(data),

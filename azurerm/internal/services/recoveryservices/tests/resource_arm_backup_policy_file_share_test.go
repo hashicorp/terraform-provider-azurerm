@@ -15,9 +15,9 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_basicDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),
@@ -32,9 +32,9 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_requiresImport(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),
@@ -49,9 +49,9 @@ func TestAccAzureRMBackupProtectionPolicyFileShare_updateDaily(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMBackupProtectionPolicyFileShareDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyFileShare_basicDaily(data),

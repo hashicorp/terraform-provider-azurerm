@@ -17,9 +17,9 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_basic(data),
@@ -36,9 +36,9 @@ func TestAccAzureRMSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_basic_addressPrefixes(data),
@@ -55,9 +55,9 @@ func TestAccAzureRMSubnet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_basic(data),
@@ -77,9 +77,9 @@ func TestAccAzureRMSubnet_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_basic(data),
@@ -97,9 +97,9 @@ func TestAccAzureRMSubnet_delegation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_delegation(data),
@@ -137,9 +137,9 @@ func TestAccAzureRMSubnet_enforcePrivateLinkEndpointNetworkPolicies(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_enforcePrivateLinkEndpointNetworkPolicies(data, true),
@@ -170,9 +170,9 @@ func TestAccAzureRMSubnet_enforcePrivateLinkServiceNetworkPolicies(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_enforcePrivateLinkServiceNetworkPolicies(data, true),
@@ -203,9 +203,9 @@ func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_serviceEndpoints(data),
@@ -244,9 +244,9 @@ func TestAccAzureRMSubnet_updateAddressPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSubnet_basic(data),

@@ -16,9 +16,9 @@ func TestAccAzureRMCosmosDbGremlinGraph_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbGremlinGraphDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbGremlinGraphDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbGremlinGraph_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMCosmosDbGremlinGraph_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbGremlinGraphDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbGremlinGraphDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbGremlinGraph_basic(data),
@@ -57,9 +57,9 @@ func TestAccAzureRMCosmosDbGremlinGraph_customConflictResolutionPolicy(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbGremlinGraphDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbGremlinGraphDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbGremlinGraph_customConflictResolutionPolicy(data),
@@ -76,9 +76,9 @@ func TestAccAzureRMCosmosDbGremlinGraph_indexPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbGremlinGraphDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbGremlinGraphDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbGremlinGraph_indexPolicy(data),
@@ -95,9 +95,9 @@ func TestAccAzureRMCosmosDbGremlinGraph_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbGremlinGraphDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMCosmosDbGremlinGraphDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCosmosDbGremlinGraph_update(data, 700),

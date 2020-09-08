@@ -16,9 +16,9 @@ func TestAccAzureRMEventGridDomain_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridDomain_basic(data),
@@ -38,9 +38,9 @@ func TestAccAzureRMEventGridDomain_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridDomain_basic(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMEventGridDomain_mapping(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridDomain_mapping(data),
@@ -83,9 +83,9 @@ func TestAccAzureRMEventGridDomain_basicWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMEventGridDomainDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventGridDomain_basicWithTags(data),

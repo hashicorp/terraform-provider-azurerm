@@ -12,9 +12,9 @@ func TestAccDataSourceAzureRMMaintenanceConfiguration_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_maintenance_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMaintenanceConfigurationDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMaintenanceConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceMaintenanceConfiguration_complete(data),

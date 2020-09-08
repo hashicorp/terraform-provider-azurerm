@@ -16,9 +16,9 @@ func TestAccAzureRMDedicatedHardwareSecurityModule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHardwareSecurityModule_basic(data),
@@ -35,9 +35,9 @@ func TestAccAzureRMDedicatedHardwareSecurityModule_requiresImport(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHardwareSecurityModule_basic(data),
@@ -54,9 +54,9 @@ func TestAccAzureRMDedicatedHardwareSecurityModule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHardwareSecurityModule_complete(data),
@@ -73,9 +73,9 @@ func TestAccAzureRMDedicatedHardwareSecurityModule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_hardware_security_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDedicatedHardwareSecurityModuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDedicatedHardwareSecurityModule_basic(data),

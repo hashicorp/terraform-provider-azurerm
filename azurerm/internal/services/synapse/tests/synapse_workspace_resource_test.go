@@ -15,9 +15,9 @@ import (
 func TestAccAzureRMSynapseWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseWorkspace_basic(data),
@@ -33,9 +33,9 @@ func TestAccAzureRMSynapseWorkspace_basic(t *testing.T) {
 func TestAccAzureRMSynapseWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseWorkspace_basic(data),
@@ -51,9 +51,9 @@ func TestAccAzureRMSynapseWorkspace_requiresImport(t *testing.T) {
 func TestAccAzureRMSynapseWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseWorkspace_complete(data),
@@ -69,9 +69,9 @@ func TestAccAzureRMSynapseWorkspace_complete(t *testing.T) {
 func TestAccAzureRMSynapseWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSynapseWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseWorkspace_basic(data),

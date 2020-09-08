@@ -12,8 +12,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_europe(t *testin
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Europe"),
@@ -30,8 +30,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_germany(t *testi
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("Germany"),
@@ -48,8 +48,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_unitedKingdom(t 
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("United Kingdom"),
@@ -66,8 +66,8 @@ func TestAccAzureRMDataSourceTrafficManagerGeographicalLocation_world(t *testing
 	data := acceptance.BuildTestData(t, "data.azurerm_traffic_manager_geographical_location", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataSourceTrafficManagerGeographicalLocation_template("World"),

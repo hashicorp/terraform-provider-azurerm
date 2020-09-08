@@ -16,9 +16,9 @@ func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_basic(data),
@@ -39,9 +39,9 @@ func TestAccAzureRMApplicationGateway_autoscaleConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(data, 0, 10),
@@ -74,9 +74,9 @@ func TestAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_autoscaleConfigurationNoMaxCapacity(data),
@@ -97,9 +97,9 @@ func TestAccAzureRMApplicationGateway_zones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_zones(data),
@@ -121,9 +121,9 @@ func TestAccAzureRMApplicationGateway_overridePath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_overridePath(data),
@@ -141,9 +141,9 @@ func TestAccAzureRMApplicationGateway_http2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_http2(data),
@@ -161,9 +161,9 @@ func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_basic(data),
@@ -183,9 +183,9 @@ func TestAccAzureRMApplicationGateway_authCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_authCertificate(data),
@@ -219,9 +219,9 @@ func TestAccAzureRMApplicationGateway_customFirewallPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_customFirewallPolicy(data),
@@ -239,9 +239,9 @@ func TestAccAzureRMApplicationGateway_customHttpListenerFirewallPolicy(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_customHttpListenerFirewallPolicy(data),
@@ -262,9 +262,9 @@ func TestAccAzureRMApplicationGateway_trustedRootCertificate_keyvault(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_trustedRootCertificate_keyvault(data),
@@ -282,9 +282,9 @@ func TestAccAzureRMApplicationGateway_trustedRootCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_trustedRootCertificate(data),
@@ -316,9 +316,9 @@ func TestAccAzureRMApplicationGateway_pathBasedRouting(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_pathBasedRouting(data),
@@ -335,9 +335,9 @@ func TestAccAzureRMApplicationGateway_routingRedirect_httpListener(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_routingRedirect_httpListener(data),
@@ -354,9 +354,9 @@ func TestAccAzureRMApplicationGateway_routingRedirect_httpListenerError(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMApplicationGateway_routingRedirect_httpListenerError(data),
@@ -370,9 +370,9 @@ func TestAccAzureRMApplicationGateway_routingRedirect_pathBased(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_routingRedirect_pathBased(data),
@@ -389,9 +389,9 @@ func TestAccAzureRMApplicationGateway_customErrorConfigurations(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_customErrorConfigurations(data),
@@ -408,9 +408,9 @@ func TestAccAzureRMApplicationGateway_rewriteRuleSets_backend(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_rewriteRuleSets_backend(data),
@@ -428,9 +428,9 @@ func TestAccAzureRMApplicationGateway_rewriteRuleSets_redirect(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_rewriteRuleSets_redirect(data),
@@ -448,9 +448,9 @@ func TestAccAzureRMApplicationGateway_probes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_probes(data),
@@ -467,9 +467,9 @@ func TestAccAzureRMApplicationGateway_probesEmptyMatch(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_probesEmptyMatch(data),
@@ -486,9 +486,9 @@ func TestAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_probesPickHostNameFromBackendHTTPSettings(data),
@@ -506,9 +506,9 @@ func TestAccAzureRMApplicationGateway_probesWithPort(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_probesWithPort(data),
@@ -527,9 +527,9 @@ func TestAccAzureRMApplicationGateway_backendHttpSettingsHostName(t *testing.T) 
 	hostName := "example.com"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_backendHttpSettingsHostName(data, hostName, false),
@@ -547,9 +547,9 @@ func TestAccAzureRMApplicationGateway_withHttpListenerHostNames(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_withHttpListenerHostNames(data),
@@ -567,9 +567,9 @@ func TestAccAzureRMApplicationGateway_backendHttpSettingsHostNameAndPick(t *test
 	hostName := "example.com"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMApplicationGateway_backendHttpSettingsHostName(data, hostName, true),
@@ -583,9 +583,9 @@ func TestAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(t *
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_settingsPickHostNameFromBackendAddress(data),
@@ -603,9 +603,9 @@ func TestAccAzureRMApplicationGateway_sslCertificate_keyvault_versionless(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_sslCertificate_keyvault_versionless(data),
@@ -623,9 +623,9 @@ func TestAccAzureRMApplicationGateway_sslCertificate_keyvault_versioned(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_sslCertificate_keyvault_versioned(data),
@@ -643,9 +643,9 @@ func TestAccAzureRMApplicationGateway_sslCertificate_EmptyPassword(t *testing.T)
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_sslCertificateEmptyPassword(data),
@@ -666,9 +666,9 @@ func TestAccAzureRMApplicationGateway_sslCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_sslCertificate(data),
@@ -700,9 +700,9 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_webApplicationFirewall(data),
@@ -728,9 +728,9 @@ func TestAccAzureRMApplicationGateway_connectionDraining(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_connectionDraining(data),
@@ -761,9 +761,9 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_disabledRuleGroups(data),
@@ -818,9 +818,9 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall_exclusions(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_webApplicationFirewall_exclusions_many(data),
@@ -880,9 +880,9 @@ func TestAccAzureRMApplicationGateway_sslPolicy_policyType_predefined(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_sslPolicy_policyType_predefined(data),
@@ -900,9 +900,9 @@ func TestAccAzureRMApplicationGateway_sslPolicy_policyType_custom(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_sslPolicy_policyType_custom(data),
@@ -923,9 +923,9 @@ func TestAccAzureRMApplicationGateway_sslPolicy_disabledProtocols(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_sslPolicy_disabledProtocols(data),
@@ -943,9 +943,9 @@ func TestAccAzureRMApplicationGateway_cookieAffinity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_cookieAffinity(data),
@@ -971,9 +971,9 @@ func TestAccAzureRMApplicationGateway_gatewayIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_basic(data),
@@ -997,9 +997,9 @@ func TestAccAzureRMApplicationGateway_UserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_UserDefinedIdentity(data),
@@ -1017,9 +1017,9 @@ func TestAccAzureRMApplicationGateway_V2SKUCapacity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_v2SKUCapacity(data),
@@ -1039,9 +1039,9 @@ func TestAccAzureRMApplicationGateway_IncludePathWithTargetURL(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_includePathWithTargetURL(data),
@@ -1058,9 +1058,9 @@ func TestAccAzureRMApplicationGateway_backendAddressPoolEmptyIpList(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMApplicationGateway_backendAddressPoolEmptyIpList(data),

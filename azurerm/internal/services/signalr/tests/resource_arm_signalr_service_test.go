@@ -16,9 +16,9 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_basic(data),
@@ -45,9 +45,9 @@ func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_basic(data),
@@ -74,9 +74,9 @@ func TestAccAzureRMSignalRService_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
@@ -103,9 +103,9 @@ func TestAccAzureRMSignalRService_standardWithCap2(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 2),
@@ -132,9 +132,9 @@ func TestAccAzureRMSignalRService_skuUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_basic(data),
@@ -192,9 +192,9 @@ func TestAccAzureRMSignalRService_capacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_standardWithCapacity(data, 1),
@@ -252,9 +252,9 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_basic(data),
@@ -312,9 +312,9 @@ func TestAccAzureRMSignalRService_serviceMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_withServiceMode(data, "Serverless"),
@@ -341,9 +341,9 @@ func TestAccAzureRMSignalRService_cors(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMSignalRServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSignalRService_withCors(data),

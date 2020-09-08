@@ -15,9 +15,9 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricActionBasic(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigBasic(data),
@@ -34,9 +34,9 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricActionUpdate(t *testing
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigBasic(data),
@@ -60,9 +60,9 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricActionComplete(t *testi
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_log", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMMonitorScheduledQueryRules_LogDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMMonitorScheduledQueryRules_LogToMetricActionConfigComplete(data),

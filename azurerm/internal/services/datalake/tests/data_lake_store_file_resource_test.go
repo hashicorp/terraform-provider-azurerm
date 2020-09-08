@@ -44,9 +44,9 @@ func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStoreFile_basic(data),
@@ -81,9 +81,9 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStoreFile_largefiles(data, tmpfile.Name()),
@@ -100,9 +100,9 @@ func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataLakeStoreFileDestroy,
+		PreCheck:          func() { acceptance.PreCheck(t) },
+		ProviderFactories: acceptance.SupportedProviders,
+		CheckDestroy:      testCheckAzureRMDataLakeStoreFileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDataLakeStoreFile_basic(data),
