@@ -28,6 +28,7 @@ func resourceArmContainerRegistryNetworkRuleset() *schema.Resource {
 
 		SchemaVersion: 2,
 
+		//Setting custom timeouts
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(15 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
@@ -132,6 +133,7 @@ func resourceArmContainerRegistryNetworkRulesetCreateUpdate(d *schema.ResourceDa
 		return fmt.Errorf("Error retrieving Container Registry %q (Resource Group %q): %+v", containerRegistryName, resourceGroup, err)
 	}
 
+	//Generate a Resource ID manually as Azure Resource Mangager doesn't maintain an ID for this type of resource
 	resourceId := fmt.Sprintf("%s/networkruleset/rule", *containerRegistry.ID)
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
@@ -224,6 +226,7 @@ func resourceArmContainerRegistryNetworkRulesetDelete(d *schema.ResourceData, me
 		return nil
 	}
 
+	//Delete operation doesn't delete any of the resources, instead it updates the resource to initial configuration
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			NetworkRuleSet: &containerregistry.NetworkRuleSet{
