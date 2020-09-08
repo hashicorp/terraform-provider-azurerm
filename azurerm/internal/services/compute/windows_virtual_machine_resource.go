@@ -3,11 +3,13 @@ package compute
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -1109,6 +1111,40 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 		}
 	} else {
 		log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	}
+
+	// Need to add a get and a state wait to avoid bug in network API where the attached disk(s) are not actually deleted
+	// Service team indicated that we need to do a get after VM delete call returns to verify that the VM and all attached
+	// disks have actually been deleted.
+
+	log.Printf("[INFO] verifying Windows Virtual Machine %q has been deleted", id.Name)
+	virtualMachine, _ := client.Get(ctx, id.ResourceGroup, id.Name, "")
+
+	if !utils.ResponseWasNotFound(virtualMachine.Response) {
+		log.Printf("[INFO] Windows Virtual Machine still exists, waiting on Windows Virtual Machine %q to be deleted", id.Name)
+
+		deleteWait := &resource.StateChangeConf{
+			Pending:    []string{"200"},
+			Target:     []string{"404"},
+			MinTimeout: 30 * time.Second,
+			Timeout:    d.Timeout(schema.TimeoutDelete),
+			Refresh: func() (interface{}, string, error) {
+				log.Printf("[INFO] checking on state of Windows Virtual Machine %q", id.Name)
+				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+
+				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return resp, strconv.Itoa(resp.StatusCode), nil
+					}
+					return nil, "nil", fmt.Errorf("polling for the status of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+				}
+				return resp, strconv.Itoa(resp.StatusCode), nil
+			},
+		}
+
+		if _, err := deleteWait.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for the deletion of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return nil
