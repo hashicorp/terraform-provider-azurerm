@@ -28,6 +28,7 @@ func resourceArmKeyVaultNetworkAcls() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		//Setting custom timeouts
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(15 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
@@ -103,6 +104,7 @@ func resourceArmKeyVaultNetworkAclsCreateUpdate(d *schema.ResourceData, meta int
 	keyVaultName := d.Get("key_vault_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	//Lock the resource to prevent external changes
 	locks.ByName(keyVaultName, keyVaultResourceName)
 	defer locks.UnlockByName(keyVaultName, keyVaultResourceName)
 
@@ -121,6 +123,7 @@ func resourceArmKeyVaultNetworkAclsCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): `properties` was nil", keyVaultName, resourceGroup)
 	}
 
+	//Generate a Resource ID for the ACL as Azure Resource manager doesn't maintain a Resource ID for this resource
 	resourceId := fmt.Sprintf("%s/aclId/rule", *keyVault.ID)
 	update := keyvault.VaultPatchParameters{}
 
@@ -131,7 +134,7 @@ func resourceArmKeyVaultNetworkAclsCreateUpdate(d *schema.ResourceData, meta int
 	networkAclsRaw := d.Get("network_acls").([]interface{})
 	networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
 
-	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
+	//Lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
 		id, err2 := azure.ParseAzureResourceID(v)
@@ -229,6 +232,7 @@ func resourceArmKeyVaultNetworkAclsDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
+	//Delete operation doesn't delete anything, instead it resets it to default
 	update := keyvault.VaultPatchParameters{
 		Properties: &keyvault.VaultPatchProperties{
 			NetworkAcls: &keyvault.NetworkRuleSet{
