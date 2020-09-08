@@ -982,11 +982,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
 			if err != nil {
-				return fmt.Errorf("Error updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
@@ -1118,7 +1118,10 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	// disks have actually been deleted.
 
 	log.Printf("[INFO] verifying Windows Virtual Machine %q has been deleted", id.Name)
-	virtualMachine, _ := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil && !utils.ResponseWasNotFound(virtualMachine.Response) {
+		return fmt.Errorf("verifying Windows Virtual Machine %q (Resource Group %q) has been deleted: %+v", id.Name, id.ResourceGroup, err)
+	}
 
 	if !utils.ResponseWasNotFound(virtualMachine.Response) {
 		log.Printf("[INFO] Windows Virtual Machine still exists, waiting on Windows Virtual Machine %q to be deleted", id.Name)
