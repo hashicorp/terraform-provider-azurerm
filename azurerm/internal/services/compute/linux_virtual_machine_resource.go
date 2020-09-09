@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -150,6 +150,11 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  true,
+			},
+
+			"encryption_at_host_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"eviction_policy": {
@@ -384,6 +389,12 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 			DiagnosticsProfile:     bootDiagnostics,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		}
 	}
 
 	if !provisionVMAgent && allowExtensionOperations {
@@ -621,6 +632,12 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	encryptionAtHostEnabled := false
+	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
+		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	}
+	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+
 	d.Set("virtual_machine_id", props.VMID)
 
 	zone := ""
@@ -843,6 +860,15 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 
 		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
 		update.VirtualMachineProperties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
+	}
+
+	if d.HasChange("encryption_at_host_enabled") {
+		shouldUpdate = true
+		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
+
+		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		}
 	}
 
 	if instanceView.Statuses != nil {
