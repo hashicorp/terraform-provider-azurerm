@@ -15,7 +15,7 @@ import (
 
 func dataSourceArmLoadBalancerRule() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmLoadBalancerLoadBalancingRulesRead,
+		Read: dataSourceArmLoadBalancerRuleRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -28,7 +28,7 @@ func dataSourceArmLoadBalancerRule() *schema.Resource {
 				ValidateFunc: ValidateArmLoadBalancerRuleName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"loadbalancer_id": {
 				Type:         schema.TypeString,
@@ -94,7 +94,7 @@ func dataSourceArmLoadBalancerRule() *schema.Resource {
 	}
 }
 
-func dataSourceArmLoadBalancerLoadBalancingRulesRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,7 +124,7 @@ func dataSourceArmLoadBalancerLoadBalancingRulesRead(d *schema.ResourceData, met
 			return fmt.Errorf("Load Balancer Rule %q was not found in Load Balancer %q (Resource Group: %q)", name, *loadBalancer.Name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Load Balancer %s: %s", name, err)
+		return fmt.Errorf("retrieving Load Balancer %s: %s", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -142,34 +142,34 @@ func dataSourceArmLoadBalancerLoadBalancingRulesRead(d *schema.ResourceData, met
 
 		if props.BackendAddressPool != nil {
 			if err := d.Set("backend_address_pool_id", props.BackendAddressPool.ID); err != nil {
-				return fmt.Errorf("Error setting `backend_address_pool_id`: %+v", err)
+				return fmt.Errorf("setting `backend_address_pool_id`: %+v", err)
 			}
 		}
 
 		if props.Probe != nil {
 			if err := d.Set("probe_id", props.Probe.ID); err != nil {
-				return fmt.Errorf("Error setting `probe_id`: %+v", err)
+				return fmt.Errorf("setting `probe_id`: %+v", err)
 			}
 		}
 
 		if err := d.Set("enable_floating_ip", props.EnableFloatingIP); err != nil {
-			return fmt.Errorf("Error setting `enable_floating_ip`: %+v", err)
+			return fmt.Errorf("setting `enable_floating_ip`: %+v", err)
 		}
 
 		if err := d.Set("enable_tcp_reset", props.EnableTCPReset); err != nil {
-			return fmt.Errorf("Error setting `enable_tcp_reset`: %+v", err)
+			return fmt.Errorf("setting `enable_tcp_reset`: %+v", err)
 		}
 
 		if err := d.Set("disable_outbound_snat", props.DisableOutboundSnat); err != nil {
-			return fmt.Errorf("Error setting `disable_outbound_snat`: %+v", err)
+			return fmt.Errorf("setting `disable_outbound_snat`: %+v", err)
 		}
 
 		if err := d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes); err != nil {
-			return fmt.Errorf("Error setting `idle_timeout_in_minutes`: %+v", err)
+			return fmt.Errorf("setting `idle_timeout_in_minutes`: %+v", err)
 		}
 
 		if err := d.Set("load_distribution", props.LoadDistribution); err != nil {
-			return fmt.Errorf("Error setting `load_distribution`: %+v", err)
+			return fmt.Errorf("setting `load_distribution`: %+v", err)
 		}
 	}
 

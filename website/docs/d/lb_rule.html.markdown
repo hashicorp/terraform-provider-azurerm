@@ -1,7 +1,7 @@
 ---
 subcategory: "Load Balancer"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_lb_rule"
+page_title: "Azure Resource Manager: azurerm_lb_rule"
 description: |-
   Gets information about an existing Load Balancer Rule.
 ---
@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Load Balancer Rule.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Load Balancer Rule exists. Changing this forces a new Load Balancer Rule to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Load Balancer Rule exists.
 
 ## Attributes Reference
 
@@ -57,13 +57,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backend_port` - The port used for internal connections on the endpoint.
 
-* `enable_floating_ip` - If Floating IPs are enabled for this Load Balncer Rule
+* `enable_floating_ip` - If Floating IPs are enabled for this Load Balancer Rule
 
 * `idle_timeout_in_minutes` - Specifies the idle timeout in minutes for TCP connections.
 
 * `load_distribution` - Specifies the load balancing distribution type used by the Load Balancer. 
 
-* `disable_outbound_snat` - If snat is enabled for this Load Balancer Rule.
+* `disable_outbound_snat` - If outbound SNAT is enabled for this Load Balancer Rule.
 
 * `enable_tcp_reset` - If TCP Reset is enabled for this Load Balancer Rule.
 
