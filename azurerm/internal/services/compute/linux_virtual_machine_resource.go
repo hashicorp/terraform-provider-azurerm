@@ -342,11 +342,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	// TODO - put beta env var flag here
 	if true {
-		dataDiskRaw := d.Get("data_disk").([]interface{})
-		dataDisks, err = expandVirtualMachineDataDisks(dataDiskRaw)
-		if err != nil {
-			return err
-		}
+		dataDisks = expandVirtualMachineDataDisks(d.Get("data_disk").([]interface{}))
 	}
 
 	secretsRaw := d.Get("secret").([]interface{})
@@ -643,12 +639,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 
 		// TODO beta env var here
 		if true {
-			if dataDisks := profile.DataDisks; dataDisks != nil {
-				flattenedDataDisks, err := flattenVirtualMachineDataDisks(dataDisks, d)
-				if err != nil {
-					return fmt.Errorf("flattening `data_disk`: %+v", err)
-				}
-			}
+			d.Set("data_disk", flattenVirtualMachineDataDisks(profile.DataDisks, d))
 		}
 	}
 

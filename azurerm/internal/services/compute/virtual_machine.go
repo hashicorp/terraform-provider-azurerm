@@ -287,6 +287,7 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"caching": {
@@ -338,14 +339,14 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
-					Optional:     true,
-					Computed:     true,
+					Required:     true,
 					ValidateFunc: validateManagedDiskSizeGB,
 				},
 
-				"image_reference_id": {
+				"managed_disk_id": {
 					Type:     schema.TypeString,
 					Optional: true,
+					Computed: true,
 				},
 
 				"vhd_uri": {
@@ -368,11 +369,6 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 
 				"disk_mbps_read_write": {
 					Type:     schema.TypeInt,
-					Computed: true,
-				},
-
-				"managed_disk_id": {
-					Type:     schema.TypeString,
 					Computed: true,
 				},
 			},
@@ -503,60 +499,61 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 	}, nil
 }
 
-func expandVirtualMachineDataDisks(input []interface{}) (*[]compute.DataDisk, error) {
+func expandVirtualMachineDataDisks(input []interface{}) *[]compute.DataDisk {
 	result := make([]compute.DataDisk, 0)
 
 	if len(input) == 0 {
-		return &result, nil
+		return &result
 	}
 
 	for _, v := range input {
 		disk := v.(map[string]interface{})
 		name := disk["name"].(string)
 		dataDisk := compute.DataDisk{
-			Name:    &name,
-			Lun:     utils.Int32(int32(disk["lun"].(int))),
-			Caching: compute.CachingTypes(disk["caching"].(string)),
+			Name:         &name,
+			Lun:          utils.Int32(int32(disk["lun"].(int))),
+			Caching:      compute.CachingTypes(disk["caching"].(string)),
+			CreateOption: compute.DiskCreateOptionTypesEmpty,
 			ManagedDisk: &compute.ManagedDiskParameters{
 				StorageAccountType: compute.StorageAccountTypes(disk["storage_account_type"].(string)),
 			},
 		}
 
-		if vhd, ok := disk["vhd_urk"]; ok {
+		if vhd, ok := disk["vhd_url"]; ok {
 			dataDisk.Vhd = &compute.VirtualHardDisk{
 				URI: utils.String(vhd.(string)),
 			}
+			dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
 		}
 
-		if imageRefId, ok := disk["image_reference_id"]; ok {
-			dataDisk.Image = &compute.VirtualHardDisk{
-				URI: utils.String(imageRefId.(string)),
-			}
+		if managedDiskId, ok := disk["managed_disk_id"].(string); ok && managedDiskId != "" {
+			dataDisk.ManagedDisk.ID = utils.String(managedDiskId)
+			dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
 		}
 
 		if writeAccelerator, ok := disk["write_accelerator_enabled"]; ok {
 			dataDisk.WriteAcceleratorEnabled = utils.Bool(writeAccelerator.(bool))
 		}
 
-		if diskEncryptionSet, ok := disk["disk_encryption_set_id"]; ok {
+		if diskEncryptionSet, ok := disk["disk_encryption_set_id"].(string); ok && diskEncryptionSet != "" {
 			dataDisk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
-				ID: utils.String(diskEncryptionSet.(string)),
+				ID: utils.String(diskEncryptionSet),
 			}
 		}
 
-		if diskSizeGb, ok := disk["disk_size_gb"]; ok {
-			dataDisk.DiskSizeGB = utils.Int32(int32(diskSizeGb.(int)))
+		if diskSizeGb, ok := disk["disk_size_gb"].(int); ok && diskSizeGb != 0 {
+			dataDisk.DiskSizeGB = utils.Int32(int32(diskSizeGb))
 		}
 
 		result = append(result, dataDisk)
 	}
 
-	return &result, nil
+	return &result
 }
 
-func flattenVirtualMachineDataDisks(input *[]compute.DataDisk, d *schema.ResourceData) ([]interface{}, error) {
+func flattenVirtualMachineDataDisks(input *[]compute.DataDisk, d *schema.ResourceData) []interface{} {
 	if input == nil {
-		return []interface{}{}, nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0)
@@ -588,22 +585,31 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk, d *schema.Resourc
 		}
 		dataDisk["vhd_uri"] = vhdURI
 
-		imageID := ""
-		if v.Image != nil {
-			imageID = *v.Image.URI
+		writeAccelerator := false
+		if v.WriteAcceleratorEnabled != nil {
+			writeAccelerator = *v.WriteAcceleratorEnabled
 		}
-		dataDisk["image_reference_id"] = imageID
+		dataDisk["write_accelerator_enabled"] = writeAccelerator
 
-		dataDisk["write_accelerator_enabled"] = *v.WriteAcceleratorEnabled
-		dataDisk["disk_iops_read_write"] = int(*v.DiskIOPSReadWrite)
-		dataDisk["disk_mbps_read_write"] = int(*v.DiskMBpsReadWrite)
+		diskIOPS := 0
+		if v.DiskIOPSReadWrite != nil {
+			diskIOPS = int(*v.DiskIOPSReadWrite)
+		}
+		dataDisk["disk_iops_read_write"] = diskIOPS
+
+		diskMBPS := 0
+		if v.DiskMBpsReadWrite != nil {
+			diskMBPS = int(*v.DiskMBpsReadWrite)
+		}
+		dataDisk["disk_mbps_read_write"] = diskMBPS
 
 		deleteOnTermination := false
 		if dataDisksInConfigRaw, ok := d.GetOk("data_disk"); ok {
-			dataDisksInConfig := dataDisksInConfigRaw.([]map[string]interface{})
+			dataDisksInConfig := dataDisksInConfigRaw.([]interface{})
 			for _, dc := range dataDisksInConfig {
-				if dc["name"] == *v.Name {
-					deleteOnTermination = dc["delete_on_termination"].(bool)
+				disk := dc.(map[string]interface{})
+				if disk["name"] == *v.Name {
+					deleteOnTermination = disk["delete_on_termination"].(bool)
 				}
 			}
 		}
@@ -612,5 +618,5 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk, d *schema.Resourc
 		result = append(result, dataDisk)
 	}
 
-	return result, nil
+	return result
 }

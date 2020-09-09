@@ -373,11 +373,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	// TODO - put beta env var flag here
 	if true {
-		dataDiskRaw := d.Get("data_disk").([]interface{})
-		dataDisks, err = expandVirtualMachineDataDisks(dataDiskRaw)
-		if err != nil {
-			return err
-		}
+		dataDisks = expandVirtualMachineDataDisks(d.Get("data_disk").([]interface{}))
 	}
 
 	secretsRaw := d.Get("secret").([]interface{})
@@ -672,6 +668,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
+		}
+
+		// TODO beta env var here
+		if true {
+			d.Set("data_disk", flattenVirtualMachineDataDisks(profile.DataDisks, d))
 		}
 	}
 
