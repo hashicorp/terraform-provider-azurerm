@@ -237,13 +237,17 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	d.Set("application_insights_id", appInsightsId)
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.WebTestProperties; props != nil {
-		d.Set("kind", string(props.WebTestKind))
+		// It is possible that the root level `kind` in response is empty in some cases (see PR #8372 for more info)
+		if resp.Kind == "" {
+			d.Set("kind", props.WebTestKind)
+		}
 		d.Set("synthetic_monitor_id", props.SyntheticMonitorID)
 		d.Set("description", props.Description)
 		d.Set("enabled", props.Enabled)
