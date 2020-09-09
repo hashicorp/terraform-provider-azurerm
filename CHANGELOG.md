@@ -2,8 +2,9 @@
 
 FEATURES:
 
-* **New Data Source** `azurerm_attestation_provider` [GH-7885]
-* **New Data Source** `azurerm_function_app_host_keys` [GH-7902]
+* **New Data Source:** `azurerm_attestation_provider` [GH-7885]
+* **New Data Source:** `azurerm_function_app_host_keys` [GH-7902]
+* **New Data Source:** `azurerm_lb_rule` [GH-8365]
 * **New Resource:** `azurerm_attestation_provider` [GH-7885]
 * **New Resource:** `azurerm_api_management_api_diagnostic` [GH-7873]
 * **New Resource:** `azurerm_data_factory_linked_service_azure_sql_database` [GH-8349]
