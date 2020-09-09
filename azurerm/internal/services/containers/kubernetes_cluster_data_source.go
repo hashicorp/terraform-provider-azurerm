@@ -776,6 +776,11 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			workspaceID = *workspaceResourceID
 		}
 
+		// This is a workaround for issue: https://github.com/Azure/azure-rest-api-specs/issues/10716
+		if workspaceResourceID := omsAgent.Config["loganalyticsworkspaceresourceid"]; workspaceResourceID != nil {
+			workspaceID = *workspaceResourceID
+		}
+
 		omsagentIdentity := flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(omsAgent.Identity)
 
 		output := map[string]interface{}{
