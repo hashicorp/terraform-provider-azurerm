@@ -201,7 +201,7 @@ func resourceArmAppServiceHybridConnectionRead(d *schema.ResourceData, meta inte
 		relayNSClient := meta.(*clients.Client).Relay.NamespacesClient
 		relayNamespaceRG, err := findRelayNamespace(relayNSClient, ctx, *resp.ServiceBusNamespace)
 		if err != nil {
-			return nil
+			return err
 		}
 		accessKeys, err := relayNSClient.ListKeys(ctx, relayNamespaceRG, *resp.ServiceBusNamespace, *resp.SendKeyName)
 		if err != nil {
