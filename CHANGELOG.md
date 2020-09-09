@@ -22,6 +22,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_linux_virtual_machine` - Add WaitForState on VM delete [GH-8383]
+* `azurerm_role_definition` - fixed delete operation when role is scoped to Management Group [GH-6107]
 * `azurerm_windows_virtual_machine` - Add WaitForState on VM delete [GH-8383]
 
 ## 2.26.0 (September 04, 2020)
