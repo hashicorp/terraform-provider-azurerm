@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	helpersvalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
@@ -53,12 +52,7 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
-			"api_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: helpersvalidate.ApiManagementApiName,
-			},
+			"api_name": azure.SchemaApiManagementApiName(),
 
 			"api_management_logger_id": {
 				Type:         schema.TypeString,
