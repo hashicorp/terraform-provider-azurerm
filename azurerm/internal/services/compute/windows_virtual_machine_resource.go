@@ -1085,6 +1085,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMClient
+	disksClient := meta.(*clients.Client).Compute.DisksClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1135,7 +1136,6 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion
 	if deleteOSDisk {
 		log.Printf("[DEBUG] Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-		disksClient := meta.(*clients.Client).Compute.DisksClient
 		managedDiskId := ""
 		if props := existing.VirtualMachineProperties; props != nil && props.StorageProfile != nil && props.StorageProfile.OsDisk != nil {
 			if disk := props.StorageProfile.OsDisk.ManagedDisk; disk != nil && disk.ID != nil {
@@ -1168,6 +1168,37 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	} else {
 		log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	}
+
+	// TODO - put beta env var flag here
+	if true {
+		log.Printf("checking for data disks that should be deleted on termination for %q (resource group %q)", id.Name, id.ResourceGroup)
+		if dataDisks, ok := d.GetOk("data_disk"); ok {
+			for _, v := range dataDisks.([]interface{}) {
+				disk := v.(map[string]interface{})
+				if disk["delete_on_termination"].(bool) {
+					diskId, err := parse.ManagedDiskID(disk["managed_disk_id"].(string))
+					if err != nil {
+						return fmt.Errorf("failed to parse ID for data disk for deletion")
+					}
+					log.Printf("[DEBUG] Attempting to delete data disk %q (resource group %q)", diskId.Name, diskId.ResourceGroup)
+
+					diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.Name)
+					if err != nil {
+						// Should we just log and continue as OS Disk, since there may be more than one?
+						return fmt.Errorf("deleting Data Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					}
+
+					if !response.WasNotFound(diskDeleteFuture.Response()) {
+						if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
+							// Should we just log and continue as OS Disk, since there may be more than one?
+							return fmt.Errorf("failed waiting to delete Data Disk %q (Resource Group %q) for Linux Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+						}
+					}
+				}
+			}
+		}
+	}
+
 
 	// Need to add a get and a state wait to avoid bug in network API where the attached disk(s) are not actually deleted
 	// Service team indicated that we need to do a get after VM delete call returns to verify that the VM and all attached
