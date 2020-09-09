@@ -47,15 +47,15 @@ func NewDscNodeConfigurationClientWithBaseURI(baseURI string, subscriptionID str
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// nodeConfigurationName - the create or update parameters for configuration.
+// nodeConfigurationName - the Dsc node configuration name.
 // parameters - the create or update parameters for configuration.
-func (client DscNodeConfigurationClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, nodeConfigurationName string, parameters DscNodeConfigurationCreateOrUpdateParameters) (result DscNodeConfiguration, err error) {
+func (client DscNodeConfigurationClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, nodeConfigurationName string, parameters DscNodeConfigurationCreateOrUpdateParameters) (result DscNodeConfigurationCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DscNodeConfigurationClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -66,14 +66,15 @@ func (client DscNodeConfigurationClient) CreateOrUpdate(ctx context.Context, res
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.Source", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "parameters.Source.Hash", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "parameters.Source.Hash.Algorithm", Name: validation.Null, Rule: true, Chain: nil},
-						{Target: "parameters.Source.Hash.Value", Name: validation.Null, Rule: true, Chain: nil},
+			Constraints: []validation.Constraint{{Target: "parameters.DscNodeConfigurationCreateOrUpdateParametersProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.DscNodeConfigurationCreateOrUpdateParametersProperties.Source", Name: validation.Null, Rule: true,
+					Chain: []validation.Constraint{{Target: "parameters.DscNodeConfigurationCreateOrUpdateParametersProperties.Source.Hash", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.DscNodeConfigurationCreateOrUpdateParametersProperties.Source.Hash.Algorithm", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "parameters.DscNodeConfigurationCreateOrUpdateParametersProperties.Source.Hash.Value", Name: validation.Null, Rule: true, Chain: nil},
+						}},
 					}},
-				}},
-				{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "parameters.Configuration", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+					{Target: "parameters.DscNodeConfigurationCreateOrUpdateParametersProperties.Configuration", Name: validation.Null, Rule: true, Chain: nil},
+				}}}}}); err != nil {
 		return result, validation.NewError("automation.DscNodeConfigurationClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -83,16 +84,10 @@ func (client DscNodeConfigurationClient) CreateOrUpdate(ctx context.Context, res
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationClient", "CreateOrUpdate", resp, "Failure responding to request")
 	}
 
 	return
@@ -107,7 +102,7 @@ func (client DscNodeConfigurationClient) CreateOrUpdatePreparer(ctx context.Cont
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -124,8 +119,14 @@ func (client DscNodeConfigurationClient) CreateOrUpdatePreparer(ctx context.Cont
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client DscNodeConfigurationClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client DscNodeConfigurationClient) CreateOrUpdateSender(req *http.Request) (future DscNodeConfigurationCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -133,7 +134,7 @@ func (client DscNodeConfigurationClient) CreateOrUpdateSender(req *http.Request)
 func (client DscNodeConfigurationClient) CreateOrUpdateResponder(resp *http.Response) (result DscNodeConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -194,7 +195,7 @@ func (client DscNodeConfigurationClient) DeletePreparer(ctx context.Context, res
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -278,7 +279,7 @@ func (client DscNodeConfigurationClient) GetPreparer(ctx context.Context, resour
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -314,7 +315,10 @@ func (client DscNodeConfigurationClient) GetResponder(resp *http.Response) (resu
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
 // filter - the filter to apply on the operation.
-func (client DscNodeConfigurationClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result DscNodeConfigurationListResultPage, err error) {
+// skip - the number of rows to skip.
+// top - the number of rows to take.
+// inlinecount - return total rows.
+func (client DscNodeConfigurationClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, skip *int32, top *int32, inlinecount string) (result DscNodeConfigurationListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DscNodeConfigurationClient.ListByAutomationAccount")
 		defer func() {
@@ -334,7 +338,7 @@ func (client DscNodeConfigurationClient) ListByAutomationAccount(ctx context.Con
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter)
+	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter, skip, top, inlinecount)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeConfigurationClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -356,19 +360,28 @@ func (client DscNodeConfigurationClient) ListByAutomationAccount(ctx context.Con
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client DscNodeConfigurationClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (*http.Request, error) {
+func (client DscNodeConfigurationClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, skip *int32, top *int32, inlinecount string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if len(filter) > 0 {
 		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if skip != nil {
+		queryParameters["$skip"] = autorest.Encode("query", *skip)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
+	}
+	if len(inlinecount) > 0 {
+		queryParameters["$inlinecount"] = autorest.Encode("query", inlinecount)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -419,7 +432,7 @@ func (client DscNodeConfigurationClient) listByAutomationAccountNextResults(ctx 
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DscNodeConfigurationClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result DscNodeConfigurationListResultIterator, err error) {
+func (client DscNodeConfigurationClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, skip *int32, top *int32, inlinecount string) (result DscNodeConfigurationListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DscNodeConfigurationClient.ListByAutomationAccount")
 		defer func() {
@@ -430,6 +443,6 @@ func (client DscNodeConfigurationClient) ListByAutomationAccountComplete(ctx con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName, filter)
+	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName, filter, skip, top, inlinecount)
 	return
 }

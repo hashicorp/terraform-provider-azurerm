@@ -97,7 +97,7 @@ func (client RunbookDraftClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -182,7 +182,7 @@ func (client RunbookDraftClient) GetContentPreparer(ctx context.Context, resourc
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -212,96 +212,12 @@ func (client RunbookDraftClient) GetContentResponder(resp *http.Response) (resul
 	return
 }
 
-// Publish publish runbook draft.
-// Parameters:
-// resourceGroupName - name of an Azure Resource group.
-// automationAccountName - the name of the automation account.
-// runbookName - the parameters supplied to the publish runbook operation.
-func (client RunbookDraftClient) Publish(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result RunbookDraftPublishFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/RunbookDraftClient.Publish")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.RunbookDraftClient", "Publish", err.Error())
-	}
-
-	req, err := client.PublishPreparer(ctx, resourceGroupName, automationAccountName, runbookName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "Publish", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.PublishSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "Publish", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// PublishPreparer prepares the Publish request.
-func (client RunbookDraftClient) PublishPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
-		"runbookName":           autorest.Encode("path", runbookName),
-		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2015-10-31"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/runbooks/{runbookName}/draft/publish", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// PublishSender sends the Publish request. The method will close the
-// http.Response Body if it receives an error.
-func (client RunbookDraftClient) PublishSender(req *http.Request) (future RunbookDraftPublishFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// PublishResponder handles the response to the Publish request. The method always
-// closes the http.Response Body.
-func (client RunbookDraftClient) PublishResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByClosing())
-	result.Response = resp
-	return
-}
-
 // ReplaceContent replaces the runbook draft content.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
 // runbookName - the runbook name.
-// runbookContent - the runbook draft content.
+// runbookContent - the runbook draft content.
 func (client RunbookDraftClient) ReplaceContent(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, runbookContent io.ReadCloser) (result RunbookDraftReplaceContentFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/RunbookDraftClient.ReplaceContent")
@@ -345,7 +261,7 @@ func (client RunbookDraftClient) ReplaceContentPreparer(ctx context.Context, res
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -438,7 +354,7 @@ func (client RunbookDraftClient) UndoEditPreparer(ctx context.Context, resourceG
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

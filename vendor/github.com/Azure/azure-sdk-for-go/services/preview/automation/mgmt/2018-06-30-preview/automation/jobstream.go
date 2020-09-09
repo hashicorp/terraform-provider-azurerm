@@ -46,9 +46,10 @@ func NewJobStreamClientWithBaseURI(baseURI string, subscriptionID string) JobStr
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job id.
+// jobName - the job name.
 // jobStreamID - the job stream id.
-func (client JobStreamClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string, jobStreamID string) (result JobStream, err error) {
+// clientRequestID - identifies this specific client request.
+func (client JobStreamClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, jobStreamID string, clientRequestID string) (result JobStream, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobStreamClient.Get")
 		defer func() {
@@ -67,7 +68,7 @@ func (client JobStreamClient) Get(ctx context.Context, resourceGroupName string,
 		return result, validation.NewError("automation.JobStreamClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, jobID, jobStreamID)
+	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, jobName, jobStreamID, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobStreamClient", "Get", nil, "Failure preparing request")
 		return
@@ -89,16 +90,16 @@ func (client JobStreamClient) Get(ctx context.Context, resourceGroupName string,
 }
 
 // GetPreparer prepares the Get request.
-func (client JobStreamClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string, jobStreamID string) (*http.Request, error) {
+func (client JobStreamClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, jobStreamID string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"jobStreamId":           autorest.Encode("path", jobStreamID),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -106,8 +107,12 @@ func (client JobStreamClient) GetPreparer(ctx context.Context, resourceGroupName
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}/streams/{jobStreamId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}/streams/{jobStreamId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -129,13 +134,14 @@ func (client JobStreamClient) GetResponder(resp *http.Response) (result JobStrea
 	return
 }
 
-// ListByJob retrieve a list of jobs streams identified by job id.
+// ListByJob retrieve a list of jobs streams identified by job name.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job Id.
+// jobName - the job name.
 // filter - the filter to apply on the operation.
-func (client JobStreamClient) ListByJob(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string, filter string) (result JobStreamListResultPage, err error) {
+// clientRequestID - identifies this specific client request.
+func (client JobStreamClient) ListByJob(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, filter string, clientRequestID string) (result JobStreamListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobStreamClient.ListByJob")
 		defer func() {
@@ -155,7 +161,7 @@ func (client JobStreamClient) ListByJob(ctx context.Context, resourceGroupName s
 	}
 
 	result.fn = client.listByJobNextResults
-	req, err := client.ListByJobPreparer(ctx, resourceGroupName, automationAccountName, jobID, filter)
+	req, err := client.ListByJobPreparer(ctx, resourceGroupName, automationAccountName, jobName, filter, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobStreamClient", "ListByJob", nil, "Failure preparing request")
 		return
@@ -177,15 +183,15 @@ func (client JobStreamClient) ListByJob(ctx context.Context, resourceGroupName s
 }
 
 // ListByJobPreparer prepares the ListByJob request.
-func (client JobStreamClient) ListByJobPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string, filter string) (*http.Request, error) {
+func (client JobStreamClient) ListByJobPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, filter string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,8 +202,12 @@ func (client JobStreamClient) ListByJobPreparer(ctx context.Context, resourceGro
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}/streams", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}/streams", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -241,7 +251,7 @@ func (client JobStreamClient) listByJobNextResults(ctx context.Context, lastResu
 }
 
 // ListByJobComplete enumerates all values, automatically crossing page boundaries as required.
-func (client JobStreamClient) ListByJobComplete(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string, filter string) (result JobStreamListResultIterator, err error) {
+func (client JobStreamClient) ListByJobComplete(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, filter string, clientRequestID string) (result JobStreamListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobStreamClient.ListByJob")
 		defer func() {
@@ -252,6 +262,6 @@ func (client JobStreamClient) ListByJobComplete(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByJob(ctx, resourceGroupName, automationAccountName, jobID, filter)
+	result.page, err = client.ListByJob(ctx, resourceGroupName, automationAccountName, jobName, filter, clientRequestID)
 	return
 }
