@@ -21,6 +21,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_application_insights_webtests` - Fix an issue where the `kind` property is sometimes set to `null` [GH-8372]
 * `azurerm_linux_virtual_machine` - Add WaitForState on VM delete [GH-8383]
 * `azurerm_role_definition` - fixed delete operation when role is scoped to Management Group [GH-6107]
 * `azurerm_windows_virtual_machine` - Add WaitForState on VM delete [GH-8383]
