@@ -21,7 +21,7 @@ func StorageShareDirectoryName(v interface{}, k string) (warnings []string, erro
 	parts := strings.Split(value, "/")
 	for _, p := range parts {
 		if !start.MatchString(p) || !end.MatchString(p) {
-			errors = append(errors, fmt.Errorf("%s must start and end with a letter and end only with a number or letter", k))
+			errors = append(errors, fmt.Errorf("%s must start with a upper or lowercase letter and must end with a number or an upper or lowercase letter", k))
 			break
 		}
 	}
