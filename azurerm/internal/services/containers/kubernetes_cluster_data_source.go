@@ -755,6 +755,10 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
 			zoneName = *v
 		}
+		// This is a workaround for issue: https://github.com/Azure/azure-rest-api-specs/issues/10716
+		if v := httpApplicationRouting.Config["httpapplicationroutingzonename"]; v != nil {
+			zoneName = *v
+		}
 
 		output := map[string]interface{}{
 			"enabled":                            enabled,

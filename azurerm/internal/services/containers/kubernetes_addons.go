@@ -331,6 +331,11 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			zoneName = *v
 		}
 
+		// This is a workaround for issue: https://github.com/Azure/azure-rest-api-specs/issues/10716
+		if v := httpApplicationRouting.Config["httpapplicationroutingzonename"]; v != nil {
+			zoneName = *v
+		}
+
 		httpApplicationRoutes = append(httpApplicationRoutes, map[string]interface{}{
 			"enabled":                            enabled,
 			"http_application_routing_zone_name": zoneName,
