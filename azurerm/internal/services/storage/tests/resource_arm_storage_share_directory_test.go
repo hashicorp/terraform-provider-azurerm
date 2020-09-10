@@ -298,7 +298,7 @@ func testAccAzureRMStorageShareDirectory_nested(data acceptance.TestData) string
 %s
 
 resource "azurerm_storage_share_directory" "parent" {
-  name                 = "a--parent-dir"
+  name                 = "123--parent-dir"
   share_name           = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_account.test.name
 }
@@ -310,7 +310,7 @@ resource "azurerm_storage_share_directory" "child_one" {
 }
 
 resource "azurerm_storage_share_directory" "child_two" {
-  name                 = "${azurerm_storage_share_directory.parent.name}/child--two"
+  name                 = "${azurerm_storage_share_directory.child_one.name}/childtwo--123"
   share_name           = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_account.test.name
 }

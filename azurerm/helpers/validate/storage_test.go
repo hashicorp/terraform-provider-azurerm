@@ -17,7 +17,7 @@ func TestValidateStorageShareDirectoryName(t *testing.T) {
 		},
 		{
 			Input:    "123abc",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "abc-123",
@@ -25,15 +25,15 @@ func TestValidateStorageShareDirectoryName(t *testing.T) {
 		},
 		{
 			Input:    "123-abc",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "-123-abc",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "abc-123-",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "abc--123",
@@ -45,19 +45,19 @@ func TestValidateStorageShareDirectoryName(t *testing.T) {
 		},
 		{
 			Input:    "hello/-world",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "hello-/world",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "abc-123/world-",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "123-abc/hello-world",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "abc-123/hello--world",
@@ -65,11 +65,11 @@ func TestValidateStorageShareDirectoryName(t *testing.T) {
 		},
 		{
 			Input:    "abc-123/hello/world",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "abc-123/hello/world-",
-			Expected: false,
+			Expected: true,
 		},
 		{
 			Input:    "hello/",
