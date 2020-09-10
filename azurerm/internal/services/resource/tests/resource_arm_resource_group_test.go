@@ -1,11 +1,15 @@
 package tests
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -53,7 +57,7 @@ func TestAccAzureRMResourceGroup_multipleSubscriptions(t *testing.T) {
 					testCheckAzureRMResourceGroupExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			// data.ImportStep(),
 		},
 	})
 }
@@ -127,9 +131,14 @@ func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
 
 func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		// client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
+		testClient, err := configureTestProvider()
+		if err != nil {
+			panic(err)
+		}
+		ctx := context.TODO()
 
+		client := testClient.Resource.GroupsClient
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -155,8 +164,13 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 
 func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		testClient, err := configureTestProvider()
+		if err != nil {
+			panic(err)
+		}
+		ctx := context.TODO()
+
+		client := testClient.Resource.GroupsClient
 
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -183,8 +197,13 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	testClient, err := configureTestProvider()
+	if err != nil {
+		panic(err)
+	}
+	ctx := context.TODO()
+
+	client := testClient.Resource.GroupsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_resource_group" {
@@ -204,6 +223,76 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func configureTestProvider() (*clients.Client, error) {
+	var auxTenants []string
+
+	if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
+		auxTenants = strings.Split(v, ";")
+	}
+
+	if len(auxTenants) > 3 {
+		return nil, fmt.Errorf("The provider only supports 3 auxiliary tenant IDs")
+	}
+
+	metadataHost := os.Getenv("ARM_METADATA_HOSTNAME")
+	// TODO: remove in 3.0
+	// note: this is inline to avoid calling out deprecations for users not setting this
+	if v := os.Getenv("ARM_METADATA_URL"); v != "" {
+		metadataHost = v
+	}
+
+	var useMSI bool
+	if os.Getenv("ARM_USE_MSI") != "" {
+		useMSI, _ = strconv.ParseBool(os.Getenv("ARM_USE_MSI"));
+	}
+
+	builder := &authentication.Builder{
+		SubscriptionID:     os.Getenv("ARM_SUBSCRIPTION_ID"),
+		ClientID:           os.Getenv("ARM_CLIENT_ID"),
+		ClientSecret:       os.Getenv("ARM_CLIENT_SECRET"),
+		TenantID:           os.Getenv("ARM_TENANT_ID"),
+		AuxiliaryTenantIDs: auxTenants,
+		Environment:        os.Getenv("ARM_ENVIRONMENT"),
+		MetadataURL:        metadataHost, // TODO: rename this in Helpers too
+		MsiEndpoint:        os.Getenv("ARM_MSI_ENDPOINT"),
+		ClientCertPassword:   os.Getenv("ARM_CLIENT_CERTIFICATE_PASSWORD"),
+		ClientCertPath:      os.Getenv("ARM_CLIENT_CERTIFICATE_PATH"),
+
+		// Feature Toggles
+		SupportsClientCertAuth:         true,
+		SupportsClientSecretAuth:       true,
+		SupportsManagedServiceIdentity: useMSI,
+		SupportsAzureCliToken:          true,
+		SupportsAuxiliaryTenants:       len(auxTenants) > 0,
+
+		// Doc Links
+		ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/guides/service_principal_client_secret.html",
+	}
+
+	config, err := builder.Build()
+	if err != nil {
+		return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
+	}
+
+
+	skipProviderRegistration := false
+	clientBuilder := clients.ClientBuilder{
+		AuthConfig:                  config,
+		SkipProviderRegistration:    skipProviderRegistration,
+		TerraformVersion:            "0.12.29",
+		PartnerId:                  os.Getenv("ARM_PARTNER_ID"),
+		//DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+		//DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+		// Features:                    expandFeatures(d.Get("features").([]interface{})),
+		StorageUseAzureAD:           false,
+	}
+	client, err := clients.Build(context.TODO(), clientBuilder)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
 
 func testAccAzureRMResourceGroup_basic(data acceptance.TestData) string {

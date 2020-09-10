@@ -1,27 +1,18 @@
 package tfexec
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"os/exec"
 
 	tfjson "github.com/hashicorp/terraform-json"
 )
 
+// ProvidersSchema represents the terraform providers schema -json subcommand.
 func (tf *Terraform) ProvidersSchema(ctx context.Context) (*tfjson.ProviderSchemas, error) {
 	schemaCmd := tf.providersSchemaCmd(ctx)
 
 	var ret tfjson.ProviderSchemas
-	var outBuf bytes.Buffer
-	schemaCmd.Stdout = &outBuf
-
-	err := tf.runTerraformCmd(schemaCmd)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(outBuf.Bytes(), &ret)
+	err := tf.runTerraformCmdJSON(schemaCmd, &ret)
 	if err != nil {
 		return nil, err
 	}
@@ -38,5 +29,5 @@ func (tf *Terraform) providersSchemaCmd(ctx context.Context, args ...string) *ex
 	allArgs := []string{"providers", "schema", "-json", "-no-color"}
 	allArgs = append(allArgs, args...)
 
-	return tf.buildTerraformCmd(ctx, allArgs...)
+	return tf.buildTerraformCmd(ctx, nil, allArgs...)
 }

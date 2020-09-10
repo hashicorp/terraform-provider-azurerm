@@ -1,20 +1,30 @@
 package tfexec
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/hashicorp/terraform-exec/internal/version"
 )
 
 const (
-	checkpointDisableEnvVar = "CHECKPOINT_DISABLE"
-	logEnvVar               = "TF_LOG"
-	inputEnvVar             = "TF_INPUT"
-	automationEnvVar        = "TF_IN_AUTOMATION"
-	logPathEnvVar           = "TF_LOG_PATH"
-	reattachEnvVar          = "TF_REATTACH_PROVIDERS"
+	checkpointDisableEnvVar  = "CHECKPOINT_DISABLE"
+	logEnvVar                = "TF_LOG"
+	inputEnvVar              = "TF_INPUT"
+	automationEnvVar         = "TF_IN_AUTOMATION"
+	logPathEnvVar            = "TF_LOG_PATH"
+	reattachEnvVar           = "TF_REATTACH_PROVIDERS"
+	appendUserAgentEnvVar    = "TF_APPEND_USER_AGENT"
+	workspaceEnvVar          = "TF_WORKSPACE"
+	disablePluginTLSEnvVar   = "TF_DISABLE_PLUGIN_TLS"
+	skipProviderVerifyEnvVar = "TF_SKIP_PROVIDER_VERIFY"
 
 	varEnvVarPrefix = "TF_VAR_"
 )
@@ -25,6 +35,10 @@ var prohibitedEnvVars = []string{
 	logPathEnvVar,
 	logEnvVar,
 	reattachEnvVar,
+	appendUserAgentEnvVar,
+	workspaceEnvVar,
+	disablePluginTLSEnvVar,
+	skipProviderVerifyEnvVar,
 }
 
 func envMap(environ []string) map[string]string {
@@ -75,6 +89,14 @@ func (tf *Terraform) buildEnv(mergeEnv map[string]string) []string {
 		env[checkpointDisableEnvVar] = os.Getenv(checkpointDisableEnvVar)
 	}
 
+	// always override user agent
+	ua := mergeUserAgent(
+		os.Getenv(appendUserAgentEnvVar),
+		tf.appendUserAgent,
+		fmt.Sprintf("HashiCorp-terraform-exec/%s", version.ModuleVersion()),
+	)
+	env[appendUserAgentEnvVar] = ua
+
 	// always override logging
 	if tf.logPath == "" {
 		// so logging can't pollute our stderr output
@@ -89,12 +111,23 @@ func (tf *Terraform) buildEnv(mergeEnv map[string]string) []string {
 	// constant automation override env vars
 	env[automationEnvVar] = "1"
 
+	// force usage of workspace methods for switching
+	env[workspaceEnvVar] = ""
+
+	if tf.disablePluginTLS {
+		env[disablePluginTLSEnvVar] = "1"
+	}
+
+	if tf.skipProviderVerify {
+		env[skipProviderVerifyEnvVar] = "1"
+	}
+
 	return envSlice(env)
 }
 
-func (tf *Terraform) buildTerraformCmd(ctx context.Context, args ...string) *exec.Cmd {
+func (tf *Terraform) buildTerraformCmd(ctx context.Context, mergeEnv map[string]string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(ctx, tf.execPath, args...)
-	cmd.Env = tf.buildEnv(nil)
+	cmd.Env = tf.buildEnv(mergeEnv)
 	cmd.Dir = tf.workingDir
 
 	tf.logger.Printf("[INFO] running Terraform command: %s", cmdString(cmd))
@@ -102,24 +135,63 @@ func (tf *Terraform) buildTerraformCmd(ctx context.Context, args ...string) *exe
 	return cmd
 }
 
+func (tf *Terraform) runTerraformCmdJSON(cmd *exec.Cmd, v interface{}) error {
+	var outbuf = bytes.Buffer{}
+	cmd.Stdout = mergeWriters(cmd.Stdout, &outbuf)
+
+	err := tf.runTerraformCmd(cmd)
+	if err != nil {
+		return err
+	}
+
+	return json.Unmarshal(outbuf.Bytes(), v)
+}
+
 func (tf *Terraform) runTerraformCmd(cmd *exec.Cmd) error {
 	var errBuf strings.Builder
 
-	stdout := tf.stdout
-	if cmd.Stdout != nil {
-		stdout = io.MultiWriter(stdout, cmd.Stdout)
-	}
-	cmd.Stdout = stdout
-
-	stderr := io.MultiWriter(&errBuf, tf.stderr)
-	if cmd.Stderr != nil {
-		stderr = io.MultiWriter(stderr, cmd.Stderr)
-	}
-	cmd.Stderr = stderr
+	cmd.Stdout = mergeWriters(cmd.Stdout, tf.stdout)
+	cmd.Stderr = mergeWriters(cmd.Stderr, tf.stderr, &errBuf)
 
 	err := cmd.Run()
 	if err != nil {
 		return parseError(err, errBuf.String())
 	}
 	return nil
+}
+
+// mergeUserAgent does some minor deduplication to ensure we aren't
+// just using the same append string over and over.
+func mergeUserAgent(uas ...string) string {
+	included := map[string]bool{}
+	merged := []string{}
+	for _, ua := range uas {
+		ua = strings.TrimSpace(ua)
+
+		if ua == "" {
+			continue
+		}
+		if included[ua] {
+			continue
+		}
+		included[ua] = true
+		merged = append(merged, ua)
+	}
+	return strings.Join(merged, " ")
+}
+
+func mergeWriters(writers ...io.Writer) io.Writer {
+	compact := []io.Writer{}
+	for _, w := range writers {
+		if w != nil {
+			compact = append(compact, w)
+		}
+	}
+	if len(compact) == 0 {
+		return ioutil.Discard
+	}
+	if len(compact) == 1 {
+		return compact[0]
+	}
+	return io.MultiWriter(compact...)
 }

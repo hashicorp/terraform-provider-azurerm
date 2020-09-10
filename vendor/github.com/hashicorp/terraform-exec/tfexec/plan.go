@@ -8,17 +8,18 @@ import (
 )
 
 type planConfig struct {
-	destroy     bool
-	dir         string
-	lock        bool
-	lockTimeout string
-	out         string
-	parallelism int
-	refresh     bool
-	state       string
-	targets     []string
-	vars        []string
-	varFile     string
+	destroy      bool
+	dir          string
+	lock         bool
+	lockTimeout  string
+	out          string
+	parallelism  int
+	reattachInfo ReattachInfo
+	refresh      bool
+	state        string
+	targets      []string
+	vars         []string
+	varFiles     []string
 }
 
 var defaultPlanOptions = planConfig{
@@ -29,6 +30,7 @@ var defaultPlanOptions = planConfig{
 	refresh:     true,
 }
 
+// PlanOption represents options used in the Plan method.
 type PlanOption interface {
 	configurePlan(*planConfig)
 }
@@ -38,7 +40,7 @@ func (opt *DirOption) configurePlan(conf *planConfig) {
 }
 
 func (opt *VarFileOption) configurePlan(conf *planConfig) {
-	conf.varFile = opt.path
+	conf.varFiles = append(conf.varFiles, opt.path)
 }
 
 func (opt *VarOption) configurePlan(conf *planConfig) {
@@ -51,6 +53,10 @@ func (opt *TargetOption) configurePlan(conf *planConfig) {
 
 func (opt *StateOption) configurePlan(conf *planConfig) {
 	conf.state = opt.path
+}
+
+func (opt *ReattachOption) configurePlan(conf *planConfig) {
+	conf.reattachInfo = opt.info
 }
 
 func (opt *RefreshOption) configurePlan(conf *planConfig) {
@@ -77,18 +83,34 @@ func (opt *DestroyFlagOption) configurePlan(conf *planConfig) {
 	conf.destroy = opt.destroy
 }
 
-func (tf *Terraform) Plan(ctx context.Context, opts ...PlanOption) error {
-	return tf.runTerraformCmd(tf.planCmd(ctx, opts...))
+// Plan executes `terraform plan` with the specified options and waits for it
+// to complete.
+//
+// The returned boolean is false when the plan diff is empty (no changes) and
+// true when the plan diff is non-empty (changes present).
+//
+// The returned error is nil if `terraform plan` has been executed and exits
+// with either 0 or 2.
+func (tf *Terraform) Plan(ctx context.Context, opts ...PlanOption) (bool, error) {
+	cmd, err := tf.planCmd(ctx, opts...)
+	if err != nil {
+		return false, err
+	}
+	err = tf.runTerraformCmd(cmd)
+	if err != nil && cmd.ProcessState.ExitCode() == 2 {
+		return true, nil
+	}
+	return false, err
 }
 
-func (tf *Terraform) planCmd(ctx context.Context, opts ...PlanOption) *exec.Cmd {
+func (tf *Terraform) planCmd(ctx context.Context, opts ...PlanOption) (*exec.Cmd, error) {
 	c := defaultPlanOptions
 
 	for _, o := range opts {
 		o.configurePlan(&c)
 	}
 
-	args := []string{"plan", "-no-color", "-input=false"}
+	args := []string{"plan", "-no-color", "-input=false", "-detailed-exitcode"}
 
 	// string opts: only pass if set
 	if c.lockTimeout != "" {
@@ -100,8 +122,8 @@ func (tf *Terraform) planCmd(ctx context.Context, opts ...PlanOption) *exec.Cmd 
 	if c.state != "" {
 		args = append(args, "-state="+c.state)
 	}
-	if c.varFile != "" {
-		args = append(args, "-var-file="+c.varFile)
+	for _, vf := range c.varFiles {
+		args = append(args, "-var-file="+vf)
 	}
 
 	// boolean and numerical opts: always pass
@@ -131,5 +153,14 @@ func (tf *Terraform) planCmd(ctx context.Context, opts ...PlanOption) *exec.Cmd 
 		args = append(args, c.dir)
 	}
 
-	return tf.buildTerraformCmd(ctx, args...)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	return tf.buildTerraformCmd(ctx, mergeEnv, args...), nil
 }

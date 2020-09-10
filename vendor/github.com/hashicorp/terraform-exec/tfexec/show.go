@@ -1,35 +1,54 @@
 package tfexec
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os/exec"
 
 	tfjson "github.com/hashicorp/terraform-json"
 )
 
+type showConfig struct {
+	reattachInfo ReattachInfo
+}
+
+var defaultShowOptions = showConfig{}
+
+type ShowOption interface {
+	configureShow(*showConfig)
+}
+
+func (opt *ReattachOption) configureShow(conf *showConfig) {
+	conf.reattachInfo = opt.info
+}
+
 // Show reads the default state path and outputs the state.
 // To read a state or plan file, ShowState or ShowPlan must be used instead.
-func (tf *Terraform) Show(ctx context.Context) (*tfjson.State, error) {
+func (tf *Terraform) Show(ctx context.Context, opts ...ShowOption) (*tfjson.State, error) {
 	err := tf.compatible(ctx, tf0_12_0, nil)
 	if err != nil {
 		return nil, fmt.Errorf("terraform show -json was added in 0.12.0: %w", err)
 	}
 
-	showCmd := tf.showCmd(ctx)
+	c := defaultShowOptions
 
-	var ret tfjson.State
-	var outBuf bytes.Buffer
-	showCmd.Stdout = &outBuf
-
-	err = tf.runTerraformCmd(showCmd)
-	if err != nil {
-		return nil, err
+	for _, o := range opts {
+		o.configureShow(&c)
 	}
 
-	err = json.Unmarshal(outBuf.Bytes(), &ret)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	showCmd := tf.showCmd(ctx, mergeEnv)
+
+	var ret tfjson.State
+	err = tf.runTerraformCmdJSON(showCmd, &ret)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +62,7 @@ func (tf *Terraform) Show(ctx context.Context) (*tfjson.State, error) {
 }
 
 // ShowStateFile reads a given state file and outputs the state.
-func (tf *Terraform) ShowStateFile(ctx context.Context, statePath string) (*tfjson.State, error) {
+func (tf *Terraform) ShowStateFile(ctx context.Context, statePath string, opts ...ShowOption) (*tfjson.State, error) {
 	err := tf.compatible(ctx, tf0_12_0, nil)
 	if err != nil {
 		return nil, fmt.Errorf("terraform show -json was added in 0.12.0: %w", err)
@@ -53,18 +72,25 @@ func (tf *Terraform) ShowStateFile(ctx context.Context, statePath string) (*tfjs
 		return nil, fmt.Errorf("statePath cannot be blank: use Show() if not passing statePath")
 	}
 
-	showCmd := tf.showCmd(ctx, statePath)
+	c := defaultShowOptions
 
-	var ret tfjson.State
-	var outBuf bytes.Buffer
-	showCmd.Stdout = &outBuf
-
-	err = tf.runTerraformCmd(showCmd)
-	if err != nil {
-		return nil, err
+	for _, o := range opts {
+		o.configureShow(&c)
 	}
 
-	err = json.Unmarshal(outBuf.Bytes(), &ret)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	showCmd := tf.showCmd(ctx, mergeEnv, statePath)
+
+	var ret tfjson.State
+	err = tf.runTerraformCmdJSON(showCmd, &ret)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +104,7 @@ func (tf *Terraform) ShowStateFile(ctx context.Context, statePath string) (*tfjs
 }
 
 // ShowPlanFile reads a given plan file and outputs the plan.
-func (tf *Terraform) ShowPlanFile(ctx context.Context, planPath string) (*tfjson.Plan, error) {
+func (tf *Terraform) ShowPlanFile(ctx context.Context, planPath string, opts ...ShowOption) (*tfjson.Plan, error) {
 	err := tf.compatible(ctx, tf0_12_0, nil)
 	if err != nil {
 		return nil, fmt.Errorf("terraform show -json was added in 0.12.0: %w", err)
@@ -88,18 +114,25 @@ func (tf *Terraform) ShowPlanFile(ctx context.Context, planPath string) (*tfjson
 		return nil, fmt.Errorf("planPath cannot be blank: use Show() if not passing planPath")
 	}
 
-	showCmd := tf.showCmd(ctx, planPath)
+	c := defaultShowOptions
 
-	var ret tfjson.Plan
-	var outBuf bytes.Buffer
-	showCmd.Stdout = &outBuf
-
-	err = tf.runTerraformCmd(showCmd)
-	if err != nil {
-		return nil, err
+	for _, o := range opts {
+		o.configureShow(&c)
 	}
 
-	err = json.Unmarshal(outBuf.Bytes(), &ret)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	showCmd := tf.showCmd(ctx, mergeEnv, planPath)
+
+	var ret tfjson.Plan
+	err = tf.runTerraformCmdJSON(showCmd, &ret)
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +146,9 @@ func (tf *Terraform) ShowPlanFile(ctx context.Context, planPath string) (*tfjson
 
 }
 
-func (tf *Terraform) showCmd(ctx context.Context, args ...string) *exec.Cmd {
+func (tf *Terraform) showCmd(ctx context.Context, mergeEnv map[string]string, args ...string) *exec.Cmd {
 	allArgs := []string{"show", "-json", "-no-color"}
 	allArgs = append(allArgs, args...)
 
-	return tf.buildTerraformCmd(ctx, allArgs...)
+	return tf.buildTerraformCmd(ctx, mergeEnv, allArgs...)
 }

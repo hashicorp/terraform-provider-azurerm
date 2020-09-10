@@ -1,7 +1,6 @@
 package tfexec
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"os/exec"
@@ -14,6 +13,7 @@ type outputConfig struct {
 
 var defaultOutputOptions = outputConfig{}
 
+// OutputOption represents options used in the Output method.
 type OutputOption interface {
 	configureOutput(*outputConfig)
 }
@@ -32,20 +32,12 @@ type OutputMeta struct {
 	Value     json.RawMessage `json:"value"`
 }
 
+// Output represents the terraform output subcommand.
 func (tf *Terraform) Output(ctx context.Context, opts ...OutputOption) (map[string]OutputMeta, error) {
 	outputCmd := tf.outputCmd(ctx, opts...)
 
-	var outBuf bytes.Buffer
-	outputCmd.Stdout = &outBuf
-
 	outputs := map[string]OutputMeta{}
-
-	err := tf.runTerraformCmd(outputCmd)
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(outBuf.Bytes(), &outputs)
+	err := tf.runTerraformCmdJSON(outputCmd, &outputs)
 	if err != nil {
 		return nil, err
 	}
@@ -67,5 +59,5 @@ func (tf *Terraform) outputCmd(ctx context.Context, opts ...OutputOption) *exec.
 		args = append(args, "-state="+c.state)
 	}
 
-	return tf.buildTerraformCmd(ctx, args...)
+	return tf.buildTerraformCmd(ctx, nil, args...)
 }

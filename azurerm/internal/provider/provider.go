@@ -225,7 +225,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		// note: this is inline to avoid calling out deprecations for users not setting this
 		if v := d.Get("metadata_url").(string); v != "" {
 			metadataHost = v
-		} else if v := os.Getenv("ARM_METADATA_URL"); v != "" {
+		} else if v := os.Getenv("ARM_METMETADATAADATA_URL"); v != "" {
 			metadataHost = v
 		}
 

@@ -7,15 +7,16 @@ import (
 )
 
 type refreshConfig struct {
-	backup      string
-	dir         string
-	lock        bool
-	lockTimeout string
-	state       string
-	stateOut    string
-	targets     []string
-	vars        []string
-	varFile     string
+	backup       string
+	dir          string
+	lock         bool
+	lockTimeout  string
+	reattachInfo ReattachInfo
+	state        string
+	stateOut     string
+	targets      []string
+	vars         []string
+	varFiles     []string
 }
 
 var defaultRefreshOptions = refreshConfig{
@@ -23,6 +24,7 @@ var defaultRefreshOptions = refreshConfig{
 	lockTimeout: "0s",
 }
 
+// RefreshCmdOption represents options used in the Refresh method.
 type RefreshCmdOption interface {
 	configureRefresh(*refreshConfig)
 }
@@ -43,6 +45,10 @@ func (opt *LockTimeoutOption) configureRefresh(conf *refreshConfig) {
 	conf.lockTimeout = opt.timeout
 }
 
+func (opt *ReattachOption) configureRefresh(conf *refreshConfig) {
+	conf.reattachInfo = opt.info
+}
+
 func (opt *StateOption) configureRefresh(conf *refreshConfig) {
 	conf.state = opt.path
 }
@@ -60,14 +66,19 @@ func (opt *VarOption) configureRefresh(conf *refreshConfig) {
 }
 
 func (opt *VarFileOption) configureRefresh(conf *refreshConfig) {
-	conf.varFile = opt.path
+	conf.varFiles = append(conf.varFiles, opt.path)
 }
 
+// Refresh represents the terraform refresh subcommand.
 func (tf *Terraform) Refresh(ctx context.Context, opts ...RefreshCmdOption) error {
-	return tf.runTerraformCmd(tf.refreshCmd(ctx, opts...))
+	cmd, err := tf.refreshCmd(ctx, opts...)
+	if err != nil {
+		return err
+	}
+	return tf.runTerraformCmd(cmd)
 }
 
-func (tf *Terraform) refreshCmd(ctx context.Context, opts ...RefreshCmdOption) *exec.Cmd {
+func (tf *Terraform) refreshCmd(ctx context.Context, opts ...RefreshCmdOption) (*exec.Cmd, error) {
 	c := defaultRefreshOptions
 
 	for _, o := range opts {
@@ -89,8 +100,8 @@ func (tf *Terraform) refreshCmd(ctx context.Context, opts ...RefreshCmdOption) *
 	if c.stateOut != "" {
 		args = append(args, "-state-out="+c.stateOut)
 	}
-	if c.varFile != "" {
-		args = append(args, "-var-file="+c.varFile)
+	for _, vf := range c.varFiles {
+		args = append(args, "-var-file="+vf)
 	}
 
 	// boolean and numerical opts: always pass
@@ -113,5 +124,14 @@ func (tf *Terraform) refreshCmd(ctx context.Context, opts ...RefreshCmdOption) *
 		args = append(args, c.dir)
 	}
 
-	return tf.buildTerraformCmd(ctx, args...)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	return tf.buildTerraformCmd(ctx, mergeEnv, args...), nil
 }

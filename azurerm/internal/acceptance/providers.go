@@ -13,7 +13,7 @@ func EnsureProvidersAreInitialised() {
 	// NOTE: (@tombuildsstuff) - opting-out of Binary Testing for the moment
 	// os.Setenv("TF_DISABLE_BINARY_TESTING", "true")
 
-	once.Do(func() {
+	//once.Do(func() {
 		// azureProvider := provider.TestAzureProvider().(*schema.Provider)
 		// azureProvider2 := provider.TestAzureProvider().(*schema.Provider)
 
@@ -28,5 +28,5 @@ func EnsureProvidersAreInitialised() {
 		// is Disabled
 		// binarytestfuntime.UseBinaryDriver("azurerm", provider.TestAzureProvider)
 		//binarytestfuntime.UseBinaryDriver("azuread", azuread.Provider)
-	})
+	//})
 }

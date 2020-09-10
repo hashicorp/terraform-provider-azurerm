@@ -13,16 +13,17 @@ type destroyConfig struct {
 	lock   bool
 
 	// LockTimeout must be a string with time unit, e.g. '10s'
-	lockTimeout string
-	parallelism int
-	refresh     bool
-	state       string
-	stateOut    string
-	targets     []string
+	lockTimeout  string
+	parallelism  int
+	reattachInfo ReattachInfo
+	refresh      bool
+	state        string
+	stateOut     string
+	targets      []string
 
 	// Vars: each var must be supplied as a single string, e.g. 'foo=bar'
-	vars    []string
-	varFile string
+	vars     []string
+	varFiles []string
 }
 
 var defaultDestroyOptions = destroyConfig{
@@ -32,6 +33,7 @@ var defaultDestroyOptions = destroyConfig{
 	refresh:     true,
 }
 
+// DestroyOption represents options used in the Destroy method.
 type DestroyOption interface {
 	configureDestroy(*destroyConfig)
 }
@@ -65,7 +67,7 @@ func (opt *StateOutOption) configureDestroy(conf *destroyConfig) {
 }
 
 func (opt *VarFileOption) configureDestroy(conf *destroyConfig) {
-	conf.varFile = opt.path
+	conf.varFiles = append(conf.varFiles, opt.path)
 }
 
 func (opt *LockOption) configureDestroy(conf *destroyConfig) {
@@ -80,11 +82,20 @@ func (opt *VarOption) configureDestroy(conf *destroyConfig) {
 	conf.vars = append(conf.vars, opt.assignment)
 }
 
-func (tf *Terraform) Destroy(ctx context.Context, opts ...DestroyOption) error {
-	return tf.runTerraformCmd(tf.destroyCmd(ctx, opts...))
+func (opt *ReattachOption) configureDestroy(conf *destroyConfig) {
+	conf.reattachInfo = opt.info
 }
 
-func (tf *Terraform) destroyCmd(ctx context.Context, opts ...DestroyOption) *exec.Cmd {
+// Destroy represents the terraform destroy subcommand.
+func (tf *Terraform) Destroy(ctx context.Context, opts ...DestroyOption) error {
+	cmd, err := tf.destroyCmd(ctx, opts...)
+	if err != nil {
+		return err
+	}
+	return tf.runTerraformCmd(cmd)
+}
+
+func (tf *Terraform) destroyCmd(ctx context.Context, opts ...DestroyOption) (*exec.Cmd, error) {
 	c := defaultDestroyOptions
 
 	for _, o := range opts {
@@ -106,8 +117,8 @@ func (tf *Terraform) destroyCmd(ctx context.Context, opts ...DestroyOption) *exe
 	if c.stateOut != "" {
 		args = append(args, "-state-out="+c.stateOut)
 	}
-	if c.varFile != "" {
-		args = append(args, "-var-file="+c.varFile)
+	for _, vf := range c.varFiles {
+		args = append(args, "-var-file="+vf)
 	}
 
 	// boolean and numerical opts: always pass
@@ -132,5 +143,14 @@ func (tf *Terraform) destroyCmd(ctx context.Context, opts ...DestroyOption) *exe
 		args = append(args, c.dir)
 	}
 
-	return tf.buildTerraformCmd(ctx, args...)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	return tf.buildTerraformCmd(ctx, mergeEnv, args...), nil
 }

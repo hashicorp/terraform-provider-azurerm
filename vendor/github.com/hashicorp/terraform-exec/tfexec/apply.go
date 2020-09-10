@@ -13,16 +13,17 @@ type applyConfig struct {
 	lock      bool
 
 	// LockTimeout must be a string with time unit, e.g. '10s'
-	lockTimeout string
-	parallelism int
-	refresh     bool
-	state       string
-	stateOut    string
-	targets     []string
+	lockTimeout  string
+	parallelism  int
+	reattachInfo ReattachInfo
+	refresh      bool
+	state        string
+	stateOut     string
+	targets      []string
 
 	// Vars: each var must be supplied as a single string, e.g. 'foo=bar'
-	vars    []string
-	varFile string
+	vars     []string
+	varFiles []string
 }
 
 var defaultApplyOptions = applyConfig{
@@ -31,6 +32,7 @@ var defaultApplyOptions = applyConfig{
 	refresh:     true,
 }
 
+// ApplyOption represents options used in the Apply method.
 type ApplyOption interface {
 	configureApply(*applyConfig)
 }
@@ -60,7 +62,7 @@ func (opt *StateOutOption) configureApply(conf *applyConfig) {
 }
 
 func (opt *VarFileOption) configureApply(conf *applyConfig) {
-	conf.varFile = opt.path
+	conf.varFiles = append(conf.varFiles, opt.path)
 }
 
 func (opt *LockOption) configureApply(conf *applyConfig) {
@@ -79,11 +81,20 @@ func (opt *DirOrPlanOption) configureApply(conf *applyConfig) {
 	conf.dirOrPlan = opt.path
 }
 
-func (tf *Terraform) Apply(ctx context.Context, opts ...ApplyOption) error {
-	return tf.runTerraformCmd(tf.applyCmd(ctx, opts...))
+func (opt *ReattachOption) configureApply(conf *applyConfig) {
+	conf.reattachInfo = opt.info
 }
 
-func (tf *Terraform) applyCmd(ctx context.Context, opts ...ApplyOption) *exec.Cmd {
+// Apply represents the terraform apply subcommand.
+func (tf *Terraform) Apply(ctx context.Context, opts ...ApplyOption) error {
+	cmd, err := tf.applyCmd(ctx, opts...)
+	if err != nil {
+		return err
+	}
+	return tf.runTerraformCmd(cmd)
+}
+
+func (tf *Terraform) applyCmd(ctx context.Context, opts ...ApplyOption) (*exec.Cmd, error) {
 	c := defaultApplyOptions
 
 	for _, o := range opts {
@@ -105,8 +116,8 @@ func (tf *Terraform) applyCmd(ctx context.Context, opts ...ApplyOption) *exec.Cm
 	if c.stateOut != "" {
 		args = append(args, "-state-out="+c.stateOut)
 	}
-	if c.varFile != "" {
-		args = append(args, "-var-file="+c.varFile)
+	for _, vf := range c.varFiles {
+		args = append(args, "-var-file="+vf)
 	}
 
 	// boolean and numerical opts: always pass
@@ -131,5 +142,14 @@ func (tf *Terraform) applyCmd(ctx context.Context, opts ...ApplyOption) *exec.Cm
 		args = append(args, c.dirOrPlan)
 	}
 
-	return tf.buildTerraformCmd(ctx, args...)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	return tf.buildTerraformCmd(ctx, mergeEnv, args...), nil
 }

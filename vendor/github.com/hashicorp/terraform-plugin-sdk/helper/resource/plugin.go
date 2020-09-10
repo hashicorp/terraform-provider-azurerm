@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/terraform-exec/tfexec"
 	"github.com/hashicorp/terraform-plugin-sdk/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
 	grpcplugin "github.com/hashicorp/terraform-plugin-sdk/internal/helper/plugin"
@@ -70,7 +70,7 @@ func runProviderCommand(t testing.T, f func() error, wd *tftest.WorkingDir, fact
 	// Spin up gRPC servers for every provider factory, start a
 	// WaitGroup to listen for all of the close channels.
 	var wg sync.WaitGroup
-	reattachInfo := map[string]plugin.ReattachConfig{}
+	reattachInfo := map[string]tfexec.ReattachConfig{}
 	for providerName, factory := range factories {
 		// providerName may be returned as terraform-provider-foo, and
 		// we need just foo. So let's fix that.
@@ -106,6 +106,16 @@ func runProviderCommand(t testing.T, f func() error, wd *tftest.WorkingDir, fact
 			return fmt.Errorf("unable to serve provider %q: %v", providerName, err)
 		}
 
+		tfexecConfig := tfexec.ReattachConfig{
+			Protocol: config.Protocol,
+			Pid:      config.Pid,
+			Test:     config.Test,
+			Addr: tfexec.ReattachConfigAddr{
+				Network: config.Addr.Network,
+				String:  config.Addr.String,
+			},
+		}
+
 		// plugin.DebugServe hijacks our log output location, so let's
 		// reset it
 		logging.SetTestOutput(t)
@@ -123,22 +133,18 @@ func runProviderCommand(t testing.T, f func() error, wd *tftest.WorkingDir, fact
 		for _, ns := range namespaces {
 			reattachInfo[strings.TrimSuffix(host, "/")+"/"+
 				strings.TrimSuffix(ns, "/")+"/"+
-				providerName] = config
+				providerName] = tfexecConfig
 		}
 	}
 
-	// set the environment variable that will tell Terraform how to
-	// connect to our various running servers.
-	reattachStr, err := json.Marshal(reattachInfo)
-	if err != nil {
-		return err
-	}
-	wd.Setenv("TF_REATTACH_PROVIDERS", string(reattachStr))
+	// set the working directory reattach info that will tell Terraform how
+	// to connect to our various running servers.
+	wd.SetReattachInfo(reattachInfo)
 
 	// ok, let's call whatever Terraform command the test was trying to
 	// call, now that we know it'll attach back to those servers we just
 	// started.
-	err = f()
+	err := f()
 	if err != nil {
 		log.Printf("[WARN] Got error running Terraform: %s", err)
 	}
@@ -160,7 +166,7 @@ func runProviderCommand(t testing.T, f func() error, wd *tftest.WorkingDir, fact
 	// longer valid. In theory it should be overwritten in the next call,
 	// but just to avoid any confusing bug reports, let's just unset the
 	// environment variable altogether.
-	wd.Unsetenv("TF_REATTACH_PROVIDERS")
+	wd.UnsetReattachInfo()
 
 	// return any error returned from the orchestration code running
 	// Terraform commands
