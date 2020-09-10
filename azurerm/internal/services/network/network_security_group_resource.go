@@ -186,15 +186,17 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	existing, err := client.Get(ctx, resGroup, name, "")
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Network Security Group %q (Resource Group %q): %s", name, resGroup, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Network Security Group %q (Resource Group %q): %s", name, resGroup, err)
+			}
 		}
-	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_network_security_group", *existing.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_network_security_group", *existing.ID)
+		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
