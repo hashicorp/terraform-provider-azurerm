@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,9 +29,9 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(600 * time.Minute),
+			Create: schema.DefaultTimeout(120 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(1200 * time.Minute),
+			Update: schema.DefaultTimeout(120 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
@@ -62,6 +61,7 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				Optional:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
+				ForceNew:         true,
 			},
 
 			"catalog_collation": {
@@ -121,16 +121,6 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 			},
 
 			"longterm_retention_backup_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"auto_complete_restore": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
-			"last_backup_name": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -197,7 +187,7 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 	createMode := d.Get("create_mode").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, managedInstanceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
