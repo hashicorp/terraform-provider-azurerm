@@ -1045,6 +1045,9 @@ func (client BlobContainersClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "List", resp, "Failure responding to request")
 	}
+	if result.lci.hasNextLink() && result.lci.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

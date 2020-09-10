@@ -310,6 +310,9 @@ func (client VirtualApplianceSitesClient) List(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualApplianceSitesClient", "List", resp, "Failure responding to request")
 	}
+	if result.vaslr.hasNextLink() && result.vaslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

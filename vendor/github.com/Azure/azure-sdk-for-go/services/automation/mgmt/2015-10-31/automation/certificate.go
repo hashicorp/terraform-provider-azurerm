@@ -344,6 +344,9 @@ func (client CertificateClient) ListByAutomationAccount(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.CertificateClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

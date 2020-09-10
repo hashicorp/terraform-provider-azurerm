@@ -238,6 +238,9 @@ func (client AlertsSuppressionRulesClient) List(ctx context.Context, alertType s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsSuppressionRulesClient", "List", resp, "Failure responding to request")
 	}
+	if result.asrl.hasNextLink() && result.asrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

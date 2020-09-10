@@ -153,6 +153,9 @@ func (client ProviderOperationsMetadataClient) List(ctx context.Context, expand 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.ProviderOperationsMetadataClient", "List", resp, "Failure responding to request")
 	}
+	if result.pomlr.hasNextLink() && result.pomlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

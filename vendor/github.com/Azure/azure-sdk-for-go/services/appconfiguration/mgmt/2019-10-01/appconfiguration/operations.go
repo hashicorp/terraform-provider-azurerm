@@ -157,6 +157,9 @@ func (client OperationsClient) List(ctx context.Context, skipToken string) (resu
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appconfiguration.OperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.odlr.hasNextLink() && result.odlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
