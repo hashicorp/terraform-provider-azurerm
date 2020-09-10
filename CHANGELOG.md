@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - supporting the value `AllowSelfServeUpgradeToMongo36` for the `name` field within the `capabilities` block [GH-8335]
 * `azurerm_linux_virtual_machine` - Add support for `encryption_at_host_enabled` [GH-8322]
 * `azurerm_linux_virtual_machine_scale_set` - Add support for `encryption_at_host_enabled` [GH-8322]
+* `azurerm_servicebus_subscription` - add support for `dead_lettering_on_filter_evaluation_error` [GH-8412]
 * `azurerm_spring_cloud_app` - support for the `identity` block [GH-8336]
 * `azurerm_virtual_network_gateway` - support for `aad_audience`, `aad_issuer` and `aad_tenant` within the `vpn_client_configuration` block [GH-8294]
 * `azurerm_windows_virtual_machine` - Add support for `encryption_at_host_enabled` [GH-8322]
