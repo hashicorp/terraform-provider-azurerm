@@ -126,7 +126,7 @@ func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 					testCheckAzureRMStorageShareDirectoryExists(data.ResourceName),
 					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.child_one"),
 					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.child_two"),
-					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.child_three"),
+					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.multiple_child_one"),
 				),
 			},
 			data.ImportStep(),
@@ -315,7 +315,7 @@ resource "azurerm_storage_share_directory" "child_two" {
   storage_account_name = azurerm_storage_account.test.name
 }
 
-resource "azurerm_storage_share_directory" "child_three" {
+resource "azurerm_storage_share_directory" "multiple_child_one" {
   name                 = "${azurerm_storage_share_directory.parent.name}/c"
   share_name           = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_account.test.name
