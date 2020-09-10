@@ -7,6 +7,7 @@ var services = mapOf(
         "appconfiguration" to "App Configuration",
         "appplatform" to "App Platform",
         "applicationinsights" to "Application Insights",
+        "attestation" to "Attestation",
         "authorization" to "Authorization",
         "automation" to "Automation",
         "batch" to "Batch",

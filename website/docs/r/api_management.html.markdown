@@ -252,7 +252,7 @@ A `sign_up` block supports the following:
 
 * `enabled` - (Required) Can users sign up on the development portal?
 
-* `terms_of_service` - (Optional) A `terms_of_service` block as defined below.
+* `terms_of_service` - (Required) A `terms_of_service` block as defined below.
 
 ---
 

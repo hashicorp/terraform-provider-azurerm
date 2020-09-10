@@ -424,6 +424,27 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerGroup_withPrivateEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerGroup_withPrivateEmpty(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"container.0.secure_environment_variables.PRIVATE_VALUE",
+			),
+		},
+	})
+}
+
 func testAccAzureRMContainerGroup_SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1238,4 +1259,48 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAzureRMContainerGroup_withPrivateEmpty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-containergroup-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "public"
+  dns_name_label      = "jerome-aci-label"
+  os_type             = "Linux"
+
+  container {
+    name   = "hello-world"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "1.5"
+
+    ports {
+      port     = 8000
+      protocol = "TCP"
+    }
+
+    secure_environment_variables = {
+      PRIVATE_EMPTY = ""
+      PRIVATE_VALUE = "test"
+    }
+
+    environment_variables = {
+      PUBLIC_EMPTY = ""
+      PUBLIC_VALUE = "test"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
