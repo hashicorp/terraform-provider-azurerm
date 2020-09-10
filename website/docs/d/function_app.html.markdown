@@ -148,8 +148,6 @@ A `source_control` block exports the following:
 
 An `identity` block exports the following:
 
-* `identity_ids` - The list of User Managed Identity ID's which are assigned to the function app.
-
 * `principal_id` - The ID of the System Managed Service Principal assigned to the function app.
 
 * `tenant_id` - The ID of the Tenant of the System Managed Service Principal assigned to the function app.
