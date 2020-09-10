@@ -1392,18 +1392,21 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
 
-		settings, err := structure.ExpandJsonFromString(extensionRaw["settings"].(string))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
-		}
-		extensionProps.Settings = settings
-
-		protectedSettings, err := structure.ExpandJsonFromString(extensionRaw["protected_settings"].(string))
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+		if val, ok := extensionRaw["settings"]; ok {
+			settings, err := structure.ExpandJsonFromString(val.(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+			}
+			extensionProps.Settings = settings
 		}
 
-		extensionProps.ProtectedSettings = protectedSettings
+		if val, ok := extensionRaw["protected_settings"]; ok {
+			protectedSettings, err := structure.ExpandJsonFromString(val.(string))
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse JSON from `protected_settings`: %+v", err)
+			}
+			extensionProps.ProtectedSettings = protectedSettings
+		}
 
 		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
 		extensions = append(extensions, extension)
