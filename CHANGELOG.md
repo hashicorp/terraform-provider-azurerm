@@ -3,7 +3,9 @@
 FEATURES:
 
 * **New Resource:** `azurerm_data_share_dataset_data_lake_gen2` [GH-7907]
+* **New Resource:** `azurerm_storage_sync` [GH-7843]
 * **New Data Source:** `azurerm_data_share_dataset_data_lake_gen2` [GH-7907] 
+* **New Data Source:** `azurerm_storage_sync` [GH-7843] 
 
 BUG FIXES:
 
