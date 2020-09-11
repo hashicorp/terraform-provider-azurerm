@@ -16,6 +16,7 @@ BUG FIXES:
 
 * `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
 * `azurerm_packet_capture` - fix to ID path to match change in API [GH-8167]
+* `azurerm_management_group_id` - loosen case restritions during parsing of management group ID [GH-8024]
 
 ## 2.27.0 (September 10, 2020)
 
