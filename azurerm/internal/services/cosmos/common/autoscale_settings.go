@@ -19,11 +19,6 @@ func ExpandCosmosDbAutoscaleSettings(d *schema.ResourceData) *documentdb.Autosca
 	autoscaleSettings := documentdb.AutoscaleSettings{}
 
 	if maxThroughput, ok := input["max_throughput"].(int); ok {
-		log.Printf("[DEBUG] Cosmos DB resource has an autoscale max_throughput of %d", maxThroughput)
-		if maxThroughput == 0 {
-			maxThroughput = 4000
-		}
-
 		autoscaleSettings.MaxThroughput = utils.Int32(int32(maxThroughput))
 	}
 

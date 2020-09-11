@@ -2,8 +2,6 @@ package common
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -38,8 +36,8 @@ func ExpandCosmosDBThroughputSettingsUpdateParameters(d *schema.ResourceData) *d
 		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = ConvertThroughputFromResourceData(v)
 	}
 
-	if _, hasManualThroughput := d.GetOk("throughput"); !hasManualThroughput && d.HasChange("autoscale_settings") {
-		log.Printf("[DEBUG] Cosmos DB autoscale settings have changed")
+	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
+		// If updating the autoscale throughput, set the manual throughput to nil to ensure the autoscale throughput is applied
 		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = nil
 		throughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings = ExpandCosmosDbAutoscaleSettingsResource(d)
 	}
@@ -52,14 +50,11 @@ func SetResourceDataThroughputFromResponse(throughputResponse documentdb.Through
 
 	autoscaleSettings := FlattenCosmosDbAutoscaleSettings(throughputResponse)
 	d.Set("autoscale_settings", autoscaleSettings)
-	if len(autoscaleSettings) != 0 {
-		d.Set("throughput", nil)
-	}
 }
 
 func CheckForChangeFromAutoscaleAndManualThroughput(d *schema.ResourceData) error {
 	if d.HasChange("throughput") && d.HasChange("autoscale_settings") {
-		return fmt.Errorf("Switching between autoscale and manual provisioned throughput is not supported at this time.")
+		return fmt.Errorf("switching between autoscale and manually provisioned throughput via Terraform is not supported at this time")
 	}
 
 	return nil
