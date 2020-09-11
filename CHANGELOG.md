@@ -1,5 +1,10 @@
 ## 2.28.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_data_share_dataset_data_lake_gen2` [GH-7907]
+* **New Data Source:** `azurerm_data_share_dataset_data_lake_gen2` [GH-7907] 
+
 BUG FIXES:
 
 * `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
