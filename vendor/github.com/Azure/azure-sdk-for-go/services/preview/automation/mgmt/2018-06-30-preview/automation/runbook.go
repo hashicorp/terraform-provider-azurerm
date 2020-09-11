@@ -115,7 +115,7 @@ func (client RunbookClient) CreateOrUpdatePreparer(ctx context.Context, resource
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -141,7 +141,7 @@ func (client RunbookClient) CreateOrUpdateSender(req *http.Request) (*http.Respo
 func (client RunbookClient) CreateOrUpdateResponder(resp *http.Response) (result Runbook, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusBadRequest),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -202,7 +202,7 @@ func (client RunbookClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -286,7 +286,7 @@ func (client RunbookClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -371,7 +371,7 @@ func (client RunbookClient) GetContentPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -454,7 +454,7 @@ func (client RunbookClient) ListByAutomationAccountPreparer(ctx context.Context,
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -522,6 +522,90 @@ func (client RunbookClient) ListByAutomationAccountComplete(ctx context.Context,
 	return
 }
 
+// Publish publish runbook draft.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the parameters supplied to the publish runbook operation.
+func (client RunbookClient) Publish(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result RunbookPublishFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RunbookClient.Publish")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.RunbookClient", "Publish", err.Error())
+	}
+
+	req, err := client.PublishPreparer(ctx, resourceGroupName, automationAccountName, runbookName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "automation.RunbookClient", "Publish", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.PublishSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "automation.RunbookClient", "Publish", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// PublishPreparer prepares the Publish request.
+func (client RunbookClient) PublishPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"automationAccountName": autorest.Encode("path", automationAccountName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"runbookName":           autorest.Encode("path", runbookName),
+		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-30"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/runbooks/{runbookName}/publish", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// PublishSender sends the Publish request. The method will close the
+// http.Response Body if it receives an error.
+func (client RunbookClient) PublishSender(req *http.Request) (future RunbookPublishFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// PublishResponder handles the response to the Publish request. The method always
+// closes the http.Response Body.
+func (client RunbookClient) PublishResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Update update the runbook identified by runbook name.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
@@ -577,7 +661,7 @@ func (client RunbookClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -96,7 +96,7 @@ func (client DscNodeClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -181,7 +181,7 @@ func (client DscNodeClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -217,7 +217,10 @@ func (client DscNodeClient) GetResponder(resp *http.Response) (result DscNode, e
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
 // filter - the filter to apply on the operation.
-func (client DscNodeClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result DscNodeListResultPage, err error) {
+// skip - the number of rows to skip.
+// top - the number of rows to take.
+// inlinecount - return total rows.
+func (client DscNodeClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, skip *int32, top *int32, inlinecount string) (result DscNodeListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DscNodeClient.ListByAutomationAccount")
 		defer func() {
@@ -237,7 +240,7 @@ func (client DscNodeClient) ListByAutomationAccount(ctx context.Context, resourc
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter)
+	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter, skip, top, inlinecount)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -259,19 +262,28 @@ func (client DscNodeClient) ListByAutomationAccount(ctx context.Context, resourc
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client DscNodeClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (*http.Request, error) {
+func (client DscNodeClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, skip *int32, top *int32, inlinecount string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if len(filter) > 0 {
 		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if skip != nil {
+		queryParameters["$skip"] = autorest.Encode("query", *skip)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
+	}
+	if len(inlinecount) > 0 {
+		queryParameters["$inlinecount"] = autorest.Encode("query", inlinecount)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -322,7 +334,7 @@ func (client DscNodeClient) listByAutomationAccountNextResults(ctx context.Conte
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DscNodeClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result DscNodeListResultIterator, err error) {
+func (client DscNodeClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, skip *int32, top *int32, inlinecount string) (result DscNodeListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DscNodeClient.ListByAutomationAccount")
 		defer func() {
@@ -333,7 +345,7 @@ func (client DscNodeClient) ListByAutomationAccountComplete(ctx context.Context,
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName, filter)
+	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName, filter, skip, top, inlinecount)
 	return
 }
 
@@ -342,8 +354,8 @@ func (client DscNodeClient) ListByAutomationAccountComplete(ctx context.Context,
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
 // nodeID - parameters supplied to the update dsc node.
-// parameters - parameters supplied to the update dsc node.
-func (client DscNodeClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, parameters DscNodeUpdateParameters) (result DscNode, err error) {
+// dscNodeUpdateParameters - parameters supplied to the update dsc node.
+func (client DscNodeClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, dscNodeUpdateParameters DscNodeUpdateParameters) (result DscNode, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DscNodeClient.Update")
 		defer func() {
@@ -362,7 +374,7 @@ func (client DscNodeClient) Update(ctx context.Context, resourceGroupName string
 		return result, validation.NewError("automation.DscNodeClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, automationAccountName, nodeID, parameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, automationAccountName, nodeID, dscNodeUpdateParameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeClient", "Update", nil, "Failure preparing request")
 		return
@@ -384,7 +396,7 @@ func (client DscNodeClient) Update(ctx context.Context, resourceGroupName string
 }
 
 // UpdatePreparer prepares the Update request.
-func (client DscNodeClient) UpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, parameters DscNodeUpdateParameters) (*http.Request, error) {
+func (client DscNodeClient) UpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, dscNodeUpdateParameters DscNodeUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"nodeId":                autorest.Encode("path", nodeID),
@@ -392,7 +404,7 @@ func (client DscNodeClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-01-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -402,7 +414,7 @@ func (client DscNodeClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/nodes/{nodeId}", pathParameters),
-		autorest.WithJSON(parameters),
+		autorest.WithJSON(dscNodeUpdateParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

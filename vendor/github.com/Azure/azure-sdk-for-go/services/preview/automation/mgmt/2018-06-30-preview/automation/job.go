@@ -23,7 +23,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
-	"github.com/satori/go.uuid"
 	"net/http"
 )
 
@@ -47,9 +46,10 @@ func NewJobClientWithBaseURI(baseURI string, subscriptionID string) JobClient {
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job id.
+// jobName - the job name.
 // parameters - the parameters supplied to the create job operation.
-func (client JobClient) Create(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID, parameters JobCreateParameters) (result Job, err error) {
+// clientRequestID - identifies this specific client request.
+func (client JobClient) Create(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, parameters JobCreateParameters, clientRequestID string) (result Job, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.Create")
 		defer func() {
@@ -66,12 +66,11 @@ func (client JobClient) Create(ctx context.Context, resourceGroupName string, au
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.JobCreateProperties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "parameters.JobCreateProperties.Runbook", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "parameters.JobCreateProperties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.JobClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, automationAccountName, jobID, parameters)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, automationAccountName, jobName, parameters, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Create", nil, "Failure preparing request")
 		return
@@ -93,15 +92,15 @@ func (client JobClient) Create(ctx context.Context, resourceGroupName string, au
 }
 
 // CreatePreparer prepares the Create request.
-func (client JobClient) CreatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID, parameters JobCreateParameters) (*http.Request, error) {
+func (client JobClient) CreatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, parameters JobCreateParameters, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -110,9 +109,13 @@ func (client JobClient) CreatePreparer(ctx context.Context, resourceGroupName st
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -134,12 +137,13 @@ func (client JobClient) CreateResponder(resp *http.Response) (result Job, err er
 	return
 }
 
-// Get retrieve the job identified by job id.
+// Get retrieve the job identified by job name.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job id.
-func (client JobClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (result Job, err error) {
+// jobName - the job name.
+// clientRequestID - identifies this specific client request.
+func (client JobClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (result Job, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.Get")
 		defer func() {
@@ -158,7 +162,7 @@ func (client JobClient) Get(ctx context.Context, resourceGroupName string, autom
 		return result, validation.NewError("automation.JobClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, jobID)
+	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, jobName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Get", nil, "Failure preparing request")
 		return
@@ -180,15 +184,15 @@ func (client JobClient) Get(ctx context.Context, resourceGroupName string, autom
 }
 
 // GetPreparer prepares the Get request.
-func (client JobClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (*http.Request, error) {
+func (client JobClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,8 +200,12 @@ func (client JobClient) GetPreparer(ctx context.Context, resourceGroupName strin
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -219,12 +227,13 @@ func (client JobClient) GetResponder(resp *http.Response) (result Job, err error
 	return
 }
 
-// GetOutput retrieve the job output identified by job id.
+// GetOutput retrieve the job output identified by job name.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job id.
-func (client JobClient) GetOutput(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string) (result ReadCloser, err error) {
+// jobName - the name of the job to be created.
+// clientRequestID - identifies this specific client request.
+func (client JobClient) GetOutput(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (result ReadCloser, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.GetOutput")
 		defer func() {
@@ -243,7 +252,7 @@ func (client JobClient) GetOutput(ctx context.Context, resourceGroupName string,
 		return result, validation.NewError("automation.JobClient", "GetOutput", err.Error())
 	}
 
-	req, err := client.GetOutputPreparer(ctx, resourceGroupName, automationAccountName, jobID)
+	req, err := client.GetOutputPreparer(ctx, resourceGroupName, automationAccountName, jobName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "GetOutput", nil, "Failure preparing request")
 		return
@@ -265,15 +274,15 @@ func (client JobClient) GetOutput(ctx context.Context, resourceGroupName string,
 }
 
 // GetOutputPreparer prepares the GetOutput request.
-func (client JobClient) GetOutputPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string) (*http.Request, error) {
+func (client JobClient) GetOutputPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -281,8 +290,12 @@ func (client JobClient) GetOutputPreparer(ctx context.Context, resourceGroupName
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}/output", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}/output", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -303,12 +316,13 @@ func (client JobClient) GetOutputResponder(resp *http.Response) (result ReadClos
 	return
 }
 
-// GetRunbookContent retrieve the runbook content of the job identified by job id.
+// GetRunbookContent retrieve the runbook content of the job identified by job name.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job id.
-func (client JobClient) GetRunbookContent(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string) (result ReadCloser, err error) {
+// jobName - the job name.
+// clientRequestID - identifies this specific client request.
+func (client JobClient) GetRunbookContent(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (result ReadCloser, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.GetRunbookContent")
 		defer func() {
@@ -327,7 +341,7 @@ func (client JobClient) GetRunbookContent(ctx context.Context, resourceGroupName
 		return result, validation.NewError("automation.JobClient", "GetRunbookContent", err.Error())
 	}
 
-	req, err := client.GetRunbookContentPreparer(ctx, resourceGroupName, automationAccountName, jobID)
+	req, err := client.GetRunbookContentPreparer(ctx, resourceGroupName, automationAccountName, jobName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "GetRunbookContent", nil, "Failure preparing request")
 		return
@@ -349,15 +363,15 @@ func (client JobClient) GetRunbookContent(ctx context.Context, resourceGroupName
 }
 
 // GetRunbookContentPreparer prepares the GetRunbookContent request.
-func (client JobClient) GetRunbookContentPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID string) (*http.Request, error) {
+func (client JobClient) GetRunbookContentPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -365,8 +379,12 @@ func (client JobClient) GetRunbookContentPreparer(ctx context.Context, resourceG
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}/runbookContent", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}/runbookContent", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -392,13 +410,14 @@ func (client JobClient) GetRunbookContentResponder(resp *http.Response) (result 
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
 // filter - the filter to apply on the operation.
-func (client JobClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result JobListResultPage, err error) {
+// clientRequestID - identifies this specific client request.
+func (client JobClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, clientRequestID string) (result JobListResultV2Page, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.ListByAutomationAccount")
 		defer func() {
 			sc := -1
-			if result.jlr.Response.Response != nil {
-				sc = result.jlr.Response.Response.StatusCode
+			if result.jlrv.Response.Response != nil {
+				sc = result.jlrv.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -412,7 +431,7 @@ func (client JobClient) ListByAutomationAccount(ctx context.Context, resourceGro
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter)
+	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -420,12 +439,12 @@ func (client JobClient) ListByAutomationAccount(ctx context.Context, resourceGro
 
 	resp, err := client.ListByAutomationAccountSender(req)
 	if err != nil {
-		result.jlr.Response = autorest.Response{Response: resp}
+		result.jlrv.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "ListByAutomationAccount", resp, "Failure sending request")
 		return
 	}
 
-	result.jlr, err = client.ListByAutomationAccountResponder(resp)
+	result.jlrv, err = client.ListByAutomationAccountResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
@@ -434,14 +453,14 @@ func (client JobClient) ListByAutomationAccount(ctx context.Context, resourceGro
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client JobClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (*http.Request, error) {
+func (client JobClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -454,6 +473,10 @@ func (client JobClient) ListByAutomationAccountPreparer(ctx context.Context, res
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -465,7 +488,7 @@ func (client JobClient) ListByAutomationAccountSender(req *http.Request) (*http.
 
 // ListByAutomationAccountResponder handles the response to the ListByAutomationAccount request. The method always
 // closes the http.Response Body.
-func (client JobClient) ListByAutomationAccountResponder(resp *http.Response) (result JobListResult, err error) {
+func (client JobClient) ListByAutomationAccountResponder(resp *http.Response) (result JobListResultV2, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -476,8 +499,8 @@ func (client JobClient) ListByAutomationAccountResponder(resp *http.Response) (r
 }
 
 // listByAutomationAccountNextResults retrieves the next set of results, if any.
-func (client JobClient) listByAutomationAccountNextResults(ctx context.Context, lastResults JobListResult) (result JobListResult, err error) {
-	req, err := lastResults.jobListResultPreparer(ctx)
+func (client JobClient) listByAutomationAccountNextResults(ctx context.Context, lastResults JobListResultV2) (result JobListResultV2, err error) {
+	req, err := lastResults.jobListResultV2Preparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "automation.JobClient", "listByAutomationAccountNextResults", nil, "Failure preparing next results request")
 	}
@@ -497,7 +520,7 @@ func (client JobClient) listByAutomationAccountNextResults(ctx context.Context, 
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client JobClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result JobListResultIterator, err error) {
+func (client JobClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string, filter string, clientRequestID string) (result JobListResultV2Iterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.ListByAutomationAccount")
 		defer func() {
@@ -508,16 +531,17 @@ func (client JobClient) ListByAutomationAccountComplete(ctx context.Context, res
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName, filter)
+	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName, filter, clientRequestID)
 	return
 }
 
-// Resume resume the job identified by jobId.
+// Resume resume the job identified by jobName.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job id.
-func (client JobClient) Resume(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (result autorest.Response, err error) {
+// jobName - the job name.
+// clientRequestID - identifies this specific client request.
+func (client JobClient) Resume(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.Resume")
 		defer func() {
@@ -536,7 +560,7 @@ func (client JobClient) Resume(ctx context.Context, resourceGroupName string, au
 		return result, validation.NewError("automation.JobClient", "Resume", err.Error())
 	}
 
-	req, err := client.ResumePreparer(ctx, resourceGroupName, automationAccountName, jobID)
+	req, err := client.ResumePreparer(ctx, resourceGroupName, automationAccountName, jobName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Resume", nil, "Failure preparing request")
 		return
@@ -558,15 +582,15 @@ func (client JobClient) Resume(ctx context.Context, resourceGroupName string, au
 }
 
 // ResumePreparer prepares the Resume request.
-func (client JobClient) ResumePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (*http.Request, error) {
+func (client JobClient) ResumePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -574,8 +598,12 @@ func (client JobClient) ResumePreparer(ctx context.Context, resourceGroupName st
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}/resume", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}/resume", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -596,12 +624,13 @@ func (client JobClient) ResumeResponder(resp *http.Response) (result autorest.Re
 	return
 }
 
-// Stop stop the job identified by jobId.
+// Stop stop the job identified by jobName.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job id.
-func (client JobClient) Stop(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (result autorest.Response, err error) {
+// jobName - the job name.
+// clientRequestID - identifies this specific client request.
+func (client JobClient) Stop(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.Stop")
 		defer func() {
@@ -620,7 +649,7 @@ func (client JobClient) Stop(ctx context.Context, resourceGroupName string, auto
 		return result, validation.NewError("automation.JobClient", "Stop", err.Error())
 	}
 
-	req, err := client.StopPreparer(ctx, resourceGroupName, automationAccountName, jobID)
+	req, err := client.StopPreparer(ctx, resourceGroupName, automationAccountName, jobName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Stop", nil, "Failure preparing request")
 		return
@@ -642,15 +671,15 @@ func (client JobClient) Stop(ctx context.Context, resourceGroupName string, auto
 }
 
 // StopPreparer prepares the Stop request.
-func (client JobClient) StopPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (*http.Request, error) {
+func (client JobClient) StopPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -658,8 +687,12 @@ func (client JobClient) StopPreparer(ctx context.Context, resourceGroupName stri
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}/stop", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}/stop", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
@@ -680,12 +713,13 @@ func (client JobClient) StopResponder(resp *http.Response) (result autorest.Resp
 	return
 }
 
-// Suspend suspend the job identified by jobId.
+// Suspend suspend the job identified by job name.
 // Parameters:
 // resourceGroupName - name of an Azure Resource group.
 // automationAccountName - the name of the automation account.
-// jobID - the job id.
-func (client JobClient) Suspend(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (result autorest.Response, err error) {
+// jobName - the job name.
+// clientRequestID - identifies this specific client request.
+func (client JobClient) Suspend(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/JobClient.Suspend")
 		defer func() {
@@ -704,7 +738,7 @@ func (client JobClient) Suspend(ctx context.Context, resourceGroupName string, a
 		return result, validation.NewError("automation.JobClient", "Suspend", err.Error())
 	}
 
-	req, err := client.SuspendPreparer(ctx, resourceGroupName, automationAccountName, jobID)
+	req, err := client.SuspendPreparer(ctx, resourceGroupName, automationAccountName, jobName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.JobClient", "Suspend", nil, "Failure preparing request")
 		return
@@ -726,15 +760,15 @@ func (client JobClient) Suspend(ctx context.Context, resourceGroupName string, a
 }
 
 // SuspendPreparer prepares the Suspend request.
-func (client JobClient) SuspendPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobID uuid.UUID) (*http.Request, error) {
+func (client JobClient) SuspendPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, jobName string, clientRequestID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"jobId":                 autorest.Encode("path", jobID),
+		"jobName":               autorest.Encode("path", jobName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2017-05-15-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -742,8 +776,12 @@ func (client JobClient) SuspendPreparer(ctx context.Context, resourceGroupName s
 	preparer := autorest.CreatePreparer(
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobId}/suspend", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/jobs/{jobName}/suspend", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if len(clientRequestID) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("clientRequestId", autorest.String(clientRequestID)))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 

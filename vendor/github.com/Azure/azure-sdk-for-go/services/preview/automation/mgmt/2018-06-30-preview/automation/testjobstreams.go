@@ -98,7 +98,7 @@ func (client TestJobStreamsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -185,7 +185,7 @@ func (client TestJobStreamsClient) ListByTestJobPreparer(ctx context.Context, re
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-10-31"
+	const APIVersion = "2018-06-30"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
