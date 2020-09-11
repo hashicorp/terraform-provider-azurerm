@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -25,8 +26,14 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 		Update: resourceArmNetworkConnectionMonitorCreateUpdate,
 		Delete: resourceArmNetworkConnectionMonitorDelete,
 
-		MigrateState:  ResourceNetworkConnectionMonitorMigrateState,
 		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.NetworkConnectionMonitorV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.NetworkConnectionMonitorV0ToV1,
+				Version: 0,
+			},
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
