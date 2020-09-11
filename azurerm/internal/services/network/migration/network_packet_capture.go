@@ -1,9 +1,10 @@
 package migration
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func NetworkPacketCaptureV0Schema() *schema.Resource {
