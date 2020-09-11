@@ -1,4 +1,9 @@
 ## 2.28.0 (Unreleased)
+
+BUG FIXES:
+
+* `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
+
 ## 2.27.0 (September 10, 2020)
 
 FEATURES:
