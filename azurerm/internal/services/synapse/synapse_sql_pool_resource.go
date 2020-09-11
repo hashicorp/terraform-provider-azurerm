@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	postgresValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
-	sqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
-	sqlValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/validate"
+	mssqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
+	mssqlValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -113,7 +112,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
-				ValidateFunc: postgresValidate.PostgresDatabaseCollation,
+				ValidateFunc: mssqlValidate.MsSqlDBCollation(),
 			},
 
 			"recovery_database_id": {
@@ -123,7 +122,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				ConflictsWith: []string{"restore"},
 				ValidateFunc: validation.Any(
 					validate.SqlPoolID,
-					sqlValidate.SqlDatabaseID,
+					mssqlValidate.MsSqlDatabaseID,
 				),
 			},
 
@@ -148,7 +147,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.Any(
 								validate.SqlPoolID,
-								sqlValidate.SqlDatabaseID,
+								mssqlValidate.MsSqlDatabaseID,
 							),
 						},
 					},
@@ -411,5 +410,5 @@ func constructSourceDatabaseId(id string, subscriptionId string) string {
 	if err != nil {
 		return id
 	}
-	return sqlParse.NewSqlDatabaseID(sqlPoolId.Workspace.ResourceGroup, sqlPoolId.Workspace.Name, sqlPoolId.Name).ID(subscriptionId)
+	return mssqlParse.NewMsSqlDatabaseID(sqlPoolId.Workspace.ResourceGroup, sqlPoolId.Workspace.Name, sqlPoolId.Name).ID(subscriptionId)
 }
