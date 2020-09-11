@@ -59,6 +59,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Academic",
+					"AnomalyDetector",
 					"Bing.Autosuggest",
 					"Bing.Autosuggest.v7",
 					"Bing.CustomSearch",
@@ -140,7 +141,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		existing, err := client.GetProperties(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Cognitive Account %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Cognitive Account %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -151,7 +152,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 
 	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
+		return fmt.Errorf("expanding sku_name for Cognitive Account %s (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	props := cognitiveservices.Account{
@@ -164,16 +165,16 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("qna_runtime_endpoint"); ok {
-		props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
-	}
-
-	if kind == "QnAMaker" && props.Properties.APIProperties.QnaRuntimeEndpoint == nil && *props.Properties.APIProperties.QnaRuntimeEndpoint == "" {
-		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+	if kind == "QnAMaker" {
+		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
+			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
-		return fmt.Errorf("Error creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -190,7 +191,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 
 	read, err := client.GetProperties(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
@@ -221,12 +222,12 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("qna_runtime_endpoint"); ok {
-		props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
-	}
-
-	if d.Get("kind").(string) == "QnAMaker" && props.Properties.APIProperties.QnaRuntimeEndpoint == nil && *props.Properties.APIProperties.QnaRuntimeEndpoint == "" {
-		return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+	if kind := d.Get("kind"); kind == "QnAMaker" {
+		if v, ok := d.GetOk("qna_runtime_endpoint"); ok && v != "" {
+			props.Properties.APIProperties.QnaRuntimeEndpoint = utils.String(v.(string))
+		} else {
+			return fmt.Errorf("the QnAMaker runtime endpoint `qna_runtime_endpoint` is required when kind is set to `QnAMaker`")
+		}
 	}
 
 	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {

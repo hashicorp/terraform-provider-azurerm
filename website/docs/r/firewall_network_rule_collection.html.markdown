@@ -110,7 +110,7 @@ A `rule` block supports the following:
 
 * `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
 
-* `destination_addresses` - (Required) A list of destination IP addresses, IP ranges, or FQDNs.
+* `destination_addresses` - (Required) A list of destination IP addresses and/or IP ranges.
 
 * `destination_ports` - (Required) A list of destination ports.
 

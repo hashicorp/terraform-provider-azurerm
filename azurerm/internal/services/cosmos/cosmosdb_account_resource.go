@@ -207,6 +207,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
 								"DisableRateLimitingResponses",
+								"AllowSelfServeUpgradeToMongo36",
 							}, true),
 						},
 					},
