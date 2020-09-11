@@ -151,7 +151,7 @@ func resourceArmCosmosDbTableUpdate(d *schema.ResourceData, meta interface{}) er
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-		return fmt.Errorf("Error updating Cosmos Gremlin Database %q (Account: %q) - %+v", id.Name, id.Account, err)
+		return fmt.Errorf("Error updating Cosmos Table %q (Account: %q) - %+v", id.Name, id.Account, err)
 	}
 
 	db := documentdb.TableCreateUpdateParameters{
