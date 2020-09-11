@@ -11,6 +11,7 @@ FEATURES:
 BUG FIXES:
 
 * `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
+* `azurerm_packet_capture` - fix to ID path to match change in API [GH-8167]
 
 ## 2.27.0 (September 10, 2020)
 
