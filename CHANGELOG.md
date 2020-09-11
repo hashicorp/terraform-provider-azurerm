@@ -10,7 +10,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `data.function_app` - export the `identity` block [GH-8389]
 * `azurerm_synapse_sql_pool` - leverage newer version mssql [GH-8434]
+
 
 BUG FIXES:
 
