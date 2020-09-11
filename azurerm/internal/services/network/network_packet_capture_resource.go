@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,9 +23,6 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 		Create: resourceArmNetworkPacketCaptureCreate,
 		Read:   resourceArmNetworkPacketCaptureRead,
 		Delete: resourceArmNetworkPacketCaptureDelete,
-
-		MigrateState:  ResourceNetworkPacketCaptureMigrateState,
-		SchemaVersion: 1,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -141,6 +139,15 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 						},
 					},
 				},
+			},
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.NetworkPacketCaptureV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.NetworkPacketCaptureV0ToV1,
+				Version: 0,
 			},
 		},
 	}
