@@ -57,7 +57,7 @@ func TestAccAzureRMResourceGroup_multipleSubscriptions(t *testing.T) {
 					testCheckAzureRMResourceGroupExists(data.ResourceName),
 				),
 			},
-			// data.ImportStep(),
+			data.ImportStep(),
 		},
 	})
 }

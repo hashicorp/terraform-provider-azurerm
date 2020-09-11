@@ -64,14 +64,14 @@ func testStepNewImportState(t *testing.T, c TestCase, wd *tftest.WorkingDir, ste
 	importWd.RequireSetConfig(t, step.Config)
 	err = runProviderCommand(t, func() error {
 		return importWd.Init()
-	}, wd, c.ProviderFactories)
+	}, importWd, c.ProviderFactories)
 	if err != nil {
 		return fmt.Errorf("Error running init: %v", err)
 	}
 
 	err = runProviderCommand(t, func() error {
 		return importWd.Import(step.ResourceName, importId)
-	}, wd, c.ProviderFactories)
+	}, importWd, c.ProviderFactories)
 	if err != nil {
 		return err
 	}
