@@ -58,6 +58,9 @@ func dataSourceArmFunctionAppHostKeysRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", name, err)
 	}
 
+	if functionSettings.ID == nil {
+		return fmt.Errorf("cannot read ID for AzureRM Function App %q (Resource Group %q)", name, resourceGroup)
+	}
 	d.SetId(*functionSettings.ID)
 
 	res, err := client.ListHostKeys(ctx, resourceGroup, name)

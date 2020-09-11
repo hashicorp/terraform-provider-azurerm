@@ -371,7 +371,7 @@ func TestAccAzureRMMsSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 			},
 			data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
 			{
-				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Config: testAccAzureRMMsSqlDatabase_withBlobAuditingPolicesDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
@@ -884,6 +884,35 @@ resource "azurerm_mssql_database" "test" {
     storage_account_access_key_is_secondary = false
     retention_in_days                       = 3
   }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withBlobAuditingPolicesDisabled(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name                     = "acctest-db-%[3]d"
+  server_id                = azurerm_sql_server.test.id
+  extended_auditing_policy = []
 }
 `, template, data.RandomIntOfLength(15), data.RandomInteger)
 }

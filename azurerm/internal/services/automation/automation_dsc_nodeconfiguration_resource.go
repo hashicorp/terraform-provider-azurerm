@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -98,12 +98,14 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 	configurationName := strings.Split(name, ".")[0]
 
 	parameters := automation.DscNodeConfigurationCreateOrUpdateParameters{
-		Source: &automation.ContentSource{
-			Type:  automation.EmbeddedContent,
-			Value: utils.String(content),
-		},
-		Configuration: &automation.DscConfigurationAssociationProperty{
-			Name: utils.String(configurationName),
+		DscNodeConfigurationCreateOrUpdateParametersProperties: &automation.DscNodeConfigurationCreateOrUpdateParametersProperties{
+			Source: &automation.ContentSource{
+				Type:  automation.EmbeddedContent,
+				Value: utils.String(content),
+			},
+			Configuration: &automation.DscConfigurationAssociationProperty{
+				Name: utils.String(configurationName),
+			},
 		},
 		Name: utils.String(name),
 	}

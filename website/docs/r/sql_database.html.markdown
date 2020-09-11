@@ -10,6 +10,8 @@ description: |-
 
 Allows you to manage an Azure SQL Database
 
+~> **NOTE:** The Database Extended Auditing Policy Can be set inline here as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
+
 ## Example Usage
 
 ```hcl

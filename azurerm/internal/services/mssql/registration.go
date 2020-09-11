@@ -29,7 +29,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_mssql_database": resourceArmMsSqlDatabase(),
+		"azurerm_mssql_database":                                        resourceArmMsSqlDatabase(),
+		"azurerm_mssql_database_extended_auditing_policy":               resourceArmMsSqlDatabaseExtendedAuditingPolicy(),
 		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceArmMssqlDatabaseVulnerabilityAssessmentRuleBaseline(),
 		"azurerm_mssql_elasticpool":                                     resourceArmMsSqlElasticPool(),
 		"azurerm_mssql_server":                                          resourceArmMsSqlServer(),
