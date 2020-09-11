@@ -28,6 +28,15 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.NetworkPacketCaptureV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.NetworkPacketCaptureV0ToV1,
+				Version: 0,
+			},
+		},
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
@@ -139,15 +148,6 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 						},
 					},
 				},
-			},
-		},
-
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.NetworkPacketCaptureV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.NetworkPacketCaptureV0ToV1,
-				Version: 0,
 			},
 		},
 	}

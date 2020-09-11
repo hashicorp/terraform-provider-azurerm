@@ -66,10 +66,12 @@ func NetworkPacketCaptureV0Schema() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+
 						"storage_account_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+
 						"storage_path": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -89,21 +91,25 @@ func NetworkPacketCaptureV0Schema() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 						},
+
 						"local_port": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
+
 						"protocol": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
+
 						"remote_ip_address": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
 						},
+
 						"remote_port": {
 							Type:     schema.TypeString,
 							Optional: true,
