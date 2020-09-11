@@ -38,7 +38,7 @@ func ExpandCosmosDBThroughputSettingsUpdateParameters(d *schema.ResourceData) *d
 		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = ConvertThroughputFromResourceData(v)
 	}
 
-	if d.HasChange("autoscale_settings") && d.Get("throughput").(int) == 0 {
+	if _, hasManualThroughput := d.GetOk("throughput"); !hasManualThroughput && d.HasChange("autoscale_settings") {
 		log.Printf("[DEBUG] Cosmos DB autoscale settings have changed")
 		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = nil
 		throughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings = ExpandCosmosDbAutoscaleSettingsResource(d)
