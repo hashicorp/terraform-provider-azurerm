@@ -8,6 +8,10 @@ FEATURES:
 * **New Resource:** `azurerm_storage_sync` [GH-7843]
 * **New Resource:** `azurerm_synapse_sql_pool` [GH-8095]
 
+ENHANCEMENTS:
+
+* `azurerm_synapse_sql_pool` - leverage newer version mssql [GH-8434]
+
 BUG FIXES:
 
 * `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
