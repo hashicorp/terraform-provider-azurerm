@@ -13,12 +13,12 @@ ENHANCEMENTS:
 * `data.function_app` - export the `identity` block [GH-8389]
 * `azurerm_synapse_sql_pool` - leverage newer version mssql [GH-8434]
 
-
 BUG FIXES:
 
 * `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
-* `azurerm_packet_capture` - fix to ID path to match change in API [GH-8167]
+* `azurerm_cognitive_account` - correctly wait on update logic [GH-8386]
 * `azurerm_management_group_id` - loosen case restritions during parsing of management group ID [GH-8024]
+* `azurerm_packet_capture` - fix to ID path to match change in API [GH-8167]
 
 ## 2.27.0 (September 10, 2020)
 
