@@ -65,6 +65,39 @@ func TestAccLinuxVirtualMachine_dataDiskMultiple(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_dataDiskUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_dataDiskBasic(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_dataDiskMultiple(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_dataDiskRemoveFirst(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testLinuxVirtualMachine_dataDiskBasic(data acceptance.TestData) string {
 	template := testLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
@@ -183,6 +216,49 @@ resource "azurerm_linux_virtual_machine" "test" {
     caching              = "None"
     storage_account_type = "Standard_LRS"
     disk_size_gb         = 1
+  }
+
+  data_disk {
+    name                 = "testdatadisk2"
+    lun                  = 2
+    caching              = "None"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 2
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_dataDiskRemoveFirst(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
   data_disk {

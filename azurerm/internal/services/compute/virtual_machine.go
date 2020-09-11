@@ -325,12 +325,6 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 				},
 
 				// Optional
-				"delete_on_termination": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
 				"disk_encryption_set_id": {
 					Type:         schema.TypeString,
 					Optional:     true,
@@ -362,6 +356,11 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 				},
 
 				// Computed only
+				"create_option": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
 				"disk_iops_read_write": {
 					Type:     schema.TypeInt,
 					Computed: true,
@@ -528,7 +527,10 @@ func expandVirtualMachineDataDisks(input []interface{}) *[]compute.DataDisk {
 
 		if managedDiskId, ok := disk["managed_disk_id"].(string); ok && managedDiskId != "" {
 			dataDisk.ManagedDisk.ID = utils.String(managedDiskId)
-			dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
+			// If this is the first pass through create option will be empty and the disk id must have been user specified so we set to `Attach`
+			if disk["create_option"] == "" {
+				dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
+			}
 		}
 
 		if writeAccelerator, ok := disk["write_accelerator_enabled"]; ok {
@@ -551,7 +553,7 @@ func expandVirtualMachineDataDisks(input []interface{}) *[]compute.DataDisk {
 	return &result
 }
 
-func flattenVirtualMachineDataDisks(input *[]compute.DataDisk, d *schema.ResourceData) []interface{} {
+func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -578,6 +580,7 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk, d *schema.Resourc
 		dataDisk["managed_disk_id"] = managedDiskID
 		dataDisk["disk_encryption_set_id"] = diskEncryptionSetID
 		dataDisk["disk_size_gb"] = int(*v.DiskSizeGB)
+		dataDisk["create_option"] = v.CreateOption
 
 		vhdURI := ""
 		if v.Vhd != nil {
@@ -602,18 +605,6 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk, d *schema.Resourc
 			diskMBPS = int(*v.DiskMBpsReadWrite)
 		}
 		dataDisk["disk_mbps_read_write"] = diskMBPS
-
-		deleteOnTermination := false
-		if dataDisksInConfigRaw, ok := d.GetOk("data_disk"); ok {
-			dataDisksInConfig := dataDisksInConfigRaw.([]interface{})
-			for _, dc := range dataDisksInConfig {
-				disk := dc.(map[string]interface{})
-				if disk["name"] == *v.Name {
-					deleteOnTermination = disk["delete_on_termination"].(bool)
-				}
-			}
-		}
-		dataDisk["delete_on_termination"] = deleteOnTermination
 
 		result = append(result, dataDisk)
 	}
