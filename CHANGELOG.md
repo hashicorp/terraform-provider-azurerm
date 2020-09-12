@@ -11,6 +11,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `data.function_app` - export the `identity` block [GH-8389]
+* `azurerm_app_service_hybrid_connection` - support relays in different namespaces [GH-8370]
 * `azurerm_synapse_sql_pool` - leverage newer version mssql [GH-8434]
 
 BUG FIXES:
