@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -322,8 +322,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 		d.Set("expiry_time", v.Format(time.RFC3339))
 	}
 	if v := resp.Interval; v != nil {
-		// seems to me missing its type in swagger, leading to it being a interface{} float64
-		d.Set("interval", int(v.(float64)))
+		d.Set("interval", v)
 	}
 	if v := resp.Description; v != nil {
 		d.Set("description", v)

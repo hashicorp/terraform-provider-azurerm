@@ -29,6 +29,18 @@ type MsSqlDatabaseExtendedAuditingPolicyId struct {
 	ResourceGroup string
 }
 
+func NewMsSqlDatabaseID(resourceGroup, msSqlServer, name string) MsSqlDatabaseId {
+	return MsSqlDatabaseId{
+		ResourceGroup: resourceGroup,
+		MsSqlServer:   msSqlServer,
+		Name:          name,
+	}
+}
+
+func (id MsSqlDatabaseId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/databases/%s", subscriptionId, id.ResourceGroup, id.MsSqlServer, id.Name)
+}
+
 func MsSqlDatabaseID(input string) (*MsSqlDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
