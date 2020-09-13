@@ -18,6 +18,7 @@ BUG FIXES:
 
 * `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
 * `azurerm_cognitive_account` - correctly wait on update logic [GH-8386]
+* `azurerm_eventhub_consumer_group` - allow the `name` property to be set to `$Default` [GH-8388]
 * `azurerm_management_group_id` - loosen case restritions during parsing of management group ID [GH-8024]
 * `azurerm_packet_capture` - fix to ID path to match change in API [GH-8167]
 
