@@ -98,7 +98,7 @@ A `management_ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
-* `subnet_id` - (Required) Reference to the subnet associated with the IP Configuration.
+* `subnet_id` - (Required) Reference to the subnet associated with the IP Configuration. Changing this forces a new resource to be created.
 
 -> **NOTE** The Management Subnet used for the Firewall must have the name `AzureFirewallManagementSubnet` and the subnet mask must be at least a `/26`.
 
