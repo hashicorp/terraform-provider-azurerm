@@ -33,5 +33,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_log_analytics_workspace":                              resourceArmLogAnalyticsWorkspace(),
 		"azurerm_log_analytics_datasource_windows_event":               resourceArmLogAnalyticsDataSourceWindowsEvent(),
 		"azurerm_log_analytics_datasource_windows_performance_counter": resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter(),
+		"azurerm_log_analytics_datasource_linux_syslog": 				resourceArmLogAnalyticsDataSourceLinuxSyslog(),
+		"azurerm_log_analytics_datasource_linux_syslog_collection":		resourceArmLogAnalyticsDataSourceLinuxSyslogCollection(),
 	}
 }
