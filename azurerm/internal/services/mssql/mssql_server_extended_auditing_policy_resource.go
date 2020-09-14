@@ -155,7 +155,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicyRead(d *schema.ResourceData, me
 		return fmt.Errorf("reading MsSql Server %q ID is empty or nil(Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
 	}
 
-	d.Set("database_id", serverResp.ID)
+	d.Set("server_id", serverResp.ID)
 
 	if props := resp.ExtendedServerBlobAuditingPolicyProperties; props != nil {
 		d.Set("storage_endpoint", props.StorageEndpoint)
