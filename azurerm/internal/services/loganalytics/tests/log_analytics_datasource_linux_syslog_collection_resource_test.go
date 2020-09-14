@@ -62,7 +62,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_update(t *testing
 			{
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogExists(data.ResourceName),
+					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
 				),
 			},
