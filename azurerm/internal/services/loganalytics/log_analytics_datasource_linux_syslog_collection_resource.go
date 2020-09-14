@@ -3,8 +3,6 @@ package loganalytics
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"time"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -17,6 +15,8 @@ import (
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
+	"time"
 )
 
 func resourceArmLogAnalyticsDataSourceLinuxSyslogCollection() *schema.Resource {
@@ -57,8 +57,8 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollection() *schema.Resource {
 			},
 
 			"state": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Enabled",
 					"Disabled",
@@ -69,9 +69,8 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollection() *schema.Resource {
 }
 
 type dataSourceLinuxSysLogCollectionProperty struct {
-	State     	  string                          `json:"state"`
+	State string `json:"state"`
 }
-
 
 func resourceArmLogAnalyticsDataSourceLinuxSyslogCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.DataSourcesClient
@@ -101,7 +100,6 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollectionCreateUpdate(d *schem
 			State: d.Get("state").(string),
 		},
 	}
-
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspaceName, name, params); err != nil {
 		return fmt.Errorf("failed to create Log Analytics DataSource Linux syslog collection %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
@@ -178,4 +176,3 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollectionDelete(d *schema.Reso
 
 	return nil
 }
-

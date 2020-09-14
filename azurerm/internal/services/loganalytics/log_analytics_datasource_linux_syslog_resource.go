@@ -3,8 +3,6 @@ package loganalytics
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"time"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -19,6 +17,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
+	"time"
 )
 
 func resourceArmLogAnalyticsDataSourceLinuxSyslog() *schema.Resource {
@@ -59,8 +59,8 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslog() *schema.Resource {
 			},
 
 			"syslog_name": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"auth",
 					"authpriv",
@@ -93,8 +93,8 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslog() *schema.Resource {
 }
 
 type dataSourceLinuxSysLogProperty struct {
-	SysLogName     	  string                          `json:"syslogName"`
-	SysLogSeverities  []dataSourceLinuxSysLogSeverity `json:"syslogSeverities"`
+	SysLogName       string                          `json:"syslogName"`
+	SysLogSeverities []dataSourceLinuxSysLogSeverity `json:"syslogSeverities"`
 }
 
 type dataSourceLinuxSysLogSeverity struct {
@@ -126,11 +126,10 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCreateUpdate(d *schema.Resource
 	params := operationalinsights.DataSource{
 		Kind: operationalinsights.LinuxSyslog,
 		Properties: &dataSourceLinuxSysLogProperty{
-			SysLogName: d.Get("syslog_name").(string),
-			SysLogSeverities:   expandLogAnalyticsDataSourceLinuxSyslogSeverity(d.Get("syslog_severities").(*schema.Set).List()),
+			SysLogName:       d.Get("syslog_name").(string),
+			SysLogSeverities: expandLogAnalyticsDataSourceLinuxSyslogSeverity(d.Get("syslog_severities").(*schema.Set).List()),
 		},
 	}
-
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspaceName, name, params); err != nil {
 		return fmt.Errorf("failed to create Log Analytics DataSource Linux syslog %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
@@ -224,4 +223,3 @@ func flattenLogAnalyticsDataSourceLinuxSyslogSeverity(severities []dataSourceLin
 	}
 	return output
 }
-
