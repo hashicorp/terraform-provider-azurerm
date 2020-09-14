@@ -210,7 +210,7 @@ func testAccAzureRMavsPrivateCloud_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name                = "acctest-apc-%d"
+  name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "av36"
@@ -248,7 +248,7 @@ func testAccAzureRMavsPrivateCloud_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name                = "acctest-apc-%d"
+  name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "AV36"
@@ -256,7 +256,7 @@ resource "azurerm_avs_private_cloud" "test" {
   management_cluster {
     cluster_size = 3
   }
-  network_block = "192.168.48.0/22"
+  network_block      = "192.168.48.0/22"
   internet_connected = false
   nsxt_password      = "QazWsx13$Edc"
   vcenter_password   = "QazWsx13$Edc"
@@ -273,7 +273,7 @@ func testAccAzureRMavsPrivateCloud_update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name                = "acctest-apc-%d"
+  name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "AV36"
@@ -281,7 +281,7 @@ resource "azurerm_avs_private_cloud" "test" {
   management_cluster {
     cluster_size = 4
   }
-  network_block = "192.168.48.0/22"
+  network_block      = "192.168.48.0/22"
   internet_connected = true
   nsxt_password      = "QazWsx13$Edc"
   vcenter_password   = "QazWsx13$Edc"
