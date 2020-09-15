@@ -24,6 +24,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_data_share_dataset_blob_storage":   dataSourceDataShareDatasetBlobStorage(),
 		"azurerm_data_share_dataset_data_lake_gen1": dataSourceDataShareDatasetDataLakeGen1(),
 		"azurerm_data_share_dataset_data_lake_gen2": dataSourceDataShareDatasetDataLakeGen2(),
+		"azurerm_data_share_dataset_kusto_cluster":  dataSourceDataShareDatasetKustoCluster(),
 	}
 }
 
@@ -35,5 +36,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_data_share_dataset_blob_storage":   resourceArmDataShareDataSetBlobStorage(),
 		"azurerm_data_share_dataset_data_lake_gen1": resourceArmDataShareDataSetDataLakeGen1(),
 		"azurerm_data_share_dataset_data_lake_gen2": resourceArmDataShareDataSetDataLakeGen2(),
+		"azurerm_data_share_dataset_kusto_cluster":  resourceArmDataShareDataSetKustoCluster(),
 	}
 }
