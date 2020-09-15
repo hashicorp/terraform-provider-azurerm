@@ -45,7 +45,6 @@ func TestAccWindowsVirtualMachine_dataDiskDeleteOnTermination(t *testing.T) {
 			{
 				Config: testWindowsVirtualMachine_dataDiskVMRemoved(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
 					checkVirtualMachineManagedDiskIsDeleted(fmt.Sprintf("acctestRG-%d", data.RandomInteger), "testdatadisk", fmt.Sprintf("acctestvm%s", data.RandomString)),
 				),
 			},
