@@ -1442,11 +1442,9 @@ func expandContainerGroupDnsConfig(d *schema.ResourceData) *containerinstance.DN
 		ns = append(ns, v.(string))
 	}
 
-	dnsConfig := &containerinstance.DNSConfiguration{
+	return &containerinstance.DNSConfiguration{
 		Options:       utils.String(config["options"].(string)),
 		SearchDomains: utils.String(config["search_domains"].(string)),
 		NameServers:   &ns,
 	}
-
-	return dnsConfig
 }
