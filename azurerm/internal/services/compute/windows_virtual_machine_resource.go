@@ -1051,6 +1051,53 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	// TODO Beta flag here
+	if true {
+		if d.HasChange("data_disk") {
+			shouldUpdate = true
+			updatedDataDisks := expandVirtualMachineDataDisks(d.Get("data_disk").([]interface{}))
+			dataDisks := make([]compute.DataDisk, 0)
+			// Reconcile the data disks if previously specified
+			if existing.VirtualMachineProperties.StorageProfile != nil && existing.VirtualMachineProperties.StorageProfile.DataDisks != nil {
+				// Because some values are computed we need to use the existing disk data or a change of order will break values such as `managed_disk_id`
+				// This also filters out removed disks
+				for _, existingDataDisk := range *existing.VirtualMachineProperties.StorageProfile.DataDisks {
+					for _, dataDisk := range *updatedDataDisks {
+						if *dataDisk.Name == *existingDataDisk.Name {
+							dataDisks = append(dataDisks, existingDataDisk)
+							break
+						}
+					}
+				}
+				// and add any new disks
+				for _, updatedDataDisk := range *updatedDataDisks {
+					found := false
+					for _, dataDisk := range dataDisks {
+						if *updatedDataDisk.Name == *dataDisk.Name {
+							found = true
+							break
+						}
+					}
+					if !found {
+						dataDisks = append(dataDisks, updatedDataDisk)
+					}
+				}
+			} else {
+				// Just use the new data disk(s) if there are no existing disks to worry about
+				dataDisks = *updatedDataDisks
+			}
+			if update.VirtualMachineProperties.StorageProfile != nil {
+				update.StorageProfile.DataDisks = &dataDisks
+			} else {
+				update.VirtualMachineProperties.StorageProfile = &compute.StorageProfile{
+					DataDisks: &dataDisks,
+				}
+			}
+			// TODO - delete removed disks if feature flag set
+		}
+	}
+
+
 	if shouldUpdate {
 		log.Printf("[DEBUG] Updating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)

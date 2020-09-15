@@ -1001,6 +1001,8 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
+	deleteRemovedDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDiskOnDeletion
+	dataDisksToDeleted := make([]compute.DataDisk, 0)
 	// TODO Beta flag here
 	if true {
 		if d.HasChange("data_disk") {
@@ -1012,11 +1014,16 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 				// Because some values are computed we need to use the existing disk data or a change of order will break values such as `managed_disk_id`
 				// This also filters out removed disks
 				for _, existingDataDisk := range *existing.VirtualMachineProperties.StorageProfile.DataDisks {
+					found := false
 					for _, dataDisk := range *updatedDataDisks {
 						if *dataDisk.Name == *existingDataDisk.Name {
 							dataDisks = append(dataDisks, existingDataDisk)
+							found = true
 							break
 						}
+					}
+					if !found && deleteRemovedDisks {
+						dataDisksToDeleted = append(dataDisksToDeleted, existingDataDisk)
 					}
 				}
 				// and add any new disks
@@ -1043,7 +1050,6 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 					DataDisks: &dataDisks,
 				}
 			}
-			// TODO - delete removed disks if feature flag set
 		}
 	}
 
@@ -1059,6 +1065,32 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		log.Printf("[DEBUG] Updated Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
+	}
+
+	// TODO Beta flag here
+	if true {
+		// TODO - delete removed disks if feature flag set
+		if deleteRemovedDisks && len(dataDisksToDeleted) > 0 {
+			for _, v := range dataDisksToDeleted {
+				if v.ManagedDisk != nil && v.ManagedDisk.ID != nil {
+					diskId, err := parse.ManagedDiskID(*v.ManagedDisk.ID)
+					if err != nil {
+						return fmt.Errorf("failed to parse ID for Data Disk to delete from Virtual Machine %q (resource group %q), %+v", id.Name, id.ResourceGroup, err)
+					}
+					diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.Name)
+					if err != nil {
+						if !response.WasNotFound(diskDeleteFuture.Response()) {
+							return fmt.Errorf("deleting Data Disk %q (resource group %q) for Linux Virtual Machine %q (resource group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+						}
+					}
+					if !response.WasNotFound(diskDeleteFuture.Response()) {
+						if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
+							return fmt.Errorf("waiting for delete on Data Disk Data Disk %q (resource group %q) for Linux Virtual Machine %q (resource group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// if we've shut it down and it was turned off, let's boot it back up
