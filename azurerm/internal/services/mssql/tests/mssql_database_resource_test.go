@@ -915,7 +915,7 @@ resource "azurerm_mssql_database" "restore" {
   name                           = "acctest-dbr-%[1]d"
   server_id                      = azurerm_mssql_server.test.id
   create_mode                    = "Restore"
-  restorable_dropped_database_id = azurerm_mssql_server.test.restorable_dropped_databases[0]
+  restorable_dropped_database_id = azurerm_mssql_server.test.restore_dropped_database_id[0]
 }
 
 `, data.RandomInteger, data.Locations.Primary)

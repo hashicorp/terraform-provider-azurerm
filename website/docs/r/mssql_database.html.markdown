@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `restore_point_in_time` - (Required) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for `create_mode`= `PointInTimeRestore`  databases.
 
-* `recoverable_database_id` - (Optional) The ID of the database to be recoveried. This property is only settable and required when `create_mode`=`Recovery`.
+* `recover_database_id` - (Optional) The ID of the database to be recoveried. This property is only settable and required when `create_mode`=`Recovery`.
 
 * `restorable_dropped_database_id` - (Optional) The ID of the database to be restored. This property is only settable and required when `create_mode`=`Restore`.
 

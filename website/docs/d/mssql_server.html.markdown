@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Microsoft SQL Server exists.
 
-* `restorable_dropped_databases` - A list of dropped restorable database IDs on the server.
+* `restore_dropped_database_id` - A list of dropped restorable database IDs on the server.
 
 * `tags` - A mapping of tags assigned to this Microsoft SQL Server.
 
