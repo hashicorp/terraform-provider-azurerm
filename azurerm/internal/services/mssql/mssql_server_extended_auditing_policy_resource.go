@@ -112,8 +112,13 @@ func resourceArmMsSqlServerExtendedAuditingPolicyCreateUpdate(d *schema.Resource
 		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, params); err != nil {
+	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, params)
+	if err != nil {
 		return fmt.Errorf("creating MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", serverId.Name, serverId.ResourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name)
@@ -182,8 +187,13 @@ func resourceArmMsSqlServerExtendedAuditingPolicyDelete(d *schema.ResourceData, 
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MsSqlServer, params); err != nil {
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.MsSqlServer, params)
+	if err != nil {
 		return fmt.Errorf("deleting MsSql Server %q Extended Auditing Policy(Resource Group %q): %+v", id.MsSqlServer, id.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", id.MsSqlServer, id.ResourceGroup, err)
 	}
 
 	return nil
