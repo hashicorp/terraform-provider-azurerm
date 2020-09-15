@@ -151,7 +151,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicyRead(d *schema.ResourceData, me
 	}
 
 	serverResp, err := serverClient.Get(ctx, id.ResourceGroup, id.MsSqlServer)
-	if err != nil || *serverResp.ID == "" {
+	if err != nil || serverResp.ID == nil || *serverResp.ID == "" {
 		return fmt.Errorf("reading MsSql Server %q ID is empty or nil(Resource Group %q): %s", id.MsSqlServer, id.ResourceGroup, err)
 	}
 
