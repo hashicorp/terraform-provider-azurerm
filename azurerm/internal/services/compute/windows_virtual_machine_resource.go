@@ -1170,10 +1170,8 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	// ISSUE: XXX
 	// shutting down the Virtual Machine prior to removing it means users are no longer charged for the compute
 	// thus this can be a large cost-saving when deleting larger instances
-	// in addition - since we're shutting down the machine to remove it, forcing a power-off is fine (as opposed
-	// to waiting for a graceful shut down)
 	log.Printf("[DEBUG] Powering Off Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	skipShutdown := true
+	skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
 	powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
 	if err != nil {
 		return fmt.Errorf("powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
