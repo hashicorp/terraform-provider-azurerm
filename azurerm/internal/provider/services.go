@@ -7,6 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
@@ -33,6 +34,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights"
@@ -89,6 +91,7 @@ func SupportedServices() []common.ServiceRegistration {
 		appconfiguration.Registration{},
 		appplatform.Registration{},
 		applicationinsights.Registration{},
+		attestation.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
 		batch.Registration{},
@@ -112,6 +115,7 @@ func SupportedServices() []common.ServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		frontdoor.Registration{},
+		hsm.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
 		iothub.Registration{},

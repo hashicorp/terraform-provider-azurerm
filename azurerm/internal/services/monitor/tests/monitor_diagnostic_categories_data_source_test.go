@@ -18,8 +18,8 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_appService(t *testing.T) {
 			{
 				Config: testAccDataSourceArmMonitorDiagnosticCategories_appService(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "metrics.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.#", "6"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "metrics.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "logs.#"),
 				),
 			},
 		},
@@ -36,8 +36,8 @@ func TestAccDataSourceArmMonitorDiagnosticCategories_storageAccount(t *testing.T
 			{
 				Config: testAccDataSourceArmMonitorDiagnosticCategories_storageAccount(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "metrics.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.#", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "metrics.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "logs.#"),
 				),
 			},
 		},

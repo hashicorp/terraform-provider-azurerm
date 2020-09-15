@@ -35,6 +35,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_api_management":                             resourceArmApiManagementService(),
 		"azurerm_api_management_api":                         resourceArmApiManagementApi(),
+		"azurerm_api_management_api_diagnostic":              resourceArmApiManagementApiDiagnostic(),
 		"azurerm_api_management_api_operation":               resourceArmApiManagementApiOperation(),
 		"azurerm_api_management_api_operation_policy":        resourceArmApiManagementApiOperationPolicy(),
 		"azurerm_api_management_api_policy":                  resourceArmApiManagementApiPolicy(),

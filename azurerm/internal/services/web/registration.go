@@ -27,6 +27,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_app_service_certificate":       dataSourceAppServiceCertificate(),
 		"azurerm_app_service_plan":              dataSourceAppServicePlan(),
 		"azurerm_function_app":                  dataSourceArmFunctionApp(),
+		"azurerm_function_app_host_keys":        dataSourceArmFunctionAppHostKeys(),
 	}
 }
 
@@ -41,9 +42,9 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_app_service_hybrid_connection":                     resourceArmAppServiceHybridConnection(),
 		"azurerm_app_service_plan":                                  resourceArmAppServicePlan(),
 		"azurerm_app_service_slot":                                  resourceArmAppServiceSlot(),
+		"azurerm_app_service_slot_virtual_network_swift_connection": resourceArmAppServiceSlotVirtualNetworkSwiftConnection(),
 		"azurerm_app_service_source_control_token":                  resourceArmAppServiceSourceControlToken(),
 		"azurerm_app_service_virtual_network_swift_connection":      resourceArmAppServiceVirtualNetworkSwiftConnection(),
-		"azurerm_app_service_slot_virtual_network_swift_connection": resourceArmAppServiceSlotVirtualNetworkSwiftConnection(),
 		"azurerm_app_service":                                       resourceArmAppService(),
 		"azurerm_function_app":                                      resourceArmFunctionApp(),
 		"azurerm_function_app_slot":                                 resourceArmFunctionAppSlot(),

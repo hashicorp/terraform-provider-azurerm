@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
@@ -86,6 +85,8 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
+			"autoscale_settings": common.ContainerAutoscaleSettingsSchema(),
+
 			"default_ttl": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -126,19 +127,17 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 	account := d.Get("account_name").(string)
 	partitionkeypaths := d.Get("partition_key_path").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", name, account, database, err)
-			}
-		} else {
-			if existing.ID == nil && *existing.ID == "" {
-				return fmt.Errorf("Error generating import ID for Cosmos SQL Container %q (Account: %q, Database: %q)", name, account, database)
-			}
-
-			return tf.ImportAsExistsError("azurerm_cosmosdb_sql_container", *existing.ID)
+	existing, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of creating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", name, account, database, err)
 		}
+	} else {
+		if existing.ID == nil && *existing.ID == "" {
+			return fmt.Errorf("Error generating import ID for Cosmos SQL Container %q (Account: %q, Database: %q)", name, account, database)
+		}
+
+		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_container", *existing.ID)
 	}
 
 	db := documentdb.SQLContainerCreateUpdateParameters{
@@ -168,7 +167,13 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.SQLContainerCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+		if throughput != 0 {
+			db.SQLContainerCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+		}
+	}
+
+	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
+		db.SQLContainerCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettings(d)
 	}
 
 	future, err := client.CreateUpdateSQLContainer(ctx, resourceGroup, account, database, name, db)
@@ -202,6 +207,11 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 	id, err := parse.SqlContainerID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
+	if err != nil {
+		return fmt.Errorf("Error updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
 	}
 
 	partitionkeypaths := d.Get("partition_key_path").(string)
@@ -241,16 +251,9 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error waiting on create/update future for Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
 	}
 
-	if d.HasChange("throughput") {
-		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
-			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
-				Resource: &documentdb.ThroughputSettingsResource{
-					Throughput: common.ConvertThroughputFromResourceData(d.Get("throughput")),
-				},
-			},
-		}
-
-		throughputFuture, err := client.UpdateSQLContainerThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, throughputParameters)
+	if common.HasThroughputChange(d) {
+		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
+		throughputFuture, err := client.UpdateSQLContainerThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Name, *throughputParameters)
 		if err != nil {
 			if response.WasNotFound(throughputFuture.Response()) {
 				return fmt.Errorf("Error setting Throughput for Cosmos SQL Container %q (Account: %q, Database: %q): %+v - "+
@@ -322,9 +325,10 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error reading Throughput on Cosmos SQL Container %s (Account: %q, Database: %q) ID: %v", id.Name, id.Account, id.Database, err)
 		} else {
 			d.Set("throughput", nil)
+			d.Set("autoscale_settings", nil)
 		}
 	} else {
-		d.Set("throughput", common.GetThroughputFromResult(throughputResp))
+		common.SetResourceDataThroughputFromResponse(throughputResp, d)
 	}
 
 	return nil

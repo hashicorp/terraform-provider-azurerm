@@ -53,6 +53,29 @@ func dataSourcePostgreSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -83,6 +106,10 @@ func dataSourceArmPostgreSqlServerRead(d *schema.ResourceData, meta interface{})
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if err := d.Set("identity", flattenServerIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.ServerProperties; props != nil {

@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) The name of the vault where the storage account will be registered.
 
-* `storage_account_id` - (Required) Azure Resource ID of the storage account to be registered
+* `storage_account_id` - (Required) The ID of the Storage Account to be registered
 
 -> **NOTE** Azure Backup places a Resource Lock on the storage account that will cause deletion to fail until the account is unregistered from Azure Backup
 

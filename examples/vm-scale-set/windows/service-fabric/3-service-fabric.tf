@@ -5,7 +5,7 @@ resource "azurerm_service_fabric_cluster" "main" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "https://${azurerm_public_ip.test.fqdn}:19080"
+  management_endpoint = "https://${azurerm_public_ip.main.fqdn}:19080"
   add_on_features = ["DnsService"]
 
   node_type {
