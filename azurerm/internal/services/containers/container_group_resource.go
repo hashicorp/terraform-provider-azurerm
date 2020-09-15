@@ -423,11 +423,11 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"nameservers": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
@@ -1407,11 +1407,12 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 }
 
 func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{} {
-	if input == nil {
-		return nil
-	}
-	outputArr := make([]interface{}, 1)
 	output := make(map[string]interface{})
+	outputArr := make([]interface{}, 1)
+
+	if input == nil {
+		return outputArr
+	}
 
 	if v := input.SearchDomains; v != nil {
 		output["search_domains"] = *v
