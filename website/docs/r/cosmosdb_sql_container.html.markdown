@@ -20,9 +20,9 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   database_name       = azurerm_cosmosdb_sql_database.example.name
   partition_key_path  = "/definition/id"
   throughput          = 400
-  
+
   indexing_policy {
-    indexing_mode  = "Consistent"
+    indexing_mode = "Consistent"
 
     included_path {
       path = "/*"
