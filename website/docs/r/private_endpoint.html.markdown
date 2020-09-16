@@ -191,6 +191,12 @@ A `private_dns_zone_configs` block exports:
 
 ---
 
+A list of `private_serivce_connection` blocks that exports:
+
+* `private_ip_address` - a Private IP address associated to the private endpoint
+
+---
+
 A `record_sets` block exports:
 
 * `name` - The name of the Private DNS Zone that the config belongs to.
