@@ -912,9 +912,9 @@ resource "azurerm_mssql_database" "test" {
 }
 
 resource "azurerm_mssql_database" "restore" {
-  name                           = "acctest-dbr-%[1]d"
-  server_id                      = azurerm_mssql_server.test.id
-  create_mode                    = "Restore"
+  name                        = "acctest-dbr-%[1]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Restore"
   restore_dropped_database_id = azurerm_mssql_server.test.restore_dropped_database_id[0]
 }
 
