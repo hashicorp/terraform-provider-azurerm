@@ -459,7 +459,7 @@ resource "azurerm_role_definition" "test" {
 resource "azurerm_role_assignment" "test" {
   name               = "%s"
   scope              = data.azurerm_subscription.primary.id
-  role_definition_id = azurerm_role_definition.test.id
+  role_definition_id = azurerm_role_definition.test.role_definition_resource_id
   principal_id       = data.azurerm_client_config.test.object_id
 }
 `, roleDefinitionId, rInt, roleAssignmentId)
