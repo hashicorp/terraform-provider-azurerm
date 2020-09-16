@@ -118,6 +118,11 @@ func resourceArmRoleDefinition() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"resource_manager_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -222,6 +227,12 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 			return err
 		}
 	}
+
+	resourceManagerID := ""
+	if resp.ID != nil && *resp.ID == "" {
+		resourceManagerID = *resp.ID
+	}
+	d.Set("resource_manager_id", resourceManagerID)
 
 	return nil
 }
