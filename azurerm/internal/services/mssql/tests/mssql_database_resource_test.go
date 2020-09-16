@@ -343,7 +343,7 @@ func TestAccAzureRMMsSqlDatabase_createRestoreMode(t *testing.T) {
 				),
 			},
 
-			data.ImportStep("create_mode", "restorable_dropped_database_id"),
+			data.ImportStep("create_mode", "restore_dropped_database_id"),
 		},
 	})
 }
@@ -915,7 +915,7 @@ resource "azurerm_mssql_database" "restore" {
   name                           = "acctest-dbr-%[1]d"
   server_id                      = azurerm_mssql_server.test.id
   create_mode                    = "Restore"
-  restorable_dropped_database_id = azurerm_mssql_server.test.restore_dropped_database_id[0]
+  restore_dropped_database_id = azurerm_mssql_server.test.restore_dropped_database_id[0]
 }
 
 `, data.RandomInteger, data.Locations.Primary)

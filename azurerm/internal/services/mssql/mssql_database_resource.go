@@ -139,7 +139,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Optional: true,
 			},
 
-			"restorable_dropped_database_id": {
+			"restore_dropped_database_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -355,8 +355,8 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	if _, dbok := d.GetOk("recover_database_id"); ok && createMode.(string) == string(sql.CreateModeRecovery) && !dbok {
 		return fmt.Errorf("'recover_database_id' is required for create_mode %s", createMode.(string))
 	}
-	if _, dbok := d.GetOk("restorable_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
-		return fmt.Errorf("'restorable_dropped_database_id' is required for create_mode %s", createMode.(string))
+	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
+		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
 	}
 
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
@@ -398,7 +398,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		params.DatabaseProperties.RecoverableDatabaseID = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("restorable_dropped_database_id"); ok {
+	if v, ok := d.GetOk("restore_dropped_database_id"); ok {
 		params.DatabaseProperties.RestorableDroppedDatabaseID = utils.String(v.(string))
 	}
 
