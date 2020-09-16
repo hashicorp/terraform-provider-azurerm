@@ -219,7 +219,7 @@ func resourceArmApiManagementUserDelete(d *schema.ResourceData, meta interface{}
 	log.Printf("[DEBUG] Deleting User %q (API Management Service %q / Resource Grouo %q)", userId, serviceName, resourceGroup)
 	deleteSubscriptions := utils.Bool(true)
 	notify := utils.Bool(false)
-	resp, err := client.Delete(ctx, resourceGroup, serviceName, userId, "", deleteSubscriptions, notify, "")
+	resp, err := client.Delete(ctx, resourceGroup, serviceName, userId, "", deleteSubscriptions, notify, apimanagement.DeveloperPortal)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("deleting User %q (API Management Service %q / Resource Group %q): %+v", userId, serviceName, resourceGroup, err)
