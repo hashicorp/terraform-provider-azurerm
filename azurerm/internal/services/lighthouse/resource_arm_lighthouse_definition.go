@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -47,6 +49,12 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
+			"scope": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.SubscriptionID,
+			},
+
 			"authorization": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -58,6 +66,7 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IsUUID,
 						},
+
 						"role_definition_id": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -78,12 +87,6 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
-			},
-
-			// TODO - This should Optional and support subscriptions & resource groups as scopes?
-			"scope": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 		},
 	}
@@ -109,13 +112,13 @@ func resourceArmLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error reading Subscription for Lighthouse Definition %q", lighthouseDefinitionID)
 	}
 
-	scope := buildScopeForLighthouseDefinition(subscriptionID)
+	scope := d.Get("scope").(string)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, lighthouseDefinitionID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
+				return fmt.Errorf("checking for presence of existing Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
 			}
 		}
 
@@ -203,10 +206,6 @@ func resourceArmLighthouseDefinitionDelete(d *schema.ResourceData, meta interfac
 	}
 
 	return nil
-}
-
-func buildScopeForLighthouseDefinition(subscriptionID string) string {
-	return fmt.Sprintf("/subscriptions/%s", subscriptionID)
 }
 
 func flattenLighthouseDefinitionAuthorization(input *[]managedservices.Authorization) []interface{} {

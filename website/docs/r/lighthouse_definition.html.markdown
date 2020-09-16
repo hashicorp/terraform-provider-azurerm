@@ -56,7 +56,7 @@ An `authorization` block supports the following:
 
 The following attributes are exported:
 
-* `id` - the fully qualified resource ID of the Lighthouse Definition.
+* `id` - the fully qualified ID of the Lighthouse Definition.
 
 ## Timeouts
 

@@ -3,15 +3,13 @@ subcategory: "Lighthouse"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lighthouse_assignment"
 description: |-
-    Claims a given Lighthouse Definition to a subscription or to a resource group.
+    Manages a Lighthouse Assignment to a subscription or to a resource group.
 
 ---
 
 # azurerm_lighthouse_assignment
 
-Claims a Lighthouse Definition to a subscription, or to a resource group.
-
-~> **NOTE:** the `azurerm_lighthouse_definition` resource does not currently support resource groups as target scopes
+Manages a Lighthouse Assignment to a subscription, or to a resource group.
 
 ## Example Usage
 
@@ -37,7 +35,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - the fully qualified resource ID of the Lighthouse Assignment.
+* `id` - the fully qualified ID of the Lighthouse Assignment.
 
 ## Timeouts
 
