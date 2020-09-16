@@ -14,6 +14,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `data.azurerm_app_service_environment` - Expose vip information of an app service environment [GH-8487]
 * `data.function_app` - export the `identity` block [GH-8389]
 * `azurerm_app_service_hybrid_connection` - support relays in different namespaces [GH-8370]
 * `azurerm_cosmosdb_cassandra_keyspace` - support the `autoscale_settings` block [GH-7773]
