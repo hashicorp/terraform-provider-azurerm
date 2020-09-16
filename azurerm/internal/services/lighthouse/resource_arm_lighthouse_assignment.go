@@ -127,7 +127,7 @@ func resourceArmLighthouseAssignmentRead(d *schema.ResourceData, meta interface{
 	resp, err := client.Get(ctx, id.Scope, id.Name, utils.Bool(false))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Lighthouse Assignment '%s' was not found (Scope '%s')", id.Name, id.Scope)
+			log.Printf("[WARN] Lighthouse Assignment %q was not found (Scope %q)", id.Name, id.Scope)
 			d.SetId("")
 			return nil
 		}
