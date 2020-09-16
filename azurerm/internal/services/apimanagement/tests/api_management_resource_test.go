@@ -1033,7 +1033,7 @@ resource "azurerm_resource_group" "test" {
 }
 data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]d"
+  name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -1129,7 +1129,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func testAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultId(data acceptance.TestData) string {
@@ -1143,7 +1143,7 @@ resource "azurerm_resource_group" "test" {
 }
 data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]d"
+  name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -1239,5 +1239,5 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
