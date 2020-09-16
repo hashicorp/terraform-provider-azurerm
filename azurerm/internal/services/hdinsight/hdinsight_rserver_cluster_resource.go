@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +18,7 @@ import (
 
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
-var hdInsightRServerClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightRServerClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         utils.Int(2),
@@ -28,13 +27,13 @@ var hdInsightRServerClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
 
-var hdInsightRServerClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightRServerClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
 }
 
-var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightRServerClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         utils.Int(3),
@@ -43,7 +42,7 @@ var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefiniti
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
-var hdInsightRServerClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightRServerClusterEdgeNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         1,
 	MaxInstanceCount:         utils.Int(1),
@@ -74,19 +73,19 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaHDInsightName(),
+			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
-			"cluster_version": azure.SchemaHDInsightClusterVersion(),
+			"cluster_version": SchemaHDInsightClusterVersion(),
 
-			"tier": azure.SchemaHDInsightTier(),
+			"tier": SchemaHDInsightTier(),
 
-			"tls_min_version": azure.SchemaHDInsightTls(),
+			"tls_min_version": SchemaHDInsightTls(),
 
-			"gateway": azure.SchemaHDInsightsGateway(),
+			"gateway": SchemaHDInsightsGateway(),
 
 			"rstudio": {
 				Type:     schema.TypeBool,
@@ -94,7 +93,7 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 				ForceNew: true,
 			},
 
-			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
+			"storage_account": SchemaHDInsightsStorageAccounts(),
 
 			"roles": {
 				Type:     schema.TypeList,
@@ -102,13 +101,13 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightRServerClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightRServerClusterHeadNodeDefinition),
 
-						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightRServerClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightRServerClusterWorkerNodeDefinition),
 
-						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightRServerClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightRServerClusterZookeeperNodeDefinition),
 
-						"edge_node": azure.SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightRServerClusterEdgeNodeDefinition),
+						"edge_node": SchemaHDInsightNodeDefinition("roles.0.edge_node", hdInsightRServerClusterEdgeNodeDefinition),
 					},
 				},
 			},
@@ -134,7 +133,7 @@ https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#
 }
 
 func expandHDInsightsRServerConfigurations(gateway []interface{}, rStudio bool) map[string]interface{} {
-	config := azure.ExpandHDInsightsConfigurations(gateway)
+	config := ExpandHDInsightsConfigurations(gateway)
 
 	config["rserver"] = map[string]interface{}{
 		"rstudio": rStudio,
@@ -161,7 +160,7 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 	gateway := expandHDInsightsRServerConfigurations(gatewayRaw, rStudio)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
@@ -178,17 +177,15 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error expanding `roles`: %+v", err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_hdinsight_rserver_cluster", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_hdinsight_rserver_cluster", *existing.ID)
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{
@@ -283,7 +280,7 @@ func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interfa
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 
@@ -311,11 +308,11 @@ func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("Error flattening `roles`: %+v", err)
 		}
 
-		edgeSSHEndpoint := azure.FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)
+		edgeSSHEndpoint := FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)
 		d.Set("edge_ssh_endpoint", edgeSSHEndpoint)
-		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
-		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 

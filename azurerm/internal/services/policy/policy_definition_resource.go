@@ -63,7 +63,6 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			"mode": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"management_group_id": {
