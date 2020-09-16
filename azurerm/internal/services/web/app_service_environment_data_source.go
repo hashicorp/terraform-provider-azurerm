@@ -47,7 +47,10 @@ func dataSourceArmAppServiceEnvironment() *schema.Resource {
 			},
 
 			"outbound_ip_addresses": {
-				Type:     schema.TypeList,
+				Type: schema.TypeList,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 				Computed: true,
 			},
 
