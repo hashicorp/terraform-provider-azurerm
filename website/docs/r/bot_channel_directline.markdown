@@ -50,7 +50,7 @@ The following arguments are supported:
 
 - `bot_name` - (Required) The name of the Bot Resource this channel will be associated with. Changing this forces a new resource to be created.
 
-- `site` - (Optional) A site represents a client application that you want to connect to your bot. Multiple `site` blocks may be defined as below
+- `site` - (Required) A site represents a client application that you want to connect to your bot. Multiple `site` blocks may be defined as below
 
 A `site` block has the following properties:
 

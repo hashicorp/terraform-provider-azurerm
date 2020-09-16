@@ -15,9 +15,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -29,9 +30,10 @@ func resourceArmSqlDatabase() *schema.Resource {
 		Update: resourceArmSqlDatabaseCreateUpdate,
 		Delete: resourceArmSqlDatabaseDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SqlDatabaseID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -374,7 +376,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	zoneRedundant := d.Get("zone_redundant").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -524,16 +526,12 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SqlDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["databases"]
-
-	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Database %q - removing from state", d.Id())
@@ -541,11 +539,11 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", id.Name, err)
 	}
 
 	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
-	threat, err := threatClient.Get(ctx, resourceGroup, serverName, name)
+	threat, err := threatClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err == nil {
 		if err := d.Set("threat_detection_policy", flattenArmSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("Error setting `threat_detection_policy`: %+v", err)
@@ -553,12 +551,12 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("server_name", serverName)
+	d.Set("server_name", id.ServerName)
 
 	if props := resp.DatabaseProperties; props != nil {
 		// TODO: set `create_mode` & `source_database_id` once this issue is fixed:
@@ -600,9 +598,9 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
-	auditingResp, err := auditingClient.Get(ctx, resourceGroup, serverName, name)
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
-		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", name, err)
+		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
 	}
 
 	flattenBlobAuditing := helper.FlattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d)
@@ -618,16 +616,12 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SqlDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	serverName := id.Path["servers"]
-	name := id.Path["databases"]
-
-	resp, err := client.Delete(ctx, resourceGroup, serverName, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
