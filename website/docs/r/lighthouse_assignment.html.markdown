@@ -3,38 +3,23 @@ subcategory: "Lighthouse"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lighthouse_assignment"
 description: |-
-    Assigns a given Lighthouse Definition to a subscription or a resource group.
+    Claims a given Lighthouse Definition to a subscription or to a resource group.
 
 ---
 
 # azurerm_lighthouse_assignment
 
-Assigns a given Lighthouse Definition to a subscription or a resource group.
+Claims a Lighthouse Definition to a subscription, or to a resource group.
+
+~> **NOTE:** the `azurerm_lighthouse_definition` resource does not currently support resource groups as target scopes
 
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "primary" {
-}
-
-data "azurerm_role_definition" "contributor" {
-  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
-}
-
-resource "azurerm_lighthouse_definition" "example" {
-  name               = "Sample definition"
-  description        = "This is a lighthouse definition created via Terraform"
-  managing_tenant_id = "00000000-0000-0000-0000-000000000000"
-
-  authorization {
-    principal_id       = "00000000-0000-0000-0000-000000000000"
-    role_definition_id = data.azurerm_role_definition.contributor.role_definition_id
-  }
-}
 
 resource "azurerm_lighthouse_assignment" "example" {
-  scope                    = data.azurerm_subscription.primary.id
-  lighthouse_definition_id = azurerm_lighthouse_definition.example.id
+  scope                    = "/subscription/00000000-0000-0000-0000-000000000000"
+  lighthouse_definition_id = "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ManagedServices/registrationDefinitions/00000000-0000-0000-0000-000000000000"
 }
 ```
 
@@ -59,7 +44,6 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Lighthouse Assignment.
-* `update` - (Defaults to 30 minutes) Used when updating the Lighthouse Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Lighthouse Assignment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Lighthouse Assignment.
 

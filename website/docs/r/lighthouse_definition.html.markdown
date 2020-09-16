@@ -38,17 +38,19 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Lighthouse Definition.
 
-* `managing_tenant_id` - (Required) A ID of the managing tenant.
+* `managing_tenant_id` - (Required) The ID of the managing tenant.
 
 * `description` - (Optional) A description of the Lighthouse Definition.
 
-* `authorization` - (Required) Authorization tuple containing principal id of the user/security group or service principal and id of the build-in role.
+* `authorization` - (Required) An authorization block as defined below.  
 
-A `authorization` block as the following properties:
+--- 
 
-* `principal_id` - (Required) Principal Id of the security group/service principal/user that would be assigned permissions to the projected subscription or resource group.
+An `authorization` block supports the following:
 
-* `role_definition_id` - (Required) The role definition identifier. This role will define the permissions that the security group/service principal/user must have on the projected subscription or resource group. This role cannot be an owner role.
+* `principal_id` - (Required) Principal ID of the security group/service principal/user that would be assigned permissions to the projected subscription.
+
+* `role_definition_id` - (Required) The role definition identifier. This role will define the permissions that are granted to the principal. This cannot be an `Owner` role.
 
 ## Attributes Reference
 
