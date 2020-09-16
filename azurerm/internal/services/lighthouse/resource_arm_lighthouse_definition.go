@@ -52,6 +52,7 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.SubscriptionID,
 			},
 
