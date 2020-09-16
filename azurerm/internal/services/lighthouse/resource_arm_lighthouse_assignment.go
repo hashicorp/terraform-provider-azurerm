@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -86,7 +85,7 @@ func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta in
 	scope := d.Get("scope").(string)
 	expandLighthouseDefinition := d.Get("expand_lighthouse_definition").(bool)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

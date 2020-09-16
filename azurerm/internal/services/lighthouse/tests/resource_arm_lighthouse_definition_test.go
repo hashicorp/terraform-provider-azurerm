@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -41,10 +40,6 @@ func TestAccAzureRMLighthouseDefinition_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLighthouseDefinition_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
