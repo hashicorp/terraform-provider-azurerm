@@ -47,12 +47,6 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *schema.ResourceData) *documentdb.Ind
 	policy := &documentdb.IndexingPolicy{}
 
 	if len(i) == 0 || i[0] == nil {
-		policy.IndexingMode = documentdb.Consistent
-		policy.IncludedPaths = &[]documentdb.IncludedPath{
-			{Path: utils.String("/*")},
-		}
-		policy.ExcludedPaths = &[]documentdb.ExcludedPath{}
-
 		return policy
 	}
 
