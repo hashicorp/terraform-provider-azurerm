@@ -79,7 +79,7 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 
 	vipInfo, err := client.GetVipInfo(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(vipInfo.Response) {
 			return fmt.Errorf("Error retrieving VIP info: App Service Environment %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error retrieving VIP info App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
