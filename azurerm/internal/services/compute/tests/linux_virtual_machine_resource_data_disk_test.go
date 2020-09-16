@@ -12,25 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccLinuxVirtualMachine_dataDiskBasic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: testLinuxVirtualMachine_dataDiskBasic(data, false),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccLinuxVirtualMachine_dataDiskDeleteOnTermination(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
@@ -145,7 +126,28 @@ func TestAccLinuxVirtualMachine_dataDiskUpdateWithDeleteDataDisk(t *testing.T) {
 	})
 }
 
-// excluding from linter - can be reused for checking OS disk tests later
+func TestAccLinuxVirtualMachine_dataDiskExistingManagedDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_dataDiskExistingDisk(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+
+
+// excluding from linter - TODO reus for checking OS disk tests later
 //nolint unparam
 func checkVirtualMachineManagedDiskIsDeleted(resourceGroup string, dataDiskName string, vmName string) resource.TestCheckFunc {
 	// Since we cannot rely on the state to provide the information, as it may be deleted, to find the disk we expect it to follow the acc test pattern
@@ -338,4 +340,66 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, template, deleteDateDisks, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_dataDiskExistingDisk(data acceptance.TestData, deleteDataDisks bool) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_data_disk_on_deletion = %t
+    }
+  }
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  data_disk {
+    name                 = azurerm_managed_disk.test.name
+    lun                  = 1
+    caching              = "None"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = azurerm_managed_disk.test.disk_size_gb
+    managed_disk_id      = azurerm_managed_disk.test.id
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, deleteDataDisks, data.RandomInteger, data.RandomInteger)
 }

@@ -342,7 +342,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	// TODO - put beta env var flag here
 	if true {
-		dataDisks = expandVirtualMachineDataDisks(d.Get("data_disk").([]interface{}))
+		dataDisks, err = expandVirtualMachineDataDisks(d, meta)
 	}
 
 	secretsRaw := d.Get("secret").([]interface{})
@@ -1007,7 +1007,10 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 	if true {
 		if d.HasChange("data_disk") {
 			shouldUpdate = true
-			updatedDataDisks := expandVirtualMachineDataDisks(d.Get("data_disk").([]interface{}))
+			updatedDataDisks, err := expandVirtualMachineDataDisks(d, meta)
+			if err != nil {
+				return err
+			}
 			dataDisks := make([]compute.DataDisk, 0)
 			// Reconcile the data disks if previously specified
 			if existing.VirtualMachineProperties.StorageProfile != nil && existing.VirtualMachineProperties.StorageProfile.DataDisks != nil {

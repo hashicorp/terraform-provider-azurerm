@@ -109,6 +109,10 @@ The following arguments are supported:
 
 * `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_F2`.
 
+* `data_diska` - (Optional) A `data_disk` block as defined below
+
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VM_DATADISK_BETA` is set to `true` to be used.
+
 ---
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
@@ -247,6 +251,32 @@ A `os_disk` block supports the following:
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
+
+---
+
+A `data_disk` block supports the following:
+
+* `name` - (Required) The name of the Managed Disk
+
+* `lun` - (Required) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine.
+
+* `caching` - (Required) The type of Caching which should be used for this Data Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
+
+* `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS` and `UltraSSD_LRS`.
+
+* `disk_size_gb` -  (Required) The size of the Data Disk which should be created.
+
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this Data Disk.
+
+* `managed_disk_id` - (Optional) The ID of an existing managed disk to use.
+
+!> **NOTE:** If an existing managed disk is attached to a VM and the `delete_data_disks_on_termination` feature is not explicitly set to `false` it will be deleted along with the VM.
+
+* `vhd_uri` - 
+
+* `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this Data Disk? Defaults to `false`.
+
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VM_DATADISK_BETA` is set to `true` to be used.
 
 ---
 

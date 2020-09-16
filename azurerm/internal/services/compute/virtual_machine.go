@@ -3,13 +3,14 @@ package compute
 import (
 	"context"
 	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -308,7 +309,7 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 
 				"name": {
 					Type:         schema.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -333,7 +334,7 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validateManagedDiskSizeGB,
 				},
 
@@ -341,12 +342,6 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 					Computed: true,
-				},
-
-				"vhd_uri": {
-					Type:     schema.TypeString,
-					Computed: true,
-					Optional: true,
 				},
 
 				"write_accelerator_enabled": {
@@ -498,18 +493,24 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 	}, nil
 }
 
-func expandVirtualMachineDataDisks(input []interface{}) *[]compute.DataDisk {
+func expandVirtualMachineDataDisks(d *schema.ResourceData, meta interface{}) (*[]compute.DataDisk, error) {
+	disksClient := meta.(*clients.Client).Compute.DisksClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	result := make([]compute.DataDisk, 0)
 
-	if len(input) == 0 {
-		return &result
+	dataDisksRaw, ok := d.GetOk("data_disk")
+
+	if !ok {
+		return &result, nil
 	}
 
-	for _, v := range input {
+	dataDisks := dataDisksRaw.([]interface{})
+
+	for _, v := range dataDisks {
 		disk := v.(map[string]interface{})
-		name := disk["name"].(string)
 		dataDisk := compute.DataDisk{
-			Name:         &name,
 			Lun:          utils.Int32(int32(disk["lun"].(int))),
 			Caching:      compute.CachingTypes(disk["caching"].(string)),
 			CreateOption: compute.DiskCreateOptionTypesEmpty,
@@ -518,18 +519,40 @@ func expandVirtualMachineDataDisks(input []interface{}) *[]compute.DataDisk {
 			},
 		}
 
-		if vhd, ok := disk["vhd_url"]; ok {
-			dataDisk.Vhd = &compute.VirtualHardDisk{
-				URI: utils.String(vhd.(string)),
-			}
-			dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
+		name, ok := disk["name"].(string)
+		if ok {
+			dataDisk.Name = utils.String(name)
+		}
+
+		if diskSizeGb, ok := disk["disk_size_gb"].(int); ok {
+			dataDisk.DiskSizeGB = utils.Int32(int32(diskSizeGb))
 		}
 
 		if managedDiskId, ok := disk["managed_disk_id"].(string); ok && managedDiskId != "" {
+			dataDiskId, err := parse.ManagedDiskID(managedDiskId)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse Managed Disk ID for Data Disk %q", name)
+			}
+
+			existingDisk, err := disksClient.Get(ctx, dataDiskId.ResourceGroup, dataDiskId.Name)
+			if err != nil {
+				return nil, fmt.Errorf("failed to retreive Managed Disk information for Data Disk %q (resource group %q)", dataDiskId.Name, dataDiskId.ResourceGroup)
+			}
+
 			dataDisk.ManagedDisk.ID = utils.String(managedDiskId)
+			dataDisk.DiskSizeGB = existingDisk.DiskSizeGB
+
+
 			// If this is the first pass through create option will be empty and the disk id must have been user specified so we set to `Attach`
-			if disk["create_option"] == "" {
+			if createOption, ok := disk["create_option"].(string); ok && createOption == "" {
 				dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
+			}
+
+		}
+
+		if diskEncryptionSet, encryptionSetOk := disk["disk_encryption_set_id"].(string); encryptionSetOk && diskEncryptionSet != "" {
+			dataDisk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+				ID: utils.String(diskEncryptionSet),
 			}
 		}
 
@@ -537,20 +560,10 @@ func expandVirtualMachineDataDisks(input []interface{}) *[]compute.DataDisk {
 			dataDisk.WriteAcceleratorEnabled = utils.Bool(writeAccelerator.(bool))
 		}
 
-		if diskEncryptionSet, ok := disk["disk_encryption_set_id"].(string); ok && diskEncryptionSet != "" {
-			dataDisk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
-				ID: utils.String(diskEncryptionSet),
-			}
-		}
-
-		if diskSizeGb, ok := disk["disk_size_gb"].(int); ok && diskSizeGb != 0 {
-			dataDisk.DiskSizeGB = utils.Int32(int32(diskSizeGb))
-		}
-
 		result = append(result, dataDisk)
 	}
 
-	return &result
+	return &result, nil
 }
 
 func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) []interface{} {
@@ -581,12 +594,6 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) []interface{} {
 		dataDisk["disk_encryption_set_id"] = diskEncryptionSetID
 		dataDisk["disk_size_gb"] = int(*v.DiskSizeGB)
 		dataDisk["create_option"] = v.CreateOption
-
-		vhdURI := ""
-		if v.Vhd != nil {
-			vhdURI = *v.Vhd.URI
-		}
-		dataDisk["vhd_uri"] = vhdURI
 
 		writeAccelerator := false
 		if v.WriteAcceleratorEnabled != nil {
