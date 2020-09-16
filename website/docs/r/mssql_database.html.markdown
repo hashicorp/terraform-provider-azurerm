@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `recover_database_id` - (Optional) The ID of the database to be recoveried. This property is only settable and required when `create_mode`=`Recovery`.
 
-* `restorable_dropped_database_id` - (Optional) The ID of the database to be restored. This property is only settable and required when `create_mode`=`Restore`.
+* `restore_dropped_database_id` - (Optional) The ID of the database to be restored. This property is only settable and required when `create_mode`=`Restore`.
 
 * `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.
 
