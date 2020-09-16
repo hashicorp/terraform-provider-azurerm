@@ -23,7 +23,7 @@ import (
 
 func resourceArmLighthouseAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLighthouseAssignmentCreateUpdate,
+		Create: resourceArmLighthouseAssignmentCreate,
 		Read:   resourceArmLighthouseAssignmentRead,
 		Delete: resourceArmLighthouseAssignmentDelete,
 		Importer: &schema.ResourceImporter{
@@ -62,9 +62,9 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLighthouseAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	lighthouseAssignmentName := d.Get("name").(string)
@@ -79,17 +79,15 @@ func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta in
 
 	scope := d.Get("scope").(string)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
-			}
+	existing, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_lighthouse_assignment", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_lighthouse_assignment", *existing.ID)
 	}
 
 	parameters := managedservices.RegistrationAssignment{
@@ -99,16 +97,16 @@ func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, scope, lighthouseAssignmentName, parameters); err != nil {
-		return fmt.Errorf("Error Creating/Updating Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
+		return fmt.Errorf("creating Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
 	}
 
 	read, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
 	if err != nil {
-		return err
+		return fmt.Errorf("retrieving Lighthouse Assessment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
 	}
 
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Lighthouse Assignment %q ID (scope %q) ID", lighthouseAssignmentName, scope)
+	if read.ID == nil || *read.ID == "" {
+		return fmt.Errorf("ID was nil or empty for Lighthouse Assignment %q ID (scope %q) ID", lighthouseAssignmentName, scope)
 	}
 
 	d.SetId(*read.ID)

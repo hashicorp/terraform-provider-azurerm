@@ -168,7 +168,7 @@ func resourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{
 	resp, err := client.Get(ctx, id.Scope, id.LighthouseDefinitionID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Lighthouse Definition '%s' was not found (Scope '%s')", id.LighthouseDefinitionID, id.Scope)
+			log.Printf("[WARN] Lighthouse Definition %q was not found (Scope %q)", id.LighthouseDefinitionID, id.Scope)
 			d.SetId("")
 			return nil
 		}
