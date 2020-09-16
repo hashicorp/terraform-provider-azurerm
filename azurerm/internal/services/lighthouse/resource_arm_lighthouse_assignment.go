@@ -22,7 +22,6 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLighthouseAssignmentCreateUpdate,
 		Read:   resourceArmLighthouseAssignmentRead,
-		Update: resourceArmLighthouseAssignmentCreateUpdate,
 		Delete: resourceArmLighthouseAssignmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -31,7 +30,6 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -57,12 +55,6 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-
-			"expand_lighthouse_definition": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -83,10 +75,9 @@ func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	scope := d.Get("scope").(string)
-	expandLighthouseDefinition := d.Get("expand_lighthouse_definition").(bool)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
+		existing, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
@@ -108,7 +99,7 @@ func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error Creating/Updating Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
 	}
 
-	read, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
+	read, err := client.Get(ctx, scope, lighthouseAssignmentName, utils.Bool(false))
 	if err != nil {
 		return err
 	}
@@ -131,9 +122,8 @@ func resourceArmLighthouseAssignmentRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-	expandLighthouseDefinition := d.Get("expand_lighthouse_definition").(bool)
 
-	resp, err := client.Get(ctx, id.Scope, id.Name, &expandLighthouseDefinition)
+	resp, err := client.Get(ctx, id.Scope, id.Name, utils.Bool(false))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] Lighthouse Assignment '%s' was not found (Scope '%s')", id.Name, id.Scope)
