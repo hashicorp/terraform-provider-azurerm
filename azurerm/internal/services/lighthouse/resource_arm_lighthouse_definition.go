@@ -34,28 +34,10 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"lighthouse_definition_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
-			},
-
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"scope": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 
 			"managing_tenant_id": {
@@ -83,6 +65,25 @@ func resourceArmLighthouseDefinition() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"lighthouse_definition_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			// TODO - This should Optional and support subscriptions & resource groups as scopes?
+			"scope": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}

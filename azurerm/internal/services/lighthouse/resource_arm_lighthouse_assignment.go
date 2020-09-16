@@ -42,14 +42,14 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"scope": {
+			"lighthouse_definition_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"lighthouse_definition_id": {
+			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
