@@ -27,6 +27,11 @@ func dataSourceArmDatabricksWorkspace() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
+			"sku": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"workspace_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -61,6 +66,7 @@ func dataSourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("sku", resp.Sku)
 	d.Set("workspace_id", resp.WorkspaceProperties.WorkspaceID)
 	d.Set("workspace_url", resp.WorkspaceProperties.WorkspaceURL)
 

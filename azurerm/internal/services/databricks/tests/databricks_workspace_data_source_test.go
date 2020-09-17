@@ -37,14 +37,15 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_databricks_workspace" "example" {
-  name     = "acctestRG-databricks-workspace-%[1]d"
-  location = azurerm_resource_group.example.location
-  sku      = "premium"
+  name                = "dbrk_workspace_%[1]d"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "premium"
 }
 
 data "azurerm_databricks_workspace" "example" {
   name                = azurerm_databricks_workspace.example.name
   resource_group_name = azurerm_resource_group.example.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

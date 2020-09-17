@@ -34,6 +34,8 @@ output "databricks_workspace_id" {
 
 * `location` - The Azure location where the Databricks Workspace exists.
 
+* `sku` - SKU of this Databricks Workspace.
+
 * `workspace_id` - Unique ID of this Databricks Workspace in Databricks management plane.
 
 * `workspace_url` - URL this Databricks Workspace is accessible on.
