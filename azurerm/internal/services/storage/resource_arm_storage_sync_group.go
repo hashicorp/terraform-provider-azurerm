@@ -62,7 +62,7 @@ func resourceArmStorageSyncGroupCreate(d *schema.ResourceData, meta interface{})
 	existing, err := client.Get(ctx, ssId.ResourceGroup, ssId.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", name, ssId.Name, ssId.ResourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Storage Sync Group (Storage Sync Group Name %q / Storage Sync Name %q /Resource Group %q): %+v", name, ssId.Name, ssId.ResourceGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
