@@ -494,13 +494,19 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		Sku:  sku,
 	}
 
+	identity := &apimanagement.ServiceIdentity{
+		Type: apimanagement.None,
+	}
+
 	if _, ok := d.GetOk("identity"); ok {
-		identity, err := expandAzureRmApiManagementIdentity(d)
+		var err error
+		identity, err = expandAzureRmApiManagementIdentity(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `identity`: %+v", err)
 		}
-		properties.Identity = identity
 	}
+
+	properties.Identity = identity
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		properties.ServiceProperties.AdditionalLocations = expandAzureRmApiManagementAdditionalLocations(d, sku)
