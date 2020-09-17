@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -40,6 +41,10 @@ func TestAccAzureRMavsPrivateCloud_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+			{
+				PreConfig: func() { time.Sleep(17 * time.Minute) },
+				Config:    testAccAzureRMavsPrivateCloud_basic(data),
+			},
 		},
 	})
 }
@@ -58,6 +63,10 @@ func TestAccAzureRMavsPrivateCloud_requiresImport(t *testing.T) {
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMavsPrivateCloud_requiresImport),
+			{
+				PreConfig: func() { time.Sleep(17 * time.Minute) },
+				Config:    testAccAzureRMavsPrivateCloud_requiresImport(data),
+			},
 		},
 	})
 }
@@ -90,6 +99,10 @@ func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
 				),
 			},
 			data.ImportStep("nsxt_password", "vcenter_password"),
+			{
+				PreConfig: func() { time.Sleep(17 * time.Minute) },
+				Config:    testAccAzureRMavsPrivateCloud_complete(data),
+			},
 		},
 	})
 }
@@ -143,6 +156,10 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 				),
 			},
 			data.ImportStep("nsxt_password", "vcenter_password"),
+			{
+				PreConfig: func() { time.Sleep(17 * time.Minute) },
+				Config:    testAccAzureRMavsPrivateCloud_update(data),
+			},
 		},
 	})
 }
@@ -256,7 +273,7 @@ resource "azurerm_avs_private_cloud" "test" {
   management_cluster {
     cluster_size = 3
   }
-  network_block = "192.168.48.0/22"
+  network_block      = "192.168.48.0/22"
   internet_connected = false
   nsxt_password      = "QazWsx13$Edc"
   vcenter_password   = "QazWsx13$Edc"
@@ -281,7 +298,7 @@ resource "azurerm_avs_private_cloud" "test" {
   management_cluster {
     cluster_size = 4
   }
-  network_block = "192.168.48.0/22"
+  network_block      = "192.168.48.0/22"
   internet_connected = true
   nsxt_password      = "QazWsx13$Edc"
   vcenter_password   = "QazWsx13$Edc"
