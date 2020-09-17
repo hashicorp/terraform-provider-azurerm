@@ -1,44 +1,44 @@
-## 2.28.0 (Unreleased)
+## 2.28.0 (September 17, 2020)
 UPGRADE NOTES
 * The `id` field for the `azurerm_role_definition` changed in release 2.27.0 to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` from this version of the Azure Provider.
 
 FEATURES:
 
-* **New Data Source:** `azurerm_data_share_dataset_data_lake_gen2` [GH-7907] 
-* **New Data Source:** `azurerm_servicebus_queue_authorization_rule` [GH-8438]
-* **New Data Source:** `azurerm_storage_sync` [GH-7843] 
-* **New Resource:** `azurerm_data_share_dataset_data_lake_gen2` [GH-7907]
-* **New Resource:** `azurerm_lighthouse_definition` [GH-6560]
-* **New Resource:** `azurerm_lighthouse_assignment` [GH-6560]
-* **New Resource:** `azurerm_mssql_server_extended_auditing_policy`  [GH-8447]
-* **New Resource:** `azurerm_storage_sync` [GH-7843]
-* **New Resource:** `azurerm_synapse_sql_pool` [GH-8095]
+* **New Data Source:** `azurerm_data_share_dataset_data_lake_gen2` [[#7907](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7907)] 
+* **New Data Source:** `azurerm_servicebus_queue_authorization_rule` ([#8438](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8438))
+* **New Data Source:** `azurerm_storage_sync` [[#7843](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7843)] 
+* **New Resource:** `azurerm_data_share_dataset_data_lake_gen2` ([#7907](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7907))
+* **New Resource:** `azurerm_lighthouse_definition` ([#6560](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6560))
+* **New Resource:** `azurerm_lighthouse_assignment` ([#6560](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6560))
+* **New Resource:** `azurerm_mssql_server_extended_auditing_policy`  ([#8447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8447))
+* **New Resource:** `azurerm_storage_sync` ([#7843](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7843))
+* **New Resource:** `azurerm_synapse_sql_pool` ([#8095](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8095))
 
 ENHANCEMENTS:
 
-* Data Source: `azurerm_app_service_environment` - Expose vip information of an app service environment [GH-8487]
-* Data Source: `azurerm_function_app` - export the `identity` block [GH-8389]
-* `azurerm_app_service_hybrid_connection` - support relays in different namespaces [GH-8370]
-* `azurerm_cosmosdb_cassandra_keyspace` - support the `autoscale_settings` block [GH-7773]
-* `azurerm_cosmosdb_gremlin_database` - support the `autoscale_settings` block [GH-7773]
-* `azurerm_cosmosdb_gremlin_graph` - support the `autoscale_settings` block [GH-7773]
-* `azurerm_cosmosdb_mongo_collection` - support the `autoscale_settings` block [GH-7773]
-* `azurerm_cosmosdb_mongo_database` - support the `autoscale_settings` block [GH-7773]
-* `azurerm_cosmosdb_sql_container` - support the `autoscale_settings` block [GH-7773]
-* `azurerm_cosmosdb_sql_database` - support the `autoscale_settings` block [GH-7773]
-* `azurerm_cosmosdb_table` - support the `autoscale_settings` block [GH-7773]
-* `azurerm_firewall` - support the `management_ip_configuration` block [GH-8235]
-* `azurerm_storage_account_customer_managed_key` - support for key rotation [GH-7836]
+* Data Source: `azurerm_app_service_environment` - Expose vip information of an app service environment ([#8487](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8487))
+* Data Source: `azurerm_function_app` - export the `identity` block ([#8389](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8389))
+* `azurerm_app_service_hybrid_connection` - support relays in different namespaces ([#8370](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8370))
+* `azurerm_cosmosdb_cassandra_keyspace` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_gremlin_database` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_gremlin_graph` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_mongo_collection` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_mongo_database` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_sql_container` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_sql_database` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_table` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_firewall` - support the `management_ip_configuration` block ([#8235](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8235))
+* `azurerm_storage_account_customer_managed_key` - support for key rotation ([#7836](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7836))
 
 BUG FIXES:
 
-* Data Source: `azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
-* `azurerm_cognitive_account` - correctly wait on update logic [GH-8386]
-* `azurerm_eventhub_consumer_group` - allow the `name` property to be set to `$Default` [GH-8388]
-* `azurerm_kubernetes_cluster` - ensure the OMS Agent Log Analytics Workspace case is preserved after disabling/enabling [GH-8374]
-* `azurerm_management_group_id` - loosen case restritions during parsing of management group ID [GH-8024]
-* `azurerm_packet_capture` - fix to ID path to match change in API [GH-8167]
-* `azurerm_role_definition` - expose `role_definition_resource_id` [GH-8492]
+* Data Source: `azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API ([#8430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8430))
+* `azurerm_cognitive_account` - correctly wait on update logic ([#8386](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8386))
+* `azurerm_eventhub_consumer_group` - allow the `name` property to be set to `$Default` ([#8388](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8388))
+* `azurerm_kubernetes_cluster` - ensure the OMS Agent Log Analytics Workspace case is preserved after disabling/enabling ([#8374](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8374))
+* `azurerm_management_group_id` - loosen case restritions during parsing of management group ID ([#8024](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8024))
+* `azurerm_packet_capture` - fix to ID path to match change in API ([#8167](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8167))
+* `azurerm_role_definition` - expose `role_definition_resource_id` ([#8492](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8492))
 
 ## 2.27.0 (September 10, 2020)
 
