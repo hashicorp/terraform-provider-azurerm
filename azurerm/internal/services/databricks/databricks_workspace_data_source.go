@@ -67,8 +67,10 @@ func dataSourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("sku", resp.Sku)
-	d.Set("workspace_id", resp.WorkspaceProperties.WorkspaceID)
-	d.Set("workspace_url", resp.WorkspaceProperties.WorkspaceURL)
+	if props := resp.WorkspaceProperties; props != nil {
+		d.Set("workspace_id", props.WorkspaceID)
+		d.Set("workspace_url", props.WorkspaceURL)
+	}
 
 	return nil
 }
