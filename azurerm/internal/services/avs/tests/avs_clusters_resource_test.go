@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"testing"
+	"time"
 )
 
 func TestAccAzureRMavsCluster_basic(t *testing.T) {
@@ -25,6 +26,10 @@ func TestAccAzureRMavsCluster_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+			{
+				PreConfig: func() { time.Sleep(17 * time.Minute) },
+				Config:    testAccAzureRMavsCluster_basic(data),
+			},
 		},
 	})
 }
@@ -43,6 +48,10 @@ func TestAccAzureRMavsCluster_requiresImport(t *testing.T) {
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMavsCluster_requiresImport),
+			{
+				PreConfig: func() { time.Sleep(17 * time.Minute) },
+				Config:    testAccAzureRMavsCluster_requiresImport(data),
+			},
 		},
 	})
 }
@@ -75,6 +84,10 @@ func TestAccAzureRMavsCluster_update(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+			{
+				PreConfig: func() { time.Sleep(17 * time.Minute) },
+				Config:    testAccAzureRMavsCluster_basic(data),
+			},
 		},
 	})
 }
@@ -154,7 +167,7 @@ func testAccAzureRMavsCluster_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_avs_cluster" "test" {
-  name             = "acctest-ac-%d"
+  name             = "acctest-AC-%d"
   private_cloud_id = azurerm_avs_private_cloud.test.id
   cluster_size     = 3
   sku_name         = "av36t"
@@ -182,7 +195,7 @@ func testAccAzureRMavsCluster_update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_avs_cluster" "test" {
-  name               = "acctest-ac-%d"
+  name               = "acctest-AC-%d"
   private_cloud_name = azurerm_avs_private_cloud.test.id
   cluster_size       = 4
   sku_name           = "av36t"
