@@ -994,7 +994,7 @@ func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.
 func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
 	result := make(map[string]interface{})
 	if identity == nil || identity.Type == apimanagement.None {
-		return []interface{}{result}
+		return make([]interface{}, 0)
 	}
 
 	result["type"] = string(identity.Type)
