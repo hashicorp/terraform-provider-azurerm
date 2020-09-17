@@ -146,7 +146,7 @@ func testWindowsVirtualMachine_dataDiskBasic(data acceptance.TestData, deleteDat
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }
@@ -193,7 +193,7 @@ func testWindowsVirtualMachine_dataDiskMultiple(data acceptance.TestData, delete
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }
@@ -248,7 +248,7 @@ func testWindowsVirtualMachine_dataDiskRemoveFirst(data acceptance.TestData, del
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }
@@ -295,7 +295,7 @@ func testWindowsVirtualMachine_dataDiskVMRemoved(data acceptance.TestData, delet
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }

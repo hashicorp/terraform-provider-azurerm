@@ -37,6 +37,31 @@ func TestAccLinuxVirtualMachine_dataDiskDeleteOnTermination(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_dataDisksRemoved(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_dataDiskBasic(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_dataDisksRemoved(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkVirtualMachineManagedDiskIsDeleted(fmt.Sprintf("acctestRG-%d", data.RandomInteger), "testdatadisk", fmt.Sprintf("acctestVM-%d", data.RandomInteger)),
+				),
+			},
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachine_dataDiskMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
@@ -147,7 +172,7 @@ func TestAccLinuxVirtualMachine_dataDiskExistingManagedDisk(t *testing.T) {
 
 
 
-// excluding from linter - TODO reus for checking OS disk tests later
+// excluding from linter - TODO reuse for checking OS disk tests later
 //nolint unparam
 func checkVirtualMachineManagedDiskIsDeleted(resourceGroup string, dataDiskName string, vmName string) resource.TestCheckFunc {
 	// Since we cannot rely on the state to provide the information, as it may be deleted, to find the disk we expect it to follow the acc test pattern
@@ -174,7 +199,7 @@ func testLinuxVirtualMachine_dataDiskBasic(data acceptance.TestData, deleteDataD
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }
@@ -217,6 +242,49 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, template, deleteDataDisks, data.RandomInteger)
 }
 
+func testLinuxVirtualMachine_dataDisksRemoved(data acceptance.TestData, deleteDataDisks bool) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {
+    virtual_machine {
+      delete_data_disks_on_deletion = %t
+    }
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, deleteDataDisks, data.RandomInteger)
+}
+
 func testLinuxVirtualMachine_dataDiskBasicVMRemoved(data acceptance.TestData, deleteDataDisks bool) string {
 	template := testLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
@@ -225,7 +293,7 @@ func testLinuxVirtualMachine_dataDiskBasicVMRemoved(data acceptance.TestData, de
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }
@@ -240,7 +308,7 @@ func testLinuxVirtualMachine_dataDiskMultiple(data acceptance.TestData, deleteDa
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }
@@ -299,7 +367,7 @@ func testLinuxVirtualMachine_dataDiskRemoveFirst(data acceptance.TestData, delet
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }
@@ -350,7 +418,7 @@ func testLinuxVirtualMachine_dataDiskExistingDisk(data acceptance.TestData, dele
 provider "azurerm" {
   features {
     virtual_machine {
-      delete_data_disk_on_deletion = %t
+      delete_data_disks_on_deletion = %t
     }
   }
 }

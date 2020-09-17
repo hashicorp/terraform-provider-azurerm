@@ -1001,7 +1001,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
-	deleteRemovedDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDiskOnDeletion
+	deleteRemovedDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDisksOnDeletion
 	dataDisksToDeleted := make([]compute.DataDisk, 0)
 	// TODO Beta flag here
 	if true {
@@ -1202,7 +1202,7 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 
 	// TODO - put beta env var flag here
 	if true {
-		deleteDataDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDiskOnDeletion
+		deleteDataDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDisksOnDeletion
 		if deleteDataDisks {
 			if props := existing.VirtualMachineProperties; props != nil && props.StorageProfile != nil && props.StorageProfile.DataDisks != nil {
 				for _, v := range *props.StorageProfile.DataDisks {
