@@ -16,8 +16,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `data.azurerm_app_service_environment` - Expose vip information of an app service environment [GH-8487]
-* `data.function_app` - export the `identity` block [GH-8389]
+* Data Source: `azurerm_app_service_environment` - Expose vip information of an app service environment [GH-8487]
+* Data Source: `azurerm_function_app` - export the `identity` block [GH-8389]
 * `azurerm_app_service_hybrid_connection` - support relays in different namespaces [GH-8370]
 * `azurerm_cosmosdb_cassandra_keyspace` - support the `autoscale_settings` block [GH-7773]
 * `azurerm_cosmosdb_gremlin_database` - support the `autoscale_settings` block [GH-7773]
@@ -32,7 +32,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
-* `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
+* Data Source: `azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
 * `azurerm_cognitive_account` - correctly wait on update logic [GH-8386]
 * `azurerm_eventhub_consumer_group` - allow the `name` property to be set to `$Default` [GH-8388]
 * `azurerm_kubernetes_cluster` - ensure the OMS Agent Log Analytics Workspace case is preserved after disabling/enabling [GH-8374]
