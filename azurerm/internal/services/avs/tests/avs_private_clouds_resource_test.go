@@ -227,7 +227,7 @@ func testAccAzureRMavsPrivateCloud_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name                = "acctest-apc-%d"
+  name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "av36"
@@ -265,7 +265,7 @@ func testAccAzureRMavsPrivateCloud_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name                = "acctest-apc-%d"
+  name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "AV36"
@@ -290,7 +290,7 @@ func testAccAzureRMavsPrivateCloud_update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name                = "acctest-apc-%d"
+  name                = "acctest-APC-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "AV36"

@@ -27,5 +27,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_avs_private_cloud": resourceArmAvsPrivateCloud(),
+		"azurerm_avs_cluster":       resourceArmAvsCluster(),
 	}
 }

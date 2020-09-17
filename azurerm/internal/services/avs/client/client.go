@@ -7,13 +7,18 @@ import (
 
 type Client struct {
 	PrivateCloudClient *avs.PrivateCloudsClient
+	ClusterClient      *avs.ClustersClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	privateCloudClient := avs.NewPrivateCloudsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&privateCloudClient.Client, o.ResourceManagerAuthorizer)
 
+	clusterClient := avs.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&clusterClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		PrivateCloudClient: &privateCloudClient,
+		ClusterClient:      &clusterClient,
 	}
 }
