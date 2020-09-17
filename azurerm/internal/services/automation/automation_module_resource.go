@@ -1,6 +1,7 @@
 package automation
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -151,6 +152,9 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 			}
 
 			if properties := resp.ModuleProperties; properties != nil {
+				if properties.Error != nil && properties.Error.Message != nil && *properties.Error.Message != "" {
+					return resp, string(properties.ProvisioningState), errors.New(*properties.Error.Message)
+				}
 				return resp, string(properties.ProvisioningState), nil
 			}
 
@@ -164,6 +168,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
+		client.Delete(ctx, resGroup, accName, name)
 		return fmt.Errorf("Error waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
 	}
 
