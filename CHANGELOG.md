@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_sql_database` - support the `autoscale_settings` block [GH-7773]
 * `azurerm_cosmosdb_table` - support the `autoscale_settings` block [GH-7773]
 * `azurerm_firewall` - support the `management_ip_configuration` block [GH-8235]
+* `azurerm_storage_account_customer_managed_key` - support for key rotation [GH-7836]
 
 BUG FIXES:
 
