@@ -1,4 +1,10 @@
 ## 2.29.0 (Unreleased)
+
+FEATURES: 
+
+* **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
+* **New Resource:** `azurerm_storage_sync_group` [GH-8462]
+
 ## 2.28.0 (September 17, 2020)
 UPGRADE NOTES
 * The `id` field for the `azurerm_role_definition` changed in release 2.27.0 to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` from this version of the Azure Provider.
