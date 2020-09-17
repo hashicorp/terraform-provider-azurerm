@@ -39,7 +39,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_databricks_workspace" "example" {
   name     = "acctestRG-databricks-workspace-%[1]d"
   location = azurerm_resource_group.example.location
-  sku = "premium"
+  sku      = "premium"
 }
 
 data "azurerm_databricks_workspace" "example" {
