@@ -26,6 +26,11 @@ func dataSourceArmDatabricksWorkspace() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
+			"workspace_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"workspace_url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -51,10 +56,11 @@ func dataSourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on EventHub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*resp.WorkspaceID)
+	d.SetId(*resp.ID)
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("workspace_id", resp.WorkspaceID)
 	d.Set("workspace_url", resp.WorkspaceURL)
 
 	return nil
