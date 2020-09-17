@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -18,7 +19,8 @@ func TestAccDataSourceAzureRMDatabricksWorkspace_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceDatabricksWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "premium"),
+					resource.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "workspace_id"),
 				),
 			},
 		},
@@ -31,21 +33,21 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "example" {
-  name     = "acctestRG-databricks-%[1]d"
-  location = "%[2]s"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%d"
+  location = "%s"
 }
 
-resource "azurerm_databricks_workspace" "example" {
-  name                = "dbrk_workspace_%[1]d"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "premium"
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standard"
 }
 
 data "azurerm_databricks_workspace" "example" {
-  name                = azurerm_databricks_workspace.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  name                = azurerm_databricks_workspace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
