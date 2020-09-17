@@ -18,7 +18,7 @@ func TestAccDataSourceAzureRMDatabricksWorkspace_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceDatabricksWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "example-workspace"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "premium"),
 				),
 			},
 		},
@@ -31,14 +31,20 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
 
-data "azurerm_databricks_workspace" "example" {
-  name                = "example-workspace"
-  resource_group_name = "azurerm_resource_group.test.name"
+resource "azurerm_databricks_workspace" "example" {
+  name     = "acctestRG-databricks-workspace-%[1]d"
+  location = azurerm_resource_group.example.location
+  sku = "premium"
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+data "azurerm_databricks_workspace" "example" {
+  name                = azurerm_databricks_workspace.example.name
+  resource_group_name = azurerm_resource_group.example.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

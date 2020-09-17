@@ -61,8 +61,8 @@ func dataSourceDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("workspace_id", resp.WorkspaceID)
-	d.Set("workspace_url", resp.WorkspaceURL)
+	d.Set("workspace_id", resp.WorkspaceProperties.WorkspaceID)
+	d.Set("workspace_url", resp.WorkspaceProperties.WorkspaceURL)
 
 	return nil
 }
