@@ -143,3 +143,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `update` - (Defaults to 3 hours) Used when updating the Template Deployment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Template Deployment.
 * `delete` - (Defaults to 3 hours) Used when deleting the Template Deployment.
+
+## Import
+
+Template deployments can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_template_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Resources/deployments/deployment1
+```

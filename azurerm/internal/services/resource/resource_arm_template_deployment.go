@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"log"
 	"strconv"
 	"strings"
@@ -34,6 +36,11 @@ func resourceArmTemplateDeployment() *schema.Resource {
 			Update: schema.DefaultTimeout(180 * time.Minute),
 			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.TemplateDeploymentID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -200,23 +207,18 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.TemplateDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["deployments"]
-	if name == "" {
-		name = id.Path["Deployments"]
-	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	outputs := make(map[string]string)
@@ -266,22 +268,16 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["deployments"]
-	if name == "" {
-		name = id.Path["Deployments"]
-	}
-
-	_, err = client.Delete(ctx, resourceGroup, name)
+	id, err := parse.TemplateDeploymentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name, d)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return err
+	}
+
+	return waitForTemplateDeploymentToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
 }
 
 // TODO: move this out into the new `helpers` structure
