@@ -278,7 +278,8 @@ resource "azurerm_subnet" "isesubnet1" {
   delegation {
     name = "integrationServiceEnvironments"
     service_delegation {
-      name = "Microsoft.Logic/integrationServiceEnvironments"
+      name    = "Microsoft.Logic/integrationServiceEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }
