@@ -1,12 +1,14 @@
 package cognitive
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -175,6 +177,18 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("creating Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Creating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, resourceGroup, name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Cognitive Account (%s) to become available: %s", d.Get("name"), err)
+	}
+
 	read, err := client.GetProperties(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Cognitive Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -317,4 +331,15 @@ func expandAccountSkuName(skuName string) (*cognitiveservices.Sku, error) {
 		Name: utils.String(skuName),
 		Tier: tier,
 	}, nil
+}
+
+func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservices.AccountsClient, resourceGroupName string, cognitiveAccountName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.GetProperties(ctx, resourceGroupName, cognitiveAccountName)
+		if err != nil {
+			return nil, "", fmt.Errorf("issuing read request in cognitiveAccountStateRefreshFunc to Azure ARM for Cognitive Account '%s' (RG: '%s'): %s", cognitiveAccountName, resourceGroupName, err)
+		}
+
+		return res, string(res.Properties.ProvisioningState), nil
+	}
 }

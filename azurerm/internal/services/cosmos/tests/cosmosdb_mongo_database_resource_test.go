@@ -51,6 +51,42 @@ func TestAccAzureRMCosmosDbMongoDatabase_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbMongoDatabase_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbMongoDatabase_autoscale(data, 4000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDbMongoDatabase_autoscale(data, 5000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "5000"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDbMongoDatabase_autoscale(data, 4000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.MongoDbClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -130,4 +166,19 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   throughput          = 700
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
+}
+
+func testAccAzureRMCosmosDbMongoDatabase_autoscale(data acceptance.TestData, maxThroughput int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  autoscale_settings {
+    max_throughput = %[3]d
+  }
+}
+`, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger, maxThroughput)
 }

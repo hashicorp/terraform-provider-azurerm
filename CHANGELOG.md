@@ -3,18 +3,37 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_data_share_dataset_data_lake_gen2` [GH-7907] 
+* **New Data Source:** `azurerm_servicebus_queue_authorization_rule` [GH-8438]
 * **New Data Source:** `azurerm_storage_sync` [GH-7843] 
 * **New Resource:** `azurerm_data_share_dataset_data_lake_gen2` [GH-7907]
+* **New Resource:** `azurerm_lighthouse_definition` [GH-6560]
+* **New Resource:** `azurerm_lighthouse_assignment` [GH-6560]
+* **New Resource:** `azurerm_mssql_server_extended_auditing_policy`  [GH-8447]
 * **New Resource:** `azurerm_storage_sync` [GH-7843]
 * **New Resource:** `azurerm_synapse_sql_pool` [GH-8095]
 
 ENHANCEMENTS:
 
-* `azurerm_synapse_sql_pool` - leverage newer version mssql [GH-8434]
+* `data.azurerm_app_service_environment` - Expose vip information of an app service environment [GH-8487]
+* `data.function_app` - export the `identity` block [GH-8389]
+* `azurerm_app_service_hybrid_connection` - support relays in different namespaces [GH-8370]
+* `azurerm_cosmosdb_cassandra_keyspace` - support the `autoscale_settings` block [GH-7773]
+* `azurerm_cosmosdb_gremlin_database` - support the `autoscale_settings` block [GH-7773]
+* `azurerm_cosmosdb_gremlin_graph` - support the `autoscale_settings` block [GH-7773]
+* `azurerm_cosmosdb_mongo_collection` - support the `autoscale_settings` block [GH-7773]
+* `azurerm_cosmosdb_mongo_database` - support the `autoscale_settings` block [GH-7773]
+* `azurerm_cosmosdb_sql_container` - support the `autoscale_settings` block [GH-7773]
+* `azurerm_cosmosdb_sql_database` - support the `autoscale_settings` block [GH-7773]
+* `azurerm_cosmosdb_table` - support the `autoscale_settings` block [GH-7773]
+* `azurerm_firewall` - support the `management_ip_configuration` block [GH-8235]
 
 BUG FIXES:
 
 * `data.azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API [GH-8430]
+* `azurerm_cognitive_account` - correctly wait on update logic [GH-8386]
+* `azurerm_eventhub_consumer_group` - allow the `name` property to be set to `$Default` [GH-8388]
+* `azurerm_kubernetes_cluster` - ensure the OMS Agent Log Analytics Workspace case is preserved after disabling/enabling [GH-8374]
+* `azurerm_management_group_id` - loosen case restritions during parsing of management group ID [GH-8024]
 * `azurerm_packet_capture` - fix to ID path to match change in API [GH-8167]
 
 ## 2.27.0 (September 10, 2020)
