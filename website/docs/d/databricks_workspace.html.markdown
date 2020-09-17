@@ -30,7 +30,7 @@ output "databricks_workspace_id" {
 
 ## Attributes Reference
 
-* `id` - The ID of the Databricks Workspace in Azure Management plane.
+* `id` - The ID of the Databricks Workspace.
 
 * `location` - The Azure location where the Databricks Workspace exists.
 
