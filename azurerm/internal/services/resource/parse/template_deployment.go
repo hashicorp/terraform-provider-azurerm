@@ -2,12 +2,13 @@ package parse
 
 import (
 	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type TemplateDeploymentId struct {
 	ResourceGroup string
-	Name string
+	Name          string
 }
 
 func NewTemplateDeploymentId(resourceGroup, name string) TemplateDeploymentId {
