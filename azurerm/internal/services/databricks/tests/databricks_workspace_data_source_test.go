@@ -45,7 +45,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                 = "standard"
 }
 
-data "azurerm_databricks_workspace" "example" {
+data "azurerm_databricks_workspace" "test" {
   name                = azurerm_databricks_workspace.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
