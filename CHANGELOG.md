@@ -1,4 +1,6 @@
 ## 2.28.0 (Unreleased)
+UPGRADE NOTES
+* The `id` field for the `azurerm_role_definition` changed in release 2.27.0 to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` from this version of the Azure Provider.
 
 FEATURES:
 
@@ -35,8 +37,12 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - ensure the OMS Agent Log Analytics Workspace case is preserved after disabling/enabling [GH-8374]
 * `azurerm_management_group_id` - loosen case restritions during parsing of management group ID [GH-8024]
 * `azurerm_packet_capture` - fix to ID path to match change in API [GH-8167]
+* `azurerm_role_definition` - expose `role_definition_resource_id` [GH-8492]
 
 ## 2.27.0 (September 10, 2020)
+
+UPGRADE NOTES
+* The `id` field for the `azurerm_role_definition` has changed in this release to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` on the new resource from version 2.28.0 of the Azure Provider.
 
 FEATURES:
 
@@ -76,6 +82,7 @@ BUG FIXES:
 UPGRADE NOTES:
 
 * **Opt-In Beta:** This release introduces an opt-in beta for in-line Virtual Machine Scale Set Extensions. This functionality enables the resource to be used with Azure Service Fabric and other extensions that may require creation time inclusion on Scale Set members. Please see the documentation for `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` for information.
+
 
 FEATURES:
 * **New Resource:** `azurerm_log_analytics_saved_search` ([#8253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8253))
