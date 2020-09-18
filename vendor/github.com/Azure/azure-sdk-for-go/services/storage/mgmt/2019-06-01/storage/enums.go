@@ -36,13 +36,15 @@ func PossibleAccessTierValues() []AccessTier {
 type AccountExpand string
 
 const (
+	// AccountExpandBlobRestoreStatus ...
+	AccountExpandBlobRestoreStatus AccountExpand = "blobRestoreStatus"
 	// AccountExpandGeoReplicationStats ...
 	AccountExpandGeoReplicationStats AccountExpand = "geoReplicationStats"
 )
 
 // PossibleAccountExpandValues returns an array of possible values for the AccountExpand const type.
 func PossibleAccountExpandValues() []AccountExpand {
-	return []AccountExpand{AccountExpandGeoReplicationStats}
+	return []AccountExpand{AccountExpandBlobRestoreStatus, AccountExpandGeoReplicationStats}
 }
 
 // AccountStatus enumerates the values for account status.
@@ -92,6 +94,23 @@ const (
 // PossibleAction1Values returns an array of possible values for the Action1 const type.
 func PossibleAction1Values() []Action1 {
 	return []Action1{Acquire, Break, Change, Release, Renew}
+}
+
+// BlobRestoreProgressStatus enumerates the values for blob restore progress status.
+type BlobRestoreProgressStatus string
+
+const (
+	// Complete ...
+	Complete BlobRestoreProgressStatus = "Complete"
+	// Failed ...
+	Failed BlobRestoreProgressStatus = "Failed"
+	// InProgress ...
+	InProgress BlobRestoreProgressStatus = "InProgress"
+)
+
+// PossibleBlobRestoreProgressStatusValues returns an array of possible values for the BlobRestoreProgressStatus const type.
+func PossibleBlobRestoreProgressStatusValues() []BlobRestoreProgressStatus {
+	return []BlobRestoreProgressStatus{Complete, Failed, InProgress}
 }
 
 // Bypass enumerates the values for bypass.
@@ -145,6 +164,51 @@ func PossibleDirectoryServiceOptionsValues() []DirectoryServiceOptions {
 	return []DirectoryServiceOptions{DirectoryServiceOptionsAADDS, DirectoryServiceOptionsAD, DirectoryServiceOptionsNone}
 }
 
+// EnabledProtocols enumerates the values for enabled protocols.
+type EnabledProtocols string
+
+const (
+	// NFS ...
+	NFS EnabledProtocols = "NFS"
+	// SMB ...
+	SMB EnabledProtocols = "SMB"
+)
+
+// PossibleEnabledProtocolsValues returns an array of possible values for the EnabledProtocols const type.
+func PossibleEnabledProtocolsValues() []EnabledProtocols {
+	return []EnabledProtocols{NFS, SMB}
+}
+
+// EncryptionScopeSource enumerates the values for encryption scope source.
+type EncryptionScopeSource string
+
+const (
+	// MicrosoftKeyVault ...
+	MicrosoftKeyVault EncryptionScopeSource = "Microsoft.KeyVault"
+	// MicrosoftStorage ...
+	MicrosoftStorage EncryptionScopeSource = "Microsoft.Storage"
+)
+
+// PossibleEncryptionScopeSourceValues returns an array of possible values for the EncryptionScopeSource const type.
+func PossibleEncryptionScopeSourceValues() []EncryptionScopeSource {
+	return []EncryptionScopeSource{MicrosoftKeyVault, MicrosoftStorage}
+}
+
+// EncryptionScopeState enumerates the values for encryption scope state.
+type EncryptionScopeState string
+
+const (
+	// Disabled ...
+	Disabled EncryptionScopeState = "Disabled"
+	// Enabled ...
+	Enabled EncryptionScopeState = "Enabled"
+)
+
+// PossibleEncryptionScopeStateValues returns an array of possible values for the EncryptionScopeState const type.
+func PossibleEncryptionScopeStateValues() []EncryptionScopeState {
+	return []EncryptionScopeState{Disabled, Enabled}
+}
+
 // GeoReplicationStatus enumerates the values for geo replication status.
 type GeoReplicationStatus string
 
@@ -160,6 +224,19 @@ const (
 // PossibleGeoReplicationStatusValues returns an array of possible values for the GeoReplicationStatus const type.
 func PossibleGeoReplicationStatusValues() []GeoReplicationStatus {
 	return []GeoReplicationStatus{GeoReplicationStatusBootstrap, GeoReplicationStatusLive, GeoReplicationStatusUnavailable}
+}
+
+// GetShareExpand enumerates the values for get share expand.
+type GetShareExpand string
+
+const (
+	// Stats ...
+	Stats GetShareExpand = "stats"
+)
+
+// PossibleGetShareExpandValues returns an array of possible values for the GetShareExpand const type.
+func PossibleGetShareExpandValues() []GetShareExpand {
+	return []GetShareExpand{Stats}
 }
 
 // HTTPProtocol enumerates the values for http protocol.
@@ -228,15 +305,30 @@ func PossibleKeyPermissionValues() []KeyPermission {
 type KeySource string
 
 const (
-	// MicrosoftKeyvault ...
-	MicrosoftKeyvault KeySource = "Microsoft.Keyvault"
-	// MicrosoftStorage ...
-	MicrosoftStorage KeySource = "Microsoft.Storage"
+	// KeySourceMicrosoftKeyvault ...
+	KeySourceMicrosoftKeyvault KeySource = "Microsoft.Keyvault"
+	// KeySourceMicrosoftStorage ...
+	KeySourceMicrosoftStorage KeySource = "Microsoft.Storage"
 )
 
 // PossibleKeySourceValues returns an array of possible values for the KeySource const type.
 func PossibleKeySourceValues() []KeySource {
-	return []KeySource{MicrosoftKeyvault, MicrosoftStorage}
+	return []KeySource{KeySourceMicrosoftKeyvault, KeySourceMicrosoftStorage}
+}
+
+// KeyType enumerates the values for key type.
+type KeyType string
+
+const (
+	// KeyTypeAccount ...
+	KeyTypeAccount KeyType = "Account"
+	// KeyTypeService ...
+	KeyTypeService KeyType = "Service"
+)
+
+// PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
+func PossibleKeyTypeValues() []KeyType {
+	return []KeyType{KeyTypeAccount, KeyTypeService}
 }
 
 // Kind enumerates the values for kind.
@@ -264,15 +356,15 @@ func PossibleKindValues() []Kind {
 type LargeFileSharesState string
 
 const (
-	// Disabled ...
-	Disabled LargeFileSharesState = "Disabled"
-	// Enabled ...
-	Enabled LargeFileSharesState = "Enabled"
+	// LargeFileSharesStateDisabled ...
+	LargeFileSharesStateDisabled LargeFileSharesState = "Disabled"
+	// LargeFileSharesStateEnabled ...
+	LargeFileSharesStateEnabled LargeFileSharesState = "Enabled"
 )
 
 // PossibleLargeFileSharesStateValues returns an array of possible values for the LargeFileSharesState const type.
 func PossibleLargeFileSharesStateValues() []LargeFileSharesState {
-	return []LargeFileSharesState{Disabled, Enabled}
+	return []LargeFileSharesState{LargeFileSharesStateDisabled, LargeFileSharesStateEnabled}
 }
 
 // LeaseDuration enumerates the values for lease duration.
@@ -326,6 +418,19 @@ func PossibleLeaseStatusValues() []LeaseStatus {
 	return []LeaseStatus{LeaseStatusLocked, LeaseStatusUnlocked}
 }
 
+// ListContainersInclude enumerates the values for list containers include.
+type ListContainersInclude string
+
+const (
+	// Deleted ...
+	Deleted ListContainersInclude = "deleted"
+)
+
+// PossibleListContainersIncludeValues returns an array of possible values for the ListContainersInclude const type.
+func PossibleListContainersIncludeValues() []ListContainersInclude {
+	return []ListContainersInclude{Deleted}
+}
+
 // ListKeyExpand enumerates the values for list key expand.
 type ListKeyExpand string
 
@@ -337,6 +442,19 @@ const (
 // PossibleListKeyExpandValues returns an array of possible values for the ListKeyExpand const type.
 func PossibleListKeyExpandValues() []ListKeyExpand {
 	return []ListKeyExpand{Kerb}
+}
+
+// ListSharesExpand enumerates the values for list shares expand.
+type ListSharesExpand string
+
+const (
+	// ListSharesExpandDeleted ...
+	ListSharesExpandDeleted ListSharesExpand = "deleted"
+)
+
+// PossibleListSharesExpandValues returns an array of possible values for the ListSharesExpand const type.
+func PossibleListSharesExpandValues() []ListSharesExpand {
+	return []ListSharesExpand{ListSharesExpandDeleted}
 }
 
 // MinimumTLSVersion enumerates the values for minimum tls version.
@@ -381,6 +499,43 @@ const (
 // PossiblePermissionsValues returns an array of possible values for the Permissions const type.
 func PossiblePermissionsValues() []Permissions {
 	return []Permissions{A, C, D, L, P, R, U, W}
+}
+
+// PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
+// provisioning state.
+type PrivateEndpointConnectionProvisioningState string
+
+const (
+	// PrivateEndpointConnectionProvisioningStateCreating ...
+	PrivateEndpointConnectionProvisioningStateCreating PrivateEndpointConnectionProvisioningState = "Creating"
+	// PrivateEndpointConnectionProvisioningStateDeleting ...
+	PrivateEndpointConnectionProvisioningStateDeleting PrivateEndpointConnectionProvisioningState = "Deleting"
+	// PrivateEndpointConnectionProvisioningStateFailed ...
+	PrivateEndpointConnectionProvisioningStateFailed PrivateEndpointConnectionProvisioningState = "Failed"
+	// PrivateEndpointConnectionProvisioningStateSucceeded ...
+	PrivateEndpointConnectionProvisioningStateSucceeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+)
+
+// PossiblePrivateEndpointConnectionProvisioningStateValues returns an array of possible values for the PrivateEndpointConnectionProvisioningState const type.
+func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpointConnectionProvisioningState {
+	return []PrivateEndpointConnectionProvisioningState{PrivateEndpointConnectionProvisioningStateCreating, PrivateEndpointConnectionProvisioningStateDeleting, PrivateEndpointConnectionProvisioningStateFailed, PrivateEndpointConnectionProvisioningStateSucceeded}
+}
+
+// PrivateEndpointServiceConnectionStatus enumerates the values for private endpoint service connection status.
+type PrivateEndpointServiceConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateEndpointServiceConnectionStatus = "Approved"
+	// Pending ...
+	Pending PrivateEndpointServiceConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateEndpointServiceConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateEndpointServiceConnectionStatusValues returns an array of possible values for the PrivateEndpointServiceConnectionStatus const type.
+func PossiblePrivateEndpointServiceConnectionStatusValues() []PrivateEndpointServiceConnectionStatus {
+	return []PrivateEndpointServiceConnectionStatus{Approved, Pending, Rejected}
 }
 
 // ProvisioningState enumerates the values for provisioning state.
@@ -447,6 +602,38 @@ func PossibleReasonCodeValues() []ReasonCode {
 	return []ReasonCode{NotAvailableForSubscription, QuotaID}
 }
 
+// RootSquashType enumerates the values for root squash type.
+type RootSquashType string
+
+const (
+	// AllSquash ...
+	AllSquash RootSquashType = "AllSquash"
+	// NoRootSquash ...
+	NoRootSquash RootSquashType = "NoRootSquash"
+	// RootSquash ...
+	RootSquash RootSquashType = "RootSquash"
+)
+
+// PossibleRootSquashTypeValues returns an array of possible values for the RootSquashType const type.
+func PossibleRootSquashTypeValues() []RootSquashType {
+	return []RootSquashType{AllSquash, NoRootSquash, RootSquash}
+}
+
+// RoutingChoice enumerates the values for routing choice.
+type RoutingChoice string
+
+const (
+	// InternetRouting ...
+	InternetRouting RoutingChoice = "InternetRouting"
+	// MicrosoftRouting ...
+	MicrosoftRouting RoutingChoice = "MicrosoftRouting"
+)
+
+// PossibleRoutingChoiceValues returns an array of possible values for the RoutingChoice const type.
+func PossibleRoutingChoiceValues() []RoutingChoice {
+	return []RoutingChoice{InternetRouting, MicrosoftRouting}
+}
+
 // Services enumerates the values for services.
 type Services string
 
@@ -464,6 +651,25 @@ const (
 // PossibleServicesValues returns an array of possible values for the Services const type.
 func PossibleServicesValues() []Services {
 	return []Services{B, F, Q, T}
+}
+
+// ShareAccessTier enumerates the values for share access tier.
+type ShareAccessTier string
+
+const (
+	// ShareAccessTierCool ...
+	ShareAccessTierCool ShareAccessTier = "Cool"
+	// ShareAccessTierHot ...
+	ShareAccessTierHot ShareAccessTier = "Hot"
+	// ShareAccessTierPremium ...
+	ShareAccessTierPremium ShareAccessTier = "Premium"
+	// ShareAccessTierTransactionOptimized ...
+	ShareAccessTierTransactionOptimized ShareAccessTier = "TransactionOptimized"
+)
+
+// PossibleShareAccessTierValues returns an array of possible values for the ShareAccessTier const type.
+func PossibleShareAccessTierValues() []ShareAccessTier {
+	return []ShareAccessTier{ShareAccessTierCool, ShareAccessTierHot, ShareAccessTierPremium, ShareAccessTierTransactionOptimized}
 }
 
 // SignedResource enumerates the values for signed resource.
