@@ -145,7 +145,8 @@ func resourceArmApiManagementUserCreateUpdate(d *schema.ResourceData, meta inter
 		properties.UserCreateParameterProperties.State = apimanagement.UserState(state)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, userId, properties, nil, ""); err != nil {
+	notify := utils.Bool(false)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, userId, properties, notify, ""); err != nil {
 		return fmt.Errorf("creating/updating User %q (API Management Service %q / Resource Group %q): %+v", userId, serviceName, resourceGroup, err)
 	}
 
