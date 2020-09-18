@@ -135,13 +135,15 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			},
 
 			"recoverable_database_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.MsSqlRecoverableDatabaseID,
 			},
 
 			"restorable_dropped_database_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.MsSqlRestorableDatabaseID,
 			},
 
 			"read_replica_count": {
