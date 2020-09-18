@@ -84,8 +84,7 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
 					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "None"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.0.host_name", "api.terraform.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.1.host_name", "api2.terraform.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.portal.0.host_name", "portal.terraform.io"),
@@ -1014,10 +1013,6 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku_name = "Developer_1"
-
-  identity {
-    type = "None"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
