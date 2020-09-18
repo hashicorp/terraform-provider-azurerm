@@ -1618,7 +1618,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   enable_auto_scaling   = true
   min_count             = 0
   max_count             = 3
-  node_count			= 0
+  node_count            = 0
 }
 `, template)
 }
