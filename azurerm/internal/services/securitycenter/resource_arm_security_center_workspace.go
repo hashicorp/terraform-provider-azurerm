@@ -1,11 +1,13 @@
 package securitycenter
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	securityv1 "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	securityv3 "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -77,20 +79,18 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 
 	// get pricing tier, workspace can only be configured when tier is not Free.
 	// API does not error, it just doesn't set the workspace scope
-	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
+	isPricingStandard, err := isPricingStandard(ctx, priceClient)
+
 	if err != nil {
-		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
+		return fmt.Errorf("Error checking Security Center Subscription pricing tier %v", err)
 	}
 
-	if price.PricingProperties == nil {
-		return fmt.Errorf("Security Center Subscription pricing propertier is nil")
-	}
-	if price.PricingProperties.PricingTier == security.Free {
+	if !isPricingStandard {
 		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
 	}
 
-	contact := security.WorkspaceSetting{
-		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
+	contact := securityv1.WorkspaceSetting{
+		WorkspaceSettingProperties: &securityv1.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
 			WorkspaceID: utils.String(d.Get("workspace_id").(string)),
 		},
@@ -137,10 +137,31 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		d.SetId(*resp.(security.WorkspaceSetting).ID)
+		d.SetId(*resp.(securityv1.WorkspaceSetting).ID)
 	}
 
 	return resourceArmSecurityCenterWorkspaceRead(d, meta)
+}
+
+func isPricingStandard(ctx context.Context, priceClient *securityv3.PricingsClient) (bool, error) {
+	prices, err := priceClient.List(ctx)
+	if err != nil {
+		return false, fmt.Errorf("Error listing Security Center Subscription pricing: %+v", err)
+	}
+
+	if prices.Value != nil {
+		for _, resourcePrice := range *prices.Value {
+			if resourcePrice.PricingProperties == nil {
+				return false, fmt.Errorf("%v Security Center Subscription pricing properties is nil", *resourcePrice.Type)
+			}
+
+			if resourcePrice.PricingProperties.PricingTier == securityv3.Standard {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
 
 func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
