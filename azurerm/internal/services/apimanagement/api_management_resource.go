@@ -972,7 +972,7 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 
 	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
 	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
-		if identityIdSet == nil || len(identityIdSet) == 0 {
+		if len(identityIdSet) == 0 {
 			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
 		}
 
@@ -982,7 +982,7 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 		}
 
 		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
-	} else if identityIdSet != nil && len(identityIdSet) > 0 {
+	} else if len(identityIdSet) > 0 {
 		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
 		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
