@@ -203,6 +203,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								"EnableCassandra",
 								"EnableGremlin",
 								"EnableTable",
+								"Serverless",
 								"EnableMongo",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
