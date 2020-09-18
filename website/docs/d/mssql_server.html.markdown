@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Microsoft SQL Server.
 
-* `administrator_login` - The administrator login name for the new server.
+* `administrator_login` - The administrator's login name for the new server.
 
 * `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server.
 
@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Microsoft SQL Server exists.
 
-* `restorable_dropped_databases` - A list of dropped restorable database IDs on the server.
+* `restorable_dropped_database_id` - A list of dropped restorable database IDs on the server.
 
 * `tags` - A mapping of tags assigned to this Microsoft SQL Server.
 
