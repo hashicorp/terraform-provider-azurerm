@@ -83,7 +83,7 @@ func resourceArmDataShareDataSetKustoClusterCreate(d *schema.ResourceData, meta 
 	existingModel, err := client.Get(ctx, shareId.ResourceGroup, shareId.AccountName, shareId.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existingModel.Response) {
-			return fmt.Errorf("checking for present of existing  DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
+			return fmt.Errorf("checking for presence of existing  DataShare Kusto Cluster DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", name, shareId.ResourceGroup, shareId.AccountName, shareId.Name, err)
 		}
 	}
 	existingId := helper.GetAzurermDataShareDataSetId(existingModel.Value)
