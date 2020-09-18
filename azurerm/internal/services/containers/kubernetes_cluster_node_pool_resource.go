@@ -492,9 +492,6 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		if maxCount == 0 {
 			return fmt.Errorf("`max_count` must be configured when `enable_auto_scaling` is set to `true`")
 		}
-		if minCount == 0 {
-			return fmt.Errorf("`min_count` must be configured when `enable_auto_scaling` is set to `true`")
-		}
 
 		if minCount > maxCount {
 			return fmt.Errorf("`max_count` must be >= `min_count`")
