@@ -351,11 +351,11 @@ func resourceArmAvsPrivateCloudDelete(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("deleting Avs PrivateCloud %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting Avs PrivateCloud %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on deleting future for Avs PrivateCloud %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
 	return nil
-	//return waitForAvsPrivateCloudToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
 }
 
 //func waitForAvsPrivateCloudToBeDeleted(ctx context.Context, client *avs.PrivateCloudsClient, resourceGroup, name string, d *schema.ResourceData) error {
