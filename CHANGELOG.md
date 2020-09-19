@@ -3,6 +3,8 @@
 FEATURES: 
 
 * **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
+* **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
+* **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
 * **New Resource:** `azurerm_storage_sync_group` [GH-8462]
 
 IMPORVEMENTS:
