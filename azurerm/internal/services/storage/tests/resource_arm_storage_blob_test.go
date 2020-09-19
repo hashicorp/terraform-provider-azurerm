@@ -364,23 +364,14 @@ func TestAccAzureRMStorageBlob_updateBlockFromInlineContent(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_BlockFromLocalFileWithContentMd5(t *testing.T) {
-	size := 2 * 1024 * 1024 // 2 mb
-	bytes := make([]byte, size)
-	rand.Read(bytes) // fill with random data
-
-	tmpfile, err := ioutil.TempFile("", "tmp-file")
+	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
-		t.Errorf("Unable to open a temporary file.")
-	}
-	defer os.Remove(tmpfile.Name())
-
-	if _, err := tmpfile.Write(bytes); err != nil {
-		t.Errorf("Unable to write to temporary file %q: %v", tmpfile.Name(), err)
-	}
-	if err := tmpfile.Close(); err != nil {
-		t.Errorf("Unable to close temporary file %q: %v", tmpfile.Name(), err)
+		t.Fatalf("Failed to create local source blob file")
 	}
 
+	if err := testAccAzureRMStorageBlob_populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -389,11 +380,11 @@ func TestAccAzureRMStorageBlob_BlockFromLocalFileWithContentMd5(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageBlob_contentMd5ForLocalFile(data, tmpfile.Name()),
+				Config: testAccAzureRMStorageBlob_contentMd5ForLocalFile(data, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "example.vhd"),
-					resource.TestCheckResourceAttr(data.ResourceName, "source", tmpfile.Name()),
+					resource.TestCheckResourceAttr(data.ResourceName, "source", sourceBlob.Name()),
 				),
 			},
 			{
