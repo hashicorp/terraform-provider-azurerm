@@ -335,6 +335,7 @@ func TestAccAzureRMStorageBlob_updateBlockFromInlineContent(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_contentMd5ForInlineContent(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "example.vhd"),
 					resource.TestCheckResourceAttr(data.ResourceName, "source_content", "Wubba Lubba Dub Dub"),
 				),
 			},
@@ -348,6 +349,7 @@ func TestAccAzureRMStorageBlob_updateBlockFromInlineContent(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_contentMd5ForInlineContentUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "example.vhd"),
 					resource.TestCheckResourceAttr(data.ResourceName, "source_content", "Wubba Lubba Dub Dub Updated"),
 				),
 			},
@@ -390,6 +392,7 @@ func TestAccAzureRMStorageBlob_BlockFromLocalFileWithContentMd5(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_contentMd5ForLocalFile(data, tmpfile.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "example.vhd"),
 					resource.TestCheckResourceAttr(data.ResourceName, "source", tmpfile.Name()),
 				),
 			},
@@ -1079,7 +1082,7 @@ resource "azurerm_storage_blob" "test" {
   storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source                 = "%s"
-  content_md5			 = "${filemd5("%s")}"
+  content_md5            = "${filemd5("%s")}"
 }
 `, template, fileName, fileName)
 }
@@ -1094,12 +1097,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
+  name                   = "example.vhd"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source_content         = "Wubba Lubba Dub Dub"
-  content_md5 			 = "${md5("Wubba Lubba Dub Dub")}"
+  content_md5            = "${md5("Wubba Lubba Dub Dub")}"
 }
 `, template)
 }
@@ -1114,12 +1117,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "rick.morty"
+  name                   = "example.vhd"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
   source_content         = "Wubba Lubba Dub Dub Updated"
-  content_md5 			 = "${md5("Wubba Lubba Dub Dub Updated")}"
+  content_md5            = "${md5("Wubba Lubba Dub Dub Updated")}"
 }
 `, template)
 }
