@@ -115,6 +115,29 @@ func dataSourceArmFunctionApp() *schema.Resource {
 
 			"source_control": schemaDataSourceAppServiceSiteSourceControl(),
 
+			"identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -202,6 +225,10 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 
 	if err = d.Set("connection_string", flattenFunctionAppConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
+	}
+
+	if err := d.Set("identity", flattenFunctionAppIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
