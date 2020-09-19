@@ -323,6 +323,86 @@ func TestAccAzureRMStorageBlob_blockFromLocalFile(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageBlob_updateBlockFromInlineContent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_contentMd5ForInlineContent(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "source_content", "Wubba Lubba Dub Dub"),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+			{
+				Config: testAccAzureRMStorageBlob_contentMd5ForInlineContentUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "source_content", "Wubba Lubba Dub Dub Updated"),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_BlockFromLocalFileWithContentMd5(t *testing.T) {
+	size := 2 * 1024 * 1024 // 2 mb
+	bytes := make([]byte, size)
+	rand.Read(bytes) // fill with random data
+
+	tmpfile, err := ioutil.TempFile("", "tmp-file")
+	if err != nil {
+		t.Errorf("Unable to open a temporary file.")
+	}
+	defer os.Remove(tmpfile.Name())
+
+	if _, err := tmpfile.Write(bytes); err != nil {
+		t.Errorf("Unable to write to temporary file %q: %v", tmpfile.Name(), err)
+	}
+	if err := tmpfile.Close(); err != nil {
+		t.Errorf("Unable to close temporary file %q: %v", tmpfile.Name(), err)
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_contentMd5ForLocalFile(data, tmpfile.Name()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "source", tmpfile.Name()),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "source", "type"},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageBlob_contentType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 
@@ -982,6 +1062,66 @@ resource "azurerm_storage_blob" "test" {
   source                 = "%s"
 }
 `, template, fileName)
+}
+
+func testAccAzureRMStorageBlob_contentMd5ForLocalFile(data acceptance.TestData, fileName string) string {
+	template := testAccAzureRMStorageBlob_template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source                 = "%s"
+  content_md5			 = "${filemd5("%s")}"
+}
+`, template, fileName, fileName)
+}
+
+func testAccAzureRMStorageBlob_contentMd5ForInlineContent(data acceptance.TestData) string {
+	template := testAccAzureRMStorageBlob_template(data, "blob")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "Wubba Lubba Dub Dub"
+  content_md5 			 = "${md5("Wubba Lubba Dub Dub")}"
+}
+`, template)
+}
+
+func testAccAzureRMStorageBlob_contentMd5ForInlineContentUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMStorageBlob_template(data, "blob")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "rick.morty"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source_content         = "Wubba Lubba Dub Dub Updated"
+  content_md5 			 = "${md5("Wubba Lubba Dub Dub Updated")}"
+}
+`, template)
 }
 
 func testAccAzureRMStorageBlob_contentType(data acceptance.TestData) string {
