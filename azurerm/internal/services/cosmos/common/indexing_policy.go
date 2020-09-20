@@ -1,6 +1,8 @@
 package common
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -44,13 +46,12 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]do
 
 func ExpandAzureRmCosmosDbIndexingPolicy(d *schema.ResourceData) *documentdb.IndexingPolicy {
 	i := d.Get("indexing_policy").([]interface{})
-	policy := &documentdb.IndexingPolicy{}
 
 	if len(i) == 0 || i[0] == nil {
-		return policy
+		return nil
 	}
-
 	input := i[0].(map[string]interface{})
+	policy := &documentdb.IndexingPolicy{}
 	policy.IndexingMode = documentdb.IndexingMode(input["indexing_mode"].(string))
 	if v, ok := input["included_path"].([]interface{}); ok {
 		policy.IncludedPaths = expandAzureRmCosmosDBIndexingPolicyIncludedPaths(v)
@@ -113,4 +114,63 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPol
 
 	results = append(results, result)
 	return results
+}
+
+func ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPolicy) error {
+	if indexingPolicy == nil {
+		return nil
+	}
+
+	// Ensure includedPaths or excludedPaths are not set if indexingMode is "None".
+	if indexingPolicy.IndexingMode == documentdb.None {
+		if indexingPolicy.IncludedPaths != nil {
+			return fmt.Errorf("included_path must not be set if indexing_mode is %q", documentdb.None)
+		}
+
+		if indexingPolicy.ExcludedPaths != nil {
+			return fmt.Errorf("excluded_path must not be set if indexing_mode is %q", documentdb.None)
+		}
+	}
+
+	// Any indexing policy has to include the root path /* as either an included or an excluded path.
+	rootPathDefined := false
+	rootPath := "/*"
+	includedPathsDefined := indexingPolicy.IncludedPaths != nil
+	includedPathsContainRootPath := false
+
+	if includedPathsDefined {
+		for _, includedPath := range *indexingPolicy.IncludedPaths {
+			if rootPathDefined {
+				break
+			}
+
+			rootPathDefined = *includedPath.Path == rootPath
+			includedPathsContainRootPath = true
+		}
+	}
+
+	excludedPathsContainRootPath := false
+	excludedPathsDefined := indexingPolicy.ExcludedPaths != nil
+
+	if excludedPathsDefined && !rootPathDefined {
+		for _, excludedPath := range *indexingPolicy.ExcludedPaths {
+			if rootPathDefined {
+				break
+			}
+
+			rootPathDefined = *excludedPath.Path == rootPath
+			excludedPathsContainRootPath = true
+		}
+	}
+
+	// All paths can't be included and excluded at the same time.
+	if includedPathsContainRootPath && excludedPathsContainRootPath {
+		return fmt.Errorf("only one of included_path or excluded_path may include the path %q", rootPath)
+	}
+
+	if !rootPathDefined && (includedPathsDefined || excludedPathsDefined) {
+		return fmt.Errorf("either included_path or excluded_path must include the path %q", rootPath)
+	}
+
+	return nil
 }

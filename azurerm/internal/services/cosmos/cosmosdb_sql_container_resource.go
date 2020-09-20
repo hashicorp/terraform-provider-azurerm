@@ -141,11 +141,17 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_container", *existing.ID)
 	}
 
+	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
+	err = common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy)
+	if err != nil {
+		return fmt.Errorf("Error generating indexing policy for Cosmos SQL Container %q (Account: %q, Database: %q)", name, account, database)
+	}
+
 	db := documentdb.SQLContainerCreateUpdateParameters{
 		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
 			Resource: &documentdb.SQLContainerResource{
 				ID:             &name,
-				IndexingPolicy: common.ExpandAzureRmCosmosDbIndexingPolicy(d),
+				IndexingPolicy: indexingPolicy,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -218,11 +224,17 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 
 	partitionkeypaths := d.Get("partition_key_path").(string)
 
+	indexingPolicy := common.ExpandAzureRmCosmosDbIndexingPolicy(d)
+	err = common.ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy)
+	if err != nil {
+		return fmt.Errorf("Error updating Cosmos SQL Container %q (Account: %q, Database: %q): %+v", id.Name, id.Account, id.Database, err)
+	}
+
 	db := documentdb.SQLContainerCreateUpdateParameters{
 		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
 			Resource: &documentdb.SQLContainerResource{
 				ID:             &id.Name,
-				IndexingPolicy: common.ExpandAzureRmCosmosDbIndexingPolicy(d),
+				IndexingPolicy: indexingPolicy,
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
