@@ -72,7 +72,9 @@ A `catalog_info` block supports the following:
 
 * `administrator_password` - (Required) Administrator login password for the SQL Server.
 
-* `pricing_tier` - (Required) Pricing tier for the database that will be created for the SSIS catalog. Valid values are: `Basic`, `Standard`, `Premium` and `PremiumRS`.
+* `pricing_tier` - (Optional) Pricing tier for the database that will be created for the SSIS catalog. Possible values are `Basic`, `Standard`, `Premium` and `PremiumRS`.
+
+-> **NOTE** The pricing tier for SSISDB hosted by Azure SQL Database server. Not applicable to Azure SQL Managed Instance hosting SSISDB. While using Azure SQL Managed Instance, there's no need to set `pricing_tier`. For further information, refer to the section "Create an integration runtime" of [documentation](https://docs.microsoft.com/en-us/azure/data-factory/create-azure-ssis-integration-runtime#create-an-integration-runtime) and the section "CatalogPricingTier" of [documentation](https://docs.microsoft.com/en-us/azure/data-factory/monitor-integration-runtime#properties-2).
 
 ---
 

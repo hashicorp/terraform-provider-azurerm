@@ -185,7 +185,6 @@ func resourceArmDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 						"pricing_tier": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(datafactory.IntegrationRuntimeSsisCatalogPricingTierBasic),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(datafactory.IntegrationRuntimeSsisCatalogPricingTierBasic),
 								string(datafactory.IntegrationRuntimeSsisCatalogPricingTierStandard),
