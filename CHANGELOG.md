@@ -2,9 +2,8 @@
 
 FEATURES: 
 
-
 * **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
-* **New Sata Source:** `azurerm_databricks_workspace` [GH-8502]
+* **New Data Source:** `azurerm_databricks_workspace` [GH-8502]
 * **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
 * **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
 * **New Resource:** `azurerm_storage_sync_group` [GH-8462]
@@ -13,8 +12,14 @@ IMPORVEMENTS:
 
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - picking the first system node pool if the original `default_node_pool` has been removed [GH-8503]
+
 ## 2.28.0 (September 17, 2020)
+
 UPGRADE NOTES
+
 * The `id` field for the `azurerm_role_definition` changed in release 2.27.0 to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` from this version of the Azure Provider.
 
 FEATURES:
