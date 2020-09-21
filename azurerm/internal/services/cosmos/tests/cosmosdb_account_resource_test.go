@@ -264,6 +264,10 @@ func TestAccAzureRMCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableTable"})
 }
 
+func TestAccAzureRMCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableServerless"})
+}
+
 func TestAccAzureRMCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo"})
 }
