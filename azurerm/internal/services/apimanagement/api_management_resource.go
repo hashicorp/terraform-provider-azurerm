@@ -494,14 +494,13 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		Sku:  sku,
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
-		identityRaw := d.Get("identity").([]interface{})
-		identity, err := expandAzureRmApiManagementIdentity(identityRaw)
-		if err != nil {
-			return fmt.Errorf("Error expanding `identity`: %+v", err)
-		}
-		properties.Identity = identity
+	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := expandAzureRmApiManagementIdentity(identityRaw)
+	if err != nil {
+		return fmt.Errorf("Error expanding `identity`: %+v", err)
 	}
+	properties.Identity = identity
 
 	if _, ok := d.GetOk("additional_location"); ok {
 		properties.ServiceProperties.AdditionalLocations = expandAzureRmApiManagementAdditionalLocations(d, sku)
