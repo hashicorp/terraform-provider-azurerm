@@ -98,6 +98,24 @@ func resourceArmSignalRService() *schema.Resource {
 						},
 					},
 				},
+
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if k == "features.#" {
+						if (old == "3" && new == "1") || (old == "3" && new == "2") {
+							return true
+						}
+					}
+
+					if old != "" && new == "" {
+						return true
+					}
+
+					if old == new {
+						return true
+					}
+
+					return false
+				},
 			},
 
 			"cors": {
