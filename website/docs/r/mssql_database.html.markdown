@@ -94,9 +94,9 @@ The following arguments are supported:
 
 * `restore_point_in_time` - (Required) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for `create_mode`= `PointInTimeRestore`  databases.
 
-* `recoverable_database_id` - (Optional) The ID of the database to be recoveried. This property is only settable and required when `create_mode`=`Recovery`.
+* `recover_database_id` - (Optional) The ID of the database to be recovered. This property is only applicable when the `create_mode` is `Recovery`.
 
-* `restorable_dropped_database_id` - (Optional) The ID of the database to be restored. This property is only settable and required when `create_mode`=`Restore`.
+* `restore_dropped_database_id` - (Optional) The ID of the database to be restored. This property is only applicable when the `create_mode` is `Restore`.
 
 * `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.
 

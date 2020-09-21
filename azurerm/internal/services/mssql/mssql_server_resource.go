@@ -150,7 +150,7 @@ func resourceArmMsSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"restorable_dropped_database_id": {
+			"restorable_dropped_database_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
@@ -362,8 +362,8 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
 	}
-	if err := d.Set("restorable_dropped_database_id", flattenAzureRmSqlServerRestorableDatabases(restorableResp)); err != nil {
-		return fmt.Errorf("setting `restorable_dropped_database_id`: %+v", err)
+	if err := d.Set("restorable_dropped_database_ids", flattenAzureRmSqlServerRestorableDatabases(restorableResp)); err != nil {
+		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
