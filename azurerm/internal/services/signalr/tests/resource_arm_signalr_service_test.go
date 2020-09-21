@@ -484,6 +484,11 @@ resource "azurerm_signalr_service" "test" {
   }
 
   features {
+    flag  = "ServiceMode"
+    value = "%s"
+  }
+
+  features {
     flag  = "EnableConnectivityLogs"
     value = "False"
   }
@@ -491,11 +496,6 @@ resource "azurerm_signalr_service" "test" {
   features {
     flag  = "EnableMessagingLogs"
     value = "False"
-  }
-
-  features {
-    flag  = "ServiceMode"
-    value = "%s"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
