@@ -16,6 +16,7 @@ IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
+* `azurerm_signalr_service` - support for delta updates [GH-8541]
 * `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
 
 BUG FIXES:
