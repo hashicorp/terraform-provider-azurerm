@@ -72,6 +72,12 @@ The following arguments are supported:
 
 * `probe_path` - (Optional) the path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the `origin_path`.
 
+-> **NOTE:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
+
+* `global_delivery_rule` - (Optional) Actions that are valid for all resources regardless of any conditions. A `global_delivery_rule` block as defined below.
+
+* `delivery_rule` - (Optional) Rules for the rules engine. An endpoint can contain up until 4 of those rules that consist of conditions and actions. A `delivery_rule` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 The `origin` block supports:
@@ -91,12 +97,6 @@ The `geo_filter` block supports:
 * `action` - (Required) The Action of the Geo Filter. Possible values include `Allow` and `Block`.
 
 * `country_codes` - (Required) A List of two letter country codes (e.g. `US`, `GB`) to be associated with this Geo Filter.
-
--> **NOTE:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
-
-* `global_delivery_rule` - (Optional) Actions that are valid for all resources regardless of any conditions. A `global_delivery_rule` block as defined below.
-
-* `delivery_rule` - (Optional) Rules for the rules engine. An endpoint can contain up until 4 of those rules that consist of conditions and actions. A `delivery_rule` blocks as defined below.
 
 ---
 

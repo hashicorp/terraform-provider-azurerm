@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -147,7 +146,7 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 	locks.ByName(circuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -251,7 +250,12 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 		d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
 		d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
 		d.Set("vlan_id", props.VlanID)
-		d.Set("route_filter_id", props.RouteFilter.ID)
+
+		routeFilterId := ""
+		if props.RouteFilter != nil && props.RouteFilter.ID != nil {
+			routeFilterId = *props.RouteFilter.ID
+		}
+		d.Set("route_filter_id", routeFilterId)
 
 		config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
 		if err := d.Set("microsoft_peering_config", config); err != nil {

@@ -56,6 +56,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The `georeplication_locations` is only supported on new resources with the `Premium` SKU.
 
+~> **NOTE:** The `georeplication_locations` list cannot contain the location where the Container Registry exists.
+
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
 `network_rule_set` supports the following:

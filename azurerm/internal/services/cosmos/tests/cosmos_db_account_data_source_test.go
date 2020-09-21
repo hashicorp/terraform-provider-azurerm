@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
@@ -38,11 +38,13 @@ func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMCosmosDBAccount_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 2),
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 3),
 					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.0.location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.1.location", data.Locations.Secondary),
+					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.2.location", data.Locations.Ternary),
 					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.0.failover_priority", "0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.1.failover_priority", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.2.failover_priority", "2"),
 				),
 			},
 		},
