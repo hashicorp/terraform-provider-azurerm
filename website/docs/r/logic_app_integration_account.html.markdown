@@ -41,15 +41,13 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The sku name of the Logic App Integration Account. Possible Values are `Basic`, `Free` and `Standard`.
 
-* `integration_service_environment_id` - (Optional) The ID of the Integration Service Environment to which this Integration Account belongs.  Changing this forces a new Logic App Integration Account to be created.
-
 ---
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Logic App Integration Account.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Logic App Integration Account.
 
