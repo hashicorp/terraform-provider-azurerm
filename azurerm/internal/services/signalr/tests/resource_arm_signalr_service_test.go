@@ -484,6 +484,16 @@ resource "azurerm_signalr_service" "test" {
   }
 
   features {
+    flag  = "EnableConnectivityLogs"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableMessagingLogs"
+    value = "False"
+  }
+
+  features {
     flag  = "ServiceMode"
     value = "%s"
   }
