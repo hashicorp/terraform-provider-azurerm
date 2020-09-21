@@ -110,7 +110,7 @@ func (client TasksClient) CreatePreparer(ctx context.Context, resourceGroupName 
 		"taskName":          autorest.Encode("path", taskName),
 	}
 
-	const APIVersion = "2018-09-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -203,7 +203,7 @@ func (client TasksClient) DeletePreparer(ctx context.Context, resourceGroupName 
 		"taskName":          autorest.Encode("path", taskName),
 	}
 
-	const APIVersion = "2018-09-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -299,7 +299,7 @@ func (client TasksClient) GetPreparer(ctx context.Context, resourceGroupName str
 		"taskName":          autorest.Encode("path", taskName),
 	}
 
-	const APIVersion = "2018-09-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -390,7 +390,7 @@ func (client TasksClient) GetDetailsPreparer(ctx context.Context, resourceGroupN
 		"taskName":          autorest.Encode("path", taskName),
 	}
 
-	const APIVersion = "2018-09-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -479,7 +479,7 @@ func (client TasksClient) ListPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -602,7 +602,7 @@ func (client TasksClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 		"taskName":          autorest.Encode("path", taskName),
 	}
 
-	const APIVersion = "2018-09-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

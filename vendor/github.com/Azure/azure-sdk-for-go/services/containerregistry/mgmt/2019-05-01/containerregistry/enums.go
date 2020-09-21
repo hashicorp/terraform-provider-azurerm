@@ -190,6 +190,25 @@ func PossibleRegistryUsageUnitValues() []RegistryUsageUnit {
 	return []RegistryUsageUnit{Bytes, Count}
 }
 
+// ResourceIdentityType enumerates the values for resource identity type.
+type ResourceIdentityType string
+
+const (
+	// None ...
+	None ResourceIdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned ResourceIdentityType = "SystemAssigned"
+	// SystemAssignedUserAssigned ...
+	SystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned, UserAssigned"
+	// UserAssigned ...
+	UserAssigned ResourceIdentityType = "UserAssigned"
+)
+
+// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
+func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
+	return []ResourceIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
+}
+
 // RunStatus enumerates the values for run status.
 type RunStatus string
 
@@ -242,11 +261,13 @@ type SecretObjectType string
 const (
 	// Opaque ...
 	Opaque SecretObjectType = "Opaque"
+	// Vaultsecret ...
+	Vaultsecret SecretObjectType = "Vaultsecret"
 )
 
 // PossibleSecretObjectTypeValues returns an array of possible values for the SecretObjectType const type.
 func PossibleSecretObjectTypeValues() []SecretObjectType {
-	return []SecretObjectType{Opaque}
+	return []SecretObjectType{Opaque, Vaultsecret}
 }
 
 // SkuName enumerates the values for sku name.
@@ -306,15 +327,15 @@ func PossibleSourceControlTypeValues() []SourceControlType {
 type SourceRegistryLoginMode string
 
 const (
-	// Default ...
-	Default SourceRegistryLoginMode = "Default"
-	// None ...
-	None SourceRegistryLoginMode = "None"
+	// SourceRegistryLoginModeDefault ...
+	SourceRegistryLoginModeDefault SourceRegistryLoginMode = "Default"
+	// SourceRegistryLoginModeNone ...
+	SourceRegistryLoginModeNone SourceRegistryLoginMode = "None"
 )
 
 // PossibleSourceRegistryLoginModeValues returns an array of possible values for the SourceRegistryLoginMode const type.
 func PossibleSourceRegistryLoginModeValues() []SourceRegistryLoginMode {
-	return []SourceRegistryLoginMode{Default, None}
+	return []SourceRegistryLoginMode{SourceRegistryLoginModeDefault, SourceRegistryLoginModeNone}
 }
 
 // SourceTriggerEvent enumerates the values for source trigger event.
