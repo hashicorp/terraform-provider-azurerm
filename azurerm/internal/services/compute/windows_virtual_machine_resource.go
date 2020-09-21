@@ -175,7 +175,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"license_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"None",
 					"Windows_Client",
@@ -896,6 +895,19 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 		}
+	}
+
+	if d.HasChange("license_type") {
+		shouldUpdate = true
+
+		license := d.Get("license_type").(string)
+		if license == "" {
+			// Only for create no specification is possible in the API. API does not allow empty string in update.
+			// So removing attribute license_type from Terraform configuration if it was set to value other than 'None' would lead to an endless loop in apply.
+			// To allow updating in this case set value explicitly to 'None'.
+			license = "None"
+		}
+		update.VirtualMachineProperties.LicenseType = &license
 	}
 
 	if instanceView.Statuses != nil {
