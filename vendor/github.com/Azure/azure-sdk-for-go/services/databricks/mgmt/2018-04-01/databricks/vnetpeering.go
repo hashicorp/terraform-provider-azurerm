@@ -358,6 +358,9 @@ func (client VNetPeeringClient) ListByWorkspace(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.VNetPeeringClient", "ListByWorkspace", resp, "Failure responding to request")
 	}
+	if result.vnpl.hasNextLink() && result.vnpl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

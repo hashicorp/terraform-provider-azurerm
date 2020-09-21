@@ -344,6 +344,9 @@ func (client ScheduleClient) ListByAutomationAccount(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ScheduleClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

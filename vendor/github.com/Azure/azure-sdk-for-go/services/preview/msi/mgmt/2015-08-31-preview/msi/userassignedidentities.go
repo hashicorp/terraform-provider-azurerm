@@ -302,6 +302,9 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroup(ctx context.Conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -410,6 +413,9 @@ func (client UserAssignedIdentitiesClient) ListBySubscription(ctx context.Contex
 	result.uailr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

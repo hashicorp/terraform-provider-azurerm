@@ -167,6 +167,9 @@ func (client RegulatoryComplianceAssessmentsClient) List(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceAssessmentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rcal.hasNextLink() && result.rcal.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

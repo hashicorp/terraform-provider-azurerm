@@ -238,6 +238,9 @@ func (client ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesCli
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedRestorableDroppedDatabaseBackupShortTermRetentionPoliciesClient", "ListByRestorableDroppedDatabase", resp, "Failure responding to request")
 	}
+	if result.mbstrplr.hasNextLink() && result.mbstrplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

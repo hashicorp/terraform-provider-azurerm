@@ -19,6 +19,7 @@ package managedservices
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/to"
@@ -28,41 +29,6 @@ import (
 
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Accepted ...
-	Accepted ProvisioningState = "Accepted"
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Created ...
-	Created ProvisioningState = "Created"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleted ...
-	Deleted ProvisioningState = "Deleted"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// NotSpecified ...
-	NotSpecified ProvisioningState = "NotSpecified"
-	// Ready ...
-	Ready ProvisioningState = "Ready"
-	// Running ...
-	Running ProvisioningState = "Running"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Accepted, Canceled, Created, Creating, Deleted, Deleting, Failed, NotSpecified, Ready, Running, Succeeded, Updating}
-}
 
 // Authorization authorization tuple containing principal Id (of user/service principal/security group) and
 // role definition id.
@@ -140,6 +106,15 @@ type RegistrationAssignment struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegistrationAssignment.
+func (ra RegistrationAssignment) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ra.Properties != nil {
+		objectMap["properties"] = ra.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
 // RegistrationAssignmentList list of registration assignments.
 type RegistrationAssignmentList struct {
 	autorest.Response `json:"-"`
@@ -149,8 +124,7 @@ type RegistrationAssignmentList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// RegistrationAssignmentListIterator provides access to a complete listing of RegistrationAssignment
-// values.
+// RegistrationAssignmentListIterator provides access to a complete listing of RegistrationAssignment values.
 type RegistrationAssignmentListIterator struct {
 	i    int
 	page RegistrationAssignmentListPage
@@ -218,10 +192,15 @@ func (ral RegistrationAssignmentList) IsEmpty() bool {
 	return ral.Value == nil || len(*ral.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ral RegistrationAssignmentList) hasNextLink() bool {
+	return ral.NextLink != nil && len(*ral.NextLink) != 0
+}
+
 // registrationAssignmentListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ral RegistrationAssignmentList) registrationAssignmentListPreparer(ctx context.Context) (*http.Request, error) {
-	if ral.NextLink == nil || len(to.String(ral.NextLink)) < 1 {
+	if !ral.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -249,11 +228,16 @@ func (page *RegistrationAssignmentListPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ral)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ral)
+		if err != nil {
+			return err
+		}
+		page.ral = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ral = next
 	return nil
 }
 
@@ -297,6 +281,15 @@ type RegistrationAssignmentProperties struct {
 	RegistrationDefinition *RegistrationAssignmentPropertiesRegistrationDefinition `json:"registrationDefinition,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegistrationAssignmentProperties.
+func (rap RegistrationAssignmentProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rap.RegistrationDefinitionID != nil {
+		objectMap["registrationDefinitionId"] = rap.RegistrationDefinitionID
+	}
+	return json.Marshal(objectMap)
+}
+
 // RegistrationAssignmentPropertiesRegistrationDefinition registration definition inside registration
 // assignment.
 type RegistrationAssignmentPropertiesRegistrationDefinition struct {
@@ -310,6 +303,18 @@ type RegistrationAssignmentPropertiesRegistrationDefinition struct {
 	Type *string `json:"type,omitempty"`
 	// Name - READ-ONLY; Name of the registration definition.
 	Name *string `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RegistrationAssignmentPropertiesRegistrationDefinition.
+func (rapD RegistrationAssignmentPropertiesRegistrationDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rapD.Properties != nil {
+		objectMap["properties"] = rapD.Properties
+	}
+	if rapD.Plan != nil {
+		objectMap["plan"] = rapD.Plan
+	}
+	return json.Marshal(objectMap)
 }
 
 // RegistrationAssignmentPropertiesRegistrationDefinitionProperties properties of registration definition
@@ -333,8 +338,8 @@ type RegistrationAssignmentPropertiesRegistrationDefinitionProperties struct {
 	ManagedByTenantName *string `json:"managedByTenantName,omitempty"`
 }
 
-// RegistrationAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// RegistrationAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type RegistrationAssignmentsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -400,6 +405,18 @@ type RegistrationDefinition struct {
 	Name *string `json:"name,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegistrationDefinition.
+func (rd RegistrationDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rd.Properties != nil {
+		objectMap["properties"] = rd.Properties
+	}
+	if rd.Plan != nil {
+		objectMap["plan"] = rd.Plan
+	}
+	return json.Marshal(objectMap)
+}
+
 // RegistrationDefinitionList list of registration definitions.
 type RegistrationDefinitionList struct {
 	autorest.Response `json:"-"`
@@ -409,8 +426,7 @@ type RegistrationDefinitionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// RegistrationDefinitionListIterator provides access to a complete listing of RegistrationDefinition
-// values.
+// RegistrationDefinitionListIterator provides access to a complete listing of RegistrationDefinition values.
 type RegistrationDefinitionListIterator struct {
 	i    int
 	page RegistrationDefinitionListPage
@@ -478,10 +494,15 @@ func (rdl RegistrationDefinitionList) IsEmpty() bool {
 	return rdl.Value == nil || len(*rdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rdl RegistrationDefinitionList) hasNextLink() bool {
+	return rdl.NextLink != nil && len(*rdl.NextLink) != 0
+}
+
 // registrationDefinitionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rdl RegistrationDefinitionList) registrationDefinitionListPreparer(ctx context.Context) (*http.Request, error) {
-	if rdl.NextLink == nil || len(to.String(rdl.NextLink)) < 1 {
+	if !rdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -509,11 +530,16 @@ func (page *RegistrationDefinitionListPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rdl)
+		if err != nil {
+			return err
+		}
+		page.rdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rdl = next
 	return nil
 }
 
@@ -563,8 +589,26 @@ type RegistrationDefinitionProperties struct {
 	ManagedByTenantName *string `json:"managedByTenantName,omitempty"`
 }
 
-// RegistrationDefinitionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// MarshalJSON is the custom marshaler for RegistrationDefinitionProperties.
+func (rdp RegistrationDefinitionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rdp.Description != nil {
+		objectMap["description"] = rdp.Description
+	}
+	if rdp.Authorizations != nil {
+		objectMap["authorizations"] = rdp.Authorizations
+	}
+	if rdp.RegistrationDefinitionName != nil {
+		objectMap["registrationDefinitionName"] = rdp.RegistrationDefinitionName
+	}
+	if rdp.ManagedByTenantID != nil {
+		objectMap["managedByTenantId"] = rdp.ManagedByTenantID
+	}
+	return json.Marshal(objectMap)
+}
+
+// RegistrationDefinitionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type RegistrationDefinitionsCreateOrUpdateFuture struct {
 	azure.Future
 }

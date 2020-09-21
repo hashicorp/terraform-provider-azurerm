@@ -278,6 +278,9 @@ func (client AdaptiveNetworkHardeningsClient) ListByExtendedResource(ctx context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveNetworkHardeningsClient", "ListByExtendedResource", resp, "Failure responding to request")
 	}
+	if result.anhl.hasNextLink() && result.anhl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

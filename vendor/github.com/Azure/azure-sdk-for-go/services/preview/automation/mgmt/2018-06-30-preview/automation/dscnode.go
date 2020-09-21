@@ -257,6 +257,9 @@ func (client DscNodeClient) ListByAutomationAccount(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscNodeClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.dnlr.hasNextLink() && result.dnlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
