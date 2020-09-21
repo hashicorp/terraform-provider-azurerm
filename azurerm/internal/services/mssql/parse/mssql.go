@@ -215,7 +215,7 @@ func MssqlRestorableDBID(input string) (*MsSqlRestorableDBId, error) {
 	inputList := strings.Split(input, ",")
 
 	if len(inputList) != 2 {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql Restorable DB ID %q, please refer to XX", input)
+		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql Restorable DB ID %q, please refer to '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/restorableDroppedDatabases/sqlDB1,000000000000000000'", input)
 	}
 
 	restorableDBId := MsSqlRestorableDBId{
