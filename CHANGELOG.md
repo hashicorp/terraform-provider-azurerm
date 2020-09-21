@@ -1,5 +1,9 @@
 ## 2.29.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_api_management` - the value `None` has been removed from the `identity` block to match other resources, to specify an API Management Service with no Managed Identity remove the `identity` block [GH-8411]
+
 FEATURES: 
 
 * **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
@@ -8,13 +12,15 @@ FEATURES:
 * **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
 * **New Resource:** `azurerm_storage_sync_group` [GH-8462]
 
-IMPORVEMENTS:
+IMPROVEMENTS:
 
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
 * `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
 
 BUG FIXES:
 
+* `azurerm_api_management` - the value `None` for the field `type` within the `identity` block has been removed - to remove a managed identity remove the `identity` block [GH-8411]
 * `azurerm_app_service` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
 * `azurerm_function_app` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
 * `azurerm_kubernetes_cluster` - picking the first system node pool if the original `default_node_pool` has been removed [GH-8503]
