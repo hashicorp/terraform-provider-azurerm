@@ -52,6 +52,8 @@ The following arguments are supported:
 
 -> **Note:** `partition_count` and `replica_count` can only be configured when using a `standard` sku.
 
+* `ip_rules` - (Optional) A list of IP addresses that are allowed access to the search service endpoint. 
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Search Service.
 
 ## Attributes Reference
