@@ -11,6 +11,7 @@ FEATURES:
 IMPORVEMENTS:
 
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
+* `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
 
 BUG FIXES:
 
