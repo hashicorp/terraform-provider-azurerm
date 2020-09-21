@@ -130,11 +130,11 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "acctest-share-%[1]d"
   storage_account_name = azurerm_storage_account.test.name
-  //lifecycle {
-  //  ignore_changes = [
-  //    acl, metadata
-  //  ]
-  //}
+  lifecycle {
+    ignore_changes = [
+      acl, metadata
+    ]
+  }
 }
 
 resource "azurerm_storage_sync_cloud_endpoint" "test" {
