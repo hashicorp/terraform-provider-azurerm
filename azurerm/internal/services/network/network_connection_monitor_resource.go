@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -28,8 +29,14 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 		Update: resourceArmNetworkConnectionMonitorCreateUpdate,
 		Delete: resourceArmNetworkConnectionMonitorDelete,
 
-		MigrateState:  ResourceNetworkConnectionMonitorMigrateState,
 		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.NetworkConnectionMonitorV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.NetworkConnectionMonitorV0ToV1,
+				Version: 0,
+			},
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
