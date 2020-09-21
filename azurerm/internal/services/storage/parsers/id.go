@@ -21,6 +21,13 @@ type StorageSyncGroupId struct {
 	ResourceGroup   string
 }
 
+type CloudEndpointId struct {
+	Name             string
+	StorageSyncName  string
+	StorageSyncGroup string
+	ResourceGroup    string
+}
+
 func ParseAccountID(input string) (*AccountID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -87,4 +94,33 @@ func StorageSyncGroupID(input string) (*StorageSyncGroupId, error) {
 	}
 
 	return &storageSyncGroup, nil
+}
+
+func CloudEndpointID(input string) (*CloudEndpointId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	cloudEndpoint := CloudEndpointId{
+		ResourceGroup: id.ResourceGroup,
+	}
+
+	if cloudEndpoint.StorageSyncName, err = id.PopSegment("storageSyncServices"); err != nil {
+		return nil, err
+	}
+
+	if cloudEndpoint.StorageSyncGroup, err = id.PopSegment("syncGroups"); err != nil {
+		return nil, err
+	}
+
+	if cloudEndpoint.Name, err = id.PopSegment("cloudEndpoints"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &cloudEndpoint, nil
 }
