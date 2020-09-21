@@ -308,6 +308,46 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlDatabase_createRestoreMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_createRestoreMode(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("create_mode", "creation_source_database_id"),
+
+			{
+				PreConfig: func() { time.Sleep(8 * time.Minute) },
+				Config:    testAccAzureRMMsSqlDatabase_createRestoreModeDBDeleted(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+
+			data.ImportStep(),
+
+			{
+				PreConfig: func() { time.Sleep(8 * time.Minute) },
+				Config:    testAccAzureRMMsSqlDatabase_createRestoreModeDBRestored(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					testCheckAzureRMMsSqlDatabaseExists("azurerm_mssql_database.restore"),
+				),
+			},
+
+			data.ImportStep("create_mode", "restore_dropped_database_id"),
+		},
+	})
+}
+
 func TestAccAzureRMMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
@@ -779,6 +819,106 @@ resource "azurerm_mssql_database" "secondary" {
 
 }
 `, template, data.RandomInteger, data.Locations.Secondary)
+}
+
+func testAccAzureRMMsSqlDatabase_createRestoreMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+resource "azurerm_mssql_database" "copy" {
+  name                        = "acctest-dbc-%[1]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Copy"
+  creation_source_database_id = azurerm_mssql_database.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMsSqlDatabase_createRestoreModeDBDeleted(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMsSqlDatabase_createRestoreModeDBRestored(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+resource "azurerm_mssql_database" "restore" {
+  name                        = "acctest-dbr-%[1]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Restore"
+  restore_dropped_database_id = azurerm_mssql_server.test.restorable_dropped_database_ids[0]
+}
+
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data acceptance.TestData, state string) string {
