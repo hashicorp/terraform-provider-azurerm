@@ -9,12 +9,14 @@ FEATURES:
 * **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
 * **New Data Source:** `azurerm_databricks_workspace` [GH-8502]
 * **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
+* **New Data Source:** `azurerm_mssql_server` [GH-7917]
 * **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
-* **New Resource:** `azurerm_storage_sync_group` [GH-8462]
 
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
+* `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
+* `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
 * `azurerm_signalr_service` - support for delta updates [GH-8541]
 * `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
