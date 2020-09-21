@@ -363,7 +363,7 @@ func TestAccAzureRMStorageBlob_updateBlockFromInlineContent(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageBlob_BlockFromLocalFileWithContentMd5(t *testing.T) {
+func TestAccAzureRMStorageBlob_blockFromLocalFileWithContentMd5(t *testing.T) {
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -1059,7 +1059,7 @@ resource "azurerm_storage_blob" "test" {
 }
 
 func testAccAzureRMStorageBlob_contentMd5ForLocalFile(data acceptance.TestData, fileName string) string {
-	template := testAccAzureRMStorageBlob_template(data, "private")
+	template := testAccAzureRMStorageBlob_template(data, "blob")
 	return fmt.Sprintf(`
 %s
 
