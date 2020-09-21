@@ -355,6 +355,9 @@ func (client BigDataPoolsClient) ListByWorkspace(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.BigDataPoolsClient", "ListByWorkspace", resp, "Failure responding to request")
 	}
+	if result.bdprilr.hasNextLink() && result.bdprilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

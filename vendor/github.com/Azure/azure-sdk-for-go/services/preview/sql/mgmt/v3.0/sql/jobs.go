@@ -320,6 +320,9 @@ func (client JobsClient) ListByAgent(ctx context.Context, resourceGroupName stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobsClient", "ListByAgent", resp, "Failure responding to request")
 	}
+	if result.jlr.hasNextLink() && result.jlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

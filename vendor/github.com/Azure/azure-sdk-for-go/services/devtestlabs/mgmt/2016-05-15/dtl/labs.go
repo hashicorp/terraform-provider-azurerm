@@ -631,6 +631,9 @@ func (client LabsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.rwcl.hasNextLink() && result.rwcl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -757,6 +760,9 @@ func (client LabsClient) ListBySubscription(ctx context.Context, expand string, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.rwcl.hasNextLink() && result.rwcl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -879,6 +885,9 @@ func (client LabsClient) ListVhds(ctx context.Context, resourceGroupName string,
 	result.rwclv, err = client.ListVhdsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.LabsClient", "ListVhds", resp, "Failure responding to request")
+	}
+	if result.rwclv.hasNextLink() && result.rwclv.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

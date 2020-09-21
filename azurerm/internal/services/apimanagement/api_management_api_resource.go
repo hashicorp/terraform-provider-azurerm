@@ -35,12 +35,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.ApiManagementApiName,
-			},
+			"name": azure.SchemaApiManagementApiName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 

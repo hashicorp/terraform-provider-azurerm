@@ -80,6 +80,9 @@ func (client ObjectsClient) GetObjectsByObjectIds(ctx context.Context, parameter
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.ObjectsClient", "GetObjectsByObjectIds", resp, "Failure responding to request")
 	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -229,6 +229,9 @@ func (client OAuth2PermissionGrantClient) List(ctx context.Context, filter strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.OAuth2PermissionGrantClient", "List", resp, "Failure responding to request")
 	}
+	if result.oa2pglr.hasNextLink() && result.oa2pglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

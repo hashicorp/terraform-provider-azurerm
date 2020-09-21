@@ -81,15 +81,6 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				Config: testAccAzureRMApiManagement_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "None"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.0.host_name", "api.terraform.io"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.1.host_name", "api2.terraform.io"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.portal.0.host_name", "portal.terraform.io"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.developer_portal.0.host_name", "developer-portal.terraform.io"),
 				),
 			},
 			{
@@ -768,12 +759,12 @@ resource "azurerm_resource_group" "test1" {
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-api1-%d"
+  name     = "acctestRG-api2-%d"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test3" {
-  name     = "acctestRG-api1-%d"
+  name     = "acctestRG-api3-%d"
   location = "%s"
 }
 
@@ -839,11 +830,11 @@ resource "azurerm_api_management" "test" {
       certificate_password = "terraform"
     }
 
-    developer_portal {
-      host_name            = "developer-portal.terraform.io"
-      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
-      certificate_password = "terraform"
-    }
+    #developer_portal {
+    #  host_name            = "developer-portal.terraform.io"
+    #  certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
+    #  certificate_password = "terraform"
+    #}
   }
 
   sku_name = "Premium_1"
@@ -918,6 +909,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_api_management" "test" {
+  depends_on          = [azurerm_user_assigned_identity.test]
   name                = "acctestAM-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1014,10 +1006,6 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku_name = "Developer_1"
-
-  identity {
-    type = "None"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1033,7 +1021,7 @@ resource "azurerm_resource_group" "test" {
 }
 data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]d"
+  name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -1063,6 +1051,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "List",
     "Purge",
   ]
+  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
@@ -1072,6 +1061,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Get",
     "List",
   ]
+  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_certificate" "test" {
   depends_on   = [azurerm_key_vault_access_policy.test]
@@ -1129,7 +1119,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func testAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultId(data acceptance.TestData) string {
@@ -1143,7 +1133,7 @@ resource "azurerm_resource_group" "test" {
 }
 data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]d"
+  name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -1173,6 +1163,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "List",
     "Purge",
   ]
+  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
@@ -1182,9 +1173,10 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Get",
     "List",
   ]
+  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_certificate" "test" {
-  depends_on   = [azurerm_key_vault_access_policy.test]
+  depends_on   = [azurerm_key_vault_access_policy.test, azurerm_key_vault.test]
   name         = "acctestKVCert-%[3]d"
   key_vault_id = azurerm_key_vault.test.id
   certificate_policy {
@@ -1239,5 +1231,5 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

@@ -3,11 +3,13 @@ package compute
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -152,6 +154,11 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Default:  true,
 			},
 
+			"encryption_at_host_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     schema.TypeString,
@@ -168,12 +175,18 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"license_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"None",
 					"Windows_Client",
 					"Windows_Server",
 				}, false),
+				DiffSuppressFunc: func(_, old, new string, _ *schema.ResourceData) bool {
+					if old == "None" && new == "" || old == "" && new == "None" {
+						return true
+					}
+
+					return false
+				},
 			},
 
 			"max_bid_price": {
@@ -432,6 +445,12 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		}
+	}
+
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.Spot {
 			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
@@ -645,6 +664,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 	}
+
+	encryptionAtHostEnabled := false
+	if props.SecurityProfile != nil && props.SecurityProfile.EncryptionAtHost != nil {
+		encryptionAtHostEnabled = *props.SecurityProfile.EncryptionAtHost
+	}
+	d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 
 	d.Set("virtual_machine_id", props.VMID)
 
@@ -870,6 +895,28 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.VirtualMachineProperties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 	}
 
+	if d.HasChange("encryption_at_host_enabled") {
+		shouldUpdate = true
+		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
+
+		update.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		}
+	}
+
+	if d.HasChange("license_type") {
+		shouldUpdate = true
+
+		license := d.Get("license_type").(string)
+		if license == "" {
+			// Only for create no specification is possible in the API. API does not allow empty string in update.
+			// So removing attribute license_type from Terraform configuration if it was set to value other than 'None' would lead to an endless loop in apply.
+			// To allow updating in this case set value explicitly to 'None'.
+			license = "None"
+		}
+		update.VirtualMachineProperties.LicenseType = &license
+	}
+
 	if instanceView.Statuses != nil {
 		for _, status := range *instanceView.Statuses {
 			if status.Code == nil {
@@ -980,11 +1027,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
 			if err != nil {
-				return fmt.Errorf("Error updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
@@ -1109,6 +1156,43 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 		}
 	} else {
 		log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
+	}
+
+	// Need to add a get and a state wait to avoid bug in network API where the attached disk(s) are not actually deleted
+	// Service team indicated that we need to do a get after VM delete call returns to verify that the VM and all attached
+	// disks have actually been deleted.
+
+	log.Printf("[INFO] verifying Windows Virtual Machine %q has been deleted", id.Name)
+	virtualMachine, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	if err != nil && !utils.ResponseWasNotFound(virtualMachine.Response) {
+		return fmt.Errorf("verifying Windows Virtual Machine %q (Resource Group %q) has been deleted: %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if !utils.ResponseWasNotFound(virtualMachine.Response) {
+		log.Printf("[INFO] Windows Virtual Machine still exists, waiting on Windows Virtual Machine %q to be deleted", id.Name)
+
+		deleteWait := &resource.StateChangeConf{
+			Pending:    []string{"200"},
+			Target:     []string{"404"},
+			MinTimeout: 30 * time.Second,
+			Timeout:    d.Timeout(schema.TimeoutDelete),
+			Refresh: func() (interface{}, string, error) {
+				log.Printf("[INFO] checking on state of Windows Virtual Machine %q", id.Name)
+				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+
+				if err != nil {
+					if utils.ResponseWasNotFound(resp.Response) {
+						return resp, strconv.Itoa(resp.StatusCode), nil
+					}
+					return nil, "nil", fmt.Errorf("polling for the status of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+				}
+				return resp, strconv.Itoa(resp.StatusCode), nil
+			},
+		}
+
+		if _, err := deleteWait.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for the deletion of Windows Virtual Machine %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return nil

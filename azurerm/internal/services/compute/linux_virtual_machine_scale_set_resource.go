@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -126,6 +126,11 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Default:  false,
 			},
 
+			"encryption_at_host_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     schema.TypeString,
@@ -220,9 +225,9 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				ForceNew: true,
 				Default:  string(compute.Manual),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.Automatic),
-					string(compute.Manual),
-					string(compute.Rolling),
+					string(compute.UpgradeModeAutomatic),
+					string(compute.UpgradeModeManual),
+					string(compute.UpgradeModeRolling),
 				}, false),
 			},
 
@@ -323,19 +328,19 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
 	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
 
-	if upgradeMode != compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
+	if upgradeMode != compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
-	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
+	if upgradeMode == compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
 		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
 	}
 
-	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
+	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
-	shouldHaveRollingUpgradePolicy = upgradeMode == compute.Rolling
+	shouldHaveRollingUpgradePolicy = upgradeMode == compute.UpgradeModeRolling
 	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
@@ -422,6 +427,12 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 
 	if v, ok := d.GetOk("custom_data"); ok {
 		virtualMachineProfile.OsProfile.CustomData = utils.String(v.(string))
+	}
+
+	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
+		virtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
+		}
 	}
 
 	// Azure API: "Authentication using either SSH or by user name and password must be enabled in Linux profile."
@@ -715,6 +726,12 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
+	if d.HasChange("encryption_at_host_enabled") {
+		updateProps.VirtualMachineProfile.SecurityProfile = &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		}
+	}
+
 	if d.HasChange("automatic_instance_repair") {
 		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
 		updateProps.AutomaticRepairsPolicy = ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
@@ -950,6 +967,12 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 			}
 			d.Set("extension", extensionProfile)
 		}
+
+		encryptionAtHostEnabled := false
+		if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
+			encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+		}
+		d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
 	}
 
 	if policy := props.UpgradePolicy; policy != nil {

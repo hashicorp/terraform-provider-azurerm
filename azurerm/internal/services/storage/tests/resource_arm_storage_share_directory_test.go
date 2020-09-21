@@ -113,7 +113,7 @@ func TestAccAzureRMStorageShareDirectory_update(t *testing.T) {
 	})
 }
 func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "test")
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "parent")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -123,10 +123,13 @@ func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 			{
 				Config: testAccAzureRMStorageShareDirectory_nested(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.parent"),
+					testCheckAzureRMStorageShareDirectoryExists(data.ResourceName),
+					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.child_one"),
 					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.child_two"),
+					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.multiple_child_one"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -295,19 +298,25 @@ func testAccAzureRMStorageShareDirectory_nested(data acceptance.TestData) string
 %s
 
 resource "azurerm_storage_share_directory" "parent" {
-  name                 = "parent"
+  name                 = "123--parent-dir"
   share_name           = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_account.test.name
 }
 
-resource "azurerm_storage_share_directory" "child" {
-  name                 = "${azurerm_storage_share_directory.parent.name}/child"
+resource "azurerm_storage_share_directory" "child_one" {
+  name                 = "${azurerm_storage_share_directory.parent.name}/child1"
   share_name           = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_storage_share_directory" "child_two" {
-  name                 = "${azurerm_storage_share_directory.parent.name}/child-two"
+  name                 = "${azurerm_storage_share_directory.child_one.name}/childtwo--123"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_storage_share_directory" "multiple_child_one" {
+  name                 = "${azurerm_storage_share_directory.parent.name}/c"
   share_name           = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_account.test.name
 }

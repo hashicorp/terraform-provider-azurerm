@@ -464,6 +464,9 @@ func (client TasksClient) List(ctx context.Context, resourceGroupName string, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerregistry.TasksClient", "List", resp, "Failure responding to request")
 	}
+	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

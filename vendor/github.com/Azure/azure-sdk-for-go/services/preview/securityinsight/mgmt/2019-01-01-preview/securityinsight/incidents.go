@@ -135,7 +135,6 @@ func (client IncidentsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client IncidentsClient) CreateOrUpdateResponder(resp *http.Response) (result Incident, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -230,7 +229,6 @@ func (client IncidentsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client IncidentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -324,7 +322,6 @@ func (client IncidentsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client IncidentsClient) GetResponder(resp *http.Response) (result Incident, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -387,6 +384,9 @@ func (client IncidentsClient) List(ctx context.Context, resourceGroupName string
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.il.hasNextLink() && result.il.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -436,7 +436,6 @@ func (client IncidentsClient) ListSender(req *http.Request) (*http.Response, err
 func (client IncidentsClient) ListResponder(resp *http.Response) (result IncidentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

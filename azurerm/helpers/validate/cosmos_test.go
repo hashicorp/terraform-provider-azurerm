@@ -98,3 +98,54 @@ func TestCosmosThroughput(t *testing.T) {
 		}
 	}
 }
+
+func TestCosmosMaxThroughput(t *testing.T) {
+	cases := []struct {
+		Value  interface{}
+		Errors int
+	}{
+		{
+			Value:  400,
+			Errors: 2,
+		},
+		{
+			Value:  1000,
+			Errors: 1,
+		},
+		{
+			Value:  4000,
+			Errors: 0,
+		},
+		{
+			Value:  4001,
+			Errors: 1,
+		},
+		{
+			Value:  10000,
+			Errors: 0,
+		},
+		{
+			Value:  54000,
+			Errors: 0,
+		},
+		{
+			Value:  1000000,
+			Errors: 0,
+		},
+		{
+			Value:  1100000,
+			Errors: 1,
+		},
+		{
+			Value:  "400",
+			Errors: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := CosmosMaxThroughput(tc.Value, "throughput")
+		if len(errors) != tc.Errors {
+			t.Fatalf("Expected CosmosMaxThroughput to trigger '%d' errors for '%d' - got '%d'", tc.Errors, tc.Value, len(errors))
+		}
+	}
+}

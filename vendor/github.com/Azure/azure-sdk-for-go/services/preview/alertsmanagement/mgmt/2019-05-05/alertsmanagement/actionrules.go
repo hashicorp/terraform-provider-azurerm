@@ -338,6 +338,9 @@ func (client ActionRulesClient) ListByResourceGroup(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.ActionRulesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.arl.hasNextLink() && result.arl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -494,6 +497,9 @@ func (client ActionRulesClient) ListBySubscription(ctx context.Context, targetRe
 	result.arl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.ActionRulesClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.arl.hasNextLink() && result.arl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -129,7 +129,6 @@ func (client ProductSettingsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client ProductSettingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -223,7 +222,6 @@ func (client ProductSettingsClient) GetSender(req *http.Request) (*http.Response
 func (client ProductSettingsClient) GetResponder(resp *http.Response) (result SettingsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -316,7 +314,6 @@ func (client ProductSettingsClient) GetAllSender(req *http.Request) (*http.Respo
 func (client ProductSettingsClient) GetAllResponder(resp *http.Response) (result SettingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -414,7 +411,6 @@ func (client ProductSettingsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client ProductSettingsClient) UpdateResponder(resp *http.Response) (result SettingsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

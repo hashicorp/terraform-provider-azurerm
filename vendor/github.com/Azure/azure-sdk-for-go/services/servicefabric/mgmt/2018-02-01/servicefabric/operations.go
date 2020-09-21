@@ -73,6 +73,9 @@ func (client OperationsClient) List(ctx context.Context, APIVersion string) (res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.OperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.olr.hasNextLink() && result.olr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

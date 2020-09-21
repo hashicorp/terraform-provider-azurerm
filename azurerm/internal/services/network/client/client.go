@@ -20,6 +20,7 @@ type Client struct {
 	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
 	LoadBalancersClient                  *networkLegacy.LoadBalancersClient
+	LoadBalancerLoadBalancingRulesClient *networkLegacy.LoadBalancerLoadBalancingRulesClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
 	PointToSiteVpnGatewaysClient         *network.P2sVpnGatewaysClient
 	ProfileClient                        *network.ProfilesClient
@@ -90,6 +91,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	LoadBalancersClient := networkLegacy.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LoadBalancersClient.Client, o.ResourceManagerAuthorizer)
+
+	LoadBalancerLoadBalancingRulesClient := networkLegacy.NewLoadBalancerLoadBalancingRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LoadBalancerLoadBalancingRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
@@ -192,6 +196,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
+		LoadBalancerLoadBalancingRulesClient: &LoadBalancerLoadBalancingRulesClient,
 		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,
 		PointToSiteVpnGatewaysClient:         &pointToSiteVpnGatewaysClient,
 		ProfileClient:                        &ProfileClient,

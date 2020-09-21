@@ -551,6 +551,174 @@ func (client ServersClient) RestartResponder(resp *http.Response) (result autore
 	return
 }
 
+// Start starts a stopped server.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// serverName - the name of the server.
+func (client ServersClient) Start(ctx context.Context, resourceGroupName string, serverName string) (result ServersStartFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Start")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mysql.ServersClient", "Start", err.Error())
+	}
+
+	req, err := client.StartPreparer(ctx, resourceGroupName, serverName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "Start", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.StartSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "Start", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// StartPreparer prepares the Start request.
+func (client ServersClient) StartPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-01-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMySQL/servers/{serverName}/start", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// StartSender sends the Start request. The method will close the
+// http.Response Body if it receives an error.
+func (client ServersClient) StartSender(req *http.Request) (future ServersStartFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// StartResponder handles the response to the Start request. The method always
+// closes the http.Response Body.
+func (client ServersClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// Stop stops a running server.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// serverName - the name of the server.
+func (client ServersClient) Stop(ctx context.Context, resourceGroupName string, serverName string) (result ServersStopFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Stop")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mysql.ServersClient", "Stop", err.Error())
+	}
+
+	req, err := client.StopPreparer(ctx, resourceGroupName, serverName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "Stop", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.StopSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "Stop", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// StopPreparer prepares the Stop request.
+func (client ServersClient) StopPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-01-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMySQL/servers/{serverName}/stop", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// StopSender sends the Stop request. The method will close the
+// http.Response Body if it receives an error.
+func (client ServersClient) StopSender(req *http.Request) (future ServersStopFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// StopResponder handles the response to the Stop request. The method always
+// closes the http.Response Body.
+func (client ServersClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Update updates an existing server. The request body can contain one to many of the properties present in the normal
 // server definition.
 // Parameters:
@@ -637,5 +805,92 @@ func (client ServersClient) UpdateResponder(resp *http.Response) (result Server,
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// Upgrade upgrade server version.
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// serverName - the name of the server.
+// parameters - the required parameters for updating a server.
+func (client ServersClient) Upgrade(ctx context.Context, resourceGroupName string, serverName string, parameters ServerUpgradeParameters) (result ServersUpgradeFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServersClient.Upgrade")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mysql.ServersClient", "Upgrade", err.Error())
+	}
+
+	req, err := client.UpgradePreparer(ctx, resourceGroupName, serverName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "Upgrade", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.UpgradeSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "mysql.ServersClient", "Upgrade", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// UpgradePreparer prepares the Upgrade request.
+func (client ServersClient) UpgradePreparer(ctx context.Context, resourceGroupName string, serverName string, parameters ServerUpgradeParameters) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-01-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMySQL/servers/{serverName}/upgrade", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpgradeSender sends the Upgrade request. The method will close the
+// http.Response Body if it receives an error.
+func (client ServersClient) UpgradeSender(req *http.Request) (future ServersUpgradeFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// UpgradeResponder handles the response to the Upgrade request. The method always
+// closes the http.Response Body.
+func (client ServersClient) UpgradeResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }

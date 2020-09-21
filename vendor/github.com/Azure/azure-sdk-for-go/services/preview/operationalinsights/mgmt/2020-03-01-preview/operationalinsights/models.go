@@ -31,343 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 
-// ClusterEntityStatus enumerates the values for cluster entity status.
-type ClusterEntityStatus string
-
-const (
-	// Canceled ...
-	Canceled ClusterEntityStatus = "Canceled"
-	// Creating ...
-	Creating ClusterEntityStatus = "Creating"
-	// Deleting ...
-	Deleting ClusterEntityStatus = "Deleting"
-	// Failed ...
-	Failed ClusterEntityStatus = "Failed"
-	// ProvisioningAccount ...
-	ProvisioningAccount ClusterEntityStatus = "ProvisioningAccount"
-	// Succeeded ...
-	Succeeded ClusterEntityStatus = "Succeeded"
-	// Updating ...
-	Updating ClusterEntityStatus = "Updating"
-)
-
-// PossibleClusterEntityStatusValues returns an array of possible values for the ClusterEntityStatus const type.
-func PossibleClusterEntityStatusValues() []ClusterEntityStatus {
-	return []ClusterEntityStatus{Canceled, Creating, Deleting, Failed, ProvisioningAccount, Succeeded, Updating}
-}
-
-// ClusterSkuNameEnum enumerates the values for cluster sku name enum.
-type ClusterSkuNameEnum string
-
-const (
-	// CapacityReservation ...
-	CapacityReservation ClusterSkuNameEnum = "CapacityReservation"
-)
-
-// PossibleClusterSkuNameEnumValues returns an array of possible values for the ClusterSkuNameEnum const type.
-func PossibleClusterSkuNameEnumValues() []ClusterSkuNameEnum {
-	return []ClusterSkuNameEnum{CapacityReservation}
-}
-
-// DataIngestionStatus enumerates the values for data ingestion status.
-type DataIngestionStatus string
-
-const (
-	// ApproachingQuota 80% of daily cap quota reached.
-	ApproachingQuota DataIngestionStatus = "ApproachingQuota"
-	// ForceOff Ingestion stopped following service setting change.
-	ForceOff DataIngestionStatus = "ForceOff"
-	// ForceOn Ingestion started following service setting change.
-	ForceOn DataIngestionStatus = "ForceOn"
-	// OverQuota Reached daily cap quota, ingestion stopped.
-	OverQuota DataIngestionStatus = "OverQuota"
-	// RespectQuota Ingestion enabled following daily cap quota reset, or subscription enablement.
-	RespectQuota DataIngestionStatus = "RespectQuota"
-	// SubscriptionSuspended Ingestion stopped following suspended subscription.
-	SubscriptionSuspended DataIngestionStatus = "SubscriptionSuspended"
-)
-
-// PossibleDataIngestionStatusValues returns an array of possible values for the DataIngestionStatus const type.
-func PossibleDataIngestionStatusValues() []DataIngestionStatus {
-	return []DataIngestionStatus{ApproachingQuota, ForceOff, ForceOn, OverQuota, RespectQuota, SubscriptionSuspended}
-}
-
-// DataSourceKind enumerates the values for data source kind.
-type DataSourceKind string
-
-const (
-	// ApplicationInsights ...
-	ApplicationInsights DataSourceKind = "ApplicationInsights"
-	// AzureActivityLog ...
-	AzureActivityLog DataSourceKind = "AzureActivityLog"
-	// AzureAuditLog ...
-	AzureAuditLog DataSourceKind = "AzureAuditLog"
-	// ChangeTrackingContentLocation ...
-	ChangeTrackingContentLocation DataSourceKind = "ChangeTrackingContentLocation"
-	// ChangeTrackingCustomPath ...
-	ChangeTrackingCustomPath DataSourceKind = "ChangeTrackingCustomPath"
-	// ChangeTrackingDataTypeConfiguration ...
-	ChangeTrackingDataTypeConfiguration DataSourceKind = "ChangeTrackingDataTypeConfiguration"
-	// ChangeTrackingDefaultRegistry ...
-	ChangeTrackingDefaultRegistry DataSourceKind = "ChangeTrackingDefaultRegistry"
-	// ChangeTrackingLinuxPath ...
-	ChangeTrackingLinuxPath DataSourceKind = "ChangeTrackingLinuxPath"
-	// ChangeTrackingPath ...
-	ChangeTrackingPath DataSourceKind = "ChangeTrackingPath"
-	// ChangeTrackingRegistry ...
-	ChangeTrackingRegistry DataSourceKind = "ChangeTrackingRegistry"
-	// ChangeTrackingServices ...
-	ChangeTrackingServices DataSourceKind = "ChangeTrackingServices"
-	// CustomLog ...
-	CustomLog DataSourceKind = "CustomLog"
-	// CustomLogCollection ...
-	CustomLogCollection DataSourceKind = "CustomLogCollection"
-	// DNSAnalytics ...
-	DNSAnalytics DataSourceKind = "DnsAnalytics"
-	// GenericDataSource ...
-	GenericDataSource DataSourceKind = "GenericDataSource"
-	// IISLogs ...
-	IISLogs DataSourceKind = "IISLogs"
-	// ImportComputerGroup ...
-	ImportComputerGroup DataSourceKind = "ImportComputerGroup"
-	// Itsm ...
-	Itsm DataSourceKind = "Itsm"
-	// LinuxChangeTrackingPath ...
-	LinuxChangeTrackingPath DataSourceKind = "LinuxChangeTrackingPath"
-	// LinuxPerformanceCollection ...
-	LinuxPerformanceCollection DataSourceKind = "LinuxPerformanceCollection"
-	// LinuxPerformanceObject ...
-	LinuxPerformanceObject DataSourceKind = "LinuxPerformanceObject"
-	// LinuxSyslog ...
-	LinuxSyslog DataSourceKind = "LinuxSyslog"
-	// LinuxSyslogCollection ...
-	LinuxSyslogCollection DataSourceKind = "LinuxSyslogCollection"
-	// NetworkMonitoring ...
-	NetworkMonitoring DataSourceKind = "NetworkMonitoring"
-	// Office365 ...
-	Office365 DataSourceKind = "Office365"
-	// SecurityCenterSecurityWindowsBaselineConfiguration ...
-	SecurityCenterSecurityWindowsBaselineConfiguration DataSourceKind = "SecurityCenterSecurityWindowsBaselineConfiguration"
-	// SecurityEventCollectionConfiguration ...
-	SecurityEventCollectionConfiguration DataSourceKind = "SecurityEventCollectionConfiguration"
-	// SecurityInsightsSecurityEventCollectionConfiguration ...
-	SecurityInsightsSecurityEventCollectionConfiguration DataSourceKind = "SecurityInsightsSecurityEventCollectionConfiguration"
-	// SecurityWindowsBaselineConfiguration ...
-	SecurityWindowsBaselineConfiguration DataSourceKind = "SecurityWindowsBaselineConfiguration"
-	// SQLDataClassification ...
-	SQLDataClassification DataSourceKind = "SqlDataClassification"
-	// WindowsEvent ...
-	WindowsEvent DataSourceKind = "WindowsEvent"
-	// WindowsPerformanceCounter ...
-	WindowsPerformanceCounter DataSourceKind = "WindowsPerformanceCounter"
-	// WindowsTelemetry ...
-	WindowsTelemetry DataSourceKind = "WindowsTelemetry"
-)
-
-// PossibleDataSourceKindValues returns an array of possible values for the DataSourceKind const type.
-func PossibleDataSourceKindValues() []DataSourceKind {
-	return []DataSourceKind{ApplicationInsights, AzureActivityLog, AzureAuditLog, ChangeTrackingContentLocation, ChangeTrackingCustomPath, ChangeTrackingDataTypeConfiguration, ChangeTrackingDefaultRegistry, ChangeTrackingLinuxPath, ChangeTrackingPath, ChangeTrackingRegistry, ChangeTrackingServices, CustomLog, CustomLogCollection, DNSAnalytics, GenericDataSource, IISLogs, ImportComputerGroup, Itsm, LinuxChangeTrackingPath, LinuxPerformanceCollection, LinuxPerformanceObject, LinuxSyslog, LinuxSyslogCollection, NetworkMonitoring, Office365, SecurityCenterSecurityWindowsBaselineConfiguration, SecurityEventCollectionConfiguration, SecurityInsightsSecurityEventCollectionConfiguration, SecurityWindowsBaselineConfiguration, SQLDataClassification, WindowsEvent, WindowsPerformanceCounter, WindowsTelemetry}
-}
-
-// DataSourceType enumerates the values for data source type.
-type DataSourceType string
-
-const (
-	// AzureWatson ...
-	AzureWatson DataSourceType = "AzureWatson"
-	// CustomLogs ...
-	CustomLogs DataSourceType = "CustomLogs"
-)
-
-// PossibleDataSourceTypeValues returns an array of possible values for the DataSourceType const type.
-func PossibleDataSourceTypeValues() []DataSourceType {
-	return []DataSourceType{AzureWatson, CustomLogs}
-}
-
-// IdentityType enumerates the values for identity type.
-type IdentityType string
-
-const (
-	// None ...
-	None IdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned IdentityType = "SystemAssigned"
-)
-
-// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
-func PossibleIdentityTypeValues() []IdentityType {
-	return []IdentityType{None, SystemAssigned}
-}
-
-// LinkedServiceEntityStatus enumerates the values for linked service entity status.
-type LinkedServiceEntityStatus string
-
-const (
-	// LinkedServiceEntityStatusDeleting ...
-	LinkedServiceEntityStatusDeleting LinkedServiceEntityStatus = "Deleting"
-	// LinkedServiceEntityStatusProvisioningAccount ...
-	LinkedServiceEntityStatusProvisioningAccount LinkedServiceEntityStatus = "ProvisioningAccount"
-	// LinkedServiceEntityStatusSucceeded ...
-	LinkedServiceEntityStatusSucceeded LinkedServiceEntityStatus = "Succeeded"
-	// LinkedServiceEntityStatusUpdating ...
-	LinkedServiceEntityStatusUpdating LinkedServiceEntityStatus = "Updating"
-)
-
-// PossibleLinkedServiceEntityStatusValues returns an array of possible values for the LinkedServiceEntityStatus const type.
-func PossibleLinkedServiceEntityStatusValues() []LinkedServiceEntityStatus {
-	return []LinkedServiceEntityStatus{LinkedServiceEntityStatusDeleting, LinkedServiceEntityStatusProvisioningAccount, LinkedServiceEntityStatusSucceeded, LinkedServiceEntityStatusUpdating}
-}
-
-// PublicNetworkAccessType enumerates the values for public network access type.
-type PublicNetworkAccessType string
-
-const (
-	// Disabled Disables public connectivity to Log Analytics through public DNS.
-	Disabled PublicNetworkAccessType = "Disabled"
-	// Enabled Enables connectivity to Log Analytics through public DNS.
-	Enabled PublicNetworkAccessType = "Enabled"
-)
-
-// PossiblePublicNetworkAccessTypeValues returns an array of possible values for the PublicNetworkAccessType const type.
-func PossiblePublicNetworkAccessTypeValues() []PublicNetworkAccessType {
-	return []PublicNetworkAccessType{Disabled, Enabled}
-}
-
-// PurgeState enumerates the values for purge state.
-type PurgeState string
-
-const (
-	// Completed ...
-	Completed PurgeState = "completed"
-	// Pending ...
-	Pending PurgeState = "pending"
-)
-
-// PossiblePurgeStateValues returns an array of possible values for the PurgeState const type.
-func PossiblePurgeStateValues() []PurgeState {
-	return []PurgeState{Completed, Pending}
-}
-
-// SearchSortEnum enumerates the values for search sort enum.
-type SearchSortEnum string
-
-const (
-	// Asc ...
-	Asc SearchSortEnum = "asc"
-	// Desc ...
-	Desc SearchSortEnum = "desc"
-)
-
-// PossibleSearchSortEnumValues returns an array of possible values for the SearchSortEnum const type.
-func PossibleSearchSortEnumValues() []SearchSortEnum {
-	return []SearchSortEnum{Asc, Desc}
-}
-
-// SkuNameEnum enumerates the values for sku name enum.
-type SkuNameEnum string
-
-const (
-	// SkuNameEnumCapacityReservation ...
-	SkuNameEnumCapacityReservation SkuNameEnum = "CapacityReservation"
-	// SkuNameEnumFree ...
-	SkuNameEnumFree SkuNameEnum = "Free"
-	// SkuNameEnumPerGB2018 ...
-	SkuNameEnumPerGB2018 SkuNameEnum = "PerGB2018"
-	// SkuNameEnumPerNode ...
-	SkuNameEnumPerNode SkuNameEnum = "PerNode"
-	// SkuNameEnumPremium ...
-	SkuNameEnumPremium SkuNameEnum = "Premium"
-	// SkuNameEnumStandalone ...
-	SkuNameEnumStandalone SkuNameEnum = "Standalone"
-	// SkuNameEnumStandard ...
-	SkuNameEnumStandard SkuNameEnum = "Standard"
-)
-
-// PossibleSkuNameEnumValues returns an array of possible values for the SkuNameEnum const type.
-func PossibleSkuNameEnumValues() []SkuNameEnum {
-	return []SkuNameEnum{SkuNameEnumCapacityReservation, SkuNameEnumFree, SkuNameEnumPerGB2018, SkuNameEnumPerNode, SkuNameEnumPremium, SkuNameEnumStandalone, SkuNameEnumStandard}
-}
-
-// StorageInsightState enumerates the values for storage insight state.
-type StorageInsightState string
-
-const (
-	// ERROR ...
-	ERROR StorageInsightState = "ERROR"
-	// OK ...
-	OK StorageInsightState = "OK"
-)
-
-// PossibleStorageInsightStateValues returns an array of possible values for the StorageInsightState const type.
-func PossibleStorageInsightStateValues() []StorageInsightState {
-	return []StorageInsightState{ERROR, OK}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// TypeEventHub ...
-	TypeEventHub Type = "EventHub"
-	// TypeStorageAccount ...
-	TypeStorageAccount Type = "StorageAccount"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{TypeEventHub, TypeStorageAccount}
-}
-
-// WorkspaceEntityStatus enumerates the values for workspace entity status.
-type WorkspaceEntityStatus string
-
-const (
-	// WorkspaceEntityStatusCanceled ...
-	WorkspaceEntityStatusCanceled WorkspaceEntityStatus = "Canceled"
-	// WorkspaceEntityStatusCreating ...
-	WorkspaceEntityStatusCreating WorkspaceEntityStatus = "Creating"
-	// WorkspaceEntityStatusDeleting ...
-	WorkspaceEntityStatusDeleting WorkspaceEntityStatus = "Deleting"
-	// WorkspaceEntityStatusFailed ...
-	WorkspaceEntityStatusFailed WorkspaceEntityStatus = "Failed"
-	// WorkspaceEntityStatusProvisioningAccount ...
-	WorkspaceEntityStatusProvisioningAccount WorkspaceEntityStatus = "ProvisioningAccount"
-	// WorkspaceEntityStatusSucceeded ...
-	WorkspaceEntityStatusSucceeded WorkspaceEntityStatus = "Succeeded"
-	// WorkspaceEntityStatusUpdating ...
-	WorkspaceEntityStatusUpdating WorkspaceEntityStatus = "Updating"
-)
-
-// PossibleWorkspaceEntityStatusValues returns an array of possible values for the WorkspaceEntityStatus const type.
-func PossibleWorkspaceEntityStatusValues() []WorkspaceEntityStatus {
-	return []WorkspaceEntityStatus{WorkspaceEntityStatusCanceled, WorkspaceEntityStatusCreating, WorkspaceEntityStatusDeleting, WorkspaceEntityStatusFailed, WorkspaceEntityStatusProvisioningAccount, WorkspaceEntityStatusSucceeded, WorkspaceEntityStatusUpdating}
-}
-
-// WorkspaceSkuNameEnum enumerates the values for workspace sku name enum.
-type WorkspaceSkuNameEnum string
-
-const (
-	// WorkspaceSkuNameEnumCapacityReservation ...
-	WorkspaceSkuNameEnumCapacityReservation WorkspaceSkuNameEnum = "CapacityReservation"
-	// WorkspaceSkuNameEnumFree ...
-	WorkspaceSkuNameEnumFree WorkspaceSkuNameEnum = "Free"
-	// WorkspaceSkuNameEnumPerGB2018 ...
-	WorkspaceSkuNameEnumPerGB2018 WorkspaceSkuNameEnum = "PerGB2018"
-	// WorkspaceSkuNameEnumPerNode ...
-	WorkspaceSkuNameEnumPerNode WorkspaceSkuNameEnum = "PerNode"
-	// WorkspaceSkuNameEnumPremium ...
-	WorkspaceSkuNameEnumPremium WorkspaceSkuNameEnum = "Premium"
-	// WorkspaceSkuNameEnumStandalone ...
-	WorkspaceSkuNameEnumStandalone WorkspaceSkuNameEnum = "Standalone"
-	// WorkspaceSkuNameEnumStandard ...
-	WorkspaceSkuNameEnumStandard WorkspaceSkuNameEnum = "Standard"
-)
-
-// PossibleWorkspaceSkuNameEnumValues returns an array of possible values for the WorkspaceSkuNameEnum const type.
-func PossibleWorkspaceSkuNameEnumValues() []WorkspaceSkuNameEnum {
-	return []WorkspaceSkuNameEnum{WorkspaceSkuNameEnumCapacityReservation, WorkspaceSkuNameEnumFree, WorkspaceSkuNameEnumPerGB2018, WorkspaceSkuNameEnumPerNode, WorkspaceSkuNameEnumPremium, WorkspaceSkuNameEnumStandalone, WorkspaceSkuNameEnumStandard}
-}
-
 // AvailableServiceTier service Tier details.
 type AvailableServiceTier struct {
 	// ServiceTier - READ-ONLY; The name of the Service Tier. Possible values include: 'SkuNameEnumFree', 'SkuNameEnumStandard', 'SkuNameEnumPremium', 'SkuNameEnumPerNode', 'SkuNameEnumPerGB2018', 'SkuNameEnumStandalone', 'SkuNameEnumCapacityReservation'
@@ -527,8 +190,8 @@ func (c *Cluster) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ClusterErrorResponse error response indicates that the service is not able to process the incoming
-// request. The reason is provided in the error message.
+// ClusterErrorResponse error response indicates that the service is not able to process the incoming request.
+// The reason is provided in the error message.
 type ClusterErrorResponse struct {
 	// Error - The details of the error.
 	Error *ErrorResponse `json:"error,omitempty"`
@@ -611,10 +274,15 @@ func (clr ClusterListResult) IsEmpty() bool {
 	return clr.Value == nil || len(*clr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (clr ClusterListResult) hasNextLink() bool {
+	return clr.NextLink != nil && len(*clr.NextLink) != 0
+}
+
 // clusterListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (clr ClusterListResult) clusterListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if clr.NextLink == nil || len(to.String(clr.NextLink)) < 1 {
+	if !clr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -642,11 +310,16 @@ func (page *ClusterListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.clr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.clr)
+		if err != nil {
+			return err
+		}
+		page.clr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.clr = next
 	return nil
 }
 
@@ -765,6 +438,18 @@ type ClusterProperties struct {
 	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ClusterProperties.
+func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.NextLink != nil {
+		objectMap["nextLink"] = cp.NextLink
+	}
+	if cp.KeyVaultProperties != nil {
+		objectMap["keyVaultProperties"] = cp.KeyVaultProperties
+	}
+	return json.Marshal(objectMap)
+}
+
 // ClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersCreateOrUpdateFuture struct {
@@ -794,8 +479,7 @@ func (future *ClustersCreateOrUpdateFuture) Result(client ClustersClient) (c Clu
 	return
 }
 
-// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersDeleteFuture struct {
 	azure.Future
 }
@@ -1163,10 +847,15 @@ func (dslr DataSourceListResult) IsEmpty() bool {
 	return dslr.Value == nil || len(*dslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dslr DataSourceListResult) hasNextLink() bool {
+	return dslr.NextLink != nil && len(*dslr.NextLink) != 0
+}
+
 // dataSourceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dslr DataSourceListResult) dataSourceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dslr.NextLink == nil || len(to.String(dslr.NextLink)) < 1 {
+	if !dslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1194,11 +883,16 @@ func (page *DataSourceListResultPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dslr)
+		if err != nil {
+			return err
+		}
+		page.dslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dslr = next
 	return nil
 }
 
@@ -1338,6 +1032,15 @@ type Identity struct {
 	TenantID *string `json:"tenantId,omitempty"`
 	// Type - The identity type. Possible values include: 'SystemAssigned', 'None'
 	Type IdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // IntelligencePack intelligence Pack containing a string name and boolean indicating if it's enabled.
@@ -1531,10 +1234,19 @@ type LinkedStorageAccountsListResult struct {
 
 // LinkedStorageAccountsProperties linked storage accounts properties.
 type LinkedStorageAccountsProperties struct {
-	// DataSourceType - READ-ONLY; Linked storage accounts type. Possible values include: 'CustomLogs', 'AzureWatson'
+	// DataSourceType - READ-ONLY; Linked storage accounts type. Possible values include: 'CustomLogs', 'AzureWatson', 'Query', 'Ingestion', 'Alerts'
 	DataSourceType DataSourceType `json:"dataSourceType,omitempty"`
 	// StorageAccountIds - Linked storage accounts resources ids.
 	StorageAccountIds *[]string `json:"storageAccountIds,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LinkedStorageAccountsProperties.
+func (lsap LinkedStorageAccountsProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lsap.StorageAccountIds != nil {
+		objectMap["storageAccountIds"] = lsap.StorageAccountIds
+	}
+	return json.Marshal(objectMap)
 }
 
 // LinkedStorageAccountsResource linked storage accounts top level resource container.
@@ -1718,6 +1430,15 @@ type OperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if olr.Value != nil {
+		objectMap["value"] = olr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationListResultIterator provides access to a complete listing of Operation values.
 type OperationListResultIterator struct {
 	i    int
@@ -1786,10 +1507,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1817,11 +1543,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -2289,10 +2020,15 @@ func (silr StorageInsightListResult) IsEmpty() bool {
 	return silr.Value == nil || len(*silr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (silr StorageInsightListResult) hasNextLink() bool {
+	return silr.OdataNextLink != nil && len(*silr.OdataNextLink) != 0
+}
+
 // storageInsightListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (silr StorageInsightListResult) storageInsightListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if silr.OdataNextLink == nil || len(to.String(silr.OdataNextLink)) < 1 {
+	if !silr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2320,11 +2056,16 @@ func (page *StorageInsightListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.silr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.silr)
+		if err != nil {
+			return err
+		}
+		page.silr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.silr = next
 	return nil
 }
 
@@ -2368,6 +2109,21 @@ type StorageInsightProperties struct {
 	StorageAccount *StorageAccount `json:"storageAccount,omitempty"`
 	// Status - READ-ONLY; The status of the storage insight
 	Status *StorageInsightStatus `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StorageInsightProperties.
+func (sip StorageInsightProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sip.Containers != nil {
+		objectMap["containers"] = sip.Containers
+	}
+	if sip.Tables != nil {
+		objectMap["tables"] = sip.Tables
+	}
+	if sip.StorageAccount != nil {
+		objectMap["storageAccount"] = sip.StorageAccount
+	}
+	return json.Marshal(objectMap)
 }
 
 // StorageInsightStatus the status of the storage insight.
@@ -2639,6 +2395,15 @@ type WorkspaceCapping struct {
 	DataIngestionStatus DataIngestionStatus `json:"dataIngestionStatus,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for WorkspaceCapping.
+func (wc WorkspaceCapping) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wc.DailyQuotaGb != nil {
+		objectMap["dailyQuotaGb"] = wc.DailyQuotaGb
+	}
+	return json.Marshal(objectMap)
+}
+
 // WorkspaceListManagementGroupsResult the list workspace management groups operation response.
 type WorkspaceListManagementGroupsResult struct {
 	autorest.Response `json:"-"`
@@ -2777,6 +2542,30 @@ type WorkspaceProperties struct {
 	PrivateLinkScopedResources *[]PrivateLinkScopedResource `json:"privateLinkScopedResources,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for WorkspaceProperties.
+func (wp WorkspaceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wp.ProvisioningState != "" {
+		objectMap["provisioningState"] = wp.ProvisioningState
+	}
+	if wp.Sku != nil {
+		objectMap["sku"] = wp.Sku
+	}
+	if wp.RetentionInDays != nil {
+		objectMap["retentionInDays"] = wp.RetentionInDays
+	}
+	if wp.WorkspaceCapping != nil {
+		objectMap["workspaceCapping"] = wp.WorkspaceCapping
+	}
+	if wp.PublicNetworkAccessForIngestion != "" {
+		objectMap["publicNetworkAccessForIngestion"] = wp.PublicNetworkAccessForIngestion
+	}
+	if wp.PublicNetworkAccessForQuery != "" {
+		objectMap["publicNetworkAccessForQuery"] = wp.PublicNetworkAccessForQuery
+	}
+	return json.Marshal(objectMap)
+}
+
 // WorkspacePurgeBody describes the body of a purge request for an App Insights Workspace
 type WorkspacePurgeBody struct {
 	// Table - Table from which to purge data.
@@ -2811,8 +2600,8 @@ type WorkspacePurgeStatusResponse struct {
 	Status PurgeState `json:"status,omitempty"`
 }
 
-// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type WorkspacesCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -2840,8 +2629,7 @@ func (future *WorkspacesCreateOrUpdateFuture) Result(client WorkspacesClient) (w
 	return
 }
 
-// WorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// WorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type WorkspacesDeleteFuture struct {
 	azure.Future
 }
@@ -2873,4 +2661,16 @@ type WorkspaceSku struct {
 	MaxCapacityReservationLevel *int32 `json:"maxCapacityReservationLevel,omitempty"`
 	// LastSkuUpdate - READ-ONLY; The last time when the sku was updated.
 	LastSkuUpdate *string `json:"lastSkuUpdate,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkspaceSku.
+func (ws WorkspaceSku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ws.Name != "" {
+		objectMap["name"] = ws.Name
+	}
+	if ws.CapacityReservationLevel != nil {
+		objectMap["capacityReservationLevel"] = ws.CapacityReservationLevel
+	}
+	return json.Marshal(objectMap)
 }
