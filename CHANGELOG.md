@@ -14,6 +14,8 @@ IMPORVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
+* `azurerm_function_app` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
 * `azurerm_kubernetes_cluster` - picking the first system node pool if the original `default_node_pool` has been removed [GH-8503]
 
 ## 2.28.0 (September 17, 2020)
