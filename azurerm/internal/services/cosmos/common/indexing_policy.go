@@ -133,42 +133,40 @@ func ValidateAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPo
 	}
 
 	// Any indexing policy has to include the root path /* as either an included or an excluded path.
-	rootPathDefined := false
 	rootPath := "/*"
 	includedPathsDefined := indexingPolicy.IncludedPaths != nil
 	includedPathsContainRootPath := false
 
 	if includedPathsDefined {
 		for _, includedPath := range *indexingPolicy.IncludedPaths {
-			if rootPathDefined {
+			if includedPathsContainRootPath {
 				break
 			}
 
-			rootPathDefined = *includedPath.Path == rootPath
-			includedPathsContainRootPath = true
+			includedPathsContainRootPath = *includedPath.Path == rootPath
 		}
 	}
 
 	excludedPathsContainRootPath := false
 	excludedPathsDefined := indexingPolicy.ExcludedPaths != nil
 
-	if excludedPathsDefined && !rootPathDefined {
+	if excludedPathsDefined {
 		for _, excludedPath := range *indexingPolicy.ExcludedPaths {
-			if rootPathDefined {
+			if excludedPathsContainRootPath {
 				break
 			}
 
-			rootPathDefined = *excludedPath.Path == rootPath
-			excludedPathsContainRootPath = true
+			excludedPathsContainRootPath = *excludedPath.Path == rootPath
 		}
 	}
 
-	// All paths can't be included and excluded at the same time.
+	// The root path can't be included and excluded at the same time.
 	if includedPathsContainRootPath && excludedPathsContainRootPath {
 		return fmt.Errorf("only one of included_path or excluded_path may include the path %q", rootPath)
 	}
 
-	if !rootPathDefined && (includedPathsDefined || excludedPathsDefined) {
+	// The root path must be included or excluded
+	if (includedPathsDefined || excludedPathsDefined) && !(includedPathsContainRootPath || excludedPathsContainRootPath) {
 		return fmt.Errorf("either included_path or excluded_path must include the path %q", rootPath)
 	}
 
