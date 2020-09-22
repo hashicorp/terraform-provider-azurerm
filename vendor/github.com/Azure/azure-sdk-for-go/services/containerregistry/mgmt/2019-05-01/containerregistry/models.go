@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
 
 // Actor the agent that initiated the event. For most situations, this could be from the authorization context
 // of the request.
@@ -167,6 +167,12 @@ type CustomRegistryCredentials struct {
 	// Password - The password for logging into the custom registry. The password is a secret
 	// object that allows multiple ways of providing the value for it.
 	Password *SecretObject `json:"password,omitempty"`
+	// Identity - Indicates the managed identity assigned to the custom credential. If a user-assigned identity
+	// this value is the Client ID. If a system-assigned identity, the value will be `system`. In
+	// the case of a system-assigned identity, the Client ID will be determined by the runner. This
+	// identity may be used to authenticate to key vault to retrieve credentials or it may be the only
+	// source of authentication used for accessing the registry.
+	Identity *string `json:"identity,omitempty"`
 }
 
 // DockerBuildRequest the parameters for a docker quick build.
@@ -1153,6 +1159,39 @@ func (ftsup FileTaskStepUpdateParameters) AsBasicTaskStepUpdateParameters() (Bas
 	return &ftsup, true
 }
 
+// IdentityProperties managed identity for the resource.
+type IdentityProperties struct {
+	// PrincipalID - The principal ID of resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - The tenant ID of resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The identity type. Possible values include: 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned', 'None'
+	Type ResourceIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The list of user identities associated with the resource. The user identity
+	// dictionary key references will be ARM resource ids in the form:
+	// '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/
+	//     providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	UserAssignedIdentities map[string]*UserIdentityProperties `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for IdentityProperties.
+func (IP IdentityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if IP.PrincipalID != nil {
+		objectMap["principalId"] = IP.PrincipalID
+	}
+	if IP.TenantID != nil {
+		objectMap["tenantId"] = IP.TenantID
+	}
+	if IP.Type != "" {
+		objectMap["type"] = IP.Type
+	}
+	if IP.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = IP.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
 // ImageDescriptor properties for a registry image.
 type ImageDescriptor struct {
 	// Registry - The registry login server.
@@ -1499,7 +1538,7 @@ type OperationPropertiesDefinition struct {
 	ServiceSpecification *OperationServiceSpecificationDefinition `json:"serviceSpecification,omitempty"`
 }
 
-// OperationServiceSpecificationDefinition the definition of Azure Monitoring metrics list.
+// OperationServiceSpecificationDefinition the definition of Azure Monitoring list.
 type OperationServiceSpecificationDefinition struct {
 	// MetricSpecifications - A list of Azure Monitoring metrics definition.
 	MetricSpecifications *[]OperationMetricSpecificationDefinition `json:"metricSpecifications,omitempty"`
@@ -1525,6 +1564,16 @@ type PlatformUpdateParameters struct {
 	Variant Variant `json:"variant,omitempty"`
 }
 
+// Policies the policies for a container registry.
+type Policies struct {
+	// QuarantinePolicy - The quarantine policy for a container registry.
+	QuarantinePolicy *QuarantinePolicy `json:"quarantinePolicy,omitempty"`
+	// TrustPolicy - The content trust policy for a container registry.
+	TrustPolicy *TrustPolicy `json:"trustPolicy,omitempty"`
+	// RetentionPolicy - The retention policy for a container registry.
+	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
+}
+
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
 // required location and tags.
 type ProxyResource struct {
@@ -1536,7 +1585,7 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// QuarantinePolicy an object that represents quarantine policy for a container registry.
+// QuarantinePolicy the quarantine policy for a container registry.
 type QuarantinePolicy struct {
 	// Status - The value that indicates whether the policy is enabled or not. Possible values include: 'Enabled', 'Disabled'
 	Status PolicyStatus `json:"status,omitempty"`
@@ -1673,35 +1722,6 @@ func (future *RegistriesUpdateFuture) Result(client RegistriesClient) (r Registr
 		r, err = client.UpdateResponder(r.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "containerregistry.RegistriesUpdateFuture", "Result", r.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// RegistriesUpdatePoliciesFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type RegistriesUpdatePoliciesFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *RegistriesUpdatePoliciesFuture) Result(client RegistriesClient) (rp RegistryPolicies, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerregistry.RegistriesUpdatePoliciesFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerregistry.RegistriesUpdatePoliciesFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rp.Response.Response, err = future.GetResult(sender); err == nil && rp.Response.Response.StatusCode != http.StatusNoContent {
-		rp, err = client.UpdatePoliciesResponder(rp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerregistry.RegistriesUpdatePoliciesFuture", "Result", rp.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -2014,15 +2034,6 @@ type RegistryPassword struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// RegistryPolicies an object that represents policies for a container registry.
-type RegistryPolicies struct {
-	autorest.Response `json:"-"`
-	// QuarantinePolicy - An object that represents quarantine policy for a container registry.
-	QuarantinePolicy *QuarantinePolicy `json:"quarantinePolicy,omitempty"`
-	// TrustPolicy - An object that represents content trust policy for a container registry.
-	TrustPolicy *TrustPolicy `json:"trustPolicy,omitempty"`
-}
-
 // RegistryProperties the properties of a container registry.
 type RegistryProperties struct {
 	// LoginServer - READ-ONLY; The URL that can be used to log into the container registry.
@@ -2039,6 +2050,8 @@ type RegistryProperties struct {
 	StorageAccount *StorageAccountProperties `json:"storageAccount,omitempty"`
 	// NetworkRuleSet - The network rule set for a container registry.
 	NetworkRuleSet *NetworkRuleSet `json:"networkRuleSet,omitempty"`
+	// Policies - The policies for a container registry.
+	Policies *Policies `json:"policies,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for RegistryProperties.
@@ -2053,6 +2066,9 @@ func (rp RegistryProperties) MarshalJSON() ([]byte, error) {
 	if rp.NetworkRuleSet != nil {
 		objectMap["networkRuleSet"] = rp.NetworkRuleSet
 	}
+	if rp.Policies != nil {
+		objectMap["policies"] = rp.Policies
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -2060,10 +2076,10 @@ func (rp RegistryProperties) MarshalJSON() ([]byte, error) {
 type RegistryPropertiesUpdateParameters struct {
 	// AdminUserEnabled - The value that indicates whether the admin user is enabled.
 	AdminUserEnabled *bool `json:"adminUserEnabled,omitempty"`
-	// StorageAccount - The parameters of a storage account for the container registry. Only applicable to Classic SKU. If specified, the storage account must be in the same physical location as the container registry.
-	StorageAccount *StorageAccountProperties `json:"storageAccount,omitempty"`
 	// NetworkRuleSet - The network rule set for a container registry.
 	NetworkRuleSet *NetworkRuleSet `json:"networkRuleSet,omitempty"`
+	// Policies - The policies for a container registry.
+	Policies *Policies `json:"policies,omitempty"`
 }
 
 // RegistryUpdateParameters the parameters for updating a container registry.
@@ -2553,6 +2569,28 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// RetentionPolicy the retention policy for a container registry.
+type RetentionPolicy struct {
+	// Days - The number of days to retain an untagged manifest after which it gets purged.
+	Days *int32 `json:"days,omitempty"`
+	// LastUpdatedTime - READ-ONLY; The timestamp when the policy was last updated.
+	LastUpdatedTime *date.Time `json:"lastUpdatedTime,omitempty"`
+	// Status - The value that indicates whether the policy is enabled or not. Possible values include: 'Enabled', 'Disabled'
+	Status PolicyStatus `json:"status,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RetentionPolicy.
+func (rp RetentionPolicy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rp.Days != nil {
+		objectMap["days"] = rp.Days
+	}
+	if rp.Status != "" {
+		objectMap["status"] = rp.Status
+	}
+	return json.Marshal(objectMap)
+}
+
 // Run run resource properties
 type Run struct {
 	autorest.Response `json:"-"`
@@ -2848,6 +2886,8 @@ type RunProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// IsArchiveEnabled - The value that indicates whether archiving is enabled or not.
 	IsArchiveEnabled *bool `json:"isArchiveEnabled,omitempty"`
+	// TimerTrigger - The timer trigger that caused the run.
+	TimerTrigger *TimerTriggerDescriptor `json:"timerTrigger,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for RunProperties.
@@ -2903,6 +2943,9 @@ func (rp RunProperties) MarshalJSON() ([]byte, error) {
 	}
 	if rp.IsArchiveEnabled != nil {
 		objectMap["isArchiveEnabled"] = rp.IsArchiveEnabled
+	}
+	if rp.TimerTrigger != nil {
+		objectMap["timerTrigger"] = rp.TimerTrigger
 	}
 	return json.Marshal(objectMap)
 }
@@ -3079,7 +3122,7 @@ type SecretObject struct {
 	// used as is without any modification.
 	Value *string `json:"value,omitempty"`
 	// Type - The type of the secret object which determines how the value of the secret object has to be
-	// interpreted. Possible values include: 'Opaque'
+	// interpreted. Possible values include: 'Opaque', 'Vaultsecret'
 	Type SecretObjectType `json:"type,omitempty"`
 }
 
@@ -3136,7 +3179,7 @@ type SourceProperties struct {
 type SourceRegistryCredentials struct {
 	// LoginMode - The authentication mode which determines the source registry login scope. The credentials for the source registry
 	// will be generated using the given scope. These credentials will be used to login to
-	// the source registry during the run. Possible values include: 'None', 'Default'
+	// the source registry during the run. Possible values include: 'SourceRegistryLoginModeNone', 'SourceRegistryLoginModeDefault'
 	LoginMode SourceRegistryLoginMode `json:"loginMode,omitempty"`
 }
 
@@ -3247,6 +3290,8 @@ type Target struct {
 // The task will have all information to schedule a run against it.
 type Task struct {
 	autorest.Response `json:"-"`
+	// Identity - Identity for the resource.
+	Identity *IdentityProperties `json:"identity,omitempty"`
 	// TaskProperties - The properties of a task.
 	*TaskProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; The resource ID.
@@ -3264,6 +3309,9 @@ type Task struct {
 // MarshalJSON is the custom marshaler for Task.
 func (t Task) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if t.Identity != nil {
+		objectMap["identity"] = t.Identity
+	}
 	if t.TaskProperties != nil {
 		objectMap["properties"] = t.TaskProperties
 	}
@@ -3285,6 +3333,15 @@ func (t *Task) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "identity":
+			if v != nil {
+				var identity IdentityProperties
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				t.Identity = &identity
+			}
 		case "properties":
 			if v != nil {
 				var taskProperties TaskProperties
@@ -4089,6 +4146,8 @@ func (future *TasksUpdateFuture) Result(client TasksClient) (t Task, err error) 
 
 // TaskUpdateParameters the parameters for updating a task.
 type TaskUpdateParameters struct {
+	// Identity - Identity for the resource.
+	Identity *IdentityProperties `json:"identity,omitempty"`
 	// TaskPropertiesUpdateParameters - The properties for updating a task.
 	*TaskPropertiesUpdateParameters `json:"properties,omitempty"`
 	// Tags - The ARM resource tags.
@@ -4098,6 +4157,9 @@ type TaskUpdateParameters struct {
 // MarshalJSON is the custom marshaler for TaskUpdateParameters.
 func (tup TaskUpdateParameters) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if tup.Identity != nil {
+		objectMap["identity"] = tup.Identity
+	}
 	if tup.TaskPropertiesUpdateParameters != nil {
 		objectMap["properties"] = tup.TaskPropertiesUpdateParameters
 	}
@@ -4116,6 +4178,15 @@ func (tup *TaskUpdateParameters) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "identity":
+			if v != nil {
+				var identity IdentityProperties
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				tup.Identity = &identity
+			}
 		case "properties":
 			if v != nil {
 				var taskPropertiesUpdateParameters TaskPropertiesUpdateParameters
@@ -4140,8 +4211,38 @@ func (tup *TaskUpdateParameters) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// TimerTrigger the properties of a timer trigger.
+type TimerTrigger struct {
+	// Schedule - The CRON expression for the task schedule
+	Schedule *string `json:"schedule,omitempty"`
+	// Status - The current status of trigger. Possible values include: 'TriggerStatusDisabled', 'TriggerStatusEnabled'
+	Status TriggerStatus `json:"status,omitempty"`
+	// Name - The name of the trigger.
+	Name *string `json:"name,omitempty"`
+}
+
+// TimerTriggerDescriptor ...
+type TimerTriggerDescriptor struct {
+	// TimerTriggerName - The timer trigger name that caused the run.
+	TimerTriggerName *string `json:"timerTriggerName,omitempty"`
+	// ScheduleOccurrence - The occurrence that triggered the run.
+	ScheduleOccurrence *string `json:"scheduleOccurrence,omitempty"`
+}
+
+// TimerTriggerUpdateParameters the properties for updating a timer trigger.
+type TimerTriggerUpdateParameters struct {
+	// Schedule - The CRON expression for the task schedule
+	Schedule *string `json:"schedule,omitempty"`
+	// Status - The current status of trigger. Possible values include: 'TriggerStatusDisabled', 'TriggerStatusEnabled'
+	Status TriggerStatus `json:"status,omitempty"`
+	// Name - The name of the trigger.
+	Name *string `json:"name,omitempty"`
+}
+
 // TriggerProperties the properties of a trigger.
 type TriggerProperties struct {
+	// TimerTriggers - The collection of timer triggers.
+	TimerTriggers *[]TimerTrigger `json:"timerTriggers,omitempty"`
 	// SourceTriggers - The collection of triggers based on source code repository.
 	SourceTriggers *[]SourceTrigger `json:"sourceTriggers,omitempty"`
 	// BaseImageTrigger - The trigger based on base image dependencies.
@@ -4150,18 +4251,28 @@ type TriggerProperties struct {
 
 // TriggerUpdateParameters the properties for updating triggers.
 type TriggerUpdateParameters struct {
+	// TimerTriggers - The collection of timer triggers.
+	TimerTriggers *[]TimerTriggerUpdateParameters `json:"timerTriggers,omitempty"`
 	// SourceTriggers - The collection of triggers based on source code repository.
 	SourceTriggers *[]SourceTriggerUpdateParameters `json:"sourceTriggers,omitempty"`
 	// BaseImageTrigger - The trigger based on base image dependencies.
 	BaseImageTrigger *BaseImageTriggerUpdateParameters `json:"baseImageTrigger,omitempty"`
 }
 
-// TrustPolicy an object that represents content trust policy for a container registry.
+// TrustPolicy the content trust policy for a container registry.
 type TrustPolicy struct {
 	// Type - The type of trust policy. Possible values include: 'Notary'
 	Type TrustPolicyType `json:"type,omitempty"`
 	// Status - The value that indicates whether the policy is enabled or not. Possible values include: 'Enabled', 'Disabled'
 	Status PolicyStatus `json:"status,omitempty"`
+}
+
+// UserIdentityProperties ...
+type UserIdentityProperties struct {
+	// PrincipalID - The principal id of user assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - The client id of user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
 }
 
 // VirtualNetworkRule virtual network rule.
