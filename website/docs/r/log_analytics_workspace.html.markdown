@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies the Sku of the Log Analytics Workspace. Possible values are `Free`, `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, and `PerGB2018` (new Sku as of `2018-04-03`).
+* `sku` - (Optional) Specifies the Sku of the Log Analytics Workspace. Possible values are `Free`, `PerNode`, `Premium`, `Standard`, `Standalone`, `Unlimited`, and `PerGB2018` (new Sku as of `2018-04-03`). Defaults to `PerGB2018`.
 
 ~> **NOTE:** A new pricing model took effect on `2018-04-03`, which requires the SKU `PerGB2018`. If you're provisioned resources before this date you have the option of remaining with the previous Pricing SKU and using the other SKU's defined above. More information about [the Pricing SKU's is available at the following URI](http://aka.ms/PricingTierWarning).
 
@@ -56,8 +56,6 @@ The following attributes are exported:
 * `secondary_shared_key` - The Secondary shared key for the Log Analytics Workspace.
 
 * `workspace_id` - The Workspace (or Customer) ID for the Log Analytics Workspace.
-
-* `portal_url` - The Portal URL for the Log Analytics Workspace.
 
 ## Timeouts
 

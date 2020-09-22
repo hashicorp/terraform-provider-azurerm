@@ -244,6 +244,10 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	}
 
 	if props := resp.WebTestProperties; props != nil {
+		// It is possible that the root level `kind` in response is empty in some cases (see PR #8372 for more info)
+		if resp.Kind == "" {
+			d.Set("kind", props.WebTestKind)
+		}
 		d.Set("synthetic_monitor_id", props.SyntheticMonitorID)
 		d.Set("description", props.Description)
 		d.Set("enabled", props.Enabled)
