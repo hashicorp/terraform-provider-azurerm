@@ -173,153 +173,153 @@ func testAADDiagnosticsSettingsDestroy(s *terraform.State) error {
 func testAADDiagnosticSettings_basic(data acceptance.TestData, name string) string {
 	template := testAccAADDiagnosticSettings_template(data)
 	return fmt.Sprintf(`
-%s
+		%s
 
-resource "azurerm_aad_diagnostic_settings" "test" {
-	name                = "%s"
-	storage_account_id  = azurerm_storage_account.test.id
-	logs  {
-	  category = "AuditLogs"
-	  retention_policy {
-		retention_policy_days = 2
-		retention_policy_enabled = true
-	}
-  }
-  logs  {
-	category = "SignInLogs"
-	retention_policy {
-		retention_policy_days = 3
-		retention_policy_enabled = true
-	}
-}
-  }
-`, template, name)
+		resource "azurerm_aad_diagnostic_settings" "test" {
+			name                = "%s"
+			storage_account_id  = azurerm_storage_account.test.id
+			logs  {
+	  			category = "AuditLogs"
+	  			retention_policy {
+				retention_policy_days = 2
+				retention_policy_enabled = true
+				}
+  			}
+  			logs  {
+				category = "SignInLogs"
+				retention_policy {
+					retention_policy_days = 3
+					retention_policy_enabled = true
+				}
+			}
+  		}
+		`, template, name)
 }
 
 func testAADDiagnosticSettings_eventhub(data acceptance.TestData) string {
 	template := testAccAADDiagnosticSettings_template(data)
 	return fmt.Sprintf(`
-%s
+		%s
 
-resource "azurerm_aad_diagnostic_settings" "test" {
-	name                = "acctestdiagsetng-%d"
-	event_hub_name = azurerm_eventhub.test.name
-  event_hub_auth_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
-	logs  {
-	  category = "AuditLogs"
-	  retention_policy {
-		retention_policy_days = 2
-		retention_policy_enabled = true
-	}
-  }
-  logs  {
-	category = "SignInLogs"
-	retention_policy {
-		retention_policy_days = 3
-		retention_policy_enabled = true
-	}
-}
-  }
-`, template, data.RandomInteger)
+		resource "azurerm_aad_diagnostic_settings" "test" {
+			name                = "acctestdiagsetng-%d"
+			event_hub_name = azurerm_eventhub.test.name
+  			event_hub_auth_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
+			logs  {
+	  			category = "AuditLogs"
+	  			retention_policy {
+					retention_policy_days = 2
+					retention_policy_enabled = true
+				}
+  			}
+  			logs  {
+				category = "SignInLogs"
+				retention_policy {
+					retention_policy_days = 3
+					retention_policy_enabled = true
+				}
+			}
+  		}
+		`, template, data.RandomInteger)
 }
 
 func testAADDiagnosticSettings_law(data acceptance.TestData) string {
 	template := testAccAADDiagnosticSettings_template(data)
 	return fmt.Sprintf(`
-%s
+		%s
 
-resource "azurerm_aad_diagnostic_settings" "test" {
-	name                = "acctestdiagsetng-%d"
-	workspace_id = azurerm_log_analytics_workspace.test.id
-	logs  {
-	  category = "AuditLogs"
-	  retention_policy {
-		retention_policy_days = 2
-		retention_policy_enabled = true
-	}
-  }
-  logs  {
-	category = "SignInLogs"
-	retention_policy {
-		retention_policy_days = 3
-		retention_policy_enabled = true
-	}
-}
-  }
-`, template, data.RandomInteger)
+		resource "azurerm_aad_diagnostic_settings" "test" {
+			name                = "acctestdiagsetng-%d"
+			workspace_id = azurerm_log_analytics_workspace.test.id
+			logs  {
+	  			category = "AuditLogs"
+	  			retention_policy {
+					retention_policy_days = 2
+					retention_policy_enabled = true
+				}
+  			}
+  			logs  {
+				category = "SignInLogs"
+				retention_policy {
+					retention_policy_days = 3
+					retention_policy_enabled = true
+				}
+			}
+  		}
+		`, template, data.RandomInteger)
 }
 
 func testAADDiagnosticSettings_complete(data acceptance.TestData, diagSettingName string, auditLogRetentionDays int, auditLogRetentionEnabled bool, signInLogEnabled bool, signInLogRetentionDays int, signInLogRetentionEnabled bool) string {
 	template := testAccAADDiagnosticSettings_template(data)
 	return fmt.Sprintf(`
-%s
+		%s
 
-resource "azurerm_aad_diagnostic_settings" "test" {
-  name                = "%s"
-  storage_account_id  = azurerm_storage_account.test.id
-  workspace_id = azurerm_log_analytics_workspace.test.id
-  event_hub_name = azurerm_eventhub.test.name
-  event_hub_auth_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
-  logs  {
-	category = "AuditLogs"
-	retention_policy {
-retention_policy_days = %d
-retention_policy_enabled = %t
-	}
-}
-	logs  {
-        enabled = %t
-        category = "SignInLogs"
-        retention_policy {
-			retention_policy_days = %d
-			retention_policy_enabled = %t
-        }
-    }
-}
-`, template, diagSettingName, auditLogRetentionDays, auditLogRetentionEnabled, signInLogEnabled, signInLogRetentionDays, signInLogRetentionEnabled)
+		resource "azurerm_aad_diagnostic_settings" "test" {
+  			name                = "%s"
+  			storage_account_id  = azurerm_storage_account.test.id
+  			workspace_id = azurerm_log_analytics_workspace.test.id
+  			event_hub_name = azurerm_eventhub.test.name
+  			event_hub_auth_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
+  			logs  {
+				category = "AuditLogs"
+				retention_policy {
+					retention_policy_days = %d
+					retention_policy_enabled = %t
+				}
+			}
+			logs  {
+        		enabled = %t
+        		category = "SignInLogs"
+        		retention_policy {
+					retention_policy_days = %d
+					retention_policy_enabled = %t
+        		}
+    		}
+		}
+		`, template, diagSettingName, auditLogRetentionDays, auditLogRetentionEnabled, signInLogEnabled, signInLogRetentionDays, signInLogRetentionEnabled)
 }
 
 func testAccAADDiagnosticSettings_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+		provider "azurerm" {
+  		features {}
+		}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-la-%d"
-  location = "%s"
-}
+		resource "azurerm_resource_group" "test" {
+  			name     = "acctestRG-la-%d"
+  			location = "%s"
+		}
 
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
+		resource "azurerm_log_analytics_workspace" "test" {
+  			name                = "acctestLAW-%d"
+  			location            = azurerm_resource_group.test.location
+  			resource_group_name = azurerm_resource_group.test.name
+  			sku                 = "PerGB2018"
+  			retention_in_days   = 30
+		}
   
-  resource "azurerm_storage_account" "test" {
-	name                     = "stgacc%s"
-	resource_group_name      = azurerm_resource_group.test.name
-	location                 = azurerm_resource_group.test.location
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-  }
+  		resource "azurerm_storage_account" "test" {
+			name                     = "stgacc%s"
+			resource_group_name      = azurerm_resource_group.test.name
+			location                 = azurerm_resource_group.test.location
+			account_tier             = "Standard"
+			account_replication_type = "LRS"
+  		}
   
-  resource "azurerm_eventhub_namespace" "test" {
-	name                = "acctesteventhubns%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	sku                 = "Standard"
-	capacity            = 1
-  }
+  		resource "azurerm_eventhub_namespace" "test" {
+			name                = "acctesteventhubns%d"
+			location            = azurerm_resource_group.test.location
+			resource_group_name = azurerm_resource_group.test.name
+			sku                 = "Standard"
+			capacity            = 1
+  		}
   
-  resource "azurerm_eventhub" "test" {
-	name                = "acctesteventhub%d"
-	namespace_name      = azurerm_eventhub_namespace.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	partition_count     = 2
-	message_retention   = 6
-  }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+  		resource "azurerm_eventhub" "test" {
+			name                = "acctesteventhub%d"
+			namespace_name      = azurerm_eventhub_namespace.test.name
+			resource_group_name = azurerm_resource_group.test.name
+			partition_count     = 2
+			message_retention   = 6
+  		}
+		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
