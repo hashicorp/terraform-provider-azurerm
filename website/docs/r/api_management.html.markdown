@@ -122,7 +122,7 @@ A `identity` block supports the following:
 
 ~> **Note:** User Assigned Managed Identities are in Preview
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
 * `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
 
@@ -252,7 +252,7 @@ A `sign_up` block supports the following:
 
 * `enabled` - (Required) Can users sign up on the development portal?
 
-* `terms_of_service` - (Optional) A `terms_of_service` block as defined below.
+* `terms_of_service` - (Required) A `terms_of_service` block as defined below.
 
 ---
 

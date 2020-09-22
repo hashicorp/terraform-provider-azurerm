@@ -31,493 +31,8 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
 
-// Action enumerates the values for action.
-type Action string
-
-const (
-	// Allow ...
-	Allow Action = "Allow"
-)
-
-// PossibleActionValues returns an array of possible values for the Action const type.
-func PossibleActionValues() []Action {
-	return []Action{Allow}
-}
-
-// Architecture enumerates the values for architecture.
-type Architecture string
-
-const (
-	// Amd64 ...
-	Amd64 Architecture = "amd64"
-	// Arm ...
-	Arm Architecture = "arm"
-	// X86 ...
-	X86 Architecture = "x86"
-)
-
-// PossibleArchitectureValues returns an array of possible values for the Architecture const type.
-func PossibleArchitectureValues() []Architecture {
-	return []Architecture{Amd64, Arm, X86}
-}
-
-// BaseImageDependencyType enumerates the values for base image dependency type.
-type BaseImageDependencyType string
-
-const (
-	// BuildTime ...
-	BuildTime BaseImageDependencyType = "BuildTime"
-	// RunTime ...
-	RunTime BaseImageDependencyType = "RunTime"
-)
-
-// PossibleBaseImageDependencyTypeValues returns an array of possible values for the BaseImageDependencyType const type.
-func PossibleBaseImageDependencyTypeValues() []BaseImageDependencyType {
-	return []BaseImageDependencyType{BuildTime, RunTime}
-}
-
-// BaseImageTriggerType enumerates the values for base image trigger type.
-type BaseImageTriggerType string
-
-const (
-	// All ...
-	All BaseImageTriggerType = "All"
-	// Runtime ...
-	Runtime BaseImageTriggerType = "Runtime"
-)
-
-// PossibleBaseImageTriggerTypeValues returns an array of possible values for the BaseImageTriggerType const type.
-func PossibleBaseImageTriggerTypeValues() []BaseImageTriggerType {
-	return []BaseImageTriggerType{All, Runtime}
-}
-
-// DefaultAction enumerates the values for default action.
-type DefaultAction string
-
-const (
-	// DefaultActionAllow ...
-	DefaultActionAllow DefaultAction = "Allow"
-	// DefaultActionDeny ...
-	DefaultActionDeny DefaultAction = "Deny"
-)
-
-// PossibleDefaultActionValues returns an array of possible values for the DefaultAction const type.
-func PossibleDefaultActionValues() []DefaultAction {
-	return []DefaultAction{DefaultActionAllow, DefaultActionDeny}
-}
-
-// ImportMode enumerates the values for import mode.
-type ImportMode string
-
-const (
-	// Force ...
-	Force ImportMode = "Force"
-	// NoForce ...
-	NoForce ImportMode = "NoForce"
-)
-
-// PossibleImportModeValues returns an array of possible values for the ImportMode const type.
-func PossibleImportModeValues() []ImportMode {
-	return []ImportMode{Force, NoForce}
-}
-
-// OS enumerates the values for os.
-type OS string
-
-const (
-	// Linux ...
-	Linux OS = "Linux"
-	// Windows ...
-	Windows OS = "Windows"
-)
-
-// PossibleOSValues returns an array of possible values for the OS const type.
-func PossibleOSValues() []OS {
-	return []OS{Linux, Windows}
-}
-
-// PasswordName enumerates the values for password name.
-type PasswordName string
-
-const (
-	// Password ...
-	Password PasswordName = "password"
-	// Password2 ...
-	Password2 PasswordName = "password2"
-)
-
-// PossiblePasswordNameValues returns an array of possible values for the PasswordName const type.
-func PossiblePasswordNameValues() []PasswordName {
-	return []PasswordName{Password, Password2}
-}
-
-// PolicyStatus enumerates the values for policy status.
-type PolicyStatus string
-
-const (
-	// Disabled ...
-	Disabled PolicyStatus = "disabled"
-	// Enabled ...
-	Enabled PolicyStatus = "enabled"
-)
-
-// PossiblePolicyStatusValues returns an array of possible values for the PolicyStatus const type.
-func PossiblePolicyStatusValues() []PolicyStatus {
-	return []PolicyStatus{Disabled, Enabled}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Creating, Deleting, Failed, Succeeded, Updating}
-}
-
-// RegistryUsageUnit enumerates the values for registry usage unit.
-type RegistryUsageUnit string
-
-const (
-	// Bytes ...
-	Bytes RegistryUsageUnit = "Bytes"
-	// Count ...
-	Count RegistryUsageUnit = "Count"
-)
-
-// PossibleRegistryUsageUnitValues returns an array of possible values for the RegistryUsageUnit const type.
-func PossibleRegistryUsageUnitValues() []RegistryUsageUnit {
-	return []RegistryUsageUnit{Bytes, Count}
-}
-
-// RunStatus enumerates the values for run status.
-type RunStatus string
-
-const (
-	// RunStatusCanceled ...
-	RunStatusCanceled RunStatus = "Canceled"
-	// RunStatusError ...
-	RunStatusError RunStatus = "Error"
-	// RunStatusFailed ...
-	RunStatusFailed RunStatus = "Failed"
-	// RunStatusQueued ...
-	RunStatusQueued RunStatus = "Queued"
-	// RunStatusRunning ...
-	RunStatusRunning RunStatus = "Running"
-	// RunStatusStarted ...
-	RunStatusStarted RunStatus = "Started"
-	// RunStatusSucceeded ...
-	RunStatusSucceeded RunStatus = "Succeeded"
-	// RunStatusTimeout ...
-	RunStatusTimeout RunStatus = "Timeout"
-)
-
-// PossibleRunStatusValues returns an array of possible values for the RunStatus const type.
-func PossibleRunStatusValues() []RunStatus {
-	return []RunStatus{RunStatusCanceled, RunStatusError, RunStatusFailed, RunStatusQueued, RunStatusRunning, RunStatusStarted, RunStatusSucceeded, RunStatusTimeout}
-}
-
-// RunType enumerates the values for run type.
-type RunType string
-
-const (
-	// AutoBuild ...
-	AutoBuild RunType = "AutoBuild"
-	// AutoRun ...
-	AutoRun RunType = "AutoRun"
-	// QuickBuild ...
-	QuickBuild RunType = "QuickBuild"
-	// QuickRun ...
-	QuickRun RunType = "QuickRun"
-)
-
-// PossibleRunTypeValues returns an array of possible values for the RunType const type.
-func PossibleRunTypeValues() []RunType {
-	return []RunType{AutoBuild, AutoRun, QuickBuild, QuickRun}
-}
-
-// SecretObjectType enumerates the values for secret object type.
-type SecretObjectType string
-
-const (
-	// Opaque ...
-	Opaque SecretObjectType = "Opaque"
-)
-
-// PossibleSecretObjectTypeValues returns an array of possible values for the SecretObjectType const type.
-func PossibleSecretObjectTypeValues() []SecretObjectType {
-	return []SecretObjectType{Opaque}
-}
-
-// SkuName enumerates the values for sku name.
-type SkuName string
-
-const (
-	// Basic ...
-	Basic SkuName = "Basic"
-	// Classic ...
-	Classic SkuName = "Classic"
-	// Premium ...
-	Premium SkuName = "Premium"
-	// Standard ...
-	Standard SkuName = "Standard"
-)
-
-// PossibleSkuNameValues returns an array of possible values for the SkuName const type.
-func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Basic, Classic, Premium, Standard}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// SkuTierBasic ...
-	SkuTierBasic SkuTier = "Basic"
-	// SkuTierClassic ...
-	SkuTierClassic SkuTier = "Classic"
-	// SkuTierPremium ...
-	SkuTierPremium SkuTier = "Premium"
-	// SkuTierStandard ...
-	SkuTierStandard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{SkuTierBasic, SkuTierClassic, SkuTierPremium, SkuTierStandard}
-}
-
-// SourceControlType enumerates the values for source control type.
-type SourceControlType string
-
-const (
-	// Github ...
-	Github SourceControlType = "Github"
-	// VisualStudioTeamService ...
-	VisualStudioTeamService SourceControlType = "VisualStudioTeamService"
-)
-
-// PossibleSourceControlTypeValues returns an array of possible values for the SourceControlType const type.
-func PossibleSourceControlTypeValues() []SourceControlType {
-	return []SourceControlType{Github, VisualStudioTeamService}
-}
-
-// SourceRegistryLoginMode enumerates the values for source registry login mode.
-type SourceRegistryLoginMode string
-
-const (
-	// Default ...
-	Default SourceRegistryLoginMode = "Default"
-	// None ...
-	None SourceRegistryLoginMode = "None"
-)
-
-// PossibleSourceRegistryLoginModeValues returns an array of possible values for the SourceRegistryLoginMode const type.
-func PossibleSourceRegistryLoginModeValues() []SourceRegistryLoginMode {
-	return []SourceRegistryLoginMode{Default, None}
-}
-
-// SourceTriggerEvent enumerates the values for source trigger event.
-type SourceTriggerEvent string
-
-const (
-	// Commit ...
-	Commit SourceTriggerEvent = "commit"
-	// Pullrequest ...
-	Pullrequest SourceTriggerEvent = "pullrequest"
-)
-
-// PossibleSourceTriggerEventValues returns an array of possible values for the SourceTriggerEvent const type.
-func PossibleSourceTriggerEventValues() []SourceTriggerEvent {
-	return []SourceTriggerEvent{Commit, Pullrequest}
-}
-
-// TaskStatus enumerates the values for task status.
-type TaskStatus string
-
-const (
-	// TaskStatusDisabled ...
-	TaskStatusDisabled TaskStatus = "Disabled"
-	// TaskStatusEnabled ...
-	TaskStatusEnabled TaskStatus = "Enabled"
-)
-
-// PossibleTaskStatusValues returns an array of possible values for the TaskStatus const type.
-func PossibleTaskStatusValues() []TaskStatus {
-	return []TaskStatus{TaskStatusDisabled, TaskStatusEnabled}
-}
-
-// TokenType enumerates the values for token type.
-type TokenType string
-
-const (
-	// OAuth ...
-	OAuth TokenType = "OAuth"
-	// PAT ...
-	PAT TokenType = "PAT"
-)
-
-// PossibleTokenTypeValues returns an array of possible values for the TokenType const type.
-func PossibleTokenTypeValues() []TokenType {
-	return []TokenType{OAuth, PAT}
-}
-
-// TriggerStatus enumerates the values for trigger status.
-type TriggerStatus string
-
-const (
-	// TriggerStatusDisabled ...
-	TriggerStatusDisabled TriggerStatus = "Disabled"
-	// TriggerStatusEnabled ...
-	TriggerStatusEnabled TriggerStatus = "Enabled"
-)
-
-// PossibleTriggerStatusValues returns an array of possible values for the TriggerStatus const type.
-func PossibleTriggerStatusValues() []TriggerStatus {
-	return []TriggerStatus{TriggerStatusDisabled, TriggerStatusEnabled}
-}
-
-// TrustPolicyType enumerates the values for trust policy type.
-type TrustPolicyType string
-
-const (
-	// Notary ...
-	Notary TrustPolicyType = "Notary"
-)
-
-// PossibleTrustPolicyTypeValues returns an array of possible values for the TrustPolicyType const type.
-func PossibleTrustPolicyTypeValues() []TrustPolicyType {
-	return []TrustPolicyType{Notary}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// TypeDockerBuildRequest ...
-	TypeDockerBuildRequest Type = "DockerBuildRequest"
-	// TypeEncodedTaskRunRequest ...
-	TypeEncodedTaskRunRequest Type = "EncodedTaskRunRequest"
-	// TypeFileTaskRunRequest ...
-	TypeFileTaskRunRequest Type = "FileTaskRunRequest"
-	// TypeRunRequest ...
-	TypeRunRequest Type = "RunRequest"
-	// TypeTaskRunRequest ...
-	TypeTaskRunRequest Type = "TaskRunRequest"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{TypeDockerBuildRequest, TypeEncodedTaskRunRequest, TypeFileTaskRunRequest, TypeRunRequest, TypeTaskRunRequest}
-}
-
-// TypeBasicTaskStepProperties enumerates the values for type basic task step properties.
-type TypeBasicTaskStepProperties string
-
-const (
-	// TypeDocker ...
-	TypeDocker TypeBasicTaskStepProperties = "Docker"
-	// TypeEncodedTask ...
-	TypeEncodedTask TypeBasicTaskStepProperties = "EncodedTask"
-	// TypeFileTask ...
-	TypeFileTask TypeBasicTaskStepProperties = "FileTask"
-	// TypeTaskStepProperties ...
-	TypeTaskStepProperties TypeBasicTaskStepProperties = "TaskStepProperties"
-)
-
-// PossibleTypeBasicTaskStepPropertiesValues returns an array of possible values for the TypeBasicTaskStepProperties const type.
-func PossibleTypeBasicTaskStepPropertiesValues() []TypeBasicTaskStepProperties {
-	return []TypeBasicTaskStepProperties{TypeDocker, TypeEncodedTask, TypeFileTask, TypeTaskStepProperties}
-}
-
-// TypeBasicTaskStepUpdateParameters enumerates the values for type basic task step update parameters.
-type TypeBasicTaskStepUpdateParameters string
-
-const (
-	// TypeBasicTaskStepUpdateParametersTypeDocker ...
-	TypeBasicTaskStepUpdateParametersTypeDocker TypeBasicTaskStepUpdateParameters = "Docker"
-	// TypeBasicTaskStepUpdateParametersTypeEncodedTask ...
-	TypeBasicTaskStepUpdateParametersTypeEncodedTask TypeBasicTaskStepUpdateParameters = "EncodedTask"
-	// TypeBasicTaskStepUpdateParametersTypeFileTask ...
-	TypeBasicTaskStepUpdateParametersTypeFileTask TypeBasicTaskStepUpdateParameters = "FileTask"
-	// TypeBasicTaskStepUpdateParametersTypeTaskStepUpdateParameters ...
-	TypeBasicTaskStepUpdateParametersTypeTaskStepUpdateParameters TypeBasicTaskStepUpdateParameters = "TaskStepUpdateParameters"
-)
-
-// PossibleTypeBasicTaskStepUpdateParametersValues returns an array of possible values for the TypeBasicTaskStepUpdateParameters const type.
-func PossibleTypeBasicTaskStepUpdateParametersValues() []TypeBasicTaskStepUpdateParameters {
-	return []TypeBasicTaskStepUpdateParameters{TypeBasicTaskStepUpdateParametersTypeDocker, TypeBasicTaskStepUpdateParametersTypeEncodedTask, TypeBasicTaskStepUpdateParametersTypeFileTask, TypeBasicTaskStepUpdateParametersTypeTaskStepUpdateParameters}
-}
-
-// Variant enumerates the values for variant.
-type Variant string
-
-const (
-	// V6 ...
-	V6 Variant = "v6"
-	// V7 ...
-	V7 Variant = "v7"
-	// V8 ...
-	V8 Variant = "v8"
-)
-
-// PossibleVariantValues returns an array of possible values for the Variant const type.
-func PossibleVariantValues() []Variant {
-	return []Variant{V6, V7, V8}
-}
-
-// WebhookAction enumerates the values for webhook action.
-type WebhookAction string
-
-const (
-	// ChartDelete ...
-	ChartDelete WebhookAction = "chart_delete"
-	// ChartPush ...
-	ChartPush WebhookAction = "chart_push"
-	// Delete ...
-	Delete WebhookAction = "delete"
-	// Push ...
-	Push WebhookAction = "push"
-	// Quarantine ...
-	Quarantine WebhookAction = "quarantine"
-)
-
-// PossibleWebhookActionValues returns an array of possible values for the WebhookAction const type.
-func PossibleWebhookActionValues() []WebhookAction {
-	return []WebhookAction{ChartDelete, ChartPush, Delete, Push, Quarantine}
-}
-
-// WebhookStatus enumerates the values for webhook status.
-type WebhookStatus string
-
-const (
-	// WebhookStatusDisabled ...
-	WebhookStatusDisabled WebhookStatus = "disabled"
-	// WebhookStatusEnabled ...
-	WebhookStatusEnabled WebhookStatus = "enabled"
-)
-
-// PossibleWebhookStatusValues returns an array of possible values for the WebhookStatus const type.
-func PossibleWebhookStatusValues() []WebhookStatus {
-	return []WebhookStatus{WebhookStatusDisabled, WebhookStatusEnabled}
-}
-
-// Actor the agent that initiated the event. For most situations, this could be from the authorization
-// context of the request.
+// Actor the agent that initiated the event. For most situations, this could be from the authorization context
+// of the request.
 type Actor struct {
 	// Name - The subject or username associated with the request context that generated the event.
 	Name *string `json:"name,omitempty"`
@@ -644,8 +159,8 @@ func (c Credentials) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CustomRegistryCredentials describes the credentials that will be used to access a custom registry during
-// a run.
+// CustomRegistryCredentials describes the credentials that will be used to access a custom registry during a
+// run.
 type CustomRegistryCredentials struct {
 	// UserName - The username for logging into the custom registry.
 	UserName *SecretObject `json:"userName,omitempty"`
@@ -1263,10 +778,15 @@ func (elr EventListResult) IsEmpty() bool {
 	return elr.Value == nil || len(*elr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (elr EventListResult) hasNextLink() bool {
+	return elr.NextLink != nil && len(*elr.NextLink) != 0
+}
+
 // eventListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (elr EventListResult) eventListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if elr.NextLink == nil || len(to.String(elr.NextLink)) < 1 {
+	if !elr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1294,11 +814,16 @@ func (page *EventListResultPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.elr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.elr)
+		if err != nil {
+			return err
+		}
+		page.elr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.elr = next
 	return nil
 }
 
@@ -1873,10 +1398,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1904,11 +1434,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -2013,8 +1548,7 @@ type RegenerateCredentialParameters struct {
 	Name PasswordName `json:"name,omitempty"`
 }
 
-// RegistriesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// RegistriesCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type RegistriesCreateFuture struct {
 	azure.Future
 }
@@ -2042,8 +1576,7 @@ func (future *RegistriesCreateFuture) Result(client RegistriesClient) (r Registr
 	return
 }
 
-// RegistriesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// RegistriesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type RegistriesDeleteFuture struct {
 	azure.Future
 }
@@ -2117,8 +1650,7 @@ func (future *RegistriesScheduleRunFuture) Result(client RegistriesClient) (r Ru
 	return
 }
 
-// RegistriesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// RegistriesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type RegistriesUpdateFuture struct {
 	azure.Future
 }
@@ -2146,8 +1678,8 @@ func (future *RegistriesUpdateFuture) Result(client RegistriesClient) (r Registr
 	return
 }
 
-// RegistriesUpdatePoliciesFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// RegistriesUpdatePoliciesFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type RegistriesUpdatePoliciesFuture struct {
 	azure.Future
 }
@@ -2376,10 +1908,15 @@ func (rlr RegistryListResult) IsEmpty() bool {
 	return rlr.Value == nil || len(*rlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rlr RegistryListResult) hasNextLink() bool {
+	return rlr.NextLink != nil && len(*rlr.NextLink) != 0
+}
+
 // registryListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rlr RegistryListResult) registryListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rlr.NextLink == nil || len(to.String(rlr.NextLink)) < 1 {
+	if !rlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2407,11 +1944,16 @@ func (page *RegistryListResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rlr)
+		if err != nil {
+			return err
+		}
+		page.rlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rlr = next
 	return nil
 }
 
@@ -2497,6 +2039,21 @@ type RegistryProperties struct {
 	StorageAccount *StorageAccountProperties `json:"storageAccount,omitempty"`
 	// NetworkRuleSet - The network rule set for a container registry.
 	NetworkRuleSet *NetworkRuleSet `json:"networkRuleSet,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RegistryProperties.
+func (rp RegistryProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rp.AdminUserEnabled != nil {
+		objectMap["adminUserEnabled"] = rp.AdminUserEnabled
+	}
+	if rp.StorageAccount != nil {
+		objectMap["storageAccount"] = rp.StorageAccount
+	}
+	if rp.NetworkRuleSet != nil {
+		objectMap["networkRuleSet"] = rp.NetworkRuleSet
+	}
+	return json.Marshal(objectMap)
 }
 
 // RegistryPropertiesUpdateParameters the parameters for updating the properties of a container registry.
@@ -2773,10 +2330,15 @@ func (rlr ReplicationListResult) IsEmpty() bool {
 	return rlr.Value == nil || len(*rlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rlr ReplicationListResult) hasNextLink() bool {
+	return rlr.NextLink != nil && len(*rlr.NextLink) != 0
+}
+
 // replicationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rlr ReplicationListResult) replicationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rlr.NextLink == nil || len(to.String(rlr.NextLink)) < 1 {
+	if !rlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2804,11 +2366,16 @@ func (page *ReplicationListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rlr)
+		if err != nil {
+			return err
+		}
+		page.rlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rlr = next
 	return nil
 }
 
@@ -3164,10 +2731,15 @@ func (rlr RunListResult) IsEmpty() bool {
 	return rlr.Value == nil || len(*rlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rlr RunListResult) hasNextLink() bool {
+	return rlr.NextLink != nil && len(*rlr.NextLink) != 0
+}
+
 // runListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rlr RunListResult) runListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rlr.NextLink == nil || len(to.String(rlr.NextLink)) < 1 {
+	if !rlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3195,11 +2767,16 @@ func (page *RunListResultPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rlr)
+		if err != nil {
+			return err
+		}
+		page.rlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rlr = next
 	return nil
 }
 
@@ -3271,6 +2848,63 @@ type RunProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// IsArchiveEnabled - The value that indicates whether archiving is enabled or not.
 	IsArchiveEnabled *bool `json:"isArchiveEnabled,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RunProperties.
+func (rp RunProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rp.RunID != nil {
+		objectMap["runId"] = rp.RunID
+	}
+	if rp.Status != "" {
+		objectMap["status"] = rp.Status
+	}
+	if rp.LastUpdatedTime != nil {
+		objectMap["lastUpdatedTime"] = rp.LastUpdatedTime
+	}
+	if rp.RunType != "" {
+		objectMap["runType"] = rp.RunType
+	}
+	if rp.CreateTime != nil {
+		objectMap["createTime"] = rp.CreateTime
+	}
+	if rp.StartTime != nil {
+		objectMap["startTime"] = rp.StartTime
+	}
+	if rp.FinishTime != nil {
+		objectMap["finishTime"] = rp.FinishTime
+	}
+	if rp.OutputImages != nil {
+		objectMap["outputImages"] = rp.OutputImages
+	}
+	if rp.Task != nil {
+		objectMap["task"] = rp.Task
+	}
+	if rp.ImageUpdateTrigger != nil {
+		objectMap["imageUpdateTrigger"] = rp.ImageUpdateTrigger
+	}
+	if rp.SourceTrigger != nil {
+		objectMap["sourceTrigger"] = rp.SourceTrigger
+	}
+	if rp.Platform != nil {
+		objectMap["platform"] = rp.Platform
+	}
+	if rp.AgentConfiguration != nil {
+		objectMap["agentConfiguration"] = rp.AgentConfiguration
+	}
+	if rp.SourceRegistryAuth != nil {
+		objectMap["sourceRegistryAuth"] = rp.SourceRegistryAuth
+	}
+	if rp.CustomRegistries != nil {
+		objectMap["customRegistries"] = rp.CustomRegistries
+	}
+	if rp.ProvisioningState != "" {
+		objectMap["provisioningState"] = rp.ProvisioningState
+	}
+	if rp.IsArchiveEnabled != nil {
+		objectMap["isArchiveEnabled"] = rp.IsArchiveEnabled
+	}
+	return json.Marshal(objectMap)
 }
 
 // BasicRunRequest the request parameters for scheduling a run.
@@ -3467,8 +3101,17 @@ type Sku struct {
 	Tier SkuTier `json:"tier,omitempty"`
 }
 
-// Source the registry node that generated the event. Put differently, while the actor initiates the event,
-// the source generates it.
+// MarshalJSON is the custom marshaler for Sku.
+func (s Sku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if s.Name != "" {
+		objectMap["name"] = s.Name
+	}
+	return json.Marshal(objectMap)
+}
+
+// Source the registry node that generated the event. Put differently, while the actor initiates the event, the
+// source generates it.
 type Source struct {
 	// Addr - The IP or hostname and the port of the registry node that generated the event. Generally, this will be resolved by os.Hostname() along with the running port.
 	Addr *string `json:"addr,omitempty"`
@@ -3571,8 +3214,8 @@ type Status struct {
 	Timestamp *date.Time `json:"timestamp,omitempty"`
 }
 
-// StorageAccountProperties the properties of a storage account for a container registry. Only applicable
-// to Classic SKU.
+// StorageAccountProperties the properties of a storage account for a container registry. Only applicable to
+// Classic SKU.
 type StorageAccountProperties struct {
 	// ID - The resource ID of the storage account.
 	ID *string `json:"id,omitempty"`
@@ -3779,10 +3422,15 @@ func (tlr TaskListResult) IsEmpty() bool {
 	return tlr.Value == nil || len(*tlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tlr TaskListResult) hasNextLink() bool {
+	return tlr.NextLink != nil && len(*tlr.NextLink) != 0
+}
+
 // taskListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tlr TaskListResult) taskListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if tlr.NextLink == nil || len(to.String(tlr.NextLink)) < 1 {
+	if !tlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3810,11 +3458,16 @@ func (page *TaskListResultPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tlr)
+		if err != nil {
+			return err
+		}
+		page.tlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tlr = next
 	return nil
 }
 
@@ -3868,6 +3521,31 @@ type TaskProperties struct {
 	Trigger *TriggerProperties `json:"trigger,omitempty"`
 	// Credentials - The properties that describes a set of credentials that will be used when this run is invoked.
 	Credentials *Credentials `json:"credentials,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TaskProperties.
+func (tp TaskProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tp.Status != "" {
+		objectMap["status"] = tp.Status
+	}
+	if tp.Platform != nil {
+		objectMap["platform"] = tp.Platform
+	}
+	if tp.AgentConfiguration != nil {
+		objectMap["agentConfiguration"] = tp.AgentConfiguration
+	}
+	if tp.Timeout != nil {
+		objectMap["timeout"] = tp.Timeout
+	}
+	objectMap["step"] = tp.Step
+	if tp.Trigger != nil {
+		objectMap["trigger"] = tp.Trigger
+	}
+	if tp.Credentials != nil {
+		objectMap["credentials"] = tp.Credentials
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for TaskProperties struct.
@@ -4739,10 +4417,15 @@ func (wlr WebhookListResult) IsEmpty() bool {
 	return wlr.Value == nil || len(*wlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wlr WebhookListResult) hasNextLink() bool {
+	return wlr.NextLink != nil && len(*wlr.NextLink) != 0
+}
+
 // webhookListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wlr WebhookListResult) webhookListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if wlr.NextLink == nil || len(to.String(wlr.NextLink)) < 1 {
+	if !wlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4770,11 +4453,16 @@ func (page *WebhookListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wlr)
+		if err != nil {
+			return err
+		}
+		page.wlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wlr = next
 	return nil
 }
 
@@ -4818,6 +4506,21 @@ type WebhookProperties struct {
 	Actions *[]WebhookAction `json:"actions,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state of the webhook at the time the operation was called. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WebhookProperties.
+func (wp WebhookProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wp.Status != "" {
+		objectMap["status"] = wp.Status
+	}
+	if wp.Scope != nil {
+		objectMap["scope"] = wp.Scope
+	}
+	if wp.Actions != nil {
+		objectMap["actions"] = wp.Actions
+	}
+	return json.Marshal(objectMap)
 }
 
 // WebhookPropertiesCreateParameters the parameters for creating the properties of a webhook.
@@ -4890,8 +4593,7 @@ func (wpup WebhookPropertiesUpdateParameters) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// WebhooksCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// WebhooksCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type WebhooksCreateFuture struct {
 	azure.Future
 }
@@ -4919,8 +4621,7 @@ func (future *WebhooksCreateFuture) Result(client WebhooksClient) (w Webhook, er
 	return
 }
 
-// WebhooksDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// WebhooksDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type WebhooksDeleteFuture struct {
 	azure.Future
 }
@@ -4942,8 +4643,7 @@ func (future *WebhooksDeleteFuture) Result(client WebhooksClient) (ar autorest.R
 	return
 }
 
-// WebhooksUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// WebhooksUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type WebhooksUpdateFuture struct {
 	azure.Future
 }

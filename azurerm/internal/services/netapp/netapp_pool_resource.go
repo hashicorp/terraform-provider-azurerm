@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -89,7 +88,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -192,12 +191,20 @@ func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error deleting NetApp Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	// The resource NetApp Pool depends on the resource NetApp Account.
+	// Although the delete API returns 404 which means the NetApp Pool resource has been deleted.
+	// Then it tries to immediately delete NetApp Account but it still throws error `Can not delete resource before nested resources are deleted.`
+	// In this case we're going to re-check status code again.
+	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
 	log.Printf("[DEBUG] Waiting for NetApp Pool %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200", "202"},
-		Target:  []string{"404"},
-		Refresh: netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.Name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.Name),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -214,15 +221,6 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *netapp.PoolsC
 			if !utils.ResponseWasNotFound(res.Response) {
 				return nil, "", fmt.Errorf("Error retrieving NetApp Pool %q (Resource Group %q): %s", name, resourceGroupName, err)
 			}
-		}
-
-		// The resource NetApp Pool depends on the resource NetApp Account.
-		// Although the delete API returns 404 which means the NetApp Pool resource has been deleted.
-		// Then it tries to immediately delete NetApp Account but it still throws error `Can not delete resource before nested resources are deleted.`
-		// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
-		// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
-		if _, err := client.Delete(ctx, resourceGroupName, accountName, name); err != nil {
-			log.Printf("Error reissuing NetApp Pool %q delete request (Resource Group %q): %+v", name, resourceGroupName, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

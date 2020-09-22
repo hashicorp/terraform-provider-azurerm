@@ -46,6 +46,10 @@ output "storage_account_tier" {
 * `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
 
+* `min_tls_version` - The minimum supported TLS version for this storage account.
+
+* `allow_blob_public_access` - Is public access allowed to all blobs or containers in the storage account?
+
 * `is_hns_enabled` - Is Hierarchical Namespace enabled?
 
 * `custom_domain` - A `custom_domain` block as documented below.

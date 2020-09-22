@@ -386,6 +386,9 @@ func (client ReplicationProtectionContainersClient) List(ctx context.Context) (r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "List", resp, "Failure responding to request")
 	}
+	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -497,6 +500,9 @@ func (client ReplicationProtectionContainersClient) ListByReplicationFabrics(ctx
 	result.pcc, err = client.ListByReplicationFabricsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "ListByReplicationFabrics", resp, "Failure responding to request")
+	}
+	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

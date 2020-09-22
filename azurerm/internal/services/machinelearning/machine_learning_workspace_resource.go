@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
-	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2019-11-01/machinelearningservices"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -128,6 +128,11 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 				Optional: true,
 			},
 
+			"high_business_impact": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"sku_name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -195,6 +200,10 @@ func resourceArmMachineLearningWorkspaceCreate(d *schema.ResourceData, meta inte
 
 	if v, ok := d.GetOk("container_registry_id"); ok {
 		workspace.ContainerRegistry = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("high_business_impact"); ok {
+		workspace.HbiWorkspace = utils.Bool(v.(bool))
 	}
 
 	accountsClient := meta.(*clients.Client).Storage.AccountsClient
@@ -267,6 +276,7 @@ func resourceArmMachineLearningWorkspaceRead(d *schema.ResourceData, meta interf
 		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
+		d.Set("high_business_impact", props.HbiWorkspace)
 	}
 
 	if err := d.Set("identity", flattenArmMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {

@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -150,6 +149,14 @@ func resourceArmMsSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"restorable_dropped_database_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -172,7 +179,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	metadata := tags.Expand(t)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -281,6 +288,7 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
+	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -347,6 +355,14 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
 		return fmt.Errorf("Error setting `extended_auditing_policy`: %+v", err)
+	}
+
+	restorableResp, err := restorableDroppedDatabasesClient.ListByServer(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
+	}
+	if err := d.Set("restorable_dropped_database_ids", flattenAzureRmSqlServerRestorableDatabases(restorableResp)); err != nil {
+		return fmt.Errorf("setting `restorable_dropped_database_ids`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -445,4 +461,19 @@ func flatternAzureRmMsSqlServerAdministrator(admin sql.ServerAzureADAdministrato
 			"tenant_id":      tid,
 		},
 	}
+}
+
+func flattenAzureRmSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListResult) []string {
+	if resp.Value == nil || len(*resp.Value) == 0 {
+		return []string{}
+	}
+	res := make([]string, 0)
+	for _, r := range *resp.Value {
+		var id string
+		if r.ID != nil {
+			id = *r.ID
+		}
+		res = append(res, id)
+	}
+	return res
 }

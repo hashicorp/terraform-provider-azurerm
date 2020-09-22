@@ -298,6 +298,9 @@ func (client DeviceSecurityGroupsClient) List(ctx context.Context, resourceID st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.DeviceSecurityGroupsClient", "List", resp, "Failure responding to request")
 	}
+	if result.dsgl.hasNextLink() && result.dsgl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

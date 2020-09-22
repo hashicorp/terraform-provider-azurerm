@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -97,19 +96,30 @@ func resourceArmSubnet() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft.ApiManagement/service",
+											"Microsoft.AzureCosmosDB/clusters",
 											"Microsoft.BareMetal/AzureVMware",
 											"Microsoft.BareMetal/CrayServers",
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
 											"Microsoft.Databricks/workspaces",
+											"Microsoft.DBforMySQL/flexibleServers",
+											"Microsoft.DBforMySQL/serversv2",
+											"Microsoft.DBforPostgreSQL/flexibleServers",
 											"Microsoft.DBforPostgreSQL/serversv2",
+											"Microsoft.DBforPostgreSQL/singleServers",
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
+											"Microsoft.Kusto/clusters",
 											"Microsoft.Logic/integrationServiceEnvironments",
+											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
+											"Microsoft.Network/managedResolvers",
+											"Microsoft.PowerPlatform/vnetaccesslinks",
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
 											"Microsoft.StreamAnalytics/streamingJobs",
+											"Microsoft.Synapse/workspaces",
 											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
 										}, false),
@@ -164,17 +174,15 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	vnetName := d.Get("virtual_network_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resGroup, vnetName, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Subnet %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
-			}
+	existing, err := client.Get(ctx, resGroup, vnetName, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Subnet %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_subnet", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_subnet", *existing.ID)
 	}
 
 	locks.ByName(vnetName, VirtualNetworkResourceName)

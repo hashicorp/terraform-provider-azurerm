@@ -145,6 +145,24 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_basicWithIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basicWithIdentity(data, "11"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLServer_autogrowOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 
@@ -479,6 +497,38 @@ resource "azurerm_postgresql_server" "test" {
 
 func testAccAzureRMPostgreSQLServer_basic(data acceptance.TestData, version string) string {
 	return testAccAzureRMPostgreSQLServer_template(data, "B_Gen5_1", version)
+}
+
+func testAccAzureRMPostgreSQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+
+  sku_name   = "B_Gen5_1"
+  version    = "%s"
+  storage_mb = 51200
+
+  ssl_enforcement_enabled = true
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
 func testAccAzureRMPostgreSQLServer_mo(data acceptance.TestData, version string) string {

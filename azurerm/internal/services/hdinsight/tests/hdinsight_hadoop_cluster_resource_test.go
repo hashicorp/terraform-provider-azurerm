@@ -589,11 +589,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -735,11 +735,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -787,11 +787,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -857,11 +857,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -929,11 +929,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -991,11 +991,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -1053,10 +1053,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
   gateway {
     enabled  = true
@@ -1116,10 +1116,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
   gateway {
     enabled  = true
@@ -1239,11 +1239,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   tls_min_version     = "1.2"
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
   gateway {
     enabled  = true
@@ -1327,10 +1327,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
   gateway {
     enabled  = true
@@ -1416,10 +1416,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
   gateway {
     enabled  = true
@@ -1477,11 +1477,11 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
 
   gateway {
@@ -1533,10 +1533,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    hadoop = "2.7"
+    hadoop = "3.1"
   }
   gateway {
     username = "acctestusrgw"

@@ -14,7 +14,7 @@ import (
 
 func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -62,7 +62,7 @@ func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]

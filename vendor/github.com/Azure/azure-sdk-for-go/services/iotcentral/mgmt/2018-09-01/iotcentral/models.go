@@ -30,27 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral"
 
-// AppSku enumerates the values for app sku.
-type AppSku string
-
-const (
-	// F1 ...
-	F1 AppSku = "F1"
-	// S1 ...
-	S1 AppSku = "S1"
-	// ST0 ...
-	ST0 AppSku = "ST0"
-	// ST1 ...
-	ST1 AppSku = "ST1"
-	// ST2 ...
-	ST2 AppSku = "ST2"
-)
-
-// PossibleAppSkuValues returns an array of possible values for the AppSku const type.
-func PossibleAppSkuValues() []AppSku {
-	return []AppSku{F1, S1, ST0, ST1, ST2}
-}
-
 // App the IoT Central application.
 type App struct {
 	autorest.Response `json:"-"`
@@ -166,8 +145,8 @@ func (a *App) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// AppAvailabilityInfo the properties indicating whether a given IoT Central application name or subdomain
-// is available.
+// AppAvailabilityInfo the properties indicating whether a given IoT Central application name or subdomain is
+// available.
 type AppAvailabilityInfo struct {
 	autorest.Response `json:"-"`
 	// NameAvailable - READ-ONLY; The value which indicates whether the provided name is available.
@@ -255,10 +234,15 @@ func (alr AppListResult) IsEmpty() bool {
 	return alr.Value == nil || len(*alr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (alr AppListResult) hasNextLink() bool {
+	return alr.NextLink != nil && len(*alr.NextLink) != 0
+}
+
 // appListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (alr AppListResult) appListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+	if !alr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -286,11 +270,16 @@ func (page *AppListResultPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.alr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.alr)
+		if err != nil {
+			return err
+		}
+		page.alr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.alr = next
 	return nil
 }
 
@@ -403,6 +392,21 @@ type AppProperties struct {
 	Template *string `json:"template,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AppProperties.
+func (ap AppProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.DisplayName != nil {
+		objectMap["displayName"] = ap.DisplayName
+	}
+	if ap.Subdomain != nil {
+		objectMap["subdomain"] = ap.Subdomain
+	}
+	if ap.Template != nil {
+		objectMap["template"] = ap.Template
+	}
+	return json.Marshal(objectMap)
+}
+
 // AppsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsCreateOrUpdateFuture struct {
@@ -513,6 +517,15 @@ type AppTemplatesResult struct {
 	Value *[]AppTemplate `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AppTemplatesResult.
+func (atr AppTemplatesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if atr.NextLink != nil {
+		objectMap["nextLink"] = atr.NextLink
+	}
+	return json.Marshal(objectMap)
+}
+
 // AppTemplatesResultIterator provides access to a complete listing of AppTemplate values.
 type AppTemplatesResultIterator struct {
 	i    int
@@ -581,10 +594,15 @@ func (atr AppTemplatesResult) IsEmpty() bool {
 	return atr.Value == nil || len(*atr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (atr AppTemplatesResult) hasNextLink() bool {
+	return atr.NextLink != nil && len(*atr.NextLink) != 0
+}
+
 // appTemplatesResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (atr AppTemplatesResult) appTemplatesResultPreparer(ctx context.Context) (*http.Request, error) {
-	if atr.NextLink == nil || len(to.String(atr.NextLink)) < 1 {
+	if !atr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -612,11 +630,16 @@ func (page *AppTemplatesResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.atr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.atr)
+		if err != nil {
+			return err
+		}
+		page.atr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.atr = next
 	return nil
 }
 
@@ -701,12 +724,30 @@ type CloudErrorBody struct {
 	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CloudErrorBody.
+func (ceb CloudErrorBody) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ceb.Details != nil {
+		objectMap["details"] = ceb.Details
+	}
+	return json.Marshal(objectMap)
+}
+
 // Operation ioT Central REST API operation
 type Operation struct {
 	// Name - READ-ONLY; Operation name: {provider}/{resource}/{read | write | action | delete}
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationDisplay the object that represents the operation.
@@ -729,14 +770,23 @@ type OperationInputs struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// OperationListResult a list of IoT Central operations. It contains a list of operations and a URL link to
-// get the next set of results.
+// OperationListResult a list of IoT Central operations. It contains a list of operations and a URL link to get
+// the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// NextLink - The link used to get the next page of IoT Central description objects.
 	NextLink *string `json:"nextLink,omitempty"`
 	// Value - READ-ONLY; A list of operations supported by the Microsoft.IoTCentral resource provider.
 	Value *[]Operation `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if olr.NextLink != nil {
+		objectMap["nextLink"] = olr.NextLink
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of Operation values.
@@ -807,10 +857,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -838,11 +893,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 

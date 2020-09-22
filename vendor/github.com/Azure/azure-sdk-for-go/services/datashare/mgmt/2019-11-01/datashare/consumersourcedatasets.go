@@ -77,6 +77,9 @@ func (client ConsumerSourceDataSetsClient) ListByShareSubscription(ctx context.C
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ConsumerSourceDataSetsClient", "ListByShareSubscription", resp, "Failure responding to request")
 	}
+	if result.csdsl.hasNextLink() && result.csdsl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

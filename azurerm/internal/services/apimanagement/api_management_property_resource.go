@@ -167,7 +167,9 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 	if properties := resp.NamedValueContractProperties; properties != nil {
 		d.Set("display_name", properties.DisplayName)
 		d.Set("secret", properties.Secret)
-		d.Set("value", properties.Value)
+		if !*properties.Secret {
+			d.Set("value", properties.Value)
+		}
 		d.Set("tags", properties.Tags)
 	}
 

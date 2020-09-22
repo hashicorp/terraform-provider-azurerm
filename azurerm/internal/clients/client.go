@@ -12,6 +12,7 @@ import (
 	appConfiguration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/client"
 	applicationInsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/client"
 	appPlatform "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/client"
+	attestation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/client"
 	authorization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/client"
 	automation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/client"
 	batch "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/client"
@@ -37,11 +38,13 @@ import (
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
+	hsm "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm/client"
 	iotcentral "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
 	timeseriesinsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/client"
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
+	lighthouse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/client"
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
 	machinelearning "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/client"
@@ -78,6 +81,7 @@ import (
 	storage "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
 	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
+	synapse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/client"
 	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
 	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
 )
@@ -95,6 +99,7 @@ type Client struct {
 	AppConfiguration      *appConfiguration.Client
 	AppInsights           *applicationInsights.Client
 	AppPlatform           *appPlatform.Client
+	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
 	Batch                 *batch.Client
@@ -118,6 +123,7 @@ type Client struct {
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Frontdoor             *frontdoor.Client
+	HSM                   *hsm.Client
 	HDInsight             *hdinsight.Client
 	HealthCare            *healthcare.Client
 	IoTCentral            *iotcentral.Client
@@ -125,6 +131,7 @@ type Client struct {
 	IoTTimeSeriesInsights *timeseriesinsights.Client
 	KeyVault              *keyvault.Client
 	Kusto                 *kusto.Client
+	Lighthouse            *lighthouse.Client
 	LogAnalytics          *loganalytics.Client
 	Logic                 *logic.Client
 	MachineLearning       *machinelearning.Client
@@ -161,6 +168,7 @@ type Client struct {
 	StreamAnalytics       *streamAnalytics.Client
 	Subscription          *subscription.Client
 	Sql                   *sql.Client
+	Synapse               *synapse.Client
 	TrafficManager        *trafficManager.Client
 	Web                   *web.Client
 }
@@ -179,6 +187,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.AppConfiguration = appConfiguration.NewClient(o)
 	client.AppInsights = applicationInsights.NewClient(o)
 	client.AppPlatform = appPlatform.NewClient(o)
+	client.Attestation = attestation.NewClient(o)
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
 	client.Batch = batch.NewClient(o)
@@ -202,6 +211,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
+	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
 	client.IoTCentral = iotcentral.NewClient(o)
@@ -209,6 +219,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
+	client.Lighthouse = lighthouse.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.Logic = logic.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
@@ -245,6 +256,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Storage = storage.NewClient(o)
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
+	client.Synapse = synapse.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.Web = web.NewClient(o)
 

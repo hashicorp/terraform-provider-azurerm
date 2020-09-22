@@ -301,6 +301,9 @@ func (client VpnServerConfigurationsClient) List(ctx context.Context) (result Li
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.lvscr.hasNextLink() && result.lvscr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -410,6 +413,9 @@ func (client VpnServerConfigurationsClient) ListByResourceGroup(ctx context.Cont
 	result.lvscr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VpnServerConfigurationsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.lvscr.hasNextLink() && result.lvscr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

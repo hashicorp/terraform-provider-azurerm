@@ -30,193 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 
-// AsyncOperationState enumerates the values for async operation state.
-type AsyncOperationState string
-
-const (
-	// Failed ...
-	Failed AsyncOperationState = "Failed"
-	// InProgress ...
-	InProgress AsyncOperationState = "InProgress"
-	// Succeeded ...
-	Succeeded AsyncOperationState = "Succeeded"
-)
-
-// PossibleAsyncOperationStateValues returns an array of possible values for the AsyncOperationState const type.
-func PossibleAsyncOperationStateValues() []AsyncOperationState {
-	return []AsyncOperationState{Failed, InProgress, Succeeded}
-}
-
-// ClusterProvisioningState enumerates the values for cluster provisioning state.
-type ClusterProvisioningState string
-
-const (
-	// ClusterProvisioningStateCanceled ...
-	ClusterProvisioningStateCanceled ClusterProvisioningState = "Canceled"
-	// ClusterProvisioningStateDeleting ...
-	ClusterProvisioningStateDeleting ClusterProvisioningState = "Deleting"
-	// ClusterProvisioningStateFailed ...
-	ClusterProvisioningStateFailed ClusterProvisioningState = "Failed"
-	// ClusterProvisioningStateInProgress ...
-	ClusterProvisioningStateInProgress ClusterProvisioningState = "InProgress"
-	// ClusterProvisioningStateSucceeded ...
-	ClusterProvisioningStateSucceeded ClusterProvisioningState = "Succeeded"
-)
-
-// PossibleClusterProvisioningStateValues returns an array of possible values for the ClusterProvisioningState const type.
-func PossibleClusterProvisioningStateValues() []ClusterProvisioningState {
-	return []ClusterProvisioningState{ClusterProvisioningStateCanceled, ClusterProvisioningStateDeleting, ClusterProvisioningStateFailed, ClusterProvisioningStateInProgress, ClusterProvisioningStateSucceeded}
-}
-
-// DaysOfWeek enumerates the values for days of week.
-type DaysOfWeek string
-
-const (
-	// Friday ...
-	Friday DaysOfWeek = "Friday"
-	// Monday ...
-	Monday DaysOfWeek = "Monday"
-	// Saturday ...
-	Saturday DaysOfWeek = "Saturday"
-	// Sunday ...
-	Sunday DaysOfWeek = "Sunday"
-	// Thursday ...
-	Thursday DaysOfWeek = "Thursday"
-	// Tuesday ...
-	Tuesday DaysOfWeek = "Tuesday"
-	// Wednesday ...
-	Wednesday DaysOfWeek = "Wednesday"
-)
-
-// PossibleDaysOfWeekValues returns an array of possible values for the DaysOfWeek const type.
-func PossibleDaysOfWeekValues() []DaysOfWeek {
-	return []DaysOfWeek{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday}
-}
-
-// DirectoryType enumerates the values for directory type.
-type DirectoryType string
-
-const (
-	// ActiveDirectory ...
-	ActiveDirectory DirectoryType = "ActiveDirectory"
-)
-
-// PossibleDirectoryTypeValues returns an array of possible values for the DirectoryType const type.
-func PossibleDirectoryTypeValues() []DirectoryType {
-	return []DirectoryType{ActiveDirectory}
-}
-
-// FilterMode enumerates the values for filter mode.
-type FilterMode string
-
-const (
-	// Exclude ...
-	Exclude FilterMode = "Exclude"
-	// Include ...
-	Include FilterMode = "Include"
-)
-
-// PossibleFilterModeValues returns an array of possible values for the FilterMode const type.
-func PossibleFilterModeValues() []FilterMode {
-	return []FilterMode{Exclude, Include}
-}
-
-// JSONWebKeyEncryptionAlgorithm enumerates the values for json web key encryption algorithm.
-type JSONWebKeyEncryptionAlgorithm string
-
-const (
-	// RSA15 ...
-	RSA15 JSONWebKeyEncryptionAlgorithm = "RSA1_5"
-	// RSAOAEP ...
-	RSAOAEP JSONWebKeyEncryptionAlgorithm = "RSA-OAEP"
-	// RSAOAEP256 ...
-	RSAOAEP256 JSONWebKeyEncryptionAlgorithm = "RSA-OAEP-256"
-)
-
-// PossibleJSONWebKeyEncryptionAlgorithmValues returns an array of possible values for the JSONWebKeyEncryptionAlgorithm const type.
-func PossibleJSONWebKeyEncryptionAlgorithmValues() []JSONWebKeyEncryptionAlgorithm {
-	return []JSONWebKeyEncryptionAlgorithm{RSA15, RSAOAEP, RSAOAEP256}
-}
-
-// OSType enumerates the values for os type.
-type OSType string
-
-const (
-	// Linux ...
-	Linux OSType = "Linux"
-	// Windows ...
-	Windows OSType = "Windows"
-)
-
-// PossibleOSTypeValues returns an array of possible values for the OSType const type.
-func PossibleOSTypeValues() []OSType {
-	return []OSType{Linux, Windows}
-}
-
-// OutboundOnlyPublicNetworkAccessType enumerates the values for outbound only public network access type.
-type OutboundOnlyPublicNetworkAccessType string
-
-const (
-	// PublicLoadBalancer ...
-	PublicLoadBalancer OutboundOnlyPublicNetworkAccessType = "PublicLoadBalancer"
-	// UDR ...
-	UDR OutboundOnlyPublicNetworkAccessType = "UDR"
-)
-
-// PossibleOutboundOnlyPublicNetworkAccessTypeValues returns an array of possible values for the OutboundOnlyPublicNetworkAccessType const type.
-func PossibleOutboundOnlyPublicNetworkAccessTypeValues() []OutboundOnlyPublicNetworkAccessType {
-	return []OutboundOnlyPublicNetworkAccessType{PublicLoadBalancer, UDR}
-}
-
-// PublicNetworkAccess enumerates the values for public network access.
-type PublicNetworkAccess string
-
-const (
-	// InboundAndOutbound ...
-	InboundAndOutbound PublicNetworkAccess = "InboundAndOutbound"
-	// OutboundOnly ...
-	OutboundOnly PublicNetworkAccess = "OutboundOnly"
-)
-
-// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
-func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
-	return []PublicNetworkAccess{InboundAndOutbound, OutboundOnly}
-}
-
-// ResourceIdentityType enumerates the values for resource identity type.
-type ResourceIdentityType string
-
-const (
-	// None ...
-	None ResourceIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned ResourceIdentityType = "SystemAssigned"
-	// SystemAssignedUserAssigned ...
-	SystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned, UserAssigned"
-	// UserAssigned ...
-	UserAssigned ResourceIdentityType = "UserAssigned"
-)
-
-// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
-func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
-}
-
-// Tier enumerates the values for tier.
-type Tier string
-
-const (
-	// Premium ...
-	Premium Tier = "Premium"
-	// Standard ...
-	Standard Tier = "Standard"
-)
-
-// PossibleTierValues returns an array of possible values for the Tier const type.
-func PossibleTierValues() []Tier {
-	return []Tier{Premium, Standard}
-}
-
 // Application the HDInsight cluster application
 type Application struct {
 	autorest.Response `json:"-"`
@@ -275,14 +88,23 @@ type ApplicationGetHTTPSEndpoint struct {
 	DisableGatewayAuth *bool `json:"disableGatewayAuth,omitempty"`
 }
 
-// ApplicationListResult result of the request to list cluster Applications. It contains a list of
-// operations and a URL link to get the next set of results.
+// ApplicationListResult result of the request to list cluster Applications. It contains a list of operations
+// and a URL link to get the next set of results.
 type ApplicationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of HDInsight applications installed on HDInsight cluster.
 	Value *[]Application `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationListResult.
+func (alr ApplicationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if alr.Value != nil {
+		objectMap["value"] = alr.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationListResultIterator provides access to a complete listing of Application values.
@@ -353,10 +175,15 @@ func (alr ApplicationListResult) IsEmpty() bool {
 	return alr.Value == nil || len(*alr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (alr ApplicationListResult) hasNextLink() bool {
+	return alr.NextLink != nil && len(*alr.NextLink) != 0
+}
+
 // applicationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (alr ApplicationListResult) applicationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+	if !alr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -384,11 +211,16 @@ func (page *ApplicationListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.alr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.alr)
+		if err != nil {
+			return err
+		}
+		page.alr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.alr = next
 	return nil
 }
 
@@ -446,6 +278,33 @@ type ApplicationProperties struct {
 	CreatedDate *string `json:"createdDate,omitempty"`
 	// MarketplaceIdentifier - READ-ONLY; The marketplace identifier.
 	MarketplaceIdentifier *string `json:"marketplaceIdentifier,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationProperties.
+func (ap ApplicationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.ComputeProfile != nil {
+		objectMap["computeProfile"] = ap.ComputeProfile
+	}
+	if ap.InstallScriptActions != nil {
+		objectMap["installScriptActions"] = ap.InstallScriptActions
+	}
+	if ap.UninstallScriptActions != nil {
+		objectMap["uninstallScriptActions"] = ap.UninstallScriptActions
+	}
+	if ap.HTTPSEndpoints != nil {
+		objectMap["httpsEndpoints"] = ap.HTTPSEndpoints
+	}
+	if ap.SSHEndpoints != nil {
+		objectMap["sshEndpoints"] = ap.SSHEndpoints
+	}
+	if ap.ApplicationType != nil {
+		objectMap["applicationType"] = ap.ApplicationType
+	}
+	if ap.Errors != nil {
+		objectMap["errors"] = ap.Errors
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -516,6 +375,12 @@ type AutoscaleCapacity struct {
 	MaxInstanceCount *int32 `json:"maxInstanceCount,omitempty"`
 }
 
+// AutoscaleConfigurationUpdateParameter the autoscale configuration update parameter.
+type AutoscaleConfigurationUpdateParameter struct {
+	// Autoscale - The autoscale configuration.
+	Autoscale *Autoscale `json:"autoscale,omitempty"`
+}
+
 // AutoscaleRecurrence schedule-based autoscale request parameters
 type AutoscaleRecurrence struct {
 	// TimeZone - The time zone for the autoscale schedule times
@@ -524,8 +389,8 @@ type AutoscaleRecurrence struct {
 	Schedule *[]AutoscaleSchedule `json:"schedule,omitempty"`
 }
 
-// AutoscaleSchedule parameters for a schedule-based autoscale rule, consisting of an array of days + a
-// time and capacity
+// AutoscaleSchedule parameters for a schedule-based autoscale rule, consisting of an array of days + a time
+// and capacity
 type AutoscaleSchedule struct {
 	// Days - Days of the week for a schedule-based autoscale rule
 	Days *[]DaysOfWeek `json:"days,omitempty"`
@@ -563,8 +428,7 @@ type BillingResources struct {
 	DiskBillingMeters *[]DiskBillingMeters `json:"diskBillingMeters,omitempty"`
 }
 
-// BillingResponseListResult the response for the operation to get regional billingSpecs for a
-// subscription.
+// BillingResponseListResult the response for the operation to get regional billingSpecs for a subscription.
 type BillingResponseListResult struct {
 	autorest.Response `json:"-"`
 	// VMSizes - The virtual machine sizes to include or exclude.
@@ -732,6 +596,8 @@ type ClusterCreateProperties struct {
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// DiskEncryptionProperties - The disk encryption properties.
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
+	// EncryptionInTransitProperties - The encryption-in-transit properties.
+	EncryptionInTransitProperties *EncryptionInTransitProperties `json:"encryptionInTransitProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
 	// NetworkSettings - The network settings.
@@ -808,6 +674,8 @@ type ClusterGetProperties struct {
 	ConnectivityEndpoints *[]ConnectivityEndpoint `json:"connectivityEndpoints,omitempty"`
 	// DiskEncryptionProperties - The disk encryption properties.
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
+	// EncryptionInTransitProperties - The encryption-in-transit properties.
+	EncryptionInTransitProperties *EncryptionInTransitProperties `json:"encryptionInTransitProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
 	// NetworkSettings - The network settings.
@@ -854,6 +722,15 @@ type ClusterListPersistedScriptActionsResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ClusterListPersistedScriptActionsResult.
+func (clpsar ClusterListPersistedScriptActionsResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if clpsar.Value != nil {
+		objectMap["value"] = clpsar.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ClusterListResult the List Cluster operation response.
 type ClusterListResult struct {
 	autorest.Response `json:"-"`
@@ -861,6 +738,15 @@ type ClusterListResult struct {
 	Value *[]Cluster `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterListResult.
+func (clr ClusterListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if clr.Value != nil {
+		objectMap["value"] = clr.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // ClusterListResultIterator provides access to a complete listing of Cluster values.
@@ -931,10 +817,15 @@ func (clr ClusterListResult) IsEmpty() bool {
 	return clr.Value == nil || len(*clr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (clr ClusterListResult) hasNextLink() bool {
+	return clr.NextLink != nil && len(*clr.NextLink) != 0
+}
+
 // clusterListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (clr ClusterListResult) clusterListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if clr.NextLink == nil || len(to.String(clr.NextLink)) < 1 {
+	if !clr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -962,11 +853,16 @@ func (page *ClusterListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.clr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.clr)
+		if err != nil {
+			return err
+		}
+		page.clr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.clr = next
 	return nil
 }
 
@@ -1046,8 +942,7 @@ type ClusterResizeParameters struct {
 	TargetInstanceCount *int32 `json:"targetInstanceCount,omitempty"`
 }
 
-// ClustersCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ClustersCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersCreateFuture struct {
 	azure.Future
 }
@@ -1075,8 +970,7 @@ func (future *ClustersCreateFuture) Result(client ClustersClient) (c Cluster, er
 	return
 }
 
-// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersDeleteFuture struct {
 	azure.Future
 }
@@ -1121,8 +1015,7 @@ func (future *ClustersExecuteScriptActionsFuture) Result(client ClustersClient) 
 	return
 }
 
-// ClustersResizeFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ClustersResizeFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersResizeFuture struct {
 	azure.Future
 }
@@ -1161,6 +1054,29 @@ func (future *ClustersRotateDiskEncryptionKeyFuture) Result(client ClustersClien
 	}
 	if !done {
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersRotateDiskEncryptionKeyFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ClustersUpdateAutoScaleConfigurationFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ClustersUpdateAutoScaleConfigurationFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ClustersUpdateAutoScaleConfigurationFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersUpdateAutoScaleConfigurationFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateAutoScaleConfigurationFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -1241,6 +1157,15 @@ type DataDisksGroups struct {
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DataDisksGroups.
+func (ddg DataDisksGroups) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ddg.DisksPerNode != nil {
+		objectMap["disksPerNode"] = ddg.DisksPerNode
+	}
+	return json.Marshal(objectMap)
+}
+
 // DiskBillingMeters the disk billing meters.
 type DiskBillingMeters struct {
 	// DiskRpMeter - The managed disk meter guid.
@@ -1263,6 +1188,14 @@ type DiskEncryptionProperties struct {
 	EncryptionAlgorithm JSONWebKeyEncryptionAlgorithm `json:"encryptionAlgorithm,omitempty"`
 	// MsiResourceID - Resource ID of Managed Identity that is used to access the key vault.
 	MsiResourceID *string `json:"msiResourceId,omitempty"`
+	// EncryptionAtHost - Indicates whether or not resource disk encryption is enabled.
+	EncryptionAtHost *bool `json:"encryptionAtHost,omitempty"`
+}
+
+// EncryptionInTransitProperties the encryption-in-transit properties.
+type EncryptionInTransitProperties struct {
+	// IsEncryptionInTransitEnabled - Indicates whether or not inter cluster node communication is encrypted in transit.
+	IsEncryptionInTransitEnabled *bool `json:"isEncryptionInTransitEnabled,omitempty"`
 }
 
 // ErrorResponse describes the format of Error response.
@@ -1298,8 +1231,7 @@ type Extension struct {
 	PrimaryKey *string `json:"primaryKey,omitempty"`
 }
 
-// ExtensionsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ExtensionsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ExtensionsCreateFuture struct {
 	azure.Future
 }
@@ -1321,8 +1253,7 @@ func (future *ExtensionsCreateFuture) Result(client ExtensionsClient) (ar autore
 	return
 }
 
-// ExtensionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ExtensionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ExtensionsDeleteFuture struct {
 	azure.Future
 }
@@ -1344,8 +1275,8 @@ func (future *ExtensionsDeleteFuture) Result(client ExtensionsClient) (ar autore
 	return
 }
 
-// ExtensionsDisableMonitoringFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ExtensionsDisableMonitoringFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ExtensionsDisableMonitoringFuture struct {
 	azure.Future
 }
@@ -1367,8 +1298,8 @@ func (future *ExtensionsDisableMonitoringFuture) Result(client ExtensionsClient)
 	return
 }
 
-// ExtensionsEnableMonitoringFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// ExtensionsEnableMonitoringFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ExtensionsEnableMonitoringFuture struct {
 	azure.Future
 }
@@ -1469,8 +1400,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result of the request to list HDInsight operations. It contains a list of operations
-// and a URL link to get the next set of results.
+// OperationListResult result of the request to list HDInsight operations. It contains a list of operations and
+// a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of HDInsight operations supported by the HDInsight resource provider.
@@ -1547,10 +1478,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1578,11 +1514,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -1719,6 +1660,24 @@ type RuntimeScriptAction struct {
 	ApplicationName *string `json:"applicationName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RuntimeScriptAction.
+func (rsaVar RuntimeScriptAction) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rsaVar.Name != nil {
+		objectMap["name"] = rsaVar.Name
+	}
+	if rsaVar.URI != nil {
+		objectMap["uri"] = rsaVar.URI
+	}
+	if rsaVar.Parameters != nil {
+		objectMap["parameters"] = rsaVar.Parameters
+	}
+	if rsaVar.Roles != nil {
+		objectMap["roles"] = rsaVar.Roles
+	}
+	return json.Marshal(objectMap)
+}
+
 // RuntimeScriptActionDetail the execution details of a script action.
 type RuntimeScriptActionDetail struct {
 	autorest.Response `json:"-"`
@@ -1748,6 +1707,24 @@ type RuntimeScriptActionDetail struct {
 	ApplicationName *string `json:"applicationName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RuntimeScriptActionDetail.
+func (rsad RuntimeScriptActionDetail) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rsad.Name != nil {
+		objectMap["name"] = rsad.Name
+	}
+	if rsad.URI != nil {
+		objectMap["uri"] = rsad.URI
+	}
+	if rsad.Parameters != nil {
+		objectMap["parameters"] = rsad.Parameters
+	}
+	if rsad.Roles != nil {
+		objectMap["roles"] = rsad.Roles
+	}
+	return json.Marshal(objectMap)
+}
+
 // ScriptAction describes a script action on role on the cluster.
 type ScriptAction struct {
 	// Name - The name of the script action.
@@ -1767,8 +1744,8 @@ type ScriptActionExecutionHistoryList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ScriptActionExecutionHistoryListIterator provides access to a complete listing of
-// RuntimeScriptActionDetail values.
+// ScriptActionExecutionHistoryListIterator provides access to a complete listing of RuntimeScriptActionDetail
+// values.
 type ScriptActionExecutionHistoryListIterator struct {
 	i    int
 	page ScriptActionExecutionHistoryListPage
@@ -1836,10 +1813,15 @@ func (saehl ScriptActionExecutionHistoryList) IsEmpty() bool {
 	return saehl.Value == nil || len(*saehl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (saehl ScriptActionExecutionHistoryList) hasNextLink() bool {
+	return saehl.NextLink != nil && len(*saehl.NextLink) != 0
+}
+
 // scriptActionExecutionHistoryListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (saehl ScriptActionExecutionHistoryList) scriptActionExecutionHistoryListPreparer(ctx context.Context) (*http.Request, error) {
-	if saehl.NextLink == nil || len(to.String(saehl.NextLink)) < 1 {
+	if !saehl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1867,11 +1849,16 @@ func (page *ScriptActionExecutionHistoryListPage) NextWithContext(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.saehl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.saehl)
+		if err != nil {
+			return err
+		}
+		page.saehl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.saehl = next
 	return nil
 }
 
@@ -1934,6 +1921,15 @@ type ScriptActionsList struct {
 	Value *[]RuntimeScriptActionDetail `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScriptActionsList.
+func (sal ScriptActionsList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sal.Value != nil {
+		objectMap["value"] = sal.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // ScriptActionsListIterator provides access to a complete listing of RuntimeScriptActionDetail values.
@@ -2004,10 +2000,15 @@ func (sal ScriptActionsList) IsEmpty() bool {
 	return sal.Value == nil || len(*sal.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sal ScriptActionsList) hasNextLink() bool {
+	return sal.NextLink != nil && len(*sal.NextLink) != 0
+}
+
 // scriptActionsListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sal ScriptActionsList) scriptActionsListPreparer(ctx context.Context) (*http.Request, error) {
-	if sal.NextLink == nil || len(to.String(sal.NextLink)) < 1 {
+	if !sal.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2035,11 +2036,16 @@ func (page *ScriptActionsListPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sal)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sal)
+		if err != nil {
+			return err
+		}
+		page.sal = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sal = next
 	return nil
 }
 
@@ -2237,8 +2243,8 @@ func (vs VersionSpec) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// VirtualMachinesRestartHostsFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// VirtualMachinesRestartHostsFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type VirtualMachinesRestartHostsFuture struct {
 	azure.Future
 }
@@ -2284,11 +2290,11 @@ type VMSizeCompatibilityFilter struct {
 	Vmsizes *[]string `json:"vmsizes,omitempty"`
 }
 
-// VMSizeCompatibilityFilterV2 this class represent a single filter object that defines a multidimensional
-// set. The dimensions of this set are Regions, ClusterFlavors, NodeTypes and ClusterVersions. The
-// constraint should be defined based on the following: FilterMode (Exclude vs Include), VMSizes (the vm
-// sizes in affect of exclusion/inclusion) and the ordering of the Filters. Later filters override previous
-// settings if conflicted.
+// VMSizeCompatibilityFilterV2 this class represent a single filter object that defines a multidimensional set.
+// The dimensions of this set are Regions, ClusterFlavors, NodeTypes and ClusterVersions. The constraint should
+// be defined based on the following: FilterMode (Exclude vs Include), VMSizes (the vm sizes in affect of
+// exclusion/inclusion) and the ordering of the Filters. Later filters override previous settings if
+// conflicted.
 type VMSizeCompatibilityFilterV2 struct {
 	// FilterMode - The filtering mode. Effectively this can enabling or disabling the VM sizes in a particular set. Possible values include: 'Exclude', 'Include'
 	FilterMode FilterMode `json:"filterMode,omitempty"`

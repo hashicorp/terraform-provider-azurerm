@@ -228,6 +228,9 @@ func (client InformationProtectionPoliciesClient) List(ctx context.Context, scop
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.InformationProtectionPoliciesClient", "List", resp, "Failure responding to request")
 	}
+	if result.ippl.hasNextLink() && result.ippl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

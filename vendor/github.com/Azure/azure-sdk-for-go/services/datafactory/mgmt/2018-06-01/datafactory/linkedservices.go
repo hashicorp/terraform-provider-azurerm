@@ -388,6 +388,9 @@ func (client LinkedServicesClient) ListByFactory(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.LinkedServicesClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.lslr.hasNextLink() && result.lslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

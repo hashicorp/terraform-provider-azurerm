@@ -102,7 +102,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `private_cluster_enabled` Should this Kubernetes Cluster have it's API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
+* `private_cluster_enabled` Should this Kubernetes Cluster have its API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
@@ -110,9 +110,9 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
-* `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Changing this forces a new resource to be created. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
+* `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
 
-~> **Note:** This functionality is in Preview and has [several limitations](https://docs.microsoft.com/en-us/azure/aks/uptime-sla).
+~> **Note:**  It is currently possible to upgrade in place from `Free` to `Paid`. However, changing this value from `Paid` to `Free` will force a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

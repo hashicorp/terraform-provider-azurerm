@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -62,8 +62,46 @@ func TestAccAzureRMCosmosDbSqlDatabase_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbSqlDatabase_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbSqlDatabase_autoscale(data, 4000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
+				),
+			},
+			data.ImportStep(),
+			{
+
+				Config: testAccAzureRMCosmosDbSqlDatabase_autoscale(data, 5000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "5000"),
+				),
+			},
+			data.ImportStep(),
+			{
+
+				Config: testAccAzureRMCosmosDbSqlDatabase_autoscale(data, 4000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbSqlDatabaseDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.SqlClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -92,7 +130,7 @@ func testCheckAzureRMCosmosDbSqlDatabaseDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.SqlClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -141,4 +179,19 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   throughput          = %[3]d
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.GlobalDocumentDB, documentdb.Strong), data.RandomInteger, throughput)
+}
+
+func testAccAzureRMCosmosDbSqlDatabase_autoscale(data acceptance.TestData, maxThroughput int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  autoscale_settings {
+    max_throughput = %[3]d
+  }
+}
+`, testAccAzureRMCosmosDBAccount_basic(data, documentdb.GlobalDocumentDB, documentdb.Strong), data.RandomInteger, maxThroughput)
 }
