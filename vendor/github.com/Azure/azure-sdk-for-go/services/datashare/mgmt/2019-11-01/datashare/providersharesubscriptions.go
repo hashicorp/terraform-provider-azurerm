@@ -156,6 +156,9 @@ func (client ProviderShareSubscriptionsClient) ListByShare(ctx context.Context, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "ListByShare", resp, "Failure responding to request")
 	}
+	if result.pssl.hasNextLink() && result.pssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

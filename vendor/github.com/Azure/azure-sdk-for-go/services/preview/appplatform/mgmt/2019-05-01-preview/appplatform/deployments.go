@@ -399,6 +399,9 @@ func (client DeploymentsClient) List(ctx context.Context, resourceGroupName stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.drc.hasNextLink() && result.drc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -517,6 +520,9 @@ func (client DeploymentsClient) ListClusterAllDeployments(ctx context.Context, r
 	result.drc, err = client.ListClusterAllDeploymentsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.DeploymentsClient", "ListClusterAllDeployments", resp, "Failure responding to request")
+	}
+	if result.drc.hasNextLink() && result.drc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

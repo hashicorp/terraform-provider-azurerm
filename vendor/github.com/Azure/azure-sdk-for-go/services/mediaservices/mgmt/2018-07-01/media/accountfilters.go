@@ -317,6 +317,9 @@ func (client AccountFiltersClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AccountFiltersClient", "List", resp, "Failure responding to request")
 	}
+	if result.afc.hasNextLink() && result.afc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

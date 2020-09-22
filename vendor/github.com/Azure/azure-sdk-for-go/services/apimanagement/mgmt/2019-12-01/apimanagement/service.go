@@ -683,6 +683,9 @@ func (client ServiceClient) List(ctx context.Context) (result ServiceListResultP
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "List", resp, "Failure responding to request")
 	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -792,6 +795,9 @@ func (client ServiceClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.slr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

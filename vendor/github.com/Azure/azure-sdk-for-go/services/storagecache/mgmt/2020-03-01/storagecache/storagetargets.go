@@ -363,6 +363,9 @@ func (client StorageTargetsClient) ListByCache(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.StorageTargetsClient", "ListByCache", resp, "Failure responding to request")
 	}
+	if result.str.hasNextLink() && result.str.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

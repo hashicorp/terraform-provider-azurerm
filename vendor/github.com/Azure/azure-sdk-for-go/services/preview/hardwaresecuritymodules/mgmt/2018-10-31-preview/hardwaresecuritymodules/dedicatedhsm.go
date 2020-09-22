@@ -312,6 +312,9 @@ func (client DedicatedHsmClient) ListByResourceGroup(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.dhlr.hasNextLink() && result.dhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -425,6 +428,9 @@ func (client DedicatedHsmClient) ListBySubscription(ctx context.Context, top *in
 	result.dhlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hardwaresecuritymodules.DedicatedHsmClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.dhlr.hasNextLink() && result.dhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

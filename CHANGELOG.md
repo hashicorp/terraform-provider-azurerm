@@ -1,20 +1,38 @@
 ## 2.29.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_api_management` - the value `None` has been removed from the `identity` block to match other resources, to specify an API Management Service with no Managed Identity remove the `identity` block [GH-8411]
+
 FEATURES: 
 
-
 * **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
-* **New Sata Source:** `azurerm_databricks_workspace` [GH-8502]
+* **New Data Source:** `azurerm_databricks_workspace` [GH-8502]
 * **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
+* **New Data Source:** `azurerm_mssql_server` [GH-7917]
 * **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
-* **New Resource:** `azurerm_storage_sync_group` [GH-8462]
+* **New Resource:** `azurerm_postgresql_server_key` [GH-8126]
 
-IMPORVEMENTS:
+IMPROVEMENTS:
 
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
+* `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
+* `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
+* `azurerm_signalr_service` - support for delta updates [GH-8541]
+* `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
+
+BUG FIXES:
+
+* `azurerm_api_management` - the value `None` for the field `type` within the `identity` block has been removed - to remove a managed identity remove the `identity` block [GH-8411]
+* `azurerm_app_service` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
+* `azurerm_function_app` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
+* `azurerm_kubernetes_cluster` - picking the first system node pool if the original `default_node_pool` has been removed [GH-8503]
 
 ## 2.28.0 (September 17, 2020)
+
 UPGRADE NOTES
+
 * The `id` field for the `azurerm_role_definition` changed in release 2.27.0 to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` from this version of the Azure Provider.
 
 FEATURES:

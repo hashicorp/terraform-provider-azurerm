@@ -386,6 +386,9 @@ func (client QueueClient) List(ctx context.Context, resourceGroupName string, ac
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.QueueClient", "List", resp, "Failure responding to request")
 	}
+	if result.lqr.hasNextLink() && result.lqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

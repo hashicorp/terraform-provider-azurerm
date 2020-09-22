@@ -269,6 +269,9 @@ func (client SourceControlSyncJobClient) ListByAutomationAccount(ctx context.Con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.scsjlr.hasNextLink() && result.scsjlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -363,6 +363,9 @@ func (client IntegrationRuntimesClient) ListByWorkspace(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "ListByWorkspace", resp, "Failure responding to request")
 	}
+	if result.irlr.hasNextLink() && result.irlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

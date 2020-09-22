@@ -2142,6 +2142,374 @@ func (client SQLResourcesClient) ListSQLUserDefinedFunctionsResponder(resp *http
 	return
 }
 
+// MigrateSQLContainerToAutoscale migrate an Azure Cosmos DB SQL container from manual throughput to autoscale
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// accountName - cosmos DB database account name.
+// databaseName - cosmos DB database name.
+// containerName - cosmos DB container name.
+func (client SQLResourcesClient) MigrateSQLContainerToAutoscale(ctx context.Context, resourceGroupName string, accountName string, databaseName string, containerName string) (result SQLResourcesMigrateSQLContainerToAutoscaleFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLResourcesClient.MigrateSQLContainerToAutoscale")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.SQLResourcesClient", "MigrateSQLContainerToAutoscale", err.Error())
+	}
+
+	req, err := client.MigrateSQLContainerToAutoscalePreparer(ctx, resourceGroupName, accountName, databaseName, containerName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "MigrateSQLContainerToAutoscale", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.MigrateSQLContainerToAutoscaleSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "MigrateSQLContainerToAutoscale", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// MigrateSQLContainerToAutoscalePreparer prepares the MigrateSQLContainerToAutoscale request.
+func (client SQLResourcesClient) MigrateSQLContainerToAutoscalePreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string, containerName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"containerName":     autorest.Encode("path", containerName),
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/containers/{containerName}/throughputSettings/default/migrateToAutoscale", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// MigrateSQLContainerToAutoscaleSender sends the MigrateSQLContainerToAutoscale request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLResourcesClient) MigrateSQLContainerToAutoscaleSender(req *http.Request) (future SQLResourcesMigrateSQLContainerToAutoscaleFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// MigrateSQLContainerToAutoscaleResponder handles the response to the MigrateSQLContainerToAutoscale request. The method always
+// closes the http.Response Body.
+func (client SQLResourcesClient) MigrateSQLContainerToAutoscaleResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// MigrateSQLContainerToManualThroughput migrate an Azure Cosmos DB SQL container from autoscale to manual throughput
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// accountName - cosmos DB database account name.
+// databaseName - cosmos DB database name.
+// containerName - cosmos DB container name.
+func (client SQLResourcesClient) MigrateSQLContainerToManualThroughput(ctx context.Context, resourceGroupName string, accountName string, databaseName string, containerName string) (result SQLResourcesMigrateSQLContainerToManualThroughputFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLResourcesClient.MigrateSQLContainerToManualThroughput")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.SQLResourcesClient", "MigrateSQLContainerToManualThroughput", err.Error())
+	}
+
+	req, err := client.MigrateSQLContainerToManualThroughputPreparer(ctx, resourceGroupName, accountName, databaseName, containerName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "MigrateSQLContainerToManualThroughput", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.MigrateSQLContainerToManualThroughputSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "MigrateSQLContainerToManualThroughput", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// MigrateSQLContainerToManualThroughputPreparer prepares the MigrateSQLContainerToManualThroughput request.
+func (client SQLResourcesClient) MigrateSQLContainerToManualThroughputPreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string, containerName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"containerName":     autorest.Encode("path", containerName),
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/containers/{containerName}/throughputSettings/default/migrateToManualThroughput", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// MigrateSQLContainerToManualThroughputSender sends the MigrateSQLContainerToManualThroughput request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLResourcesClient) MigrateSQLContainerToManualThroughputSender(req *http.Request) (future SQLResourcesMigrateSQLContainerToManualThroughputFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// MigrateSQLContainerToManualThroughputResponder handles the response to the MigrateSQLContainerToManualThroughput request. The method always
+// closes the http.Response Body.
+func (client SQLResourcesClient) MigrateSQLContainerToManualThroughputResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// MigrateSQLDatabaseToAutoscale migrate an Azure Cosmos DB SQL database from manual throughput to autoscale
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// accountName - cosmos DB database account name.
+// databaseName - cosmos DB database name.
+func (client SQLResourcesClient) MigrateSQLDatabaseToAutoscale(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (result SQLResourcesMigrateSQLDatabaseToAutoscaleFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLResourcesClient.MigrateSQLDatabaseToAutoscale")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.SQLResourcesClient", "MigrateSQLDatabaseToAutoscale", err.Error())
+	}
+
+	req, err := client.MigrateSQLDatabaseToAutoscalePreparer(ctx, resourceGroupName, accountName, databaseName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "MigrateSQLDatabaseToAutoscale", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.MigrateSQLDatabaseToAutoscaleSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "MigrateSQLDatabaseToAutoscale", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// MigrateSQLDatabaseToAutoscalePreparer prepares the MigrateSQLDatabaseToAutoscale request.
+func (client SQLResourcesClient) MigrateSQLDatabaseToAutoscalePreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/throughputSettings/default/migrateToAutoscale", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// MigrateSQLDatabaseToAutoscaleSender sends the MigrateSQLDatabaseToAutoscale request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLResourcesClient) MigrateSQLDatabaseToAutoscaleSender(req *http.Request) (future SQLResourcesMigrateSQLDatabaseToAutoscaleFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// MigrateSQLDatabaseToAutoscaleResponder handles the response to the MigrateSQLDatabaseToAutoscale request. The method always
+// closes the http.Response Body.
+func (client SQLResourcesClient) MigrateSQLDatabaseToAutoscaleResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// MigrateSQLDatabaseToManualThroughput migrate an Azure Cosmos DB SQL database from autoscale to manual throughput
+// Parameters:
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// accountName - cosmos DB database account name.
+// databaseName - cosmos DB database name.
+func (client SQLResourcesClient) MigrateSQLDatabaseToManualThroughput(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (result SQLResourcesMigrateSQLDatabaseToManualThroughputFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SQLResourcesClient.MigrateSQLDatabaseToManualThroughput")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.SQLResourcesClient", "MigrateSQLDatabaseToManualThroughput", err.Error())
+	}
+
+	req, err := client.MigrateSQLDatabaseToManualThroughputPreparer(ctx, resourceGroupName, accountName, databaseName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "MigrateSQLDatabaseToManualThroughput", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.MigrateSQLDatabaseToManualThroughputSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesClient", "MigrateSQLDatabaseToManualThroughput", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// MigrateSQLDatabaseToManualThroughputPreparer prepares the MigrateSQLDatabaseToManualThroughput request.
+func (client SQLResourcesClient) MigrateSQLDatabaseToManualThroughputPreparer(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"databaseName":      autorest.Encode("path", databaseName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/sqlDatabases/{databaseName}/throughputSettings/default/migrateToManualThroughput", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// MigrateSQLDatabaseToManualThroughputSender sends the MigrateSQLDatabaseToManualThroughput request. The method will close the
+// http.Response Body if it receives an error.
+func (client SQLResourcesClient) MigrateSQLDatabaseToManualThroughputSender(req *http.Request) (future SQLResourcesMigrateSQLDatabaseToManualThroughputFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// MigrateSQLDatabaseToManualThroughputResponder handles the response to the MigrateSQLDatabaseToManualThroughput request. The method always
+// closes the http.Response Body.
+func (client SQLResourcesClient) MigrateSQLDatabaseToManualThroughputResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // UpdateSQLContainerThroughput update RUs per second of an Azure Cosmos DB SQL container
 // Parameters:
 // resourceGroupName - the name of the resource group. The name is case insensitive.

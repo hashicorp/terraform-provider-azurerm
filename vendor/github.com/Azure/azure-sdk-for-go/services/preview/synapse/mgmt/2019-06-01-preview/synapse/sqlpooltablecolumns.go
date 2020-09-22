@@ -90,6 +90,9 @@ func (client SQLPoolTableColumnsClient) ListByTableName(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolTableColumnsClient", "ListByTableName", resp, "Failure responding to request")
 	}
+	if result.spclr.hasNextLink() && result.spclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -229,6 +229,9 @@ func (client IntegrationServiceEnvironmentManagedApisClient) List(ctx context.Co
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentManagedApisClient", "List", resp, "Failure responding to request")
 	}
+	if result.malr.hasNextLink() && result.malr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

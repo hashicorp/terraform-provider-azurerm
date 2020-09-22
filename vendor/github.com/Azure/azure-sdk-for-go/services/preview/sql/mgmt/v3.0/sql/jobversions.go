@@ -161,6 +161,9 @@ func (client JobVersionsClient) ListByJob(ctx context.Context, resourceGroupName
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobVersionsClient", "ListByJob", resp, "Failure responding to request")
 	}
+	if result.jvlr.hasNextLink() && result.jvlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

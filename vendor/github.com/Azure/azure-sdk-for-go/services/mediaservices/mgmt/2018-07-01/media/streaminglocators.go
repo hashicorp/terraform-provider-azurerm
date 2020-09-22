@@ -322,6 +322,9 @@ func (client StreamingLocatorsClient) List(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "List", resp, "Failure responding to request")
 	}
+	if result.slc.hasNextLink() && result.slc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

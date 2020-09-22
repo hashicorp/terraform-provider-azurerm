@@ -381,6 +381,9 @@ func (client DiskAccessesClient) List(ctx context.Context) (result DiskAccessLis
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "List", resp, "Failure responding to request")
 	}
+	if result.dal.hasNextLink() && result.dal.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -490,6 +493,9 @@ func (client DiskAccessesClient) ListByResourceGroup(ctx context.Context, resour
 	result.dal, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DiskAccessesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.dal.hasNextLink() && result.dal.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

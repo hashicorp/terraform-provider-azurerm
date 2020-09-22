@@ -440,6 +440,9 @@ func (client JitNetworkAccessPoliciesClient) List(ctx context.Context) (result J
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "List", resp, "Failure responding to request")
 	}
+	if result.jnapl.hasNextLink() && result.jnapl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -553,6 +556,9 @@ func (client JitNetworkAccessPoliciesClient) ListByRegion(ctx context.Context) (
 	result.jnapl, err = client.ListByRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "ListByRegion", resp, "Failure responding to request")
+	}
+	if result.jnapl.hasNextLink() && result.jnapl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -677,6 +683,9 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroup(ctx context.Con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.jnapl.hasNextLink() && result.jnapl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -799,6 +808,9 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegion(ctx co
 	result.jnapl, err = client.ListByResourceGroupAndRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "ListByResourceGroupAndRegion", resp, "Failure responding to request")
+	}
+	if result.jnapl.hasNextLink() && result.jnapl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -321,6 +321,9 @@ func (client CertificatesClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "List", resp, "Failure responding to request")
 	}
+	if result.crc.hasNextLink() && result.crc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

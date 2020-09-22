@@ -746,6 +746,9 @@ func (client IntegrationAccountAgreementsClient) List(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountAgreementsClient", "List", resp, "Failure responding to request")
 	}
+	if result.iaalr.hasNextLink() && result.iaalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

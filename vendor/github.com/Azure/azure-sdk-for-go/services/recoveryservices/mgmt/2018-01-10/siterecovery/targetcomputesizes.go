@@ -76,6 +76,9 @@ func (client TargetComputeSizesClient) ListByReplicationProtectedItems(ctx conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.TargetComputeSizesClient", "ListByReplicationProtectedItems", resp, "Failure responding to request")
 	}
+	if result.tcsc.hasNextLink() && result.tcsc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

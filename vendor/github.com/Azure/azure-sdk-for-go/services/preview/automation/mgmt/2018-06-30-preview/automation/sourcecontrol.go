@@ -358,6 +358,9 @@ func (client SourceControlClient) ListByAutomationAccount(ctx context.Context, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
