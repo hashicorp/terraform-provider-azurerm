@@ -58,18 +58,16 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 
 			// TODO 3.0: remove this property
 			"hub_to_vitual_network_traffic_allowed": {
-				Type:             schema.TypeBool,
-				Optional:         true,
-				Deprecated:       "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
-				DiffSuppressFunc: func(_, _, _ string, _ *schema.ResourceData) bool { return true },
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
 			},
 
 			// TODO 3.0: remove this property
 			"vitual_network_to_hub_gateways_traffic_allowed": {
-				Type:             schema.TypeBool,
-				Optional:         true,
-				Deprecated:       "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
-				DiffSuppressFunc: func(_, _, _ string, _ *schema.ResourceData) bool { return true },
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
 			},
 
 			"internet_security_enabled": {
@@ -165,6 +163,12 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
+		// The following two attributes are deprecated by API (which will always return `true`).
+		// Hence, we explicitly set them to `false` (as false is the default value when users omit that property).
+		// TODO: 3.0: Remove below lines.
+		d.Set("hub_to_vitual_network_traffic_allowed", false)
+		d.Set("vitual_network_to_hub_gateways_traffic_allowed", false)
+
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)
 		remoteVirtualNetworkId := ""
 		if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {
