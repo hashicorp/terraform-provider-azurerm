@@ -1185,14 +1185,34 @@ func FlattenHDInsightAutoscaleCapacityDefinition(input *hdinsight.AutoscaleCapac
 }
 
 func FlattenHDInsightAutoscaleRecurrenceDefinition(input *hdinsight.AutoscaleRecurrence) []interface{} {
-	schedules := make([]interface{}, len(*input.Schedule))
+	if input.Schedule == nil {
+		return []interface{}{}
+	}
 
-	for i := range *input.Schedule {
-		schedules[i] = map[string]interface{}{
-			"days":                  (*input.Schedule)[i].Days,
-			"time":                  (*input.Schedule)[i].TimeAndCapacity.Time,
-			"target_instance_count": (*input.Schedule)[i].TimeAndCapacity.MinInstanceCount,
+	schedules := make([]interface{}, 0)
+
+	for _, schedule := range *input.Schedule {
+		days := make([]hdinsight.DaysOfWeek, 0)
+		if schedule.Days != nil {
+			days = *schedule.Days
 		}
+
+		targetInstanceCount := 0
+		time := ""
+		if schedule.TimeAndCapacity != nil {
+			if schedule.TimeAndCapacity.MinInstanceCount != nil {
+				// note: min / max are the same
+				targetInstanceCount = int(*schedule.TimeAndCapacity.MinInstanceCount)
+			}
+			if *schedule.TimeAndCapacity.Time != "" {
+				time = *schedule.TimeAndCapacity.Time
+			}
+		}
+		schedules = append(schedules, map[string]interface{}{
+			"days":                  days,
+			"target_instance_count": targetInstanceCount,
+			"time":                  time,
+		})
 	}
 
 	return []interface{}{
