@@ -109,7 +109,7 @@ func resourceArmSearchService() *schema.Resource {
 				Default:  true,
 			},
 
-			"ip_rules": {
+			"allowed_ips": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
@@ -161,7 +161,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		ServiceProperties: &search.ServiceProperties{
 			PublicNetworkAccess: publicNetworkAccess,
 			NetworkRuleSet: &search.NetworkRuleSet{
-				IPRules: expandSearchServiceIPRules(d.Get("ip_rules").([]interface{})),
+				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
 			},
 		},
 		Tags: tags.Expand(t),
@@ -238,7 +238,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess != "Disabled")
 
-		d.Set("ip_rules", flattenSearchServiceIPRules(props.NetworkRuleSet))
+		d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 	}
 
 	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
