@@ -30,7 +30,7 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parsers.HPCCacheTargetID(id)
 			return err
-		}, importHpcCache(storagecache.StorageTargetTypeNfs3)),
+		}, importHpcCache(storagecache.TargetTypeNfs3)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -131,7 +131,7 @@ func resourceArmHPCCacheNFSTargetCreateOrUpdate(d *schema.ResourceData, meta int
 	param := &storagecache.StorageTarget{
 		BasicStorageTargetProperties: &storagecache.Nfs3TargetProperties{
 			Junctions:  expandNamespaceJunctions(d.Get("namespace_junction").(*schema.Set).List()),
-			TargetType: utils.String(string(storagecache.StorageTargetTypeNfs3)),
+			TargetType: storagecache.TargetTypeNfs3,
 			Nfs3: &storagecache.Nfs3Target{
 				Target:     utils.String(d.Get("target_host_name").(string)),
 				UsageModel: utils.String(d.Get("usage_model").(string)),

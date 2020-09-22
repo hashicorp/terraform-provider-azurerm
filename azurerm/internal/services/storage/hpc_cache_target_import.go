@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func importHpcCache(kind storagecache.StorageTargetType) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
+func importHpcCache(kind storagecache.TargetType) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 	return func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 		id, err := parsers.HPCCacheTargetID(d.Id())
 		if err != nil {

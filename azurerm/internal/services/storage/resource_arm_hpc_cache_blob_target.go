@@ -28,7 +28,7 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parsers.HPCCacheTargetID(id)
 			return err
-		}, importHpcCache(storagecache.StorageTargetTypeClfs)),
+		}, importHpcCache(storagecache.TargetTypeClfs)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -106,7 +106,7 @@ func resourceArmHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta in
 	param := &storagecache.StorageTarget{
 		BasicStorageTargetProperties: &storagecache.ClfsTargetProperties{
 			Junctions:  &namespaceJunction,
-			TargetType: utils.String(string(storagecache.StorageTargetTypeClfs)),
+			TargetType: storagecache.TargetTypeClfs,
 			Clfs: &storagecache.ClfsTarget{
 				Target: utils.String(containerId),
 			},
