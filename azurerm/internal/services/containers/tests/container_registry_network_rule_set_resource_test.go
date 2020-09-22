@@ -104,34 +104,34 @@ func TestAccAzureRMContainerRegistryNetworkRuleset_addVnet(t *testing.T) {
 func testAccAzureRMContainerRegistry_common(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
-  
+
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
-  
+
 resource "azurerm_container_registry" "test" {
-	name                = "acctestacr%[1]d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	sku                 = "Premium"
+  name                = "acctestacr%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
 }
-  
+
 resource "azurerm_virtual_network" "test" {
-	name                = "acctestRG-%[1]d-network"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	address_space       = ["10.0.0.0/16"]
+  name                = "acctestRG-%[1]d-network"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.0.0.0/16"]
 }
-  
+
 resource "azurerm_subnet" "test" {
-	name                 = "acctestRG-%[1]d-subnet"
-	virtual_network_name = azurerm_virtual_network.test.name
-	resource_group_name  = azurerm_resource_group.test.name
-	address_prefixes     = ["10.0.1.0/24"]
-	service_endpoints    = ["Microsoft.ContainerRegistry"]
+  name                 = "acctestRG-%[1]d-subnet"
+  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  service_endpoints    = ["Microsoft.ContainerRegistry"]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -142,12 +142,12 @@ func testAccAzureRMContainerRegistryNetworkRuleset_basicTemplate(data acceptance
 %s
 
 resource "azurerm_container_registry_network_ruleset" "test" {
-	resource_group_name     = azurerm_container_registry.test.resource_group_name
-	container_registry_name = azurerm_container_registry.test.name
-	depends_on = [azurerm_virtual_network.test, azurerm_subnet.test]
-	network_rule_set {
-	  default_action = "Deny"
-	}
+  resource_group_name     = azurerm_container_registry.test.resource_group_name
+  container_registry_name = azurerm_container_registry.test.name
+  depends_on              = [azurerm_virtual_network.test, azurerm_subnet.test]
+  network_rule_set {
+    default_action = "Deny"
+  }
 }
 `, template)
 }
@@ -158,12 +158,12 @@ func testAccAzureRMContainerRegistryNetworkRuleset_updateTemplate(data acceptanc
 %s
 
 resource "azurerm_container_registry_network_ruleset" "test" {
-	resource_group_name     = azurerm_container_registry.test.resource_group_name
-	container_registry_name = azurerm_container_registry.test.name
-	depends_on = [azurerm_virtual_network.test, azurerm_subnet.test]
-	network_rule_set {
-	  default_action = "Allow"
-	}
+  resource_group_name     = azurerm_container_registry.test.resource_group_name
+  container_registry_name = azurerm_container_registry.test.name
+  depends_on              = [azurerm_virtual_network.test, azurerm_subnet.test]
+  network_rule_set {
+    default_action = "Allow"
+  }
 }
 `, template)
 }
@@ -174,16 +174,16 @@ func testAccAzureRMContainerRegistryNetworkRuleset_addIp(data acceptance.TestDat
 %s
 
 resource "azurerm_container_registry_network_ruleset" "test" {
-	resource_group_name     = azurerm_container_registry.test.resource_group_name
-	container_registry_name = azurerm_container_registry.test.name
-	depends_on = [azurerm_virtual_network.test, azurerm_subnet.test]
-	network_rule_set {
-	  default_action = "Deny"
-	  ip_rule {
-		action   = "Allow"
-		ip_range = "43.0.0.0/24"
-	  }
-	}
+  resource_group_name     = azurerm_container_registry.test.resource_group_name
+  container_registry_name = azurerm_container_registry.test.name
+  depends_on              = [azurerm_virtual_network.test, azurerm_subnet.test]
+  network_rule_set {
+    default_action = "Deny"
+    ip_rule {
+      action   = "Allow"
+      ip_range = "43.0.0.0/24"
+    }
+  }
 }
 `, template)
 }
@@ -194,16 +194,16 @@ func testAccAzureRMContainerRegistryNetworkRuleset_addVnet(data acceptance.TestD
 %s
 
 resource "azurerm_container_registry_network_ruleset" "test" {
-	resource_group_name     = azurerm_container_registry.test.resource_group_name
-	container_registry_name = azurerm_container_registry.test.name
-	depends_on = [azurerm_virtual_network.test, azurerm_subnet.test]
-	network_rule_set {
-	  default_action = "Deny"
-	  virtual_network {
-		action    = "Allow"
-		subnet_id = azurerm_subnet.test.id
-	  }
-	}
+  resource_group_name     = azurerm_container_registry.test.resource_group_name
+  container_registry_name = azurerm_container_registry.test.name
+  depends_on              = [azurerm_virtual_network.test, azurerm_subnet.test]
+  network_rule_set {
+    default_action = "Deny"
+    virtual_network {
+      action    = "Allow"
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
 }
 `, template)
 }
