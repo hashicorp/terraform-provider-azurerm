@@ -196,6 +196,7 @@ resource "azurerm_aad_diagnostic_settings" "test" {
   name                		= "acctestdiagsetng-%d"
   event_hub_name 			= azurerm_eventhub.test.name
   event_hub_auth_rule_id 	= "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
+  
   logs  {
   	category = "AuditLogs"
   	retention_policy {
@@ -203,6 +204,7 @@ resource "azurerm_aad_diagnostic_settings" "test" {
   		retention_policy_enabled 	= true
   	}
   }
+  
   logs  {
   	category = "SignInLogs"
   	retention_policy {
@@ -221,6 +223,7 @@ func testAADDiagnosticSettings_law(data acceptance.TestData) string {
 resource "azurerm_aad_diagnostic_settings" "test" {
   name          	= "acctestdiagsetng-%d"
   workspace_id 		= azurerm_log_analytics_workspace.test.id
+  
   logs  {
   	category = "AuditLogs"
   	retention_policy {
@@ -228,6 +231,7 @@ resource "azurerm_aad_diagnostic_settings" "test" {
   		retention_policy_enabled 	= true
   	}
   }
+  
   logs  {
   	category = "SignInLogs"
   	retention_policy {
@@ -249,17 +253,21 @@ resource "azurerm_aad_diagnostic_settings" "test" {
   workspace_id 				= azurerm_log_analytics_workspace.test.id
   event_hub_name 			= azurerm_eventhub.test.name
   event_hub_auth_rule_id 	= "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
+  
   logs  {
-  	category = "AuditLogs"
+	category = "AuditLogs"
+	  
   	retention_policy {
   		retention_policy_days 		= %d
   		retention_policy_enabled 	= %t
   	}
   }
+  
   logs  {
   	enabled 	= %t
   	category 	= "SignInLogs"
-  	retention_policy {
+	  
+	  retention_policy {
   		retention_policy_days 		= %d
   		retention_policy_enabled 	= %t
   	}
@@ -271,11 +279,13 @@ resource "azurerm_aad_diagnostic_settings" "test" {
 func testAccAADDiagnosticSettings_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-features {}
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-la-%d"
   location = "%s"
+}
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
@@ -284,14 +294,15 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
+
 resource "azurerm_storage_account" "test" {
   name                     = "stgacc%s"
-  resource_group_name      =  azurerm_resource_group.test.name
-  location                 =  azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-  
+
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubns%d"
   location            = azurerm_resource_group.test.location
