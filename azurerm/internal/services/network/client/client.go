@@ -17,8 +17,9 @@ type Client struct {
 	ExpressRouteCircuitsClient           *network.ExpressRouteCircuitsClient
 	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
-	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
-	InterfacesClient                     *network.InterfacesClient
+	FirewallPolicyClient                 *network.FirewallPoliciesClient
+	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient	
+        InterfacesClient                     *network.InterfacesClient
 	LoadBalancersClient                  *networkLegacy.LoadBalancersClient
 	LoadBalancerLoadBalancingRulesClient *networkLegacy.LoadBalancerLoadBalancingRulesClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
@@ -80,11 +81,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	ExpressRouteGatewaysClient := network.NewExpressRouteGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRouteGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
-	HubVirtualNetworkConnectionClient := network.NewHubVirtualNetworkConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&HubVirtualNetworkConnectionClient.Client, o.ResourceManagerAuthorizer)
-
 	ExpressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
+
+	FirewallPolicyClient := network.NewFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FirewallPolicyClient.Client, o.ResourceManagerAuthorizer)
+
+	HubVirtualNetworkConnectionClient := network.NewHubVirtualNetworkConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HubVirtualNetworkConnectionClient.Client, o.ResourceManagerAuthorizer)
 
 	InterfacesClient := network.NewInterfacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&InterfacesClient.Client, o.ResourceManagerAuthorizer)
@@ -193,7 +197,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteCircuitsClient:           &ExpressRouteCircuitsClient,
 		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
-		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
+		FirewallPolicyClient:                 &FirewallPolicyClient,		
+HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
 		LoadBalancerLoadBalancingRulesClient: &LoadBalancerLoadBalancingRulesClient,

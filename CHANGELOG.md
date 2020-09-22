@@ -3,21 +3,28 @@
 UPGRADE NOTES:
 
 * `azurerm_api_management` - the value `None` has been removed from the `identity` block to match other resources, to specify an API Management Service with no Managed Identity remove the `identity` block [GH-8411]
+* `azurerm_container_registry` -  the `storage_account_id` property now forces a new resource as required by the updated API version [GH-8477]
 
 FEATURES: 
 
 * **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
 * **New Data Source:** `azurerm_databricks_workspace` [GH-8502]
+* **New Data Source:** `azurerm_firewall_policy` [GH-7390]
 * **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
 * **New Data Source:** `azurerm_mssql_server` [GH-7917]
 * **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
+* **New resource:** `azurerm_firewall_policy` [GH-7390]
+* **New resource:** `azurerm_mysql_server_key` [GH-8125]
 * **New Resource:** `azurerm_postgresql_server_key` [GH-8126]
 
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
+* dependencies: updating `containerregistry` to `2019-05-01` [GH-8477]
 * `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
+* `azurerm_cosmosdb_sql_container` - support for the `indexing_policy` property [GH-8461]
 * `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
+* `azurerm_policy_set_definition` - support for typed parameter values other then string in `the policy_definition_reference` block deprecating `parameters` in favour of `parameter_vcaluess` [GH-8270]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
 * `azurerm_signalr_service` - support for delta updates [GH-8541]
 * `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
@@ -76,6 +83,7 @@ BUG FIXES:
 ## 2.27.0 (September 10, 2020)
 
 UPGRADE NOTES
+
 * The `id` field for the `azurerm_role_definition` has changed in this release to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` on the new resource from version 2.28.0 of the Azure Provider.
 
 FEATURES:
@@ -119,6 +127,7 @@ UPGRADE NOTES:
 
 
 FEATURES:
+
 * **New Resource:** `azurerm_log_analytics_saved_search` ([#8253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8253))
 
 ENHANCEMENTS:
