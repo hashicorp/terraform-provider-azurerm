@@ -63,6 +63,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should the Sentinel Scheduled Alert Rule be enabled? Defaults to `true`.
 
+* `incident_configuration` - (Optional) A `incident_configuration` block as defined below.
+
 * `query_frequency` - (Optional) The ISO 8601 timespan duration between two consecutive queries. Defaults to `PT5H`.
 
 * `query_period` - (Optional) The ISO 8601 timespan duration, which determine the time period of the data covered by the query. For example, it can query the past 10 minutes of data, or the past 6 hours of data. Defaults to `PT5H`.
@@ -80,6 +82,28 @@ The following arguments are supported:
 * `trigger_operator` - (Optional) The alert trigger operator, combined with `trigger_threshold`, setting alert threshold of this Sentinel Scheduled Alert Rule. Possible values are `Equal`, `GreaterThan`, `LessThan`, `NotEqual`.
 
 * `trigger_threshold` - (Optional) The baseline number of query results generated, combined with `trigger_operator`, setting alert threshold of this Sentinel Scheduled Alert Rule.
+
+---
+
+A `grouping_configuration` block supports the following:
+
+* `enabled` - (Required) Whether this grouping configuration enabled for the incidents created from alerts triggered by this Sentinel Scheduled Alert Rule?
+
+* `lookback_duration` - (Optional) ISO8601 lookback duration within which the group is to be created. Defaults to `PT5M`.
+
+* `reopen_closed_incident` - (Optional) Whether to re-open closed matching incidents? Defaults to `false`.
+
+* `entity_matching_method` - (Optional) Grouping matching method. Possible values are `All`, `Custom` and `None`. Defaults to `None`.
+
+* `group_by_entities` - (Optional) A list of entity types to group by (**only when `entity_matching_method` is `Custom`**). Possible values are `Account`, `Host`, `Url`, `Ip`.
+
+---
+
+A `incident_configuration` block supports the following:
+
+* `create_incident` - (Required) Whether to create an incident from alerts triggered by this Sentinel Scheduled Alert Rule?
+
+* `grouping_configuration` - (Optional) A `grouping_configuration` block as defined above.
 
 ## Attributes Reference
 
