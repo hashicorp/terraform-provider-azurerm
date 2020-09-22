@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 
 // CertificateBodyDescription the JSON-serialized X509 Certificate.
 type CertificateBodyDescription struct {
@@ -572,6 +572,10 @@ type ExportDevicesRequest struct {
 	ExportBlobContainerURI *string `json:"exportBlobContainerUri,omitempty"`
 	// ExcludeKeys - The value indicating whether keys should be excluded during export.
 	ExcludeKeys *bool `json:"excludeKeys,omitempty"`
+	// ExportBlobName - The name of the blob that will be created in the provided output blob container. This blob will contain the exported device registry information for the IoT Hub.
+	ExportBlobName *string `json:"exportBlobName,omitempty"`
+	// AuthenticationType - Specifies authentication type being used for connecting to the storage account. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
 }
 
 // FailoverInput use to provide failover region when requesting manual Failover for a hub.
@@ -605,12 +609,49 @@ type FeedbackProperties struct {
 	MaxDeliveryCount *int32 `json:"maxDeliveryCount,omitempty"`
 }
 
+// GroupIDInformation the group information for creating a private endpoint on an IotHub
+type GroupIDInformation struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type       *string                       `json:"type,omitempty"`
+	Properties *GroupIDInformationProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GroupIDInformation.
+func (gii GroupIDInformation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gii.Properties != nil {
+		objectMap["properties"] = gii.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// GroupIDInformationProperties the properties for a group information object
+type GroupIDInformationProperties struct {
+	// GroupID - The group id
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - The required members for a specific group id
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The required DNS zones for a specific group id
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
 // ImportDevicesRequest use to provide parameters when requesting an import of all devices in the hub.
 type ImportDevicesRequest struct {
 	// InputBlobContainerURI - The input blob container URI.
 	InputBlobContainerURI *string `json:"inputBlobContainerUri,omitempty"`
 	// OutputBlobContainerURI - The output blob container URI.
 	OutputBlobContainerURI *string `json:"outputBlobContainerUri,omitempty"`
+	// InputBlobName - The blob name to be used when importing from the provided input blob container.
+	InputBlobName *string `json:"inputBlobName,omitempty"`
+	// OutputBlobName - The blob name to use for storing the status of the import job.
+	OutputBlobName *string `json:"outputBlobName,omitempty"`
+	// AuthenticationType - Specifies authentication type being used for connecting to the storage account. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
 }
 
 // IotHubCapacity ioT Hub capacity information.
@@ -834,9 +875,9 @@ func NewIotHubDescriptionListResultPage(getNextPage func(context.Context, IotHub
 
 // IotHubLocationDescription public representation of one of the locations where a resource is provisioned.
 type IotHubLocationDescription struct {
-	// Location - Azure Geo Regions
+	// Location - The name of the Azure region
 	Location *string `json:"location,omitempty"`
-	// Role - Specific Role assigned to this location. Possible values include: 'Primary', 'Secondary'
+	// Role - The role of the region, can be either primary or secondary. The primary region is where the IoT hub is currently provisioned. The secondary region is the Azure disaster recovery (DR) paired region and also the region where the IoT hub can failover to. Possible values include: 'Primary', 'Secondary'
 	Role IotHubReplicaRoleType `json:"role,omitempty"`
 }
 
@@ -887,8 +928,14 @@ func (ihnai IotHubNameAvailabilityInfo) MarshalJSON() ([]byte, error) {
 type IotHubProperties struct {
 	// AuthorizationPolicies - The shared access policies you can use to secure a connection to the IoT hub.
 	AuthorizationPolicies *[]SharedAccessSignatureAuthorizationRule `json:"authorizationPolicies,omitempty"`
+	// PublicNetworkAccess - Whether requests from Public Network are allowed. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// IPFilterRules - The IP filter rules.
 	IPFilterRules *[]IPFilterRule `json:"ipFilterRules,omitempty"`
+	// MinTLSVersion - Specifies the minimum TLS version to support for this hub. Can be set to "1.2" to have clients that use a TLS version below 1.2 to be rejected.
+	MinTLSVersion *string `json:"minTlsVersion,omitempty"`
+	// PrivateEndpointConnections - Private endpoint connections created on this IotHub
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// State - READ-ONLY; The hub state.
@@ -907,8 +954,6 @@ type IotHubProperties struct {
 	CloudToDevice                 *CloudToDeviceProperties `json:"cloudToDevice,omitempty"`
 	// Comments - IoT hub comments.
 	Comments *string `json:"comments,omitempty"`
-	// DeviceStreams - The device streams properties of iothub.
-	DeviceStreams *IotHubPropertiesDeviceStreams `json:"deviceStreams,omitempty"`
 	// Features - The capabilities and features enabled for the IoT hub. Possible values include: 'None', 'DeviceManagement'
 	Features Capabilities `json:"features,omitempty"`
 	// Locations - READ-ONLY; Primary and secondary location for iot hub
@@ -921,8 +966,17 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	if ihp.AuthorizationPolicies != nil {
 		objectMap["authorizationPolicies"] = ihp.AuthorizationPolicies
 	}
+	if ihp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = ihp.PublicNetworkAccess
+	}
 	if ihp.IPFilterRules != nil {
 		objectMap["ipFilterRules"] = ihp.IPFilterRules
+	}
+	if ihp.MinTLSVersion != nil {
+		objectMap["minTlsVersion"] = ihp.MinTLSVersion
+	}
+	if ihp.PrivateEndpointConnections != nil {
+		objectMap["privateEndpointConnections"] = ihp.PrivateEndpointConnections
 	}
 	if ihp.EventHubEndpoints != nil {
 		objectMap["eventHubEndpoints"] = ihp.EventHubEndpoints
@@ -945,19 +999,10 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	if ihp.Comments != nil {
 		objectMap["comments"] = ihp.Comments
 	}
-	if ihp.DeviceStreams != nil {
-		objectMap["deviceStreams"] = ihp.DeviceStreams
-	}
 	if ihp.Features != "" {
 		objectMap["features"] = ihp.Features
 	}
 	return json.Marshal(objectMap)
-}
-
-// IotHubPropertiesDeviceStreams the device streams properties of iothub.
-type IotHubPropertiesDeviceStreams struct {
-	// StreamingEndpoints - List of Device Streams Endpoints.
-	StreamingEndpoints *[]string `json:"streamingEndpoints,omitempty"`
 }
 
 // IotHubQuotaMetricInfo quota metrics properties.
@@ -1628,6 +1673,12 @@ func NewJobResponseListResultPage(getNextPage func(context.Context, JobResponseL
 	return JobResponseListResultPage{fn: getNextPage}
 }
 
+// ListPrivateEndpointConnection ...
+type ListPrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	Value             *[]PrivateEndpointConnection `json:"value,omitempty"`
+}
+
 // MatchedRoute routes that matched
 type MatchedRoute struct {
 	// Properties - Properties of routes that matched
@@ -1844,6 +1895,114 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 	return OperationListResultPage{fn: getNextPage}
 }
 
+// PrivateEndpoint the private endpoint property of a private endpoint connection
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection the private endpoint connection of an IotHub
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The resource identifier.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type       *string                              `json:"type,omitempty"`
+	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.Properties != nil {
+		objectMap["properties"] = pec.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionProperties the properties of a private endpoint connection
+type PrivateEndpointConnectionProperties struct {
+	PrivateEndpoint                   *PrivateEndpoint                   `json:"privateEndpoint,omitempty"`
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PrivateEndpointConnectionsDeleteFuture) Result(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("devices.PrivateEndpointConnectionsDeleteFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.DeleteResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsDeleteFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// PrivateEndpointConnectionsUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PrivateEndpointConnectionsUpdateFuture) Result(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("devices.PrivateEndpointConnectionsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.UpdateResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "devices.PrivateEndpointConnectionsUpdateFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// PrivateLinkResources the available private link resources for an IotHub
+type PrivateLinkResources struct {
+	autorest.Response `json:"-"`
+	// Value - The list of available private link resources for an IotHub
+	Value *[]GroupIDInformation `json:"value,omitempty"`
+}
+
+// PrivateLinkServiceConnectionState the current state of a private endpoint connection
+type PrivateLinkServiceConnectionState struct {
+	// Status - The status of a private endpoint connection. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	Status PrivateLinkServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The description for the current state of a private endpoint connection
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - Actions required for a private endpoint connection
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
 // RegistryStatistics identity registry statistics.
 type RegistryStatistics struct {
 	autorest.Response `json:"-"`
@@ -1937,8 +2096,16 @@ type RoutingEndpoints struct {
 
 // RoutingEventHubProperties the properties related to an event hub endpoint.
 type RoutingEventHubProperties struct {
+	// ID - Id of the event hub endpoint
+	ID *string `json:"id,omitempty"`
 	// ConnectionString - The connection string of the event hub endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
+	// EndpointURI - The url of the event hub endpoint. It must include the protocol sb://
+	EndpointURI *string `json:"endpointUri,omitempty"`
+	// EntityPath - Event hub name on the event hub namespace
+	EntityPath *string `json:"entityPath,omitempty"`
+	// AuthenticationType - Method used to authenticate against the event hub endpoint. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
 	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the event hub endpoint.
@@ -1980,14 +2147,22 @@ type RoutingProperties struct {
 	Routes *[]RouteProperties `json:"routes,omitempty"`
 	// FallbackRoute - The properties of the route that is used as a fall-back route when none of the conditions specified in the 'routes' section are met. This is an optional parameter. When this property is not set, the messages which do not meet any of the conditions specified in the 'routes' section get routed to the built-in eventhub endpoint.
 	FallbackRoute *FallbackRouteProperties `json:"fallbackRoute,omitempty"`
-	// Enrichments - The list of user-provided enrichments that the IoT hub applies to messages to be delivered to built-in and custom endpoints. See: https://aka.ms/iotmsgenrich
+	// Enrichments - The list of user-provided enrichments that the IoT hub applies to messages to be delivered to built-in and custom endpoints. See: https://aka.ms/telemetryoneventgrid
 	Enrichments *[]EnrichmentProperties `json:"enrichments,omitempty"`
 }
 
 // RoutingServiceBusQueueEndpointProperties the properties related to service bus queue endpoint types.
 type RoutingServiceBusQueueEndpointProperties struct {
+	// ID - Id of the service bus queue endpoint
+	ID *string `json:"id,omitempty"`
 	// ConnectionString - The connection string of the service bus queue endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
+	// EndpointURI - The url of the service bus queue endpoint. It must include the protocol sb://
+	EndpointURI *string `json:"endpointUri,omitempty"`
+	// EntityPath - Queue name on the service bus namespace
+	EntityPath *string `json:"entityPath,omitempty"`
+	// AuthenticationType - Method used to authenticate against the service bus queue endpoint. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
 	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types. The name need not be the same as the actual queue name.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the service bus queue endpoint.
@@ -1998,8 +2173,16 @@ type RoutingServiceBusQueueEndpointProperties struct {
 
 // RoutingServiceBusTopicEndpointProperties the properties related to service bus topic endpoint types.
 type RoutingServiceBusTopicEndpointProperties struct {
+	// ID - Id of the service bus topic endpoint
+	ID *string `json:"id,omitempty"`
 	// ConnectionString - The connection string of the service bus topic endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
+	// EndpointURI - The url of the service bus topic endpoint. It must include the protocol sb://
+	EndpointURI *string `json:"endpointUri,omitempty"`
+	// EntityPath - Queue name on the service bus topic
+	EntityPath *string `json:"entityPath,omitempty"`
+	// AuthenticationType - Method used to authenticate against the service bus topic endpoint. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
 	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.  The name need not be the same as the actual topic name.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the service bus topic endpoint.
@@ -2010,8 +2193,14 @@ type RoutingServiceBusTopicEndpointProperties struct {
 
 // RoutingStorageContainerProperties the properties related to a storage container endpoint.
 type RoutingStorageContainerProperties struct {
+	// ID - Id of the storage container endpoint
+	ID *string `json:"id,omitempty"`
 	// ConnectionString - The connection string of the storage account.
 	ConnectionString *string `json:"connectionString,omitempty"`
+	// EndpointURI - The url of the storage endpoint. It must include the protocol https://
+	EndpointURI *string `json:"endpointUri,omitempty"`
+	// AuthenticationType - Method used to authenticate against the storage endpoint. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
 	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the storage account.
@@ -2239,6 +2428,8 @@ type StorageEndpointProperties struct {
 	ConnectionString *string `json:"connectionString,omitempty"`
 	// ContainerName - The name of the root container where you upload files. The container need not exist but should be creatable using the connectionString specified.
 	ContainerName *string `json:"containerName,omitempty"`
+	// AuthenticationType - Specifies authentication type being used for connecting to the storage account. Possible values include: 'KeyBased', 'IdentityBased'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
 }
 
 // TagsResource a container holding only the Tags for a resource, allowing the user to update the tags on an

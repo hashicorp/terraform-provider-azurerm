@@ -58,6 +58,21 @@ func PossibleAccessRightsValues() []AccessRights {
 	return []AccessRights{DeviceConnect, RegistryRead, RegistryReadDeviceConnect, RegistryReadRegistryWrite, RegistryReadRegistryWriteDeviceConnect, RegistryReadRegistryWriteServiceConnect, RegistryReadRegistryWriteServiceConnectDeviceConnect, RegistryReadServiceConnect, RegistryReadServiceConnectDeviceConnect, RegistryWrite, RegistryWriteDeviceConnect, RegistryWriteServiceConnect, RegistryWriteServiceConnectDeviceConnect, ServiceConnect, ServiceConnectDeviceConnect}
 }
 
+// AuthenticationType enumerates the values for authentication type.
+type AuthenticationType string
+
+const (
+	// IdentityBased ...
+	IdentityBased AuthenticationType = "identityBased"
+	// KeyBased ...
+	KeyBased AuthenticationType = "keyBased"
+)
+
+// PossibleAuthenticationTypeValues returns an array of possible values for the AuthenticationType const type.
+func PossibleAuthenticationTypeValues() []AuthenticationType {
+	return []AuthenticationType{IdentityBased, KeyBased}
+}
+
 // Capabilities enumerates the values for capabilities.
 type Capabilities string
 
@@ -265,6 +280,40 @@ const (
 // PossibleJobTypeValues returns an array of possible values for the JobType const type.
 func PossibleJobTypeValues() []JobType {
 	return []JobType{JobTypeBackup, JobTypeExport, JobTypeFactoryResetDevice, JobTypeFirmwareUpdate, JobTypeImport, JobTypeReadDeviceProperties, JobTypeRebootDevice, JobTypeUnknown, JobTypeUpdateDeviceConfiguration, JobTypeWriteDeviceProperties}
+}
+
+// PrivateLinkServiceConnectionStatus enumerates the values for private link service connection status.
+type PrivateLinkServiceConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateLinkServiceConnectionStatus = "Approved"
+	// Disconnected ...
+	Disconnected PrivateLinkServiceConnectionStatus = "Disconnected"
+	// Pending ...
+	Pending PrivateLinkServiceConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateLinkServiceConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateLinkServiceConnectionStatusValues returns an array of possible values for the PrivateLinkServiceConnectionStatus const type.
+func PossiblePrivateLinkServiceConnectionStatusValues() []PrivateLinkServiceConnectionStatus {
+	return []PrivateLinkServiceConnectionStatus{Approved, Disconnected, Pending, Rejected}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// Disabled ...
+	Disabled PublicNetworkAccess = "Disabled"
+	// Enabled ...
+	Enabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{Disabled, Enabled}
 }
 
 // RouteErrorSeverity enumerates the values for route error severity.
