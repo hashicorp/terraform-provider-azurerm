@@ -55,24 +55,24 @@ resource "azurerm_eventhub" "example" {
 
 
 resource "azurerm_aad_diagnostic_settings" "example" {
-    name = "aad-diag-test"
-    storage_account_id = azurerm_storage_account.example.id
-    workspace_id = azurerm_log_analytics_workspace.example.id
-    event_hub_name = azurerm_eventhub.example.name
-    event_hub_auth_rule_id = "${azurerm_eventhub_namespace.example.id}/authorizationRules/RootManageSharedAccessKey"
-    logs  {
-        category = "AuditLogs"
-        enabled = false
-    }
+  name                   = "aad-diag-test"
+  storage_account_id     = azurerm_storage_account.example.id
+  workspace_id           = azurerm_log_analytics_workspace.example.id
+  event_hub_name         = azurerm_eventhub.example.name
+  event_hub_auth_rule_id = "${azurerm_eventhub_namespace.example.id}/authorizationRules/RootManageSharedAccessKey"
+  logs {
+    category = "AuditLogs"
+    enabled  = false
+  }
 
-  logs  {
-        enabled = true
-        category = "SignInLogs"
-        retention_policy {
-        retention_policy_days = 20
-        retention_policy_enabled = true
-        }
+  logs {
+    enabled  = true
+    category = "SignInLogs"
+    retention_policy {
+      retention_policy_days    = 20
+      retention_policy_enabled = true
     }
+  }
 }
 ```
 

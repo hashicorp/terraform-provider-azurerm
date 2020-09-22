@@ -1,13 +1,5 @@
 package tests
 
-/*
-To set a diagnostic settings on AAD the user should have Global Administrator role
-or the AAD application created to run the tests(via Env variables) should have 'Application permissions'
-to perform Azure Service Management API actions. Currently we can provide only Delegated permissions(perform actions on behalf of logged in user) to perform
-Azure service management APIs to the AAD application. Hence all env variables except the ARM_TEST_LOCATION should not be set for running the AAD Diagnostic setting tests.
-This forces the AAD diag setting tests to run under the logged in user context (via Azure CLI)
-*/
-
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -181,15 +173,15 @@ resource "azurerm_aad_diagnostic_settings" "test" {
   logs  {
     category = "AuditLogs"
     retention_policy {
-    retention_policy_days = 2
+    retention_policy_days 	 = 2
     retention_policy_enabled = true
     }
   }
   logs  {
   	category = "SignInLogs"
   	retention_policy {
-  	  retention_policy_days = 3
-  	  retention_policy_enabled = true
+  	  retention_policy_days 	= 3
+  	  retention_policy_enabled 	= true
   	}
   }
 }
@@ -201,21 +193,21 @@ func testAADDiagnosticSettings_eventhub(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_aad_diagnostic_settings" "test" {
-  name                = "acctestdiagsetng-%d"
-  event_hub_name = azurerm_eventhub.test.name
-  event_hub_auth_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
+  name                		= "acctestdiagsetng-%d"
+  event_hub_name 			= azurerm_eventhub.test.name
+  event_hub_auth_rule_id 	= "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
   logs  {
   	category = "AuditLogs"
   	retention_policy {
-  		retention_policy_days = 2
-  		retention_policy_enabled = true
+  		retention_policy_days 		= 2
+  		retention_policy_enabled 	= true
   	}
   }
   logs  {
   	category = "SignInLogs"
   	retention_policy {
-  		retention_policy_days = 3
-  		retention_policy_enabled = true
+  		retention_policy_days 		= 3
+  		retention_policy_enabled 	= true
   	}
   }
 }
@@ -227,20 +219,20 @@ func testAADDiagnosticSettings_law(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_aad_diagnostic_settings" "test" {
-  name                = "acctestdiagsetng-%d"
-  workspace_id = azurerm_log_analytics_workspace.test.id
+  name          	= "acctestdiagsetng-%d"
+  workspace_id 		= azurerm_log_analytics_workspace.test.id
   logs  {
   	category = "AuditLogs"
   	retention_policy {
-  		retention_policy_days = 2
-  		retention_policy_enabled = true
+  		retention_policy_days 		= 2
+  		retention_policy_enabled 	= true
   	}
   }
   logs  {
   	category = "SignInLogs"
   	retention_policy {
-  		retention_policy_days = 3
-  		retention_policy_enabled = true
+  		retention_policy_days 		= 3
+  		retention_policy_enabled 	= true
   	}
   }
 }
@@ -252,24 +244,24 @@ func testAADDiagnosticSettings_complete(data acceptance.TestData, diagSettingNam
 	return fmt.Sprintf(`
 %s
 resource "azurerm_aad_diagnostic_settings" "test" {
-  name                = "%s"
-  storage_account_id  = azurerm_storage_account.test.id
-  workspace_id = azurerm_log_analytics_workspace.test.id
-  event_hub_name = azurerm_eventhub.test.name
-  event_hub_auth_rule_id = "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
+  name                		= "%s"
+  storage_account_id  		= azurerm_storage_account.test.id
+  workspace_id 				= azurerm_log_analytics_workspace.test.id
+  event_hub_name 			= azurerm_eventhub.test.name
+  event_hub_auth_rule_id 	= "${azurerm_eventhub_namespace.test.id}/authorizationRules/RootManageSharedAccessKey"
   logs  {
   	category = "AuditLogs"
   	retention_policy {
-  		retention_policy_days = %d
-  		retention_policy_enabled = %t
+  		retention_policy_days 		= %d
+  		retention_policy_enabled 	= %t
   	}
   }
   logs  {
-  	enabled = %t
-  	category = "SignInLogs"
+  	enabled 	= %t
+  	category 	= "SignInLogs"
   	retention_policy {
-  		retention_policy_days = %d
-  		retention_policy_enabled = %t
+  		retention_policy_days 		= %d
+  		retention_policy_enabled 	= %t
   	}
   }
 }
@@ -285,7 +277,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-la-%d"
   location = "%s"
 
-re  ource "azurerm_log_analytics_workspace" "test" {
+resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -294,8 +286,8 @@ re  ource "azurerm_log_analytics_workspace" "test" {
 }
 resource "azurerm_storage_account" "test" {
   name                     = "stgacc%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
+  resource_group_name      =  azurerm_resource_group.test.name
+  location                 =  azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -307,6 +299,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Standard"
   capacity            = 1
 }
+
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub%d"
   namespace_name      = azurerm_eventhub_namespace.test.name
