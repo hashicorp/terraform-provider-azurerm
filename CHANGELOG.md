@@ -17,6 +17,7 @@ IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
 * `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
+* `azurerm_cosmosdb_sql_container` - support for the `indexing_policy` property [GH-8461]
 * `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
 * `azurerm_signalr_service` - support for delta updates [GH-8541]
