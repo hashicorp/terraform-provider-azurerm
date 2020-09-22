@@ -24,12 +24,12 @@ import (
 type Client struct {
 	AccountsClient           *storage.AccountsClient
 	FileSystemsClient        *filesystems.Client
-	ManagementPoliciesClient storage.ManagementPoliciesClient
-	BlobServicesClient       storage.BlobServicesClient
+	ManagementPoliciesClient *storage.ManagementPoliciesClient
+	BlobServicesClient       *storage.BlobServicesClient
 	CachesClient             *storagecache.CachesClient
 	StorageTargetsClient     *storagecache.StorageTargetsClient
 	SyncServiceClient        *storagesync.ServicesClient
-	StoragesyncGroupClient   storagesync.SyncGroupsClient
+	SyncGroupsClient         *storagesync.SyncGroupsClient
 	SubscriptionId           string
 
 	environment   az.Environment
@@ -58,21 +58,21 @@ func NewClient(options *common.ClientOptions) *Client {
 	syncServiceClient := storagesync.NewServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&syncServiceClient.Client, options.ResourceManagerAuthorizer)
 
-	storagesyncgroupClient := storagesync.NewSyncGroupsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&storagesyncgroupClient.Client, options.ResourceManagerAuthorizer)
+	syncGroupsClient := storagesync.NewSyncGroupsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&syncGroupsClient.Client, options.ResourceManagerAuthorizer)
 
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
 		AccountsClient:           &accountsClient,
 		FileSystemsClient:        &fileSystemsClient,
-		ManagementPoliciesClient: managementPoliciesClient,
-		BlobServicesClient:       blobServicesClient,
+		ManagementPoliciesClient: &managementPoliciesClient,
+		BlobServicesClient:       &blobServicesClient,
 		CachesClient:             &cachesClient,
 		SubscriptionId:           options.SubscriptionId,
 		StorageTargetsClient:     &storageTargetsClient,
 		SyncServiceClient:        &syncServiceClient,
-		StoragesyncGroupClient:   storagesyncgroupClient,
+		SyncGroupsClient:         &syncGroupsClient,
 		environment:              options.Environment,
 	}
 
