@@ -250,7 +250,7 @@ resource "azurerm_aad_diagnostic_settings" "test" {
 func testAADDiagnosticSettings_complete(data acceptance.TestData, diagSettingName string, auditLogRetentionDays int, auditLogRetentionEnabled bool, signInLogEnabled bool, signInLogRetentionDays int, signInLogRetentionEnabled bool) string {
 	template := testAccAADDiagnosticSettings_template(data)
 	return fmt.Sprintf(`
-%
+%s
 resource "azurerm_aad_diagnostic_settings" "test" {
   name                = "%s"
   storage_account_id  = azurerm_storage_account.test.id
