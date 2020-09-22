@@ -241,7 +241,6 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentDelete(d *schema.ResourceDat
 }
 
 func convertEnvironmentSkuName(skuName string) (*timeseriesinsights.Sku, error) {
-
 	var name timeseriesinsights.SkuName
 	switch skuName {
 	case "L1":
