@@ -13,10 +13,6 @@ Manages Azure Active Directory diagnostic settings.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -108,7 +104,7 @@ A `logs` block supports the following:
 
 ---
 
- `retention_policy` block supports the following:
+A `retention_policy` block supports the following:
 
 * `retention_policy_days` - (Optional) The number of days to archieve logs for. Possible values range from 0 to 365(inclusive).
 
