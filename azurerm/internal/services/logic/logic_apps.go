@@ -9,7 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -92,7 +91,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
 			return tf.ImportAsExistsError(resourceName, resourceId)
 		}
