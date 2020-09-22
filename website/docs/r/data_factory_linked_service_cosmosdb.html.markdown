@@ -64,7 +64,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to CosmosDB Linked Service:
 
-* `account_endpoint` - (Optional) The endpoint of he Azure CosmosDB account. Required if `connection_string` is unspecified.
+* `account_endpoint` - (Optional) The endpoint of the Azure CosmosDB account. Required if `connection_string` is unspecified.
 
 * `account_key` - (Optional) The account key of the Azure Cosmos DB account. Required if `connection_string` is unspecified.
 

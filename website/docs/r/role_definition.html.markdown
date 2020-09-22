@@ -47,7 +47,9 @@ The following arguments are supported:
 
 * `permissions` - (Required) A `permissions` block as defined below.
 
-* `assignable_scopes` - (Required) One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
+* `assignable_scopes` - (Optional) One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
+
+~> **NOTE:** The value for `scope` is automatically included in this list.
 
 A `permissions` block as the following properties:
 
@@ -64,6 +66,8 @@ A `permissions` block as the following properties:
 The following attributes are exported:
 
 * `id` - The Role Definition ID.
+
+* `role_definition_resource_id` - The Azure Resource Manager ID for the resource
 
 ## Timeouts
 

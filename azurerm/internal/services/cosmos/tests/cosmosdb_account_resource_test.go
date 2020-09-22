@@ -276,6 +276,14 @@ func TestAccAzureRMCosmosDBAccount_capabilities_mongoEnableDocLevelTTL(t *testin
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"mongoEnableDocLevelTTL"})
 }
 
+func TestAccAzureRMCosmosDBAccount_capabilities_DisableRateLimitingResponses(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"DisableRateLimitingResponses"})
+}
+
+func TestAccAzureRMCosmosDBAccount_capabilities_AllowSelfServeUpgradeToMongo36(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"AllowSelfServeUpgradeToMongo36"})
+}
+
 func testAccAzureRMCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentdb.DatabaseAccountKind, capabilities []string) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
