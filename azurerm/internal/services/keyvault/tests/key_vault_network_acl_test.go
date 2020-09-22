@@ -106,37 +106,37 @@ func TestAccAzureRMKeyVaultNetworkAcl_addVnet(t *testing.T) {
 func testAccAzureRMKeyVault_common(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
-}  
+  features {}
+}
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]s"
-	location = "%[2]s"
-}  
+  name     = "acctestRG-%[1]s"
+  location = "%[2]s"
+}
 
 resource "azurerm_key_vault" "test" {
-	name                = "acctestkv%[1]s"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	sku_name            = "standard"
-	tenant_id           = data.azurerm_client_config.current.tenant_id
-}  
+  name                = "acctestkv%[1]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "standard"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+}
 
 resource "azurerm_virtual_network" "test" {
-	name                = "acctestRG-%[1]s-network"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	address_space       = ["10.0.0.0/16"]
-}  
+  name                = "acctestRG-%[1]s-network"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.0.0.0/16"]
+}
 
 resource "azurerm_subnet" "test" {
-	name                 = "acctestRG-%[1]s-subnet"
-	virtual_network_name = azurerm_virtual_network.test.name
-	resource_group_name  = azurerm_resource_group.test.name
-	address_prefixes     = ["10.0.1.0/24"]
-	service_endpoints    = ["Microsoft.KeyVault"]
+  name                 = "acctestRG-%[1]s-subnet"
+  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  service_endpoints    = ["Microsoft.KeyVault"]
 }
 `, fmt.Sprintf("%d", data.RandomInteger)[8:], data.Locations.Primary)
 }
@@ -147,12 +147,12 @@ func testAccAzureRMKeyVaultNetworkAcl_basicTemplate(data acceptance.TestData) st
 %s
 
 resource "azurerm_key_vault_network_acl" "test" {
-	key_vault_name      = azurerm_key_vault.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	network_acls {
-	  default_action = "Allow"
-	  bypass         = "None"
-	}
+  key_vault_name      = azurerm_key_vault.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  network_acls {
+    default_action = "Allow"
+    bypass         = "None"
+  }
 }
 `, template)
 }
@@ -163,12 +163,12 @@ func testAccAzureRMKeyVaultNetworkAcl_updateTemplate(data acceptance.TestData) s
 %s
 
 resource "azurerm_key_vault_network_acl" "test" {
-	key_vault_name      = azurerm_key_vault.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	network_acls {
-	  default_action = "Deny"
-	  bypass         = "AzureServices"
-	}
+  key_vault_name      = azurerm_key_vault.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+  }
 }
 `, template)
 }
@@ -179,13 +179,13 @@ func testAccAzureRMKeyVaultNetworkAcl_addIp(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault_network_acl" "test" {
-	key_vault_name      = azurerm_key_vault.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	network_acls {
-	  default_action = "Deny"
-	  bypass         = "AzureServices"
-	  ip_rules = ["43.0.0.0/24"]
-	}
+  key_vault_name      = azurerm_key_vault.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+    ip_rules       = ["43.0.0.0/24"]
+  }
 }
 `, template)
 }
@@ -196,13 +196,13 @@ func testAccAzureRMKeyVaultNetworkAcl_addVnet(data acceptance.TestData) string {
 %s
 
 resource "azurerm_key_vault_network_acl" "test" {
-	key_vault_name      = azurerm_key_vault.test.name
-	resource_group_name = azurerm_resource_group.test.name
-	network_acls {
-	  default_action = "Deny"
-	  bypass         = "AzureServices"
-	  virtual_network_subnet_ids = [azurerm_subnet.test.id]
-	}
+  key_vault_name      = azurerm_key_vault.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  network_acls {
+    default_action             = "Deny"
+    bypass                     = "AzureServices"
+    virtual_network_subnet_ids = [azurerm_subnet.test.id]
+  }
 }
 `, template)
 }
