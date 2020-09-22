@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	aadmgmt "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/aadmgmt/client"
 	advisor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/client"
 	analysisServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/client"
@@ -92,7 +93,7 @@ type Client struct {
 
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
-
+	AADManagement		  *aadmgmt.Client
 	Advisor               *advisor.Client
 	AnalysisServices      *analysisServices.Client
 	ApiManagement         *apiManagement.Client
@@ -180,7 +181,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 
 	client.Features = o.Features
 	client.StopContext = ctx
-
+	client.AADManagement = aadmgmt.NewClient(o)
 	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
