@@ -153,7 +153,7 @@ func dataSourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) e
 
 	if props := role.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
-		d.Set("role_definition_id", defId)
+		d.Set("role_definition_id", role.Name)
 		d.Set("description", props.Description)
 		d.Set("type", props.RoleType)
 
