@@ -11,6 +11,7 @@ FEATURES:
 * **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
 * **New Data Source:** `azurerm_mssql_server` [GH-7917]
 * **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
+* **New resource:** `azurerm_mysql_server_key` [GH-8125]
 * **New Resource:** `azurerm_postgresql_server_key` [GH-8126]
 
 IMPROVEMENTS:
