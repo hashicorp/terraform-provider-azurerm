@@ -18,8 +18,8 @@ type Client struct {
 	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
 	FirewallPolicyClient                 *network.FirewallPoliciesClient
-	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient	
-        InterfacesClient                     *network.InterfacesClient
+	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
+	InterfacesClient                     *network.InterfacesClient
 	LoadBalancersClient                  *networkLegacy.LoadBalancersClient
 	LoadBalancerLoadBalancingRulesClient *networkLegacy.LoadBalancerLoadBalancingRulesClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
@@ -197,8 +197,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteCircuitsClient:           &ExpressRouteCircuitsClient,
 		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
-		FirewallPolicyClient:                 &FirewallPolicyClient,		
-HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
+		FirewallPolicyClient:                 &FirewallPolicyClient,
+		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
 		LoadBalancerLoadBalancingRulesClient: &LoadBalancerLoadBalancingRulesClient,
