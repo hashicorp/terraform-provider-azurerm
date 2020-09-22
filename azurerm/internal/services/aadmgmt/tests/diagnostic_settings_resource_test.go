@@ -18,7 +18,6 @@ import (
 	"testing"
 )
 
-
 func TestAccAzureADDiagnosticSettings_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_aad_diagnostic_settings", "test")
 	diagSettingName := data.RandomString
@@ -45,7 +44,7 @@ func TestAccAzureADDiagnosticSettings_Complete(t *testing.T) {
 		CheckDestroy: testAADDiagnosticsSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAADDiagnosticSettings_complete(data, diagSettingName,2, true, true, 3, true),
+				Config: testAADDiagnosticSettings_complete(data, diagSettingName, 2, true, true, 3, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAccAzureADDiagnosticSettingsExists(data.ResourceName),
 				),
@@ -99,7 +98,7 @@ func TestAccAzureADDiagnosticSettings_update(t *testing.T) {
 		CheckDestroy: testAADDiagnosticsSettingsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAADDiagnosticSettings_complete(data, diagSettingName,2, true, true, 3, true),
+				Config: testAADDiagnosticSettings_complete(data, diagSettingName, 2, true, true, 3, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAccAzureADDiagnosticSettingsExists(data.ResourceName),
 				),
@@ -113,7 +112,7 @@ func TestAccAzureADDiagnosticSettings_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAADDiagnosticSettings_complete(data, diagSettingName,2, true, true, 5, true),
+				Config: testAADDiagnosticSettings_complete(data, diagSettingName, 2, true, true, 5, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAccAzureADDiagnosticSettingsExists(data.ResourceName),
 				),
@@ -122,8 +121,6 @@ func TestAccAzureADDiagnosticSettings_update(t *testing.T) {
 		},
 	})
 }
-
-
 
 func testCheckAccAzureADDiagnosticSettingsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -137,10 +134,10 @@ func testCheckAccAzureADDiagnosticSettingsExists(resourceName string) resource.T
 
 		diagSettingName := rs.Primary.Attributes["name"]
 
-		resp, err := client.Get(ctx, diagSettingName);
+		resp, err := client.Get(ctx, diagSettingName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("AAD Diagnostic settings %s does not exist: %v",diagSettingName, err)
+				return fmt.Errorf("AAD Diagnostic settings %s does not exist: %v", diagSettingName, err)
 			}
 			return fmt.Errorf("Bad request for get AAD diagnostic settings %s: %v", diagSettingName, err)
 		}
@@ -151,7 +148,7 @@ func testCheckAccAzureADDiagnosticSettingsExists(resourceName string) resource.T
 
 func testAADDiagnosticsSettingsDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).AADManagement.DiagnosticSettingsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_aad_diagnostic_settings" {
@@ -164,7 +161,7 @@ func testAADDiagnosticsSettingsDestroy(s *terraform.State) error {
 				return nil
 			}
 			return fmt.Errorf("Bad request for get AAD diagnostic settings %s: %v", diagSettingName, err)
-			
+
 		}
 
 		return nil
@@ -198,8 +195,6 @@ resource "azurerm_aad_diagnostic_settings" "test" {
   }
 `, template, name)
 }
-
-
 
 func testAADDiagnosticSettings_eventhub(data acceptance.TestData) string {
 	template := testAccAADDiagnosticSettings_template(data)
@@ -281,7 +276,7 @@ retention_policy_enabled = %t
         }
     }
 }
-`, template, diagSettingName, auditLogRetentionDays, auditLogRetentionEnabled,signInLogEnabled, signInLogRetentionDays, signInLogRetentionEnabled )
+`, template, diagSettingName, auditLogRetentionDays, auditLogRetentionEnabled, signInLogEnabled, signInLogRetentionDays, signInLogRetentionEnabled)
 }
 
 func testAccAADDiagnosticSettings_template(data acceptance.TestData) string {

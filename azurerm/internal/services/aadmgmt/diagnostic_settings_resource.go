@@ -9,9 +9,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"time"
 	"net/url"
 	"strings"
+	"time"
 )
 
 func azureADDiagnosticSettingsResource() *schema.Resource {
@@ -41,7 +41,7 @@ func azureADDiagnosticSettingsResource() *schema.Resource {
 			},
 
 			"storage_account_id": {
-				Type:         schema.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 
@@ -62,7 +62,7 @@ func azureADDiagnosticSettingsResource() *schema.Resource {
 
 			"logs": {
 				Type:     schema.TypeList,
-				Required:     true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -75,7 +75,7 @@ func azureADDiagnosticSettingsResource() *schema.Resource {
 						// SDK-for-go enum even though it is supported in REST API v2017-04-01
 						"category": {
 							Type:     schema.TypeString,
-							Required:     true,
+							Required: true,
 							ValidateFunc: validation.StringInSlice(
 								[]string{string(aad.AuditLogs), string(aad.SignInLogs)},
 								false,
@@ -89,14 +89,14 @@ func azureADDiagnosticSettingsResource() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"retention_policy_enabled": {
-										Type:         schema.TypeBool,
-										Optional:     true,
+										Type:     schema.TypeBool,
+										Optional: true,
 									},
-			
+
 									"retention_policy_days": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(0,365),
+										ValidateFunc: validation.IntBetween(0, 365),
 									},
 								},
 							},
@@ -107,10 +107,8 @@ func azureADDiagnosticSettingsResource() *schema.Resource {
 
 			"type": {
 				Type:     schema.TypeString,
-				Computed:     true,
+				Computed: true,
 			},
-
-			
 		},
 	}
 }
@@ -126,13 +124,12 @@ func diagnosticsSettingsCreateOrUpdate(d *schema.ResourceData, meta interface{})
 	eventHubAuthRule := d.Get("event_hub_auth_rule_id").(string)
 	eventHub := d.Get("event_hub_name").(string)
 
-	if storageAccount == "" && workspace == "" && ( eventHubAuthRule == "" || eventHub == "") {
+	if storageAccount == "" && workspace == "" && (eventHubAuthRule == "" || eventHub == "") {
 		return fmt.Errorf("Please specify atleast one data sink for diagnostic settings %q", client.BaseURI)
 	}
 
-	diagnosticSettingsResource := aad.DiagnosticSettingsResource {
-		DiagnosticSettings: &aad.DiagnosticSettings {
-		},
+	diagnosticSettingsResource := aad.DiagnosticSettingsResource{
+		DiagnosticSettings: &aad.DiagnosticSettings{},
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
@@ -156,17 +153,16 @@ func diagnosticsSettingsCreateOrUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if _, ok := d.GetOk("logs"); ok {
-		 res, err := expandDiagnosticLogSettings(d)
-		 if err != nil {
+		res, err := expandDiagnosticLogSettings(d)
+		if err != nil {
 			return fmt.Errorf("state validation failed for diagnostic settings %q: %+v", name, err)
-		 }
+		}
 		diagnosticSettingsResource.DiagnosticSettings.Logs = res
 	}
-	 
+
 	if _, err := client.CreateOrUpdate(ctx, diagnosticSettingsResource, name); err != nil {
 		return fmt.Errorf("error creating diagnostic settings for AAD %q: %+v", name, err)
 	}
-
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
@@ -178,9 +174,8 @@ func diagnosticsSettingsCreateOrUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(*resp.ID)
-	return diagnosticsSettingsRead(d,meta)
+	return diagnosticsSettingsRead(d, meta)
 }
-
 
 func expandDiagnosticLogSettings(d *schema.ResourceData) (*[]aad.LogSettings, error) {
 	diagnosticLogSettings := d.Get("logs").([]interface{})
@@ -200,17 +195,17 @@ func expandDiagnosticLogSettings(d *schema.ResourceData) (*[]aad.LogSettings, er
 				if retentionPolicyEnabled && !logSettingEnabled {
 					return nil, fmt.Errorf("The log setting %s should be enabled for retention policy to be applied.", logSettingCategory)
 				}
-				retentionPolicyObject = &aad.RetentionPolicy {
+				retentionPolicyObject = &aad.RetentionPolicy{
 					Enabled: utils.Bool(retentionPolicyEnabled),
-					Days: utils.Int32(int32(retentionPolicyDays)),
+					Days:    utils.Int32(int32(retentionPolicyDays)),
 				}
 			}
 		}
 
 		result = append(result,
 			aad.LogSettings{
-				Category: aad.Category(logSettingCategory),
-				Enabled: utils.Bool(logSettingEnabled),
+				Category:        aad.Category(logSettingCategory),
+				Enabled:         utils.Bool(logSettingEnabled),
 				RetentionPolicy: retentionPolicyObject,
 			},
 		)
@@ -218,21 +213,20 @@ func expandDiagnosticLogSettings(d *schema.ResourceData) (*[]aad.LogSettings, er
 	return &result, nil
 }
 
-
 func diagnosticsSettingsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AADManagement.DiagnosticSettingsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	
+
 	resMap, err := parseDiagnosticSettingResourceId(d.Id())
 	if err != nil {
 		return fmt.Errorf("error while parsing Resource Id:%+v", err)
 	}
 	name := resMap["diagnosticSettings"]
 
-	 if _, err := client.Delete(ctx,name); err != nil {
+	if _, err := client.Delete(ctx, name); err != nil {
 		return fmt.Errorf("Error while deleting AAD Diagnostic settings %s: %+v", name, err)
-	 }
+	}
 
 	return nil
 }
@@ -248,20 +242,20 @@ func diagnosticsSettingsRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	name := resMap["diagnosticSettings"]
 	resp, err := client.Get(ctx, name)
-	 if err != nil {
+	if err != nil {
 		return fmt.Errorf("Error while fetching AAD Diagnostic settings %s: %+v", name, err)
-	 }
+	}
 
-	 d.Set("name", resp.Name)
-	 d.Set("type", resp.Type)
+	d.Set("name", resp.Name)
+	d.Set("type", resp.Type)
 
-	 if settings := resp.DiagnosticSettings; settings != nil {
-	 d.Set("event_hub_auth_rule_id", settings.EventHubAuthorizationRuleID)
-	 d.Set("event_hub_name", settings.EventHubName)
-	 d.Set("storage_account_id", settings.StorageAccountID)
-	 d.Set("workspace_id", settings.WorkspaceID)
-	 d.Set("logs", flattenDiagnosticSettingLogs(settings.Logs))
-	 }
+	if settings := resp.DiagnosticSettings; settings != nil {
+		d.Set("event_hub_auth_rule_id", settings.EventHubAuthorizationRuleID)
+		d.Set("event_hub_name", settings.EventHubName)
+		d.Set("storage_account_id", settings.StorageAccountID)
+		d.Set("workspace_id", settings.WorkspaceID)
+		d.Set("logs", flattenDiagnosticSettingLogs(settings.Logs))
+	}
 	return nil
 }
 
@@ -273,18 +267,18 @@ func flattenDiagnosticSettingLogs(in *[]aad.LogSettings) []map[string]interface{
 	for _, logSetting := range *in {
 		resource := make(map[string]interface{})
 		retentionPolicy := make([]interface{}, 0, 1)
-		if aad.AuditLogs == logSetting.Category || aad.SignInLogs ==  logSetting.Category {
+		if aad.AuditLogs == logSetting.Category || aad.SignInLogs == logSetting.Category {
 			resource["category"] = string(logSetting.Category)
 			resource["enabled"] = logSetting.Enabled
-				if logSetting.RetentionPolicy != nil {
-					v := make(map[string]interface{})
-					v["retention_policy_enabled"] = logSetting.RetentionPolicy.Enabled
-					v["retention_policy_days"] = logSetting.RetentionPolicy.Days
-					retentionPolicy = append(retentionPolicy, v)
-					resource["retention_policy"] = retentionPolicy;
-				}
-				result = append(result, resource)
-			
+			if logSetting.RetentionPolicy != nil {
+				v := make(map[string]interface{})
+				v["retention_policy_enabled"] = logSetting.RetentionPolicy.Enabled
+				v["retention_policy_days"] = logSetting.RetentionPolicy.Days
+				retentionPolicy = append(retentionPolicy, v)
+				resource["retention_policy"] = retentionPolicy
+			}
+			result = append(result, resource)
+
 		}
 	}
 
@@ -292,7 +286,7 @@ func flattenDiagnosticSettingLogs(in *[]aad.LogSettings) []map[string]interface{
 }
 
 // AAD Diagnostic setting resource ID does not comform to any subscriptions or resource groups since it is set at Directory level.
-// Hence the parseResourceId function is not valid for AAD diagnostic setting resource id 
+// Hence the parseResourceId function is not valid for AAD diagnostic setting resource id
 func parseDiagnosticSettingResourceId(id string) (map[string]string, error) {
 	idURL, err := url.Parse(id)
 	if err != nil {

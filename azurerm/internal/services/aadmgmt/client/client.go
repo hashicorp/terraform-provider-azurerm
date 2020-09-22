@@ -6,7 +6,7 @@ import (
 )
 
 type Client struct {
-	DiagnosticSettingsClient 			*aad.DiagnosticSettingsClient
+	DiagnosticSettingsClient *aad.DiagnosticSettingsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -14,6 +14,6 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&diagnosticsSettingsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DiagnosticSettingsClient: 			&diagnosticsSettingsClient,
+		DiagnosticSettingsClient: &diagnosticsSettingsClient,
 	}
 }
