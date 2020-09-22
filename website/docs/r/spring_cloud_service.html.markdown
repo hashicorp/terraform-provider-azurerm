@@ -65,11 +65,27 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0` and `S0`. Defaults to `S0`.
 
+* `network` - (Optional) A `network` block as defined below. Changing this forces a new resource to be created.
+
 * `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
 
 * `trace` - (Optional) A `trace` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `config_server_git_setting` block supports the following:
+
+* `service_runtime_subnet_id` - (Required) Specifies the subnet id to host Azure Spring Cloud Service Runtime.
+
+* `app_subnet_id` - (Required) Specifies the subnet id to host Azure Spring Cloud Apps.
+
+* `cidr` - (Required) Specifies the Spring Cloud service reserved CIDR.
+
+* `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime.
+
+* `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps.
 
 ---
 
@@ -136,6 +152,12 @@ The `trace` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Service.
+
+---
+
+The `network` block exports the following:
+
+* `load_balancer_ip` - The Load Balancer IP for Azure Spring Cloud Service Runtime.
 
 ## Timeouts
 
