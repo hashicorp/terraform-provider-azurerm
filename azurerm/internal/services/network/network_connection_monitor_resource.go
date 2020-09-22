@@ -71,12 +71,14 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 			"auto_start": {
 				Type:       schema.TypeBool,
 				Optional:   true,
+				Computed:   true,
 				Deprecated: "This field has been deprecated in new api version 2020-05-01",
 			},
 
 			"destination": {
 				Type:          schema.TypeList,
 				Optional:      true,
+				Computed:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"endpoint"},
 				Deprecated:    "Deprecated in favor of `endpoint`",
@@ -172,6 +174,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 			"interval_in_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				Deprecated:   "Deprecated in favor of `test_frequency_sec`",
 				ValidateFunc: validation.IntAtLeast(30),
 			},
@@ -184,6 +187,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 			"source": {
 				Type:          schema.TypeList,
 				Optional:      true,
+				Computed:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"endpoint"},
 				Deprecated:    "Deprecated in favor of `endpoint`",
