@@ -3,6 +3,7 @@
 UPGRADE NOTES:
 
 * `azurerm_api_management` - the value `None` has been removed from the `identity` block to match other resources, to specify an API Management Service with no Managed Identity remove the `identity` block [GH-8411]
+* `azurerm_container_registry` -  the `storage_account_id` property now forces a new resource as required by the updated API version [GH-8477]
 
 FEATURES: 
 
@@ -17,6 +18,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
+* dependencies: updating `containerregistry` to `2019-05-01` [GH-8477]
 * `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
 * `azurerm_cosmosdb_sql_container` - support for the `indexing_policy` property [GH-8461]
 * `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
@@ -78,6 +80,7 @@ BUG FIXES:
 ## 2.27.0 (September 10, 2020)
 
 UPGRADE NOTES
+
 * The `id` field for the `azurerm_role_definition` has changed in this release to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` on the new resource from version 2.28.0 of the Azure Provider.
 
 FEATURES:
@@ -121,6 +124,7 @@ UPGRADE NOTES:
 
 
 FEATURES:
+
 * **New Resource:** `azurerm_log_analytics_saved_search` ([#8253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8253))
 
 ENHANCEMENTS:
