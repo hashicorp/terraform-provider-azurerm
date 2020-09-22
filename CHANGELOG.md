@@ -24,6 +24,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
 * `azurerm_cosmosdb_sql_container` - support for the `indexing_policy` property [GH-8461]
 * `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
+* `azurerm_policy_set_definition` - support for typed parameter values other then string in `the policy_definition_reference` block deprecating `parameters` in favour of `parameter_vcaluess` [GH-8270]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
 * `azurerm_signalr_service` - support for delta updates [GH-8541]
 * `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
