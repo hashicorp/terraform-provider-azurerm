@@ -73,6 +73,9 @@ func (client LocationClient) ListCachedImages(ctx context.Context, location stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.LocationClient", "ListCachedImages", resp, "Failure responding to request")
 	}
+	if result.cilr.hasNextLink() && result.cilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -183,6 +186,9 @@ func (client LocationClient) ListCapabilities(ctx context.Context, location stri
 	result.clr, err = client.ListCapabilitiesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.LocationClient", "ListCapabilities", resp, "Failure responding to request")
+	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

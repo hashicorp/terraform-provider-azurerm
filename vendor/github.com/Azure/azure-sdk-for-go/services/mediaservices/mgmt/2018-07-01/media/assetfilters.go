@@ -324,6 +324,9 @@ func (client AssetFiltersClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetFiltersClient", "List", resp, "Failure responding to request")
 	}
+	if result.afc.hasNextLink() && result.afc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

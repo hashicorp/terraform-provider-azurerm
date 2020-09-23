@@ -156,6 +156,9 @@ func (client PrivateLinkResourcesClient) ListByServer(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.PrivateLinkResourcesClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.plrlr.hasNextLink() && result.plrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

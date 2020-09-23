@@ -465,6 +465,9 @@ func (client APIVersionSetClient) ListByService(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIVersionSetClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.avsc.hasNextLink() && result.avsc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

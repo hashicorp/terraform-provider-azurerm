@@ -40,6 +40,12 @@ output "app_service_environment_id" {
 
 * `pricing_tier` - The Pricing Tier (Isolated SKU) of the App Service Environment.
 
+* `internal_ip_address` - IP address of internal load balancer of the App Service Environment.
+
+* `service_ip_address` - IP address of service endpoint of the App Service Environment.
+
+* `outbound_ip_addresses` - Outbound IP addresses of the App Service Environment.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts

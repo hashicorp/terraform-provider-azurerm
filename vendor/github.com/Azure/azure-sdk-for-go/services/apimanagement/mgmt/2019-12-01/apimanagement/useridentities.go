@@ -87,6 +87,9 @@ func (client UserIdentitiesClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserIdentitiesClient", "List", resp, "Failure responding to request")
 	}
+	if result.uic.hasNextLink() && result.uic.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

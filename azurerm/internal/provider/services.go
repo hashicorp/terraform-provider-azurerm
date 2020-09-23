@@ -7,6 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
@@ -40,6 +41,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning"
@@ -91,6 +93,7 @@ func SupportedServices() []common.ServiceRegistration {
 		appconfiguration.Registration{},
 		appplatform.Registration{},
 		applicationinsights.Registration{},
+		attestation.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
 		batch.Registration{},
@@ -127,6 +130,7 @@ func SupportedServices() []common.ServiceRegistration {
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedapplications.Registration{},
+		lighthouse.Registration{},
 		managementgroup.Registration{},
 		maps.Registration{},
 		mariadb.Registration{},

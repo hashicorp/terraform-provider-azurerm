@@ -317,6 +317,9 @@ func (client SynchronizationSettingsClient) ListByShare(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.SynchronizationSettingsClient", "ListByShare", resp, "Failure responding to request")
 	}
+	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

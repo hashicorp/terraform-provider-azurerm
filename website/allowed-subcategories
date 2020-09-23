@@ -4,6 +4,7 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Attestation
 Authorization
 Automation
 Base
@@ -34,6 +35,7 @@ Healthcare
 IoT Central
 IoT Hub
 Key Vault
+Lighthouse
 Load Balancer
 Log Analytics
 Logic App

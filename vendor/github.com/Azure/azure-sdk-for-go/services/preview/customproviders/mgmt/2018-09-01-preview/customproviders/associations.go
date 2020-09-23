@@ -302,6 +302,9 @@ func (client AssociationsClient) ListAll(ctx context.Context, scope string) (res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "customproviders.AssociationsClient", "ListAll", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

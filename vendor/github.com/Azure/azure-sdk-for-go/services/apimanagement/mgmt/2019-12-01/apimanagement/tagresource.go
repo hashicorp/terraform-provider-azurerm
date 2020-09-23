@@ -104,6 +104,9 @@ func (client TagResourceClient) ListByService(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.TagResourceClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.trc.hasNextLink() && result.trc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

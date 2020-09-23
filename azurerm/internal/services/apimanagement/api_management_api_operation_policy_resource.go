@@ -37,7 +37,7 @@ func resourceArmApiManagementApiOperationPolicy() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
-			"api_name": azure.SchemaApiManagementChildName(),
+			"api_name": azure.SchemaApiManagementApiName(),
 
 			"operation_id": azure.SchemaApiManagementChildName(),
 

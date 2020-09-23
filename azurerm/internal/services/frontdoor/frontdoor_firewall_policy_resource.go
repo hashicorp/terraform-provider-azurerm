@@ -167,6 +167,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 											string(frontdoor.RequestHeader),
 											string(frontdoor.RequestMethod),
 											string(frontdoor.RequestURI),
+											string(frontdoor.SocketAddr),
 										}, false),
 									},
 

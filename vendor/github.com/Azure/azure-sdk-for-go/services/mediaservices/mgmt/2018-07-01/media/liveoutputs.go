@@ -364,6 +364,9 @@ func (client LiveOutputsClient) List(ctx context.Context, resourceGroupName stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveOutputsClient", "List", resp, "Failure responding to request")
 	}
+	if result.lolr.hasNextLink() && result.lolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

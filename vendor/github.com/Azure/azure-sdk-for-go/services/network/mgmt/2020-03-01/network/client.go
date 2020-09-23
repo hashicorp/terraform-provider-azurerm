@@ -242,6 +242,9 @@ func (client BaseClient) DisconnectActiveSessions(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "DisconnectActiveSessions", resp, "Failure responding to request")
 	}
+	if result.bsdr.hasNextLink() && result.bsdr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -552,6 +555,9 @@ func (client BaseClient) GetBastionShareableLink(ctx context.Context, resourceGr
 	result.bsllr, err = client.GetBastionShareableLinkResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BaseClient", "GetBastionShareableLink", resp, "Failure responding to request")
+	}
+	if result.bsllr.hasNextLink() && result.bsllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
