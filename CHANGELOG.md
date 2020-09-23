@@ -21,6 +21,9 @@ IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
 * dependencies: updating `containerregistry` to `2019-05-01` [GH-8477]
+* Data Source: `azurerm_api_management` - export the `private_ip_addresses` attribute for primary and additional locations [GH-8290]
+* `azurerm_api_management` - support the `virtual_network_configuration` block for additional locations [GH-8290]
+* `azurerm_api_management` - export the `private_ip_addresses` attribute for additional locations [GH-8290]
 * `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
 * `azurerm_cosmosdb_sql_container` - support for the `indexing_policy` property [GH-8461]
 * `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
