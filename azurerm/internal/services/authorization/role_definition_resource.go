@@ -5,15 +5,13 @@ import (
 	"log"
 	"time"
 
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -118,6 +116,11 @@ func resourceArmRoleDefinition() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"role_definition_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -196,6 +199,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("scope", roleDefinitionId.Scope)
 	d.Set("role_definition_id", roleDefinitionId.RoleID)
+	d.Set("role_definition_resource_id", roleDefinitionId.ResourceID)
 
 	resp, err := client.Get(ctx, roleDefinitionId.Scope, roleDefinitionId.RoleID)
 	if err != nil {

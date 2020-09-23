@@ -249,6 +249,9 @@ func (client AlertsClient) List(ctx context.Context, filter string, selectParame
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "List", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -381,6 +384,9 @@ func (client AlertsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.al, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -517,6 +523,9 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegion(ctx context.Cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelAlertsByRegion", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -646,6 +655,9 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegion(ctx context.Conte
 	result.al, err = client.ListSubscriptionLevelAlertsByRegionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelAlertsByRegion", resp, "Failure responding to request")
+	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

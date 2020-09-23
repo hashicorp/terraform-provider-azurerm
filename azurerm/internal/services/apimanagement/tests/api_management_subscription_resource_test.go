@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
+func TestAccAzureRMApiManagementSubscription_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +20,7 @@ func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementSubscription_basic(data),
+				Config: testAccAzureRMApiManagementSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "true"),
@@ -34,7 +34,7 @@ func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
+func TestAccAzureRMApiManagementSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,7 +43,7 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementSubscription_basic(data),
+				Config: testAccAzureRMApiManagementSubscription_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
@@ -51,12 +51,12 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMAPIManagementSubscription_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementSubscription_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
+func TestAccAzureRMApiManagementSubscription_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -65,7 +65,7 @@ func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "submitted", "true"),
+				Config: testAccAzureRMApiManagementSubscription_update(data, "submitted", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "submitted"),
@@ -76,28 +76,28 @@ func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "active", "true"),
+				Config: testAccAzureRMApiManagementSubscription_update(data, "active", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "suspended", "true"),
+				Config: testAccAzureRMApiManagementSubscription_update(data, "suspended", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "suspended"),
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "cancelled", "true"),
+				Config: testAccAzureRMApiManagementSubscription_update(data, "cancelled", "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "cancelled"),
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementSubscription_update(data, "active", "false"),
+				Config: testAccAzureRMApiManagementSubscription_update(data, "active", "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "allow_tracing", "false"),
@@ -107,7 +107,7 @@ func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
+func TestAccAzureRMApiManagementSubscription_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,7 +116,7 @@ func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementSubscription_complete(data),
+				Config: testAccAzureRMApiManagementSubscription_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
@@ -181,8 +181,8 @@ func testCheckAzureRMAPIManagementSubscriptionExists(resourceName string) resour
 	}
 }
 
-func testAccAzureRMAPIManagementSubscription_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementSubscription_template(data)
+func testAccAzureRMApiManagementSubscription_basic(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementSubscription_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -196,8 +196,8 @@ resource "azurerm_api_management_subscription" "test" {
 `, template)
 }
 
-func testAccAzureRMAPIManagementSubscription_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementSubscription_basic(data)
+func testAccAzureRMApiManagementSubscription_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementSubscription_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -212,8 +212,8 @@ resource "azurerm_api_management_subscription" "import" {
 `, template)
 }
 
-func testAccAzureRMAPIManagementSubscription_update(data acceptance.TestData, state string, allow_tracing string) string {
-	template := testAccAzureRMAPIManagementSubscription_template(data)
+func testAccAzureRMApiManagementSubscription_update(data acceptance.TestData, state string, allow_tracing string) string {
+	template := testAccAzureRMApiManagementSubscription_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -229,8 +229,8 @@ resource "azurerm_api_management_subscription" "test" {
 `, template, state, allow_tracing)
 }
 
-func testAccAzureRMAPIManagementSubscription_complete(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementSubscription_template(data)
+func testAccAzureRMApiManagementSubscription_complete(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementSubscription_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -246,7 +246,7 @@ resource "azurerm_api_management_subscription" "test" {
 `, template)
 }
 
-func testAccAzureRMAPIManagementSubscription_template(data acceptance.TestData) string {
+func testAccAzureRMApiManagementSubscription_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

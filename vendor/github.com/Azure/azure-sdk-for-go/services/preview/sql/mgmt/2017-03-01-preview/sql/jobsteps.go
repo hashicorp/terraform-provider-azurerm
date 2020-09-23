@@ -429,6 +429,9 @@ func (client JobStepsClient) ListByJob(ctx context.Context, resourceGroupName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "ListByJob", resp, "Failure responding to request")
 	}
+	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -547,6 +550,9 @@ func (client JobStepsClient) ListByVersion(ctx context.Context, resourceGroupNam
 	result.jslr, err = client.ListByVersionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepsClient", "ListByVersion", resp, "Failure responding to request")
+	}
+	if result.jslr.hasNextLink() && result.jslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

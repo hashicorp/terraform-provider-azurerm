@@ -1,34 +1,124 @@
-## 2.27.0 (Unreleased)
+## 2.29.0 (Unreleased)
 
-FEATURES:
+UPGRADE NOTES:
 
-* **New Data Source:** `azurerm_attestation_provider` [GH-7885]
-* **New Data Source:** `azurerm_function_app_host_keys` [GH-7902]
-* **New Data Source:** `azurerm_lb_rule` [GH-8365]
-* **New Resource:** `azurerm_mssql_database_extended_auditing_policy` [GH-7793]
-* **New Resource:** `azurerm_attestation_provider` [GH-7885]
-* **New Resource:** `azurerm_api_management_api_diagnostic` [GH-7873]
-* **New Resource:** `azurerm_data_factory_linked_service_azure_sql_database` [GH-8349]
+* `azurerm_api_management` - the value `None` has been removed from the `identity` block to match other resources, to specify an API Management Service with no Managed Identity remove the `identity` block [GH-8411]
+* `azurerm_container_registry` -  the `storage_account_id` property now forces a new resource as required by the updated API version [GH-8477]
 
-ENHANCEMENTS:
+FEATURES: 
 
-* Data Source: `azurerm_virtual_network_gateway` - exposing `aad_audience`, `aad_issuer` and `aad_tenant` within the `vpn_client_configuration` block [GH-8294]
-* `azurerm_cosmosdb_account` - supporting the value `AllowSelfServeUpgradeToMongo36` for the `name` field within the `capabilities` block [GH-8335]
-* `azurerm_linux_virtual_machine` - Add support for `encryption_at_host_enabled` [GH-8322]
-* `azurerm_linux_virtual_machine_scale_set` - Add support for `encryption_at_host_enabled` [GH-8322]
-* `azurerm_servicebus_subscription` - add support for `dead_lettering_on_filter_evaluation_error` [GH-8412]
-* `azurerm_spring_cloud_app` - support for the `identity` block [GH-8336]
-* `azurerm_virtual_network_gateway` - support for `aad_audience`, `aad_issuer` and `aad_tenant` within the `vpn_client_configuration` block [GH-8294]
-* `azurerm_windows_virtual_machine` - Add support for `encryption_at_host_enabled` [GH-8322]
-* `azurerm_windows_virtual_machine_scale_set` - Add support for `encryption_at_host_enabled` [GH-8322]
+* **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
+* **New Data Source:** `azurerm_databricks_workspace` [GH-8502]
+* **New Data Source:** `azurerm_firewall_policy` [GH-7390]
+* **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
+* **New Data Source:** `azurerm_mssql_server` [GH-7917]
+* **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
+* **New resource:** `azurerm_firewall_policy` [GH-7390]
+* **New resource:** `azurerm_mysql_server_key` [GH-8125]
+* **New Resource:** `azurerm_postgresql_server_key` [GH-8126]
+
+IMPROVEMENTS:
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
+* dependencies: updating `containerregistry` to `2019-05-01` [GH-8477]
+* `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
+* `azurerm_cosmosdb_sql_container` - support for the `indexing_policy` property [GH-8461]
+* `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
+* `azurerm_policy_set_definition` - support for typed parameter values other then string in `the policy_definition_reference` block deprecating `parameters` in favour of `parameter_vcaluess` [GH-8270]
+* `azurerm_search_service` - Add support for `allowed_ips` [GH-8557]
+* `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
+* `azurerm_signalr_service` - support for delta updates [GH-8541]
+* `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
 
 BUG FIXES:
 
-* `azurerm_api_management_x.y.api_name` - validation fix [GH-8409]
-* `azurerm_application_insights_webtests` - Fix an issue where the `kind` property is sometimes set to `null` [GH-8372]
-* `azurerm_linux_virtual_machine` - Add WaitForState on VM delete [GH-8383]
-* `azurerm_role_definition` - fixed delete operation when role is scoped to Management Group [GH-6107]
-* `azurerm_windows_virtual_machine` - Add WaitForState on VM delete [GH-8383]
+* `azurerm_api_management` - the value `None` for the field `type` within the `identity` block has been removed - to remove a managed identity remove the `identity` block [GH-8411]
+* `azurerm_app_service` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
+* `azurerm_function_app` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
+* `azurerm_kubernetes_cluster` - picking the first system node pool if the original `default_node_pool` has been removed [GH-8503]
+
+## 2.28.0 (September 17, 2020)
+
+UPGRADE NOTES
+
+* The `id` field for the `azurerm_role_definition` changed in release 2.27.0 to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` from this version of the Azure Provider.
+
+FEATURES:
+
+* **New Data Source:** `azurerm_data_share_dataset_data_lake_gen2` [[#7907](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7907)] 
+* **New Data Source:** `azurerm_servicebus_queue_authorization_rule` ([#8438](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8438))
+* **New Data Source:** `azurerm_storage_sync` [[#7843](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7843)] 
+* **New Resource:** `azurerm_data_share_dataset_data_lake_gen2` ([#7907](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7907))
+* **New Resource:** `azurerm_lighthouse_definition` ([#6560](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6560))
+* **New Resource:** `azurerm_lighthouse_assignment` ([#6560](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6560))
+* **New Resource:** `azurerm_mssql_server_extended_auditing_policy`  ([#8447](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8447))
+* **New Resource:** `azurerm_storage_sync` ([#7843](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7843))
+* **New Resource:** `azurerm_synapse_sql_pool` ([#8095](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8095))
+
+ENHANCEMENTS:
+
+* Data Source: `azurerm_app_service_environment` - Expose vip information of an app service environment ([#8487](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8487))
+* Data Source: `azurerm_function_app` - export the `identity` block ([#8389](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8389))
+* `azurerm_app_service_hybrid_connection` - support relays in different namespaces ([#8370](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8370))
+* `azurerm_cosmosdb_cassandra_keyspace` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_gremlin_database` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_gremlin_graph` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_mongo_collection` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_mongo_database` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_sql_container` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_sql_database` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_cosmosdb_table` - support the `autoscale_settings` block ([#7773](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7773))
+* `azurerm_firewall` - support the `management_ip_configuration` block ([#8235](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8235))
+* `azurerm_storage_account_customer_managed_key` - support for key rotation ([#7836](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7836))
+
+BUG FIXES:
+
+* Data Source: `azurerm_function_app_host_keys` - Fix a crash when null ID sometimes returned by API ([#8430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8430))
+* `azurerm_cognitive_account` - correctly wait on update logic ([#8386](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8386))
+* `azurerm_eventhub_consumer_group` - allow the `name` property to be set to `$Default` ([#8388](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8388))
+* `azurerm_kubernetes_cluster` - ensure the OMS Agent Log Analytics Workspace case is preserved after disabling/enabling ([#8374](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8374))
+* `azurerm_management_group_id` - loosen case restritions during parsing of management group ID ([#8024](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8024))
+* `azurerm_packet_capture` - fix to ID path to match change in API ([#8167](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8167))
+* `azurerm_role_definition` - expose `role_definition_resource_id` ([#8492](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8492))
+
+## 2.27.0 (September 10, 2020)
+
+UPGRADE NOTES
+
+* The `id` field for the `azurerm_role_definition` has changed in this release to work around a bug in the Azure API when using management groups, where the Scope isn't returned - the existing `id` field is available as `role_definition_resource_id` on the new resource from version 2.28.0 of the Azure Provider.
+
+FEATURES:
+
+* **New Data Source:** `azurerm_attestation_provider` ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
+* **New Data Source:** `azurerm_function_app_host_keys` ([#7902](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7902))
+* **New Data Source:** `azurerm_lb_rule` ([#8365](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8365))
+* **New Resource:** `azurerm_mssql_database_extended_auditing_policy` ([#7793](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7793))
+* **New Resource:** `azurerm_attestation_provider` ([#7885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7885))
+* **New Resource:** `azurerm_api_management_api_diagnostic` ([#7873](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7873))
+* **New Resource:** `azurerm_data_factory_linked_service_azure_sql_database` ([#8349](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8349))
+
+ENHANCEMENTS:
+
+* Data Source: `azurerm_virtual_network_gateway` - exposing `aad_audience`, `aad_issuer` and `aad_tenant` within the `vpn_client_configuration` block ([#8294](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8294))
+* `azurerm_cosmosdb_account` - supporting the value `AllowSelfServeUpgradeToMongo36` for the `name` field within the `capabilities` block ([#8335](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8335))
+* `azurerm_linux_virtual_machine` - Add support for `encryption_at_host_enabled` ([#8322](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8322))
+* `azurerm_linux_virtual_machine_scale_set` - Add support for `encryption_at_host_enabled` ([#8322](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8322))
+* `azurerm_servicebus_subscription` - add support for `dead_lettering_on_filter_evaluation_error` ([#8412](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8412))
+* `azurerm_spring_cloud_app` - support for the `identity` block ([#8336](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8336))
+* `azurerm_storage_share_directory` - Update name validation ([#8366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8366))
+* `azurerm_virtual_network_gateway` - support for `aad_audience`, `aad_issuer` and `aad_tenant` within the `vpn_client_configuration` block ([#8294](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8294))
+* `azurerm_windows_virtual_machine` - Add support for `encryption_at_host_enabled` ([#8322](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8322))
+* `azurerm_windows_virtual_machine_scale_set` - Add support for `encryption_at_host_enabled` ([#8322](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8322))
+
+BUG FIXES:
+
+* `azurerm_api_management_x.y.api_name` - validation fix ([#8409](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8409))
+* `azurerm_application_insights_webtests` - Fix an issue where the `kind` property is sometimes set to `null` ([#8372](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8372))
+* `azurerm_cognitive_account` - Fixes a crash when provisioning a QnAMaker and supports AnomalyDetector ([#8357](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8357))
+* `azurerm_linux_virtual_machine` - Add WaitForState on VM delete ([#8383](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8383))
+* `azurerm_network_security_group` - fixed issue where updates would fail for resource ([#8384](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8384))
+* `azurerm_role_definition` - fixed delete operation when role is scoped to Management Group ([#6107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6107))
+* `azurerm_windows_virtual_machine` - Add WaitForState on VM delete ([#8383](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8383))
 
 ## 2.26.0 (September 04, 2020)
 
@@ -36,7 +126,9 @@ UPGRADE NOTES:
 
 * **Opt-In Beta:** This release introduces an opt-in beta for in-line Virtual Machine Scale Set Extensions. This functionality enables the resource to be used with Azure Service Fabric and other extensions that may require creation time inclusion on Scale Set members. Please see the documentation for `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` for information.
 
+
 FEATURES:
+
 * **New Resource:** `azurerm_log_analytics_saved_search` ([#8253](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8253))
 
 ENHANCEMENTS:

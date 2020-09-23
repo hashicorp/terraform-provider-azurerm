@@ -333,6 +333,9 @@ func (client PricingsClient) List(ctx context.Context) (result PricingListPage, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.PricingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -453,6 +456,9 @@ func (client PricingsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.pl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.PricingsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

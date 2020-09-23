@@ -365,6 +365,9 @@ func (client TagsClient) List(ctx context.Context) (result TagsListResultPage, e
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.TagsClient", "List", resp, "Failure responding to request")
 	}
+	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

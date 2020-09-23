@@ -157,6 +157,9 @@ func (client LocationsClient) List(ctx context.Context) (result AscLocationListP
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.LocationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.all.hasNextLink() && result.all.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

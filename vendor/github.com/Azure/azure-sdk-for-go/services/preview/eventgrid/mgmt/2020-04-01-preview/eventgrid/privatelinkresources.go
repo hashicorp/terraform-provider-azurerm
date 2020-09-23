@@ -163,6 +163,9 @@ func (client PrivateLinkResourcesClient) ListByResource(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PrivateLinkResourcesClient", "ListByResource", resp, "Failure responding to request")
 	}
+	if result.plrlr.hasNextLink() && result.plrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

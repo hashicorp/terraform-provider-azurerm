@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -61,7 +61,7 @@ func resourceArmStorageAccountCustomerManagedKey() *schema.Resource {
 
 			"key_version": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
@@ -74,45 +74,45 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountIdRaw := d.Get("storage_account_id").(string)
-	storageAccountId, err := storageParse.ParseAccountID(storageAccountIdRaw)
+	storageAccountIDRaw := d.Get("storage_account_id").(string)
+	storageAccountID, err := storageParse.ParseAccountID(storageAccountIDRaw)
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(storageAccountId.Name, storageAccountResourceName)
-	defer locks.UnlockByName(storageAccountId.Name, storageAccountResourceName)
+	locks.ByName(storageAccountID.Name, storageAccountResourceName)
+	defer locks.UnlockByName(storageAccountID.Name, storageAccountResourceName)
 
-	storageAccount, err := storageClient.GetProperties(ctx, storageAccountId.ResourceGroup, storageAccountId.Name, "")
+	storageAccount, err := storageClient.GetProperties(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountId.Name, storageAccountId.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 	if storageAccount.AccountProperties == nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountId.Name, storageAccountId.ResourceGroup)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
 
 	// since we're mutating the storage account here, we can use that as the ID
-	resourceId := storageAccountIdRaw
+	resourceID := storageAccountIDRaw
 
 	if d.IsNewResource() {
 		// whilst this looks superflurious given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
 		if storageAccount.AccountProperties.Encryption != nil {
-			if storageAccount.AccountProperties.Encryption.KeySource == storage.MicrosoftKeyvault {
-				return tf.ImportAsExistsError("azurerm_storage_account_customer_managed_key", resourceId)
+			if storageAccount.AccountProperties.Encryption.KeySource == storage.KeySourceMicrosoftKeyvault {
+				return tf.ImportAsExistsError("azurerm_storage_account_customer_managed_key", resourceID)
 			}
 		}
 	}
 
-	keyVaultIdRaw := d.Get("key_vault_id").(string)
-	keyVaultId, err := keyVaultParse.KeyVaultID(keyVaultIdRaw)
+	keyVaultIDRaw := d.Get("key_vault_id").(string)
+	keyVaultID, err := keyVaultParse.KeyVaultID(keyVaultIDRaw)
 	if err != nil {
 		return err
 	}
 
-	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	keyVault, err := vaultsClient.Get(ctx, keyVaultID.ResourceGroup, keyVaultID.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", keyVaultId.Name, keyVaultId.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
 	}
 
 	softDeleteEnabled := false
@@ -126,16 +126,17 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 		}
 	}
 	if !softDeleteEnabled || !purgeProtectionEnabled {
-		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultId.Name, keyVaultId.ResourceGroup)
+		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultID.Name, keyVaultID.ResourceGroup)
 	}
 
-	keyVaultBaseURL, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultsClient, keyVaultIdRaw)
+	keyVaultBaseURL, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultsClient, keyVaultIDRaw)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultId.Name, keyVaultId.ResourceGroup, err)
+		return fmt.Errorf("Error looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultID.Name, keyVaultID.ResourceGroup, err)
 	}
 
 	keyName := d.Get("key_name").(string)
 	keyVersion := d.Get("key_version").(string)
+
 	props := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			Encryption: &storage.Encryption{
@@ -147,7 +148,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 						Enabled: utils.Bool(true),
 					},
 				},
-				KeySource: storage.MicrosoftKeyvault,
+				KeySource: storage.KeySourceMicrosoftKeyvault,
 				KeyVaultProperties: &storage.KeyVaultProperties{
 					KeyName:     utils.String(keyName),
 					KeyVersion:  utils.String(keyVersion),
@@ -157,11 +158,11 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 		},
 	}
 
-	if _, err = storageClient.Update(ctx, storageAccountId.ResourceGroup, storageAccountId.Name, props); err != nil {
-		return fmt.Errorf("Error updating Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountId.Name, storageAccountId.ResourceGroup, err)
+	if _, err = storageClient.Update(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, props); err != nil {
+		return fmt.Errorf("Error updating Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(resourceID)
 	return resourceArmStorageAccountCustomerManagedKeyRead(d, meta)
 }
 
@@ -171,26 +172,26 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId, err := storageParse.ParseAccountID(d.Id())
+	storageAccountID, err := storageParse.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	storageAccount, err := storageClient.GetProperties(ctx, storageAccountId.ResourceGroup, storageAccountId.Name, "")
+	storageAccount, err := storageClient.GetProperties(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
-			log.Printf("[DEBUG] Storage Account %q could not be found in Resource Group %q - removing from state!", storageAccountId.Name, storageAccountId.ResourceGroup)
+			log.Printf("[DEBUG] Storage Account %q could not be found in Resource Group %q - removing from state!", storageAccountID.Name, storageAccountID.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountId.Name, storageAccountId.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 	if storageAccount.AccountProperties == nil {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountId.Name, storageAccountId.ResourceGroup)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
-	if storageAccount.AccountProperties.Encryption == nil || storageAccount.AccountProperties.Encryption.KeySource != storage.MicrosoftKeyvault {
-		log.Printf("[DEBUG] Customer Managed Key was not defined for Storage Account %q (Resource Group %q) - removing from state!", storageAccountId.Name, storageAccountId.ResourceGroup)
+	if storageAccount.AccountProperties.Encryption == nil || storageAccount.AccountProperties.Encryption.KeySource != storage.KeySourceMicrosoftKeyvault {
+		log.Printf("[DEBUG] Customer Managed Key was not defined for Storage Account %q (Resource Group %q) - removing from state!", storageAccountID.Name, storageAccountID.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
@@ -198,33 +199,33 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 	encryption := *storageAccount.AccountProperties.Encryption
 
 	keyName := ""
-	keyVaultUri := ""
+	keyVaultURI := ""
 	keyVersion := ""
 	if props := encryption.KeyVaultProperties; props != nil {
 		if props.KeyName != nil {
 			keyName = *props.KeyName
 		}
 		if props.KeyVaultURI != nil {
-			keyVaultUri = *props.KeyVaultURI
+			keyVaultURI = *props.KeyVaultURI
 		}
 		if props.KeyVersion != nil {
 			keyVersion = *props.KeyVersion
 		}
 	}
 
-	if keyVaultUri == "" {
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultUri` was nil", storageAccountId.Name, storageAccountId.ResourceGroup)
+	if keyVaultURI == "" {
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultURI` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultUri)
+	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultURI)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault ID from the Base URI %q: %+v", keyVaultUri, err)
+		return fmt.Errorf("Error retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
 	}
 
 	// now we have the key vault uri we can look up the ID
 
 	d.Set("storage_account_id", d.Id())
-	d.Set("key_vault_id", keyVaultId)
+	d.Set("key_vault_id", keyVaultID)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
 
@@ -236,22 +237,22 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageAccountId, err := storageParse.ParseAccountID(d.Id())
+	storageAccountID, err := storageParse.ParseAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(storageAccountId.Name, storageAccountResourceName)
-	defer locks.UnlockByName(storageAccountId.Name, storageAccountResourceName)
+	locks.ByName(storageAccountID.Name, storageAccountResourceName)
+	defer locks.UnlockByName(storageAccountID.Name, storageAccountResourceName)
 
 	// confirm it still exists prior to trying to update it, else we'll get an error
-	storageAccount, err := storageClient.GetProperties(ctx, storageAccountId.ResourceGroup, storageAccountId.Name, "")
+	storageAccount, err := storageClient.GetProperties(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(storageAccount.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountId.Name, storageAccountId.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 
 	// Since this isn't a real object, just modifying an existing object
@@ -269,13 +270,13 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 						Enabled: utils.Bool(true),
 					},
 				},
-				KeySource: storage.MicrosoftStorage,
+				KeySource: storage.KeySourceMicrosoftStorage,
 			},
 		},
 	}
 
-	if _, err = storageClient.Update(ctx, storageAccountId.ResourceGroup, storageAccountId.Name, props); err != nil {
-		return fmt.Errorf("Error removing Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountId.Name, storageAccountId.ResourceGroup, err)
+	if _, err = storageClient.Update(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, props); err != nil {
+		return fmt.Errorf("Error removing Customer Managed Key for Storage Account %q (Resource Group %q): %+v", storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 
 	return nil

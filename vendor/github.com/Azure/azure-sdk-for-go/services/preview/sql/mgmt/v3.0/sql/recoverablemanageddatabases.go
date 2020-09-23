@@ -155,6 +155,9 @@ func (client RecoverableManagedDatabasesClient) ListByInstance(ctx context.Conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.rmdlr.hasNextLink() && result.rmdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

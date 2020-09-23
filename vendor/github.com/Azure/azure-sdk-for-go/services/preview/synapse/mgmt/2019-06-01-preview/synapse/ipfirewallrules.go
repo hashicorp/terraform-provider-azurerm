@@ -349,6 +349,9 @@ func (client IPFirewallRulesClient) ListByWorkspace(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IPFirewallRulesClient", "ListByWorkspace", resp, "Failure responding to request")
 	}
+	if result.ifrilr.hasNextLink() && result.ifrilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

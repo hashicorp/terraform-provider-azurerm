@@ -492,6 +492,9 @@ func (client DisksClient) List(ctx context.Context, resourceGroupName string, la
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.DisksClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcd.hasNextLink() && result.rwcd.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

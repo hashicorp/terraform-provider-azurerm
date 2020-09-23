@@ -377,6 +377,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	// If `source_control` is defined, we need to set site_config.0.scm_type to "None" or we cannot update it
 	_, hasSourceControl := d.GetOk("source_control.0.repo_url")
 
+	scmType := web.ScmTypeNone
+
 	if d.HasChange("site_config") || hasSourceControl {
 		// update the main configuration
 		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
@@ -387,8 +389,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			SiteConfig: siteConfig,
 		}
 
-		if hasSourceControl {
-			siteConfigResource.SiteConfig.ScmType = "None"
+		scmType = siteConfig.ScmType
+		// ScmType being set blocks the update of source_control in _most_ cases, ADO is an exception
+		if hasSourceControl && scmType != web.ScmTypeVSTSRM {
+			siteConfigResource.SiteConfig.ScmType = web.ScmTypeNone
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
@@ -396,7 +400,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if hasSourceControl {
+	// Don't send source_control changes for ADO controlled Apps
+	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
 		sourceControlProperties := expandAppServiceSiteSourceControl(d)
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties

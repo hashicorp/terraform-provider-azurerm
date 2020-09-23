@@ -163,6 +163,9 @@ func (client RecoveryPointsClient) List(ctx context.Context, vaultName string, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.RecoveryPointsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rprl.hasNextLink() && result.rprl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

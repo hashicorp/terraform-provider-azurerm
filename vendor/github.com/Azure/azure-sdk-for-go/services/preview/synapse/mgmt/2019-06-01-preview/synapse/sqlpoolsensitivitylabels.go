@@ -465,6 +465,9 @@ func (client SQLPoolSensitivityLabelsClient) ListCurrent(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "ListCurrent", resp, "Failure responding to request")
 	}
+	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -595,6 +598,9 @@ func (client SQLPoolSensitivityLabelsClient) ListRecommended(ctx context.Context
 	result.sllr, err = client.ListRecommendedResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSensitivityLabelsClient", "ListRecommended", resp, "Failure responding to request")
+	}
+	if result.sllr.hasNextLink() && result.sllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
