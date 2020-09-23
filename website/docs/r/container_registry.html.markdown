@@ -14,7 +14,7 @@ Manages an Azure Container Registry.
 ~> **Note:** All arguments including the access key will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-~> **NOTE:** It's possible to define Container Registry Network ruleset both within [the `azurerm_container_registry` resource](container_registry.html) via the `network_rule_set` block and by using [the `azurerm_container_registry_network_ruleset` resource](container_registry_network_ruleset.html). However it's not possible to use both methods to manage Network ruleset within a Container Registry, since there'll be conflicts.
+~> **NOTE:** It's possible to define Container Registry Network rule set both within [the `azurerm_container_registry` resource](container_registry.html) via the `network_rule_set` block and by using [the `azurerm_container_registry_network_rule_set` resource](container_registry_network_rule_set.html). However it's not possible to use both methods to manage Network rule set within a Container Registry, since there'll be conflicts.
 
 ## Example Usage
 

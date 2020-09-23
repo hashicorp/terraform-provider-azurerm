@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMContainerRegistryNetworkRuleset_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_network_ruleset", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -32,7 +32,7 @@ func TestAccAzureRMContainerRegistryNetworkRuleset_basic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistryNetworkRuleset_updateRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_network_ruleset", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -60,7 +60,7 @@ func TestAccAzureRMContainerRegistryNetworkRuleset_updateRules(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistryNetworkRuleset_addIp(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_network_ruleset", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -81,7 +81,7 @@ func TestAccAzureRMContainerRegistryNetworkRuleset_addIp(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistryNetworkRuleset_addVnet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_container_registry_network_ruleset", "test")
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_network_rule_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -141,7 +141,7 @@ func testAccAzureRMContainerRegistryNetworkRuleset_basicTemplate(data acceptance
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_container_registry_network_ruleset" "test" {
+resource "azurerm_container_registry_network_rule_set" "test" {
   resource_group_name     = azurerm_container_registry.test.resource_group_name
   container_registry_name = azurerm_container_registry.test.name
   depends_on              = [azurerm_virtual_network.test, azurerm_subnet.test]
@@ -157,7 +157,7 @@ func testAccAzureRMContainerRegistryNetworkRuleset_updateTemplate(data acceptanc
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_container_registry_network_ruleset" "test" {
+resource "azurerm_container_registry_network_rule_set" "test" {
   resource_group_name     = azurerm_container_registry.test.resource_group_name
   container_registry_name = azurerm_container_registry.test.name
   depends_on              = [azurerm_virtual_network.test, azurerm_subnet.test]
@@ -173,7 +173,7 @@ func testAccAzureRMContainerRegistryNetworkRuleset_addIp(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_container_registry_network_ruleset" "test" {
+resource "azurerm_container_registry_network_rule_set" "test" {
   resource_group_name     = azurerm_container_registry.test.resource_group_name
   container_registry_name = azurerm_container_registry.test.name
   depends_on              = [azurerm_virtual_network.test, azurerm_subnet.test]
@@ -193,7 +193,7 @@ func testAccAzureRMContainerRegistryNetworkRuleset_addVnet(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_container_registry_network_ruleset" "test" {
+resource "azurerm_container_registry_network_rule_set" "test" {
   resource_group_name     = azurerm_container_registry.test.resource_group_name
   container_registry_name = azurerm_container_registry.test.name
   depends_on              = [azurerm_virtual_network.test, azurerm_subnet.test]

@@ -1,17 +1,17 @@
 ---
 subcategory: "Container"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_container_registry_network_ruleset"
+page_title: "Azure Resource Manager: azurerm_container_registry_network_rule_set"
 description: |-
-  Manages an Azure Container Registry Network ruleset.
+  Manages an Azure Container Registry Network rule set.
 
 ---
 
-# azurerm_container_registry_network_ruleset
+# azurerm_container_registry_network_rule_set
 
-Manages an Azure Container Registry Network ruleset.
+Manages an Azure Container Registry Network rule set.
 
-~> **NOTE:** It's possible to define Container Registry Network ruleset both within [the `azurerm_container_registry` resource](container_registry.html) via the `network_rule_set` block and by using [the `azurerm_container_registry_network_ruleset` resource](container_registry_network_ruleset.html). However it's not possible to use both methods to manage Network ruleset within a Container Registry, since there'll be conflicts.
+~> **NOTE:** It's possible to define Container Registry Network rule set both within [the `azurerm_container_registry` resource](container_registry.html) via the `network_rule_set` block and by using [the `azurerm_container_registry_network_rule_set` resource](container_registry_network_rule_set.html). However it's not possible to use both methods to manage Network rule set within a Container Registry, since there'll be conflicts.
 
 ## Example Usage
 
@@ -47,7 +47,7 @@ resource "azurerm_subnet" "subnet" {
   service_endpoints    = ["Microsoft.ContainerRegistry"]
 }
 
-resource "azurerm_container_registry_network_ruleset" "ruleset" {
+resource "azurerm_container_registry_network_rule_set" "ruleset" {
   resource_group_name     = azurerm_container_registry.acr.resource_group_name
   container_registry_name = azurerm_container_registry.acr.name
   network_rule_set {
@@ -104,7 +104,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Azure Container Registry Network ruleset.
+* `id` - The ID of the Azure Container Registry Network rule set.
 
 -> **NOTE:** This Identifier is unique to Terraform and doesn't map to an existing object within Azure.
 
@@ -112,15 +112,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Azure Container Registry Network ruleset.
-* `update` - (Defaults to 30 minutes) Used when updating the Azure Container Registry Network ruleset.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Container Registry Network ruleset.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Container Registry Network ruleset.
+* `create` - (Defaults to 30 minutes) Used when creating the Azure Container Registry Network rule set.
+* `update` - (Defaults to 30 minutes) Used when updating the Azure Container Registry Network rule set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Container Registry Network rule set.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Container Registry Network rule set.
 
 ## Import
 
-Azure Container Registry Network ruleset can be imported using the Resource ID of the Container Registry, e.g.
+Azure Container Registry Network rule set can be imported using the Resource ID of the Container Registry, e.g.
 
 ```shell
-terraform import azurerm_container_registry_network_ruleset.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
+terraform import azurerm_container_registry_network_rule_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
 ```
