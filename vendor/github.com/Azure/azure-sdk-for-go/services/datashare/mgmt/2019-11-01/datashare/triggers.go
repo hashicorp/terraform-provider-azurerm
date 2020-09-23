@@ -316,6 +316,9 @@ func (client TriggersClient) ListByShareSubscription(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.TriggersClient", "ListByShareSubscription", resp, "Failure responding to request")
 	}
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -174,6 +174,9 @@ func (client JobStepExecutionsClient) ListByJobExecution(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobStepExecutionsClient", "ListByJobExecution", resp, "Failure responding to request")
 	}
+	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

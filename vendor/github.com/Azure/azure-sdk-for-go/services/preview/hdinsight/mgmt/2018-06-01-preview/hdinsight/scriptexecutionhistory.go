@@ -75,6 +75,9 @@ func (client ScriptExecutionHistoryClient) ListByCluster(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptExecutionHistoryClient", "ListByCluster", resp, "Failure responding to request")
 	}
+	if result.saehl.hasNextLink() && result.saehl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

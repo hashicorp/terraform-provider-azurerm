@@ -788,6 +788,9 @@ func (client DomainsClient) List(ctx context.Context) (result DomainCollectionPa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "List", resp, "Failure responding to request")
 	}
+	if result.dc.hasNextLink() && result.dc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -905,6 +908,9 @@ func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.dc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.dc.hasNextLink() && result.dc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1026,6 +1032,9 @@ func (client DomainsClient) ListOwnershipIdentifiers(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListOwnershipIdentifiers", resp, "Failure responding to request")
 	}
+	if result.doic.hasNextLink() && result.doic.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1137,6 +1146,9 @@ func (client DomainsClient) ListRecommendations(ctx context.Context, parameters 
 	result.nic, err = client.ListRecommendationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainsClient", "ListRecommendations", resp, "Failure responding to request")
+	}
+	if result.nic.hasNextLink() && result.nic.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

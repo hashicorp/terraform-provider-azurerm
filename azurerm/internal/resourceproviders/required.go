@@ -45,6 +45,7 @@ func Required() map[string]struct{} {
 		"Microsoft.MachineLearningServices": {},
 		"Microsoft.Maintenance":             {},
 		"Microsoft.ManagedIdentity":         {},
+		"Microsoft.ManagedServices":         {},
 		"Microsoft.Management":              {},
 		"Microsoft.Maps":                    {},
 		"Microsoft.MarketplaceOrdering":     {},

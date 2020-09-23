@@ -372,6 +372,9 @@ func (client RulesEnginesClient) ListByFrontDoor(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesClient", "ListByFrontDoor", resp, "Failure responding to request")
 	}
+	if result.relr.hasNextLink() && result.relr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

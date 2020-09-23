@@ -159,6 +159,9 @@ func (client DatabaseOperationsClient) ListByDatabase(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseOperationsClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

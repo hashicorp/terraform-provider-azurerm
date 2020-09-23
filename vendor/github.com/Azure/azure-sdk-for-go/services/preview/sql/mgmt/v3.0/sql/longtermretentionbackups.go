@@ -400,6 +400,9 @@ func (client LongTermRetentionBackupsClient) ListByDatabase(ctx context.Context,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -520,6 +523,9 @@ func (client LongTermRetentionBackupsClient) ListByLocation(ctx context.Context,
 	result.ltrblr, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByLocation", resp, "Failure responding to request")
+	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -643,6 +649,9 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupDatabase(ctx con
 	result.ltrblr, err = client.ListByResourceGroupDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupDatabase", resp, "Failure responding to request")
+	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -768,6 +777,9 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupLocation(ctx con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupLocation", resp, "Failure responding to request")
 	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -891,6 +903,9 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupServer(ctx conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupServer", resp, "Failure responding to request")
 	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1012,6 +1027,9 @@ func (client LongTermRetentionBackupsClient) ListByServer(ctx context.Context, l
 	result.ltrblr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByServer", resp, "Failure responding to request")
+	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
