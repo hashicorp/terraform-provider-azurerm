@@ -637,10 +637,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
-			d.Set("public_network_access", false)
-			if enabled == devices.Enabled {
-				d.Set("public_network_access", true)
-			}
+			d.Set("public_network_access", enabled == devices.Enabled)
 		}
 	}
 
