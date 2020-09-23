@@ -2,6 +2,10 @@ package aadmgmt
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/aad/mgmt/2017-04-01/aad"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -9,9 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"net/url"
-	"strings"
-	"time"
 )
 
 func azureADDiagnosticSettingsResource() *schema.Resource {
@@ -187,7 +188,7 @@ func expandDiagnosticLogSettings(d *schema.ResourceData) (*[]aad.LogSettings, er
 		logSettingEnabled := logSettings["enabled"].(bool)
 		var retentionPolicyObject *aad.RetentionPolicy
 		retentionPolicy := logSettings["retention_policy"].([]interface{})
-		if retentionPolicy != nil && len(retentionPolicy) > 0 {
+		if retentionPolicy != nil {
 			rVal, ok := retentionPolicy[0].(map[string]interface{})
 			if ok {
 				retentionPolicyEnabled := rVal["retention_policy_enabled"].(bool)
@@ -278,7 +279,6 @@ func flattenDiagnosticSettingLogs(in *[]aad.LogSettings) []map[string]interface{
 				resource["retention_policy"] = retentionPolicy
 			}
 			result = append(result, resource)
-
 		}
 	}
 
@@ -316,5 +316,4 @@ func parseDiagnosticSettingResourceId(id string) (map[string]string, error) {
 	}
 
 	return componentMap, nil
-
 }

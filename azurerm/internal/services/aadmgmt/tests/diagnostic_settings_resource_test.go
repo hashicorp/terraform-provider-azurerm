@@ -2,12 +2,13 @@ package tests
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 )
 
 func TestAccAzureADDiagnosticSettings_basic(t *testing.T) {
@@ -153,7 +154,6 @@ func testAADDiagnosticsSettingsDestroy(s *terraform.State) error {
 				return nil
 			}
 			return fmt.Errorf("Bad request for get AAD diagnostic settings %s: %v", diagSettingName, err)
-
 		}
 
 		return nil
