@@ -10,7 +10,7 @@ description: |-
 
 Manages a Key Vault Network ACLs.
 
-~> **Note:** It's possible to define Key Vault Network ACLs both within [the `azurerm_key_vault` resource](key_vault.html) via the `network_acls` block and by using [the `azurerm_key_vault_network_acls` resource](azurerm_key_vault_network_acls.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+~> **Note:** It's possible to define Key Vault Network ACLs both within [the `azurerm_key_vault` resource](key_vault.html) via the `network_acls` block and by using [the `azurerm_key_vault_network_acls` resource](key_vault_network_acls.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
 ## Example Usage
 
@@ -95,3 +95,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `update` - (Defaults to 30 minutes) Used when updating the Key Vault Network ACLs.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Network ACLs.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Network ACLs.
+
+## Import
+
+Key Vault Network ACLs can be imported using the Resource ID of the Key Vault.
+
+```shell
+terraform import azurerm_key_vault_network_acls.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/vault1
+```
