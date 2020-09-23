@@ -19,7 +19,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.3.0` [GH-8592]
 * dependencies: updating `containerregistry` to `2019-05-01` [GH-8477]
 * Data Source: `azurerm_api_management` - export the `private_ip_addresses` attribute for primary and additional locations [GH-8290]
 * `azurerm_api_management` - support the `virtual_network_configuration` block for additional locations [GH-8290]
