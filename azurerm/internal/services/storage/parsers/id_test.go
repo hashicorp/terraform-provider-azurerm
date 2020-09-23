@@ -219,11 +219,11 @@ func TestParseStorageSyncGroupID(t *testing.T) {
 	}
 }
 
-func TestCloudEndpointID(t *testing.T) {
+func TestSyncCloudEndpointID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *CloudEndpointId
+		Expected *SyncCloudEndpointId
 	}{
 		{
 			Name:     "Empty",
@@ -268,7 +268,7 @@ func TestCloudEndpointID(t *testing.T) {
 		{
 			Name:  "Sync Group Id",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StorageSync/storageSyncServices/sync1/syncGroups/group1/cloudEndpoints/cloudEndpoint1",
-			Expected: &CloudEndpointId{
+			Expected: &SyncCloudEndpointId{
 				Name:             "cloudEndpoint1",
 				StorageSyncGroup: "group1",
 				StorageSyncName:  "sync1",
@@ -285,7 +285,7 @@ func TestCloudEndpointID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := CloudEndpointID(v.Input)
+		actual, err := SyncCloudEndpointID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

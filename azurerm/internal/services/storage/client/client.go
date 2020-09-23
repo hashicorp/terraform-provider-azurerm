@@ -27,10 +27,10 @@ type Client struct {
 	ManagementPoliciesClient storage.ManagementPoliciesClient
 	BlobServicesClient       storage.BlobServicesClient
 	CachesClient             *storagecache.CachesClient
-	CloudEndpointsClient     storagesync.CloudEndpointsClient
+	CloudEndpointsClient     *storagesync.CloudEndpointsClient
 	StorageTargetsClient     *storagecache.StorageTargetsClient
 	SyncServiceClient        *storagesync.ServicesClient
-	StoragesyncGroupClient   storagesync.SyncGroupsClient
+	StoragesyncGroupClient   *storagesync.SyncGroupsClient
 	SubscriptionId           string
 
 	environment   az.Environment
@@ -73,11 +73,11 @@ func NewClient(options *common.ClientOptions) *Client {
 		ManagementPoliciesClient: managementPoliciesClient,
 		BlobServicesClient:       blobServicesClient,
 		CachesClient:             &cachesClient,
-		CloudEndpointsClient:     cloudEndpointsClient,
+		CloudEndpointsClient:     &cloudEndpointsClient,
 		SubscriptionId:           options.SubscriptionId,
 		StorageTargetsClient:     &storageTargetsClient,
 		SyncServiceClient:        &syncServiceClient,
-		StoragesyncGroupClient:   storagesyncgroupClient,
+		StoragesyncGroupClient:   &storagesyncgroupClient,
 		environment:              options.Environment,
 	}
 

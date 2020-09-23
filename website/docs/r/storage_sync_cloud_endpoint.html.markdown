@@ -13,10 +13,6 @@ Manages a Storage Sync Cloud Endpoint.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -66,7 +62,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Storage Sync Cloud Endpoint. Changing this forces a new Storage Sync Cloud Endpoint to be created.
 
-* `storage_sync_group_id` - (Required) The ID of the Storage Sync Group where this Storage Sync Cloud Endpoint should be created. Changing this forces a new Storage Sync Cloud Endpoint to be created.
+* `storage_sync_group_id` - (Required) The ID of the Storage Sync Group where this Cloud Endpoint should be created. Changing this forces a new Storage Sync Cloud Endpoint to be created.
 
 * `file_share_name` - (Required) The Storage Share name to be synchronized in this Storage Sync Cloud Endpoint. Changing this forces a new Storage Sync Cloud Endpoint to be created.
 

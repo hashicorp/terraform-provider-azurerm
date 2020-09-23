@@ -21,7 +21,7 @@ type StorageSyncGroupId struct {
 	ResourceGroup   string
 }
 
-type CloudEndpointId struct {
+type SyncCloudEndpointId struct {
 	Name             string
 	StorageSyncName  string
 	StorageSyncGroup string
@@ -96,13 +96,13 @@ func StorageSyncGroupID(input string) (*StorageSyncGroupId, error) {
 	return &storageSyncGroup, nil
 }
 
-func CloudEndpointID(input string) (*CloudEndpointId, error) {
+func SyncCloudEndpointID(input string) (*SyncCloudEndpointId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	cloudEndpoint := CloudEndpointId{
+	cloudEndpoint := SyncCloudEndpointId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
