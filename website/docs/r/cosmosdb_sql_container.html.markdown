@@ -21,6 +21,22 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   partition_key_path  = "/definition/id"
   throughput          = 400
 
+  indexing_policy {
+    indexing_mode = "Consistent"
+
+    included_path {
+      path = "/*"
+    }
+
+    included_path {
+      path = "/included/?"
+    }
+
+    excluded_path {
+      path = "/excluded/?"
+    }
+  }
+
   unique_key {
     paths = ["/definition/idlong", "/definition/idshort"]
   }
@@ -49,6 +65,8 @@ The following arguments are supported:
 
 ~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed. 
 
+* `indexing_policy` - (Optional) An `indexing_policy` block as defined below.
+
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
 ---
@@ -61,6 +79,22 @@ An `autoscale_settings` block supports the following:
 A `unique_key` block supports the following:
 
 * `paths` - (Required) A list of paths to use for this unique key.
+
+An `indexing_policy` block supports the following:
+
+* `indexing_mode` - (Optional) Indicates the indexing mode. Possible values include: `Consistent` and `None`. Defaults to `Consistent`.
+
+* `included_path` - (Optional) One or more `included_path` blocks as defined below. Either `included_path` or `excluded_path` must contain the `path` `/*`
+
+* `excluded_path` - (Optional) One or more `excluded_path` blocks as defined below. Either `included_path` or `excluded_path` must contain the `path` `/*`
+
+An `included_path` block supports the following:
+
+* `path` - Path for which the indexing behavior applies to.
+
+An `excluded_path` block supports the following:
+
+* `path` - Path that is excluded from indexing.
 
 
 ## Attributes Reference

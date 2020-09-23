@@ -386,6 +386,9 @@ func (client ServersClient) List(ctx context.Context) (result ServerListResultPa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServersClient", "List", resp, "Failure responding to request")
 	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -496,6 +499,9 @@ func (client ServersClient) ListByResourceGroup(ctx context.Context, resourceGro
 	result.slr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServersClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.slr.hasNextLink() && result.slr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

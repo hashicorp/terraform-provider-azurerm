@@ -177,6 +177,9 @@ func (client SourceControlSyncJobStreamsClient) ListBySyncJob(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.SourceControlSyncJobStreamsClient", "ListBySyncJob", resp, "Failure responding to request")
 	}
+	if result.scsjslbsj.hasNextLink() && result.scsjslbsj.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

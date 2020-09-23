@@ -253,6 +253,9 @@ func (client PrivateEndpointConnectionsClient) ListByService(ctx context.Context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.PrivateEndpointConnectionsClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.peclr.hasNextLink() && result.peclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

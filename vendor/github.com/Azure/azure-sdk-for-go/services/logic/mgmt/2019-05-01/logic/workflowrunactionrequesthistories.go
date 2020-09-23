@@ -159,6 +159,9 @@ func (client WorkflowRunActionRequestHistoriesClient) List(ctx context.Context, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionRequestHistoriesClient", "List", resp, "Failure responding to request")
 	}
+	if result.rhlr.hasNextLink() && result.rhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

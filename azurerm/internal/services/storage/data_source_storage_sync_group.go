@@ -38,7 +38,7 @@ func dataSourceArmStorageSyncGroup() *schema.Resource {
 }
 
 func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StoragesyncGroupClient
+	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

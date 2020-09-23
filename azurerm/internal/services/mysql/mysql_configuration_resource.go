@@ -44,7 +44,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MysqlServerServerName,
+				ValidateFunc: validate.MySQLServerName,
 			},
 
 			"value": {

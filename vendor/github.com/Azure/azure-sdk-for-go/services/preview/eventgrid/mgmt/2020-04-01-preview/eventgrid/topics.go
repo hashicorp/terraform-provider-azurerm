@@ -309,6 +309,9 @@ func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -432,6 +435,9 @@ func (client TopicsClient) ListBySubscription(ctx context.Context, filter string
 	result.tlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

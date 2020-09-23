@@ -237,6 +237,9 @@ func (client ManagedInstanceEncryptionProtectorsClient) ListByInstance(ctx conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.mieplr.hasNextLink() && result.mieplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

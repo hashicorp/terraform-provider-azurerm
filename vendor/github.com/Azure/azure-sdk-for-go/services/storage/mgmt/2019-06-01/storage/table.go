@@ -380,6 +380,9 @@ func (client TableClient) List(ctx context.Context, resourceGroupName string, ac
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.TableClient", "List", resp, "Failure responding to request")
 	}
+	if result.ltr.hasNextLink() && result.ltr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

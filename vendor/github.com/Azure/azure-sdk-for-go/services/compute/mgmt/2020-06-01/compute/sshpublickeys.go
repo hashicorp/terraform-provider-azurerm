@@ -378,6 +378,9 @@ func (client SSHPublicKeysClient) ListByResourceGroup(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.SSHPublicKeysClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.spkglr.hasNextLink() && result.spkglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -487,6 +490,9 @@ func (client SSHPublicKeysClient) ListBySubscription(ctx context.Context) (resul
 	result.spkglr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.SSHPublicKeysClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.spkglr.hasNextLink() && result.spkglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

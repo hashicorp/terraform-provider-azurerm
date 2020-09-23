@@ -317,6 +317,9 @@ func (client LinkedServerClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.LinkedServerClient", "List", resp, "Failure responding to request")
 	}
+	if result.lswpl.hasNextLink() && result.lswpl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

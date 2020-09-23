@@ -254,6 +254,9 @@ func (client HybridRunbookWorkerGroupClient) ListByAutomationAccount(ctx context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.hrwglr.hasNextLink() && result.hrwglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

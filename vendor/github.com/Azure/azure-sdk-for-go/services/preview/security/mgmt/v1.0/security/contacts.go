@@ -320,6 +320,9 @@ func (client ContactsClient) List(ctx context.Context) (result ContactListPage, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.ContactsClient", "List", resp, "Failure responding to request")
 	}
+	if result.cl.hasNextLink() && result.cl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
