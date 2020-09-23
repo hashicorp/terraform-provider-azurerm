@@ -1,8 +1,20 @@
 package parse
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 	"testing"
 )
+
+var _ resourceid.Formatter = SentinelAlertRuleId{}
+
+func TestSentinelAlertRuleIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewSentinelAlertRuleID("group1", "space1", "rule1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestSentinelAlertRuleID(t *testing.T) {
 	testData := []struct {
@@ -18,39 +30,33 @@ func TestSentinelAlertRuleID(t *testing.T) {
 		},
 		{
 			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111",
 			Error: true,
 		},
 		{
 			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/",
 			Error: true,
 		},
 		{
 			Name:  "No Workspace ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights",
 			Error: true,
 		},
 		{
 			Name:  "No Alert Rule Name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/",
-			Error: true,
-		},
-		{
-			Name:  "Incorrect Provider for Alert Rules",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Foo.Bar/alertRules/rule1",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/",
 			Error: true,
 		},
 		{
 			Name:  "Incorrect Caseing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/AlertRules/rule1",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/AlertRules/rule1",
 			Error: true,
 		},
 		{
 			Name:  "Correct Case",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1",
 			Expect: &SentinelAlertRuleId{
-				Subscription:  "00000000-0000-0000-0000-000000000000",
 				ResourceGroup: "resGroup1",
 				Workspace:     "space1",
 				Name:          "rule1",
@@ -69,9 +75,8 @@ func TestSentinelAlertRuleID(t *testing.T) {
 
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
-
-		if actual.Subscription != v.Expect.Subscription {
-			t.Fatalf("Expected %q but got %q for Subscription", v.Expect.Subscription, actual.Subscription)
+		if v.Error {
+			t.Fatal("Expect an error but didn't get")
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
@@ -85,6 +90,17 @@ func TestSentinelAlertRuleID(t *testing.T) {
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
+	}
+}
+
+var _ resourceid.Formatter = SentinelAlertRuleActionId{}
+
+func TestSentinelAlertRuleActionIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewSentinelAlertRuleActionID("group1", "space1", "rule1", "action1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1/actions/action1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
@@ -102,39 +118,38 @@ func TestSentinelAlertRuleActionID(t *testing.T) {
 		},
 		{
 			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111",
 			Error: true,
 		},
 		{
 			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/",
 			Error: true,
 		},
 		{
 			Name:  "No Workspace ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights",
 			Error: true,
 		},
 		{
 			Name:  "No Alert Rule Name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/",
 			Error: true,
 		},
 		{
 			Name:  "No Alert Rule Action Name",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1/actions/",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1/actions/",
 			Error: true,
 		},
 		{
 			Name:  "Incorrect Caseing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/AlertRules/rule1/Actions/action1",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/AlertRules/rule1/Actions/action1",
 			Error: true,
 		},
 		{
 			Name:  "Correct Case",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1/actions/action1",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/space1/providers/Microsoft.SecurityInsights/alertRules/rule1/actions/action1",
 			Expect: &SentinelAlertRuleActionId{
-				Subscription:  "00000000-0000-0000-0000-000000000000",
 				ResourceGroup: "resGroup1",
 				Workspace:     "space1",
 				Rule:          "rule1",
@@ -156,10 +171,6 @@ func TestSentinelAlertRuleActionID(t *testing.T) {
 		}
 		if v.Error {
 			t.Fatal("Expect an error but didn't get")
-		}
-
-		if actual.Subscription != v.Expect.Subscription {
-			t.Fatalf("Expected %q but got %q for Subscription", v.Expect.Subscription, actual.Subscription)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

@@ -38,6 +38,7 @@ func dataSourceArmSentinelAlertRule() *schema.Resource {
 }
 
 func dataSourceArmSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -57,11 +58,11 @@ func dataSourceArmSentinelAlertRuleRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving Sentinel Alert Rule %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
 	}
 
-	id := alertRuleID(resp.Value)
-	if id == nil || *id == "" {
-		return fmt.Errorf("nil or empty ID of Sentinel Alert Rule %q (Resource Group %q / Workspace: %q)", name, workspaceID.ResourceGroup, workspaceID.Name)
+	id, err := alertRuleID(resp.Value, subscriptionId)
+	if err != nil {
+		return err
 	}
-	d.SetId(*id)
+	d.SetId(id)
 
 	return nil
 }

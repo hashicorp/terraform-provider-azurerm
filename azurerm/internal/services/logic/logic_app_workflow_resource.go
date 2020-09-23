@@ -2,6 +2,7 @@ package logic
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
 	"log"
 	"time"
 
@@ -108,6 +109,7 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 }
 
 func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -169,7 +171,12 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("[ERROR] Cannot read Logic App Workflow %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.LogicAppWorkflowID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmLogicAppWorkflowRead(d, meta)
 }

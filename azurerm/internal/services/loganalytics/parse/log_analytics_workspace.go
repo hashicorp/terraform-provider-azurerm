@@ -7,12 +7,11 @@ import (
 )
 
 type LogAnalyticsWorkspaceId struct {
-	Subscription  string
 	ResourceGroup string
 	Name          string
 }
 
-func NewLogAnalyticsWorkspaceID(name, resourceGroup string) LogAnalyticsWorkspaceId {
+func NewLogAnalyticsWorkspaceID(resourceGroup, name string) LogAnalyticsWorkspaceId {
 	return LogAnalyticsWorkspaceId{
 		ResourceGroup: resourceGroup,
 		Name:          name,
@@ -31,7 +30,6 @@ func LogAnalyticsWorkspaceID(input string) (*LogAnalyticsWorkspaceId, error) {
 	}
 
 	server := LogAnalyticsWorkspaceId{
-		Subscription:  id.SubscriptionID,
 		ResourceGroup: id.ResourceGroup,
 	}
 

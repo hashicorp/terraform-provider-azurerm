@@ -126,6 +126,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 }
 
 func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -142,11 +143,13 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q (Resource Group %q): %+v", name, workspaceID.ResourceGroup, err)
 			}
-		}
+		} else {
 
-		id := alertRuleID(resp.Value)
-		if id != nil && *id != "" {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_ms_security_incident", *id)
+			id, err := alertRuleID(resp.Value, subscriptionId)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_ms_security_incident", id)
 		}
 	}
 
@@ -188,11 +191,12 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 	if err != nil {
 		return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
 	}
-	id := alertRuleID(resp.Value)
-	if id == nil || *id == "" {
-		return fmt.Errorf("empty or nil ID returned for Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q) ID", name, workspaceID.ResourceGroup, workspaceID.Name)
+	id, err := alertRuleID(resp.Value, subscriptionId)
+	if err != nil {
+		return err
 	}
-	d.SetId(*id)
+
+	d.SetId(id)
 
 	return resourceArmSentinelAlertRuleMsSecurityIncidentRead(d, meta)
 }

@@ -102,6 +102,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 }
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +162,12 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Cannot read Log Analytics Workspace '%s' (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.LogAnalyticsWorkspaceID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
 }

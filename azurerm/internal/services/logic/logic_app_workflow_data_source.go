@@ -2,6 +2,7 @@ package logic
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
 	"log"
 	"time"
 
@@ -87,6 +88,7 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 	}
 }
 func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -103,7 +105,12 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.LogicAppWorkflowID(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID(subscriptionId))
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

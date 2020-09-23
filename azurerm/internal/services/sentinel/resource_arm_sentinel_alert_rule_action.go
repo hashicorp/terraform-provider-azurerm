@@ -46,7 +46,7 @@ func resourceArmSentinelAlertRuleAction() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"rule_id": {
+			"sentinel_alert_rule_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -70,6 +70,7 @@ func resourceArmSentinelAlertRuleAction() *schema.Resource {
 }
 
 func resourceArmSentinelAlertRuleActionCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	logicTriggerClient := meta.(*clients.Client).Logic.WorkflowTriggersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -77,7 +78,7 @@ func resourceArmSentinelAlertRuleActionCreate(d *schema.ResourceData, meta inter
 
 	name := d.Get("name").(string)
 
-	ruleID, err := parse.SentinelAlertRuleID(d.Get("rule_id").(string))
+	ruleID, err := parse.SentinelAlertRuleID(d.Get("sentinel_alert_rule_id").(string))
 	if err != nil {
 		return err
 	}
@@ -95,7 +96,11 @@ func resourceArmSentinelAlertRuleActionCreate(d *schema.ResourceData, meta inter
 	}
 
 	if resp.ID != nil && *resp.ID != "" {
-		return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_action", *resp.ID)
+		id, err := parse.SentinelAlertRuleActionID(*resp.ID)
+		if err != nil {
+			return err
+		}
+		return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_action", id.ID(subscriptionId))
 	}
 
 	// List callback URL for sentinel alert specific trigger from the workspace containing specified alert rule.
@@ -108,7 +113,7 @@ func resourceArmSentinelAlertRuleActionCreate(d *schema.ResourceData, meta inter
 	param := securityinsight.ActionRequest{
 		ActionRequestProperties: &securityinsight.ActionRequestProperties{
 			TriggerURI:         tresp.Value,
-			LogicAppResourceID: utils.String(lappId.String()),
+			LogicAppResourceID: utils.String(lappId.ID(subscriptionId)),
 		},
 	}
 
@@ -123,12 +128,18 @@ func resourceArmSentinelAlertRuleActionCreate(d *schema.ResourceData, meta inter
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("empty or nil ID returned for Sentinel Alert Rule Action %q (Resource Group %q / Workspace %q / Rule %q)", name, ruleID.ResourceGroup, ruleID.Workspace, ruleID.Name)
 	}
-	d.SetId(*resp.ID)
+
+	id, err := parse.SentinelAlertRuleActionID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmSentinelAlertRuleActionRead(d, meta)
 }
 
 func resourceArmSentinelAlertRuleActionRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,11 +161,13 @@ func resourceArmSentinelAlertRuleActionRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.Set("name", id.Name)
-	d.Set("rule_id", id.FormatSentinelAlertRuleId().String())
+
+	ruleID := parse.NewSentinelAlertRuleID(id.ResourceGroup, id.Workspace, id.Rule)
+	d.Set("sentinel_alert_rule_id", ruleID.ID(subscriptionId))
+
 	if prop := resp.ActionResponseProperties; prop != nil {
 		d.Set("logic_app_id", prop.LogicAppResourceID)
 		// TODO: Uncomment below line once https://github.com/Azure/azure-rest-api-specs/issues/9424 is addressed.
-		//       Also, remove the ignore import step in acctest for `logic_app_trigger_name`.
 		//d.Set("logic_app_trigger_name", prop.TriggerUrl)
 	}
 

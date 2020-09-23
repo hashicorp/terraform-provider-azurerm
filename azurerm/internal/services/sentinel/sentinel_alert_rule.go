@@ -10,20 +10,32 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func alertRuleID(rule securityinsight.BasicAlertRule) *string {
+func alertRuleID(rule securityinsight.BasicAlertRule, subscriptionId string) (string, error) {
 	if rule == nil {
-		return nil
+		return "", fmt.Errorf("nil Sentinel Alert Rule")
 	}
+	var pid *string
 	switch rule := rule.(type) {
 	case securityinsight.FusionAlertRule:
-		return rule.ID
+		pid = rule.ID
 	case securityinsight.MicrosoftSecurityIncidentCreationAlertRule:
-		return rule.ID
+		pid = rule.ID
 	case securityinsight.ScheduledAlertRule:
-		return rule.ID
+		pid = rule.ID
 	default:
-		return nil
+		return "", fmt.Errorf("invalid Sentinel Alert Rule type")
 	}
+
+	if pid == nil || *pid == "" {
+		return "", fmt.Errorf("empty or nil ID returned for Sentinel Alert Rule")
+	}
+
+	id, err := parse.SentinelAlertRuleID(*pid)
+	if err != nil {
+		return "", err
+	}
+
+	return id.ID(subscriptionId), nil
 }
 
 func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) func(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {

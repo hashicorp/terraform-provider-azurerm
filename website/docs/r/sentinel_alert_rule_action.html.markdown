@@ -13,10 +13,6 @@ Manages a Sentinel Alert Rule Action.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -72,7 +68,7 @@ BODY
 
 resource "azurerm_sentinel_alert_rule_action" "example" {
   name                   = "example-alert-rule-action"
-  rule_id                = azurerm_sentinel_alert_rule_scheduled.example.id
+  sentinel_alert_rule_id = azurerm_sentinel_alert_rule_scheduled.example.id
   logic_app_id           = azurerm_logic_app_trigger_custom.example.logic_app_id
   logic_app_trigger_name = azurerm_logic_app_trigger_custom.example.name
   depends_on             = [azurerm_logic_app_trigger_custom.example]
@@ -89,7 +85,7 @@ The following arguments are supported:
 
 * `logic_app_trigger_name` - (Required) The Name of the Logic App Workflow Trigger. Changing this forces a new Sentinel Alert Rule Action to be created.
 
-* `rule_id` - (Required) The ID of the Sentinel Alert Rule where the Sentinel Alert Rule Action should exist. Changing this forces a new Sentinel Alert Rule Action to be created.
+* `sentinel_alert_rule_id` - (Required) The ID of the Sentinel Alert Rule where the Sentinel Alert Rule Action should exist. Changing this forces a new Sentinel Alert Rule Action to be created.
 
 ## Attributes Reference
 

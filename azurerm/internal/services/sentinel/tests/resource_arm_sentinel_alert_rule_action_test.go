@@ -27,6 +27,7 @@ func TestAccAzureRMSentinelAlertRuleAction_basic(t *testing.T) {
 					testCheckAzureRMSentinelAlertRuleActionExists(data.ResourceName),
 				),
 			},
+			// TODO: Remove below ignore once https://github.com/Azure/azure-rest-api-specs/issues/9424 is addressed.
 			data.ImportStep("logic_app_trigger_name"),
 		},
 	})
@@ -110,7 +111,7 @@ func testAccAzureRMSentinelAlertRuleAction_basic(data acceptance.TestData) strin
 
 resource "azurerm_sentinel_alert_rule_action" "test" {
   name                   = "acctest-AlertRuleAction-%d"
-  rule_id                = azurerm_sentinel_alert_rule_scheduled.test.id
+  sentinel_alert_rule_id = azurerm_sentinel_alert_rule_scheduled.test.id
   logic_app_id           = azurerm_logic_app_trigger_custom.test.logic_app_id
   logic_app_trigger_name = azurerm_logic_app_trigger_custom.test.name
   depends_on             = [azurerm_logic_app_trigger_custom.test]
@@ -125,7 +126,7 @@ func testAccAzureRMSentinelAlertRuleAction_requiresImport(data acceptance.TestDa
 
 resource "azurerm_sentinel_alert_rule_action" "import" {
   name                   = azurerm_sentinel_alert_rule_action.test.name
-  rule_id                = azurerm_sentinel_alert_rule_action.test.rule_id
+  sentinel_alert_rule_id = azurerm_sentinel_alert_rule_action.test.sentinel_alert_rule_id
   logic_app_id           = azurerm_sentinel_alert_rule_action.test.logic_app_id
   logic_app_trigger_name = azurerm_sentinel_alert_rule_action.test.logic_app_trigger_name
 }
@@ -140,7 +141,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-sentinel-%[1]d"
-  location = "west europe"
+  location = "%[2]s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
@@ -190,5 +191,5 @@ resource "azurerm_logic_app_trigger_custom" "test" {
 }
 BODY
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

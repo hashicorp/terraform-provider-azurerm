@@ -1,8 +1,20 @@
 package parse
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 	"testing"
 )
+
+var _ resourceid.Formatter = LogAnalyticsWorkspaceId{}
+
+func TestSentinelAlertRuleIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewLogAnalyticsWorkspaceID("group1", "space1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/group1/providers/microsoft.operationalinsights/workspaces/space1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestLogAnalyticsWorkspaceID(t *testing.T) {
 	testData := []struct {
@@ -18,30 +30,29 @@ func TestLogAnalyticsWorkspaceID(t *testing.T) {
 		},
 		{
 			Name:  "No Resource Groups Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111",
 			Error: true,
 		},
 		{
 			Name:  "No Resource Groups Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/",
 			Error: true,
 		},
 		{
 			Name:  "Resource Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/",
 			Error: true,
 		},
 		{
 			Name:  "Missing Workspace Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces",
 			Error: true,
 		},
 		{
 			Name:  "Workspace Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1",
+			Input: "/subscriptions/11111111-1111-1111-1111-1111111111111/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1",
 			Error: true,
 			Expect: &LogAnalyticsWorkspaceId{
-				Subscription:  "00000000-0000-0000-0000-000000000000",
 				ResourceGroup: "resGroup1",
 				Name:          "workspace1",
 			},
@@ -58,10 +69,6 @@ func TestLogAnalyticsWorkspaceID(t *testing.T) {
 			}
 
 			t.Fatalf("Expected a value but got an error: %s", err)
-		}
-
-		if actual.Subscription != v.Expect.Subscription {
-			t.Fatalf("Expected %q but got %q for Subscription", v.Expect.Subscription, actual.Subscription)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

@@ -7,14 +7,20 @@ import (
 )
 
 type LogicAppWorkflowId struct {
-	Subscription  string
 	ResourceGroup string
 	Name          string
 }
 
-func (id LogicAppWorkflowId) String() string {
+func NewLogicAppWorkflowID(resourceGroup, name string) LogicAppWorkflowId {
+	return LogicAppWorkflowId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id LogicAppWorkflowId) ID(subscriptionId string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/workflows/%s",
-		id.Subscription, id.ResourceGroup, id.Name)
+		subscriptionId, id.ResourceGroup, id.Name)
 }
 
 func LogicAppWorkflowID(input string) (*LogicAppWorkflowId, error) {
@@ -24,7 +30,6 @@ func LogicAppWorkflowID(input string) (*LogicAppWorkflowId, error) {
 	}
 
 	workflow := LogicAppWorkflowId{
-		Subscription:  id.SubscriptionID,
 		ResourceGroup: id.ResourceGroup,
 	}
 
