@@ -75,17 +75,17 @@ The following arguments are supported:
 
 ---
 
-The `config_server_git_setting` block supports the following:
+The `network` block supports the following:
 
-* `service_runtime_subnet_id` - (Required) Specifies the subnet id to host Azure Spring Cloud Service Runtime.
+* `app_subnet_id` - (Required) Specifies the subnet id, which will be used to host the Spring Cloud Micro-services Applications of the Azure Spring Cloud Service Instance to be created.
 
-* `app_subnet_id` - (Required) Specifies the subnet id to host Azure Spring Cloud Apps.
+* `service_runtime_subnet_id` - (Required) Specifies the subnet id, which will be used to host the Service Runtime components of the Azure Spring Cloud Service Instance to be created.
 
-* `cidr` - (Required) Specifies the Spring Cloud service reserved CIDR.
-
-* `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime.
+* `cidr_ranges` - (Required) Specifies the Spring Cloud service reserved CIDR to host underlying Azure Spring Cloud infrastructure, which should be 3 at least /16 unused IP ranges, must not overlap with any Subnet IP ranges.
 
 * `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps.
+
+* `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime.
 
 ---
 
@@ -152,12 +152,6 @@ The `trace` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Service.
-
----
-
-The `network` block exports the following:
-
-* `load_balancer_ip` - The Load Balancer IP for Azure Spring Cloud Service Runtime.
 
 ## Timeouts
 

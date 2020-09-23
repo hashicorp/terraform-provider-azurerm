@@ -83,7 +83,6 @@ func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
 				Config: testAccAzureRMSpringCloudService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 				),
 			},
 			data.ImportStep(
@@ -111,10 +110,8 @@ func TestAccAzureRMSpringCloudService_virtualNetwork(t *testing.T) {
 				Config: testAccAzureRMSpringCloudService_virtualNetwork(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.service_runtime_network_resource_group"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.app_network_resource_group"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.load_balancer_ip"),
 				),
 			},
 			data.ImportStep(
@@ -338,7 +335,7 @@ resource "azurerm_spring_cloud_service" "test" {
   network {
     app_subnet_id             = azurerm_subnet.test1.id
     service_runtime_subnet_id = azurerm_subnet.test2.id
-    cidr                      = ["10.4.0.0/16", "10.5.0.0/16", "10.3.0.1/16"]
+    cidr_ranges               = ["10.4.0.0/16", "10.5.0.0/16", "10.3.0.1/16"]
   }
 
   config_server_git_setting {
@@ -361,6 +358,8 @@ resource "azurerm_spring_cloud_service" "test" {
   tags = {
     Env = "Test"
   }
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

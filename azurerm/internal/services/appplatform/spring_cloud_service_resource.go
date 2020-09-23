@@ -1,13 +1,11 @@
 package appplatform
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -75,13 +73,6 @@ func resourceArmSpringCloudService() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"service_runtime_subnet_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: networkValidate.SubnetID,
-						},
-
 						"app_subnet_id": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -89,20 +80,20 @@ func resourceArmSpringCloudService() *schema.Resource {
 							ValidateFunc: networkValidate.SubnetID,
 						},
 
-						"cidr": {
+						"service_runtime_subnet_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: networkValidate.SubnetID,
+						},
+
+						"cidr_ranges": {
 							Type:     schema.TypeList,
 							Required: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
-						},
-
-						"service_runtime_network_resource_group": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ForceNew: true,
 						},
 
 						"app_network_resource_group": {
@@ -112,9 +103,11 @@ func resourceArmSpringCloudService() *schema.Resource {
 							ForceNew: true,
 						},
 
-						"load_balancer_ip": {
+						"service_runtime_network_resource_group": {
 							Type:     schema.TypeString,
+							Optional: true,
 							Computed: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -352,7 +345,6 @@ func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{
 
 func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
-	loadBalancerClient := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -383,9 +375,7 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 		if err := d.Set("trace", flattenArmSpringCloudTrace(resp.Properties.Trace)); err != nil {
 			return fmt.Errorf("failure setting `trace`: %+v", err)
 		}
-		if network, err := flattenArmSpringCloudNetwork(ctx, loadBalancerClient, resp.Properties.NetworkProfile); err != nil {
-			return err
-		} else if err := d.Set("network", network); err != nil {
+		if err := d.Set("network", flattenArmSpringCloudNetwork(resp.Properties.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `network`: %+v", err)
 		}
 		if resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
@@ -429,12 +419,11 @@ func expandArmSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfil
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	cidrs := utils.ExpandStringSlice(v["cidr"].([]interface{}))
-	serviceCidr := strings.Join(*cidrs, ",")
+	cidrRanges := utils.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
 	network := &appplatform.NetworkProfile{
 		ServiceRuntimeSubnetID: utils.String(v["service_runtime_subnet_id"].(string)),
 		AppSubnetID:            utils.String(v["app_subnet_id"].(string)),
-		ServiceCidr:            utils.String(serviceCidr),
+		ServiceCidr:            utils.String(strings.Join(*cidrRanges, ",")),
 	}
 	if serviceRuntimeNetworkResourceGroup := v["service_runtime_network_resource_group"].(string); serviceRuntimeNetworkResourceGroup != "" {
 		network.ServiceRuntimeNetworkResourceGroup = utils.String(serviceRuntimeNetworkResourceGroup)
@@ -783,13 +772,13 @@ func flattenArmSpringCloudTrace(input *appplatform.TraceProperties) []interface{
 	}
 }
 
-func flattenArmSpringCloudNetwork(ctx context.Context, loadBalancerClient *network.LoadBalancersClient, input *appplatform.NetworkProfile) ([]interface{}, error) {
+func flattenArmSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} {
 	if input == nil {
-		return []interface{}{}, nil
+		return []interface{}{}
 	}
 
-	var serviceRuntimeSubnetID, appSubnetID, serviceRuntimeNetworkResourceGroup, appNetworkResourceGroup, loadBalancerIP string
-	var cidr []interface{}
+	var serviceRuntimeSubnetID, appSubnetID, serviceRuntimeNetworkResourceGroup, appNetworkResourceGroup string
+	var cidrRanges []interface{}
 	if input.ServiceRuntimeSubnetID != nil {
 		serviceRuntimeSubnetID = *input.ServiceRuntimeSubnetID
 	}
@@ -798,7 +787,7 @@ func flattenArmSpringCloudNetwork(ctx context.Context, loadBalancerClient *netwo
 	}
 	if input.ServiceCidr != nil {
 		cidrs := strings.Split(*input.ServiceCidr, ",")
-		cidr = utils.FlattenStringSlice(&cidrs)
+		cidrRanges = utils.FlattenStringSlice(&cidrs)
 	}
 	if input.ServiceRuntimeNetworkResourceGroup != nil {
 		serviceRuntimeNetworkResourceGroup = *input.ServiceRuntimeNetworkResourceGroup
@@ -807,40 +796,13 @@ func flattenArmSpringCloudNetwork(ctx context.Context, loadBalancerClient *netwo
 		appNetworkResourceGroup = *input.AppNetworkResourceGroup
 	}
 
-	if len(serviceRuntimeNetworkResourceGroup) != 0 {
-		lbName := "kubernetes-internal"
-		resp, err := loadBalancerClient.Get(ctx, serviceRuntimeNetworkResourceGroup, lbName, "")
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil, fmt.Errorf("Load Balancer %q was not found in Resource Group %q", lbName, serviceRuntimeNetworkResourceGroup)
-			}
-
-			return nil, fmt.Errorf("retrieving Load Balancer %q in Resource Group %q: %s", lbName, serviceRuntimeNetworkResourceGroup, err)
-		}
-
-		if props := resp.LoadBalancerPropertiesFormat; props != nil {
-			if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
-				for _, config := range *feipConfigs {
-					if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
-						if ip := feipProps.PrivateIPAddress; ip != nil {
-							if loadBalancerIP == "" {
-								loadBalancerIP = *feipProps.PrivateIPAddress
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"service_runtime_subnet_id":              serviceRuntimeSubnetID,
 			"app_subnet_id":                          appSubnetID,
-			"cidr":                                   cidr,
-			"service_runtime_network_resource_group": serviceRuntimeNetworkResourceGroup,
+			"service_runtime_subnet_id":              serviceRuntimeSubnetID,
+			"cidr_ranges":                            cidrRanges,
 			"app_network_resource_group":             appNetworkResourceGroup,
-			"load_balancer_ip":                       loadBalancerIP,
+			"service_runtime_network_resource_group": serviceRuntimeNetworkResourceGroup,
 		},
-	}, nil
+	}
 }
