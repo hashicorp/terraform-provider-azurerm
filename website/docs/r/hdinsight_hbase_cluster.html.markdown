@@ -297,7 +297,7 @@ A `monitor` block supports the following:
 
 An `autoscale` block supports the following:
 
-* `recurrence` - (Optional) A `recurrence` block as defined below.
+* `recurrence` - (Required) A `recurrence` block as defined below.
 
 -> **NOTE:** Capacity based autoscaling isn't supported to HBase clusters.
 
