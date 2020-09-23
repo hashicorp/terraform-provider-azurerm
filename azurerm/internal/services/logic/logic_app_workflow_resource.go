@@ -129,7 +129,11 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_logic_app_workflow", *existing.ID)
+			id, err := parse.LogicAppWorkflowID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_logic_app_workflow", id.ID(subscriptionId))
 		}
 	}
 

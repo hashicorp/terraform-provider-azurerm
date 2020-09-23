@@ -120,7 +120,12 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_workspace", *existing.ID)
+			id, err := parse.LogAnalyticsWorkspaceID(*existing.ID)
+			if err != nil {
+				return err
+			}
+
+			return tf.ImportAsExistsError("azurerm_log_analytics_workspace", id.ID(subscriptionId))
 		}
 	}
 
