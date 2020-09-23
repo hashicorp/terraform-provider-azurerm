@@ -626,6 +626,9 @@ func (client NamespacesClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "List", resp, "Failure responding to request")
 	}
+	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -734,6 +737,9 @@ func (client NamespacesClient) ListAll(ctx context.Context) (result NamespaceLis
 	result.nlr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "ListAll", resp, "Failure responding to request")
+	}
+	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -845,6 +851,9 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	result.saarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
+	}
+	if result.saarlr.hasNextLink() && result.saarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

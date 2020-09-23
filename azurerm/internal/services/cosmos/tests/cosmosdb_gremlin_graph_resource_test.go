@@ -119,6 +119,42 @@ func TestAccAzureRMCosmosDbGremlinGraph_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbGremlinGraph_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbGremlinGraphDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbGremlinGraph_autoscale(data, 4000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRmCosmosDbGremlinGraphExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDbGremlinGraph_autoscale(data, 5000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRmCosmosDbGremlinGraphExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "5000"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDbGremlinGraph_autoscale(data, 4000),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRmCosmosDbGremlinGraphExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbGremlinGraphDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.GremlinClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -307,4 +343,34 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   }
 }
 `, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger, throughput)
+}
+
+func testAccAzureRMCosmosDbGremlinGraph_autoscale(data acceptance.TestData, maxThroughput int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_gremlin_graph" "test" {
+  name                = "acctest-CGRPC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_gremlin_database.test.name
+  partition_key_path  = "/test"
+
+  autoscale_settings {
+    max_throughput = %[3]d
+  }
+
+  index_policy {
+    automatic      = true
+    indexing_mode  = "Consistent"
+    included_paths = ["/*"]
+    excluded_paths = ["/\"_etag\"/?"]
+  }
+
+  conflict_resolution_policy {
+    mode                     = "LastWriterWins"
+    conflict_resolution_path = "/_ts"
+  }
+}
+`, testAccAzureRMCosmosGremlinDatabase_basic(data), data.RandomInteger, maxThroughput)
 }

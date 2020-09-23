@@ -389,6 +389,9 @@ func (client AssetsClient) List(ctx context.Context, resourceGroupName string, a
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "List", resp, "Failure responding to request")
 	}
+	if result.ac.hasNextLink() && result.ac.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -493,6 +493,9 @@ func (client GroupsClient) List(ctx context.Context, filter string, top *int32) 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "List", resp, "Failure responding to request")
 	}
+	if result.glr.hasNextLink() && result.glr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

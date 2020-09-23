@@ -805,6 +805,9 @@ func (client Client) List(ctx context.Context, resourceGroupName string, namespa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "List", resp, "Failure responding to request")
 	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -918,6 +921,9 @@ func (client Client) ListAuthorizationRules(ctx context.Context, resourceGroupNa
 	result.saarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "notificationhubs.Client", "ListAuthorizationRules", resp, "Failure responding to request")
+	}
+	if result.saarlr.hasNextLink() && result.saarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

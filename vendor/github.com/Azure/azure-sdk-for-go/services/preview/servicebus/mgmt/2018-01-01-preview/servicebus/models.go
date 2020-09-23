@@ -31,109 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
 
-// DefaultAction enumerates the values for default action.
-type DefaultAction string
-
-const (
-	// Allow ...
-	Allow DefaultAction = "Allow"
-	// Deny ...
-	Deny DefaultAction = "Deny"
-)
-
-// PossibleDefaultActionValues returns an array of possible values for the DefaultAction const type.
-func PossibleDefaultActionValues() []DefaultAction {
-	return []DefaultAction{Allow, Deny}
-}
-
-// IdentityType enumerates the values for identity type.
-type IdentityType string
-
-const (
-	// SystemAssigned ...
-	SystemAssigned IdentityType = "SystemAssigned"
-)
-
-// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
-func PossibleIdentityTypeValues() []IdentityType {
-	return []IdentityType{SystemAssigned}
-}
-
-// IPAction enumerates the values for ip action.
-type IPAction string
-
-const (
-	// Accept ...
-	Accept IPAction = "Accept"
-	// Reject ...
-	Reject IPAction = "Reject"
-)
-
-// PossibleIPActionValues returns an array of possible values for the IPAction const type.
-func PossibleIPActionValues() []IPAction {
-	return []IPAction{Accept, Reject}
-}
-
-// KeySource enumerates the values for key source.
-type KeySource string
-
-const (
-	// MicrosoftKeyVault ...
-	MicrosoftKeyVault KeySource = "Microsoft.KeyVault"
-)
-
-// PossibleKeySourceValues returns an array of possible values for the KeySource const type.
-func PossibleKeySourceValues() []KeySource {
-	return []KeySource{MicrosoftKeyVault}
-}
-
-// NetworkRuleIPAction enumerates the values for network rule ip action.
-type NetworkRuleIPAction string
-
-const (
-	// NetworkRuleIPActionAllow ...
-	NetworkRuleIPActionAllow NetworkRuleIPAction = "Allow"
-)
-
-// PossibleNetworkRuleIPActionValues returns an array of possible values for the NetworkRuleIPAction const type.
-func PossibleNetworkRuleIPActionValues() []NetworkRuleIPAction {
-	return []NetworkRuleIPAction{NetworkRuleIPActionAllow}
-}
-
-// SkuName enumerates the values for sku name.
-type SkuName string
-
-const (
-	// Basic ...
-	Basic SkuName = "Basic"
-	// Premium ...
-	Premium SkuName = "Premium"
-	// Standard ...
-	Standard SkuName = "Standard"
-)
-
-// PossibleSkuNameValues returns an array of possible values for the SkuName const type.
-func PossibleSkuNameValues() []SkuName {
-	return []SkuName{Basic, Premium, Standard}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// SkuTierBasic ...
-	SkuTierBasic SkuTier = "Basic"
-	// SkuTierPremium ...
-	SkuTierPremium SkuTier = "Premium"
-	// SkuTierStandard ...
-	SkuTierStandard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{SkuTierBasic, SkuTierPremium, SkuTierStandard}
-}
-
 // Encryption properties to configure Encryption
 type Encryption struct {
 	// KeyVaultProperties - Properties of KeyVault
@@ -142,8 +39,8 @@ type Encryption struct {
 	KeySource KeySource `json:"keySource,omitempty"`
 }
 
-// ErrorResponse error response indicates ServiceBus service is not able to process the incoming request.
-// The reason is provided in the error message.
+// ErrorResponse error response indicates ServiceBus service is not able to process the incoming request. The
+// reason is provided in the error message.
 type ErrorResponse struct {
 	// Code - Error code.
 	Code *string `json:"code,omitempty"`
@@ -153,12 +50,21 @@ type ErrorResponse struct {
 
 // Identity properties to configure Identity for Bring your Own Keys
 type Identity struct {
-	// PrincipalID - ObjectId from the KeyVault
+	// PrincipalID - READ-ONLY; ObjectId from the KeyVault
 	PrincipalID *string `json:"principalId,omitempty"`
-	// TenantID - TenantId from the KeyVault
+	// TenantID - READ-ONLY; TenantId from the KeyVault
 	TenantID *string `json:"tenantId,omitempty"`
 	// Type - Enumerates the possible value Identity type, which currently supports only 'SystemAssigned'. Possible values include: 'SystemAssigned'
 	Type IdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // IPFilterRule single item in a List or Get IpFilterRules operation
@@ -311,10 +217,15 @@ func (ifrlr IPFilterRuleListResult) IsEmpty() bool {
 	return ifrlr.Value == nil || len(*ifrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ifrlr IPFilterRuleListResult) hasNextLink() bool {
+	return ifrlr.NextLink != nil && len(*ifrlr.NextLink) != 0
+}
+
 // iPFilterRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ifrlr IPFilterRuleListResult) iPFilterRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if ifrlr.NextLink == nil || len(to.String(ifrlr.NextLink)) < 1 {
+	if !ifrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -342,11 +253,16 @@ func (page *IPFilterRuleListResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ifrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ifrlr)
+		if err != nil {
+			return err
+		}
+		page.ifrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ifrlr = next
 	return nil
 }
 
@@ -398,8 +314,8 @@ type KeyVaultProperties struct {
 	KeyVaultURI *string `json:"keyVaultUri,omitempty"`
 }
 
-// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type NamespacesCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -427,8 +343,7 @@ func (future *NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (s
 	return
 }
 
-// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type NamespacesDeleteFuture struct {
 	azure.Future
 }
@@ -557,6 +472,15 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
 	// Provider - READ-ONLY; Service provider: Microsoft.ServiceBus
@@ -567,8 +491,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result of the request to list ServiceBus operations. It contains a list of
-// operations and a URL link to get the next set of results.
+// OperationListResult result of the request to list ServiceBus operations. It contains a list of operations
+// and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of ServiceBus operations supported by the Microsoft.ServiceBus resource provider.
@@ -645,10 +569,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -676,11 +605,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -942,10 +876,15 @@ func (snlr SBNamespaceListResult) IsEmpty() bool {
 	return snlr.Value == nil || len(*snlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (snlr SBNamespaceListResult) hasNextLink() bool {
+	return snlr.NextLink != nil && len(*snlr.NextLink) != 0
+}
+
 // sBNamespaceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (snlr SBNamespaceListResult) sBNamespaceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if snlr.NextLink == nil || len(to.String(snlr.NextLink)) < 1 {
+	if !snlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -973,11 +912,16 @@ func (page *SBNamespaceListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.snlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.snlr)
+		if err != nil {
+			return err
+		}
+		page.snlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.snlr = next
 	return nil
 }
 
@@ -1025,10 +969,20 @@ type SBNamespaceProperties struct {
 	MetricID *string `json:"metricId,omitempty"`
 	// ZoneRedundant - Enabling this property creates a Premium Service Bus Namespace in regions supported availability zones.
 	ZoneRedundant *bool `json:"zoneRedundant,omitempty"`
-	// Identity - Properties of BYOK Identity description
-	Identity *Identity `json:"identity,omitempty"`
 	// Encryption - Properties of BYOK Encryption description
 	Encryption *Encryption `json:"encryption,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBNamespaceProperties.
+func (snp SBNamespaceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if snp.ZoneRedundant != nil {
+		objectMap["zoneRedundant"] = snp.ZoneRedundant
+	}
+	if snp.Encryption != nil {
+		objectMap["encryption"] = snp.Encryption
+	}
+	return json.Marshal(objectMap)
 }
 
 // SBNamespaceUpdateParameters description of a namespace resource.
@@ -1037,6 +991,8 @@ type SBNamespaceUpdateParameters struct {
 	Sku *SBSku `json:"sku,omitempty"`
 	// SBNamespaceProperties - Properties of the namespace.
 	*SBNamespaceProperties `json:"properties,omitempty"`
+	// Identity - Properties of BYOK Identity description
+	Identity *Identity `json:"identity,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
@@ -1057,6 +1013,9 @@ func (snup SBNamespaceUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 	if snup.SBNamespaceProperties != nil {
 		objectMap["properties"] = snup.SBNamespaceProperties
+	}
+	if snup.Identity != nil {
+		objectMap["identity"] = snup.Identity
 	}
 	if snup.Location != nil {
 		objectMap["location"] = snup.Location
@@ -1093,6 +1052,15 @@ func (snup *SBNamespaceUpdateParameters) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				snup.SBNamespaceProperties = &sBNamespaceProperties
+			}
+		case "identity":
+			if v != nil {
+				var identity Identity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				snup.Identity = &identity
 			}
 		case "location":
 			if v != nil {
@@ -1337,10 +1305,15 @@ func (vnrlr VirtualNetworkRuleListResult) IsEmpty() bool {
 	return vnrlr.Value == nil || len(*vnrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vnrlr VirtualNetworkRuleListResult) hasNextLink() bool {
+	return vnrlr.NextLink != nil && len(*vnrlr.NextLink) != 0
+}
+
 // virtualNetworkRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vnrlr VirtualNetworkRuleListResult) virtualNetworkRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if vnrlr.NextLink == nil || len(to.String(vnrlr.NextLink)) < 1 {
+	if !vnrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1368,11 +1341,16 @@ func (page *VirtualNetworkRuleListResultPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vnrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vnrlr)
+		if err != nil {
+			return err
+		}
+		page.vnrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vnrlr = next
 	return nil
 }
 

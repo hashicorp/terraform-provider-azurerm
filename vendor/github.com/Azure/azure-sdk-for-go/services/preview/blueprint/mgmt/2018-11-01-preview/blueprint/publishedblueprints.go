@@ -330,6 +330,9 @@ func (client PublishedBlueprintsClient) List(ctx context.Context, resourceScope 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedBlueprintsClient", "List", resp, "Failure responding to request")
 	}
+	if result.pbl.hasNextLink() && result.pbl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

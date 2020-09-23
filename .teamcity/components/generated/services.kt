@@ -43,6 +43,7 @@ var services = mapOf(
         "machinelearning" to "Machine Learning",
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
+        "lighthouse" to "Lighthouse",
         "managementgroup" to "Management Group",
         "maps" to "Maps",
         "mariadb" to "MariaDB",

@@ -318,6 +318,9 @@ func (client ConnectorsClient) List(ctx context.Context) (result ConnectorSettin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.ConnectorsClient", "List", resp, "Failure responding to request")
 	}
+	if result.csl.hasNextLink() && result.csl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

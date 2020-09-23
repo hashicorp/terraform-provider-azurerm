@@ -471,6 +471,9 @@ func (client AppsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -580,6 +583,9 @@ func (client AppsClient) ListBySubscription(ctx context.Context) (result AppList
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -687,6 +693,9 @@ func (client AppsClient) ListTemplates(ctx context.Context) (result AppTemplates
 	result.atr, err = client.ListTemplatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "iotcentral.AppsClient", "ListTemplates", resp, "Failure responding to request")
+	}
+	if result.atr.hasNextLink() && result.atr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

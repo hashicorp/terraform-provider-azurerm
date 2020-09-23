@@ -131,7 +131,6 @@ func (client EntityRelationsClient) GetRelationSender(req *http.Request) (*http.
 func (client EntityRelationsClient) GetRelationResponder(resp *http.Response) (result Relation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

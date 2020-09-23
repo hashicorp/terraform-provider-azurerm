@@ -331,6 +331,9 @@ func (client WorkloadGroupsClient) ListByDatabase(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadGroupsClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.wglr.hasNextLink() && result.wglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

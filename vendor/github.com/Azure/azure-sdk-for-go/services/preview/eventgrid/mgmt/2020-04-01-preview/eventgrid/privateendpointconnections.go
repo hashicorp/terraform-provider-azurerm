@@ -241,6 +241,9 @@ func (client PrivateEndpointConnectionsClient) ListByResource(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PrivateEndpointConnectionsClient", "ListByResource", resp, "Failure responding to request")
 	}
+	if result.peclr.hasNextLink() && result.peclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
