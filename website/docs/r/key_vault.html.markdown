@@ -14,6 +14,8 @@ Manages a Key Vault.
 
 ~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
+~> **Note:** It's possible to define Key Vault Network ACL both within [the `azurerm_key_vault` resource](key_vault.html) via the `network_acls` block and by using [the `azurerm_key_vault_network_acl` resource](azurerm_key_vault_network_acl.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+
 ~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
 
 ## Example Usage
