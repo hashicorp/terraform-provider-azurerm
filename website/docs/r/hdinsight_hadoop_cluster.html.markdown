@@ -335,7 +335,7 @@ A `recurrence` block supports the following:
 
 * `timezone` - (Required) The time zone for the autoscale schedule times.
 
-* `schedule` - A list of `schedule` blocks as defined below.
+* `schedule` - (Required) A list of `schedule` blocks as defined below.
 
 ---
 
