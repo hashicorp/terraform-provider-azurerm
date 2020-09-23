@@ -513,6 +513,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	// nolint staticcheck
 	if v, ok := d.GetOkExists("public_network_access"); ok {
 		enabled := devices.Disabled
 		if v.(bool) {
