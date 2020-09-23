@@ -63,7 +63,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	}
 
 	testData := TestData{
-		RandomInteger:   acctest.RandInt(),
+		RandomInteger:   acctest.RandIntRange(1, 100000000),
 		RandomString:    acctest.RandString(5),
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
 		Environment:     *env,
