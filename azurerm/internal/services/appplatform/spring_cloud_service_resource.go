@@ -91,6 +91,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 							Type:     schema.TypeList,
 							Required: true,
 							ForceNew: true,
+							MinItems: 3,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},

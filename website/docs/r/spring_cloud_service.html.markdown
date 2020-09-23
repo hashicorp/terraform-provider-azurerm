@@ -77,15 +77,15 @@ The following arguments are supported:
 
 The `network` block supports the following:
 
-* `app_subnet_id` - (Required) Specifies the subnet id, which will be used to host the Spring Cloud Micro-services Applications of the Azure Spring Cloud Service Instance to be created.
+* `app_subnet_id` - (Required) Specifies the ID of the Subnet which should host the Spring Boot Applications deployed in this Spring Cloud Service. Changing this forces a new resource to be created.
 
-* `service_runtime_subnet_id` - (Required) Specifies the subnet id, which will be used to host the Service Runtime components of the Azure Spring Cloud Service Instance to be created.
+* `service_runtime_subnet_id` - (Required) Specifies the ID of the Subnet where the Service Runtime components of the Spring Cloud Service will exist. Changing this forces a new resource to be created.
 
-* `cidr_ranges` - (Required) Specifies the Spring Cloud service reserved CIDR to host underlying Azure Spring Cloud infrastructure, which should be 3 at least /16 unused IP ranges, must not overlap with any Subnet IP ranges.
+* `cidr_ranges` - (Required) A list of (at least 3) CIDR ranges (at least /16) which are used to host the Spring Cloud infrastructure, which must not overlap with any existing CIDR ranges in the Subnet. Changing this forces a new resource to be created.
 
-* `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps.
+* `app_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Apps. Changing this forces a new resource to be created.
 
-* `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime.
+* `service_runtime_network_resource_group` - (Optional) Specifies the Name of the resource group containing network resources of Azure Spring Cloud Service Runtime. Changing this forces a new resource to be created.
 
 ---
 
