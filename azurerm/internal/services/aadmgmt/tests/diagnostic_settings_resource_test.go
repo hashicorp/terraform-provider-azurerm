@@ -164,8 +164,7 @@ func testAADDiagnosticsSettingsDestroy(s *terraform.State) error {
 
 func testAADDiagnosticSettings_basic(data acceptance.TestData, name string) string {
 	template := testAccAADDiagnosticSettings_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_aad_diagnostic_settings" "test" {
   name                = "%s"
@@ -190,8 +189,7 @@ resource "azurerm_aad_diagnostic_settings" "test" {
 
 func testAADDiagnosticSettings_eventhub(data acceptance.TestData) string {
 	template := testAccAADDiagnosticSettings_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 resource "azurerm_aad_diagnostic_settings" "test" {
   name                		= "acctestdiagsetng-%d"
   event_hub_name 			= azurerm_eventhub.test.name
@@ -218,8 +216,8 @@ resource "azurerm_aad_diagnostic_settings" "test" {
 
 func testAADDiagnosticSettings_law(data acceptance.TestData) string {
 	template := testAccAADDiagnosticSettings_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
+
 resource "azurerm_aad_diagnostic_settings" "test" {
   name          	= "acctestdiagsetng-%d"
   workspace_id 		= azurerm_log_analytics_workspace.test.id
@@ -245,8 +243,8 @@ resource "azurerm_aad_diagnostic_settings" "test" {
 
 func testAADDiagnosticSettings_complete(data acceptance.TestData, diagSettingName string, auditLogRetentionDays int, auditLogRetentionEnabled bool, signInLogEnabled bool, signInLogRetentionDays int, signInLogRetentionEnabled bool) string {
 	template := testAccAADDiagnosticSettings_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
+	
 resource "azurerm_aad_diagnostic_settings" "test" {
   name                		= "%s"
   storage_account_id  		= azurerm_storage_account.test.id
