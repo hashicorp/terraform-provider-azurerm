@@ -318,9 +318,9 @@ A `capacity` block supports the following:
 
 A `recurrence` block supports the following:
 
-* `timezone` - (Required) The time zone for the autoscale schedule times.
-
 * `schedule` - (Required) A list of `schedule` blocks as defined below.
+
+* `timezone` - (Required) The time zone for the autoscale schedule times.
 
 ---
 
@@ -328,9 +328,9 @@ A `schedule` block supports the following:
 
 * `days` - (Required) The days of the week to perform autoscale.
 
-* `time` - (Required) The time of day to perform the autoscale in 24hour format.
-
 * `target_instance_count` - (Required) The number of worker nodes to autoscale at the specified time.
+
+* `time` - (Required) The time of day to perform the autoscale in 24hour format.
 
 ## Attributes Reference
 
