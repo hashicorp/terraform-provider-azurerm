@@ -126,7 +126,7 @@ func resourceArmStorageSyncCloudEndpointCreate(d *schema.ResourceData, meta inte
 
 func resourceArmStorageSyncCloudEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.CloudEndpointsClient
-	gpClient := meta.(*clients.Client).Storage.StoragesyncGroupClient
+	gpClient := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
