@@ -30,13 +30,13 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_datasource_linux_performance_object" "example" {
-  name                = "example-lad-wpc"
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name      = azurerm_log_analytics_workspace.example.name
-  object_name			= "Logical Disk"
-  instance_name			= "*"
-  interval_seconds		= 10
-  performance_counters	= ["%% Used Space"]
+  name                 = "example-lad-wpc"
+  resource_group_name  = azurerm_resource_group.example.name
+  workspace_name       = azurerm_log_analytics_workspace.example.name
+  object_name          = "Logical Disk"
+  instance_name        = "*"
+  interval_seconds     = 10
+  performance_counters = ["%% Used Space"]
 }
 ```
 
