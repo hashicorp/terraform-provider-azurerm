@@ -304,7 +304,7 @@ An `autoscale` block supports the following:
 
 * `recurrence` - (Optional) A `recurrence` block as defined below.
 
--> **NOTE:** Either a `capacity` or `recurrence` must be specified - but not both.
+-> **NOTE:** Either a `capacity` or `recurrence` block must be specified - but not both.
 
 ---
 
