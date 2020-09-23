@@ -13,7 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// NOTE: default is the only valid pricing name currently supported by the API
+// NOTE: 'default' is the only valid name currently supported by the API
+// No other names can be created and the 'default' resource can not be destroyed
 const securityCenterAutoProvisioningName = "default"
 
 func resourceArmSecurityCenterAutoProvisioning() *schema.Resource {
