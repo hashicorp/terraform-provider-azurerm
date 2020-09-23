@@ -13,17 +13,21 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	ApplicationsClient := hdinsight.NewApplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ApplicationsClient.Client, o.ResourceManagerAuthorizer)
+	// due to a bug in the HDInsight API we can't reuse client with the same x-ms-correlation-request-id for multiple updates
+	opts := *o
+	opts.DisableCorrelationRequestID = true
 
-	ClustersClient := hdinsight.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
+	ApplicationsClient := hdinsight.NewApplicationsClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
+	opts.ConfigureClient(&ApplicationsClient.Client, opts.ResourceManagerAuthorizer)
 
-	ConfigurationsClient := hdinsight.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
+	ClustersClient := hdinsight.NewClustersClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
+	opts.ConfigureClient(&ClustersClient.Client, opts.ResourceManagerAuthorizer)
 
-	ExtensionsClient := hdinsight.NewExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ExtensionsClient.Client, o.ResourceManagerAuthorizer)
+	ConfigurationsClient := hdinsight.NewConfigurationsClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
+	opts.ConfigureClient(&ConfigurationsClient.Client, opts.ResourceManagerAuthorizer)
+
+	ExtensionsClient := hdinsight.NewExtensionsClientWithBaseURI(opts.ResourceManagerEndpoint, opts.SubscriptionId)
+	opts.ConfigureClient(&ExtensionsClient.Client, opts.ResourceManagerAuthorizer)
 
 	return &Client{
 		ApplicationsClient:   &ApplicationsClient,
