@@ -472,13 +472,12 @@ func expandAlertRuleScheduledGroupingConfiguration(input []interface{}) *securit
 		EntitiesMatchingMethod: securityinsight.EntitiesMatchingMethod(raw["entity_matching_method"].(string)),
 	}
 
-	if groupByEntitiesSet := raw["group_by_entities"].(*schema.Set); groupByEntitiesSet != nil {
-		groupByEntities := make([]securityinsight.GroupingEntityType, len(groupByEntitiesSet.List()))
-		for idx, t := range groupByEntitiesSet.List() {
-			groupByEntities[idx] = securityinsight.GroupingEntityType(t.(string))
-		}
-		output.GroupByEntities = &groupByEntities
+	groupByEntitiesSet := raw["group_by_entities"].(*schema.Set).List()
+	groupByEntities := make([]securityinsight.GroupingEntityType, len(groupByEntitiesSet))
+	for idx, t := range groupByEntitiesSet {
+		groupByEntities[idx] = securityinsight.GroupingEntityType(t.(string))
 	}
+	output.GroupByEntities = &groupByEntities
 
 	return output
 }
