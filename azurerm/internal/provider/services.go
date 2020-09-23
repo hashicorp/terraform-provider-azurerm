@@ -40,6 +40,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning"
@@ -127,6 +128,7 @@ func SupportedServices() []common.ServiceRegistration {
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedapplications.Registration{},
+		lighthouse.Registration{},
 		managementgroup.Registration{},
 		maps.Registration{},
 		mariadb.Registration{},

@@ -72,6 +72,9 @@ func (client SkusClient) List(ctx context.Context) (result ResourceSkusResultPag
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.SkusClient", "List", resp, "Failure responding to request")
 	}
+	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

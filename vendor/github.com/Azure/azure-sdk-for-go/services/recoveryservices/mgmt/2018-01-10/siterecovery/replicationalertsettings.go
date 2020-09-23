@@ -225,6 +225,9 @@ func (client ReplicationAlertSettingsClient) List(ctx context.Context) (result A
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationAlertSettingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.ac.hasNextLink() && result.ac.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

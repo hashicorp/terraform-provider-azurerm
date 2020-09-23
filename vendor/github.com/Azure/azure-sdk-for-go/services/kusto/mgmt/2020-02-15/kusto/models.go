@@ -30,477 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
 
-// AzureScaleType enumerates the values for azure scale type.
-type AzureScaleType string
-
-const (
-	// Automatic ...
-	Automatic AzureScaleType = "automatic"
-	// Manual ...
-	Manual AzureScaleType = "manual"
-	// None ...
-	None AzureScaleType = "none"
-)
-
-// PossibleAzureScaleTypeValues returns an array of possible values for the AzureScaleType const type.
-func PossibleAzureScaleTypeValues() []AzureScaleType {
-	return []AzureScaleType{Automatic, Manual, None}
-}
-
-// AzureSkuName enumerates the values for azure sku name.
-type AzureSkuName string
-
-const (
-	// DevNoSLAStandardD11V2 ...
-	DevNoSLAStandardD11V2 AzureSkuName = "Dev(No SLA)_Standard_D11_v2"
-	// DevNoSLAStandardE2aV4 ...
-	DevNoSLAStandardE2aV4 AzureSkuName = "Dev(No SLA)_Standard_E2a_v4"
-	// StandardD11V2 ...
-	StandardD11V2 AzureSkuName = "Standard_D11_v2"
-	// StandardD12V2 ...
-	StandardD12V2 AzureSkuName = "Standard_D12_v2"
-	// StandardD13V2 ...
-	StandardD13V2 AzureSkuName = "Standard_D13_v2"
-	// StandardD14V2 ...
-	StandardD14V2 AzureSkuName = "Standard_D14_v2"
-	// StandardDS13V21TBPS ...
-	StandardDS13V21TBPS AzureSkuName = "Standard_DS13_v2+1TB_PS"
-	// StandardDS13V22TBPS ...
-	StandardDS13V22TBPS AzureSkuName = "Standard_DS13_v2+2TB_PS"
-	// StandardDS14V23TBPS ...
-	StandardDS14V23TBPS AzureSkuName = "Standard_DS14_v2+3TB_PS"
-	// StandardDS14V24TBPS ...
-	StandardDS14V24TBPS AzureSkuName = "Standard_DS14_v2+4TB_PS"
-	// StandardE16asV43TBPS ...
-	StandardE16asV43TBPS AzureSkuName = "Standard_E16as_v4+3TB_PS"
-	// StandardE16asV44TBPS ...
-	StandardE16asV44TBPS AzureSkuName = "Standard_E16as_v4+4TB_PS"
-	// StandardE16aV4 ...
-	StandardE16aV4 AzureSkuName = "Standard_E16a_v4"
-	// StandardE2aV4 ...
-	StandardE2aV4 AzureSkuName = "Standard_E2a_v4"
-	// StandardE4aV4 ...
-	StandardE4aV4 AzureSkuName = "Standard_E4a_v4"
-	// StandardE8asV41TBPS ...
-	StandardE8asV41TBPS AzureSkuName = "Standard_E8as_v4+1TB_PS"
-	// StandardE8asV42TBPS ...
-	StandardE8asV42TBPS AzureSkuName = "Standard_E8as_v4+2TB_PS"
-	// StandardE8aV4 ...
-	StandardE8aV4 AzureSkuName = "Standard_E8a_v4"
-	// StandardL16s ...
-	StandardL16s AzureSkuName = "Standard_L16s"
-	// StandardL4s ...
-	StandardL4s AzureSkuName = "Standard_L4s"
-	// StandardL8s ...
-	StandardL8s AzureSkuName = "Standard_L8s"
-)
-
-// PossibleAzureSkuNameValues returns an array of possible values for the AzureSkuName const type.
-func PossibleAzureSkuNameValues() []AzureSkuName {
-	return []AzureSkuName{DevNoSLAStandardD11V2, DevNoSLAStandardE2aV4, StandardD11V2, StandardD12V2, StandardD13V2, StandardD14V2, StandardDS13V21TBPS, StandardDS13V22TBPS, StandardDS14V23TBPS, StandardDS14V24TBPS, StandardE16asV43TBPS, StandardE16asV44TBPS, StandardE16aV4, StandardE2aV4, StandardE4aV4, StandardE8asV41TBPS, StandardE8asV42TBPS, StandardE8aV4, StandardL16s, StandardL4s, StandardL8s}
-}
-
-// AzureSkuTier enumerates the values for azure sku tier.
-type AzureSkuTier string
-
-const (
-	// Basic ...
-	Basic AzureSkuTier = "Basic"
-	// Standard ...
-	Standard AzureSkuTier = "Standard"
-)
-
-// PossibleAzureSkuTierValues returns an array of possible values for the AzureSkuTier const type.
-func PossibleAzureSkuTierValues() []AzureSkuTier {
-	return []AzureSkuTier{Basic, Standard}
-}
-
-// ClusterPrincipalRole enumerates the values for cluster principal role.
-type ClusterPrincipalRole string
-
-const (
-	// AllDatabasesAdmin ...
-	AllDatabasesAdmin ClusterPrincipalRole = "AllDatabasesAdmin"
-	// AllDatabasesViewer ...
-	AllDatabasesViewer ClusterPrincipalRole = "AllDatabasesViewer"
-)
-
-// PossibleClusterPrincipalRoleValues returns an array of possible values for the ClusterPrincipalRole const type.
-func PossibleClusterPrincipalRoleValues() []ClusterPrincipalRole {
-	return []ClusterPrincipalRole{AllDatabasesAdmin, AllDatabasesViewer}
-}
-
-// Compression enumerates the values for compression.
-type Compression string
-
-const (
-	// CompressionGZip ...
-	CompressionGZip Compression = "GZip"
-	// CompressionNone ...
-	CompressionNone Compression = "None"
-)
-
-// PossibleCompressionValues returns an array of possible values for the Compression const type.
-func PossibleCompressionValues() []Compression {
-	return []Compression{CompressionGZip, CompressionNone}
-}
-
-// DatabasePrincipalRole enumerates the values for database principal role.
-type DatabasePrincipalRole string
-
-const (
-	// Admin ...
-	Admin DatabasePrincipalRole = "Admin"
-	// Ingestor ...
-	Ingestor DatabasePrincipalRole = "Ingestor"
-	// Monitor ...
-	Monitor DatabasePrincipalRole = "Monitor"
-	// UnrestrictedViewers ...
-	UnrestrictedViewers DatabasePrincipalRole = "UnrestrictedViewers"
-	// User ...
-	User DatabasePrincipalRole = "User"
-	// Viewer ...
-	Viewer DatabasePrincipalRole = "Viewer"
-)
-
-// PossibleDatabasePrincipalRoleValues returns an array of possible values for the DatabasePrincipalRole const type.
-func PossibleDatabasePrincipalRoleValues() []DatabasePrincipalRole {
-	return []DatabasePrincipalRole{Admin, Ingestor, Monitor, UnrestrictedViewers, User, Viewer}
-}
-
-// DatabasePrincipalType enumerates the values for database principal type.
-type DatabasePrincipalType string
-
-const (
-	// DatabasePrincipalTypeApp ...
-	DatabasePrincipalTypeApp DatabasePrincipalType = "App"
-	// DatabasePrincipalTypeGroup ...
-	DatabasePrincipalTypeGroup DatabasePrincipalType = "Group"
-	// DatabasePrincipalTypeUser ...
-	DatabasePrincipalTypeUser DatabasePrincipalType = "User"
-)
-
-// PossibleDatabasePrincipalTypeValues returns an array of possible values for the DatabasePrincipalType const type.
-func PossibleDatabasePrincipalTypeValues() []DatabasePrincipalType {
-	return []DatabasePrincipalType{DatabasePrincipalTypeApp, DatabasePrincipalTypeGroup, DatabasePrincipalTypeUser}
-}
-
-// DefaultPrincipalsModificationKind enumerates the values for default principals modification kind.
-type DefaultPrincipalsModificationKind string
-
-const (
-	// DefaultPrincipalsModificationKindNone ...
-	DefaultPrincipalsModificationKindNone DefaultPrincipalsModificationKind = "None"
-	// DefaultPrincipalsModificationKindReplace ...
-	DefaultPrincipalsModificationKindReplace DefaultPrincipalsModificationKind = "Replace"
-	// DefaultPrincipalsModificationKindUnion ...
-	DefaultPrincipalsModificationKindUnion DefaultPrincipalsModificationKind = "Union"
-)
-
-// PossibleDefaultPrincipalsModificationKindValues returns an array of possible values for the DefaultPrincipalsModificationKind const type.
-func PossibleDefaultPrincipalsModificationKindValues() []DefaultPrincipalsModificationKind {
-	return []DefaultPrincipalsModificationKind{DefaultPrincipalsModificationKindNone, DefaultPrincipalsModificationKindReplace, DefaultPrincipalsModificationKindUnion}
-}
-
-// EventGridDataFormat enumerates the values for event grid data format.
-type EventGridDataFormat string
-
-const (
-	// AVRO ...
-	AVRO EventGridDataFormat = "AVRO"
-	// CSV ...
-	CSV EventGridDataFormat = "CSV"
-	// JSON ...
-	JSON EventGridDataFormat = "JSON"
-	// MULTIJSON ...
-	MULTIJSON EventGridDataFormat = "MULTIJSON"
-	// ORC ...
-	ORC EventGridDataFormat = "ORC"
-	// PARQUET ...
-	PARQUET EventGridDataFormat = "PARQUET"
-	// PSV ...
-	PSV EventGridDataFormat = "PSV"
-	// RAW ...
-	RAW EventGridDataFormat = "RAW"
-	// SCSV ...
-	SCSV EventGridDataFormat = "SCSV"
-	// SINGLEJSON ...
-	SINGLEJSON EventGridDataFormat = "SINGLEJSON"
-	// SOHSV ...
-	SOHSV EventGridDataFormat = "SOHSV"
-	// TSV ...
-	TSV EventGridDataFormat = "TSV"
-	// TSVE ...
-	TSVE EventGridDataFormat = "TSVE"
-	// TXT ...
-	TXT EventGridDataFormat = "TXT"
-)
-
-// PossibleEventGridDataFormatValues returns an array of possible values for the EventGridDataFormat const type.
-func PossibleEventGridDataFormatValues() []EventGridDataFormat {
-	return []EventGridDataFormat{AVRO, CSV, JSON, MULTIJSON, ORC, PARQUET, PSV, RAW, SCSV, SINGLEJSON, SOHSV, TSV, TSVE, TXT}
-}
-
-// EventHubDataFormat enumerates the values for event hub data format.
-type EventHubDataFormat string
-
-const (
-	// EventHubDataFormatAVRO ...
-	EventHubDataFormatAVRO EventHubDataFormat = "AVRO"
-	// EventHubDataFormatCSV ...
-	EventHubDataFormatCSV EventHubDataFormat = "CSV"
-	// EventHubDataFormatJSON ...
-	EventHubDataFormatJSON EventHubDataFormat = "JSON"
-	// EventHubDataFormatMULTIJSON ...
-	EventHubDataFormatMULTIJSON EventHubDataFormat = "MULTIJSON"
-	// EventHubDataFormatORC ...
-	EventHubDataFormatORC EventHubDataFormat = "ORC"
-	// EventHubDataFormatPARQUET ...
-	EventHubDataFormatPARQUET EventHubDataFormat = "PARQUET"
-	// EventHubDataFormatPSV ...
-	EventHubDataFormatPSV EventHubDataFormat = "PSV"
-	// EventHubDataFormatRAW ...
-	EventHubDataFormatRAW EventHubDataFormat = "RAW"
-	// EventHubDataFormatSCSV ...
-	EventHubDataFormatSCSV EventHubDataFormat = "SCSV"
-	// EventHubDataFormatSINGLEJSON ...
-	EventHubDataFormatSINGLEJSON EventHubDataFormat = "SINGLEJSON"
-	// EventHubDataFormatSOHSV ...
-	EventHubDataFormatSOHSV EventHubDataFormat = "SOHSV"
-	// EventHubDataFormatTSV ...
-	EventHubDataFormatTSV EventHubDataFormat = "TSV"
-	// EventHubDataFormatTSVE ...
-	EventHubDataFormatTSVE EventHubDataFormat = "TSVE"
-	// EventHubDataFormatTXT ...
-	EventHubDataFormatTXT EventHubDataFormat = "TXT"
-)
-
-// PossibleEventHubDataFormatValues returns an array of possible values for the EventHubDataFormat const type.
-func PossibleEventHubDataFormatValues() []EventHubDataFormat {
-	return []EventHubDataFormat{EventHubDataFormatAVRO, EventHubDataFormatCSV, EventHubDataFormatJSON, EventHubDataFormatMULTIJSON, EventHubDataFormatORC, EventHubDataFormatPARQUET, EventHubDataFormatPSV, EventHubDataFormatRAW, EventHubDataFormatSCSV, EventHubDataFormatSINGLEJSON, EventHubDataFormatSOHSV, EventHubDataFormatTSV, EventHubDataFormatTSVE, EventHubDataFormatTXT}
-}
-
-// IdentityType enumerates the values for identity type.
-type IdentityType string
-
-const (
-	// IdentityTypeNone ...
-	IdentityTypeNone IdentityType = "None"
-	// IdentityTypeSystemAssigned ...
-	IdentityTypeSystemAssigned IdentityType = "SystemAssigned"
-)
-
-// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
-func PossibleIdentityTypeValues() []IdentityType {
-	return []IdentityType{IdentityTypeNone, IdentityTypeSystemAssigned}
-}
-
-// IotHubDataFormat enumerates the values for iot hub data format.
-type IotHubDataFormat string
-
-const (
-	// IotHubDataFormatAVRO ...
-	IotHubDataFormatAVRO IotHubDataFormat = "AVRO"
-	// IotHubDataFormatCSV ...
-	IotHubDataFormatCSV IotHubDataFormat = "CSV"
-	// IotHubDataFormatJSON ...
-	IotHubDataFormatJSON IotHubDataFormat = "JSON"
-	// IotHubDataFormatMULTIJSON ...
-	IotHubDataFormatMULTIJSON IotHubDataFormat = "MULTIJSON"
-	// IotHubDataFormatORC ...
-	IotHubDataFormatORC IotHubDataFormat = "ORC"
-	// IotHubDataFormatPARQUET ...
-	IotHubDataFormatPARQUET IotHubDataFormat = "PARQUET"
-	// IotHubDataFormatPSV ...
-	IotHubDataFormatPSV IotHubDataFormat = "PSV"
-	// IotHubDataFormatRAW ...
-	IotHubDataFormatRAW IotHubDataFormat = "RAW"
-	// IotHubDataFormatSCSV ...
-	IotHubDataFormatSCSV IotHubDataFormat = "SCSV"
-	// IotHubDataFormatSINGLEJSON ...
-	IotHubDataFormatSINGLEJSON IotHubDataFormat = "SINGLEJSON"
-	// IotHubDataFormatSOHSV ...
-	IotHubDataFormatSOHSV IotHubDataFormat = "SOHSV"
-	// IotHubDataFormatTSV ...
-	IotHubDataFormatTSV IotHubDataFormat = "TSV"
-	// IotHubDataFormatTSVE ...
-	IotHubDataFormatTSVE IotHubDataFormat = "TSVE"
-	// IotHubDataFormatTXT ...
-	IotHubDataFormatTXT IotHubDataFormat = "TXT"
-)
-
-// PossibleIotHubDataFormatValues returns an array of possible values for the IotHubDataFormat const type.
-func PossibleIotHubDataFormatValues() []IotHubDataFormat {
-	return []IotHubDataFormat{IotHubDataFormatAVRO, IotHubDataFormatCSV, IotHubDataFormatJSON, IotHubDataFormatMULTIJSON, IotHubDataFormatORC, IotHubDataFormatPARQUET, IotHubDataFormatPSV, IotHubDataFormatRAW, IotHubDataFormatSCSV, IotHubDataFormatSINGLEJSON, IotHubDataFormatSOHSV, IotHubDataFormatTSV, IotHubDataFormatTSVE, IotHubDataFormatTXT}
-}
-
-// Kind enumerates the values for kind.
-type Kind string
-
-const (
-	// KindDatabase ...
-	KindDatabase Kind = "Database"
-	// KindReadOnlyFollowing ...
-	KindReadOnlyFollowing Kind = "ReadOnlyFollowing"
-	// KindReadWrite ...
-	KindReadWrite Kind = "ReadWrite"
-)
-
-// PossibleKindValues returns an array of possible values for the Kind const type.
-func PossibleKindValues() []Kind {
-	return []Kind{KindDatabase, KindReadOnlyFollowing, KindReadWrite}
-}
-
-// KindBasicDataConnection enumerates the values for kind basic data connection.
-type KindBasicDataConnection string
-
-const (
-	// KindDataConnection ...
-	KindDataConnection KindBasicDataConnection = "DataConnection"
-	// KindEventGrid ...
-	KindEventGrid KindBasicDataConnection = "EventGrid"
-	// KindEventHub ...
-	KindEventHub KindBasicDataConnection = "EventHub"
-	// KindIotHub ...
-	KindIotHub KindBasicDataConnection = "IotHub"
-)
-
-// PossibleKindBasicDataConnectionValues returns an array of possible values for the KindBasicDataConnection const type.
-func PossibleKindBasicDataConnectionValues() []KindBasicDataConnection {
-	return []KindBasicDataConnection{KindDataConnection, KindEventGrid, KindEventHub, KindIotHub}
-}
-
-// LanguageExtensionName enumerates the values for language extension name.
-type LanguageExtensionName string
-
-const (
-	// PYTHON ...
-	PYTHON LanguageExtensionName = "PYTHON"
-	// R ...
-	R LanguageExtensionName = "R"
-)
-
-// PossibleLanguageExtensionNameValues returns an array of possible values for the LanguageExtensionName const type.
-func PossibleLanguageExtensionNameValues() []LanguageExtensionName {
-	return []LanguageExtensionName{PYTHON, R}
-}
-
-// PrincipalsModificationKind enumerates the values for principals modification kind.
-type PrincipalsModificationKind string
-
-const (
-	// PrincipalsModificationKindNone ...
-	PrincipalsModificationKindNone PrincipalsModificationKind = "None"
-	// PrincipalsModificationKindReplace ...
-	PrincipalsModificationKindReplace PrincipalsModificationKind = "Replace"
-	// PrincipalsModificationKindUnion ...
-	PrincipalsModificationKindUnion PrincipalsModificationKind = "Union"
-)
-
-// PossiblePrincipalsModificationKindValues returns an array of possible values for the PrincipalsModificationKind const type.
-func PossiblePrincipalsModificationKindValues() []PrincipalsModificationKind {
-	return []PrincipalsModificationKind{PrincipalsModificationKindNone, PrincipalsModificationKindReplace, PrincipalsModificationKindUnion}
-}
-
-// PrincipalType enumerates the values for principal type.
-type PrincipalType string
-
-const (
-	// PrincipalTypeApp ...
-	PrincipalTypeApp PrincipalType = "App"
-	// PrincipalTypeGroup ...
-	PrincipalTypeGroup PrincipalType = "Group"
-	// PrincipalTypeUser ...
-	PrincipalTypeUser PrincipalType = "User"
-)
-
-// PossiblePrincipalTypeValues returns an array of possible values for the PrincipalType const type.
-func PossiblePrincipalTypeValues() []PrincipalType {
-	return []PrincipalType{PrincipalTypeApp, PrincipalTypeGroup, PrincipalTypeUser}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Moving ...
-	Moving ProvisioningState = "Moving"
-	// Running ...
-	Running ProvisioningState = "Running"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Creating, Deleting, Failed, Moving, Running, Succeeded}
-}
-
-// Reason enumerates the values for reason.
-type Reason string
-
-const (
-	// AlreadyExists ...
-	AlreadyExists Reason = "AlreadyExists"
-	// Invalid ...
-	Invalid Reason = "Invalid"
-)
-
-// PossibleReasonValues returns an array of possible values for the Reason const type.
-func PossibleReasonValues() []Reason {
-	return []Reason{AlreadyExists, Invalid}
-}
-
-// State enumerates the values for state.
-type State string
-
-const (
-	// StateCreating ...
-	StateCreating State = "Creating"
-	// StateDeleted ...
-	StateDeleted State = "Deleted"
-	// StateDeleting ...
-	StateDeleting State = "Deleting"
-	// StateRunning ...
-	StateRunning State = "Running"
-	// StateStarting ...
-	StateStarting State = "Starting"
-	// StateStopped ...
-	StateStopped State = "Stopped"
-	// StateStopping ...
-	StateStopping State = "Stopping"
-	// StateUnavailable ...
-	StateUnavailable State = "Unavailable"
-	// StateUpdating ...
-	StateUpdating State = "Updating"
-)
-
-// PossibleStateValues returns an array of possible values for the State const type.
-func PossibleStateValues() []State {
-	return []State{StateCreating, StateDeleted, StateDeleting, StateRunning, StateStarting, StateStopped, StateStopping, StateUnavailable, StateUpdating}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// MicrosoftKustoclustersattachedDatabaseConfigurations ...
-	MicrosoftKustoclustersattachedDatabaseConfigurations Type = "Microsoft.Kusto/clusters/attachedDatabaseConfigurations"
-	// MicrosoftKustoclustersdatabases ...
-	MicrosoftKustoclustersdatabases Type = "Microsoft.Kusto/clusters/databases"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{MicrosoftKustoclustersattachedDatabaseConfigurations, MicrosoftKustoclustersdatabases}
-}
-
 // AttachedDatabaseConfiguration class representing an attached database configuration.
 type AttachedDatabaseConfiguration struct {
 	autorest.Response `json:"-"`
@@ -595,8 +124,8 @@ type AttachedDatabaseConfigurationListResult struct {
 	Value *[]AttachedDatabaseConfiguration `json:"value,omitempty"`
 }
 
-// AttachedDatabaseConfigurationProperties class representing the an attached database configuration
-// properties of kind specific.
+// AttachedDatabaseConfigurationProperties class representing the an attached database configuration properties
+// of kind specific.
 type AttachedDatabaseConfigurationProperties struct {
 	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
@@ -610,8 +139,23 @@ type AttachedDatabaseConfigurationProperties struct {
 	DefaultPrincipalsModificationKind DefaultPrincipalsModificationKind `json:"defaultPrincipalsModificationKind,omitempty"`
 }
 
-// AttachedDatabaseConfigurationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// MarshalJSON is the custom marshaler for AttachedDatabaseConfigurationProperties.
+func (adcp AttachedDatabaseConfigurationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if adcp.DatabaseName != nil {
+		objectMap["databaseName"] = adcp.DatabaseName
+	}
+	if adcp.ClusterResourceID != nil {
+		objectMap["clusterResourceId"] = adcp.ClusterResourceID
+	}
+	if adcp.DefaultPrincipalsModificationKind != "" {
+		objectMap["defaultPrincipalsModificationKind"] = adcp.DefaultPrincipalsModificationKind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AttachedDatabaseConfigurationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type AttachedDatabaseConfigurationsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -991,8 +535,8 @@ type ClusterPrincipalAssignmentListResult struct {
 	Value *[]ClusterPrincipalAssignment `json:"value,omitempty"`
 }
 
-// ClusterPrincipalAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// ClusterPrincipalAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type ClusterPrincipalAssignmentsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -1061,6 +605,24 @@ type ClusterPrincipalProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ClusterPrincipalProperties.
+func (cpp ClusterPrincipalProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cpp.PrincipalID != nil {
+		objectMap["principalId"] = cpp.PrincipalID
+	}
+	if cpp.Role != "" {
+		objectMap["role"] = cpp.Role
+	}
+	if cpp.TenantID != nil {
+		objectMap["tenantId"] = cpp.TenantID
+	}
+	if cpp.PrincipalType != "" {
+		objectMap["principalType"] = cpp.PrincipalType
+	}
+	return json.Marshal(objectMap)
+}
+
 // ClusterProperties class representing the Kusto cluster properties.
 type ClusterProperties struct {
 	// State - READ-ONLY; The state of the resource. Possible values include: 'StateCreating', 'StateUnavailable', 'StateRunning', 'StateDeleting', 'StateDeleted', 'StateStopping', 'StateStopped', 'StateStarting', 'StateUpdating'
@@ -1089,6 +651,36 @@ type ClusterProperties struct {
 	EnablePurge *bool `json:"enablePurge,omitempty"`
 	// LanguageExtensions - List of the cluster's language extensions.
 	LanguageExtensions *LanguageExtensionsList `json:"languageExtensions,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterProperties.
+func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.TrustedExternalTenants != nil {
+		objectMap["trustedExternalTenants"] = cp.TrustedExternalTenants
+	}
+	if cp.OptimizedAutoscale != nil {
+		objectMap["optimizedAutoscale"] = cp.OptimizedAutoscale
+	}
+	if cp.EnableDiskEncryption != nil {
+		objectMap["enableDiskEncryption"] = cp.EnableDiskEncryption
+	}
+	if cp.EnableStreamingIngest != nil {
+		objectMap["enableStreamingIngest"] = cp.EnableStreamingIngest
+	}
+	if cp.VirtualNetworkConfiguration != nil {
+		objectMap["virtualNetworkConfiguration"] = cp.VirtualNetworkConfiguration
+	}
+	if cp.KeyVaultProperties != nil {
+		objectMap["keyVaultProperties"] = cp.KeyVaultProperties
+	}
+	if cp.EnablePurge != nil {
+		objectMap["enablePurge"] = cp.EnablePurge
+	}
+	if cp.LanguageExtensions != nil {
+		objectMap["languageExtensions"] = cp.LanguageExtensions
+	}
+	return json.Marshal(objectMap)
 }
 
 // ClustersAddLanguageExtensionsFuture an abstraction for monitoring and retrieving the results of a
@@ -1143,8 +735,7 @@ func (future *ClustersCreateOrUpdateFuture) Result(client ClustersClient) (c Clu
 	return
 }
 
-// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersDeleteFuture struct {
 	azure.Future
 }
@@ -1241,8 +832,7 @@ func (future *ClustersRemoveLanguageExtensionsFuture) Result(client ClustersClie
 	return
 }
 
-// ClustersStartFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ClustersStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersStartFuture struct {
 	azure.Future
 }
@@ -1286,8 +876,7 @@ func (future *ClustersStopFuture) Result(client ClustersClient) (ar autorest.Res
 	return
 }
 
-// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersUpdateFuture struct {
 	azure.Future
 }
@@ -1604,6 +1193,30 @@ type DatabasePrincipal struct {
 	TenantName *string `json:"tenantName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabasePrincipal.
+func (dp DatabasePrincipal) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dp.Role != "" {
+		objectMap["role"] = dp.Role
+	}
+	if dp.Name != nil {
+		objectMap["name"] = dp.Name
+	}
+	if dp.Type != "" {
+		objectMap["type"] = dp.Type
+	}
+	if dp.Fqn != nil {
+		objectMap["fqn"] = dp.Fqn
+	}
+	if dp.Email != nil {
+		objectMap["email"] = dp.Email
+	}
+	if dp.AppID != nil {
+		objectMap["appId"] = dp.AppID
+	}
+	return json.Marshal(objectMap)
+}
+
 // DatabasePrincipalAssignment class representing a database principal assignment.
 type DatabasePrincipalAssignment struct {
 	autorest.Response `json:"-"`
@@ -1692,8 +1305,8 @@ type DatabasePrincipalAssignmentListResult struct {
 	Value *[]DatabasePrincipalAssignment `json:"value,omitempty"`
 }
 
-// DatabasePrincipalAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// DatabasePrincipalAssignmentsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type DatabasePrincipalAssignmentsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -1775,6 +1388,24 @@ type DatabasePrincipalProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabasePrincipalProperties.
+func (dpp DatabasePrincipalProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dpp.PrincipalID != nil {
+		objectMap["principalId"] = dpp.PrincipalID
+	}
+	if dpp.Role != "" {
+		objectMap["role"] = dpp.Role
+	}
+	if dpp.TenantID != nil {
+		objectMap["tenantId"] = dpp.TenantID
+	}
+	if dpp.PrincipalType != "" {
+		objectMap["principalType"] = dpp.PrincipalType
+	}
+	return json.Marshal(objectMap)
+}
+
 // DatabasesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type DatabasesCreateOrUpdateFuture struct {
@@ -1804,8 +1435,7 @@ func (future *DatabasesCreateOrUpdateFuture) Result(client DatabasesClient) (dm 
 	return
 }
 
-// DatabasesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// DatabasesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DatabasesDeleteFuture struct {
 	azure.Future
 }
@@ -1833,8 +1463,7 @@ type DatabaseStatistics struct {
 	Size *float64 `json:"size,omitempty"`
 }
 
-// DatabasesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// DatabasesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type DatabasesUpdateFuture struct {
 	azure.Future
 }
@@ -2460,6 +2089,18 @@ type FollowerDatabaseDefinition struct {
 	DatabaseName *string `json:"databaseName,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for FollowerDatabaseDefinition.
+func (fdd FollowerDatabaseDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fdd.ClusterResourceID != nil {
+		objectMap["clusterResourceId"] = fdd.ClusterResourceID
+	}
+	if fdd.AttachedDatabaseConfigurationName != nil {
+		objectMap["attachedDatabaseConfigurationName"] = fdd.AttachedDatabaseConfigurationName
+	}
+	return json.Marshal(objectMap)
+}
+
 // FollowerDatabaseListResult the list Kusto database principals operation response.
 type FollowerDatabaseListResult struct {
 	autorest.Response `json:"-"`
@@ -2766,10 +2407,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2797,11 +2443,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -2997,6 +2648,18 @@ type ReadOnlyFollowingDatabaseProperties struct {
 	PrincipalsModificationKind PrincipalsModificationKind `json:"principalsModificationKind,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ReadOnlyFollowingDatabaseProperties.
+func (rofdp ReadOnlyFollowingDatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rofdp.HotCachePeriod != nil {
+		objectMap["hotCachePeriod"] = rofdp.HotCachePeriod
+	}
+	if rofdp.Statistics != nil {
+		objectMap["statistics"] = rofdp.Statistics
+	}
+	return json.Marshal(objectMap)
+}
+
 // ReadWriteDatabase class representing a read write database.
 type ReadWriteDatabase struct {
 	// ReadWriteDatabaseProperties - The database properties.
@@ -3130,6 +2793,21 @@ type ReadWriteDatabaseProperties struct {
 	Statistics *DatabaseStatistics `json:"statistics,omitempty"`
 	// IsFollowed - READ-ONLY; Indicates whether the database is followed.
 	IsFollowed *bool `json:"isFollowed,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ReadWriteDatabaseProperties.
+func (rwdp ReadWriteDatabaseProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rwdp.SoftDeletePeriod != nil {
+		objectMap["softDeletePeriod"] = rwdp.SoftDeletePeriod
+	}
+	if rwdp.HotCachePeriod != nil {
+		objectMap["hotCachePeriod"] = rwdp.HotCachePeriod
+	}
+	if rwdp.Statistics != nil {
+		objectMap["statistics"] = rwdp.Statistics
+	}
+	return json.Marshal(objectMap)
 }
 
 // Resource ...

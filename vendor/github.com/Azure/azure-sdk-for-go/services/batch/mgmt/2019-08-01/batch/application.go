@@ -356,6 +356,9 @@ func (client ApplicationClient) List(ctx context.Context, resourceGroupName stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationClient", "List", resp, "Failure responding to request")
 	}
+	if result.lar.hasNextLink() && result.lar.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

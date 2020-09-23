@@ -156,6 +156,9 @@ func (client RestorableDroppedManagedDatabasesClient) ListByInstance(ctx context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorableDroppedManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.rdmdlr.hasNextLink() && result.rdmdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

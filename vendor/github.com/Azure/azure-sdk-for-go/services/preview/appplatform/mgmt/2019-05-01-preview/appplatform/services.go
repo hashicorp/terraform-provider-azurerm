@@ -552,6 +552,9 @@ func (client ServicesClient) List(ctx context.Context, resourceGroupName string)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "List", resp, "Failure responding to request")
 	}
+	if result.srl.hasNextLink() && result.srl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -660,6 +663,9 @@ func (client ServicesClient) ListBySubscription(ctx context.Context) (result Ser
 	result.srl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.ServicesClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.srl.hasNextLink() && result.srl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
