@@ -79,7 +79,6 @@ func resourceArmSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Security Center auto provisioning ID is nil")
 	}
 
-	log.Printf("####### DEBUG resp.ID: %v", *resp.ID)
 	d.SetId(*resp.ID)
 
 	return resourceArmSecurityCenterAutoProvisioningRead(d, meta)
@@ -104,7 +103,6 @@ func resourceArmSecurityCenterAutoProvisioningRead(d *schema.ResourceData, meta 
 	if properties := resp.AutoProvisioningSettingProperties; properties != nil {
 		d.Set("auto_provision", properties.AutoProvision)
 	}
-	log.Printf("####### DEBUG GET: %v", d.Get("auto_provision"))
 
 	return nil
 }
