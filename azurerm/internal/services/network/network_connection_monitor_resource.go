@@ -253,21 +253,22 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 										}, false),
 									},
 
-									"port": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validate.PortNumber,
-									},
-
 									"path": {
 										Type:         schema.TypeString,
 										Optional:     true,
 										ValidateFunc: networkValidate.NetworkConnectionMonitorHttpPath,
 									},
 
+									"port": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validate.PortNumber,
+									},
+
 									"prefer_https": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Default:  false,
 									},
 
 									"request_header": {
@@ -309,6 +310,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 									"disable_trace_route": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Default:  false,
 									},
 								},
 							},
@@ -359,6 +361,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 									"disable_trace_route": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Default:  false,
 									},
 								},
 							},
@@ -401,21 +404,19 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
-						"disable": {
+						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 					},
 				},
 			},
 
 			"output_workspace_resource_ids": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				// Allow to switch workspace from specified one to default one.
-				// 1. Set `output = []` in tfconfig to switch workspace from specified one to default one.
-				// 2. Remove `output = []` from tfconfig to ensure no diff.
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -455,12 +456,24 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 		Location: utils.String(location),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
-			Endpoints:          expandArmNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()),
-			Notes:              utils.String(d.Get("notes").(string)),
-			Outputs:            expandArmNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
-			TestConfigurations: expandArmNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*schema.Set).List()),
-			TestGroups:         expandArmNetworkConnectionMonitorTestGroup(d.Get("test_group").(*schema.Set).List()),
+			Outputs: expandArmNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
 		},
+	}
+
+	if endpoint, ok := d.GetOk("endpoint"); ok {
+		properties.Endpoints = expandArmNetworkConnectionMonitorEndpoint(endpoint.(*schema.Set).List())
+	}
+
+	if notes, ok := d.GetOk("notes"); ok {
+		properties.Notes = utils.String(notes.(string))
+	}
+
+	if testConfig, ok := d.GetOk("test_configuration"); ok {
+		properties.TestConfigurations = expandArmNetworkConnectionMonitorTestConfiguration(testConfig.(*schema.Set).List())
+	}
+
+	if testGroup, ok := d.GetOk("test_group"); ok {
+		properties.TestGroups = expandArmNetworkConnectionMonitorTestGroup(testGroup.(*schema.Set).List())
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, watcherName, name, properties)
@@ -514,12 +527,12 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	if props := resp.ConnectionMonitorResultProperties; props != nil {
 		d.Set("notes", props.Notes)
 
-		if err := d.Set("output_workspace_resource_ids", flattenArmNetworkConnectionMonitorOutput(props.Outputs)); err != nil {
-			return fmt.Errorf("setting `output`: %+v", err)
-		}
-
 		if err := d.Set("endpoint", flattenArmNetworkConnectionMonitorEndpoint(props.Endpoints)); err != nil {
 			return fmt.Errorf("setting `endpoint`: %+v", err)
+		}
+
+		if err := d.Set("output_workspace_resource_ids", flattenArmNetworkConnectionMonitorOutput(props.Outputs)); err != nil {
+			return fmt.Errorf("setting `output`: %+v", err)
 		}
 
 		if err := d.Set("test_configuration", flattenArmNetworkConnectionMonitorTestConfiguration(props.TestConfigurations)); err != nil {
@@ -565,14 +578,16 @@ func expandArmNetworkConnectionMonitorEndpoint(input []interface{}) *[]network.C
 		v := item.(map[string]interface{})
 
 		result := network.ConnectionMonitorEndpoint{
-			Name:    utils.String(v["name"].(string)),
-			Address: utils.String(v["address"].(string)),
-			Filter:  expandArmNetworkConnectionMonitorEndpointFilter(v["filter"].([]interface{})),
+			Name:   utils.String(v["name"].(string)),
+			Filter: expandArmNetworkConnectionMonitorEndpointFilter(v["filter"].([]interface{})),
 		}
 
-		resourceId := v["virtual_machine_id"].(string)
-		if resourceId != "" {
-			result.ResourceID = utils.String(resourceId)
+		if address := v["address"]; address != "" {
+			result.Address = utils.String(address.(string))
+		}
+
+		if resourceId := v["virtual_machine_id"]; resourceId != "" {
+			result.ResourceID = utils.String(resourceId.(string))
 		}
 
 		results = append(results, result)
@@ -595,14 +610,21 @@ func expandArmNetworkConnectionMonitorEndpointFilter(input []interface{}) *netwo
 }
 
 func expandArmNetworkConnectionMonitorEndpointFilterItem(input []interface{}) *[]network.ConnectionMonitorEndpointFilterItem {
+	if len(input) == 0 {
+		return nil
+	}
+
 	results := make([]network.ConnectionMonitorEndpointFilterItem, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
 		result := network.ConnectionMonitorEndpointFilterItem{
-			Type:    network.ConnectionMonitorEndpointFilterItemType(v["type"].(string)),
-			Address: utils.String(v["address"].(string)),
+			Type: network.ConnectionMonitorEndpointFilterItemType(v["type"].(string)),
+		}
+
+		if address := v["address"]; address != "" {
+			result.Address = utils.String(address.(string))
 		}
 
 		results = append(results, result)
@@ -618,14 +640,17 @@ func expandArmNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]
 		v := item.(map[string]interface{})
 
 		result := network.ConnectionMonitorTestConfiguration{
-			Name:               utils.String(v["name"].(string)),
-			Protocol:           network.ConnectionMonitorTestConfigurationProtocol(v["protocol"].(string)),
-			PreferredIPVersion: network.PreferredIPVersion(v["preferred_ip_version"].(string)),
-			TestFrequencySec:   utils.Int32(int32(v["test_frequency_sec"].(int))),
-			HTTPConfiguration:  expandArmNetworkConnectionMonitorHTTPConfiguration(v["http_configuration"].([]interface{})),
-			TCPConfiguration:   expandArmNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
-			IcmpConfiguration:  expandArmNetworkConnectionMonitorIcmpConfiguration(v["icmp_configuration"].([]interface{})),
-			SuccessThreshold:   expandArmNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
+			Name:              utils.String(v["name"].(string)),
+			HTTPConfiguration: expandArmNetworkConnectionMonitorHTTPConfiguration(v["http_configuration"].([]interface{})),
+			IcmpConfiguration: expandArmNetworkConnectionMonitorIcmpConfiguration(v["icmp_configuration"].([]interface{})),
+			Protocol:          network.ConnectionMonitorTestConfigurationProtocol(v["protocol"].(string)),
+			SuccessThreshold:  expandArmNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
+			TCPConfiguration:  expandArmNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
+			TestFrequencySec:  utils.Int32(int32(v["test_frequency_sec"].(int))),
+		}
+
+		if preferredIPVersion := v["preferred_ip_version"]; preferredIPVersion != "" {
+			result.PreferredIPVersion = network.PreferredIPVersion(preferredIPVersion.(string))
 		}
 
 		results = append(results, result)
@@ -642,15 +667,21 @@ func expandArmNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *ne
 	v := input[0].(map[string]interface{})
 
 	props := &network.ConnectionMonitorHTTPConfiguration{
-		Method:                network.HTTPConfigurationMethod(v["method"].(string)),
-		Path:                  utils.String(v["path"].(string)),
-		RequestHeaders:        expandArmNetworkConnectionMonitorHTTPHeader(v["request_header"].(*schema.Set).List()),
-		ValidStatusCodeRanges: utils.ExpandStringSlice(v["valid_status_code_ranges"].(*schema.Set).List()),
-		PreferHTTPS:           utils.Bool(v["prefer_https"].(bool)),
+		Method:         network.HTTPConfigurationMethod(v["method"].(string)),
+		PreferHTTPS:    utils.Bool(v["prefer_https"].(bool)),
+		RequestHeaders: expandArmNetworkConnectionMonitorHTTPHeader(v["request_header"].(*schema.Set).List()),
 	}
 
-	if port := v["port"].(int); port != 0 {
-		props.Port = utils.Int32(int32(port))
+	if path := v["path"]; path != "" {
+		props.Path = utils.String(path.(string))
+	}
+
+	if port := v["port"]; port != 0 {
+		props.Port = utils.Int32(int32(port.(int)))
+	}
+
+	if ranges := v["valid_status_code_ranges"].(*schema.Set).List(); len(ranges) != 0 {
+		props.ValidStatusCodeRanges = utils.ExpandStringSlice(ranges)
 	}
 
 	return props
@@ -695,6 +726,10 @@ func expandArmNetworkConnectionMonitorSuccessThreshold(input []interface{}) *net
 }
 
 func expandArmNetworkConnectionMonitorHTTPHeader(input []interface{}) *[]network.HTTPHeader {
+	if len(input) == 0 {
+		return nil
+	}
+
 	results := make([]network.HTTPHeader, 0)
 
 	for _, item := range input {
@@ -719,10 +754,10 @@ func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) *[]network.
 
 		result := network.ConnectionMonitorTestGroup{
 			Name:               utils.String(v["name"].(string)),
-			Disable:            utils.Bool(v["disable"].(bool)),
-			TestConfigurations: utils.ExpandStringSlice(v["test_configurations"].(*schema.Set).List()),
-			Sources:            utils.ExpandStringSlice(v["sources"].(*schema.Set).List()),
 			Destinations:       utils.ExpandStringSlice(v["destinations"].(*schema.Set).List()),
+			Disable:            utils.Bool(!v["enabled"].(bool)),
+			Sources:            utils.ExpandStringSlice(v["sources"].(*schema.Set).List()),
+			TestConfigurations: utils.ExpandStringSlice(v["test_configurations"].(*schema.Set).List()),
 		}
 
 		results = append(results, result)
@@ -1021,7 +1056,7 @@ func flattenArmNetworkConnectionMonitorTestGroup(input *[]network.ConnectionMoni
 			"destinations":        utils.FlattenStringSlice(item.Destinations),
 			"sources":             utils.FlattenStringSlice(item.Sources),
 			"test_configurations": utils.FlattenStringSlice(item.TestConfigurations),
-			"disable":             disable,
+			"enabled":             !disable,
 		}
 
 		results = append(results, v)

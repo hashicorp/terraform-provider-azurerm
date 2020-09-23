@@ -552,7 +552,7 @@ resource "azurerm_network_connection_monitor" "test" {
     destinations        = ["destination"]
     sources             = ["source"]
     test_configurations = ["tcp"]
-    disable             = false
+    enabled             = true
   }
 
   notes = "testnote"
@@ -655,7 +655,7 @@ resource "azurerm_network_connection_monitor" "test" {
     destinations        = ["destination"]
     sources             = ["source"]
     test_configurations = ["tcp"]
-    disable             = false
+    enabled             = true
   }
 
   tags = {

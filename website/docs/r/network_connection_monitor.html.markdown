@@ -10,8 +10,6 @@ description: |-
 
 Manages a Network Connection Monitor.
 
-~> **NOTE:** As `endpoint` cannot distinguish `source` and `destination`, so terraform cannot make `endpoint` compatible with `source` and `destination` while flattens `endpoint`.
-
 ~> **NOTE:** As `test_frequency_sec` has default value, so terraform cannot make `test_frequency_sec` compatible with `interval_in_seconds` while flattens `test_frequency_sec`.
 
 ## Example Usage
@@ -167,17 +165,17 @@ The following arguments are supported:
 
 ---
 
-* `auto_start` - (Optional) Will the connection monitor start automatically once created?
+* `auto_start` - (Optional / **Deprecated**) Will the connection monitor start automatically once created?
 
 ~> **NOTE:** The field `auto_start` has been deprecated in new api version 2020-05-01.
 
-* `destination` - (Optional) A `destination` block as defined below.
+* `destination` - (Optional / **Deprecated**) A `destination` block as defined below.
 
 ~> **NOTE:** The field `destination` has been deprecated in favor of `endpoint`.
 
 * `endpoint` - (Optional) A `endpoint` block as defined below.
 
-* `interval_in_seconds` - (Optional) Monitoring interval in seconds.
+* `interval_in_seconds` - (Optional / **Deprecated**) Monitoring interval in seconds.
 
 ~> **NOTE:** The field `interval_in_seconds` has been deprecated in favor of `test_frequency_sec`.
 
@@ -185,7 +183,7 @@ The following arguments are supported:
 
 * `output_workspace_resource_ids` - (Optional) A list of the log analytics workspace id.
 
-* `source` - (Optional) A `source` block as defined below.
+* `source` - (Optional / **Deprecated**) A `source` block as defined below.
 
 ~> **NOTE:** The field `source` has been deprecated in favor of `endpoint`.
 
@@ -271,7 +269,7 @@ A `http_configuration` block supports the following:
 
 * `path` - (Optional) The path component of the URI. For instance, "/dir1/dir2".
 
-* `prefer_https` - (Optional) Will https be preferred over http in cases where the choice is not explicit?
+* `prefer_https` - (Optional) Will https be preferred over http in cases where the choice is not explicit? Defaults to `false`.
 
 * `request_header` - (Optional) A `request_header` block as defined below.
 
@@ -289,7 +287,7 @@ A `request_header` block supports the following:
 
 A `icmp_configuration` block supports the following:
 
-* `disable_trace_route` - (Optional) Will path evaluation with trace route be disabled?
+* `disable_trace_route` - (Optional) Will path evaluation with trace route be disabled? Defaults to `false`.
 
 ---
 
@@ -305,7 +303,7 @@ A `tcp_configuration` block supports the following:
 
 * `port` - (Required) The port to connect to.
 
-* `disable_trace_route` - (Optional) Will path evaluation with trace route be disabled?
+* `disable_trace_route` - (Optional) Should path evaluation with trace route be disabled? Defaults to `false`.
 
 ---
 
@@ -319,7 +317,7 @@ A `test_group` block supports the following:
 
 * `test_configurations` - (Required) A list of test configuration names.
 
-* `disable` - (Optional) Will the test group be disabled?
+* `enabled` - (Optional) Should the test group be enabled? Defaults to `true`.
 
 ## Attributes Reference
 
