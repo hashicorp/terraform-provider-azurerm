@@ -19,7 +19,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
@@ -616,17 +615,15 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(storageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
-			}
+	existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
 	}
 
 	accountKind := d.Get("account_kind").(string)
@@ -655,10 +652,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	// For US Government Cloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
+	// For all Clouds except Public, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-	if envName == autorestAzure.USGovernmentCloud.Name {
+	if envName != autorestAzure.PublicCloud.Name {
 		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
 			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
@@ -901,9 +898,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("min_tls_version") {
 		minimumTLSVersion := d.Get("min_tls_version").(string)
 
-		// For US Government Cloud, don't specify "min_tls_version" in request body.
+		// For all Clouds except Public, don't specify "min_tls_version" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-		if envName == autorestAzure.USGovernmentCloud.Name {
+		if envName != autorestAzure.PublicCloud.Name {
 			if minimumTLSVersion != string(storage.TLS10) {
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
@@ -923,9 +920,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("allow_blob_public_access") {
 		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
-		// For US Government Cloud, don't specify "allow_blob_public_access" in request body.
+		// For all Clouds except Public, don't specify "allow_blob_public_access" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
-		if envName == autorestAzure.USGovernmentCloud.Name {
+		if envName != autorestAzure.PublicCloud.Name {
 			if allowBlobPublicAccess {
 				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, envName)
 			}
@@ -1097,13 +1094,18 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
-		// For US Government Cloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
+		// For all Clouds except Public, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-		if meta.(*clients.Client).Account.Environment.Name == autorestAzure.USGovernmentCloud.Name {
+		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.PublicCloud.Name {
 			d.Set("min_tls_version", string(storage.TLS10))
 		} else {
-			d.Set("min_tls_version", string(props.MinimumTLSVersion))
+			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
+			minTlsVersion := string(storage.TLS10)
+			if props.MinimumTLSVersion != "" {
+				minTlsVersion = string(props.MinimumTLSVersion)
+			}
+			d.Set("min_tls_version", minTlsVersion)
 		}
 
 		if customDomain := props.CustomDomain; customDomain != nil {
