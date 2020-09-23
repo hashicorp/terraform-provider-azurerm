@@ -219,6 +219,7 @@ A `worker_node` block supports the following:
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
 * `autoscale` - (Optional) A `autoscale` block as defined below.
+
 ---
 
 A `zookeeper_node` block supports the following:
