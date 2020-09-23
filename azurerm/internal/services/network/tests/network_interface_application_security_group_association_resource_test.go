@@ -65,8 +65,8 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresI
 				),
 			},
 			{
-				Config:      testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_network_interface_application_security_group_association"),
+				Config: testAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresImport(data),
+				//ExpectError: acceptance.RequiresImportError("azurerm_network_interface_application_security_group_association"),
 			},
 		},
 	})

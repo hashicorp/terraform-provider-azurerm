@@ -24,6 +24,7 @@ var services = mapOf(
         "datalake" to "Data Lake",
         "databasemigration" to "Database Migration",
         "datashare" to "Data Share",
+        "desktopvirtualization" to "DesktopVirtualization",
         "devspace" to "DevSpaces",
         "devtestlabs" to "Dev Test",
         "dns" to "DNS",
