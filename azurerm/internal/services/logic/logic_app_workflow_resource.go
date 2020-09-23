@@ -303,21 +303,21 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 
-		if props.IntegrationServiceEnvironment != nil && props.IntegrationServiceEnvironment.ID != nil {
-			d.Set("integration_service_environment_id", props.IntegrationServiceEnvironment.ID)
 		integrationServiceEnvironmentId := ""
 		if props.IntegrationServiceEnvironment != nil && props.IntegrationServiceEnvironment.ID != nil {
- 			integrationServiceEnvironmentId := *props.IntegrationServiceEnvironment.ID
- 		}
- 		d.Set("integration_service_environment_id", integrationServiceEnvironmentId)
+			integrationServiceEnvironmentId = *props.IntegrationServiceEnvironment.ID
+		}
+		d.Set("integration_service_environment_id", integrationServiceEnvironmentId)
 
 		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
 			d.Set("logic_app_integration_account_id", props.IntegrationAccount.ID)
+		}
+
 		integrationAccountId := ""
 		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
- 			integrationAccountId := *props.IntegrationAccount.ID
- 		}
- 		d.Set("logic_app_integration_account_id", integrationAccountId)
+			integrationAccountId = *props.IntegrationAccount.ID
+		}
+		d.Set("logic_app_integration_account_id", integrationAccountId)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
