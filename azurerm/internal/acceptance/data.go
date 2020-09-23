@@ -2,14 +2,15 @@ package acceptance
 
 import (
 	"fmt"
-	"math"
-	"os"
-	"strconv"
-	"testing"
-	"strings"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"math"
+	"os"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
 )
 
 func init() {
