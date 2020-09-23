@@ -34,7 +34,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_key_vault_access_policy":      resourceArmKeyVaultAccessPolicy(),
-		"azurerm_key_vault_network_acl":        resourceArmKeyVaultNetworkAcls(),
+		"azurerm_key_vault_network_acls":       resourceArmKeyVaultNetworkAcls(),
 		"azurerm_key_vault_certificate":        resourceArmKeyVaultCertificate(),
 		"azurerm_key_vault_certificate_issuer": resourceArmKeyVaultCertificateIssuer(),
 		"azurerm_key_vault_key":                resourceArmKeyVaultKey(),
