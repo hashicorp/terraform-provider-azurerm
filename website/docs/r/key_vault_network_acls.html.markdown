@@ -53,9 +53,9 @@ resource "azurerm_key_vault_network_acls" "acls" {
   key_vault_name      = azurerm_key_vault.kv.name
   resource_group_name = azurerm_resource_group.rg.name
   network_acls {
-    default_action = "Deny"
-    bypass         = "None"
-    ip_rules = ["43.0.0.0/24"]
+    default_action             = "Deny"
+    bypass                     = "None"
+    ip_rules                   = ["43.0.0.0/24"]
     virtual_network_subnet_ids = [azurerm_subnet.subnet.id]
   }
 }
