@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-func TestNetworkConnectionMonitorID(t *testing.T) {
+func TestNetworkWatcherID(t *testing.T) {
 	testData := []struct {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *NetworkConnectionMonitorId
+		Expect *NetworkWatcherId
 	}{
 		{
 			Name:  "Empty",
@@ -39,35 +39,17 @@ func TestNetworkConnectionMonitorID(t *testing.T) {
 		{
 			Name:  "Missing Network Watcher Value",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1",
-			Error: true,
-		},
-		{
-			Name:  "Missing Network Connection Monitor Key",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors",
-			Error: true,
-		},
-		{
-			Name:  "Namespace Network Connection Monitor Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/connectionMonitor1",
-			Error: false,
-			Expect: &NetworkConnectionMonitorId{
+			Expect: &NetworkWatcherId{
 				ResourceGroup: "group1",
-				WatcherId:     "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1",
-				WatcherName:   "watcher1",
-				Name:          "connectionMonitor1",
+				Name:          "watcher1",
 			},
-		},
-		{
-			Name:  "Wrong Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/NetworkConnectionMonitors/connectionMonitor1",
-			Error: true,
 		},
 	}
 
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := NetworkConnectionMonitorID(v.Input)
+		actual, err := NetworkWatcherID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -78,10 +60,6 @@ func TestNetworkConnectionMonitorID(t *testing.T) {
 
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
-		}
-
-		if actual.WatcherName != v.Expect.WatcherName {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.WatcherName, actual.WatcherName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

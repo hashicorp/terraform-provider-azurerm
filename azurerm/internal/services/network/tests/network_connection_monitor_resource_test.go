@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
 func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
@@ -290,17 +291,18 @@ func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resourc
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		watcherName := rs.Primary.Attributes["network_watcher_name"]
-		NetworkConnectionMonitorName := rs.Primary.Attributes["name"]
+		id, err := parse.NetworkConnectionMonitorID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, watcherName, NetworkConnectionMonitorName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on NetworkConnectionMonitorsClient: %s", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Connection Monitor does not exist: %s", NetworkConnectionMonitorName)
+			return fmt.Errorf("Connection Monitor does not exist: %s", id.Name)
 		}
 
 		return nil
@@ -316,11 +318,12 @@ func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
 			continue
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		watcherName := rs.Primary.Attributes["network_watcher_name"]
-		NetworkConnectionMonitorName := rs.Primary.Attributes["name"]
+		id, err := parse.NetworkConnectionMonitorID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, watcherName, NetworkConnectionMonitorName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
 
 		if err != nil {
 			return nil
@@ -477,10 +480,9 @@ func testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data acceptance.T
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"
@@ -526,10 +528,9 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"
@@ -593,10 +594,9 @@ func testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data acceptance.TestDa
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"
@@ -635,10 +635,9 @@ func testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineIdConfig
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"
@@ -678,10 +677,9 @@ func testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data acceptance.Tes
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"
@@ -735,10 +733,9 @@ func testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data accept
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"
@@ -772,10 +769,9 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data a
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"
@@ -814,18 +810,34 @@ func testAccAzureRMNetworkConnectionMonitor_requiresImportConfig(data acceptance
 %s
 
 resource "azurerm_network_connection_monitor" "import" {
-  name                 = azurerm_network_connection_monitor.test.name
-  network_watcher_name = azurerm_network_connection_monitor.test.network_watcher_name
-  resource_group_name  = azurerm_network_connection_monitor.test.resource_group_name
-  location             = azurerm_network_connection_monitor.test.location
+  name               = azurerm_network_connection_monitor.test.name
+  network_watcher_id = azurerm_network_connection_monitor.test.network_watcher_id
+  location           = azurerm_network_connection_monitor.test.location
 
-  source {
+  endpoint {
+    name               = "source"
     virtual_machine_id = azurerm_virtual_machine.src.id
   }
 
-  destination {
+  endpoint {
+    name    = "destination"
     address = "terraform.io"
-    port    = 80
+  }
+
+  test_configuration {
+    name     = "tcp"
+    protocol = "Tcp"
+
+    tcp_configuration {
+      port = 80
+    }
+  }
+
+  test_group {
+    name                = "testtg"
+    destinations        = ["destination"]
+    sources             = ["source"]
+    test_configurations = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -839,10 +851,9 @@ func testAccAzureRMNetworkConnectionMonitor_httpConfigurationConfig(data accepta
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"
@@ -890,10 +901,9 @@ func testAccAzureRMNetworkConnectionMonitor_icmpConfigurationConfig(data accepta
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name                 = "acctestcm-%d"
-  network_watcher_name = azurerm_network_watcher.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_network_watcher.test.location
+  name               = "acctestcm-%d"
+  network_watcher_id = azurerm_network_watcher.test.id
+  location           = azurerm_network_watcher.test.location
 
   endpoint {
     name               = "source"

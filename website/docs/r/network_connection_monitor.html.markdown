@@ -10,9 +10,7 @@ description: |-
 
 Manages a Network Connection Monitor.
 
-~> **NOTE:** API version 2020-05-01 has deprecated properties (`auto_start`, `interval_in_seconds`, `source` and `destination`) and these properties aren't allowed to migrate to new API version by API. So these properties have to be removed from this resource and it only support new properties.
-
-~> **NOTE:** As `test_frequency_sec` has default value, so terraform cannot make `test_frequency_sec` compatible with `interval_in_seconds` while flattens `test_frequency_sec`.
+~> **NOTE:** The resource created via API version 2019-06-01 or lower is now deprecated and not compatible to this version.
 
 ## Example Usage
 
@@ -159,11 +157,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Network Connection Monitor. Changing this forces a new Network Connection Monitor to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Network Connection Monitor should exist. Changing this forces a new Network Connection Monitor to be created.
-
 * `location` - (Required) The Azure Region where the Network Connection Monitor should exist. Changing this forces a new Network Connection Monitor to be created.
 
-* `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new Network Connection Monitor to be created.
+* `network_watcher_id` - (Required) The ID of the Network Watcher. Changing this forces a new Network Connection Monitor to be created.
 
 * `endpoint` - (Required) A `endpoint` block as defined below.
 

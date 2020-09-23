@@ -1,9 +1,14 @@
 package parse
 
-import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+import (
+	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 type NetworkConnectionMonitorId struct {
 	ResourceGroup string
+	WatcherId     string
 	WatcherName   string
 	Name          string
 }
@@ -16,6 +21,7 @@ func NetworkConnectionMonitorID(input string) (*NetworkConnectionMonitorId, erro
 
 	connectionMonitor := NetworkConnectionMonitorId{
 		ResourceGroup: id.ResourceGroup,
+		WatcherId:     strings.Split(input, "/connectionMonitors/")[0],
 	}
 
 	if connectionMonitor.WatcherName, err = id.PopSegment("networkWatchers"); err != nil {

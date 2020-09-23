@@ -47,15 +47,13 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"location": azure.SchemaLocation(),
 
-			"network_watcher_name": {
+			"network_watcher_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: networkValidate.NetworkWatcherID,
 			},
 
 			"endpoint": {
@@ -352,15 +350,19 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 	defer cancel()
 
 	name := d.Get("name").(string)
-	watcherName := d.Get("network_watcher_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
+	watcherId := d.Get("network_watcher_id").(string)
+	id, err := parse.NetworkWatcherID(watcherId)
+	if err != nil {
+		return err
+	}
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Connection Monitor %q (Watcher %q / Resource Group %q): %s", name, watcherName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Connection Monitor %q (Watcher %q / Resource Group %q): %s", name, id.Name, id.ResourceGroup, err)
 			}
 		}
 
@@ -384,21 +386,21 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 		properties.Notes = utils.String(notes.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, watcherName, name, properties)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error creating Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("Error creating Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for completion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Connection Monitor %q (Watcher %q / Resource Group %q) ID", name, watcherName, resourceGroup)
+		return fmt.Errorf("Cannot read Connection Monitor %q (Watcher %q / Resource Group %q) ID", name, id.Name, id.ResourceGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -426,8 +428,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("name", id.Name)
-	d.Set("network_watcher_name", id.WatcherName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("network_watcher_id", id.WatcherId)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
