@@ -307,9 +307,9 @@ An `autoscale` block supports the following:
 
 A `capacity` block supports the following:
 
-* `min_instance_count` - (Required) The minimum number of worker nodes to autoscale to based on the cluster's activity.
-
 * `max_instance_count` - (Required) The maximum number of worker nodes to autoscale to based on the cluster's activity.
+
+* `min_instance_count` - (Required) The minimum number of worker nodes to autoscale to based on the cluster's activity.
 
 ---
 
