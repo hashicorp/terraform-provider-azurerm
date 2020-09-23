@@ -144,7 +144,6 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q (Resource Group %q): %+v", name, workspaceID.ResourceGroup, err)
 			}
 		} else {
-
 			id, err := alertRuleID(resp.Value, subscriptionId)
 			if err != nil {
 				return err
