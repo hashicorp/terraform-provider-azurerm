@@ -10,6 +10,8 @@ description: |-
 
 Manages a Network Connection Monitor.
 
+~> **NOTE:** API version 2020-05-01 has deprecated properties (`auto_start`, `interval_in_seconds`, `source` and `destination`) and these properties aren't allowed to migrate to new API version by API. So these properties have to be removed from this resource and it only support new properties.
+
 ~> **NOTE:** As `test_frequency_sec` has default value, so terraform cannot make `test_frequency_sec` compatible with `interval_in_seconds` while flattens `test_frequency_sec`.
 
 ## Example Usage
@@ -163,45 +165,19 @@ The following arguments are supported:
 
 * `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new Network Connection Monitor to be created.
 
+* `endpoint` - (Required) A `endpoint` block as defined below.
+
+* `test_configuration` - (Required) A `test_configuration` block as defined below.
+
+* `test_group` - (Required) A `test_group` block as defined below.
+
 ---
-
-* `auto_start` - (Optional / **Deprecated**) Will the connection monitor start automatically once created?
-
-~> **NOTE:** The field `auto_start` has been deprecated in new api version 2020-05-01.
-
-* `destination` - (Optional / **Deprecated**) A `destination` block as defined below.
-
-~> **NOTE:** The field `destination` has been deprecated in favor of `endpoint`.
-
-* `endpoint` - (Optional) A `endpoint` block as defined below.
-
-* `interval_in_seconds` - (Optional / **Deprecated**) Monitoring interval in seconds.
-
-~> **NOTE:** The field `interval_in_seconds` has been deprecated in favor of `test_frequency_sec`.
 
 * `notes` - (Optional) The notes to be associated with the connection monitor.
 
 * `output_workspace_resource_ids` - (Optional) A list of the log analytics workspace id.
 
-* `source` - (Optional / **Deprecated**) A `source` block as defined below.
-
-~> **NOTE:** The field `source` has been deprecated in favor of `endpoint`.
-
-* `test_configuration` - (Optional) A `test_configuration` block as defined below.
-
-* `test_group` - (Optional) A `test_group` block as defined below.
-
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Connection Monitor.
-
----
-
-A `destination` block supports the following:
-
-* `port` - (Required) The destination port used by connection monitor.
-
-* `address` - (Optional) The address of the connection monitor destination (IP or domain name). Conflicts with `destination.0.virtual_machine_id`
-
-* `virtual_machine_id` - (Optional) The ID of the virtual machine used as the destination by connection monitor. Conflicts with `destination.0.address`
 
 ---
 
@@ -230,14 +206,6 @@ A `item` block supports the following:
 * `type` - (Optional) The type of item included in the filter. Possible value is `AgentAddress`. Defaults to `AgentAddress`.
 
 * `address` - (Optional) The address of the filter item.
-
----
-
-A `source` block supports the following:
-
-* `virtual_machine_id` - (Required) The ID of the virtual machine used as the source by connection monitor.
-
-* `port` - (Optional) The source port used by connection monitor. Defaults to `0`.
 
 ---
 

@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	logAnalyticsValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -28,15 +27,6 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 		Read:   resourceArmNetworkConnectionMonitorRead,
 		Update: resourceArmNetworkConnectionMonitorCreateUpdate,
 		Delete: resourceArmNetworkConnectionMonitorDelete,
-
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    migration.NetworkConnectionMonitorV0Schema().CoreConfigSchema().ImpliedType(),
-				Upgrade: migration.NetworkConnectionMonitorV0ToV1,
-				Version: 0,
-			},
-		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -68,48 +58,9 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"auto_start": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This field has been deprecated in new api version 2020-05-01",
-			},
-
-			"destination": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"endpoint"},
-				Deprecated:    "Deprecated in favor of `endpoint`",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"port": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.PortNumber,
-						},
-
-						"virtual_machine_id": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ValidateFunc:  computeValidate.VirtualMachineID,
-							ConflictsWith: []string{"destination.0.address"},
-						},
-
-						"address": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ConflictsWith: []string{"destination.0.virtual_machine_id"},
-						},
-					},
-				},
-			},
-
 			"endpoint": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				ConflictsWith: []string{"source", "destination"},
+				Type:     schema.TypeSet,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -171,47 +122,14 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				},
 			},
 
-			"interval_in_seconds": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "Deprecated in favor of `test_frequency_sec`",
-				ValidateFunc: validation.IntAtLeast(30),
-			},
-
 			"notes": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 
-			"source": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"endpoint"},
-				Deprecated:    "Deprecated in favor of `endpoint`",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"virtual_machine_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: computeValidate.VirtualMachineID,
-						},
-
-						"port": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      0,
-							ValidateFunc: validate.PortNumberOrZero,
-						},
-					},
-				},
-			},
-
 			"test_configuration": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -230,11 +148,10 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 						},
 
 						"test_frequency_sec": {
-							Type:          schema.TypeInt,
-							Optional:      true,
-							Default:       60,
-							ValidateFunc:  validation.IntBetween(30, 1800),
-							ConflictsWith: []string{"interval_in_seconds"},
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      60,
+							ValidateFunc: validation.IntBetween(30, 1800),
 						},
 
 						"http_configuration": {
@@ -372,7 +289,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 
 			"test_group": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -456,24 +373,15 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 		Location: utils.String(location),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
-			Outputs: expandArmNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
+			Endpoints:          expandArmNetworkConnectionMonitorEndpoint(d.Get("endpoint").(*schema.Set).List()),
+			Outputs:            expandArmNetworkConnectionMonitorOutput(d.Get("output_workspace_resource_ids").(*schema.Set).List()),
+			TestConfigurations: expandArmNetworkConnectionMonitorTestConfiguration(d.Get("test_configuration").(*schema.Set).List()),
+			TestGroups:         expandArmNetworkConnectionMonitorTestGroup(d.Get("test_group").(*schema.Set).List()),
 		},
-	}
-
-	if endpoint, ok := d.GetOk("endpoint"); ok {
-		properties.Endpoints = expandArmNetworkConnectionMonitorEndpoint(endpoint.(*schema.Set).List())
 	}
 
 	if notes, ok := d.GetOk("notes"); ok {
 		properties.Notes = utils.String(notes.(string))
-	}
-
-	if testConfig, ok := d.GetOk("test_configuration"); ok {
-		properties.TestConfigurations = expandArmNetworkConnectionMonitorTestConfiguration(testConfig.(*schema.Set).List())
-	}
-
-	if testGroup, ok := d.GetOk("test_group"); ok {
-		properties.TestGroups = expandArmNetworkConnectionMonitorTestGroup(testGroup.(*schema.Set).List())
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, watcherName, name, properties)
