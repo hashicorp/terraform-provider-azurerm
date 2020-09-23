@@ -46,7 +46,7 @@ func IntegrationServiceEnvironmentID(i interface{}, k string) (warnings []string
 	}
 
 	if _, err := parse.IntegrationServiceEnvironmentID(v); err != nil {
-		errors = append(errors, fmt.Errorf("con not parse %q as an Integration Service Environment ID: %+v", k, err))
+		errors = append(errors, fmt.Errorf("cannot parse %q as an Integration Service Environment ID: %+v", k, err))
 	}
 
 	return warnings, errors
