@@ -160,22 +160,19 @@ func testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionDestroy(s *terra
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_template(data)
-	return fmt.Sprintf(`
-%s
-
+	return fmt.Sprintf(` %s
 resource "azurerm_log_analytics_datasource_linux_syslog_collection" "test" {
   name                = "acctestLADS-WE-%d"
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
-  state         = "Enabled"
+  state               = "Enabled"
 }
-`, template, data.RandomInteger)
+`,template, data.RandomInteger)
 }
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Disable(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_syslog_collection" "test" {
   name                = "acctestLADS-WE-%d"
@@ -188,8 +185,7 @@ resource "azurerm_log_analytics_datasource_linux_syslog_collection" "test" {
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_syslog_collection" "import" {
   name                = azurerm_log_analytics_datasource_linux_syslog_collection.test.name

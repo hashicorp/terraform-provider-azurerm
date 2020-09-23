@@ -175,8 +175,7 @@ func testCheckAzureRMLogAnalyticsDataSourceLinuxPerfObjDestroy(s *terraform.Stat
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxPerfObj_basic(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxPerfObj_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_performance_object" "test" {
   name					= "acctestLADS-WE-%d"
@@ -192,8 +191,7 @@ resource "azurerm_log_analytics_datasource_linux_performance_object" "test" {
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxPerfObj_complete(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxPerfObj_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_performance_object" "test" {
   name					= "acctestLADS-WE-%d"
@@ -209,8 +207,7 @@ resource "azurerm_log_analytics_datasource_linux_performance_object" "test" {
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxPerfObj_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxPerfObj_basic(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_performance_object" "import" {
   name					= azurerm_log_analytics_datasource_linux_performance_object.test.name

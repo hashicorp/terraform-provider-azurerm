@@ -161,8 +161,7 @@ func testCheckAzureRMLogAnalyticsDataSourceIISLogsDestroy(s *terraform.State) er
 
 func testAccAzureRMLogAnalyticsDataSourceIISLogs_Enable(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceIISLogs_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_iis_logs" "test" {
   name                = "acctestLADS-WE-%d"
@@ -175,8 +174,7 @@ resource "azurerm_log_analytics_datasource_iis_logs" "test" {
 
 func testAccAzureRMLogAnalyticsDataSourceIISLogs_Disable(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceIISLogs_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_iis_logs" "test" {
   name                = "acctestLADS-WE-%d"
@@ -189,8 +187,7 @@ resource "azurerm_log_analytics_datasource_iis_logs" "test" {
 
 func testAccAzureRMLogAnalyticsDataSourceIISLogs_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceIISLogs_Enable(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_iis_logs" "import" {
   name                = azurerm_log_analytics_datasource_iis_logs.test.name

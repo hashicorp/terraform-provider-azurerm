@@ -160,8 +160,7 @@ func testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogDestroy(s *terraform.State
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxSyslog_basic(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxSyslog_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_syslog" "test" {
   name                = "acctestLADS-WE-%d"
@@ -175,8 +174,7 @@ resource "azurerm_log_analytics_datasource_linux_syslog" "test" {
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxSyslog_complete(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxSyslog_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_syslog" "test" {
   name                = "acctestLADS-WE-%d"
@@ -190,8 +188,7 @@ resource "azurerm_log_analytics_datasource_linux_syslog" "test" {
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxSyslog_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxSyslog_basic(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_syslog" "import" {
   name                = azurerm_log_analytics_datasource_linux_syslog.test.name

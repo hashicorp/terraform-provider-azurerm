@@ -161,8 +161,7 @@ func testCheckAzureRMLogAnalyticsDataSourceLinuxPerformanceCollectionDestroy(s *
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Enable(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_performance_collection" "test" {
   name                = "acctestLADS-WE-%d"
@@ -175,8 +174,7 @@ resource "azurerm_log_analytics_datasource_linux_performance_collection" "test" 
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Disable(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_template(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_performance_collection" "test" {
   name                = "acctestLADS-WE-%d"
@@ -189,8 +187,7 @@ resource "azurerm_log_analytics_datasource_linux_performance_collection" "test" 
 
 func testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Enable(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_log_analytics_datasource_linux_performance_collection" "import" {
   name                = azurerm_log_analytics_datasource_linux_performance_collection.test.name
