@@ -17,6 +17,18 @@ func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
+func CIDRv4n6(i interface{}, k string) (warnings []string, errors []error) {
+	cidr := i.(string)
+
+	_, _, err := net.ParseCIDR(cidr)
+
+	if err != nil {
+		errors = append(errors, fmt.Errorf("%s must be in IPV4 or IPV6 CIDR notation. Example: 127.0.0.1/8 or 2400:16a0::/40. Got %q.", k, cidr))
+	}
+
+	return warnings, errors
+}
+
 func IPv4Address(i interface{}, k string) (warnings []string, errors []error) {
 	return validateIpv4Address(i, k, false)
 }
