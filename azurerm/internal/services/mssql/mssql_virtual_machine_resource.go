@@ -171,6 +171,19 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				ValidateFunc: validate.MsSqlVMLoginUserName,
 			},
 
+			"storage_configuration_settings": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
