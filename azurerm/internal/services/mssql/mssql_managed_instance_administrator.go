@@ -48,11 +48,11 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			
+
 			"object_id": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ForceNew:     	  true,
+				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validation.IsUUID,
 			},
@@ -66,18 +66,18 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 			},
 
 			"name": {
-				Type:             schema.TypeString,				
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"type": {
-				Type:             schema.TypeString,				
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"admin_type": {
-				Type:             schema.TypeString,				
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -102,7 +102,7 @@ func resourceArmMSSQLManagedInstanceAdminCreateUpdate(d *schema.ResourceData, me
 	if _, err := managedInstanceClient.Get(ctx, resGroup, name); err != nil {
 		return fmt.Errorf("Error reading managed SQL instance %s: %v", name, err)
 	}
-	
+
 	if d.IsNewResource() {
 		existing, err := adminClient.Get(ctx, resGroup, name)
 		if err != nil {
@@ -125,7 +125,7 @@ func resourceArmMSSQLManagedInstanceAdminCreateUpdate(d *schema.ResourceData, me
 	}
 
 	if v, exists := d.GetOk("login_username"); exists {
-		managedInstanceAdmin.ManagedInstanceAdministratorProperties.Login =  utils.String(v.(string))
+		managedInstanceAdmin.ManagedInstanceAdministratorProperties.Login = utils.String(v.(string))
 	}
 
 	if v, exists := d.GetOk("tenant_id"); exists {
@@ -134,16 +134,15 @@ func resourceArmMSSQLManagedInstanceAdminCreateUpdate(d *schema.ResourceData, me
 	}
 
 	adminFuture, err := adminClient.CreateOrUpdate(ctx, resGroup, name, managedInstanceAdmin)
-			if err != nil {
-				return fmt.Errorf("Error while creating Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
-			}
+	if err != nil {
+		return fmt.Errorf("Error while creating Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
+	}
 
-			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-				return fmt.Errorf("Error while waiting for creation of Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
-			}
+	if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
+		return fmt.Errorf("Error while waiting for creation of Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
+	}
 
-
-			result, err := adminClient.Get(ctx, resGroup, name)
+	result, err := adminClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making get request for managed SQL instance AAD Admin details %q (Resource Group %q): %+v", name, resGroup, err)
 	}

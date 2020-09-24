@@ -164,7 +164,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ForceNew: 		  true,
+				ForceNew:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
