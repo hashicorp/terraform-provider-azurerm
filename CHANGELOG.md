@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Data Source:** `azurerm_ip_groups` [GH-8556]
 
+IMPROVEMENTS:
+
+* `azurerm_lighthouse_assignment` - limit the `scope` property to subsriptions [GH-8601]
+
 ## 2.29.0 (September 24, 2020)
 
 UPGRADE NOTES:
