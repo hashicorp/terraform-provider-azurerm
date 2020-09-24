@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_cosmosdb_mongo_collection` - will now respect the order of the `keys` property in the `index` block [GH-8602]
 * `azurerm_lighthouse_assignment` - limit the `scope` property to subsriptions [GH-8601]
 
 ## 2.29.0 (September 24, 2020)
