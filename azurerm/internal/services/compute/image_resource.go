@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -187,6 +189,7 @@ func resourceArmImage() *schema.Resource {
 }
 
 func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -207,7 +210,11 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_image", *existing.ID)
+			id, err := parse.ImageID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_image", id.ID(subscriptionId))
 		}
 	}
 
@@ -269,7 +276,11 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("[ERROR] Cannot read AzureRM Image %s (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.ImageID(*read.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmImageRead(d, meta)
 }
@@ -328,12 +339,12 @@ func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ImageID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["images"]
+	name := id.Name
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {

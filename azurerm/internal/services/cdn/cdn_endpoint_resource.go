@@ -236,7 +236,11 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_cdn_endpoint", *existing.ID)
+		id, err := parse.CdnEndpointID(*existing.ID)
+		if err != nil {
+			return err
+		}
+		return tf.ImportAsExistsError("azurerm_cdn_endpoint", id.ID(subscriptionId))
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -38,6 +40,7 @@ func dataSourceArmDiskEncryptionSet() *schema.Resource {
 }
 
 func dataSourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -53,7 +56,11 @@ func dataSourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error reading Disk Encryption Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.DiskEncryptionSetID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)

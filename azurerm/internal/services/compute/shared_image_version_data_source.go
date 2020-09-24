@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -90,6 +92,7 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 }
 
 func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.GalleryImageVersionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -104,7 +107,11 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	d.SetId(*image.ID)
+	id, err := parse.SharedImageVersionID(*image.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 	d.Set("name", image.Name)
 	d.Set("image_name", imageName)
 	d.Set("gallery_name", galleryName)

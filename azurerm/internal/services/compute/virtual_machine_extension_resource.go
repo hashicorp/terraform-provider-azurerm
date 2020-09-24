@@ -93,6 +93,7 @@ func resourceArmVirtualMachineExtension() *schema.Resource {
 }
 
 func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
 	vmClient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -125,7 +126,11 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", *existing.ID)
+			id, err := parse.VirtualMachineExtensionID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID(subscriptionId))
 		}
 	}
 
@@ -180,14 +185,18 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Cannot read  Virtual Machine Extension %s (resource group %s) ID", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.VirtualMachineExtensionID(*read.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmVirtualMachineExtensionsRead(d, meta)
 }
 
 func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
-	vmClient := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -196,16 +205,9 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachine, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(virtualMachine.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error making Read request on Virtual Machine %s: %s", id.Name, err)
-	}
+	vmId := parse.NewVirtualMachineId(id.ResourceGroup, id.VirtualMachine)
 
-	d.Set("virtual_machine_id", virtualMachine.ID)
+	d.Set("virtual_machine_id", vmId.ID(subscriptionId))
 
 	resp, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachine, id.Name, "")
 	if err != nil {

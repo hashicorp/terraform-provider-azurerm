@@ -114,7 +114,11 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	if exists {
 		if name == *existingPool.Name {
 			if d.IsNewResource() {
-				return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", *existingPool.ID)
+				id, err := parse.LoadBalancerBackendAddressPoolID(*existingPool.ID)
+				if err != nil {
+					return err
+				}
+				return tf.ImportAsExistsError("azurerm_lb_backend_address_pool", id.ID(subscriptionId))
 			}
 
 			// this pool is being updated/reapplied remove old copy from the slice
@@ -152,7 +156,11 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 		return fmt.Errorf("Cannot find created Load Balancer Backend Address Pool ID %q", poolId)
 	}
 
-	d.SetId(poolId)
+	id, err := parse.LoadBalancerBackendAddressPoolID(poolId)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmLoadBalancerBackendAddressPoolRead(d, meta)
 }

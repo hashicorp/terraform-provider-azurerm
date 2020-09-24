@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -61,6 +63,7 @@ func dataSourceArmVirtualMachineScaleSet() *schema.Resource {
 }
 
 func dataSourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -80,7 +83,11 @@ func dataSourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interf
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Error reading Virtual Machine Scale Set %q (Resource Group %q): ID is empty or nil", name, resGroup)
 	}
-	d.SetId(*resp.ID)
+	id, err := parse.VirtualMachineScaleSetID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	if err := d.Set("identity", FlattenVirtualMachineScaleSetIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)

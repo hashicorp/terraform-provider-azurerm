@@ -278,6 +278,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 }
 
 func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -296,7 +297,11 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if !utils.ResponseWasNotFound(resp.Response) {
-		return tf.ImportAsExistsError("azurerm_linux_virtual_machine", *resp.ID)
+		id, err := parse.VirtualMachineID(*resp.ID)
+		if err != nil {
+			return err
+		}
+		return tf.ImportAsExistsError("azurerm_linux_virtual_machine", id.ID(subscriptionId))
 	}
 
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
@@ -485,7 +490,11 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("retrieving Linux Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.VirtualMachineID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 	return resourceLinuxVirtualMachineRead(d, meta)
 }
 

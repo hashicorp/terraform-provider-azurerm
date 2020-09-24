@@ -103,6 +103,7 @@ func resourceArmDedicatedHost() *schema.Resource {
 }
 
 func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -116,16 +117,18 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	resourceGroupName := dedicatedHostGroupId.ResourceGroup
 	hostGroupName := dedicatedHostGroupId.Name
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
+	existing, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for present of existing Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
+		}
+	}
+	if existing.ID != nil && *existing.ID != "" {
+		id, err := parse.DedicatedHostID(*existing.ID)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
-			}
+			return err
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dedicated_host", *existing.ID)
-		}
+		return tf.ImportAsExistsError("azurerm_dedicated_host", id.ID(subscriptionId))
 	}
 
 	parameters := compute.DedicatedHost{
@@ -156,13 +159,17 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for Dedicated Host %q (Host Group Name %q / Resource Group %q)", name, hostGroupName, resourceGroupName)
 	}
-	d.SetId(*resp.ID)
+	id, err := parse.DedicatedHostID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmDedicatedHostRead(d, meta)
 }
 
 func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
-	groupsClient := meta.(*clients.Client).Compute.DedicatedHostGroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	hostsClient := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,16 +179,7 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroup, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(group.Response) {
-			log.Printf("[INFO] Parent Dedicated Host Group %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error retrieving Dedicated Host Group %q (Resource Group %q): %+v", id.HostGroup, id.ResourceGroup, err)
-	}
+	groupId := parse.NewDedicatedHostGroupId(id.ResourceGroup, id.HostGroup)
 
 	resp, err := hostsClient.Get(ctx, id.ResourceGroup, id.HostGroup, id.Name, "")
 	if err != nil {
@@ -195,7 +193,7 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("dedicated_host_group_id", group.ID)
+	d.Set("dedicated_host_group_id", groupId.ID(subscriptionId))
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

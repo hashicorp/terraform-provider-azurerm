@@ -7,6 +7,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -122,6 +124,7 @@ func dataSourceArmImage() *schema.Resource {
 }
 
 func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.ImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,7 +188,12 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		img = list[0]
 	}
 
-	d.SetId(*img.ID)
+	id, err := parse.ImageID(*img.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
+
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := img.Location; location != nil {

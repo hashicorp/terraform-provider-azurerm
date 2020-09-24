@@ -65,6 +65,7 @@ func resourceArmSharedImageGallery() *schema.Resource {
 }
 
 func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.GalleriesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,7 +87,11 @@ func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta inte
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_shared_image_gallery", *existing.ID)
+			id, err := parse.SharedImageGalleryID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_shared_image_gallery", id.ID(subscriptionId))
 		}
 	}
 
@@ -116,7 +121,11 @@ func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Cannot read Shared Image Gallery %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.SharedImageGalleryID(*read.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmSharedImageGalleryRead(d, meta)
 }

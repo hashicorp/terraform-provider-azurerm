@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
@@ -626,6 +628,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 }
 
 func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.VMClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -644,7 +647,11 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_machine", *existing.ID)
+			id, err := parse.VirtualMachineID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_virtual_machine", id.ID(subscriptionId))
 		}
 	}
 
@@ -761,7 +768,11 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Cannot read Virtual Machine %s (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.VirtualMachineID(*read.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	ipAddress, err := determineVirtualMachineIPAddress(ctx, meta, read.VirtualMachineProperties)
 	if err != nil {
@@ -789,12 +800,12 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachines"]
+	name := id.Name
 
 	resp, err := vmclient.Get(ctx, resGroup, name, "")
 	if err != nil {
@@ -919,12 +930,12 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachines"]
+	name := id.Name
 
 	locks.ByName(name, virtualMachineResourceName)
 	defer locks.UnlockByName(name, virtualMachineResourceName)

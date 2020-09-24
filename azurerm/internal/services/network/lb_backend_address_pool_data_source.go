@@ -49,6 +49,7 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 }
 
 func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -72,7 +73,11 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 		return fmt.Errorf("Backend Address Pool %q was not found in Load Balancer %q (Resource Group %q)", name, loadBalancerId.Name, loadBalancerId.ResourceGroup)
 	}
 
-	d.SetId(*bap.ID)
+	id, err := parse.LoadBalancerBackendAddressPoolID(*bap.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	backendIPConfigurations := make([]interface{}, 0)
 	if props := bap.BackendAddressPoolPropertiesFormat; props != nil {

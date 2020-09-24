@@ -113,6 +113,7 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 }
 
 func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -133,7 +134,11 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 	}
 
 	if !utils.ResponseWasNotFound(resp.Response) {
-		return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", *resp.ID)
+		id, err := parse.VirtualMachineScaleSetExtensionID(*resp.ID)
+		if err != nil {
+			return err
+		}
+		return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", id.ID(subscriptionId))
 	}
 
 	settings := map[string]interface{}{}
@@ -186,7 +191,12 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 	if err != nil {
 		return fmt.Errorf("Error retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", name, vmssName, resourceGroup, err)
 	}
-	d.SetId(*resp.ID)
+
+	id, err := parse.VirtualMachineScaleSetExtensionID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmVirtualMachineScaleSetExtensionRead(d, meta)
 }
@@ -271,7 +281,7 @@ func resourceArmVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta interface{}) error {
-	vmssClient := meta.(*clients.Client).Compute.VMScaleSetClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -281,16 +291,7 @@ func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta
 		return err
 	}
 
-	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName)
-	if err != nil {
-		if utils.ResponseWasNotFound(vmss.Response) {
-			log.Printf("Virtual Machine Scale Set %q was not found in Resource Group %q - removing Extension from state!", id.VirtualMachineScaleSetName, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.VirtualMachineScaleSetName, id.ResourceGroup, err)
-	}
+	vmssId := parse.NewVirtualMachineScaleSetId(id.ResourceGroup, id.VirtualMachineScaleSetName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, "")
 	if err != nil {
@@ -304,7 +305,7 @@ func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_machine_scale_set_id", vmss.ID)
+	d.Set("virtual_machine_scale_set_id", vmssId.ID(subscriptionId))
 
 	if props := resp.VirtualMachineScaleSetExtensionProperties; props != nil {
 		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)

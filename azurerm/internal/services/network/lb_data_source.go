@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -102,6 +104,7 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 }
 
 func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,7 +121,11 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error retrieving Load Balancer %s: %s", name, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.LoadBalancerID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

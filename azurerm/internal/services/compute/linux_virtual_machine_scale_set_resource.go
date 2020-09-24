@@ -263,6 +263,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 }
 
 func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -278,7 +279,11 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 
 	if !utils.ResponseWasNotFound(exists.Response) {
-		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", *exists.ID)
+		id, err := parse.VirtualMachineScaleSetID(*exists.ID)
+		if err != nil {
+			return err
+		}
+		return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", id.ID(subscriptionId))
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -519,7 +524,11 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	if resp.ID == nil {
 		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): ID was nil", name, resourceGroup)
 	}
-	d.SetId(*resp.ID)
+	id, err := parse.VirtualMachineScaleSetID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmLinuxVirtualMachineScaleSetRead(d, meta)
 }

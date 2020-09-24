@@ -91,17 +91,19 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing CDN Profile %q (Resource Group %q): %s", name, resGroup, err)
-			}
+	existing, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing CDN Profile %q (Resource Group %q): %s", name, resGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_cdn_profile", *existing.ID)
+	if existing.ID != nil && *existing.ID != "" {
+		id, err := parse.CdnProfileID(*existing.ID)
+		if err != nil {
+			return err
 		}
+		return tf.ImportAsExistsError("azurerm_cdn_profile", id.ID(subscriptionId))
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -214,13 +216,13 @@ func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.CdnProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["profiles"]
+	name := id.Name
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {

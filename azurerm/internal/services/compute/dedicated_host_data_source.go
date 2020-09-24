@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -44,6 +46,7 @@ func dataSourceArmDedicatedHost() *schema.Resource {
 }
 
 func dataSourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DedicatedHostsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -60,7 +63,12 @@ func dataSourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error reading Dedicated Host %q (Host Group Name %q / Resource Group %q): %+v", name, hostGroupName, resourceGroupName, err)
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.DedicatedHostID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroupName)
 	if location := resp.Location; location != nil {

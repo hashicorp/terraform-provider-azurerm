@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -52,6 +54,7 @@ func resourceArmProximityPlacementGroup() *schema.Resource {
 }
 
 func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -70,7 +73,11 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_proximity_placement_group", *existing.ID)
+			id, err := parse.ProximityPlacementGroupID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_proximity_placement_group", id.ID(subscriptionId))
 		}
 	}
 
@@ -85,7 +92,11 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 		return err
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.ProximityPlacementGroupID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmProximityPlacementGroupRead(d, meta)
 }
@@ -95,12 +106,12 @@ func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProximityPlacementGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["proximityPlacementGroups"]
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
@@ -125,12 +136,12 @@ func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ProximityPlacementGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["proximityPlacementGroups"]
+	name := id.Name
 
 	_, err = client.Delete(ctx, resGroup, name)
 	return err

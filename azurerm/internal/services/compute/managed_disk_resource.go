@@ -23,7 +23,7 @@ import (
 
 func resourceArmManagedDisk() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagedDiskCreateUpdate,
+		Create: resourceArmManagedDiskCreate,
 		Read:   resourceArmManagedDiskRead,
 		Update: resourceArmManagedDiskUpdate,
 		Delete: resourceArmManagedDiskDelete,
@@ -148,9 +148,10 @@ func resourceArmManagedDisk() *schema.Resource {
 	}
 }
 
-func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
@@ -158,17 +159,19 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Managed Disk %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Managed Disk %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_managed_disk", *existing.ID)
+	if existing.ID != nil && *existing.ID != "" {
+		id, err := parse.ManagedDiskID(*existing.ID)
+		if err != nil {
+			return err
 		}
+		return tf.ImportAsExistsError("azurerm_managed_disk", id.ID(subscriptionId))
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -284,7 +287,11 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error reading Managed Disk %s (Resource Group %q): ID was nil", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.ManagedDiskID(*read.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmManagedDiskRead(d, meta)
 }

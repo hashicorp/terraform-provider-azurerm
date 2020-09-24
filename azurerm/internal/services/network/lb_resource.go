@@ -185,6 +185,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 }
 
 func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -203,7 +204,11 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_lb", *existing.ID)
+			id, err := parse.LoadBalancerID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_lb", id.ID(subscriptionId))
 		}
 	}
 
@@ -245,7 +250,11 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Cannot read Load Balancer %q (resource group %q) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.LoadBalancerID(*read.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmLoadBalancerRead(d, meta)
 }

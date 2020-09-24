@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -785,6 +787,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 }
 
 func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -803,7 +806,11 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", *existing.ID)
+			id, err := parse.VirtualMachineScaleSetID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set", id.ID(subscriptionId))
 		}
 	}
 
@@ -927,7 +934,11 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Cannot read Virtual Machine Scale Set %s (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.VirtualMachineScaleSetID(*read.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmVirtualMachineScaleSetRead(d, meta)
 }
@@ -937,12 +948,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachineScaleSets"]
+	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
@@ -1096,12 +1107,12 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["virtualMachineScaleSets"]
+	name := id.Name
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {

@@ -92,6 +92,7 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 }
 
 func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -108,7 +109,11 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_disk_encryption_set", *existing.ID)
+			id, err := parse.DiskEncryptionSetID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_disk_encryption_set", id.ID(subscriptionId))
 		}
 	}
 
@@ -157,7 +162,11 @@ func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta inter
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Disk Encryption Set %q (Resource Group %q) ID", name, resourceGroup)
 	}
-	d.SetId(*resp.ID)
+	id, err := parse.DiskEncryptionSetID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmDiskEncryptionSetRead(d, meta)
 }

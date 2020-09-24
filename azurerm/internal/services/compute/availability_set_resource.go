@@ -88,6 +88,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 }
 
 func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -106,7 +107,11 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_availability_set", *existing.ID)
+			id, err := parse.AvailabilitySetID(*existing.ID)
+			if err != nil {
+				return err
+			}
+			return tf.ImportAsExistsError("azurerm_availability_set", id.ID(subscriptionId))
 		}
 	}
 
@@ -144,7 +149,12 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	d.SetId(*resp.ID)
+	id, err := parse.AvailabilitySetID(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmAvailabilitySetRead(d, meta)
 }
