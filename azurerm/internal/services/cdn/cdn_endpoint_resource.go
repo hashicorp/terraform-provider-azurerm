@@ -444,7 +444,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("origin_path", props.OriginPath)
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
-		
+
 		if is_compression_enabled := props.IsCompressionEnabled; is_compression_enabled != nil {
 			d.Set("is_compression_enabled", *is_compression_enabled)
 		}
