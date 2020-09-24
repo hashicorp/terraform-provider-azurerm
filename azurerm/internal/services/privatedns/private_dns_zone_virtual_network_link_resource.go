@@ -38,9 +38,9 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/10933
 				ValidateFunc: validate.LowerCasedString,
 			},
