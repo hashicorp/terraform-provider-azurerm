@@ -27,6 +27,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_disk_encryption_set":       dataSourceArmDiskEncryptionSet(),
 		"azurerm_managed_disk":              dataSourceArmManagedDisk(),
 		"azurerm_image":                     dataSourceArmImage(),
+		"azurerm_images":                    dataSourceArmImages(),
 		"azurerm_platform_image":            dataSourceArmPlatformImage(),
 		"azurerm_proximity_placement_group": dataSourceArmProximityPlacementGroup(),
 		"azurerm_shared_image_gallery":      dataSourceArmSharedImageGallery(),
