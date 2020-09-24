@@ -47,7 +47,7 @@ A `images` block exports the following:
 
 * `data_disk` - One or more `data_disk` blocks as defined below.
 
-* `tags` - A mapping of tags assigned to the Shared Image.
+* `tags` - A mapping of tags assigned to the Image.
 
 ---
 
