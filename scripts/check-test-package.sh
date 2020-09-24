@@ -8,7 +8,7 @@ echo "==> Checking that acceptance test packages are used..."
 for f in $files; do
   line=$(head -n 1 $f)
   regex="_test$"
-  if [ ! $line =~ $regex ]; then
+  if [[ ! $line =~ $regex ]]; then
     echo $f
     error=true
   fi
