@@ -4,6 +4,9 @@ UPGRADE NOTES:
 
 * `azurerm_api_management` - the value `None` has been removed from the `identity` block to match other resources, to specify an API Management Service with no Managed Identity remove the `identity` block [GH-8411]
 * `azurerm_container_registry` -  the `storage_account_id` property now forces a new resource as required by the updated API version [GH-8477]
+* `azurerm_virtual_hub_connection` - deprecating the field `vitual_network_to_hub_gateways_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used [GH-7601]
+* `azurerm_virtual_hub_connection` - deprecating the field `hub_to_vitual_network_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used [GH-7601]
+* `azurerm_virtual_wan` - deprecating the field `allow_vnet_to_vnet_traffic` since due to a breaking change in the API behaviour this is no longer used [GH-7601]
 
 FEATURES: 
 
@@ -13,8 +16,8 @@ FEATURES:
 * **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
 * **New Data Source:** `azurerm_mssql_server` [GH-7917]
 * **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
-* **New resource:** `azurerm_firewall_policy` [GH-7390]
-* **New resource:** `azurerm_mysql_server_key` [GH-8125]
+* **New Resource:** `azurerm_firewall_policy` [GH-7390]
+* **New Resource:** `azurerm_mysql_server_key` [GH-8125]
 * **New Resource:** `azurerm_postgresql_server_key` [GH-8126]
 
 IMPROVEMENTS:
@@ -31,6 +34,10 @@ IMPROVEMENTS:
 * `azurerm_search_service` - Add support for `allowed_ips` [GH-8557]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
 * `azurerm_signalr_service` - support for delta updates [GH-8541]
+* `azurerm_virtual_hub_connection` - deprecating the field `vitual_network_to_hub_gateways_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used [GH-7601]
+* `azurerm_virtual_hub_connection` - deprecating the field `hub_to_vitual_network_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used [GH-7601]
+* `azurerm_virtual_hub_connection` - switching to use the now separate API for provisioning these resources [GH-7601]
+* `azurerm_virtual_wan` - deprecating the field `allow_vnet_to_vnet_traffic` since due to a breaking change in the API behaviour this is no longer used [GH-7601]
 * `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
 
 BUG FIXES:
