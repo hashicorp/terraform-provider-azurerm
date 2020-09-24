@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -40,7 +41,8 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/10933
+				ValidateFunc: validate.LowerCasedString,
 			},
 
 			"private_dns_zone_name": {
@@ -63,6 +65,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 				Default:  false,
 			},
 
+			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10933
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"tags": tags.Schema(),
