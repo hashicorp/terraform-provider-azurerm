@@ -1,12 +1,12 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
+page_title: "Azure Resource Manager: azurerm_virtual_desktop_workspace_application_group_association"
 description: |-
-  Manages a virtual network gateway to establish secure, cross-premises connectivity.
+  Manages a Virtual Desktop Workspace Application Group Association.
 ---
 
-# azurerm_virtual_network_gateway
+# azurerm_virtual_desktop_workspace_application_group_association
 
 Manages a Virtual Desktop Workspace Application Group Association.
 
