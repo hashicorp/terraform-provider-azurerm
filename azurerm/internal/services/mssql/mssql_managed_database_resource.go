@@ -339,7 +339,7 @@ func resourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interface{
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
-	managedInstanceId, _ := azure.GetDatabaseParentId(d.Id())
+	managedInstanceId, _ := azure.GetSQLResourceParentId(d.Id())
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -247,37 +246,6 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				},
 			},
 
-			"aad_administrator": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				MinItems: 1,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-
-						"login_username": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"object_id": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.IsUUID,
-						},
-
-						"tenant_id": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Computed:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validation.IsUUID,
-						},
-					},
-				},
-			},
-
 			"fully_qualified_domain_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -305,7 +273,6 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 
 func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ManagedInstancesClient
-	adminClient := meta.(*clients.Client).MSSQL.ManagedInstanceAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -469,37 +436,12 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*result.ID)
 
-	if d.HasChange("aad_administrator") {
-		adminDelFuture, err := adminClient.Delete(ctx, resourceGroup, name)
-		if err != nil {
-			return fmt.Errorf("deleting managed SQL instance %q AAD admin (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			return fmt.Errorf("waiting for managed SQL instance %q AAD admin (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
-		}
-
-		if _, ok := d.GetOk("aad_administrator"); ok {
-			adminParams := expandManagedInstanceAADAdmin(d)
-			adminFuture, err := adminClient.CreateOrUpdate(ctx, resourceGroup, name, *adminParams)
-			if err != nil {
-				return fmt.Errorf("Error while creating Managed SQL Instance %q AAD admin (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-
-			if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-				return fmt.Errorf("Error while waiting for creation of Managed SQL Instance %q AAD admin (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-
-		}
-	}
-
 	return resourceArmMSSQLManagedInstanceRead(d, meta)
 
 }
 
 func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ManagedInstancesClient
-	adminClient := meta.(*clients.Client).MSSQL.ManagedInstanceAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -544,17 +486,6 @@ func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{
 		d.Set("instance_pool_id", props.InstancePoolID)
 		d.Set("maintenance_configuration_id", props.MaintenanceConfigurationID)
 		d.Set("minimal_tls_version", props.MinimalTLSVersion)
-	}
-
-	adminResp, err := adminClient.Get(ctx, resGroup, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(adminResp.Response) {
-			return fmt.Errorf("Error reading managed instance %s AAD admin: %v", name, err)
-		}
-	} else {
-		if err := d.Set("aad_administrator", flattenManagedInstanceAdministrator(adminResp)); err != nil {
-			return fmt.Errorf("setting `aad_administrator`: %+v", err)
-		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -641,49 +572,4 @@ func flattenManagedInstanceIdentity(identity *sql.ResourceIdentity) []interface{
 	}
 
 	return []interface{}{result}
-}
-
-func expandManagedInstanceAADAdmin(d *schema.ResourceData) *sql.ManagedInstanceAdministrator {
-	administratorDetails := d.Get("aad_administrator").([]interface{})
-
-	adminDetail := administratorDetails[0].(map[string]interface{})
-	sid, _ := uuid.FromString(adminDetail["object_id"].(string))
-
-	managedInstanceAdmin := sql.ManagedInstanceAdministrator{
-		ManagedInstanceAdministratorProperties: &sql.ManagedInstanceAdministratorProperties{
-			AdministratorType: utils.String("ActiveDirectory"),
-			Login:             utils.String(adminDetail["login_username"].(string)),
-			Sid:               &sid,
-		},
-	}
-
-	if v, ok := adminDetail["tenant_id"]; ok && v != "" {
-		tid, _ := uuid.FromString(v.(string))
-		managedInstanceAdmin.ManagedInstanceAdministratorProperties.TenantID = &tid
-	}
-
-	return &managedInstanceAdmin
-}
-
-func flattenManagedInstanceAdministrator(admin sql.ManagedInstanceAdministrator) []interface{} {
-	var login, sid, tid string
-	if admin.Login != nil {
-		login = *admin.Login
-	}
-
-	if admin.Sid != nil {
-		sid = admin.Sid.String()
-	}
-
-	if admin.TenantID != nil {
-		tid = admin.TenantID.String()
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"login_username": login,
-			"object_id":      sid,
-			"tenant_id":      tid,
-		},
-	}
 }

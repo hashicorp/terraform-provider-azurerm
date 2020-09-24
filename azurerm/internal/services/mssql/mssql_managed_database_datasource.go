@@ -97,7 +97,7 @@ func dataSourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interfac
 		d.SetId(*id)
 	}
 
-	managedInstanceId, _ := azure.GetDatabaseParentId(d.Id())
+	managedInstanceId, _ := azure.GetSQLResourceParentId(d.Id())
 
 	d.Set("name", name)
 	d.Set("resource_group", resourceGroup)

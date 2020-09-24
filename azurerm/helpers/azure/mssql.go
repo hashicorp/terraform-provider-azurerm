@@ -202,7 +202,7 @@ func ValidateManagedInstanceTimeZones() schema.SchemaValidateFunc {
 	return validation.StringInSlice(acceptedTimeZones, true)
 }
 
-func GetDatabaseParentId(id string) (*string, error) {
+func GetSQLResourceParentId(id string) (*string, error) {
 	idURL, err := url.ParseRequestURI(id)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot parse Azure ID: %s", err)
