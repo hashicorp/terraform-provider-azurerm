@@ -20,6 +20,7 @@ type Client struct {
 	FirewallPolicyClient                 *network.FirewallPoliciesClient
 	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
+	IPGroupsClient                       *network.IPGroupsClient
 	LoadBalancersClient                  *networkLegacy.LoadBalancersClient
 	LoadBalancerLoadBalancingRulesClient *networkLegacy.LoadBalancerLoadBalancingRulesClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
@@ -92,6 +93,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	InterfacesClient := network.NewInterfacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&InterfacesClient.Client, o.ResourceManagerAuthorizer)
+
+	IpGroupsClient := network.NewIPGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&IpGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	LoadBalancersClient := networkLegacy.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LoadBalancersClient.Client, o.ResourceManagerAuthorizer)
@@ -200,6 +204,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		FirewallPolicyClient:                 &FirewallPolicyClient,
 		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
+		IPGroupsClient:                       &IpGroupsClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
 		LoadBalancerLoadBalancingRulesClient: &LoadBalancerLoadBalancingRulesClient,
 		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,

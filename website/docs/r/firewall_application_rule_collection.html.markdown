@@ -103,7 +103,11 @@ A `rule` block supports the following:
 
 * `description` - (Optional) Specifies a description for the rule.
 
-* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+* `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
+
+* `source_ip_groups` - (Optional) A list of source IP Group IDs for the rule.
+
+-> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
 * `fqdn_tags` - (Optional) A list of FQDN tags. Possible values are `AppServiceEnvironment`, `AzureBackup`, `AzureKubernetesService`, `HDInsight`, `MicrosoftActiveProtectionService`, `WindowsDiagnostics`, `WindowsUpdate` and `WindowsVirtualDesktop`.
 
