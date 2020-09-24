@@ -34,6 +34,7 @@ IMPROVEMENTS:
 * `azurerm_search_service` - Add support for `allowed_ips` [GH-8557]
 * `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
 * `azurerm_signalr_service` - support for delta updates [GH-8541]
+* `azurerm_spring_cloud_service` - support for configuring the `network` block [GH-8568]
 * `azurerm_virtual_hub_connection` - deprecating the field `vitual_network_to_hub_gateways_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used [GH-7601]
 * `azurerm_virtual_hub_connection` - deprecating the field `hub_to_vitual_network_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used [GH-7601]
 * `azurerm_virtual_hub_connection` - switching to use the now separate API for provisioning these resources [GH-7601]
