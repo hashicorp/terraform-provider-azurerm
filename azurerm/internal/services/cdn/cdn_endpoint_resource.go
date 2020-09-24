@@ -437,7 +437,6 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.EndpointProperties; props != nil {
 		d.Set("host_name", props.HostName)
-		d.Set("is_compression_enabled", props.IsCompressionEnabled)
 		d.Set("is_http_allowed", props.IsHTTPAllowed)
 		d.Set("is_https_allowed", props.IsHTTPSAllowed)
 		d.Set("querystring_caching_behaviour", props.QueryStringCachingBehavior)
@@ -445,6 +444,10 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("origin_path", props.OriginPath)
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
+		
+		if is_compression_enabled := props.IsCompressionEnabled; is_compression_enabled != nil {
+			d.Set("is_compression_enabled", *is_compression_enabled)
+		}
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
