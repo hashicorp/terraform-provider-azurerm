@@ -31,7 +31,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `images` - An `images` block as defined below:
+* `images` - One or more `images` blocks as defined below:
 
 ---
 
