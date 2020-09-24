@@ -388,6 +388,9 @@ func (client UserSessionsClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.UserSessionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.usl.hasNextLink() && result.usl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -515,6 +518,9 @@ func (client UserSessionsClient) ListByHostPool(ctx context.Context, resourceGro
 	result.usl, err = client.ListByHostPoolResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.UserSessionsClient", "ListByHostPool", resp, "Failure responding to request")
+	}
+	if result.usl.hasNextLink() && result.usl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -126,25 +126,25 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_host_pool" "test" {
-	name                             = "acctws"
-	location                         = azurerm_resource_group.test.location
-	resource_group_name              = azurerm_resource_group.test.name
-	validation_environment           = true
-	description  	                 = "Acceptance Test: A host pool"
-	type 				             = "Shared"
-	load_balancer_type               = "BreadthFirst"
-	personal_desktop_assignment_type = "Automatic"
+  name                             = "acctws"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  validation_environment           = true
+  description                      = "Acceptance Test: A host pool"
+  type                             = "Shared"
+  load_balancer_type               = "BreadthFirst"
+  personal_desktop_assignment_type = "Automatic"
 }
 
 resource "azurerm_virtual_desktop_application_group" "test" {
-	name                = "acctws%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "acctws%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	friendly_name       = "TestAppGroup"
-	description  	    = "Acceptance Test: An application group"
-	type 				= "Desktop"
-	host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
+  friendly_name = "TestAppGroup"
+  description   = "Acceptance Test: An application group"
+  type          = "Desktop"
+  host_pool_id  = azurerm_virtual_desktop_host_pool.test.id
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -156,13 +156,13 @@ func testAccAzureRMVirtualDesktopApplicationGroup_requiresImport(data acceptance
 %s
 
 resource "azurerm_virtual_desktop_application_group" "import" {
-	name                 = azurerm_virtual_desktop_application_group.test.name
-	location             = azurerm_virtual_desktop_application_group.test.location
-	resource_group_name  = azurerm_virtual_desktop_application_group.test.resource_group_name
-	friendly_name       =  azurerm_virtual_desktop_application_group.test.friendly_name
-	description  	    =  azurerm_virtual_desktop_application_group.test.description
-	type 				=  azurerm_virtual_desktop_application_group.test.type
-	host_pool_id        =  azurerm_virtual_desktop_application_group.test.host_pool_id
+  name                = azurerm_virtual_desktop_application_group.test.name
+  location            = azurerm_virtual_desktop_application_group.test.location
+  resource_group_name = azurerm_virtual_desktop_application_group.test.resource_group_name
+  friendly_name       = azurerm_virtual_desktop_application_group.test.friendly_name
+  description         = azurerm_virtual_desktop_application_group.test.description
+  type                = azurerm_virtual_desktop_application_group.test.type
+  host_pool_id        = azurerm_virtual_desktop_application_group.test.host_pool_id
 }
 `, template)
 }

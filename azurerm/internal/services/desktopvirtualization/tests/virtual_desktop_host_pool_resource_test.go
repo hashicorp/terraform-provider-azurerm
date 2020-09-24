@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -16,8 +15,6 @@ import (
 
 func TestAccAzureRMVirtualDesktopHostPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
-	clientID := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +22,7 @@ func TestAccAzureRMVirtualDesktopHostPool_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data, clientID, clientSecret),
+				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -37,8 +34,6 @@ func TestAccAzureRMVirtualDesktopHostPool_basic(t *testing.T) {
 
 func TestAccAzureRMVirtualDesktopHostPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_host_pool", "test")
-	clientID := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,13 +41,13 @@ func TestAccAzureRMVirtualDesktopHostPool_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationHostPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopHostPool_basic(data, clientID, clientSecret),
+				Config: testAccAzureRMVirtualDesktopHostPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationHostPoolExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMVirtualDesktopHostPool_requiresImport(data, clientID, clientSecret),
+				Config:      testAccAzureRMVirtualDesktopHostPool_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_virtual_desktop_host_pool"),
 			},
 		},
@@ -119,7 +114,7 @@ func testCheckAzureRMDesktopVirtualizationHostPoolDestroy(s *terraform.State) er
 	return nil
 }
 
-func testAccAzureRMVirtualDesktopHostPool_basic(data acceptance.TestData, clientID string, clientSecret string) string {
+func testAccAzureRMVirtualDesktopHostPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -131,33 +126,33 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_host_pool" "test" {
-	name                             = "acctws%d"
-	location                         = azurerm_resource_group.test.location
-	resource_group_name              = azurerm_resource_group.test.name
-	validation_environment           = true
-	description  	                 = "A description"
-	type 				             = "Shared"
-	load_balancer_type               = "BreadthFirst"
-	personal_desktop_assignment_type = "Automatic"
+  name                             = "acctws%d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  validation_environment           = true
+  description                      = "A description"
+  type                             = "Shared"
+  load_balancer_type               = "BreadthFirst"
+  personal_desktop_assignment_type = "Automatic"
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualDesktopHostPool_requiresImport(data acceptance.TestData, clientID string, clientSecret string) string {
-	template := testAccAzureRMVirtualDesktopHostPool_basic(data, clientID, clientSecret)
+func testAccAzureRMVirtualDesktopHostPool_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMVirtualDesktopHostPool_basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_virtual_desktop_host_pool" "import" {
-	name                             = azurerm_virtual_desktop_host_pool.test.name
-	location                         = azurerm_virtual_desktop_host_pool.test.location
-	resource_group_name              = azurerm_virtual_desktop_host_pool.test.resource_group_name
-	validation_environment           = azurerm_virtual_desktop_host_pool.test.validation_environment
-	description  	                 = azurerm_virtual_desktop_host_pool.test.description
-	type 				             = azurerm_virtual_desktop_host_pool.test.type
-	load_balancer_type               = azurerm_virtual_desktop_host_pool.test.load_balancer_type
-	personal_desktop_assignment_type = azurerm_virtual_desktop_host_pool.test.personal_desktop_assignment_type
+  name                             = azurerm_virtual_desktop_host_pool.test.name
+  location                         = azurerm_virtual_desktop_host_pool.test.location
+  resource_group_name              = azurerm_virtual_desktop_host_pool.test.resource_group_name
+  validation_environment           = azurerm_virtual_desktop_host_pool.test.validation_environment
+  description                      = azurerm_virtual_desktop_host_pool.test.description
+  type                             = azurerm_virtual_desktop_host_pool.test.type
+  load_balancer_type               = azurerm_virtual_desktop_host_pool.test.load_balancer_type
+  personal_desktop_assignment_type = azurerm_virtual_desktop_host_pool.test.personal_desktop_assignment_type
 }
 `, template)
 }

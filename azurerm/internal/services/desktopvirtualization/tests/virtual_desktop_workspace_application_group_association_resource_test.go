@@ -113,9 +113,10 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(reso
 		}
 
 		output := make([]string, 0)
-		for _, ref := range *result.ApplicationGroupReferences {
-			output = append(output, ref)
-		}
+		output = append(output, *result.ApplicationGroupReferences...)
+		// for _, ref := range *result.ApplicationGroupReferences {
+		// 	output = append(output, ref)
+		// }
 
 		if !contains(output, splitID[1]) {
 			return fmt.Errorf("No Virtual Desktop Workspace <==> Application Group Association exists for Workspace %q and Application Group %q (Resource Group: %q)", id.Name, splitID[1], id.ResourceGroup)
@@ -167,33 +168,33 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_workspace" "test" {
-	name                 = "acctws%d"
-	location             = azurerm_resource_group.test.location
-	resource_group_name  = azurerm_resource_group.test.name
+  name                = "acctws%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_desktop_host_pool" "test" {
-	name                             = "accthp%d"
-	location                         = azurerm_resource_group.test.location
-	resource_group_name              = azurerm_resource_group.test.name
-	validation_environment           = true
-	type 				             = "Shared"
-	load_balancer_type               = "BreadthFirst"
+  name                   = "accthp%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  validation_environment = true
+  type                   = "Shared"
+  load_balancer_type     = "BreadthFirst"
 }
 
 resource "azurerm_virtual_desktop_application_group" "test" {
-	name                = "acctag%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	friendly_name       = "TestAppGroup"
-	description         = "Acceptance Test: An application group"
-	type                = "Desktop"
-	host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
+  name                = "acctag%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  friendly_name       = "TestAppGroup"
+  description         = "Acceptance Test: An application group"
+  type                = "Desktop"
+  host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
 }
 
 resource "azurerm_virtual_desktop_workspace_application_group_association" "test" {
-	workspace_id                   = azurerm_virtual_desktop_workspace.test.id
-	application_group_reference_id = azurerm_virtual_desktop_application_group.test.id
+  workspace_id                   = azurerm_virtual_desktop_workspace.test.id
+  application_group_reference_id = azurerm_virtual_desktop_application_group.test.id
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -205,8 +206,8 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_requiresIm
 %s
 
 resource "azurerm_virtual_desktop_workspace_application_group_association" "import" {
-	workspace_id                   = azurerm_virtual_desktop_workspace_application_group_association.test.workspace_id
-	application_group_reference_id = azurerm_virtual_desktop_workspace_application_group_association.test.application_group_reference_id
+  workspace_id                   = azurerm_virtual_desktop_workspace_application_group_association.test.workspace_id
+  application_group_reference_id = azurerm_virtual_desktop_workspace_application_group_association.test.application_group_reference_id
 }
 `, template)
 }
@@ -217,23 +218,23 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_updateRefs
 %s
 
 resource "azurerm_virtual_desktop_host_pool" "test" {
-	name                             = "accthpaddition"
-	location                         = azurerm_resource_group.test.location
-	resource_group_name              = azurerm_resource_group.test.name
-	validation_environment           = true
-	type 				             = "Shared"
-	load_balancer_type               = "BreadthFirst"
+  name                   = "accthpaddition"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  validation_environment = true
+  type                   = "Shared"
+  load_balancer_type     = "BreadthFirst"
 }
 
 resource "azurerm_virtual_desktop_application_group" "test" {
-	name                = "acctappgroupnew"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "acctappgroupnew"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	friendly_name = "TestAppGroup"
-	description   = "Acceptance Test: An new application group"
-	type          = "Desktop"
-	host_pool_id  = azurerm_virtual_desktop_host_pool.test.id
+  friendly_name = "TestAppGroup"
+  description   = "Acceptance Test: An new application group"
+  type          = "Desktop"
+  host_pool_id  = azurerm_virtual_desktop_host_pool.test.id
 }
 `, template)
 }

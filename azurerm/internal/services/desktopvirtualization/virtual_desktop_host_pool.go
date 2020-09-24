@@ -245,7 +245,6 @@ func resourceArmVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interfac
 	}
 
 	if props := resp.HostPoolProperties; props != nil {
-
 		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {
 			return fmt.Errorf("Error setting `registration_info`: %+v", err)
 		}
@@ -276,11 +275,10 @@ func resourceArmVirtualDesktopHostPoolDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	f, err := client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
+	_, err = client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
 	if err != nil {
 		return fmt.Errorf("Error deleting Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	f.Location()
 
 	return nil
 }

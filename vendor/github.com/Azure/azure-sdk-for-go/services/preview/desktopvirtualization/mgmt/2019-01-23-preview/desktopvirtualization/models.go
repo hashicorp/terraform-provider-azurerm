@@ -30,184 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-01-23-preview/desktopvirtualization"
 
-// ApplicationGroupType enumerates the values for application group type.
-type ApplicationGroupType string
-
-const (
-	// ApplicationGroupTypeDesktop ...
-	ApplicationGroupTypeDesktop ApplicationGroupType = "Desktop"
-	// ApplicationGroupTypeRemoteApp ...
-	ApplicationGroupTypeRemoteApp ApplicationGroupType = "RemoteApp"
-)
-
-// PossibleApplicationGroupTypeValues returns an array of possible values for the ApplicationGroupType const type.
-func PossibleApplicationGroupTypeValues() []ApplicationGroupType {
-	return []ApplicationGroupType{ApplicationGroupTypeDesktop, ApplicationGroupTypeRemoteApp}
-}
-
-// ApplicationType enumerates the values for application type.
-type ApplicationType string
-
-const (
-	// ApplicationTypeDesktop ...
-	ApplicationTypeDesktop ApplicationType = "Desktop"
-	// ApplicationTypeRemoteApp ...
-	ApplicationTypeRemoteApp ApplicationType = "RemoteApp"
-)
-
-// PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
-func PossibleApplicationTypeValues() []ApplicationType {
-	return []ApplicationType{ApplicationTypeDesktop, ApplicationTypeRemoteApp}
-}
-
-// CommandLineSetting enumerates the values for command line setting.
-type CommandLineSetting string
-
-const (
-	// Allow ...
-	Allow CommandLineSetting = "Allow"
-	// DoNotAllow ...
-	DoNotAllow CommandLineSetting = "DoNotAllow"
-	// Require ...
-	Require CommandLineSetting = "Require"
-)
-
-// PossibleCommandLineSettingValues returns an array of possible values for the CommandLineSetting const type.
-func PossibleCommandLineSettingValues() []CommandLineSetting {
-	return []CommandLineSetting{Allow, DoNotAllow, Require}
-}
-
-// HostPoolType enumerates the values for host pool type.
-type HostPoolType string
-
-const (
-	// Personal ...
-	Personal HostPoolType = "Personal"
-	// Shared ...
-	Shared HostPoolType = "Shared"
-)
-
-// PossibleHostPoolTypeValues returns an array of possible values for the HostPoolType const type.
-func PossibleHostPoolTypeValues() []HostPoolType {
-	return []HostPoolType{Personal, Shared}
-}
-
-// LoadBalancerType enumerates the values for load balancer type.
-type LoadBalancerType string
-
-const (
-	// BreadthFirst ...
-	BreadthFirst LoadBalancerType = "BreadthFirst"
-	// DepthFirst ...
-	DepthFirst LoadBalancerType = "DepthFirst"
-	// Persistent ...
-	Persistent LoadBalancerType = "Persistent"
-)
-
-// PossibleLoadBalancerTypeValues returns an array of possible values for the LoadBalancerType const type.
-func PossibleLoadBalancerTypeValues() []LoadBalancerType {
-	return []LoadBalancerType{BreadthFirst, DepthFirst, Persistent}
-}
-
-// PersonalDesktopAssignmentType enumerates the values for personal desktop assignment type.
-type PersonalDesktopAssignmentType string
-
-const (
-	// Automatic ...
-	Automatic PersonalDesktopAssignmentType = "Automatic"
-	// Direct ...
-	Direct PersonalDesktopAssignmentType = "Direct"
-)
-
-// PossiblePersonalDesktopAssignmentTypeValues returns an array of possible values for the PersonalDesktopAssignmentType const type.
-func PossiblePersonalDesktopAssignmentTypeValues() []PersonalDesktopAssignmentType {
-	return []PersonalDesktopAssignmentType{Automatic, Direct}
-}
-
-// PreferredAppGroupType enumerates the values for preferred app group type.
-type PreferredAppGroupType string
-
-const (
-	// PreferredAppGroupTypeDesktop ...
-	PreferredAppGroupTypeDesktop PreferredAppGroupType = "Desktop"
-	// PreferredAppGroupTypeNone ...
-	PreferredAppGroupTypeNone PreferredAppGroupType = "None"
-	// PreferredAppGroupTypeRailApplications ...
-	PreferredAppGroupTypeRailApplications PreferredAppGroupType = "RailApplications"
-)
-
-// PossiblePreferredAppGroupTypeValues returns an array of possible values for the PreferredAppGroupType const type.
-func PossiblePreferredAppGroupTypeValues() []PreferredAppGroupType {
-	return []PreferredAppGroupType{PreferredAppGroupTypeDesktop, PreferredAppGroupTypeNone, PreferredAppGroupTypeRailApplications}
-}
-
-// SessionState enumerates the values for session state.
-type SessionState string
-
-const (
-	// Active ...
-	Active SessionState = "Active"
-	// Disconnected ...
-	Disconnected SessionState = "Disconnected"
-	// LogOff ...
-	LogOff SessionState = "LogOff"
-	// Pending ...
-	Pending SessionState = "Pending"
-	// Unknown ...
-	Unknown SessionState = "Unknown"
-	// UserProfileDiskMounted ...
-	UserProfileDiskMounted SessionState = "UserProfileDiskMounted"
-)
-
-// PossibleSessionStateValues returns an array of possible values for the SessionState const type.
-func PossibleSessionStateValues() []SessionState {
-	return []SessionState{Active, Disconnected, LogOff, Pending, Unknown, UserProfileDiskMounted}
-}
-
-// Status enumerates the values for status.
-type Status string
-
-const (
-	// StatusAvailable ...
-	StatusAvailable Status = "Available"
-	// StatusDisconnected ...
-	StatusDisconnected Status = "Disconnected"
-	// StatusShutdown ...
-	StatusShutdown Status = "Shutdown"
-	// StatusUnavailable ...
-	StatusUnavailable Status = "Unavailable"
-	// StatusUpgradeFailed ...
-	StatusUpgradeFailed Status = "UpgradeFailed"
-	// StatusUpgrading ...
-	StatusUpgrading Status = "Upgrading"
-)
-
-// PossibleStatusValues returns an array of possible values for the Status const type.
-func PossibleStatusValues() []Status {
-	return []Status{StatusAvailable, StatusDisconnected, StatusShutdown, StatusUnavailable, StatusUpgradeFailed, StatusUpgrading}
-}
-
-// UpdateState enumerates the values for update state.
-type UpdateState string
-
-const (
-	// UpdateStateFailed ...
-	UpdateStateFailed UpdateState = "Failed"
-	// UpdateStateInitial ...
-	UpdateStateInitial UpdateState = "Initial"
-	// UpdateStatePending ...
-	UpdateStatePending UpdateState = "Pending"
-	// UpdateStateStarted ...
-	UpdateStateStarted UpdateState = "Started"
-	// UpdateStateSucceeded ...
-	UpdateStateSucceeded UpdateState = "Succeeded"
-)
-
-// PossibleUpdateStateValues returns an array of possible values for the UpdateState const type.
-func PossibleUpdateStateValues() []UpdateState {
-	return []UpdateState{UpdateStateFailed, UpdateStateInitial, UpdateStatePending, UpdateStateStarted, UpdateStateSucceeded}
-}
-
 // Application schema for Application properties.
 type Application struct {
 	autorest.Response `json:"-"`
@@ -391,6 +213,15 @@ type ApplicationGroupList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationGroupList.
+func (agl ApplicationGroupList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if agl.Value != nil {
+		objectMap["value"] = agl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ApplicationGroupListIterator provides access to a complete listing of ApplicationGroup values.
 type ApplicationGroupListIterator struct {
 	i    int
@@ -459,10 +290,15 @@ func (agl ApplicationGroupList) IsEmpty() bool {
 	return agl.Value == nil || len(*agl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (agl ApplicationGroupList) hasNextLink() bool {
+	return agl.NextLink != nil && len(*agl.NextLink) != 0
+}
+
 // applicationGroupListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (agl ApplicationGroupList) applicationGroupListPreparer(ctx context.Context) (*http.Request, error) {
-	if agl.NextLink == nil || len(to.String(agl.NextLink)) < 1 {
+	if !agl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -490,11 +326,16 @@ func (page *ApplicationGroupListPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.agl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.agl)
+		if err != nil {
+			return err
+		}
+		page.agl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.agl = next
 	return nil
 }
 
@@ -636,6 +477,24 @@ type ApplicationGroupProperties struct {
 	ApplicationGroupType ApplicationGroupType `json:"applicationGroupType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationGroupProperties.
+func (agp ApplicationGroupProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if agp.Description != nil {
+		objectMap["description"] = agp.Description
+	}
+	if agp.FriendlyName != nil {
+		objectMap["friendlyName"] = agp.FriendlyName
+	}
+	if agp.HostPoolArmPath != nil {
+		objectMap["hostPoolArmPath"] = agp.HostPoolArmPath
+	}
+	if agp.ApplicationGroupType != "" {
+		objectMap["applicationGroupType"] = agp.ApplicationGroupType
+	}
+	return json.Marshal(objectMap)
+}
+
 // ApplicationList list of Application definitions.
 type ApplicationList struct {
 	autorest.Response `json:"-"`
@@ -643,6 +502,15 @@ type ApplicationList struct {
 	Value *[]Application `json:"value,omitempty"`
 	// NextLink - READ-ONLY; Link to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationList.
+func (al ApplicationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if al.Value != nil {
+		objectMap["value"] = al.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationListIterator provides access to a complete listing of Application values.
@@ -713,10 +581,15 @@ func (al ApplicationList) IsEmpty() bool {
 	return al.Value == nil || len(*al.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (al ApplicationList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
 // applicationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (al ApplicationList) applicationListPreparer(ctx context.Context) (*http.Request, error) {
-	if al.NextLink == nil || len(to.String(al.NextLink)) < 1 {
+	if !al.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -744,11 +617,16 @@ func (page *ApplicationListPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.al)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.al = next
 	return nil
 }
 
@@ -879,6 +757,36 @@ type ApplicationProperties struct {
 	IconContent *[]byte `json:"iconContent,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ApplicationProperties.
+func (ap ApplicationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.Description != nil {
+		objectMap["description"] = ap.Description
+	}
+	if ap.FriendlyName != nil {
+		objectMap["friendlyName"] = ap.FriendlyName
+	}
+	if ap.FilePath != nil {
+		objectMap["filePath"] = ap.FilePath
+	}
+	if ap.CommandLineSetting != "" {
+		objectMap["commandLineSetting"] = ap.CommandLineSetting
+	}
+	if ap.CommandLineArguments != nil {
+		objectMap["commandLineArguments"] = ap.CommandLineArguments
+	}
+	if ap.ShowInPortal != nil {
+		objectMap["showInPortal"] = ap.ShowInPortal
+	}
+	if ap.IconPath != nil {
+		objectMap["iconPath"] = ap.IconPath
+	}
+	if ap.IconIndex != nil {
+		objectMap["iconIndex"] = ap.IconIndex
+	}
+	return json.Marshal(objectMap)
+}
+
 // AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
 	// Etag - READ-ONLY; Resource Etag.
@@ -981,6 +889,15 @@ type DesktopList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DesktopList.
+func (dl DesktopList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dl.Value != nil {
+		objectMap["value"] = dl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // DesktopPatch desktop properties that can be patched.
 type DesktopPatch struct {
 	// Tags - tags to be updated
@@ -1052,6 +969,18 @@ type DesktopProperties struct {
 	IconHash *string `json:"iconHash,omitempty"`
 	// IconContent - READ-ONLY; The icon a 64 bit string as a byte array.
 	IconContent *[]byte `json:"iconContent,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DesktopProperties.
+func (dp DesktopProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dp.Description != nil {
+		objectMap["description"] = dp.Description
+	}
+	if dp.FriendlyName != nil {
+		objectMap["friendlyName"] = dp.FriendlyName
+	}
+	return json.Marshal(objectMap)
 }
 
 // HostPool represents a HostPool definition.
@@ -1164,6 +1093,15 @@ type HostPoolList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for HostPoolList.
+func (hpl HostPoolList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hpl.Value != nil {
+		objectMap["value"] = hpl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // HostPoolListIterator provides access to a complete listing of HostPool values.
 type HostPoolListIterator struct {
 	i    int
@@ -1232,10 +1170,15 @@ func (hpl HostPoolList) IsEmpty() bool {
 	return hpl.Value == nil || len(*hpl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (hpl HostPoolList) hasNextLink() bool {
+	return hpl.NextLink != nil && len(*hpl.NextLink) != 0
+}
+
 // hostPoolListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (hpl HostPoolList) hostPoolListPreparer(ctx context.Context) (*http.Request, error) {
-	if hpl.NextLink == nil || len(to.String(hpl.NextLink)) < 1 {
+	if !hpl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1263,11 +1206,16 @@ func (page *HostPoolListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.hpl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.hpl)
+		if err != nil {
+			return err
+		}
+		page.hpl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.hpl = next
 	return nil
 }
 
@@ -1445,6 +1393,51 @@ type HostPoolProperties struct {
 	PreferredAppGroupType PreferredAppGroupType `json:"preferredAppGroupType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for HostPoolProperties.
+func (hpp HostPoolProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hpp.FriendlyName != nil {
+		objectMap["friendlyName"] = hpp.FriendlyName
+	}
+	if hpp.Description != nil {
+		objectMap["description"] = hpp.Description
+	}
+	if hpp.HostPoolType != "" {
+		objectMap["hostPoolType"] = hpp.HostPoolType
+	}
+	if hpp.PersonalDesktopAssignmentType != "" {
+		objectMap["personalDesktopAssignmentType"] = hpp.PersonalDesktopAssignmentType
+	}
+	if hpp.CustomRdpProperty != nil {
+		objectMap["customRdpProperty"] = hpp.CustomRdpProperty
+	}
+	if hpp.MaxSessionLimit != nil {
+		objectMap["maxSessionLimit"] = hpp.MaxSessionLimit
+	}
+	if hpp.LoadBalancerType != "" {
+		objectMap["loadBalancerType"] = hpp.LoadBalancerType
+	}
+	if hpp.Ring != nil {
+		objectMap["ring"] = hpp.Ring
+	}
+	if hpp.ValidationEnvironment != nil {
+		objectMap["validationEnvironment"] = hpp.ValidationEnvironment
+	}
+	if hpp.RegistrationInfo != nil {
+		objectMap["registrationInfo"] = hpp.RegistrationInfo
+	}
+	if hpp.VMTemplate != nil {
+		objectMap["vmTemplate"] = hpp.VMTemplate
+	}
+	if hpp.SsoContext != nil {
+		objectMap["ssoContext"] = hpp.SsoContext
+	}
+	if hpp.PreferredAppGroupType != "" {
+		objectMap["preferredAppGroupType"] = hpp.PreferredAppGroupType
+	}
+	return json.Marshal(objectMap)
+}
+
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
 // required location and tags
 type ProxyResource struct {
@@ -1599,6 +1592,15 @@ type SessionHostList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SessionHostList.
+func (shl SessionHostList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if shl.Value != nil {
+		objectMap["value"] = shl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // SessionHostListIterator provides access to a complete listing of SessionHost values.
 type SessionHostListIterator struct {
 	i    int
@@ -1667,10 +1669,15 @@ func (shl SessionHostList) IsEmpty() bool {
 	return shl.Value == nil || len(*shl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (shl SessionHostList) hasNextLink() bool {
+	return shl.NextLink != nil && len(*shl.NextLink) != 0
+}
+
 // sessionHostListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (shl SessionHostList) sessionHostListPreparer(ctx context.Context) (*http.Request, error) {
-	if shl.NextLink == nil || len(to.String(shl.NextLink)) < 1 {
+	if !shl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1698,11 +1705,16 @@ func (page *SessionHostListPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.shl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.shl)
+		if err != nil {
+			return err
+		}
+		page.shl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.shl = next
 	return nil
 }
 
@@ -1848,6 +1860,42 @@ type SessionHostProperties struct {
 	UpdateErrorMessage *string `json:"updateErrorMessage,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SessionHostProperties.
+func (shp SessionHostProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if shp.LastHeartBeat != nil {
+		objectMap["lastHeartBeat"] = shp.LastHeartBeat
+	}
+	if shp.Sessions != nil {
+		objectMap["sessions"] = shp.Sessions
+	}
+	if shp.AgentVersion != nil {
+		objectMap["agentVersion"] = shp.AgentVersion
+	}
+	if shp.AllowNewSession != nil {
+		objectMap["allowNewSession"] = shp.AllowNewSession
+	}
+	if shp.AssignedUser != nil {
+		objectMap["assignedUser"] = shp.AssignedUser
+	}
+	if shp.Status != "" {
+		objectMap["status"] = shp.Status
+	}
+	if shp.OsVersion != nil {
+		objectMap["osVersion"] = shp.OsVersion
+	}
+	if shp.SxSStackVersion != nil {
+		objectMap["sxSStackVersion"] = shp.SxSStackVersion
+	}
+	if shp.UpdateState != "" {
+		objectMap["updateState"] = shp.UpdateState
+	}
+	if shp.UpdateErrorMessage != nil {
+		objectMap["updateErrorMessage"] = shp.UpdateErrorMessage
+	}
+	return json.Marshal(objectMap)
+}
+
 // StartMenuItem represents a StartMenuItem definition.
 type StartMenuItem struct {
 	// StartMenuItemProperties - Detailed properties for StartMenuItem
@@ -1929,6 +1977,15 @@ type StartMenuItemList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for StartMenuItemList.
+func (smil StartMenuItemList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if smil.Value != nil {
+		objectMap["value"] = smil.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // StartMenuItemListIterator provides access to a complete listing of StartMenuItem values.
 type StartMenuItemListIterator struct {
 	i    int
@@ -1997,10 +2054,15 @@ func (smil StartMenuItemList) IsEmpty() bool {
 	return smil.Value == nil || len(*smil.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (smil StartMenuItemList) hasNextLink() bool {
+	return smil.NextLink != nil && len(*smil.NextLink) != 0
+}
+
 // startMenuItemListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (smil StartMenuItemList) startMenuItemListPreparer(ctx context.Context) (*http.Request, error) {
-	if smil.NextLink == nil || len(to.String(smil.NextLink)) < 1 {
+	if !smil.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2028,11 +2090,16 @@ func (page *StartMenuItemListPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.smil)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.smil)
+		if err != nil {
+			return err
+		}
+		page.smil = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.smil = next
 	return nil
 }
 
@@ -2190,6 +2257,15 @@ type UserSessionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for UserSessionList.
+func (usl UserSessionList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if usl.Value != nil {
+		objectMap["value"] = usl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // UserSessionListIterator provides access to a complete listing of UserSession values.
 type UserSessionListIterator struct {
 	i    int
@@ -2258,10 +2334,15 @@ func (usl UserSessionList) IsEmpty() bool {
 	return usl.Value == nil || len(*usl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (usl UserSessionList) hasNextLink() bool {
+	return usl.NextLink != nil && len(*usl.NextLink) != 0
+}
+
 // userSessionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (usl UserSessionList) userSessionListPreparer(ctx context.Context) (*http.Request, error) {
-	if usl.NextLink == nil || len(to.String(usl.NextLink)) < 1 {
+	if !usl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2289,11 +2370,16 @@ func (page *UserSessionListPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.usl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.usl)
+		if err != nil {
+			return err
+		}
+		page.usl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.usl = next
 	return nil
 }
 
@@ -2451,6 +2537,15 @@ type WorkspaceList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for WorkspaceList.
+func (wl WorkspaceList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wl.Value != nil {
+		objectMap["value"] = wl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // WorkspaceListIterator provides access to a complete listing of Workspace values.
 type WorkspaceListIterator struct {
 	i    int
@@ -2519,10 +2614,15 @@ func (wl WorkspaceList) IsEmpty() bool {
 	return wl.Value == nil || len(*wl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wl WorkspaceList) hasNextLink() bool {
+	return wl.NextLink != nil && len(*wl.NextLink) != 0
+}
+
 // workspaceListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wl WorkspaceList) workspaceListPreparer(ctx context.Context) (*http.Request, error) {
-	if wl.NextLink == nil || len(to.String(wl.NextLink)) < 1 {
+	if !wl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2550,11 +2650,16 @@ func (page *WorkspaceListPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wl)
+		if err != nil {
+			return err
+		}
+		page.wl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wl = next
 	return nil
 }
 

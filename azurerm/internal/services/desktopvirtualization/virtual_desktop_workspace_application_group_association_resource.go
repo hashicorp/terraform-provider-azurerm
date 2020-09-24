@@ -96,10 +96,10 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 	refs := read.ApplicationGroupReferences
 
 	output := make([]string, 0)
-	for _, ref := range *refs {
-		output = append(output, ref)
-	}
-
+	output = append(output, *refs...)
+	// for _, ref := range *refs {
+	// 	output = append(output, ref)
+	// }
 	output = append(output, applicationGroupReferenceID)
 
 	read.ApplicationGroupReferences = &output
@@ -161,10 +161,10 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 	}
 
 	output := make([]string, 0)
-	for _, ref := range *refs {
-		output = append(output, ref)
-	}
-
+	output = append(output, *refs...)
+	// for _, ref := range *refs {
+	// 	output = append(output, ref)
+	// }
 	output = utils.RemoveFromStringArray(output, applicationGroupReferenceID)
 
 	read.ApplicationGroupReferences = &output
@@ -175,13 +175,4 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 	}
 
 	return nil
-}
-
-func contains(s []string, r string) bool {
-	for _, a := range s {
-		if a == r {
-			return true
-		}
-	}
-	return false
 }

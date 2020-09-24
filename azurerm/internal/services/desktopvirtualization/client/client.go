@@ -16,7 +16,6 @@ type Client struct {
 
 // NewClient - New client for desktop virtualization
 func NewClient(o *common.ClientOptions) *Client {
-
 	ApplicationGroupsClient := desktopvirtualization.NewApplicationGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGroupsClient.Client, o.ResourceManagerAuthorizer)
 

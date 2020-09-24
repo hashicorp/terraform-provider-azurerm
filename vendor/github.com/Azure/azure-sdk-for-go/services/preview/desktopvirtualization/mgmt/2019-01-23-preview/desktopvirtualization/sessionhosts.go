@@ -277,6 +277,9 @@ func (client SessionHostsClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.SessionHostsClient", "List", resp, "Failure responding to request")
 	}
+	if result.shl.hasNextLink() && result.shl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

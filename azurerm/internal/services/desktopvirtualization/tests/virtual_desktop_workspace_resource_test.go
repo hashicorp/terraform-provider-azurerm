@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -16,8 +15,6 @@ import (
 
 func TestAccAzureRMDesktopVirtualizationWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
-	clientID := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -25,7 +22,7 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDesktopVirtualizationWorkspace_basic(data, clientID, clientSecret),
+				Config: testAccAzureRMDesktopVirtualizationWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -37,8 +34,6 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_basic(t *testing.T) {
 
 func TestAccAzureRMDesktopVirtualizationWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
-	clientID := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,7 +41,7 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDesktopVirtualizationWorkspace_complete(data, clientID, clientSecret),
+				Config: testAccAzureRMDesktopVirtualizationWorkspace_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -58,8 +53,6 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_complete(t *testing.T) {
 
 func TestAccAzureRMDesktopVirtualizationWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
-	clientID := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -67,13 +60,13 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDesktopVirtualizationWorkspace_basic(data, clientID, clientSecret),
+				Config: testAccAzureRMDesktopVirtualizationWorkspace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationWorkspaceExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDesktopVirtualizationWorkspace_requiresImport(data, clientID, clientSecret),
+				Config:      testAccAzureRMDesktopVirtualizationWorkspace_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_virtual_desktop_workspace"),
 			},
 		},
@@ -140,7 +133,7 @@ func testCheckAzureRMDesktopVirtualizationWorkspaceDestroy(s *terraform.State) e
 	return nil
 }
 
-func testAccAzureRMDesktopVirtualizationWorkspace_basic(data acceptance.TestData, clientID string, clientSecret string) string {
+func testAccAzureRMDesktopVirtualizationWorkspace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,15 +145,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_workspace" "test" {
-	name                 = "acctws%d"
-	location             = azurerm_resource_group.test.location
-	resource_group_name  = azurerm_resource_group.test.name
+  name                = "acctws%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDesktopVirtualizationWorkspace_complete(data acceptance.TestData, clientID string, clientSecret string) string {
+func testAccAzureRMDesktopVirtualizationWorkspace_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -172,25 +165,25 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_workspace" "test" {
-	name                 = "acctws%d"
-	location             = azurerm_resource_group.test.location
-	resource_group_name  = azurerm_resource_group.test.name
-	friendly_name        = "acceptance test"
-	description          = "acceptance test by creating acctws%d"
+  name                = "acctws%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  friendly_name       = "acceptance test"
+  description         = "acceptance test by creating acctws%d"
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDesktopVirtualizationWorkspace_requiresImport(data acceptance.TestData, clientID string, clientSecret string) string {
-	template := testAccAzureRMDesktopVirtualizationWorkspace_basic(data, clientID, clientSecret)
+func testAccAzureRMDesktopVirtualizationWorkspace_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMDesktopVirtualizationWorkspace_basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_virtual_desktop_workspace" "import" {
-	name                 = azurerm_virtual_desktop_workspace.test.name
-	location             = azurerm_virtual_desktop_workspace.test.location
-	resource_group_name  = azurerm_virtual_desktop_workspace.test.resource_group_name
+  name                = azurerm_virtual_desktop_workspace.test.name
+  location            = azurerm_virtual_desktop_workspace.test.location
+  resource_group_name = azurerm_virtual_desktop_workspace.test.resource_group_name
 }
 `, template)
 }

@@ -27,8 +27,8 @@ resource "azurerm_virtual_desktop_host_pool" "pooledbreadthfirst" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  type                   = "Shared"
-  load_balancer_type     = "BreadthFirst"
+  type               = "Shared"
+  load_balancer_type = "BreadthFirst"
 }
 
 resource "azurerm_virtual_desktop_host_pool" "personalautomatic" {

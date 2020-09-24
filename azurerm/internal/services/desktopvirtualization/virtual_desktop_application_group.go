@@ -182,11 +182,10 @@ func resourceArmVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, met
 		return err
 	}
 
-	f, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("Error deleting Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	f.Location()
 
 	return nil
 }

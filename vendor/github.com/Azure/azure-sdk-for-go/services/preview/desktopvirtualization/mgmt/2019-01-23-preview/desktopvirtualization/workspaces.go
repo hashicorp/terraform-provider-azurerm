@@ -350,6 +350,9 @@ func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.WorkspacesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.wl.hasNextLink() && result.wl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -464,6 +467,9 @@ func (client WorkspacesClient) ListBySubscription(ctx context.Context) (result W
 	result.wl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.WorkspacesClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.wl.hasNextLink() && result.wl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

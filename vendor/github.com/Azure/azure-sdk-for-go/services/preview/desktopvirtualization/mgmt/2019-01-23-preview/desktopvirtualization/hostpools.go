@@ -350,6 +350,9 @@ func (client HostPoolsClient) List(ctx context.Context) (result HostPoolListPage
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "List", resp, "Failure responding to request")
 	}
+	if result.hpl.hasNextLink() && result.hpl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -469,6 +472,9 @@ func (client HostPoolsClient) ListByResourceGroup(ctx context.Context, resourceG
 	result.hpl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "desktopvirtualization.HostPoolsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.hpl.hasNextLink() && result.hpl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
