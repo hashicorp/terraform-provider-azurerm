@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_sql_server"
+page_title: "Azure Resource Manager: azurerm_mssql_server"
 description: |-
   Manages a Microsoft SQL Azure Database Server.
 
@@ -101,6 +101,8 @@ The following attributes are exported:
 * `id` - the Microsoft SQL Server ID.
 
 * `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server (e.g. myServerName.database.windows.net)
+
+* `restorable_dropped_database_ids` - A list of dropped restorable database IDs on the server.
 
 ---
 
