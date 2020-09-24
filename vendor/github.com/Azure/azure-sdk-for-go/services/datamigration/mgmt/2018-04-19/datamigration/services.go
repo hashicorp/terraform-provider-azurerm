@@ -471,6 +471,9 @@ func (client ServicesClient) List(ctx context.Context) (result ServiceListPage, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "List", resp, "Failure responding to request")
 	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -581,6 +584,9 @@ func (client ServicesClient) ListByResourceGroup(ctx context.Context, groupName 
 	result.sl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -694,6 +700,9 @@ func (client ServicesClient) ListSkus(ctx context.Context, groupName string, ser
 	result.ssl, err = client.ListSkusResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ServicesClient", "ListSkus", resp, "Failure responding to request")
+	}
+	if result.ssl.hasNextLink() && result.ssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

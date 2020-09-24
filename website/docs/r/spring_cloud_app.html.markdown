@@ -32,6 +32,10 @@ resource "azurerm_spring_cloud_app" "example" {
   name                = "example-springcloudapp"
   resource_group_name = azurerm_resource_group.example.name
   service_name        = azurerm_spring_cloud_service.example.name
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 ```
 
@@ -43,7 +47,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the resource group in which to create the Spring Cloud Application. Changing this forces a new resource to be created.
 
-* `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created. 
+* `service_name` - (Required) Specifies the name of the Spring Cloud Service resource. Changing this forces a new resource to be created.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the Spring Cloud Application. Possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -51,12 +63,21 @@ The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Application.
 
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Spring Cloud Application.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Spring Cloud Application.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Application.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Application.
+* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Application.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Application.
 
 ## Import

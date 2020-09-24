@@ -7,6 +7,7 @@ var services = mapOf(
         "appconfiguration" to "App Configuration",
         "appplatform" to "App Platform",
         "applicationinsights" to "Application Insights",
+        "attestation" to "Attestation",
         "authorization" to "Authorization",
         "automation" to "Automation",
         "batch" to "Batch",
@@ -42,6 +43,7 @@ var services = mapOf(
         "machinelearning" to "Machine Learning",
         "maintenance" to "Maintenance",
         "managedapplications" to "Managed Applications",
+        "lighthouse" to "Lighthouse",
         "managementgroup" to "Management Group",
         "maps" to "Maps",
         "mariadb" to "MariaDB",
@@ -73,6 +75,7 @@ var services = mapOf(
         "storage" to "Storage",
         "streamanalytics" to "Stream Analytics",
         "subscription" to "Subscription",
+        "synapse" to "Synapse",
         "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
         "web" to "Web"

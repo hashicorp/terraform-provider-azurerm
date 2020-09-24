@@ -473,6 +473,9 @@ func (client GatewayHostnameConfigurationClient) ListByService(ctx context.Conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayHostnameConfigurationClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.ghcc.hasNextLink() && result.ghcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

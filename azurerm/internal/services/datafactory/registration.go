@@ -41,6 +41,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_data_factory_integration_runtime_self_hosted":       resourceArmDataFactoryIntegrationRuntimeSelfHosted(),
 		"azurerm_data_factory_linked_service_azure_blob_storage":     resourceArmDataFactoryLinkedServiceAzureBlobStorage(),
 		"azurerm_data_factory_linked_service_azure_file_storage":     resourceArmDataFactoryLinkedServiceAzureFileStorage(),
+		"azurerm_data_factory_linked_service_azure_sql_database":     resourceArmDataFactoryLinkedServiceAzureSQLDatabase(),
 		"azurerm_data_factory_linked_service_azure_function":         resourceArmDataFactoryLinkedServiceAzureFunction(),
 		"azurerm_data_factory_linked_service_cosmosdb":               resourceArmDataFactoryLinkedServiceCosmosDb(),
 		"azurerm_data_factory_linked_service_data_lake_storage_gen2": resourceArmDataFactoryLinkedServiceDataLakeStorageGen2(),

@@ -309,6 +309,9 @@ func (client HubRouteTablesClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.HubRouteTablesClient", "List", resp, "Failure responding to request")
 	}
+	if result.lhrtr.hasNextLink() && result.lhrtr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

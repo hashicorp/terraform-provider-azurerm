@@ -34,7 +34,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Marketplace Agreement.
+* `id` - The ID of the Marketplace Agreement.
 
 ## Timeouts
 

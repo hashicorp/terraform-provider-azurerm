@@ -855,6 +855,9 @@ func (client NamespacesClient) List(ctx context.Context) (result SBNamespaceList
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "List", resp, "Failure responding to request")
 	}
+	if result.snlr.hasNextLink() && result.snlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -976,6 +979,9 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
 	}
+	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1094,6 +1100,9 @@ func (client NamespacesClient) ListByResourceGroup(ctx context.Context, resource
 	result.snlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.snlr.hasNextLink() && result.snlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1306,6 +1315,9 @@ func (client NamespacesClient) ListNetworkRuleSets(ctx context.Context, resource
 	result.nrslr, err = client.ListNetworkRuleSetsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.NamespacesClient", "ListNetworkRuleSets", resp, "Failure responding to request")
+	}
+	if result.nrslr.hasNextLink() && result.nrslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -1,18 +1,21 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -97,13 +100,17 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	if _, ok := ctx.Deadline(); !ok {
+		return fmt.Errorf("deadline is not properly set for Virtual Hub")
+	}
+
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	locks.ByName(name, virtualHubResourceName)
 	defer locks.UnlockByName(name, virtualHubResourceName)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -142,10 +149,26 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error waiting for creation of Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+	// Hub returns provisioned while the routing state is still "provisining". This might cause issues with following hubvnet connection operations.
+	// https://github.com/Azure/azure-rest-api-specs/issues/10391
+	// As a workaround, we will poll the routing state and ensure it is "Provisioned".
+
+	// deadline is checked at the entry point of this function
+	timeout, _ := ctx.Deadline()
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Provisioning"},
+		Target:                    []string{"Provisioned", "Failed"},
+		Refresh:                   virtualHubCreateRefreshFunc(ctx, client, resourceGroup, name),
+		PollInterval:              15 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(timeout),
 	}
+	respRaw, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("waiting for Virtual Hub %q (Host Group Name %q) provisioning route: %+v", name, resourceGroup, err)
+	}
+
+	resp := respRaw.(network.VirtualHub)
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Virtual Hub %q (Resource Group %q) ID", name, resourceGroup)
 	}
@@ -159,7 +182,7 @@ func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualHubID(d.Id())
+	id, err := parse.VirtualHubID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,7 +224,7 @@ func resourceArmVirtualHubDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualHubID(d.Id())
+	id, err := parse.VirtualHubID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -272,4 +295,26 @@ func flattenArmVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{
 	}
 
 	return results
+}
+
+func virtualHubCreateRefreshFunc(ctx context.Context, client *network.VirtualHubsClient, resourceGroup, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("Virtual Hub %q (Resource Group %q) doesn't exist", resourceGroup, name)
+			}
+
+			return nil, "", fmt.Errorf("retrieving Virtual Hub %q (Resource Group %q): %+v", resourceGroup, name, err)
+		}
+		if res.VirtualHubProperties == nil {
+			return nil, "", fmt.Errorf("unexpected nil properties of Virtual Hub %q (Resource Group %q)", resourceGroup, name)
+		}
+
+		state := res.VirtualHubProperties.RoutingState
+		if state == "Failed" {
+			return nil, "", fmt.Errorf("failed to provision routing on Virtual Hub %q (Resource Group %q)", resourceGroup, name)
+		}
+		return res, string(res.VirtualHubProperties.RoutingState), nil
+	}
 }

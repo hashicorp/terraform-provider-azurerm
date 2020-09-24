@@ -22,7 +22,7 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaHDInsightDataSourceName(),
+			"name": SchemaHDInsightDataSourceName(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
@@ -139,16 +139,16 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 			if kind := def.Kind; kind != nil {
 				d.Set("kind", strings.ToLower(*kind))
 			}
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 		}
 
-		edgeNodeSshEndpoint := azure.FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)
+		edgeNodeSshEndpoint := FindHDInsightConnectivityEndpoint("EDGESSH", props.ConnectivityEndpoints)
 		d.Set("edge_ssh_endpoint", edgeNodeSshEndpoint)
-		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
-		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 

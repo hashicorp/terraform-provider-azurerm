@@ -227,6 +227,9 @@ func (client ScriptActionsClient) ListByCluster(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptActionsClient", "ListByCluster", resp, "Failure responding to request")
 	}
+	if result.sal.hasNextLink() && result.sal.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

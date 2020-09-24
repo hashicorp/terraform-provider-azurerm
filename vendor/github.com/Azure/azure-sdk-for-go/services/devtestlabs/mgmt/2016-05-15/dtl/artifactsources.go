@@ -322,6 +322,9 @@ func (client ArtifactSourcesClient) List(ctx context.Context, resourceGroupName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArtifactSourcesClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcas.hasNextLink() && result.rwcas.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

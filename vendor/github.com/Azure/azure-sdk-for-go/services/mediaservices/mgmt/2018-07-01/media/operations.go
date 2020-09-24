@@ -71,6 +71,9 @@ func (client OperationsClient) List(ctx context.Context) (result OperationCollec
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.OperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.oc.hasNextLink() && result.oc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

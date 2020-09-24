@@ -6,11 +6,28 @@ import (
 )
 
 type Client struct {
-	WorkspaceClient          *synapse.WorkspacesClient
-	WorkspaceAadAdminsClient *synapse.WorkspaceAadAdminsClient
+	FirewallRulesClient                    *synapse.IPFirewallRulesClient
+	SparkPoolClient                        *synapse.BigDataPoolsClient
+	SqlPoolClient                          *synapse.SQLPoolsClient
+	SqlPoolTransparentDataEncryptionClient *synapse.SQLPoolTransparentDataEncryptionsClient
+	WorkspaceClient                        *synapse.WorkspacesClient
+	WorkspaceAadAdminsClient               *synapse.WorkspaceAadAdminsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&firewallRuleClient.Client, o.ResourceManagerAuthorizer)
+
+	// the service team hopes to rename it to sparkPool, so rename the sdk here
+	sparkPoolClient := synapse.NewBigDataPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sparkPoolClient.Client, o.ResourceManagerAuthorizer)
+
+	sqlPoolClient := synapse.NewSQLPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolClient.Client, o.ResourceManagerAuthorizer)
+
+	sqlPoolTransparentDataEncryptionClient := synapse.NewSQLPoolTransparentDataEncryptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&sqlPoolTransparentDataEncryptionClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceClient := synapse.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceClient.Client, o.ResourceManagerAuthorizer)
 
@@ -18,7 +35,11 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		WorkspaceClient:          &workspaceClient,
-		WorkspaceAadAdminsClient: &workspaceAadAdminsClient,
+		FirewallRulesClient:                    &firewallRuleClient,
+		SparkPoolClient:                        &sparkPoolClient,
+		SqlPoolClient:                          &sqlPoolClient,
+		SqlPoolTransparentDataEncryptionClient: &sqlPoolTransparentDataEncryptionClient,
+		WorkspaceClient:                        &workspaceClient,
+		WorkspaceAadAdminsClient:               &workspaceAadAdminsClient,
 	}
 }
