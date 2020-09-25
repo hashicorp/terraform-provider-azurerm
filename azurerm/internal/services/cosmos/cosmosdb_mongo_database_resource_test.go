@@ -1,4 +1,4 @@
-package tests
+package cosmos_test
 
 import (
 	"fmt"
@@ -13,18 +13,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMCosmosDbTable_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
+func TestAccAzureRMCosmosDbMongoDatabase_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbTable_basic(data),
+				Config: testAccAzureRMCosmosDbMongoDatabase_basic(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbTableExists(data.ResourceName),
+					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -32,29 +32,18 @@ func TestAccAzureRMCosmosDbTable_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosDbTable_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
+func TestAccAzureRMCosmosDbMongoDatabase_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-
-				Config: testAccAzureRMCosmosDbTable_throughput(data, 700),
+				Config: testAccAzureRMCosmosDbMongoDatabase_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbTableExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "700"),
-				),
-			},
-			data.ImportStep(),
-			{
-
-				Config: testAccAzureRMCosmosDbTable_throughput(data, 1700),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbTableExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "1700"),
+					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -62,34 +51,34 @@ func TestAccAzureRMCosmosDbTable_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosDbTable_autoscale(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_table", "test")
+func TestAccAzureRMCosmosDbMongoDatabase_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCosmosDbTableDestroy,
+		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbTable_autoscale(data, 4000),
+				Config: testAccAzureRMCosmosDbMongoDatabase_autoscale(data, 4000),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbTableExists(data.ResourceName),
+					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDbTable_autoscale(data, 5000),
+				Config: testAccAzureRMCosmosDbMongoDatabase_autoscale(data, 5000),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbTableExists(data.ResourceName),
+					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "5000"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDbTable_autoscale(data, 4000),
+				Config: testAccAzureRMCosmosDbMongoDatabase_autoscale(data, 4000),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testCheckAzureRMCosmosDbTableExists(data.ResourceName),
+					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
 				),
 			},
@@ -98,12 +87,12 @@ func TestAccAzureRMCosmosDbTable_autoscale(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMCosmosDbTableDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.TableClient
+func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.MongoDbClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmosdb_table" {
+		if rs.Type != "azurerm_cosmosdb_mongo_database" {
 			continue
 		}
 
@@ -111,24 +100,24 @@ func testCheckAzureRMCosmosDbTableDestroy(s *terraform.State) error {
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetTable(ctx, resourceGroup, account, name)
+		resp, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Error checking destroy for Cosmos Table %s (account %s) still exists:\n%v", name, account, err)
+				return fmt.Errorf("Bad: Error checking destroy for Cosmos Mongo Database %s (account %s) still exists:\n%v", name, account, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cosmos Table %s (account %s) still exists:\n%#v", name, account, resp)
+			return fmt.Errorf("Cosmos Mongo Database %s (account %s) still exists:\n%#v", name, account, resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMCosmosDbTableExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.TableClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.MongoDbClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -141,49 +130,49 @@ func testCheckAzureRMCosmosDbTableExists(resourceName string) resource.TestCheck
 		account := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.GetTable(ctx, resourceGroup, account, name)
+		resp, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Cosmos Table '%s' (account: '%s') does not exist", name, account)
+			return fmt.Errorf("Bad: Cosmos database '%s' (account: '%s') does not exist", name, account)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMCosmosDbTable_basic(data acceptance.TestData) string {
+func testAccAzureRMCosmosDbMongoDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_table" "test" {
+resource "azurerm_cosmosdb_mongo_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger)
+`, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbTable_throughput(data acceptance.TestData, throughput int) string {
+func testAccAzureRMCosmosDbMongoDatabase_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_table" "test" {
+resource "azurerm_cosmosdb_mongo_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
-  throughput          = %[3]d
+  throughput          = 700
 }
-`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, throughput)
+`, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
 }
 
-func testAccAzureRMCosmosDbTable_autoscale(data acceptance.TestData, maxThroughput int) string {
+func testAccAzureRMCosmosDbMongoDatabase_autoscale(data acceptance.TestData, maxThroughput int) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cosmosdb_table" "test" {
+resource "azurerm_cosmosdb_mongo_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
@@ -191,5 +180,5 @@ resource "azurerm_cosmosdb_table" "test" {
     max_throughput = %[3]d
   }
 }
-`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableTable"}), data.RandomInteger, maxThroughput)
+`, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger, maxThroughput)
 }

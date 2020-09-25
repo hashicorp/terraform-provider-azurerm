@@ -1,4 +1,4 @@
-package tests
+package cosmos_test
 
 import (
 	"fmt"
