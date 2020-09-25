@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"log"
 	"strings"
 	"time"
@@ -177,9 +178,27 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"name": {
-
+						"disk_configuration_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sqlvirtualmachine.NEW),
+								string(sqlvirtualmachine.EXTEND),
+								string(sqlvirtualmachine.ADD),
+							}, false),
 						},
+						"storage_workload_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sqlvirtualmachine.GENERAL),
+								string(sqlvirtualmachine.OLTP),
+								string(sqlvirtualmachine.DW),
+							}, false),
+						},
+						"sql_data_settings":    helper.StorageSettingSchema(),
+						"sql_log_settings":     helper.StorageSettingSchema(),
+						"sql_temp_db_settings": helper.StorageSettingSchema(),
 					},
 				},
 			},
@@ -242,6 +261,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 					SQLAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
 				},
 			},
+			StorageConfigurationSettings: expandArmSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration_settings").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -305,6 +325,17 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 				d.Set("sql_connectivity_port", mgmtSettings.SQLConnectivityUpdateSettings.Port)
 				d.Set("sql_connectivity_type", mgmtSettings.SQLConnectivityUpdateSettings.ConnectivityType)
 			}
+		}
+
+		// `storage_configuration_settings.0.storage_workload_type` is in a different spot than the rest of the `storage_configuration_settings`
+		// so we'll grab that here and pass it along
+		storageWorkloadType := ""
+		if props.ServerConfigurationsManagementSettings != nil && props.ServerConfigurationsManagementSettings.SQLWorkloadTypeUpdateSettings != nil {
+			storageWorkloadType = string(props.ServerConfigurationsManagementSettings.SQLWorkloadTypeUpdateSettings.SQLWorkloadType)
+		}
+
+		if err := d.Set("storage_configuration_settings", flattenArmSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
+			return fmt.Errorf("error setting `storage_configuration_settings`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -431,4 +462,75 @@ func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *schema.Resourc
 		}
 	}
 	return false
+}
+
+func expandArmSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *sqlvirtualmachine.StorageConfigurationSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	storageSettings := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachine.StorageConfigurationSettings{
+		DiskConfigurationType: sqlvirtualmachine.DiskConfigurationType(storageSettings["disk_configuration_type"].(string)),
+		StorageWorkloadType:   sqlvirtualmachine.StorageWorkloadType(storageSettings["storage_workload_type"].(string)),
+		SQLDataSettings:       expandArmSqlVirtualMachineDataStorageSettings(storageSettings["sql_data_settings"].([]interface{})),
+		SQLLogSettings:        expandArmSqlVirtualMachineDataStorageSettings(storageSettings["sql_log_settings"].([]interface{})),
+		SQLTempDbSettings:     expandArmSqlVirtualMachineDataStorageSettings(storageSettings["sql_temp_db_settings"].([]interface{})),
+	}
+}
+
+func flattenArmSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachine.StorageConfigurationSettings, storageWorkloadType string) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"disk_configuration_type": string(input.DiskConfigurationType),
+			"storage_workload_type":   storageWorkloadType,
+			"sql_data_settings":       flattenArmSqlVirtualMachineStorageSettings(input.SQLDataSettings),
+			"sql_log_settings":        flattenArmSqlVirtualMachineStorageSettings(input.SQLLogSettings),
+			"sql_temp_db_settings":    flattenArmSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
+		},
+	}
+}
+
+func expandArmSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtualmachine.SQLStorageSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	dataStorageSettings := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachine.SQLStorageSettings{
+		Luns:            expandArmSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
+		DefaultFilePath: utils.String(dataStorageSettings["default_file_path"].(string)),
+	}
+}
+
+func expandArmSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int32 {
+	expandedLuns := make([]int32, len(input))
+	for i := range input {
+		if input[i] != nil {
+			expandedLuns[i] = int32(input[i].(int))
+		}
+	}
+
+	return &expandedLuns
+}
+
+func flattenArmSqlVirtualMachineStorageSettings(input *sqlvirtualmachine.SQLStorageSettings) []interface{} {
+	if input == nil || input.Luns == nil {
+		return []interface{}{}
+	}
+	attrs := make(map[string]interface{}, 0)
+
+	if input.Luns != nil {
+		attrs["luns"] = *input.Luns
+	}
+
+	if input.DefaultFilePath != nil {
+		attrs["default_file_path"] = *input.DefaultFilePath
+	}
+
+	return []interface{}{attrs}
 }
