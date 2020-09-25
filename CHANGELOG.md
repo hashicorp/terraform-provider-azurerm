@@ -1,41 +1,63 @@
-## 2.29.0 (Unreleased)
-
-UPGRADE NOTES:
-
-* `azurerm_api_management` - the value `None` has been removed from the `identity` block to match other resources, to specify an API Management Service with no Managed Identity remove the `identity` block [GH-8411]
-* `azurerm_container_registry` -  the `storage_account_id` property now forces a new resource as required by the updated API version [GH-8477]
+## 2.30.0 (Unreleased)
 
 FEATURES: 
 
-* **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
-* **New Data Source:** `azurerm_databricks_workspace` [GH-8502]
-* **New Data Source:** `azurerm_firewall_policy` [GH-7390]
-* **New Data Source:** `azurerm_storage_sync_group` [GH-8462]
-* **New Data Source:** `azurerm_mssql_server` [GH-7917]
-* **New Resource:** `azurerm_data_share_dataset_kusto_cluster` [GH-8464]
-* **New resource:** `azurerm_firewall_policy` [GH-7390]
-* **New resource:** `azurerm_mysql_server_key` [GH-8125]
-* **New Resource:** `azurerm_postgresql_server_key` [GH-8126]
+* **New Data Source:** `azurerm_ip_groups` [GH-8556]
 
 IMPROVEMENTS:
 
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.1.0` [GH-8411]
-* dependencies: updating `containerregistry` to `2019-05-01` [GH-8477]
-* `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property [GH-8533]
-* `azurerm_cosmosdb_sql_container` - support for the `indexing_policy` property [GH-8461]
-* `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties [GH-7917]
-* `azurerm_policy_set_definition` - support for typed parameter values other then string in `the policy_definition_reference` block deprecating `parameters` in favour of `parameter_vcaluess` [GH-8270]
-* `azurerm_search_service` - Add support for `allowed_ips` [GH-8557]
-* `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` [GH-8521]
-* `azurerm_signalr_service` - support for delta updates [GH-8541]
-* `azurerm_windows_virtual_machine` - support for updating the `license_type` field [GH-8542]
+* `azurerm_cosmosdb_mongo_collection` - will now respect the order of the `keys` property in the `index` block [GH-8602]
+* `azurerm_lighthouse_assignment` - limit the `scope` property to subsriptions [GH-8601]
+
+## 2.29.0 (September 24, 2020)
+
+UPGRADE NOTES:
+
+* `azurerm_api_management` - the value `None` has been removed from the `identity` block to match other resources, to specify an API Management Service with no Managed Identity remove the `identity` block ([#8411](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8411))
+* `azurerm_container_registry` -  the `storage_account_id` property now forces a new resource as required by the updated API version ([#8477](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8477))
+* `azurerm_virtual_hub_connection` - deprecating the field `vitual_network_to_hub_gateways_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used ([#7601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7601))
+* `azurerm_virtual_hub_connection` - deprecating the field `hub_to_vitual_network_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used ([#7601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7601))
+* `azurerm_virtual_wan` - deprecating the field `allow_vnet_to_vnet_traffic` since due to a breaking change in the API behaviour this is no longer used ([#7601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7601))
+
+FEATURES: 
+
+* **New Data Source:** `azurerm_data_share_dataset_kusto_cluster` ([#8464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8464))
+* **New Data Source:** `azurerm_databricks_workspace` ([#8502](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8502))
+* **New Data Source:** `azurerm_firewall_policy` ([#7390](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7390))
+* **New Data Source:** `azurerm_storage_sync_group` ([#8462](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8462))
+* **New Data Source:** `azurerm_mssql_server` ([#7917](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7917))
+* **New Resource:** `azurerm_data_share_dataset_kusto_cluster` ([#8464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8464))
+* **New Resource:** `azurerm_firewall_policy` ([#7390](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7390))
+* **New Resource:** `azurerm_mysql_server_key` ([#8125](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8125))
+* **New Resource:** `azurerm_postgresql_server_key` ([#8126](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8126))
+
+IMPROVEMENTS:
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v46.3.0` ([#8592](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8592))
+* dependencies: updating `containerregistry` to `2019-05-01` ([#8477](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8477))
+* Data Source: `azurerm_api_management` - export the `private_ip_addresses` attribute for primary and additional locations ([#8290](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8290))
+* `azurerm_api_management` - support the `virtual_network_configuration` block for additional locations ([#8290](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8290))
+* `azurerm_api_management` - export the `private_ip_addresses` attribute for additional locations ([#8290](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8290))
+* `azurerm_cosmosdb_account` - support the `Serverless` value for the `capabilities` property ([#8533](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8533))
+* `azurerm_cosmosdb_sql_container` - support for the `indexing_policy` property ([#8461](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8461))
+* `azurerm_mssql_server` - support for the `recover_database_id` and `restore_dropped_database_id` properties ([#7917](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7917))
+* `azurerm_policy_set_definition` - support for typed parameter values other then string in `the policy_definition_reference` block deprecating `parameters` in favour of `parameter_vcaluess` ([#8270](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8270))
+* `azurerm_search_service` - Add support for `allowed_ips` ([#8557](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8557))
+* `azurerm_service_fabric_cluster` - Remove two block limit for `client_certificate_thumbprint` ([#8521](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8521))
+* `azurerm_signalr_service` - support for delta updates ([#8541](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8541))
+* `azurerm_spring_cloud_service` - support for configuring the `network` block ([#8568](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8568))
+* `azurerm_virtual_hub_connection` - deprecating the field `vitual_network_to_hub_gateways_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used ([#7601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7601))
+* `azurerm_virtual_hub_connection` - deprecating the field `hub_to_vitual_network_traffic_allowed` since due to a breaking change in the API behaviour this is no longer used ([#7601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7601))
+* `azurerm_virtual_hub_connection` - switching to use the now separate API for provisioning these resources ([#7601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7601))
+* `azurerm_virtual_wan` - deprecating the field `allow_vnet_to_vnet_traffic` since due to a breaking change in the API behaviour this is no longer used ([#7601](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7601))
+* `azurerm_windows_virtual_machine` - support for updating the `license_type` field ([#8542](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8542))
 
 BUG FIXES:
 
-* `azurerm_api_management` - the value `None` for the field `type` within the `identity` block has been removed - to remove a managed identity remove the `identity` block [GH-8411]
-* `azurerm_app_service` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
-* `azurerm_function_app` - don't try to manage source_control when scm_type is `VSTSRM` [GH-8531]
-* `azurerm_kubernetes_cluster` - picking the first system node pool if the original `default_node_pool` has been removed [GH-8503]
+* `azurerm_api_management` - the value `None` for the field `type` within the `identity` block has been removed - to remove a managed identity remove the `identity` block ([#8411](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8411))
+* `azurerm_app_service` - don't try to manage source_control when scm_type is `VSTSRM` ([#8531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8531))
+* `azurerm_function_app` - don't try to manage source_control when scm_type is `VSTSRM` ([#8531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8531))
+* `azurerm_kubernetes_cluster` - picking the first system node pool if the original `default_node_pool` has been removed ([#8503](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8503))
 
 ## 2.28.0 (September 17, 2020)
 

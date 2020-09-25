@@ -1,4 +1,4 @@
-package network
+package parse
 
 import (
 	"fmt"
@@ -6,18 +6,28 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VirtualHubResourceID struct {
+type VirtualHubId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func ParseVirtualHubID(input string) (*VirtualHubResourceID, error) {
+func NewVirtualHubID(resourceGroup, name string) VirtualHubId {
+	return VirtualHubId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+func (id VirtualHubId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s", subscriptionId, id.ResourceGroup, id.Name)
+}
+
+func VirtualHubID(input string) (*VirtualHubId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Hub ID %q: %+v", input, err)
 	}
 
-	virtualHub := VirtualHubResourceID{
+	virtualHub := VirtualHubId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -30,17 +40,4 @@ func ParseVirtualHubID(input string) (*VirtualHubResourceID, error) {
 	}
 
 	return &virtualHub, nil
-}
-
-func ValidateVirtualHubID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if _, err := ParseVirtualHubID(v); err != nil {
-		return nil, []error{err}
-	}
-
-	return nil, nil
 }
