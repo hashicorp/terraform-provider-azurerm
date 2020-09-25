@@ -502,6 +502,7 @@ func TestAccAzureRMSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }

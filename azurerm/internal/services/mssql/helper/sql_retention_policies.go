@@ -12,6 +12,7 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -52,6 +53,7 @@ func ShortTermRetentionPolicySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		Computed: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -66,6 +68,10 @@ func ShortTermRetentionPolicySchema() *schema.Schema {
 }
 
 func ExpandLongTermRetentionPolicy(input []interface{}) *sql.LongTermRetentionPolicyProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
 	longTermRetentionPolicy := input[0].(map[string]interface{})
 
 	longTermPolicyProperties := sql.LongTermRetentionPolicyProperties{
@@ -130,6 +136,10 @@ func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermR
 }
 
 func ExpandShortTermRetentionPolicy(input []interface{}) *sql.BackupShortTermRetentionPolicyProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
 	shortTermRetentionPolicy := input[0].(map[string]interface{})
 
 	shortTermPolicyProperties := sql.BackupShortTermRetentionPolicyProperties{
