@@ -701,7 +701,7 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
-  
+
   enable_multiple_write_locations = true
 
   consistency_policy {
