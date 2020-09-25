@@ -85,7 +85,7 @@ func resourceArmAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *schem
 			}
 		}
 
-		if existing.SwiftVirtualNetworkProperties.SubnetResourceID != nil && *existing.SwiftVirtualNetworkProperties.SubnetResourceID != "" {
+		if existing.SwiftVirtualNetworkProperties != nil && existing.SwiftVirtualNetworkProperties.SubnetResourceID != nil && *existing.SwiftVirtualNetworkProperties.SubnetResourceID != "" {
 			return tf.ImportAsExistsError("azurerm_app_service_slot_virtual_network_swift_connection", *existing.ID)
 		}
 	}
