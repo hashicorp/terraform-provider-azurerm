@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
@@ -175,7 +176,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Computed: true,
 						},
 
-						"location": azure.SchemaLocationWithoutForceNew(),
+						"location": location.SchemaWithoutForceNew(),
 
 						"failover_priority": {
 							Type:         schema.TypeInt,
@@ -202,9 +203,12 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								"EnableCassandra",
 								"EnableGremlin",
 								"EnableTable",
+								"EnableServerless",
 								"EnableMongo",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
+								"DisableRateLimitingResponses",
+								"AllowSelfServeUpgradeToMongo36",
 							}, true),
 						},
 					},

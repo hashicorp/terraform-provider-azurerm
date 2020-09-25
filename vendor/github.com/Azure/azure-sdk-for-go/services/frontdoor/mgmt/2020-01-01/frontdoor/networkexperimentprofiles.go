@@ -330,6 +330,9 @@ func (client NetworkExperimentProfilesClient) List(ctx context.Context) (result 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "List", resp, "Failure responding to request")
 	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -447,6 +450,9 @@ func (client NetworkExperimentProfilesClient) ListByResourceGroup(ctx context.Co
 	result.pl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.NetworkExperimentProfilesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

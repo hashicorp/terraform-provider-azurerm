@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
@@ -108,17 +107,15 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	resourceID := queueClient.GetResourceID(accountName, queueName)
-	if features.ShouldResourcesBeImported() {
-		existing, err := queueClient.GetMetaData(ctx, accountName, queueName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Queue %q (Storage Account %q): %s", queueName, accountName, err)
-			}
-		}
-
+	existing, err := queueClient.GetMetaData(ctx, accountName, queueName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_storage_queue", resourceID)
+			return fmt.Errorf("Error checking for presence of existing Queue %q (Storage Account %q): %s", queueName, accountName, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_queue", resourceID)
 	}
 
 	if _, err := queueClient.Create(ctx, accountName, queueName, metaData); err != nil {

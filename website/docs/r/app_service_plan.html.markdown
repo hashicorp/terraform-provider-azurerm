@@ -107,7 +107,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption) and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
 
-~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`, and when creating other kinds of App Service Plan, the `reserved` field must be set to `false`.
+~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`, and when creating a `Windows`/`app` App Service Plan the `reserved` field must be set to `false`.
 
 * `maximum_elastic_worker_count` - The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
 

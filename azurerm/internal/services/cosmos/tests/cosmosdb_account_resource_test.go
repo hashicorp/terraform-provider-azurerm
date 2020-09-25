@@ -238,7 +238,7 @@ func testAccAzureRMCosmosDBAccount_updateWith(t *testing.T, kind documentdb.Data
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
+				Config: testAccAzureRMCosmosDBAccount_basicWithResources(data, kind, documentdb.Eventual),
 				Check:  resource.ComposeAggregateTestCheckFunc(
 				// checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 				),
@@ -264,6 +264,10 @@ func TestAccAzureRMCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableTable"})
 }
 
+func TestAccAzureRMCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableServerless"})
+}
+
 func TestAccAzureRMCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo"})
 }
@@ -274,6 +278,14 @@ func TestAccAzureRMCosmosDBAccount_capabilities_MongoDBv34(t *testing.T) {
 
 func TestAccAzureRMCosmosDBAccount_capabilities_mongoEnableDocLevelTTL(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"mongoEnableDocLevelTTL"})
+}
+
+func TestAccAzureRMCosmosDBAccount_capabilities_DisableRateLimitingResponses(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"DisableRateLimitingResponses"})
+}
+
+func TestAccAzureRMCosmosDBAccount_capabilities_AllowSelfServeUpgradeToMongo36(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"AllowSelfServeUpgradeToMongo36"})
 }
 
 func testAccAzureRMCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentdb.DatabaseAccountKind, capabilities []string) {
@@ -682,6 +694,29 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, testAccAzureRMCosmosDBAccount_completePreReqs(data), data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary, data.Locations.Ternary)
+}
+
+func testAccAzureRMCosmosDBAccount_basicWithResources(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, testAccAzureRMCosmosDBAccount_completePreReqs(data), data.RandomInteger, string(kind), string(consistency))
 }
 
 func testAccAzureRMCosmosDBAccount_capabilities(data acceptance.TestData, kind documentdb.DatabaseAccountKind, capabilities []string) string {

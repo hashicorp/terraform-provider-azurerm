@@ -329,6 +329,9 @@ func (client EnvironmentsClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.EnvironmentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcde.hasNextLink() && result.rwcde.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

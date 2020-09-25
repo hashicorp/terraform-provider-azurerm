@@ -27,6 +27,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
+  location                                     = "EastUS2"
   resource_group_name                          = azurerm_resource_group.example.name
   enforce_backend_pools_certificate_name_check = false
 
@@ -75,6 +76,8 @@ resource "azurerm_frontdoor" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Front Door service. Changing this forces a new resource to be created.
+
+* `location` -  (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
@@ -254,17 +257,19 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 `backend_pool` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Pool.
+* `id` - The ID of the Azure Front Door Backend Pool.
 
+---
 
 `backend` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend.
+* `id` - The ID of the Azure Front Door Backend.
 
+---
 
 `frontend_endpoint` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
+* `id` - The ID of the Azure Front Door Frontend Endpoint.
 
 * `provisioning_state` - Provisioning state of the Front Door.
 
@@ -272,25 +277,31 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 [//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
+---
 
 `backend_pool_health_probe` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Health Probe.
+* `id` - The ID of the Azure Front Door Backend Health Probe.
 
+---
 
 `backend_pool_load_balancing` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Load Balancer.
+* `id` - The ID of the Azure Front Door Backend Load Balancer.
 
+---
 
 `routing_rule` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Routing Rule.
+* `id` - The ID of the Azure Front Door Backend Routing Rule.
+
+---
 
 `custom_https_configuration` exports the following:
 
 * `minimum_tls_version` - Minimum client TLS version supported.
 
+---
 
 The following attributes are exported:
 

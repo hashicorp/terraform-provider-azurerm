@@ -260,9 +260,11 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 }
 `, data.RandomInteger, data.RandomInteger)
@@ -281,9 +283,11 @@ resource "azurerm_policy_set_definition" "import" {
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 }
 `, template)
@@ -353,9 +357,11 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = azurerm_policy_definition.test.id
-    parameters = {
-      allowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -437,9 +443,11 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -517,9 +525,11 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 
   metadata = <<METADATA
@@ -556,10 +566,12 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = azurerm_policy_definition.test.id
-    parameters = {
-      allowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
-    reference_id = "TestRef"
+VALUES
+    reference_id         = "TestRef"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -592,7 +604,7 @@ resource "azurerm_policy_definition" "test" {
 POLICY_RULE
 
   parameters = <<PARAMETERS
-	{
+  {
     "allowedLocations": {
       "type": "Array",
       "metadata": {

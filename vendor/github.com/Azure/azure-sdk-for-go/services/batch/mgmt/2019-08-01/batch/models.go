@@ -31,381 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 
-// AccountKeyType enumerates the values for account key type.
-type AccountKeyType string
-
-const (
-	// Primary The primary account key.
-	Primary AccountKeyType = "Primary"
-	// Secondary The secondary account key.
-	Secondary AccountKeyType = "Secondary"
-)
-
-// PossibleAccountKeyTypeValues returns an array of possible values for the AccountKeyType const type.
-func PossibleAccountKeyTypeValues() []AccountKeyType {
-	return []AccountKeyType{Primary, Secondary}
-}
-
-// AllocationState enumerates the values for allocation state.
-type AllocationState string
-
-const (
-	// Resizing The pool is resizing; that is, compute nodes are being added to or removed from the pool.
-	Resizing AllocationState = "Resizing"
-	// Steady The pool is not resizing. There are no changes to the number of nodes in the pool in progress. A
-	// pool enters this state when it is created and when no operations are being performed on the pool to
-	// change the number of nodes.
-	Steady AllocationState = "Steady"
-	// Stopping The pool was resizing, but the user has requested that the resize be stopped, but the stop
-	// request has not yet been completed.
-	Stopping AllocationState = "Stopping"
-)
-
-// PossibleAllocationStateValues returns an array of possible values for the AllocationState const type.
-func PossibleAllocationStateValues() []AllocationState {
-	return []AllocationState{Resizing, Steady, Stopping}
-}
-
-// AutoUserScope enumerates the values for auto user scope.
-type AutoUserScope string
-
-const (
-	// AutoUserScopePool Specifies that the task runs as the common auto user account which is created on every
-	// node in a pool.
-	AutoUserScopePool AutoUserScope = "Pool"
-	// AutoUserScopeTask Specifies that the service should create a new user for the task.
-	AutoUserScopeTask AutoUserScope = "Task"
-)
-
-// PossibleAutoUserScopeValues returns an array of possible values for the AutoUserScope const type.
-func PossibleAutoUserScopeValues() []AutoUserScope {
-	return []AutoUserScope{AutoUserScopePool, AutoUserScopeTask}
-}
-
-// CachingType enumerates the values for caching type.
-type CachingType string
-
-const (
-	// None The caching mode for the disk is not enabled.
-	None CachingType = "None"
-	// ReadOnly The caching mode for the disk is read only.
-	ReadOnly CachingType = "ReadOnly"
-	// ReadWrite The caching mode for the disk is read and write.
-	ReadWrite CachingType = "ReadWrite"
-)
-
-// PossibleCachingTypeValues returns an array of possible values for the CachingType const type.
-func PossibleCachingTypeValues() []CachingType {
-	return []CachingType{None, ReadOnly, ReadWrite}
-}
-
-// CertificateFormat enumerates the values for certificate format.
-type CertificateFormat string
-
-const (
-	// Cer The certificate is a base64-encoded X.509 certificate.
-	Cer CertificateFormat = "Cer"
-	// Pfx The certificate is a PFX (PKCS#12) formatted certificate or certificate chain.
-	Pfx CertificateFormat = "Pfx"
-)
-
-// PossibleCertificateFormatValues returns an array of possible values for the CertificateFormat const type.
-func PossibleCertificateFormatValues() []CertificateFormat {
-	return []CertificateFormat{Cer, Pfx}
-}
-
-// CertificateProvisioningState enumerates the values for certificate provisioning state.
-type CertificateProvisioningState string
-
-const (
-	// Deleting The user has requested that the certificate be deleted, but the delete operation has not yet
-	// completed. You may not reference the certificate when creating or updating pools.
-	Deleting CertificateProvisioningState = "Deleting"
-	// Failed The user requested that the certificate be deleted, but there are pools that still have
-	// references to the certificate, or it is still installed on one or more compute nodes. (The latter can
-	// occur if the certificate has been removed from the pool, but the node has not yet restarted. Nodes
-	// refresh their certificates only when they restart.) You may use the cancel certificate delete operation
-	// to cancel the delete, or the delete certificate operation to retry the delete.
-	Failed CertificateProvisioningState = "Failed"
-	// Succeeded The certificate is available for use in pools.
-	Succeeded CertificateProvisioningState = "Succeeded"
-)
-
-// PossibleCertificateProvisioningStateValues returns an array of possible values for the CertificateProvisioningState const type.
-func PossibleCertificateProvisioningStateValues() []CertificateProvisioningState {
-	return []CertificateProvisioningState{Deleting, Failed, Succeeded}
-}
-
-// CertificateStoreLocation enumerates the values for certificate store location.
-type CertificateStoreLocation string
-
-const (
-	// CurrentUser Certificates should be installed to the CurrentUser certificate store.
-	CurrentUser CertificateStoreLocation = "CurrentUser"
-	// LocalMachine Certificates should be installed to the LocalMachine certificate store.
-	LocalMachine CertificateStoreLocation = "LocalMachine"
-)
-
-// PossibleCertificateStoreLocationValues returns an array of possible values for the CertificateStoreLocation const type.
-func PossibleCertificateStoreLocationValues() []CertificateStoreLocation {
-	return []CertificateStoreLocation{CurrentUser, LocalMachine}
-}
-
-// CertificateVisibility enumerates the values for certificate visibility.
-type CertificateVisibility string
-
-const (
-	// CertificateVisibilityRemoteUser The certificate should be visible to the user accounts under which users
-	// remotely access the node.
-	CertificateVisibilityRemoteUser CertificateVisibility = "RemoteUser"
-	// CertificateVisibilityStartTask The certificate should be visible to the user account under which the
-	// start task is run. Note that if AutoUser Scope is Pool for both the StartTask and a Task, this
-	// certificate will be visible to the Task as well.
-	CertificateVisibilityStartTask CertificateVisibility = "StartTask"
-	// CertificateVisibilityTask The certificate should be visible to the user accounts under which job tasks
-	// are run.
-	CertificateVisibilityTask CertificateVisibility = "Task"
-)
-
-// PossibleCertificateVisibilityValues returns an array of possible values for the CertificateVisibility const type.
-func PossibleCertificateVisibilityValues() []CertificateVisibility {
-	return []CertificateVisibility{CertificateVisibilityRemoteUser, CertificateVisibilityStartTask, CertificateVisibilityTask}
-}
-
-// ComputeNodeDeallocationOption enumerates the values for compute node deallocation option.
-type ComputeNodeDeallocationOption string
-
-const (
-	// Requeue Terminate running task processes and requeue the tasks. The tasks will run again when a node is
-	// available. Remove nodes as soon as tasks have been terminated.
-	Requeue ComputeNodeDeallocationOption = "Requeue"
-	// RetainedData Allow currently running tasks to complete, then wait for all task data retention periods to
-	// expire. Schedule no new tasks while waiting. Remove nodes when all task retention periods have expired.
-	RetainedData ComputeNodeDeallocationOption = "RetainedData"
-	// TaskCompletion Allow currently running tasks to complete. Schedule no new tasks while waiting. Remove
-	// nodes when all tasks have completed.
-	TaskCompletion ComputeNodeDeallocationOption = "TaskCompletion"
-	// Terminate Terminate running tasks. The tasks will be completed with failureInfo indicating that they
-	// were terminated, and will not run again. Remove nodes as soon as tasks have been terminated.
-	Terminate ComputeNodeDeallocationOption = "Terminate"
-)
-
-// PossibleComputeNodeDeallocationOptionValues returns an array of possible values for the ComputeNodeDeallocationOption const type.
-func PossibleComputeNodeDeallocationOptionValues() []ComputeNodeDeallocationOption {
-	return []ComputeNodeDeallocationOption{Requeue, RetainedData, TaskCompletion, Terminate}
-}
-
-// ComputeNodeFillType enumerates the values for compute node fill type.
-type ComputeNodeFillType string
-
-const (
-	// Pack As many tasks as possible (maxTasksPerNode) should be assigned to each node in the pool before any
-	// tasks are assigned to the next node in the pool.
-	Pack ComputeNodeFillType = "Pack"
-	// Spread Tasks should be assigned evenly across all nodes in the pool.
-	Spread ComputeNodeFillType = "Spread"
-)
-
-// PossibleComputeNodeFillTypeValues returns an array of possible values for the ComputeNodeFillType const type.
-func PossibleComputeNodeFillTypeValues() []ComputeNodeFillType {
-	return []ComputeNodeFillType{Pack, Spread}
-}
-
-// ContainerWorkingDirectory enumerates the values for container working directory.
-type ContainerWorkingDirectory string
-
-const (
-	// ContainerImageDefault Using container image defined working directory. Beware that this directory will
-	// not contain the resource files downloaded by Batch.
-	ContainerImageDefault ContainerWorkingDirectory = "ContainerImageDefault"
-	// TaskWorkingDirectory Use the standard Batch service task working directory, which will contain the Task
-	// resource files populated by Batch.
-	TaskWorkingDirectory ContainerWorkingDirectory = "TaskWorkingDirectory"
-)
-
-// PossibleContainerWorkingDirectoryValues returns an array of possible values for the ContainerWorkingDirectory const type.
-func PossibleContainerWorkingDirectoryValues() []ContainerWorkingDirectory {
-	return []ContainerWorkingDirectory{ContainerImageDefault, TaskWorkingDirectory}
-}
-
-// ElevationLevel enumerates the values for elevation level.
-type ElevationLevel string
-
-const (
-	// Admin The user is a user with elevated access and operates with full Administrator permissions.
-	Admin ElevationLevel = "Admin"
-	// NonAdmin The user is a standard user without elevated access.
-	NonAdmin ElevationLevel = "NonAdmin"
-)
-
-// PossibleElevationLevelValues returns an array of possible values for the ElevationLevel const type.
-func PossibleElevationLevelValues() []ElevationLevel {
-	return []ElevationLevel{Admin, NonAdmin}
-}
-
-// InboundEndpointProtocol enumerates the values for inbound endpoint protocol.
-type InboundEndpointProtocol string
-
-const (
-	// TCP Use TCP for the endpoint.
-	TCP InboundEndpointProtocol = "TCP"
-	// UDP Use UDP for the endpoint.
-	UDP InboundEndpointProtocol = "UDP"
-)
-
-// PossibleInboundEndpointProtocolValues returns an array of possible values for the InboundEndpointProtocol const type.
-func PossibleInboundEndpointProtocolValues() []InboundEndpointProtocol {
-	return []InboundEndpointProtocol{TCP, UDP}
-}
-
-// InterNodeCommunicationState enumerates the values for inter node communication state.
-type InterNodeCommunicationState string
-
-const (
-	// Disabled Disable network communication between virtual machines.
-	Disabled InterNodeCommunicationState = "Disabled"
-	// Enabled Enable network communication between virtual machines.
-	Enabled InterNodeCommunicationState = "Enabled"
-)
-
-// PossibleInterNodeCommunicationStateValues returns an array of possible values for the InterNodeCommunicationState const type.
-func PossibleInterNodeCommunicationStateValues() []InterNodeCommunicationState {
-	return []InterNodeCommunicationState{Disabled, Enabled}
-}
-
-// LoginMode enumerates the values for login mode.
-type LoginMode string
-
-const (
-	// Batch The LOGON32_LOGON_BATCH Win32 login mode. The batch login mode is recommended for long running
-	// parallel processes.
-	Batch LoginMode = "Batch"
-	// Interactive The LOGON32_LOGON_INTERACTIVE Win32 login mode. Some applications require having permissions
-	// associated with the interactive login mode. If this is the case for an application used in your task,
-	// then this option is recommended.
-	Interactive LoginMode = "Interactive"
-)
-
-// PossibleLoginModeValues returns an array of possible values for the LoginMode const type.
-func PossibleLoginModeValues() []LoginMode {
-	return []LoginMode{Batch, Interactive}
-}
-
-// NameAvailabilityReason enumerates the values for name availability reason.
-type NameAvailabilityReason string
-
-const (
-	// AlreadyExists The requested name is already in use.
-	AlreadyExists NameAvailabilityReason = "AlreadyExists"
-	// Invalid The requested name is invalid.
-	Invalid NameAvailabilityReason = "Invalid"
-)
-
-// PossibleNameAvailabilityReasonValues returns an array of possible values for the NameAvailabilityReason const type.
-func PossibleNameAvailabilityReasonValues() []NameAvailabilityReason {
-	return []NameAvailabilityReason{AlreadyExists, Invalid}
-}
-
-// NetworkSecurityGroupRuleAccess enumerates the values for network security group rule access.
-type NetworkSecurityGroupRuleAccess string
-
-const (
-	// Allow Allow access.
-	Allow NetworkSecurityGroupRuleAccess = "Allow"
-	// Deny Deny access.
-	Deny NetworkSecurityGroupRuleAccess = "Deny"
-)
-
-// PossibleNetworkSecurityGroupRuleAccessValues returns an array of possible values for the NetworkSecurityGroupRuleAccess const type.
-func PossibleNetworkSecurityGroupRuleAccessValues() []NetworkSecurityGroupRuleAccess {
-	return []NetworkSecurityGroupRuleAccess{Allow, Deny}
-}
-
-// PackageState enumerates the values for package state.
-type PackageState string
-
-const (
-	// Active The application package is ready for use.
-	Active PackageState = "Active"
-	// Pending The application package has been created but has not yet been activated.
-	Pending PackageState = "Pending"
-)
-
-// PossiblePackageStateValues returns an array of possible values for the PackageState const type.
-func PossiblePackageStateValues() []PackageState {
-	return []PackageState{Active, Pending}
-}
-
-// PoolAllocationMode enumerates the values for pool allocation mode.
-type PoolAllocationMode string
-
-const (
-	// BatchService Pools will be allocated in subscriptions owned by the Batch service.
-	BatchService PoolAllocationMode = "BatchService"
-	// UserSubscription Pools will be allocated in a subscription owned by the user.
-	UserSubscription PoolAllocationMode = "UserSubscription"
-)
-
-// PossiblePoolAllocationModeValues returns an array of possible values for the PoolAllocationMode const type.
-func PossiblePoolAllocationModeValues() []PoolAllocationMode {
-	return []PoolAllocationMode{BatchService, UserSubscription}
-}
-
-// PoolProvisioningState enumerates the values for pool provisioning state.
-type PoolProvisioningState string
-
-const (
-	// PoolProvisioningStateDeleting The user has requested that the pool be deleted, but the delete operation
-	// has not yet completed.
-	PoolProvisioningStateDeleting PoolProvisioningState = "Deleting"
-	// PoolProvisioningStateSucceeded The pool is available to run tasks subject to the availability of compute
-	// nodes.
-	PoolProvisioningStateSucceeded PoolProvisioningState = "Succeeded"
-)
-
-// PossiblePoolProvisioningStateValues returns an array of possible values for the PoolProvisioningState const type.
-func PossiblePoolProvisioningStateValues() []PoolProvisioningState {
-	return []PoolProvisioningState{PoolProvisioningStateDeleting, PoolProvisioningStateSucceeded}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// ProvisioningStateCancelled The last operation for the account is cancelled.
-	ProvisioningStateCancelled ProvisioningState = "Cancelled"
-	// ProvisioningStateCreating The account is being created.
-	ProvisioningStateCreating ProvisioningState = "Creating"
-	// ProvisioningStateDeleting The account is being deleted.
-	ProvisioningStateDeleting ProvisioningState = "Deleting"
-	// ProvisioningStateFailed The last operation for the account is failed.
-	ProvisioningStateFailed ProvisioningState = "Failed"
-	// ProvisioningStateInvalid The account is in an invalid state.
-	ProvisioningStateInvalid ProvisioningState = "Invalid"
-	// ProvisioningStateSucceeded The account has been created and is ready for use.
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{ProvisioningStateCancelled, ProvisioningStateCreating, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateInvalid, ProvisioningStateSucceeded}
-}
-
-// StorageAccountType enumerates the values for storage account type.
-type StorageAccountType string
-
-const (
-	// PremiumLRS The data disk should use premium locally redundant storage.
-	PremiumLRS StorageAccountType = "Premium_LRS"
-	// StandardLRS The data disk should use standard locally redundant storage.
-	StandardLRS StorageAccountType = "Standard_LRS"
-)
-
-// PossibleStorageAccountTypeValues returns an array of possible values for the StorageAccountType const type.
-func PossibleStorageAccountTypeValues() []StorageAccountType {
-	return []StorageAccountType{PremiumLRS, StandardLRS}
-}
-
 // Account contains information about an Azure Batch account.
 type Account struct {
 	autorest.Response `json:"-"`
@@ -501,8 +126,7 @@ func (a *Account) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// AccountCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AccountCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type AccountCreateFuture struct {
 	azure.Future
 }
@@ -607,8 +231,7 @@ type AccountCreateProperties struct {
 	KeyVaultReference *KeyVaultReference `json:"keyVaultReference,omitempty"`
 }
 
-// AccountDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// AccountDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type AccountDeleteFuture struct {
 	azure.Future
 }
@@ -718,10 +341,15 @@ func (alr AccountListResult) IsEmpty() bool {
 	return alr.Value == nil || len(*alr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (alr AccountListResult) hasNextLink() bool {
+	return alr.NextLink != nil && len(*alr.NextLink) != 0
+}
+
 // accountListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (alr AccountListResult) accountListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+	if !alr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -749,11 +377,16 @@ func (page *AccountListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.alr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.alr)
+		if err != nil {
+			return err
+		}
+		page.alr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.alr = next
 	return nil
 }
 
@@ -1113,8 +746,7 @@ type AutoStorageBaseProperties struct {
 	StorageAccountID *string `json:"storageAccountId,omitempty"`
 }
 
-// AutoStorageProperties contains information about the auto-storage account associated with a Batch
-// account.
+// AutoStorageProperties contains information about the auto-storage account associated with a Batch account.
 type AutoStorageProperties struct {
 	// LastKeySync - The UTC time at which storage keys were last synchronized with the Batch account.
 	LastKeySync *date.Time `json:"lastKeySync,omitempty"`
@@ -1421,6 +1053,21 @@ type CertificateProperties struct {
 	Format CertificateFormat `json:"format,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CertificateProperties.
+func (cp CertificateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.ThumbprintAlgorithm != nil {
+		objectMap["thumbprintAlgorithm"] = cp.ThumbprintAlgorithm
+	}
+	if cp.Thumbprint != nil {
+		objectMap["thumbprint"] = cp.Thumbprint
+	}
+	if cp.Format != "" {
+		objectMap["format"] = cp.Format
+	}
+	return json.Marshal(objectMap)
+}
+
 // CertificateReference ...
 type CertificateReference struct {
 	ID *string `json:"id,omitempty"`
@@ -1503,8 +1150,8 @@ type ContainerRegistry struct {
 	Password       *string `json:"password,omitempty"`
 }
 
-// DataDisk settings which will be used by the data disks associated to Compute Nodes in the Pool. When
-// using attached data disks, you need to mount and format the disks from within a VM to use them.
+// DataDisk settings which will be used by the data disks associated to Compute Nodes in the Pool. When using
+// attached data disks, you need to mount and format the disks from within a VM to use them.
 type DataDisk struct {
 	// Lun - The lun is used to uniquely identify each data disk. If attaching multiple disks, each should have a distinct lun.
 	Lun *int32 `json:"lun,omitempty"`
@@ -1616,8 +1263,7 @@ type ListApplicationPackagesResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ListApplicationPackagesResultIterator provides access to a complete listing of ApplicationPackage
-// values.
+// ListApplicationPackagesResultIterator provides access to a complete listing of ApplicationPackage values.
 type ListApplicationPackagesResultIterator struct {
 	i    int
 	page ListApplicationPackagesResultPage
@@ -1685,10 +1331,15 @@ func (lapr ListApplicationPackagesResult) IsEmpty() bool {
 	return lapr.Value == nil || len(*lapr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lapr ListApplicationPackagesResult) hasNextLink() bool {
+	return lapr.NextLink != nil && len(*lapr.NextLink) != 0
+}
+
 // listApplicationPackagesResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lapr ListApplicationPackagesResult) listApplicationPackagesResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lapr.NextLink == nil || len(to.String(lapr.NextLink)) < 1 {
+	if !lapr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1716,11 +1367,16 @@ func (page *ListApplicationPackagesResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lapr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lapr)
+		if err != nil {
+			return err
+		}
+		page.lapr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lapr = next
 	return nil
 }
 
@@ -1831,10 +1487,15 @@ func (lar ListApplicationsResult) IsEmpty() bool {
 	return lar.Value == nil || len(*lar.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lar ListApplicationsResult) hasNextLink() bool {
+	return lar.NextLink != nil && len(*lar.NextLink) != 0
+}
+
 // listApplicationsResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lar ListApplicationsResult) listApplicationsResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lar.NextLink == nil || len(to.String(lar.NextLink)) < 1 {
+	if !lar.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1862,11 +1523,16 @@ func (page *ListApplicationsResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lar)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lar)
+		if err != nil {
+			return err
+		}
+		page.lar = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lar = next
 	return nil
 }
 
@@ -1977,10 +1643,15 @@ func (lcr ListCertificatesResult) IsEmpty() bool {
 	return lcr.Value == nil || len(*lcr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lcr ListCertificatesResult) hasNextLink() bool {
+	return lcr.NextLink != nil && len(*lcr.NextLink) != 0
+}
+
 // listCertificatesResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lcr ListCertificatesResult) listCertificatesResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lcr.NextLink == nil || len(to.String(lcr.NextLink)) < 1 {
+	if !lcr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2008,11 +1679,16 @@ func (page *ListCertificatesResultPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lcr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lcr)
+		if err != nil {
+			return err
+		}
+		page.lcr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lcr = next
 	return nil
 }
 
@@ -2123,10 +1799,15 @@ func (lpr ListPoolsResult) IsEmpty() bool {
 	return lpr.Value == nil || len(*lpr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lpr ListPoolsResult) hasNextLink() bool {
+	return lpr.NextLink != nil && len(*lpr.NextLink) != 0
+}
+
 // listPoolsResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lpr ListPoolsResult) listPoolsResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lpr.NextLink == nil || len(to.String(lpr.NextLink)) < 1 {
+	if !lpr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2154,11 +1835,16 @@ func (page *ListPoolsResultPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lpr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lpr)
+		if err != nil {
+			return err
+		}
+		page.lpr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lpr = next
 	return nil
 }
 
@@ -2342,10 +2028,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2373,11 +2064,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -2602,6 +2298,57 @@ type PoolProperties struct {
 	MountConfiguration *[]MountConfiguration `json:"mountConfiguration,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PoolProperties.
+func (pp PoolProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pp.DisplayName != nil {
+		objectMap["displayName"] = pp.DisplayName
+	}
+	if pp.VMSize != nil {
+		objectMap["vmSize"] = pp.VMSize
+	}
+	if pp.DeploymentConfiguration != nil {
+		objectMap["deploymentConfiguration"] = pp.DeploymentConfiguration
+	}
+	if pp.ScaleSettings != nil {
+		objectMap["scaleSettings"] = pp.ScaleSettings
+	}
+	if pp.InterNodeCommunication != "" {
+		objectMap["interNodeCommunication"] = pp.InterNodeCommunication
+	}
+	if pp.NetworkConfiguration != nil {
+		objectMap["networkConfiguration"] = pp.NetworkConfiguration
+	}
+	if pp.MaxTasksPerNode != nil {
+		objectMap["maxTasksPerNode"] = pp.MaxTasksPerNode
+	}
+	if pp.TaskSchedulingPolicy != nil {
+		objectMap["taskSchedulingPolicy"] = pp.TaskSchedulingPolicy
+	}
+	if pp.UserAccounts != nil {
+		objectMap["userAccounts"] = pp.UserAccounts
+	}
+	if pp.Metadata != nil {
+		objectMap["metadata"] = pp.Metadata
+	}
+	if pp.StartTask != nil {
+		objectMap["startTask"] = pp.StartTask
+	}
+	if pp.Certificates != nil {
+		objectMap["certificates"] = pp.Certificates
+	}
+	if pp.ApplicationPackages != nil {
+		objectMap["applicationPackages"] = pp.ApplicationPackages
+	}
+	if pp.ApplicationLicenses != nil {
+		objectMap["applicationLicenses"] = pp.ApplicationLicenses
+	}
+	if pp.MountConfiguration != nil {
+		objectMap["mountConfiguration"] = pp.MountConfiguration
+	}
+	return json.Marshal(objectMap)
+}
+
 // ProxyResource a definition of an Azure resource.
 type ProxyResource struct {
 	// ID - READ-ONLY; The ID of the resource.
@@ -2623,8 +2370,8 @@ type ResizeError struct {
 	Details *[]ResizeError `json:"details,omitempty"`
 }
 
-// ResizeOperationStatus describes either the current operation (if the pool AllocationState is Resizing)
-// or the previously completed operation (if the AllocationState is Steady).
+// ResizeOperationStatus describes either the current operation (if the pool AllocationState is Resizing) or
+// the previously completed operation (if the AllocationState is Steady).
 type ResizeOperationStatus struct {
 	TargetDedicatedNodes   *int32 `json:"targetDedicatedNodes,omitempty"`
 	TargetLowPriorityNodes *int32 `json:"targetLowPriorityNodes,omitempty"`
@@ -2674,9 +2421,8 @@ type ResourceFile struct {
 }
 
 // ScaleSettings defines the desired size of the pool. This can either be 'fixedScale' where the requested
-// targetDedicatedNodes is specified, or 'autoScale' which defines a formula which is periodically
-// reevaluated. If this property is not specified, the pool will have a fixed scale with 0
-// targetDedicatedNodes.
+// targetDedicatedNodes is specified, or 'autoScale' which defines a formula which is periodically reevaluated.
+// If this property is not specified, the pool will have a fixed scale with 0 targetDedicatedNodes.
 type ScaleSettings struct {
 	// FixedScale - This property and autoScale are mutually exclusive and one of the properties must be specified.
 	FixedScale *FixedScaleSettings `json:"fixedScale,omitempty"`
@@ -2685,10 +2431,9 @@ type ScaleSettings struct {
 }
 
 // StartTask in some cases the start task may be re-run even though the node was not rebooted. Due to this,
-// start tasks should be idempotent and exit gracefully if the setup they're performing has already been
-// done. Special care should be taken to avoid start tasks which create breakaway process or install/launch
-// services from the start task working directory, as this will block Batch from being able to re-run the
-// start task.
+// start tasks should be idempotent and exit gracefully if the setup they're performing has already been done.
+// Special care should be taken to avoid start tasks which create breakaway process or install/launch services
+// from the start task working directory, as this will block Batch from being able to re-run the start task.
 type StartTask struct {
 	// CommandLine - The command line does not run under a shell, and therefore cannot take advantage of shell features such as environment variable expansion. If you want to take advantage of such features, you should invoke the shell in the command line, for example using "cmd /c MyCommand" in Windows or "/bin/sh -c MyCommand" in Linux. Required if any other properties of the startTask are specified.
 	CommandLine         *string               `json:"commandLine,omitempty"`

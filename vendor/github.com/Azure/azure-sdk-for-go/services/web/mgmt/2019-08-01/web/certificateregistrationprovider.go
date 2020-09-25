@@ -73,6 +73,9 @@ func (client CertificateRegistrationProviderClient) ListOperations(ctx context.C
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "ListOperations", resp, "Failure responding to request")
 	}
+	if result.coc.hasNextLink() && result.coc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

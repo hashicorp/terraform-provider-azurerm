@@ -68,6 +68,8 @@ The following arguments are supported:
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Subscription has dead letter support when a message expires. Defaults to `false`.
 
+* `dead_lettering_on_filter_evaluation_error` - (Optional) Boolean flag which controls whether the Subscription has dead letter support on filter evaluation exceptions. Defaults to `true`.
+
 * `enable_batched_operations` - (Optional) Boolean flag which controls whether the Subscription supports batched operations. Defaults to `false`.
 
 * `requires_session` - (Optional) Boolean flag which controls whether this Subscription supports the concept of a session. Defaults to `false`. Changing this forces a new resource to be created.

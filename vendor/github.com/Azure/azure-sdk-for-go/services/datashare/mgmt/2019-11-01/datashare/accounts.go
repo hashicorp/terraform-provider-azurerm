@@ -309,6 +309,9 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.AccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -422,6 +425,9 @@ func (client AccountsClient) ListBySubscription(ctx context.Context, skipToken s
 	result.al, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.AccountsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

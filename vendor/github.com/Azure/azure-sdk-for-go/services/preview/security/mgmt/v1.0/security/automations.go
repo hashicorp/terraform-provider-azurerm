@@ -340,6 +340,9 @@ func (client AutomationsClient) List(ctx context.Context) (result AutomationList
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AutomationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -461,6 +464,9 @@ func (client AutomationsClient) ListByResourceGroup(ctx context.Context, resourc
 	result.al, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AutomationsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

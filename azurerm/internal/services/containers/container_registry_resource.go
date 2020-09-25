@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -86,6 +86,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"login_server": {
@@ -323,18 +324,6 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 			Tier: containerregistry.SkuTier(sku),
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("storage_account_id"); ok {
-		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-		}
-
-		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
-			ID: utils.String(v.(string)),
-		}
-	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
-		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 	}
 
 	// geo replication is only supported by Premium Sku

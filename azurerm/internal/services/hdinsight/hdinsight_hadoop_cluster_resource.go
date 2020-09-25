@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,7 +21,7 @@ import (
 
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
-var hdInsightHadoopClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHadoopClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         utils.Int(2),
@@ -31,13 +30,13 @@ var hdInsightHadoopClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
 
-var hdInsightHadoopClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHadoopClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
 }
 
-var hdInsightHadoopClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHadoopClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         utils.Int(3),
@@ -63,17 +62,17 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaHDInsightName(),
+			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
-			"cluster_version": azure.SchemaHDInsightClusterVersion(),
+			"cluster_version": SchemaHDInsightClusterVersion(),
 
-			"tier": azure.SchemaHDInsightTier(),
+			"tier": SchemaHDInsightTier(),
 
-			"tls_min_version": azure.SchemaHDInsightTls(),
+			"tls_min_version": SchemaHDInsightTls(),
 
 			"component_version": {
 				Type:     schema.TypeList,
@@ -90,13 +89,13 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 				},
 			},
 
-			"gateway": azure.SchemaHDInsightsGateway(),
+			"gateway": SchemaHDInsightsGateway(),
 
-			"metastores": azure.SchemaHDInsightsExternalMetastores(),
+			"metastores": SchemaHDInsightsExternalMetastores(),
 
-			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
+			"storage_account": SchemaHDInsightsStorageAccounts(),
 
-			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
+			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
 			"roles": {
 				Type:     schema.TypeList,
@@ -104,11 +103,11 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHadoopClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHadoopClusterHeadNodeDefinition),
 
-						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHadoopClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHadoopClusterWorkerNodeDefinition),
 
-						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHadoopClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHadoopClusterZookeeperNodeDefinition),
 
 						"edge_node": {
 							Type:     schema.TypeList,
@@ -126,7 +125,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc:     azure.ValidateSchemaHDInsightNodeDefinitionVMSize(),
+										ValidateFunc:     ValidateSchemaHDInsightNodeDefinitionVMSize(),
 									},
 
 									"install_script_action": {
@@ -167,7 +166,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 				Computed: true,
 			},
 
-			"monitor": azure.SchemaHDInsightsMonitor(),
+			"monitor": SchemaHDInsightsMonitor(),
 		},
 	}
 }
@@ -190,7 +189,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	componentVersions := expandHDInsightHadoopComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := ExpandHDInsightsConfigurations(gatewayRaw)
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
@@ -200,7 +199,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
-	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
@@ -216,17 +215,15 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("failure expanding `roles`: %+v", err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failure checking for presence of existing HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("failure checking for presence of existing HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_hdinsight_hadoop_cluster", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_hdinsight_hadoop_cluster", *existing.ID)
 	}
 
 	params := hdinsight.ClusterCreateParametersExtended{
@@ -362,7 +359,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway)); err != nil {
 				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
 
@@ -393,9 +390,9 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("failure flattening `roles`: %+v", err)
 		}
 
-		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
-		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)

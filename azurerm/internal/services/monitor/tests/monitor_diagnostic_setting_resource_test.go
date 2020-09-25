@@ -94,11 +94,6 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *te
 				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "log_analytics_workspace_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log_analytics_destination_type", "Dedicated"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.4109484471.category", "AllMetrics"),
 				),
 			},
 			data.ImportStep(),
@@ -142,9 +137,6 @@ func TestAccAzureRMMonitorDiagnosticSetting_activityLog(t *testing.T) {
 				Config: testAccAzureRMMonitorDiagnosticSetting_activityLog(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "Administrative"),
 				),
 			},
 			data.ImportStep(),
@@ -401,7 +393,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log {
     category = "ActivityRuns"
-
     retention_policy {
       enabled = false
     }
@@ -409,8 +400,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log {
     category = "PipelineRuns"
-    enabled  = false
-
     retention_policy {
       enabled = false
     }
@@ -418,8 +407,48 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log {
     category = "TriggerRuns"
-    enabled  = false
+    retention_policy {
+      enabled = false
+    }
+  }
 
+  log {
+    category = "SSISIntegrationRuntimeLogs"
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SSISPackageEventMessageContext"
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SSISPackageEventMessages"
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SSISPackageExecutableStatistics"
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SSISPackageExecutionComponentPhases"
+    retention_policy {
+      enabled = false
+    }
+  }
+
+  log {
+    category = "SSISPackageExecutionDataStatistics"
     retention_policy {
       enabled = false
     }
@@ -427,8 +456,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-    enabled  = false
-
     retention_policy {
       enabled = false
     }
@@ -527,6 +554,41 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log {
     category = "Administrative"
+    enabled  = true
+  }
+
+  log {
+    category = "Alert"
+    enabled  = true
+  }
+
+  log {
+    category = "Autoscale"
+    enabled  = true
+  }
+
+  log {
+    category = "Policy"
+    enabled  = true
+  }
+
+  log {
+    category = "Recommendation"
+    enabled  = true
+  }
+
+  log {
+    category = "ResourceHealth"
+    enabled  = true
+  }
+
+  log {
+    category = "Security"
+    enabled  = true
+  }
+
+  log {
+    category = "ServiceHealth"
     enabled  = true
   }
 }

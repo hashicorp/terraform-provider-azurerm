@@ -81,15 +81,6 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				Config: testAccAzureRMApiManagement_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "None"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.0.host_name", "api.terraform.io"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.1.host_name", "api2.terraform.io"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.portal.0.host_name", "portal.terraform.io"),
-					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.developer_portal.0.host_name", "developer-portal.terraform.io"),
 				),
 			},
 			{
@@ -184,6 +175,29 @@ func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_type", "Internal"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_addresses.#"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_type", "Internal"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_addresses.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "additional_location.0.private_ip_addresses.#"),
 				),
 			},
 			data.ImportStep(),
@@ -768,12 +782,12 @@ resource "azurerm_resource_group" "test1" {
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-api1-%d"
+  name     = "acctestRG-api2-%d"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test3" {
-  name     = "acctestRG-api1-%d"
+  name     = "acctestRG-api3-%d"
   location = "%s"
 }
 
@@ -839,11 +853,11 @@ resource "azurerm_api_management" "test" {
       certificate_password = "terraform"
     }
 
-    developer_portal {
-      host_name            = "developer-portal.terraform.io"
-      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
-      certificate_password = "terraform"
-    }
+    #developer_portal {
+    #  host_name            = "developer-portal.terraform.io"
+    #  certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
+    #  certificate_password = "terraform"
+    #}
   }
 
   sku_name = "Premium_1"
@@ -900,6 +914,74 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func testAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test1" {
+  name     = "acctestRG1-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test1" {
+  name                = "acctestVNET1-%d"
+  location            = azurerm_resource_group.test1.location
+  resource_group_name = azurerm_resource_group.test1.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "acctestSNET1-%d"
+  resource_group_name  = azurerm_resource_group.test1.name
+  virtual_network_name = azurerm_virtual_network.test1.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctestVNET2-%d"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestSNET2-%d"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefix       = "10.1.1.0/24"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test1.location
+  resource_group_name = azurerm_resource_group.test1.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Premium_1"
+
+  additional_location {
+    location = azurerm_resource_group.test2.location
+    virtual_network_configuration {
+      subnet_id = azurerm_subnet.test2.id
+    }
+  }
+
+  virtual_network_type = "Internal"
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test1.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -918,6 +1000,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_api_management" "test" {
+  depends_on          = [azurerm_user_assigned_identity.test]
   name                = "acctestAM-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1014,10 +1097,6 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku_name = "Developer_1"
-
-  identity {
-    type = "None"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1033,7 +1112,7 @@ resource "azurerm_resource_group" "test" {
 }
 data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]d"
+  name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -1063,6 +1142,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "List",
     "Purge",
   ]
+  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
@@ -1072,6 +1152,7 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Get",
     "List",
   ]
+  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_certificate" "test" {
   depends_on   = [azurerm_key_vault_access_policy.test]
@@ -1129,7 +1210,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func testAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultId(data acceptance.TestData) string {
@@ -1143,7 +1224,7 @@ resource "azurerm_resource_group" "test" {
 }
 data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]d"
+  name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -1173,6 +1254,7 @@ resource "azurerm_key_vault_access_policy" "test" {
     "List",
     "Purge",
   ]
+  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
@@ -1182,9 +1264,10 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Get",
     "List",
   ]
+  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_certificate" "test" {
-  depends_on   = [azurerm_key_vault_access_policy.test]
+  depends_on   = [azurerm_key_vault_access_policy.test, azurerm_key_vault.test]
   name         = "acctestKVCert-%[3]d"
   key_vault_id = azurerm_key_vault.test.id
   certificate_policy {
@@ -1239,5 +1322,5 @@ resource "azurerm_api_management" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

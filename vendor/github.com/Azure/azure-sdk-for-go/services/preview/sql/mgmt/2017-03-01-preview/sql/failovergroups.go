@@ -481,6 +481,9 @@ func (client FailoverGroupsClient) ListByServer(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.FailoverGroupsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.fglr.hasNextLink() && result.fglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

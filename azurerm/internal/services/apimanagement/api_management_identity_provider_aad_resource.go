@@ -58,6 +58,11 @@ func resourceArmApiManagementIdentityProviderAAD() *schema.Resource {
 					ValidateFunc: validation.IsUUID,
 				},
 			},
+			"signin_tenant": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.IsUUID,
+			},
 		},
 	}
 }
@@ -72,6 +77,7 @@ func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceD
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 	allowedTenants := d.Get("allowed_tenants").([]interface{})
+	signinTenant := d.Get("signin_tenant").(string)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Aad)
@@ -92,6 +98,7 @@ func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceD
 			ClientSecret:   utils.String(clientSecret),
 			Type:           apimanagement.Aad,
 			AllowedTenants: utils.ExpandStringSlice(allowedTenants),
+			SigninTenant:   utils.String(signinTenant),
 		},
 	}
 
@@ -141,6 +148,7 @@ func resourceArmApiManagementIdentityProviderAADRead(d *schema.ResourceData, met
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("client_id", props.ClientID)
 		d.Set("allowed_tenants", props.AllowedTenants)
+		d.Set("signin_tenant", props.SigninTenant)
 	}
 
 	return nil

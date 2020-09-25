@@ -411,6 +411,9 @@ func (client BotsClient) List(ctx context.Context) (result BotResponseListPage, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "List", resp, "Failure responding to request")
 	}
+	if result.brl.hasNextLink() && result.brl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -528,6 +531,9 @@ func (client BotsClient) ListByResourceGroup(ctx context.Context, resourceGroupN
 	result.brl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.BotsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.brl.hasNextLink() && result.brl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
