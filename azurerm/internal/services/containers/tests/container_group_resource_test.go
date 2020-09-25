@@ -850,7 +850,7 @@ resource "azurerm_container_group" "test" {
 }
 
 func testAccAzureRMContainerGroup_virtualNetwork(data acceptance.TestData) string {
-return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
