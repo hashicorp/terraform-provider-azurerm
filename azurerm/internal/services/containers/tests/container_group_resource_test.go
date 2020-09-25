@@ -850,7 +850,7 @@ resource "azurerm_container_group" "test" {
 }
 
 func testAccAzureRMContainerGroup_virtualNetwork(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -916,8 +916,8 @@ resource "azurerm_container_group" "test" {
     }
   }
   dns_config {
-    nameservers = ["reddog.microsoft.com", "somecompany.somedomain"]
-    options = ["one:option", "two:option", "red:option", "blue:option"]
+    nameservers    = ["reddog.microsoft.com", "somecompany.somedomain"]
+    options        = ["one:option", "two:option", "red:option", "blue:option"]
     search_domains = ["default.svc.cluster.local."]
   }
 
