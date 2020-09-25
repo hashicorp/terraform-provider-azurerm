@@ -435,16 +435,22 @@ func resourceArmContainerGroup() *schema.Resource {
 							},
 						},
 						"search_domains": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     schema.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 						"options": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							Type:     schema.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 					},
 				},
@@ -1408,41 +1414,60 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 
 func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{} {
 	output := make(map[string]interface{})
-	outputArr := make([]interface{}, 1)
+	var outputArr []interface{}
 
 	if input == nil {
 		return outputArr
 	}
 
-	if v := input.SearchDomains; v != nil {
-		output["search_domains"] = *v
+	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	var searchDomains []string
+	if input.SearchDomains != nil {
+		searchDomains = strings.Split(*input.SearchDomains, " ")
 	}
-	if v := input.Options; v != nil {
-		output["options"] = *v
+	output["search_domains"] = searchDomains
+
+	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	var options []string
+	if input.Options != nil {
+		options = strings.Split(*input.Options, " ")
 	}
-	if v := input.NameServers; v != nil {
-		output["nameservers"] = *v
+	output["options"] = options
+
+	//Nameservers is already an array from the API
+	var nameservers []string
+	if input.NameServers != nil {
+		nameservers = *input.NameServers
 	}
+	output["nameservers"] = nameservers
 
 	outputArr = append(outputArr, output)
 	return outputArr
 }
 
 func expandContainerGroupDnsConfig(d *schema.ResourceData) *containerinstance.DNSConfiguration {
-	configRaw := d.Get("dns_config").([]interface{})
-	if len(configRaw) == 0 {
-		return nil
-	}
-	config := configRaw[0].(map[string]interface{})
+	if v, ok := d.Get("dns_config").(*schema.Set); ok && len(v.List()) > 0 {
+		config := v.List()[0].(map[string]interface{})
 
-	ns := []string{}
-	for _, v := range config["nameservers"].([]interface{}) {
-		ns = append(ns, v.(string))
+		nameservers := []string{}
+		for _, v := range config["nameservers"].(*schema.Set).List() {
+			nameservers = append(nameservers, v.(string))
+		}
+		options := []string{}
+		for _, v := range config["options"].(*schema.Set).List() {
+			options = append(options, v.(string))
+		}
+		searchDomains := []string{}
+		for _, v := range config["search_domains"].(*schema.Set).List() {
+			searchDomains = append(searchDomains, v.(string))
+		}
+
+		return &containerinstance.DNSConfiguration{
+			Options:       utils.String(strings.Join(options, " ")),
+			SearchDomains: utils.String(strings.Join(searchDomains, " ")),
+			NameServers:   &nameservers,
+		}
 	}
 
-	return &containerinstance.DNSConfiguration{
-		Options:       utils.String(config["options"].(string)),
-		SearchDomains: utils.String(config["search_domains"].(string)),
-		NameServers:   &ns,
-	}
+	return nil
 }

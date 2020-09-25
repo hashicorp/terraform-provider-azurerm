@@ -245,8 +245,8 @@ The `http_get` block supports:
 The `dns_config` block supports:
 
 * `nameservers` (Required) A list of nameservers (IPv4 format) for the container to search out to resolve requests
-* `search_domains` (Required) A string that represents the search domains that DNS requests will search along
-* `options` (Required) `ex: ndots:2` A string representing the number of domains to search above the current `search_domains` field
+* `search_domains` (Required) A list of strings that represents the search domains that DNS requests will search along
+* `options` (Required) `ex: ["ndots:2", "someopt:someval"]` A list of strings representing options as documented here: https://man7.org/linux/man-pages/man5/resolv.conf.5.html
 
 ## Attributes Reference
 
