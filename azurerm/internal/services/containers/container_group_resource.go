@@ -487,7 +487,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	restartPolicy := d.Get("restart_policy").(string)
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
-
+	dnsConfig := d.Get("dns_config").(*schema.Set)
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
@@ -505,7 +505,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
-			DNSConfig:                expandContainerGroupDnsConfig(d),
+			DNSConfig:                expandContainerGroupDnsConfig(dnsConfig),
 		},
 	}
 
@@ -1414,10 +1414,9 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 
 func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{} {
 	output := make(map[string]interface{})
-	var outputArr []interface{}
 
 	if input == nil {
-		return outputArr
+		return make([]interface{}, 0)
 	}
 
 	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
@@ -1441,13 +1440,13 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 	}
 	output["nameservers"] = nameservers
 
-	outputArr = append(outputArr, output)
-	return outputArr
+	return []interface{}{output}
 }
 
-func expandContainerGroupDnsConfig(d *schema.ResourceData) *containerinstance.DNSConfiguration {
-	if v, ok := d.Get("dns_config").(*schema.Set); ok && len(v.List()) > 0 {
-		config := v.List()[0].(map[string]interface{})
+func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DNSConfiguration {
+	dnsConfigRaw := input.([]interface{})
+	if len(dnsConfigRaw) > 0 {
+		config := dnsConfigRaw[0].(map[string]interface{})
 
 		nameservers := []string{}
 		for _, v := range config["nameservers"].(*schema.Set).List() {
