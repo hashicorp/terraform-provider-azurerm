@@ -809,7 +809,7 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 				"ip_address": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.CIDRv4n6,
+					ValidateFunc: validate.IsCIDR,
 				},
 
 				"subnet_id": {

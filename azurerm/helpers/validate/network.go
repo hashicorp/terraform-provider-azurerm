@@ -6,6 +6,7 @@ import (
 	"regexp"
 )
 
+// CIDR is a SchemaValidateFunc which tests if the provided value is a valid IPv4 CIDR
 func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 	cidr := i.(string)
 
@@ -17,13 +18,16 @@ func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
-func CIDRv4n6(i interface{}, k string) (warnings []string, errors []error) {
-	cidr := i.(string)
+// IsCIDR is a SchemaValidateFunc which tests if the provided value is of type string and a valid IPv4 or IPv6 CIDR
+func IsCIDR(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return warnings, errors
+	}
 
-	_, _, err := net.ParseCIDR(cidr)
-
-	if err != nil {
-		errors = append(errors, fmt.Errorf("%s must be in IPV4 or IPV6 CIDR notation. Example: 127.0.0.1/8 or 2400:16a0::/40. Got %q.", k, cidr))
+	if _, _, err := net.ParseCIDR(v); err != nil {
+		errors = append(errors, fmt.Errorf("expected %q to be a valid IPv4 or IPv6 Value, got %v: %v", k, i, err))
 	}
 
 	return warnings, errors
