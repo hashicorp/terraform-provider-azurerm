@@ -987,7 +987,14 @@ func resourceWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta inte
 
 		d.Set("eviction_policy", string(profile.EvictionPolicy))
 		d.Set("license_type", profile.LicenseType)
-		d.Set("priority", string(profile.Priority))
+
+		// the service just return empty when this is not assigned when provisioned
+		// See discussion on https://github.com/Azure/azure-rest-api-specs/issues/10971
+		priority := compute.Regular
+		if profile.Priority != "" {
+			priority = profile.Priority
+		}
+		d.Set("priority", priority)
 
 		if storageProfile := profile.StorageProfile; storageProfile != nil {
 			if err := d.Set("os_disk", FlattenVirtualMachineScaleSetOSDisk(storageProfile.OsDisk)); err != nil {
