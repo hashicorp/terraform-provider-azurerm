@@ -104,7 +104,7 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	existing.ServiceProperties.HostnameConfigurations = expandAzureRmApiManagementHostnameConfigurations(d)
+	existing.ServiceProperties.HostnameConfigurations = expandApiManagementCustomDomains(d)
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing); err != nil {
 		return fmt.Errorf("creating/updating Custom Domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
@@ -197,6 +197,40 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func expandApiManagementCustomDomains(input *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
+	results := make([]apimanagement.HostnameConfiguration, 0)
+
+	if managementRawVal, ok := input.GetOk("management"); ok {
+		v := managementRawVal.(map[string]interface{})
+		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeManagement)
+		results = append(results, output)
+	}
+	if portalRawVal, ok := input.GetOk("portal"); ok {
+		v := portalRawVal.(map[string]interface{})
+		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypePortal)
+		results = append(results, output)
+	}
+	if developerPortalRawVal, ok := input.GetOk("developer_portal"); ok {
+		v := developerPortalRawVal.(map[string]interface{})
+		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeDeveloperPortal)
+		results = append(results, output)
+	}
+	if proxyRawVal, ok := input.GetOk("proxy"); ok {
+		v := proxyRawVal.(map[string]interface{})
+		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
+		if value, ok := v["default_ssl_binding"]; ok {
+			output.DefaultSslBinding = utils.Bool(value.(bool))
+		}
+		results = append(results, output)
+	}
+	if scmRawVal, ok := input.GetOk("scm"); ok {
+		v := scmRawVal.(map[string]interface{})
+		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeScm)
+		results = append(results, output)
+	}
+	return &results
 }
 
 func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameConfiguration, d *schema.ResourceData) []interface{} {
