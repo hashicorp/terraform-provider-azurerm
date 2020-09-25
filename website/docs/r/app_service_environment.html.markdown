@@ -71,7 +71,7 @@ resource "azurerm_app_service_environment" "example" {
 
 * `resource_group_name` - (Optional) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created. 
+* `tags` - (Optional) A mapping of tags to assign to the resource. 
 
 ## Attribute Reference
 

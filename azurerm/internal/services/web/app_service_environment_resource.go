@@ -119,7 +119,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			// TODO in 3.0 Make it "Required"
 			"resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 
 			// Computed
 			"location": {
