@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `sql_connectivity_update_username` - (Optional) The SQL Server sysadmin login to create.
 
-* `storage_configuration_settings` - (Optional) An `storage_configuration_settings` block as defined below.
+* `storage_configuration` - (Optional) An `storage_configuration` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -88,17 +88,17 @@ The `key_vault_credential` block supports the following:
 
 ---
 
-The `storage_configuration_settings` block supports the following:
+The `storage_configuration` block supports the following:
 
-* `disk_configuration_type` - (Required) The type of disk configuration to apply to the SQL Server. Valid values include `NEW`, `EXTEND`, or `ADD`.
+* `disk_type` - (Required) The type of disk configuration to apply to the SQL Server. Valid values include `NEW`, `EXTEND`, or `ADD`.
 
 * `storage_workload_type` - (Required) The type of storage workload. Valid values include `GENERAL`, `OLTP`, or `DW`.
 
-* `sql_data_settings` - (Optional) An `storage_settings` as defined below.
+* `data_settings` - (Optional) An `storage_settings` as defined below.
 
-* `sql_log_settings` - (Optional) An `storage_settings` as defined below.
+* `log_settings` - (Optional) An `storage_settings` as defined below.
 
-* `sql_temp_db_settings` - (Optional) An `storage_settings` as defined below.
+* `temp_db_settings` - (Optional) An `storage_settings` as defined below.
 
 ---
 

@@ -626,6 +626,26 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 resource "azurerm_mssql_virtual_machine" "test" {
   virtual_machine_id = azurerm_virtual_machine.test.id
   sql_license_type   = "PAYG"
+
+  storage_configuration {
+    disk_type             = "NEW"
+    storage_workload_type = "OLTP"
+
+    data_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLData"
+    }
+
+    log_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLLog"
+    }
+
+    temp_db_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLTemp"
+    }
+  }
 }
 `, vmconfig, data.RandomInteger)
 }

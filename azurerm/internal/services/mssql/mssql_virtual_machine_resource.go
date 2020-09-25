@@ -172,13 +172,13 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				ValidateFunc: validate.MsSqlVMLoginUserName,
 			},
 
-			"storage_configuration_settings": {
+			"storage_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"disk_configuration_type": {
+						"disk_type": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -196,9 +196,9 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 								string(sqlvirtualmachine.DW),
 							}, false),
 						},
-						"sql_data_settings":    helper.StorageSettingSchema(),
-						"sql_log_settings":     helper.StorageSettingSchema(),
-						"sql_temp_db_settings": helper.StorageSettingSchema(),
+						"data_settings":    helper.StorageSettingSchema(),
+						"log_settings":     helper.StorageSettingSchema(),
+						"temp_db_settings": helper.StorageSettingSchema(),
 					},
 				},
 			},
@@ -261,7 +261,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 					SQLAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
 				},
 			},
-			StorageConfigurationSettings: expandArmSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration_settings").([]interface{})),
+			StorageConfigurationSettings: expandArmSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -327,15 +327,15 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 			}
 		}
 
-		// `storage_configuration_settings.0.storage_workload_type` is in a different spot than the rest of the `storage_configuration_settings`
+		// `storage_configuration.0.storage_workload_type` is in a different spot than the rest of the `storage_configuration`
 		// so we'll grab that here and pass it along
 		storageWorkloadType := ""
 		if props.ServerConfigurationsManagementSettings != nil && props.ServerConfigurationsManagementSettings.SQLWorkloadTypeUpdateSettings != nil {
 			storageWorkloadType = string(props.ServerConfigurationsManagementSettings.SQLWorkloadTypeUpdateSettings.SQLWorkloadType)
 		}
 
-		if err := d.Set("storage_configuration_settings", flattenArmSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
-			return fmt.Errorf("error setting `storage_configuration_settings`: %+v", err)
+		if err := d.Set("storage_configuration", flattenArmSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
+			return fmt.Errorf("error setting `storage_configuration`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -471,11 +471,11 @@ func expandArmSqlVirtualMachineStorageConfigurationSettings(input []interface{})
 	storageSettings := input[0].(map[string]interface{})
 
 	return &sqlvirtualmachine.StorageConfigurationSettings{
-		DiskConfigurationType: sqlvirtualmachine.DiskConfigurationType(storageSettings["disk_configuration_type"].(string)),
+		DiskConfigurationType: sqlvirtualmachine.DiskConfigurationType(storageSettings["disk_type"].(string)),
 		StorageWorkloadType:   sqlvirtualmachine.StorageWorkloadType(storageSettings["storage_workload_type"].(string)),
-		SQLDataSettings:       expandArmSqlVirtualMachineDataStorageSettings(storageSettings["sql_data_settings"].([]interface{})),
-		SQLLogSettings:        expandArmSqlVirtualMachineDataStorageSettings(storageSettings["sql_log_settings"].([]interface{})),
-		SQLTempDbSettings:     expandArmSqlVirtualMachineDataStorageSettings(storageSettings["sql_temp_db_settings"].([]interface{})),
+		SQLDataSettings:       expandArmSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
+		SQLLogSettings:        expandArmSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
+		SQLTempDbSettings:     expandArmSqlVirtualMachineDataStorageSettings(storageSettings["temp_db_settings"].([]interface{})),
 	}
 }
 
@@ -486,11 +486,11 @@ func flattenArmSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualma
 
 	return []interface{}{
 		map[string]interface{}{
-			"disk_configuration_type": string(input.DiskConfigurationType),
-			"storage_workload_type":   storageWorkloadType,
-			"sql_data_settings":       flattenArmSqlVirtualMachineStorageSettings(input.SQLDataSettings),
-			"sql_log_settings":        flattenArmSqlVirtualMachineStorageSettings(input.SQLLogSettings),
-			"sql_temp_db_settings":    flattenArmSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
+			"disk_type":             string(input.DiskConfigurationType),
+			"storage_workload_type": storageWorkloadType,
+			"data_settings":         flattenArmSqlVirtualMachineStorageSettings(input.SQLDataSettings),
+			"log_settings":          flattenArmSqlVirtualMachineStorageSettings(input.SQLLogSettings),
+			"temp_db_settings":      flattenArmSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
 		},
 	}
 }
