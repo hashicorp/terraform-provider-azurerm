@@ -73,6 +73,8 @@ func resourceArmKeyVault() *schema.Resource {
 					string(keyvault.Standard),
 					string(keyvault.Premium),
 				}, false),
+				// issue: https://github.com/Azure/azure-rest-api-specs/issues/10943
+				// to avoid import problem, add Suppress Case Diff
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
