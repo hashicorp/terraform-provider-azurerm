@@ -487,7 +487,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	restartPolicy := d.Get("restart_policy").(string)
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
-	dnsConfig := d.Get("dns_config").(*schema.Set)
+	dnsConfig := d.Get("dns_config").(*schema.Set).List()
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
