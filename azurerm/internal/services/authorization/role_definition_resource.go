@@ -110,8 +110,7 @@ func resourceArmRoleDefinition() *schema.Resource {
 
 			"assignable_scopes": {
 				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

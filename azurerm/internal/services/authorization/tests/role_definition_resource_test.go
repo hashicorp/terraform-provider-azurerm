@@ -253,6 +253,10 @@ resource "azurerm_role_definition" "test" {
     actions     = ["*"]
     not_actions = []
   }
+
+  assignable_scopes = [
+    data.azurerm_subscription.primary.id,
+  ]
 }
 `, id, data.RandomInteger)
 }
