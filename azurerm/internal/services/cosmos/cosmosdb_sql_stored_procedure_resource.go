@@ -98,12 +98,11 @@ func resourceArmCosmosDbSQLStoredProcedureCreate(d *schema.ResourceData, meta in
 			return fmt.Errorf("Error checking for presence of creating SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
 		}
 	} else {
-		id, err := azure.CosmosGetIDFromResponse(existing.Response)
-		if err != nil {
-			return fmt.Errorf("Error generating import ID for SQL Stored Proecdure '%q' (Container %q / Database %q / Account %q)", name, containerName, databaseName, accountName)
+		if existing.ID == nil && *existing.ID == "" {
+			return fmt.Errorf("Error generating import ID for Cosmos  SQL Stored Proecdure '%q' (Container %q / Database %q / Account %q)", name, containerName, databaseName, accountName)
 		}
 
-		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_stored_procedure", id)
+		return tf.ImportAsExistsError("azurerm_cosmosdb_sql_stored_procedure", *existing.ID)
 	}
 
 	storedProcParams := documentdb.SQLStoredProcedureCreateUpdateParameters{
@@ -112,7 +111,7 @@ func resourceArmCosmosDbSQLStoredProcedureCreate(d *schema.ResourceData, meta in
 				ID:   &name,
 				Body: &storedProcBody,
 			},
-			Options: map[string]*string{},
+			Options: &documentdb.CreateUpdateOptions{},
 		},
 	}
 
@@ -156,7 +155,7 @@ func resourceArmCosmosDbSQLStoredProcedureUpdate(d *schema.ResourceData, meta in
 				ID:   utils.String(name),
 				Body: utils.String(d.Get("body").(string)),
 			},
-			Options: map[string]*string{},
+			Options: &documentdb.CreateUpdateOptions{},
 		},
 	}
 
