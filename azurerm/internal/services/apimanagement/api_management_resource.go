@@ -503,19 +503,21 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	customProperties := expandApiManagementCustomProperties(d)
 	certificates := expandAzureRmApiManagementCertificates(d)
-	hostnameConfigurations := expandAzureRmApiManagementHostnameConfigurations(d)
 
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:          utils.String(publisherName),
-			PublisherEmail:         utils.String(publisherEmail),
-			CustomProperties:       customProperties,
-			Certificates:           certificates,
-			HostnameConfigurations: hostnameConfigurations,
+			PublisherName:    utils.String(publisherName),
+			PublisherEmail:   utils.String(publisherEmail),
+			CustomProperties: customProperties,
+			Certificates:     certificates,
 		},
 		Tags: tags.Expand(t),
 		Sku:  sku,
+	}
+
+	if _, ok := d.GetOk("hostname_configuration"); ok {
+		properties.ServiceProperties.HostnameConfigurations = expandAzureRmApiManagementHostnameConfigurations(d)
 	}
 
 	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
