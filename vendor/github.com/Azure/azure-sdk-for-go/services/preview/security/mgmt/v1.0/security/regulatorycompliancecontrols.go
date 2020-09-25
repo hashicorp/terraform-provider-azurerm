@@ -163,6 +163,9 @@ func (client RegulatoryComplianceControlsClient) List(ctx context.Context, regul
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceControlsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rccl.hasNextLink() && result.rccl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

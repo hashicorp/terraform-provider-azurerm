@@ -240,6 +240,9 @@ func (client BackupShortTermRetentionPoliciesClient) ListByDatabase(ctx context.
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.BackupShortTermRetentionPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.bstrplr.hasNextLink() && result.bstrplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

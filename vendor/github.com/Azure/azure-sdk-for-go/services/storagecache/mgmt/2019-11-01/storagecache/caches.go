@@ -62,7 +62,7 @@ func (client CachesClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -151,7 +151,7 @@ func (client CachesClient) Delete(ctx context.Context, resourceGroupName string,
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Delete", err.Error())
 	}
 
@@ -233,7 +233,7 @@ func (client CachesClient) Flush(ctx context.Context, resourceGroupName string, 
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Flush", err.Error())
 	}
 
@@ -314,7 +314,7 @@ func (client CachesClient) Get(ctx context.Context, resourceGroupName string, ca
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Get", err.Error())
 	}
 
@@ -407,6 +407,9 @@ func (client CachesClient) List(ctx context.Context) (result CachesListResultPag
 	result.clr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "List", resp, "Failure responding to request")
+	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -518,6 +521,9 @@ func (client CachesClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storagecache.CachesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -614,7 +620,7 @@ func (client CachesClient) Start(ctx context.Context, resourceGroupName string, 
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Start", err.Error())
 	}
 
@@ -695,7 +701,7 @@ func (client CachesClient) Stop(ctx context.Context, resourceGroupName string, c
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Stop", err.Error())
 	}
 
@@ -778,7 +784,7 @@ func (client CachesClient) Update(ctx context.Context, resourceGroupName string,
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Update", err.Error())
 	}
 
@@ -867,7 +873,7 @@ func (client CachesClient) UpgradeFirmware(ctx context.Context, resourceGroupNam
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "UpgradeFirmware", err.Error())
 	}
 

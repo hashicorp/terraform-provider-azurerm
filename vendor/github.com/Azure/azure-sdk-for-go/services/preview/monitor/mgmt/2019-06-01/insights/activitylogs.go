@@ -89,6 +89,9 @@ func (client ActivityLogsClient) List(ctx context.Context, filter string, select
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ActivityLogsClient", "List", resp, "Failure responding to request")
 	}
+	if result.edc.hasNextLink() && result.edc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

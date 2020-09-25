@@ -30,68 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders"
 
-// ActionRouting enumerates the values for action routing.
-type ActionRouting string
-
-const (
-	// Proxy ...
-	Proxy ActionRouting = "Proxy"
-)
-
-// PossibleActionRoutingValues returns an array of possible values for the ActionRouting const type.
-func PossibleActionRoutingValues() []ActionRouting {
-	return []ActionRouting{Proxy}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Accepted ...
-	Accepted ProvisioningState = "Accepted"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Running ...
-	Running ProvisioningState = "Running"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Accepted, Deleting, Failed, Running, Succeeded}
-}
-
-// ResourceTypeRouting enumerates the values for resource type routing.
-type ResourceTypeRouting string
-
-const (
-	// ResourceTypeRoutingProxy ...
-	ResourceTypeRoutingProxy ResourceTypeRouting = "Proxy"
-	// ResourceTypeRoutingProxyCache ...
-	ResourceTypeRoutingProxyCache ResourceTypeRouting = "Proxy,Cache"
-)
-
-// PossibleResourceTypeRoutingValues returns an array of possible values for the ResourceTypeRouting const type.
-func PossibleResourceTypeRoutingValues() []ResourceTypeRouting {
-	return []ResourceTypeRouting{ResourceTypeRoutingProxy, ResourceTypeRoutingProxyCache}
-}
-
-// ValidationType enumerates the values for validation type.
-type ValidationType string
-
-const (
-	// Swagger ...
-	Swagger ValidationType = "Swagger"
-)
-
-// PossibleValidationTypeValues returns an array of possible values for the ValidationType const type.
-func PossibleValidationTypeValues() []ValidationType {
-	return []ValidationType{Swagger}
-}
-
 // Association the resource definition of this association.
 type Association struct {
 	autorest.Response `json:"-"`
@@ -173,8 +111,17 @@ type AssociationProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
-// AssociationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// MarshalJSON is the custom marshaler for AssociationProperties.
+func (a AssociationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if a.TargetResourceID != nil {
+		objectMap["targetResourceId"] = a.TargetResourceID
+	}
+	return json.Marshal(objectMap)
+}
+
+// AssociationsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type AssociationsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -302,10 +249,15 @@ func (al AssociationsList) IsEmpty() bool {
 	return al.Value == nil || len(*al.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (al AssociationsList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
 // associationsListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (al AssociationsList) associationsListPreparer(ctx context.Context) (*http.Request, error) {
-	if al.NextLink == nil || len(to.String(al.NextLink)) < 1 {
+	if !al.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -333,11 +285,16 @@ func (page *AssociationsListPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.al)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.al = next
 	return nil
 }
 
@@ -547,8 +504,23 @@ type CustomRPManifestProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
 
-// CustomRPResourceTypeRouteDefinition the route definition for a resource implemented by the custom
-// resource provider.
+// MarshalJSON is the custom marshaler for CustomRPManifestProperties.
+func (crm CustomRPManifestProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if crm.Actions != nil {
+		objectMap["actions"] = crm.Actions
+	}
+	if crm.ResourceTypes != nil {
+		objectMap["resourceTypes"] = crm.ResourceTypes
+	}
+	if crm.Validations != nil {
+		objectMap["validations"] = crm.Validations
+	}
+	return json.Marshal(objectMap)
+}
+
+// CustomRPResourceTypeRouteDefinition the route definition for a resource implemented by the custom resource
+// provider.
 type CustomRPResourceTypeRouteDefinition struct {
 	// RoutingType - The routing types that are supported for resource requests. Possible values include: 'ResourceTypeRoutingProxy', 'ResourceTypeRoutingProxyCache'
 	RoutingType ResourceTypeRouting `json:"routingType,omitempty"`
@@ -558,8 +530,8 @@ type CustomRPResourceTypeRouteDefinition struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
-// CustomRPRouteDefinition a route definition that defines an action or resource that can be interacted
-// with through the custom resource provider.
+// CustomRPRouteDefinition a route definition that defines an action or resource that can be interacted with
+// through the custom resource provider.
 type CustomRPRouteDefinition struct {
 	// Name - The name of the route definition. This becomes the name for the ARM extension (e.g. '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.CustomProviders/resourceProviders/{resourceProviderName}/{name}')
 	Name *string `json:"name,omitempty"`
@@ -668,10 +640,15 @@ func (lbcrm ListByCustomRPManifest) IsEmpty() bool {
 	return lbcrm.Value == nil || len(*lbcrm.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lbcrm ListByCustomRPManifest) hasNextLink() bool {
+	return lbcrm.NextLink != nil && len(*lbcrm.NextLink) != 0
+}
+
 // listByCustomRPManifestPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lbcrm ListByCustomRPManifest) listByCustomRPManifestPreparer(ctx context.Context) (*http.Request, error) {
-	if lbcrm.NextLink == nil || len(to.String(lbcrm.NextLink)) < 1 {
+	if !lbcrm.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -699,11 +676,16 @@ func (page *ListByCustomRPManifestPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lbcrm)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lbcrm)
+		if err != nil {
+			return err
+		}
+		page.lbcrm = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lbcrm = next
 	return nil
 }
 
@@ -861,10 +843,15 @@ func (rpol ResourceProviderOperationList) IsEmpty() bool {
 	return rpol.Value == nil || len(*rpol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rpol ResourceProviderOperationList) hasNextLink() bool {
+	return rpol.NextLink != nil && len(*rpol.NextLink) != 0
+}
+
 // resourceProviderOperationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rpol ResourceProviderOperationList) resourceProviderOperationListPreparer(ctx context.Context) (*http.Request, error) {
-	if rpol.NextLink == nil || len(to.String(rpol.NextLink)) < 1 {
+	if !rpol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -892,11 +879,16 @@ func (page *ResourceProviderOperationListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rpol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rpol)
+		if err != nil {
+			return err
+		}
+		page.rpol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rpol = next
 	return nil
 }
 

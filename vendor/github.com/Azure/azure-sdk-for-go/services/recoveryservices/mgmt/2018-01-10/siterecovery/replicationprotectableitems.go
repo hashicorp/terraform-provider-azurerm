@@ -156,6 +156,9 @@ func (client ReplicationProtectableItemsClient) ListByReplicationProtectionConta
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectableItemsClient", "ListByReplicationProtectionContainers", resp, "Failure responding to request")
 	}
+	if result.pic.hasNextLink() && result.pic.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

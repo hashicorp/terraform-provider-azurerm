@@ -110,7 +110,15 @@ A `rule` block supports the following:
 
 * `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
 
-* `destination_addresses` - (Required) Either a list of destination IP addresses and/or IP ranges, or a list of destination [Service Tags](https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags).
+* `source_ip_groups` - (Optional) A list of IP Group IDs for the rule.
+
+-> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
+
+* `destination_addresses` - (Optional) Either a list of destination IP addresses and/or IP ranges, or a list of destination [Service Tags](https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags).
+
+* `destination_ip_groups` - (Optional) A list of destination IP Group IDs for the rule.
+
+-> **NOTE** At least one of `destination_addresses` and `destination_ip_groups` must be specified for a rule.
 
 * `destination_ports` - (Required) A list of destination ports.
 

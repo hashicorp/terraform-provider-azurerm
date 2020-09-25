@@ -299,6 +299,9 @@ func (client ReplicationPoliciesClient) List(ctx context.Context) (result Policy
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationPoliciesClient", "List", resp, "Failure responding to request")
 	}
+	if result.pc.hasNextLink() && result.pc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

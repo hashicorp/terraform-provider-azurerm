@@ -138,7 +138,6 @@ func (client IncidentCommentsClient) CreateCommentSender(req *http.Request) (*ht
 func (client IncidentCommentsClient) CreateCommentResponder(resp *http.Response) (result IncidentComment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -235,7 +234,6 @@ func (client IncidentCommentsClient) GetCommentSender(req *http.Request) (*http.
 func (client IncidentCommentsClient) GetCommentResponder(resp *http.Response) (result IncidentComment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -299,6 +297,9 @@ func (client IncidentCommentsClient) ListByIncident(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.IncidentCommentsClient", "ListByIncident", resp, "Failure responding to request")
 	}
+	if result.icl.hasNextLink() && result.icl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -349,7 +350,6 @@ func (client IncidentCommentsClient) ListByIncidentSender(req *http.Request) (*h
 func (client IncidentCommentsClient) ListByIncidentResponder(resp *http.Response) (result IncidentCommentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
