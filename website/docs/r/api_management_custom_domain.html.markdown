@@ -122,37 +122,9 @@ The following arguments are supported:
 
 ---
 
-A `developer_portal` block supports the following:
+A `developer_portal`, `management`, `portal` or `scm` block supports the following:
 
-* `host_name` - (Required) The Hostname to use for the Developer Portal.
-
-* `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exlusive with `key_vault_id`.)
-
-* `certificate_password` - (Optional) The password associated with the certificate provided above.
-
-* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type application/x-pkcs12.
-
-* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to false.
-
----
-
-A `management` block supports the following:
-
-* `host_name` - (Required) The Hostname to use for the Management API.
-
-* `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exlusive with `key_vault_id`.)
-
-* `certificate_password` - (Optional) The password associated with the certificate provided above.
-
-* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type application/x-pkcs12.
-
-* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to false.
-
----
-
-A `portal` block supports the following:
-
-* `host_name` - (Required) The Hostname to use for the legacy Developer Portal.
+* `host_name` - (Required) The Hostname to use for the corresponding endpoint.
 
 * `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exlusive with `key_vault_id`.)
 
@@ -166,27 +138,13 @@ A `portal` block supports the following:
 
 A `proxy` block supports the following:
 
-* `host_name` - (Required) The Hostname to use for the legacy Developer Portal.
+* `host_name` - (Required) The Hostname to use for the API Proxy Endpoint.
 
 * `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exlusive with `key_vault_id`.)
 
 * `certificate_password` - (Optional) The password associated with the certificate provided above.
 
 * `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to false.
-
-* `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type application/x-pkcs12.
-
-* `negotiate_client_certificate` - (Optional) Should Client Certificate Negotiation be enabled for this Hostname? Defaults to false.
-
----
-
-A `scm` block supports the following:
-
-* `host_name` - (Required) The Hostname to use for the SCM domain.
-
-* `certificate` - (Optional) The Base64 Encoded Certificate. (Mutually exlusive with `key_vault_id`.)
-
-* `certificate_password` - (Optional) The password associated with the certificate provided above.
 
 * `key_vault_id` - (Optional) The ID of the Key Vault Secret containing the SSL Certificate, which must be should be of the type application/x-pkcs12.
 
