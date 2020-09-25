@@ -2,8 +2,6 @@ package compute
 
 import (
 	"fmt"
-	"log"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -1394,7 +1392,6 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		}
 
 		settingsRaw, ok := extensionRaw["settings"]
-		log.Printf("[DAPZHANG] %v", settingsRaw)
 		if ok && settingsRaw != "" {
 			settings, err := structure.ExpandJsonFromString(settingsRaw.(string))
 			if err != nil {
@@ -1404,7 +1401,6 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		}
 
 		protectedSettingsRaw, ok := extensionRaw["protected_settings"]
-		log.Printf("[DAPZHANG] %v", protectedSettingsRaw)
 		if ok && protectedSettingsRaw != "" {
 			protectedSettings, err := structure.ExpandJsonFromString(protectedSettingsRaw.(string))
 			if err != nil {
