@@ -181,27 +181,22 @@ func resourceArmCosmosDbSQLStoredProcedureRead(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	containerName := id.Container
-	databaseName := id.Database
-	accountName := id.Account
-	name := id.Name
-
-	resp, err := client.GetSQLStoredProcedure(ctx, id.ResourceGroup, accountName, databaseName, containerName, name)
+	resp, err := client.GetSQLStoredProcedure(ctx, id.ResourceGroup, id.Account, id.Database, id.Container, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] SQL Stored Procedure %q (Container %q / Database %q / Account %q) was not found - removing from state", name, containerName, databaseName, accountName)
+			log.Printf("[INFO] SQL Stored Procedure %q (Container %q / Database %q / Account %q) was not found - removing from state", id.Name, id.Container, id.Database, id.Account)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
+		return fmt.Errorf("Error retrieving SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", id.Name, id.Container, id.Database, id.Account, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("account_name", accountName)
-	d.Set("database_name", databaseName)
-	d.Set("container_name", containerName)
-	d.Set("name", name)
+	d.Set("account_name", id.Account)
+	d.Set("database_name", id.Database)
+	d.Set("container_name", id.Container)
+	d.Set("name", id.Name)
 
 	if props := resp.SQLStoredProcedureGetProperties; props != nil {
 		if resource := props.Resource; resource != nil {
@@ -222,21 +217,16 @@ func resourceArmCosmosDbSQLStoredProcedureDelete(d *schema.ResourceData, meta in
 		return err
 	}
 
-	containerName := id.Container
-	databaseName := id.Database
-	accountName := id.Account
-	name := id.Name
-
-	future, err := client.DeleteSQLStoredProcedure(ctx, id.ResourceGroup, accountName, databaseName, containerName, name)
+	future, err := client.DeleteSQLStoredProcedure(ctx, id.ResourceGroup, id.Account, id.Database, id.Container, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
+			return fmt.Errorf("Error deleting SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", id.Name, id.Container, id.Database, id.Account, err)
 		}
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for deletion of SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", name, containerName, databaseName, accountName, err)
+		return fmt.Errorf("Error waiting for deletion of SQL Stored Procedure %q (Container %q / Database %q / Account %q): %+v", id.Name, id.Container, id.Database, id.Account, err)
 	}
 
 	return nil
