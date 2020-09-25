@@ -170,11 +170,14 @@ resource "azurerm_managed_application" "test" {
   managed_resource_group_name = "infraGroup%d"
   application_definition_id   = azurerm_managed_application_definition.test.id
 
-  parameters = {
-    location                 = azurerm_resource_group.test.location
-    storageAccountNamePrefix = "store%s"
-    storageAccountType       = "Standard_LRS"
-  }
+  parameter_values = <<VALUES
+	{
+		"location": "${azurerm_resource_group.test.location}",
+        "storageAccountNamePrefix": "store%s",
+        "storageAccountType": "Standard_LRS",
+        "abc": true
+	}
+  VALUES
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomString)
 }
@@ -218,19 +221,21 @@ resource "azurerm_managed_application" "test" {
     version   = "1.0.44"
   }
 
-  parameters = {
-    baseUrl                     = ""
-    location                    = azurerm_resource_group.test.location
-    merakiAuthToken             = "f451adfb-d00b-4612-8799-b29294217d4a"
-    subnetAddressPrefix         = "10.0.0.0/24"
-    subnetName                  = "acctestSubnet"
-    virtualMachineSize          = "Standard_DS12_v2"
-    virtualNetworkAddressPrefix = "10.0.0.0/16"
-    virtualNetworkName          = "acctestVnet"
-    virtualNetworkNewOrExisting = "new"
-    virtualNetworkResourceGroup = "acctestVnetRg"
-    vmName                      = "acctestVM"
-  }
+  parameter_values = <<VALUES
+	{
+		"baseUrl": "",
+        "location": "${azurerm_resource_group.test.location}",
+        "merakiAuthToken": "f451adfb-d00b-4612-8799-b29294217d4a",
+        "subnetAddressPrefix": "10.0.0.0/24",
+        "subnetName": "acctestSubnet",
+        "virtualMachineSize": "Standard_DS12_v2",
+        "virtualNetworkAddressPrefix": "10.0.0.0/16",
+        "virtualNetworkName": "acctestVnet",
+        "virtualNetworkNewOrExisting": "new",
+        "virtualNetworkResourceGroup": "acctestVnetRg",
+        "vmName": "acctestVM",
+	}
+  VALUES
 
   tags = {
     ENV = "Test"

@@ -51,11 +51,13 @@ resource "azurerm_managed_application" "example" {
   managed_resource_group_name = "infrastructureGroup"
   application_definition_id   = azurerm_managed_application_definition.example.id
 
-  parameters = {
-    location                 = azurerm_resource_group.example.location
-    storageAccountNamePrefix = "storeNamePrefix"
-    storageAccountType       = "Standard_LRS"
-  }
+  parameter_values = <<VALUES
+  	{
+  		"location": "${azurerm_resource_group.test.location}",
+          "storageAccountNamePrefix": "storeeastus2",
+          "storageAccountType": "Standard_LRS"
+  	}
+  VALUES
 }
 ```
 
@@ -75,7 +77,9 @@ The following arguments are supported:
 
 * `application_definition_id` - (Optional) The application definition ID to deploy.
 
-* `parameters` - (Optional) A mapping of name and value pairs to pass to the managed application as parameters.
+* `parameters` - (Optional / **Deprecated) A mapping of name and value pairs to pass to the managed application as parameters.
+
+* `parameter_values` - (Optional) Parameter values to pass to the managed application. This field is a json object that allows you to assign parameters to this managed application.
 
 * `plan` - (Optional) One `plan` block as defined below.
 
