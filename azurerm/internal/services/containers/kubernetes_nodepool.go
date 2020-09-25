@@ -259,10 +259,6 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 		if minCount > 0 {
 			profile.MinCount = utils.Int32(int32(minCount))
-
-			if minCount > count {
-				return nil, fmt.Errorf("`node_count`(%d) must be equal to or greater than `min_count`(%d) when `enable_auto_scaling` is set to `true`", count, minCount)
-			}
 		} else {
 			return nil, fmt.Errorf("`min_count` must be configured when `enable_auto_scaling` is set to `true`")
 		}
