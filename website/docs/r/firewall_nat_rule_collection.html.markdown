@@ -117,7 +117,11 @@ A `rule` block supports the following:
 
 * `protocols` - (Required) A list of protocols. Possible values are `Any`, `ICMP`, `TCP` and `UDP`.  If `action` is `Dnat`, protocols can only be `TCP` and `UDP`.
 
-* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+* `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
+
+* `source_ip_groups` - (Optional) A list of source IP Group IDs for the rule.
+
+-> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
 
 * `translated_address` - (Required) The address of the service behind the Firewall.
 

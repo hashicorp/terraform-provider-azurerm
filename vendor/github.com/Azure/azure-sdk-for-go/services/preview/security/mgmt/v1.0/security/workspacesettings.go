@@ -325,6 +325,9 @@ func (client WorkspaceSettingsClient) List(ctx context.Context) (result Workspac
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.WorkspaceSettingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.wsl.hasNextLink() && result.wsl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

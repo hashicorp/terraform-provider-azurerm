@@ -328,6 +328,9 @@ func (client ReplicationMigrationItemsClient) List(ctx context.Context, skipToke
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "List", resp, "Failure responding to request")
 	}
+	if result.mic.hasNextLink() && result.mic.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -446,6 +449,9 @@ func (client ReplicationMigrationItemsClient) ListByReplicationProtectionContain
 	result.mic, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "ListByReplicationProtectionContainers", resp, "Failure responding to request")
+	}
+	if result.mic.hasNextLink() && result.mic.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

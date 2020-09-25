@@ -487,6 +487,9 @@ func (client GroupsClient) List(ctx context.Context, filter string, top *int32) 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "List", resp, "Failure responding to request")
 	}
+	if result.glr.hasNextLink() && result.glr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -614,6 +617,9 @@ func (client GroupsClient) ListResources(ctx context.Context, resourceGroupName 
 	result.lr, err = client.ListResourcesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "resources.GroupsClient", "ListResources", resp, "Failure responding to request")
+	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

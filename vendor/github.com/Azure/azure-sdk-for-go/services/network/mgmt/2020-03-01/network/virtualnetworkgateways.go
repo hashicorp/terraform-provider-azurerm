@@ -1007,6 +1007,9 @@ func (client VirtualNetworkGatewaysClient) List(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "List", resp, "Failure responding to request")
 	}
+	if result.vnglr.hasNextLink() && result.vnglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1118,6 +1121,9 @@ func (client VirtualNetworkGatewaysClient) ListConnections(ctx context.Context, 
 	result.vnglcr, err = client.ListConnectionsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualNetworkGatewaysClient", "ListConnections", resp, "Failure responding to request")
+	}
+	if result.vnglcr.hasNextLink() && result.vnglcr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

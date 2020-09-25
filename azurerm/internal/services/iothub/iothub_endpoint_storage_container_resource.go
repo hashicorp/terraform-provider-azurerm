@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -40,7 +41,7 @@ func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IoTHubEndpointName,
+				ValidateFunc: iothubValidate.IoTHubEndpointName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -49,7 +50,7 @@ func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IoTHubName,
+				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
 			"container_name": {

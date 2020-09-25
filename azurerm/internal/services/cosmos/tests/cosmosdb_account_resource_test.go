@@ -295,6 +295,10 @@ func TestAccAzureRMCosmosDBAccount_capabilities_EnableTable(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableTable"})
 }
 
+func TestAccAzureRMCosmosDBAccount_capabilities_EnableServerless(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.GlobalDocumentDB, []string{"EnableServerless"})
+}
+
 func TestAccAzureRMCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"EnableMongo"})
 }
@@ -305,6 +309,14 @@ func TestAccAzureRMCosmosDBAccount_capabilities_MongoDBv34(t *testing.T) {
 
 func TestAccAzureRMCosmosDBAccount_capabilities_mongoEnableDocLevelTTL(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"mongoEnableDocLevelTTL"})
+}
+
+func TestAccAzureRMCosmosDBAccount_capabilities_DisableRateLimitingResponses(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"DisableRateLimitingResponses"})
+}
+
+func TestAccAzureRMCosmosDBAccount_capabilities_AllowSelfServeUpgradeToMongo36(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_capabilitiesWith(t, documentdb.MongoDB, []string{"AllowSelfServeUpgradeToMongo36"})
 }
 
 func testAccAzureRMCosmosDBAccount_capabilitiesWith(t *testing.T, kind documentdb.DatabaseAccountKind, capabilities []string) {

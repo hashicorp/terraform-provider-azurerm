@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_sql_server"
+page_title: "Azure Resource Manager: azurerm_mssql_server"
 description: |-
   Manages a Microsoft SQL Azure Database Server.
 
@@ -65,9 +65,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version for the new server. Valid values are: 2.0 (for v11 server) and 12.0 (for v12 server).
+* `version` - (Required) This servers MS SQL version. Valid values are: 2.0 (for v11 server) and 12.0 (for v12 server).
 
-* `administrator_login` - (Required) The administrator login name for the new server. Changing this forces a new resource to be created.
+* `administrator_login` - (Required) The administrator's login name for the new server. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
@@ -98,6 +98,8 @@ The following attributes are exported:
 * `id` - the Microsoft SQL Server ID.
 
 * `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server (e.g. myServerName.database.windows.net)
+
+* `restorable_dropped_database_ids` - A list of dropped restorable database IDs on the server.
 
 ---
 

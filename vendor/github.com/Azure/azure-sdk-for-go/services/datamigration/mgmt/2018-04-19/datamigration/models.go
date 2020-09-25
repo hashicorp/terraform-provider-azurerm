@@ -31,1046 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration"
 
-// AuthenticationType enumerates the values for authentication type.
-type AuthenticationType string
-
-const (
-	// ActiveDirectoryIntegrated ...
-	ActiveDirectoryIntegrated AuthenticationType = "ActiveDirectoryIntegrated"
-	// ActiveDirectoryPassword ...
-	ActiveDirectoryPassword AuthenticationType = "ActiveDirectoryPassword"
-	// None ...
-	None AuthenticationType = "None"
-	// SQLAuthentication ...
-	SQLAuthentication AuthenticationType = "SqlAuthentication"
-	// WindowsAuthentication ...
-	WindowsAuthentication AuthenticationType = "WindowsAuthentication"
-)
-
-// PossibleAuthenticationTypeValues returns an array of possible values for the AuthenticationType const type.
-func PossibleAuthenticationTypeValues() []AuthenticationType {
-	return []AuthenticationType{ActiveDirectoryIntegrated, ActiveDirectoryPassword, None, SQLAuthentication, WindowsAuthentication}
-}
-
-// BackupFileStatus enumerates the values for backup file status.
-type BackupFileStatus string
-
-const (
-	// Arrived ...
-	Arrived BackupFileStatus = "Arrived"
-	// Cancelled ...
-	Cancelled BackupFileStatus = "Cancelled"
-	// Queued ...
-	Queued BackupFileStatus = "Queued"
-	// Restored ...
-	Restored BackupFileStatus = "Restored"
-	// Restoring ...
-	Restoring BackupFileStatus = "Restoring"
-	// Uploaded ...
-	Uploaded BackupFileStatus = "Uploaded"
-	// Uploading ...
-	Uploading BackupFileStatus = "Uploading"
-)
-
-// PossibleBackupFileStatusValues returns an array of possible values for the BackupFileStatus const type.
-func PossibleBackupFileStatusValues() []BackupFileStatus {
-	return []BackupFileStatus{Arrived, Cancelled, Queued, Restored, Restoring, Uploaded, Uploading}
-}
-
-// BackupMode enumerates the values for backup mode.
-type BackupMode string
-
-const (
-	// CreateBackup ...
-	CreateBackup BackupMode = "CreateBackup"
-	// ExistingBackup ...
-	ExistingBackup BackupMode = "ExistingBackup"
-)
-
-// PossibleBackupModeValues returns an array of possible values for the BackupMode const type.
-func PossibleBackupModeValues() []BackupMode {
-	return []BackupMode{CreateBackup, ExistingBackup}
-}
-
-// BackupType enumerates the values for backup type.
-type BackupType string
-
-const (
-	// BackupTypeDatabase ...
-	BackupTypeDatabase BackupType = "Database"
-	// BackupTypeDifferentialDatabase ...
-	BackupTypeDifferentialDatabase BackupType = "DifferentialDatabase"
-	// BackupTypeDifferentialFile ...
-	BackupTypeDifferentialFile BackupType = "DifferentialFile"
-	// BackupTypeDifferentialPartial ...
-	BackupTypeDifferentialPartial BackupType = "DifferentialPartial"
-	// BackupTypeFile ...
-	BackupTypeFile BackupType = "File"
-	// BackupTypePartial ...
-	BackupTypePartial BackupType = "Partial"
-	// BackupTypeTransactionLog ...
-	BackupTypeTransactionLog BackupType = "TransactionLog"
-)
-
-// PossibleBackupTypeValues returns an array of possible values for the BackupType const type.
-func PossibleBackupTypeValues() []BackupType {
-	return []BackupType{BackupTypeDatabase, BackupTypeDifferentialDatabase, BackupTypeDifferentialFile, BackupTypeDifferentialPartial, BackupTypeFile, BackupTypePartial, BackupTypeTransactionLog}
-}
-
-// CommandState enumerates the values for command state.
-type CommandState string
-
-const (
-	// Accepted ...
-	Accepted CommandState = "Accepted"
-	// Failed ...
-	Failed CommandState = "Failed"
-	// Running ...
-	Running CommandState = "Running"
-	// Succeeded ...
-	Succeeded CommandState = "Succeeded"
-	// Unknown ...
-	Unknown CommandState = "Unknown"
-)
-
-// PossibleCommandStateValues returns an array of possible values for the CommandState const type.
-func PossibleCommandStateValues() []CommandState {
-	return []CommandState{Accepted, Failed, Running, Succeeded, Unknown}
-}
-
-// CommandType enumerates the values for command type.
-type CommandType string
-
-const (
-	// CommandTypeCommandProperties ...
-	CommandTypeCommandProperties CommandType = "CommandProperties"
-	// CommandTypeMigrateSQLServerAzureDbSQLMiComplete ...
-	CommandTypeMigrateSQLServerAzureDbSQLMiComplete CommandType = "Migrate.SqlServer.AzureDbSqlMi.Complete"
-	// CommandTypeMigrateSyncCompleteDatabase ...
-	CommandTypeMigrateSyncCompleteDatabase CommandType = "Migrate.Sync.Complete.Database"
-)
-
-// PossibleCommandTypeValues returns an array of possible values for the CommandType const type.
-func PossibleCommandTypeValues() []CommandType {
-	return []CommandType{CommandTypeCommandProperties, CommandTypeMigrateSQLServerAzureDbSQLMiComplete, CommandTypeMigrateSyncCompleteDatabase}
-}
-
-// DatabaseCompatLevel enumerates the values for database compat level.
-type DatabaseCompatLevel string
-
-const (
-	// CompatLevel100 ...
-	CompatLevel100 DatabaseCompatLevel = "CompatLevel100"
-	// CompatLevel110 ...
-	CompatLevel110 DatabaseCompatLevel = "CompatLevel110"
-	// CompatLevel120 ...
-	CompatLevel120 DatabaseCompatLevel = "CompatLevel120"
-	// CompatLevel130 ...
-	CompatLevel130 DatabaseCompatLevel = "CompatLevel130"
-	// CompatLevel140 ...
-	CompatLevel140 DatabaseCompatLevel = "CompatLevel140"
-	// CompatLevel80 ...
-	CompatLevel80 DatabaseCompatLevel = "CompatLevel80"
-	// CompatLevel90 ...
-	CompatLevel90 DatabaseCompatLevel = "CompatLevel90"
-)
-
-// PossibleDatabaseCompatLevelValues returns an array of possible values for the DatabaseCompatLevel const type.
-func PossibleDatabaseCompatLevelValues() []DatabaseCompatLevel {
-	return []DatabaseCompatLevel{CompatLevel100, CompatLevel110, CompatLevel120, CompatLevel130, CompatLevel140, CompatLevel80, CompatLevel90}
-}
-
-// DatabaseFileType enumerates the values for database file type.
-type DatabaseFileType string
-
-const (
-	// Filestream ...
-	Filestream DatabaseFileType = "Filestream"
-	// Fulltext ...
-	Fulltext DatabaseFileType = "Fulltext"
-	// Log ...
-	Log DatabaseFileType = "Log"
-	// NotSupported ...
-	NotSupported DatabaseFileType = "NotSupported"
-	// Rows ...
-	Rows DatabaseFileType = "Rows"
-)
-
-// PossibleDatabaseFileTypeValues returns an array of possible values for the DatabaseFileType const type.
-func PossibleDatabaseFileTypeValues() []DatabaseFileType {
-	return []DatabaseFileType{Filestream, Fulltext, Log, NotSupported, Rows}
-}
-
-// DatabaseMigrationStage enumerates the values for database migration stage.
-type DatabaseMigrationStage string
-
-const (
-	// DatabaseMigrationStageBackup ...
-	DatabaseMigrationStageBackup DatabaseMigrationStage = "Backup"
-	// DatabaseMigrationStageCompleted ...
-	DatabaseMigrationStageCompleted DatabaseMigrationStage = "Completed"
-	// DatabaseMigrationStageFileCopy ...
-	DatabaseMigrationStageFileCopy DatabaseMigrationStage = "FileCopy"
-	// DatabaseMigrationStageInitialize ...
-	DatabaseMigrationStageInitialize DatabaseMigrationStage = "Initialize"
-	// DatabaseMigrationStageNone ...
-	DatabaseMigrationStageNone DatabaseMigrationStage = "None"
-	// DatabaseMigrationStageRestore ...
-	DatabaseMigrationStageRestore DatabaseMigrationStage = "Restore"
-)
-
-// PossibleDatabaseMigrationStageValues returns an array of possible values for the DatabaseMigrationStage const type.
-func PossibleDatabaseMigrationStageValues() []DatabaseMigrationStage {
-	return []DatabaseMigrationStage{DatabaseMigrationStageBackup, DatabaseMigrationStageCompleted, DatabaseMigrationStageFileCopy, DatabaseMigrationStageInitialize, DatabaseMigrationStageNone, DatabaseMigrationStageRestore}
-}
-
-// DatabaseMigrationState enumerates the values for database migration state.
-type DatabaseMigrationState string
-
-const (
-	// CANCELLED ...
-	CANCELLED DatabaseMigrationState = "CANCELLED"
-	// COMPLETED ...
-	COMPLETED DatabaseMigrationState = "COMPLETED"
-	// CUTOVERSTART ...
-	CUTOVERSTART DatabaseMigrationState = "CUTOVER_START"
-	// FAILED ...
-	FAILED DatabaseMigrationState = "FAILED"
-	// FULLBACKUPUPLOADSTART ...
-	FULLBACKUPUPLOADSTART DatabaseMigrationState = "FULL_BACKUP_UPLOAD_START"
-	// INITIAL ...
-	INITIAL DatabaseMigrationState = "INITIAL"
-	// LOGSHIPPINGSTART ...
-	LOGSHIPPINGSTART DatabaseMigrationState = "LOG_SHIPPING_START"
-	// POSTCUTOVERCOMPLETE ...
-	POSTCUTOVERCOMPLETE DatabaseMigrationState = "POST_CUTOVER_COMPLETE"
-	// UNDEFINED ...
-	UNDEFINED DatabaseMigrationState = "UNDEFINED"
-	// UPLOADLOGFILESSTART ...
-	UPLOADLOGFILESSTART DatabaseMigrationState = "UPLOAD_LOG_FILES_START"
-)
-
-// PossibleDatabaseMigrationStateValues returns an array of possible values for the DatabaseMigrationState const type.
-func PossibleDatabaseMigrationStateValues() []DatabaseMigrationState {
-	return []DatabaseMigrationState{CANCELLED, COMPLETED, CUTOVERSTART, FAILED, FULLBACKUPUPLOADSTART, INITIAL, LOGSHIPPINGSTART, POSTCUTOVERCOMPLETE, UNDEFINED, UPLOADLOGFILESSTART}
-}
-
-// DatabaseState enumerates the values for database state.
-type DatabaseState string
-
-const (
-	// DatabaseStateCopying ...
-	DatabaseStateCopying DatabaseState = "Copying"
-	// DatabaseStateEmergency ...
-	DatabaseStateEmergency DatabaseState = "Emergency"
-	// DatabaseStateOffline ...
-	DatabaseStateOffline DatabaseState = "Offline"
-	// DatabaseStateOfflineSecondary ...
-	DatabaseStateOfflineSecondary DatabaseState = "OfflineSecondary"
-	// DatabaseStateOnline ...
-	DatabaseStateOnline DatabaseState = "Online"
-	// DatabaseStateRecovering ...
-	DatabaseStateRecovering DatabaseState = "Recovering"
-	// DatabaseStateRecoveryPending ...
-	DatabaseStateRecoveryPending DatabaseState = "RecoveryPending"
-	// DatabaseStateRestoring ...
-	DatabaseStateRestoring DatabaseState = "Restoring"
-	// DatabaseStateSuspect ...
-	DatabaseStateSuspect DatabaseState = "Suspect"
-)
-
-// PossibleDatabaseStateValues returns an array of possible values for the DatabaseState const type.
-func PossibleDatabaseStateValues() []DatabaseState {
-	return []DatabaseState{DatabaseStateCopying, DatabaseStateEmergency, DatabaseStateOffline, DatabaseStateOfflineSecondary, DatabaseStateOnline, DatabaseStateRecovering, DatabaseStateRecoveryPending, DatabaseStateRestoring, DatabaseStateSuspect}
-}
-
-// ErrorType enumerates the values for error type.
-type ErrorType string
-
-const (
-	// ErrorTypeDefault ...
-	ErrorTypeDefault ErrorType = "Default"
-	// ErrorTypeError ...
-	ErrorTypeError ErrorType = "Error"
-	// ErrorTypeWarning ...
-	ErrorTypeWarning ErrorType = "Warning"
-)
-
-// PossibleErrorTypeValues returns an array of possible values for the ErrorType const type.
-func PossibleErrorTypeValues() []ErrorType {
-	return []ErrorType{ErrorTypeDefault, ErrorTypeError, ErrorTypeWarning}
-}
-
-// LoginMigrationStage enumerates the values for login migration stage.
-type LoginMigrationStage string
-
-const (
-	// LoginMigrationStageAssignRoleMembership ...
-	LoginMigrationStageAssignRoleMembership LoginMigrationStage = "AssignRoleMembership"
-	// LoginMigrationStageAssignRoleOwnership ...
-	LoginMigrationStageAssignRoleOwnership LoginMigrationStage = "AssignRoleOwnership"
-	// LoginMigrationStageCompleted ...
-	LoginMigrationStageCompleted LoginMigrationStage = "Completed"
-	// LoginMigrationStageEstablishObjectPermissions ...
-	LoginMigrationStageEstablishObjectPermissions LoginMigrationStage = "EstablishObjectPermissions"
-	// LoginMigrationStageEstablishServerPermissions ...
-	LoginMigrationStageEstablishServerPermissions LoginMigrationStage = "EstablishServerPermissions"
-	// LoginMigrationStageEstablishUserMapping ...
-	LoginMigrationStageEstablishUserMapping LoginMigrationStage = "EstablishUserMapping"
-	// LoginMigrationStageInitialize ...
-	LoginMigrationStageInitialize LoginMigrationStage = "Initialize"
-	// LoginMigrationStageLoginMigration ...
-	LoginMigrationStageLoginMigration LoginMigrationStage = "LoginMigration"
-	// LoginMigrationStageNone ...
-	LoginMigrationStageNone LoginMigrationStage = "None"
-)
-
-// PossibleLoginMigrationStageValues returns an array of possible values for the LoginMigrationStage const type.
-func PossibleLoginMigrationStageValues() []LoginMigrationStage {
-	return []LoginMigrationStage{LoginMigrationStageAssignRoleMembership, LoginMigrationStageAssignRoleOwnership, LoginMigrationStageCompleted, LoginMigrationStageEstablishObjectPermissions, LoginMigrationStageEstablishServerPermissions, LoginMigrationStageEstablishUserMapping, LoginMigrationStageInitialize, LoginMigrationStageLoginMigration, LoginMigrationStageNone}
-}
-
-// LoginType enumerates the values for login type.
-type LoginType string
-
-const (
-	// AsymmetricKey ...
-	AsymmetricKey LoginType = "AsymmetricKey"
-	// Certificate ...
-	Certificate LoginType = "Certificate"
-	// ExternalGroup ...
-	ExternalGroup LoginType = "ExternalGroup"
-	// ExternalUser ...
-	ExternalUser LoginType = "ExternalUser"
-	// SQLLogin ...
-	SQLLogin LoginType = "SqlLogin"
-	// WindowsGroup ...
-	WindowsGroup LoginType = "WindowsGroup"
-	// WindowsUser ...
-	WindowsUser LoginType = "WindowsUser"
-)
-
-// PossibleLoginTypeValues returns an array of possible values for the LoginType const type.
-func PossibleLoginTypeValues() []LoginType {
-	return []LoginType{AsymmetricKey, Certificate, ExternalGroup, ExternalUser, SQLLogin, WindowsGroup, WindowsUser}
-}
-
-// MigrationState enumerates the values for migration state.
-type MigrationState string
-
-const (
-	// MigrationStateCompleted ...
-	MigrationStateCompleted MigrationState = "Completed"
-	// MigrationStateFailed ...
-	MigrationStateFailed MigrationState = "Failed"
-	// MigrationStateInProgress ...
-	MigrationStateInProgress MigrationState = "InProgress"
-	// MigrationStateNone ...
-	MigrationStateNone MigrationState = "None"
-	// MigrationStateSkipped ...
-	MigrationStateSkipped MigrationState = "Skipped"
-	// MigrationStateStopped ...
-	MigrationStateStopped MigrationState = "Stopped"
-	// MigrationStateWarning ...
-	MigrationStateWarning MigrationState = "Warning"
-)
-
-// PossibleMigrationStateValues returns an array of possible values for the MigrationState const type.
-func PossibleMigrationStateValues() []MigrationState {
-	return []MigrationState{MigrationStateCompleted, MigrationStateFailed, MigrationStateInProgress, MigrationStateNone, MigrationStateSkipped, MigrationStateStopped, MigrationStateWarning}
-}
-
-// MigrationStatus enumerates the values for migration status.
-type MigrationStatus string
-
-const (
-	// MigrationStatusCompleted ...
-	MigrationStatusCompleted MigrationStatus = "Completed"
-	// MigrationStatusCompletedWithWarnings ...
-	MigrationStatusCompletedWithWarnings MigrationStatus = "CompletedWithWarnings"
-	// MigrationStatusConfigured ...
-	MigrationStatusConfigured MigrationStatus = "Configured"
-	// MigrationStatusConnecting ...
-	MigrationStatusConnecting MigrationStatus = "Connecting"
-	// MigrationStatusDefault ...
-	MigrationStatusDefault MigrationStatus = "Default"
-	// MigrationStatusError ...
-	MigrationStatusError MigrationStatus = "Error"
-	// MigrationStatusRunning ...
-	MigrationStatusRunning MigrationStatus = "Running"
-	// MigrationStatusSelectLogins ...
-	MigrationStatusSelectLogins MigrationStatus = "SelectLogins"
-	// MigrationStatusSourceAndTargetSelected ...
-	MigrationStatusSourceAndTargetSelected MigrationStatus = "SourceAndTargetSelected"
-	// MigrationStatusStopped ...
-	MigrationStatusStopped MigrationStatus = "Stopped"
-)
-
-// PossibleMigrationStatusValues returns an array of possible values for the MigrationStatus const type.
-func PossibleMigrationStatusValues() []MigrationStatus {
-	return []MigrationStatus{MigrationStatusCompleted, MigrationStatusCompletedWithWarnings, MigrationStatusConfigured, MigrationStatusConnecting, MigrationStatusDefault, MigrationStatusError, MigrationStatusRunning, MigrationStatusSelectLogins, MigrationStatusSourceAndTargetSelected, MigrationStatusStopped}
-}
-
-// MySQLTargetPlatformType enumerates the values for my sql target platform type.
-type MySQLTargetPlatformType string
-
-const (
-	// AzureDbForMySQL ...
-	AzureDbForMySQL MySQLTargetPlatformType = "AzureDbForMySQL"
-	// SQLServer ...
-	SQLServer MySQLTargetPlatformType = "SqlServer"
-)
-
-// PossibleMySQLTargetPlatformTypeValues returns an array of possible values for the MySQLTargetPlatformType const type.
-func PossibleMySQLTargetPlatformTypeValues() []MySQLTargetPlatformType {
-	return []MySQLTargetPlatformType{AzureDbForMySQL, SQLServer}
-}
-
-// NameCheckFailureReason enumerates the values for name check failure reason.
-type NameCheckFailureReason string
-
-const (
-	// AlreadyExists ...
-	AlreadyExists NameCheckFailureReason = "AlreadyExists"
-	// Invalid ...
-	Invalid NameCheckFailureReason = "Invalid"
-)
-
-// PossibleNameCheckFailureReasonValues returns an array of possible values for the NameCheckFailureReason const type.
-func PossibleNameCheckFailureReasonValues() []NameCheckFailureReason {
-	return []NameCheckFailureReason{AlreadyExists, Invalid}
-}
-
-// ObjectType enumerates the values for object type.
-type ObjectType string
-
-const (
-	// Function ...
-	Function ObjectType = "Function"
-	// StoredProcedures ...
-	StoredProcedures ObjectType = "StoredProcedures"
-	// Table ...
-	Table ObjectType = "Table"
-	// User ...
-	User ObjectType = "User"
-	// View ...
-	View ObjectType = "View"
-)
-
-// PossibleObjectTypeValues returns an array of possible values for the ObjectType const type.
-func PossibleObjectTypeValues() []ObjectType {
-	return []ObjectType{Function, StoredProcedures, Table, User, View}
-}
-
-// ProjectProvisioningState enumerates the values for project provisioning state.
-type ProjectProvisioningState string
-
-const (
-	// ProjectProvisioningStateDeleting ...
-	ProjectProvisioningStateDeleting ProjectProvisioningState = "Deleting"
-	// ProjectProvisioningStateSucceeded ...
-	ProjectProvisioningStateSucceeded ProjectProvisioningState = "Succeeded"
-)
-
-// PossibleProjectProvisioningStateValues returns an array of possible values for the ProjectProvisioningState const type.
-func PossibleProjectProvisioningStateValues() []ProjectProvisioningState {
-	return []ProjectProvisioningState{ProjectProvisioningStateDeleting, ProjectProvisioningStateSucceeded}
-}
-
-// ProjectSourcePlatform enumerates the values for project source platform.
-type ProjectSourcePlatform string
-
-const (
-	// ProjectSourcePlatformSQL ...
-	ProjectSourcePlatformSQL ProjectSourcePlatform = "SQL"
-	// ProjectSourcePlatformUnknown ...
-	ProjectSourcePlatformUnknown ProjectSourcePlatform = "Unknown"
-)
-
-// PossibleProjectSourcePlatformValues returns an array of possible values for the ProjectSourcePlatform const type.
-func PossibleProjectSourcePlatformValues() []ProjectSourcePlatform {
-	return []ProjectSourcePlatform{ProjectSourcePlatformSQL, ProjectSourcePlatformUnknown}
-}
-
-// ProjectTargetPlatform enumerates the values for project target platform.
-type ProjectTargetPlatform string
-
-const (
-	// ProjectTargetPlatformSQLDB ...
-	ProjectTargetPlatformSQLDB ProjectTargetPlatform = "SQLDB"
-	// ProjectTargetPlatformUnknown ...
-	ProjectTargetPlatformUnknown ProjectTargetPlatform = "Unknown"
-)
-
-// PossibleProjectTargetPlatformValues returns an array of possible values for the ProjectTargetPlatform const type.
-func PossibleProjectTargetPlatformValues() []ProjectTargetPlatform {
-	return []ProjectTargetPlatform{ProjectTargetPlatformSQLDB, ProjectTargetPlatformUnknown}
-}
-
-// ResourceSkuCapacityScaleType enumerates the values for resource sku capacity scale type.
-type ResourceSkuCapacityScaleType string
-
-const (
-	// ResourceSkuCapacityScaleTypeAutomatic ...
-	ResourceSkuCapacityScaleTypeAutomatic ResourceSkuCapacityScaleType = "Automatic"
-	// ResourceSkuCapacityScaleTypeManual ...
-	ResourceSkuCapacityScaleTypeManual ResourceSkuCapacityScaleType = "Manual"
-	// ResourceSkuCapacityScaleTypeNone ...
-	ResourceSkuCapacityScaleTypeNone ResourceSkuCapacityScaleType = "None"
-)
-
-// PossibleResourceSkuCapacityScaleTypeValues returns an array of possible values for the ResourceSkuCapacityScaleType const type.
-func PossibleResourceSkuCapacityScaleTypeValues() []ResourceSkuCapacityScaleType {
-	return []ResourceSkuCapacityScaleType{ResourceSkuCapacityScaleTypeAutomatic, ResourceSkuCapacityScaleTypeManual, ResourceSkuCapacityScaleTypeNone}
-}
-
-// ResourceSkuRestrictionsReasonCode enumerates the values for resource sku restrictions reason code.
-type ResourceSkuRestrictionsReasonCode string
-
-const (
-	// NotAvailableForSubscription ...
-	NotAvailableForSubscription ResourceSkuRestrictionsReasonCode = "NotAvailableForSubscription"
-	// QuotaID ...
-	QuotaID ResourceSkuRestrictionsReasonCode = "QuotaId"
-)
-
-// PossibleResourceSkuRestrictionsReasonCodeValues returns an array of possible values for the ResourceSkuRestrictionsReasonCode const type.
-func PossibleResourceSkuRestrictionsReasonCodeValues() []ResourceSkuRestrictionsReasonCode {
-	return []ResourceSkuRestrictionsReasonCode{NotAvailableForSubscription, QuotaID}
-}
-
-// ResourceSkuRestrictionsType enumerates the values for resource sku restrictions type.
-type ResourceSkuRestrictionsType string
-
-const (
-	// Location ...
-	Location ResourceSkuRestrictionsType = "location"
-)
-
-// PossibleResourceSkuRestrictionsTypeValues returns an array of possible values for the ResourceSkuRestrictionsType const type.
-func PossibleResourceSkuRestrictionsTypeValues() []ResourceSkuRestrictionsType {
-	return []ResourceSkuRestrictionsType{Location}
-}
-
-// ResultCode enumerates the values for result code.
-type ResultCode string
-
-const (
-	// Completed ...
-	Completed ResultCode = "Completed"
-	// FatalError ...
-	FatalError ResultCode = "FatalError"
-	// Initial ...
-	Initial ResultCode = "Initial"
-	// ObjectNotExistsInSource ...
-	ObjectNotExistsInSource ResultCode = "ObjectNotExistsInSource"
-	// ObjectNotExistsInTarget ...
-	ObjectNotExistsInTarget ResultCode = "ObjectNotExistsInTarget"
-	// TargetObjectIsInaccessible ...
-	TargetObjectIsInaccessible ResultCode = "TargetObjectIsInaccessible"
-)
-
-// PossibleResultCodeValues returns an array of possible values for the ResultCode const type.
-func PossibleResultCodeValues() []ResultCode {
-	return []ResultCode{Completed, FatalError, Initial, ObjectNotExistsInSource, ObjectNotExistsInTarget, TargetObjectIsInaccessible}
-}
-
-// ResultType enumerates the values for result type.
-type ResultType string
-
-const (
-	// ResultTypeDatabaseLevelErrorOutput ...
-	ResultTypeDatabaseLevelErrorOutput ResultType = "DatabaseLevelErrorOutput"
-	// ResultTypeDatabaseLevelOutput ...
-	ResultTypeDatabaseLevelOutput ResultType = "DatabaseLevelOutput"
-	// ResultTypeErrorOutput ...
-	ResultTypeErrorOutput ResultType = "ErrorOutput"
-	// ResultTypeMigratePostgreSQLAzureDbForPostgreSQLSyncTaskOutput ...
-	ResultTypeMigratePostgreSQLAzureDbForPostgreSQLSyncTaskOutput ResultType = "MigratePostgreSqlAzureDbForPostgreSqlSyncTaskOutput"
-	// ResultTypeMigrationLevelOutput ...
-	ResultTypeMigrationLevelOutput ResultType = "MigrationLevelOutput"
-	// ResultTypeTableLevelOutput ...
-	ResultTypeTableLevelOutput ResultType = "TableLevelOutput"
-)
-
-// PossibleResultTypeValues returns an array of possible values for the ResultType const type.
-func PossibleResultTypeValues() []ResultType {
-	return []ResultType{ResultTypeDatabaseLevelErrorOutput, ResultTypeDatabaseLevelOutput, ResultTypeErrorOutput, ResultTypeMigratePostgreSQLAzureDbForPostgreSQLSyncTaskOutput, ResultTypeMigrationLevelOutput, ResultTypeTableLevelOutput}
-}
-
-// ResultTypeBasicConnectToSourceSQLServerTaskOutput enumerates the values for result type basic connect to
-// source sql server task output.
-type ResultTypeBasicConnectToSourceSQLServerTaskOutput string
-
-const (
-	// ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeAgentJobLevelOutput ...
-	ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeAgentJobLevelOutput ResultTypeBasicConnectToSourceSQLServerTaskOutput = "AgentJobLevelOutput"
-	// ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeConnectToSourceSQLServerTaskOutput ...
-	ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeConnectToSourceSQLServerTaskOutput ResultTypeBasicConnectToSourceSQLServerTaskOutput = "ConnectToSourceSqlServerTaskOutput"
-	// ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeDatabaseLevelOutput ...
-	ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeDatabaseLevelOutput ResultTypeBasicConnectToSourceSQLServerTaskOutput = "DatabaseLevelOutput"
-	// ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeLoginLevelOutput ...
-	ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeLoginLevelOutput ResultTypeBasicConnectToSourceSQLServerTaskOutput = "LoginLevelOutput"
-	// ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeTaskLevelOutput ...
-	ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeTaskLevelOutput ResultTypeBasicConnectToSourceSQLServerTaskOutput = "TaskLevelOutput"
-)
-
-// PossibleResultTypeBasicConnectToSourceSQLServerTaskOutputValues returns an array of possible values for the ResultTypeBasicConnectToSourceSQLServerTaskOutput const type.
-func PossibleResultTypeBasicConnectToSourceSQLServerTaskOutputValues() []ResultTypeBasicConnectToSourceSQLServerTaskOutput {
-	return []ResultTypeBasicConnectToSourceSQLServerTaskOutput{ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeAgentJobLevelOutput, ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeConnectToSourceSQLServerTaskOutput, ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeDatabaseLevelOutput, ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeLoginLevelOutput, ResultTypeBasicConnectToSourceSQLServerTaskOutputResultTypeTaskLevelOutput}
-}
-
-// ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput enumerates the values for result type basic migrate
-// my sql azure db for my sql sync task output.
-type ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput string
-
-const (
-	// ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeDatabaseLevelErrorOutput ...
-	ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeDatabaseLevelErrorOutput ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput = "DatabaseLevelErrorOutput"
-	// ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeDatabaseLevelOutput ...
-	ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeDatabaseLevelOutput ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput = "DatabaseLevelOutput"
-	// ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeErrorOutput ...
-	ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeErrorOutput ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput = "ErrorOutput"
-	// ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeMigrateMySQLAzureDbForMySQLSyncTaskOutput ...
-	ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeMigrateMySQLAzureDbForMySQLSyncTaskOutput ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput = "MigrateMySqlAzureDbForMySqlSyncTaskOutput"
-	// ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeMigrationLevelOutput ...
-	ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeMigrationLevelOutput ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput = "MigrationLevelOutput"
-	// ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeTableLevelOutput ...
-	ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeTableLevelOutput ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput = "TableLevelOutput"
-)
-
-// PossibleResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputValues returns an array of possible values for the ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput const type.
-func PossibleResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputValues() []ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput {
-	return []ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutput{ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeDatabaseLevelErrorOutput, ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeDatabaseLevelOutput, ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeErrorOutput, ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeMigrateMySQLAzureDbForMySQLSyncTaskOutput, ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeMigrationLevelOutput, ResultTypeBasicMigrateMySQLAzureDbForMySQLSyncTaskOutputResultTypeTableLevelOutput}
-}
-
-// ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput enumerates the values for result type basic migrate sql
-// server sql db sync task output.
-type ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput string
-
-const (
-	// ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeDatabaseLevelErrorOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeDatabaseLevelErrorOutput ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput = "DatabaseLevelErrorOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeDatabaseLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeDatabaseLevelOutput ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput = "DatabaseLevelOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeErrorOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeErrorOutput ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput = "ErrorOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeMigrateSQLServerSQLDbSyncTaskOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeMigrateSQLServerSQLDbSyncTaskOutput ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput = "MigrateSqlServerSqlDbSyncTaskOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeMigrationLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeMigrationLevelOutput ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput = "MigrationLevelOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeTableLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeTableLevelOutput ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput = "TableLevelOutput"
-)
-
-// PossibleResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputValues returns an array of possible values for the ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput const type.
-func PossibleResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputValues() []ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput {
-	return []ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutput{ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeDatabaseLevelErrorOutput, ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeDatabaseLevelOutput, ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeErrorOutput, ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeMigrateSQLServerSQLDbSyncTaskOutput, ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeMigrationLevelOutput, ResultTypeBasicMigrateSQLServerSQLDbSyncTaskOutputResultTypeTableLevelOutput}
-}
-
-// ResultTypeBasicMigrateSQLServerSQLDbTaskOutput enumerates the values for result type basic migrate sql
-// server sql db task output.
-type ResultTypeBasicMigrateSQLServerSQLDbTaskOutput string
-
-const (
-	// ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeDatabaseLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeDatabaseLevelOutput ResultTypeBasicMigrateSQLServerSQLDbTaskOutput = "DatabaseLevelOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeErrorOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeErrorOutput ResultTypeBasicMigrateSQLServerSQLDbTaskOutput = "ErrorOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrateSQLServerSQLDbTaskOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrateSQLServerSQLDbTaskOutput ResultTypeBasicMigrateSQLServerSQLDbTaskOutput = "MigrateSqlServerSqlDbTaskOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationDatabaseLevelValidationOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationDatabaseLevelValidationOutput ResultTypeBasicMigrateSQLServerSQLDbTaskOutput = "MigrationDatabaseLevelValidationOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationLevelOutput ResultTypeBasicMigrateSQLServerSQLDbTaskOutput = "MigrationLevelOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationValidationOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationValidationOutput ResultTypeBasicMigrateSQLServerSQLDbTaskOutput = "MigrationValidationOutput"
-	// ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeTableLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeTableLevelOutput ResultTypeBasicMigrateSQLServerSQLDbTaskOutput = "TableLevelOutput"
-)
-
-// PossibleResultTypeBasicMigrateSQLServerSQLDbTaskOutputValues returns an array of possible values for the ResultTypeBasicMigrateSQLServerSQLDbTaskOutput const type.
-func PossibleResultTypeBasicMigrateSQLServerSQLDbTaskOutputValues() []ResultTypeBasicMigrateSQLServerSQLDbTaskOutput {
-	return []ResultTypeBasicMigrateSQLServerSQLDbTaskOutput{ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeDatabaseLevelOutput, ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeErrorOutput, ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrateSQLServerSQLDbTaskOutput, ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationDatabaseLevelValidationOutput, ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationLevelOutput, ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeMigrationValidationOutput, ResultTypeBasicMigrateSQLServerSQLDbTaskOutputResultTypeTableLevelOutput}
-}
-
-// ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput enumerates the values for result type basic migrate sql
-// server sqlmi sync task output.
-type ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput string
-
-const (
-	// ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeDatabaseLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeDatabaseLevelOutput ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput = "DatabaseLevelOutput"
-	// ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeErrorOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeErrorOutput ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput = "ErrorOutput"
-	// ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeMigrateSQLServerSQLMISyncTaskOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeMigrateSQLServerSQLMISyncTaskOutput ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput = "MigrateSqlServerSqlMISyncTaskOutput"
-	// ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeMigrationLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeMigrationLevelOutput ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput = "MigrationLevelOutput"
-)
-
-// PossibleResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputValues returns an array of possible values for the ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput const type.
-func PossibleResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputValues() []ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput {
-	return []ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutput{ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeDatabaseLevelOutput, ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeErrorOutput, ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeMigrateSQLServerSQLMISyncTaskOutput, ResultTypeBasicMigrateSQLServerSQLMISyncTaskOutputResultTypeMigrationLevelOutput}
-}
-
-// ResultTypeBasicMigrateSQLServerSQLMITaskOutput enumerates the values for result type basic migrate sql
-// server sqlmi task output.
-type ResultTypeBasicMigrateSQLServerSQLMITaskOutput string
-
-const (
-	// ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeAgentJobLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeAgentJobLevelOutput ResultTypeBasicMigrateSQLServerSQLMITaskOutput = "AgentJobLevelOutput"
-	// ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeDatabaseLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeDatabaseLevelOutput ResultTypeBasicMigrateSQLServerSQLMITaskOutput = "DatabaseLevelOutput"
-	// ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeErrorOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeErrorOutput ResultTypeBasicMigrateSQLServerSQLMITaskOutput = "ErrorOutput"
-	// ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeLoginLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeLoginLevelOutput ResultTypeBasicMigrateSQLServerSQLMITaskOutput = "LoginLevelOutput"
-	// ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeMigrateSQLServerSQLMITaskOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeMigrateSQLServerSQLMITaskOutput ResultTypeBasicMigrateSQLServerSQLMITaskOutput = "MigrateSqlServerSqlMITaskOutput"
-	// ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeMigrationLevelOutput ...
-	ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeMigrationLevelOutput ResultTypeBasicMigrateSQLServerSQLMITaskOutput = "MigrationLevelOutput"
-)
-
-// PossibleResultTypeBasicMigrateSQLServerSQLMITaskOutputValues returns an array of possible values for the ResultTypeBasicMigrateSQLServerSQLMITaskOutput const type.
-func PossibleResultTypeBasicMigrateSQLServerSQLMITaskOutputValues() []ResultTypeBasicMigrateSQLServerSQLMITaskOutput {
-	return []ResultTypeBasicMigrateSQLServerSQLMITaskOutput{ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeAgentJobLevelOutput, ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeDatabaseLevelOutput, ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeErrorOutput, ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeLoginLevelOutput, ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeMigrateSQLServerSQLMITaskOutput, ResultTypeBasicMigrateSQLServerSQLMITaskOutputResultTypeMigrationLevelOutput}
-}
-
-// SchemaMigrationStage enumerates the values for schema migration stage.
-type SchemaMigrationStage string
-
-const (
-	// SchemaMigrationStageCollectingObjects ...
-	SchemaMigrationStageCollectingObjects SchemaMigrationStage = "CollectingObjects"
-	// SchemaMigrationStageCompleted ...
-	SchemaMigrationStageCompleted SchemaMigrationStage = "Completed"
-	// SchemaMigrationStageCompletedWithWarnings ...
-	SchemaMigrationStageCompletedWithWarnings SchemaMigrationStage = "CompletedWithWarnings"
-	// SchemaMigrationStageDeployingSchema ...
-	SchemaMigrationStageDeployingSchema SchemaMigrationStage = "DeployingSchema"
-	// SchemaMigrationStageDownloadingScript ...
-	SchemaMigrationStageDownloadingScript SchemaMigrationStage = "DownloadingScript"
-	// SchemaMigrationStageFailed ...
-	SchemaMigrationStageFailed SchemaMigrationStage = "Failed"
-	// SchemaMigrationStageGeneratingScript ...
-	SchemaMigrationStageGeneratingScript SchemaMigrationStage = "GeneratingScript"
-	// SchemaMigrationStageNotStarted ...
-	SchemaMigrationStageNotStarted SchemaMigrationStage = "NotStarted"
-	// SchemaMigrationStageUploadingScript ...
-	SchemaMigrationStageUploadingScript SchemaMigrationStage = "UploadingScript"
-	// SchemaMigrationStageValidatingInputs ...
-	SchemaMigrationStageValidatingInputs SchemaMigrationStage = "ValidatingInputs"
-)
-
-// PossibleSchemaMigrationStageValues returns an array of possible values for the SchemaMigrationStage const type.
-func PossibleSchemaMigrationStageValues() []SchemaMigrationStage {
-	return []SchemaMigrationStage{SchemaMigrationStageCollectingObjects, SchemaMigrationStageCompleted, SchemaMigrationStageCompletedWithWarnings, SchemaMigrationStageDeployingSchema, SchemaMigrationStageDownloadingScript, SchemaMigrationStageFailed, SchemaMigrationStageGeneratingScript, SchemaMigrationStageNotStarted, SchemaMigrationStageUploadingScript, SchemaMigrationStageValidatingInputs}
-}
-
-// ServerLevelPermissionsGroup enumerates the values for server level permissions group.
-type ServerLevelPermissionsGroup string
-
-const (
-	// Default ...
-	Default ServerLevelPermissionsGroup = "Default"
-	// MigrationFromMySQLToAzureDBForMySQL ...
-	MigrationFromMySQLToAzureDBForMySQL ServerLevelPermissionsGroup = "MigrationFromMySQLToAzureDBForMySQL"
-	// MigrationFromSQLServerToAzureDB ...
-	MigrationFromSQLServerToAzureDB ServerLevelPermissionsGroup = "MigrationFromSqlServerToAzureDB"
-	// MigrationFromSQLServerToAzureMI ...
-	MigrationFromSQLServerToAzureMI ServerLevelPermissionsGroup = "MigrationFromSqlServerToAzureMI"
-)
-
-// PossibleServerLevelPermissionsGroupValues returns an array of possible values for the ServerLevelPermissionsGroup const type.
-func PossibleServerLevelPermissionsGroupValues() []ServerLevelPermissionsGroup {
-	return []ServerLevelPermissionsGroup{Default, MigrationFromMySQLToAzureDBForMySQL, MigrationFromSQLServerToAzureDB, MigrationFromSQLServerToAzureMI}
-}
-
-// ServiceProvisioningState enumerates the values for service provisioning state.
-type ServiceProvisioningState string
-
-const (
-	// ServiceProvisioningStateAccepted ...
-	ServiceProvisioningStateAccepted ServiceProvisioningState = "Accepted"
-	// ServiceProvisioningStateDeleting ...
-	ServiceProvisioningStateDeleting ServiceProvisioningState = "Deleting"
-	// ServiceProvisioningStateDeploying ...
-	ServiceProvisioningStateDeploying ServiceProvisioningState = "Deploying"
-	// ServiceProvisioningStateFailed ...
-	ServiceProvisioningStateFailed ServiceProvisioningState = "Failed"
-	// ServiceProvisioningStateFailedToStart ...
-	ServiceProvisioningStateFailedToStart ServiceProvisioningState = "FailedToStart"
-	// ServiceProvisioningStateFailedToStop ...
-	ServiceProvisioningStateFailedToStop ServiceProvisioningState = "FailedToStop"
-	// ServiceProvisioningStateStarting ...
-	ServiceProvisioningStateStarting ServiceProvisioningState = "Starting"
-	// ServiceProvisioningStateStopped ...
-	ServiceProvisioningStateStopped ServiceProvisioningState = "Stopped"
-	// ServiceProvisioningStateStopping ...
-	ServiceProvisioningStateStopping ServiceProvisioningState = "Stopping"
-	// ServiceProvisioningStateSucceeded ...
-	ServiceProvisioningStateSucceeded ServiceProvisioningState = "Succeeded"
-)
-
-// PossibleServiceProvisioningStateValues returns an array of possible values for the ServiceProvisioningState const type.
-func PossibleServiceProvisioningStateValues() []ServiceProvisioningState {
-	return []ServiceProvisioningState{ServiceProvisioningStateAccepted, ServiceProvisioningStateDeleting, ServiceProvisioningStateDeploying, ServiceProvisioningStateFailed, ServiceProvisioningStateFailedToStart, ServiceProvisioningStateFailedToStop, ServiceProvisioningStateStarting, ServiceProvisioningStateStopped, ServiceProvisioningStateStopping, ServiceProvisioningStateSucceeded}
-}
-
-// ServiceScalability enumerates the values for service scalability.
-type ServiceScalability string
-
-const (
-	// ServiceScalabilityAutomatic ...
-	ServiceScalabilityAutomatic ServiceScalability = "automatic"
-	// ServiceScalabilityManual ...
-	ServiceScalabilityManual ServiceScalability = "manual"
-	// ServiceScalabilityNone ...
-	ServiceScalabilityNone ServiceScalability = "none"
-)
-
-// PossibleServiceScalabilityValues returns an array of possible values for the ServiceScalability const type.
-func PossibleServiceScalabilityValues() []ServiceScalability {
-	return []ServiceScalability{ServiceScalabilityAutomatic, ServiceScalabilityManual, ServiceScalabilityNone}
-}
-
-// Severity enumerates the values for severity.
-type Severity string
-
-const (
-	// SeverityError ...
-	SeverityError Severity = "Error"
-	// SeverityMessage ...
-	SeverityMessage Severity = "Message"
-	// SeverityWarning ...
-	SeverityWarning Severity = "Warning"
-)
-
-// PossibleSeverityValues returns an array of possible values for the Severity const type.
-func PossibleSeverityValues() []Severity {
-	return []Severity{SeverityError, SeverityMessage, SeverityWarning}
-}
-
-// SQLSourcePlatform enumerates the values for sql source platform.
-type SQLSourcePlatform string
-
-const (
-	// SQLOnPrem ...
-	SQLOnPrem SQLSourcePlatform = "SqlOnPrem"
-)
-
-// PossibleSQLSourcePlatformValues returns an array of possible values for the SQLSourcePlatform const type.
-func PossibleSQLSourcePlatformValues() []SQLSourcePlatform {
-	return []SQLSourcePlatform{SQLOnPrem}
-}
-
-// SyncDatabaseMigrationReportingState enumerates the values for sync database migration reporting state.
-type SyncDatabaseMigrationReportingState string
-
-const (
-	// SyncDatabaseMigrationReportingStateCANCELLED ...
-	SyncDatabaseMigrationReportingStateCANCELLED SyncDatabaseMigrationReportingState = "CANCELLED"
-	// SyncDatabaseMigrationReportingStateCANCELLING ...
-	SyncDatabaseMigrationReportingStateCANCELLING SyncDatabaseMigrationReportingState = "CANCELLING"
-	// SyncDatabaseMigrationReportingStateCOMPLETE ...
-	SyncDatabaseMigrationReportingStateCOMPLETE SyncDatabaseMigrationReportingState = "COMPLETE"
-	// SyncDatabaseMigrationReportingStateCOMPLETING ...
-	SyncDatabaseMigrationReportingStateCOMPLETING SyncDatabaseMigrationReportingState = "COMPLETING"
-	// SyncDatabaseMigrationReportingStateCONFIGURING ...
-	SyncDatabaseMigrationReportingStateCONFIGURING SyncDatabaseMigrationReportingState = "CONFIGURING"
-	// SyncDatabaseMigrationReportingStateFAILED ...
-	SyncDatabaseMigrationReportingStateFAILED SyncDatabaseMigrationReportingState = "FAILED"
-	// SyncDatabaseMigrationReportingStateINITIALIAZING ...
-	SyncDatabaseMigrationReportingStateINITIALIAZING SyncDatabaseMigrationReportingState = "INITIALIAZING"
-	// SyncDatabaseMigrationReportingStateREADYTOCOMPLETE ...
-	SyncDatabaseMigrationReportingStateREADYTOCOMPLETE SyncDatabaseMigrationReportingState = "READY_TO_COMPLETE"
-	// SyncDatabaseMigrationReportingStateRUNNING ...
-	SyncDatabaseMigrationReportingStateRUNNING SyncDatabaseMigrationReportingState = "RUNNING"
-	// SyncDatabaseMigrationReportingStateSTARTING ...
-	SyncDatabaseMigrationReportingStateSTARTING SyncDatabaseMigrationReportingState = "STARTING"
-	// SyncDatabaseMigrationReportingStateUNDEFINED ...
-	SyncDatabaseMigrationReportingStateUNDEFINED SyncDatabaseMigrationReportingState = "UNDEFINED"
-)
-
-// PossibleSyncDatabaseMigrationReportingStateValues returns an array of possible values for the SyncDatabaseMigrationReportingState const type.
-func PossibleSyncDatabaseMigrationReportingStateValues() []SyncDatabaseMigrationReportingState {
-	return []SyncDatabaseMigrationReportingState{SyncDatabaseMigrationReportingStateCANCELLED, SyncDatabaseMigrationReportingStateCANCELLING, SyncDatabaseMigrationReportingStateCOMPLETE, SyncDatabaseMigrationReportingStateCOMPLETING, SyncDatabaseMigrationReportingStateCONFIGURING, SyncDatabaseMigrationReportingStateFAILED, SyncDatabaseMigrationReportingStateINITIALIAZING, SyncDatabaseMigrationReportingStateREADYTOCOMPLETE, SyncDatabaseMigrationReportingStateRUNNING, SyncDatabaseMigrationReportingStateSTARTING, SyncDatabaseMigrationReportingStateUNDEFINED}
-}
-
-// SyncTableMigrationState enumerates the values for sync table migration state.
-type SyncTableMigrationState string
-
-const (
-	// SyncTableMigrationStateBEFORELOAD ...
-	SyncTableMigrationStateBEFORELOAD SyncTableMigrationState = "BEFORE_LOAD"
-	// SyncTableMigrationStateCANCELED ...
-	SyncTableMigrationStateCANCELED SyncTableMigrationState = "CANCELED"
-	// SyncTableMigrationStateCOMPLETED ...
-	SyncTableMigrationStateCOMPLETED SyncTableMigrationState = "COMPLETED"
-	// SyncTableMigrationStateERROR ...
-	SyncTableMigrationStateERROR SyncTableMigrationState = "ERROR"
-	// SyncTableMigrationStateFAILED ...
-	SyncTableMigrationStateFAILED SyncTableMigrationState = "FAILED"
-	// SyncTableMigrationStateFULLLOAD ...
-	SyncTableMigrationStateFULLLOAD SyncTableMigrationState = "FULL_LOAD"
-)
-
-// PossibleSyncTableMigrationStateValues returns an array of possible values for the SyncTableMigrationState const type.
-func PossibleSyncTableMigrationStateValues() []SyncTableMigrationState {
-	return []SyncTableMigrationState{SyncTableMigrationStateBEFORELOAD, SyncTableMigrationStateCANCELED, SyncTableMigrationStateCOMPLETED, SyncTableMigrationStateERROR, SyncTableMigrationStateFAILED, SyncTableMigrationStateFULLLOAD}
-}
-
-// TaskState enumerates the values for task state.
-type TaskState string
-
-const (
-	// TaskStateCanceled ...
-	TaskStateCanceled TaskState = "Canceled"
-	// TaskStateFailed ...
-	TaskStateFailed TaskState = "Failed"
-	// TaskStateFailedInputValidation ...
-	TaskStateFailedInputValidation TaskState = "FailedInputValidation"
-	// TaskStateFaulted ...
-	TaskStateFaulted TaskState = "Faulted"
-	// TaskStateQueued ...
-	TaskStateQueued TaskState = "Queued"
-	// TaskStateRunning ...
-	TaskStateRunning TaskState = "Running"
-	// TaskStateSucceeded ...
-	TaskStateSucceeded TaskState = "Succeeded"
-	// TaskStateUnknown ...
-	TaskStateUnknown TaskState = "Unknown"
-)
-
-// PossibleTaskStateValues returns an array of possible values for the TaskState const type.
-func PossibleTaskStateValues() []TaskState {
-	return []TaskState{TaskStateCanceled, TaskStateFailed, TaskStateFailedInputValidation, TaskStateFaulted, TaskStateQueued, TaskStateRunning, TaskStateSucceeded, TaskStateUnknown}
-}
-
-// TaskType enumerates the values for task type.
-type TaskType string
-
-const (
-	// TaskTypeConnectToSourceMySQL ...
-	TaskTypeConnectToSourceMySQL TaskType = "ConnectToSource.MySql"
-	// TaskTypeConnectToSourcePostgreSQLSync ...
-	TaskTypeConnectToSourcePostgreSQLSync TaskType = "ConnectToSource.PostgreSql.Sync"
-	// TaskTypeConnectToSourceSQLServer ...
-	TaskTypeConnectToSourceSQLServer TaskType = "ConnectToSource.SqlServer"
-	// TaskTypeConnectToSourceSQLServerSync ...
-	TaskTypeConnectToSourceSQLServerSync TaskType = "ConnectToSource.SqlServer.Sync"
-	// TaskTypeConnectToTargetAzureDbForMySQL ...
-	TaskTypeConnectToTargetAzureDbForMySQL TaskType = "ConnectToTarget.AzureDbForMySql"
-	// TaskTypeConnectToTargetAzureDbForPostgreSQLSync ...
-	TaskTypeConnectToTargetAzureDbForPostgreSQLSync TaskType = "ConnectToTarget.AzureDbForPostgreSql.Sync"
-	// TaskTypeConnectToTargetAzureSQLDbMI ...
-	TaskTypeConnectToTargetAzureSQLDbMI TaskType = "ConnectToTarget.AzureSqlDbMI"
-	// TaskTypeConnectToTargetAzureSQLDbMISyncLRS ...
-	TaskTypeConnectToTargetAzureSQLDbMISyncLRS TaskType = "ConnectToTarget.AzureSqlDbMI.Sync.LRS"
-	// TaskTypeConnectToTargetSQLDb ...
-	TaskTypeConnectToTargetSQLDb TaskType = "ConnectToTarget.SqlDb"
-	// TaskTypeConnectToTargetSQLDbSync ...
-	TaskTypeConnectToTargetSQLDbSync TaskType = "ConnectToTarget.SqlDb.Sync"
-	// TaskTypeGetTDECertificatesSQL ...
-	TaskTypeGetTDECertificatesSQL TaskType = "GetTDECertificates.Sql"
-	// TaskTypeGetUserTablesAzureSQLDbSync ...
-	TaskTypeGetUserTablesAzureSQLDbSync TaskType = "GetUserTables.AzureSqlDb.Sync"
-	// TaskTypeGetUserTablesSQL ...
-	TaskTypeGetUserTablesSQL TaskType = "GetUserTables.Sql"
-	// TaskTypeMigrateMySQLAzureDbForMySQLSync ...
-	TaskTypeMigrateMySQLAzureDbForMySQLSync TaskType = "Migrate.MySql.AzureDbForMySql.Sync"
-	// TaskTypeMigratePostgreSQLAzureDbForPostgreSQLSync ...
-	TaskTypeMigratePostgreSQLAzureDbForPostgreSQLSync TaskType = "Migrate.PostgreSql.AzureDbForPostgreSql.Sync"
-	// TaskTypeMigrateSQLServerAzureSQLDbMI ...
-	TaskTypeMigrateSQLServerAzureSQLDbMI TaskType = "Migrate.SqlServer.AzureSqlDbMI"
-	// TaskTypeMigrateSQLServerAzureSQLDbMISyncLRS ...
-	TaskTypeMigrateSQLServerAzureSQLDbMISyncLRS TaskType = "Migrate.SqlServer.AzureSqlDbMI.Sync.LRS"
-	// TaskTypeMigrateSQLServerAzureSQLDbSync ...
-	TaskTypeMigrateSQLServerAzureSQLDbSync TaskType = "Migrate.SqlServer.AzureSqlDb.Sync"
-	// TaskTypeMigrateSQLServerSQLDb ...
-	TaskTypeMigrateSQLServerSQLDb TaskType = "Migrate.SqlServer.SqlDb"
-	// TaskTypeProjectTaskProperties ...
-	TaskTypeProjectTaskProperties TaskType = "ProjectTaskProperties"
-	// TaskTypeValidateMigrationInputSQLServerAzureSQLDbMI ...
-	TaskTypeValidateMigrationInputSQLServerAzureSQLDbMI TaskType = "ValidateMigrationInput.SqlServer.AzureSqlDbMI"
-	// TaskTypeValidateMigrationInputSQLServerAzureSQLDbMISyncLRS ...
-	TaskTypeValidateMigrationInputSQLServerAzureSQLDbMISyncLRS TaskType = "ValidateMigrationInput.SqlServer.AzureSqlDbMI.Sync.LRS"
-	// TaskTypeValidateMigrationInputSQLServerSQLDbSync ...
-	TaskTypeValidateMigrationInputSQLServerSQLDbSync TaskType = "ValidateMigrationInput.SqlServer.SqlDb.Sync"
-)
-
-// PossibleTaskTypeValues returns an array of possible values for the TaskType const type.
-func PossibleTaskTypeValues() []TaskType {
-	return []TaskType{TaskTypeConnectToSourceMySQL, TaskTypeConnectToSourcePostgreSQLSync, TaskTypeConnectToSourceSQLServer, TaskTypeConnectToSourceSQLServerSync, TaskTypeConnectToTargetAzureDbForMySQL, TaskTypeConnectToTargetAzureDbForPostgreSQLSync, TaskTypeConnectToTargetAzureSQLDbMI, TaskTypeConnectToTargetAzureSQLDbMISyncLRS, TaskTypeConnectToTargetSQLDb, TaskTypeConnectToTargetSQLDbSync, TaskTypeGetTDECertificatesSQL, TaskTypeGetUserTablesAzureSQLDbSync, TaskTypeGetUserTablesSQL, TaskTypeMigrateMySQLAzureDbForMySQLSync, TaskTypeMigratePostgreSQLAzureDbForPostgreSQLSync, TaskTypeMigrateSQLServerAzureSQLDbMI, TaskTypeMigrateSQLServerAzureSQLDbMISyncLRS, TaskTypeMigrateSQLServerAzureSQLDbSync, TaskTypeMigrateSQLServerSQLDb, TaskTypeProjectTaskProperties, TaskTypeValidateMigrationInputSQLServerAzureSQLDbMI, TaskTypeValidateMigrationInputSQLServerAzureSQLDbMISyncLRS, TaskTypeValidateMigrationInputSQLServerSQLDbSync}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// TypeConnectionInfo ...
-	TypeConnectionInfo Type = "ConnectionInfo"
-	// TypeMiSQLConnectionInfo ...
-	TypeMiSQLConnectionInfo Type = "MiSqlConnectionInfo"
-	// TypeMySQLConnectionInfo ...
-	TypeMySQLConnectionInfo Type = "MySqlConnectionInfo"
-	// TypePostgreSQLConnectionInfo ...
-	TypePostgreSQLConnectionInfo Type = "PostgreSqlConnectionInfo"
-	// TypeSQLConnectionInfo ...
-	TypeSQLConnectionInfo Type = "SqlConnectionInfo"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{TypeConnectionInfo, TypeMiSQLConnectionInfo, TypeMySQLConnectionInfo, TypePostgreSQLConnectionInfo, TypeSQLConnectionInfo}
-}
-
-// UpdateActionType enumerates the values for update action type.
-type UpdateActionType string
-
-const (
-	// AddedOnTarget ...
-	AddedOnTarget UpdateActionType = "AddedOnTarget"
-	// ChangedOnTarget ...
-	ChangedOnTarget UpdateActionType = "ChangedOnTarget"
-	// DeletedOnTarget ...
-	DeletedOnTarget UpdateActionType = "DeletedOnTarget"
-)
-
-// PossibleUpdateActionTypeValues returns an array of possible values for the UpdateActionType const type.
-func PossibleUpdateActionTypeValues() []UpdateActionType {
-	return []UpdateActionType{AddedOnTarget, ChangedOnTarget, DeletedOnTarget}
-}
-
-// ValidationStatus enumerates the values for validation status.
-type ValidationStatus string
-
-const (
-	// ValidationStatusCompleted ...
-	ValidationStatusCompleted ValidationStatus = "Completed"
-	// ValidationStatusCompletedWithIssues ...
-	ValidationStatusCompletedWithIssues ValidationStatus = "CompletedWithIssues"
-	// ValidationStatusDefault ...
-	ValidationStatusDefault ValidationStatus = "Default"
-	// ValidationStatusFailed ...
-	ValidationStatusFailed ValidationStatus = "Failed"
-	// ValidationStatusInitialized ...
-	ValidationStatusInitialized ValidationStatus = "Initialized"
-	// ValidationStatusInProgress ...
-	ValidationStatusInProgress ValidationStatus = "InProgress"
-	// ValidationStatusNotStarted ...
-	ValidationStatusNotStarted ValidationStatus = "NotStarted"
-	// ValidationStatusStopped ...
-	ValidationStatusStopped ValidationStatus = "Stopped"
-)
-
-// PossibleValidationStatusValues returns an array of possible values for the ValidationStatus const type.
-func PossibleValidationStatusValues() []ValidationStatus {
-	return []ValidationStatus{ValidationStatusCompleted, ValidationStatusCompletedWithIssues, ValidationStatusDefault, ValidationStatusFailed, ValidationStatusInitialized, ValidationStatusInProgress, ValidationStatusNotStarted, ValidationStatusStopped}
-}
-
 // APIError error information.
 type APIError struct {
 	// Error - Error information in OData format
@@ -1606,8 +566,8 @@ type ConnectToSourceNonSQLTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ConnectToSourcePostgreSQLSyncTaskInput input for the task that validates connection to PostgreSQL and
-// source server requirements
+// ConnectToSourcePostgreSQLSyncTaskInput input for the task that validates connection to PostgreSQL and source
+// server requirements
 type ConnectToSourcePostgreSQLSyncTaskInput struct {
 	// SourceConnectionInfo - Connection information for source PostgreSQL server
 	SourceConnectionInfo *PostgreSQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -1628,8 +588,8 @@ type ConnectToSourcePostgreSQLSyncTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ConnectToSourcePostgreSQLSyncTaskProperties properties for the task that validates connection to
-// PostgreSQL server and source server requirements for online migration
+// ConnectToSourcePostgreSQLSyncTaskProperties properties for the task that validates connection to PostgreSQL
+// server and source server requirements for online migration
 type ConnectToSourcePostgreSQLSyncTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToSourcePostgreSQLSyncTaskInput `json:"input,omitempty"`
@@ -1846,8 +806,8 @@ func (ctspsstp *ConnectToSourcePostgreSQLSyncTaskProperties) UnmarshalJSON(body 
 	return nil
 }
 
-// ConnectToSourceSQLServerSyncTaskProperties properties for the task that validates connection to SQL
-// Server and source server requirements for online migration
+// ConnectToSourceSQLServerSyncTaskProperties properties for the task that validates connection to SQL Server
+// and source server requirements for online migration
 type ConnectToSourceSQLServerSyncTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToSourceSQLServerTaskInput `json:"input,omitempty"`
@@ -2184,8 +1144,8 @@ func (ctsssto ConnectToSourceSQLServerTaskOutput) AsBasicConnectToSourceSQLServe
 	return &ctsssto, true
 }
 
-// ConnectToSourceSQLServerTaskOutputAgentJobLevel agentJob level output for the task that validates
-// connection to SQL Server and also validates source server requirements
+// ConnectToSourceSQLServerTaskOutputAgentJobLevel agentJob level output for the task that validates connection
+// to SQL Server and also validates source server requirements
 type ConnectToSourceSQLServerTaskOutputAgentJobLevel struct {
 	// Name - READ-ONLY; AgentJob name
 	Name *string `json:"name,omitempty"`
@@ -2245,8 +1205,8 @@ func (ctssstoajl ConnectToSourceSQLServerTaskOutputAgentJobLevel) AsBasicConnect
 	return &ctssstoajl, true
 }
 
-// ConnectToSourceSQLServerTaskOutputDatabaseLevel database level output for the task that validates
-// connection to SQL Server and also validates source server requirements
+// ConnectToSourceSQLServerTaskOutputDatabaseLevel database level output for the task that validates connection
+// to SQL Server and also validates source server requirements
 type ConnectToSourceSQLServerTaskOutputDatabaseLevel struct {
 	// Name - READ-ONLY; Database name
 	Name *string `json:"name,omitempty"`
@@ -2304,8 +1264,8 @@ func (ctssstodl ConnectToSourceSQLServerTaskOutputDatabaseLevel) AsBasicConnectT
 	return &ctssstodl, true
 }
 
-// ConnectToSourceSQLServerTaskOutputLoginLevel login level output for the task that validates connection
-// to SQL Server and also validates source server requirements
+// ConnectToSourceSQLServerTaskOutputLoginLevel login level output for the task that validates connection to
+// SQL Server and also validates source server requirements
 type ConnectToSourceSQLServerTaskOutputLoginLevel struct {
 	// Name - READ-ONLY; Login name.
 	Name *string `json:"name,omitempty"`
@@ -2363,8 +1323,8 @@ func (ctssstoll ConnectToSourceSQLServerTaskOutputLoginLevel) AsBasicConnectToSo
 	return &ctssstoll, true
 }
 
-// ConnectToSourceSQLServerTaskOutputTaskLevel task level output for the task that validates connection to
-// SQL Server and also validates source server requirements
+// ConnectToSourceSQLServerTaskOutputTaskLevel task level output for the task that validates connection to SQL
+// Server and also validates source server requirements
 type ConnectToSourceSQLServerTaskOutputTaskLevel struct {
 	// Databases - READ-ONLY; Source databases as a map from database name to database id
 	Databases map[string]*string `json:"databases"`
@@ -2424,8 +1384,8 @@ func (ctssstotl ConnectToSourceSQLServerTaskOutputTaskLevel) AsBasicConnectToSou
 	return &ctssstotl, true
 }
 
-// ConnectToSourceSQLServerTaskProperties properties for the task that validates connection to SQL Server
-// and also validates source server requirements
+// ConnectToSourceSQLServerTaskProperties properties for the task that validates connection to SQL Server and
+// also validates source server requirements
 type ConnectToSourceSQLServerTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToSourceSQLServerTaskInput `json:"input,omitempty"`
@@ -2641,8 +1601,8 @@ func (ctssstp *ConnectToSourceSQLServerTaskProperties) UnmarshalJSON(body []byte
 	return nil
 }
 
-// ConnectToTargetAzureDbForMySQLTaskInput input for the task that validates connection to Azure Database
-// for MySQL and target server requirements
+// ConnectToTargetAzureDbForMySQLTaskInput input for the task that validates connection to Azure Database for
+// MySQL and target server requirements
 type ConnectToTargetAzureDbForMySQLTaskInput struct {
 	// SourceConnectionInfo - Connection information for source MySQL server
 	SourceConnectionInfo *MySQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -2650,8 +1610,8 @@ type ConnectToTargetAzureDbForMySQLTaskInput struct {
 	TargetConnectionInfo *MySQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
 }
 
-// ConnectToTargetAzureDbForMySQLTaskOutput output for the task that validates connection to Azure Database
-// for MySQL and target server requirements
+// ConnectToTargetAzureDbForMySQLTaskOutput output for the task that validates connection to Azure Database for
+// MySQL and target server requirements
 type ConnectToTargetAzureDbForMySQLTaskOutput struct {
 	// ID - READ-ONLY; Result identifier
 	ID *string `json:"id,omitempty"`
@@ -2907,8 +1867,8 @@ type ConnectToTargetAzureDbForPostgreSQLSyncTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ConnectToTargetAzureDbForPostgreSQLSyncTaskProperties properties for the task that validates connection
-// to Azure Database For PostgreSQL server and target server requirements for online migration
+// ConnectToTargetAzureDbForPostgreSQLSyncTaskProperties properties for the task that validates connection to
+// Azure Database For PostgreSQL server and target server requirements for online migration
 type ConnectToTargetAzureDbForPostgreSQLSyncTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToTargetAzureDbForPostgreSQLSyncTaskInput `json:"input,omitempty"`
@@ -3151,8 +2111,8 @@ func (cttsdto ConnectToTargetSQLDbTaskOutput) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ConnectToTargetSQLDbTaskProperties properties for the task that validates connection to SQL DB and
-// target server requirements
+// ConnectToTargetSQLDbTaskProperties properties for the task that validates connection to SQL DB and target
+// server requirements
 type ConnectToTargetSQLDbTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToTargetSQLDbTaskInput `json:"input,omitempty"`
@@ -3369,8 +2329,8 @@ func (cttsdtp *ConnectToTargetSQLDbTaskProperties) UnmarshalJSON(body []byte) er
 	return nil
 }
 
-// ConnectToTargetSQLMISyncTaskInput input for the task that validates connection to Azure SQL Database
-// Managed Instance online scenario.
+// ConnectToTargetSQLMISyncTaskInput input for the task that validates connection to Azure SQL Database Managed
+// Instance online scenario.
 type ConnectToTargetSQLMISyncTaskInput struct {
 	// TargetConnectionInfo - Connection information for Azure SQL Database Managed Instance
 	TargetConnectionInfo *MiSQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
@@ -3614,8 +2574,8 @@ type ConnectToTargetSQLMITaskInput struct {
 	TargetConnectionInfo *SQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
 }
 
-// ConnectToTargetSQLMITaskOutput output for the task that validates connection to Azure SQL Database
-// Managed Instance.
+// ConnectToTargetSQLMITaskOutput output for the task that validates connection to Azure SQL Database Managed
+// Instance.
 type ConnectToTargetSQLMITaskOutput struct {
 	// ID - READ-ONLY; Result identifier
 	ID *string `json:"id,omitempty"`
@@ -3631,8 +2591,8 @@ type ConnectToTargetSQLMITaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ConnectToTargetSQLMITaskProperties properties for the task that validates connection to Azure SQL
-// Database Managed Instance
+// ConnectToTargetSQLMITaskProperties properties for the task that validates connection to Azure SQL Database
+// Managed Instance
 type ConnectToTargetSQLMITaskProperties struct {
 	// Input - Task input
 	Input *ConnectToTargetSQLMITaskInput `json:"input,omitempty"`
@@ -3849,8 +2809,8 @@ func (cttsmtp *ConnectToTargetSQLMITaskProperties) UnmarshalJSON(body []byte) er
 	return nil
 }
 
-// ConnectToTargetSQLSQLDbSyncTaskInput input for the task that validates connection to Azure SQL DB and
-// target server requirements
+// ConnectToTargetSQLSQLDbSyncTaskInput input for the task that validates connection to Azure SQL DB and target
+// server requirements
 type ConnectToTargetSQLSQLDbSyncTaskInput struct {
 	// SourceConnectionInfo - Connection information for source SQL Server
 	SourceConnectionInfo *SQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -3858,8 +2818,8 @@ type ConnectToTargetSQLSQLDbSyncTaskInput struct {
 	TargetConnectionInfo *SQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
 }
 
-// ConnectToTargetSQLSQLDbSyncTaskProperties properties for the task that validates connection to SQL DB
-// and target server requirements for online migration
+// ConnectToTargetSQLSQLDbSyncTaskProperties properties for the task that validates connection to SQL DB and
+// target server requirements for online migration
 type ConnectToTargetSQLSQLDbSyncTaskProperties struct {
 	// Input - Task input
 	Input *ConnectToTargetSQLSQLDbSyncTaskInput `json:"input,omitempty"`
@@ -4184,6 +3144,15 @@ type DatabaseObjectName struct {
 	ObjectType ObjectType `json:"objectType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DatabaseObjectName.
+func (don DatabaseObjectName) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if don.ObjectType != "" {
+		objectMap["objectType"] = don.ObjectType
+	}
+	return json.Marshal(objectMap)
+}
+
 // DatabaseSummaryResult summary of database results in the migration
 type DatabaseSummaryResult struct {
 	// SizeMB - READ-ONLY; Size of the database in megabytes
@@ -4258,6 +3227,15 @@ type Error struct {
 	Message *string `json:"message,omitempty"`
 	// Type - Type of error. Possible values include: 'ErrorTypeDefault', 'ErrorTypeWarning', 'ErrorTypeError'
 	Type ErrorType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Error.
+func (e Error) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if e.Type != "" {
+		objectMap["type"] = e.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // ExecutionStatistics description about the errors happen while performing migration validation
@@ -4545,8 +3523,7 @@ func (gtcstp *GetTdeCertificatesSQLTaskProperties) UnmarshalJSON(body []byte) er
 	return nil
 }
 
-// GetUserTablesSQLSyncTaskInput input for the task that collects user tables for the given list of
-// databases
+// GetUserTablesSQLSyncTaskInput input for the task that collects user tables for the given list of databases
 type GetUserTablesSQLSyncTaskInput struct {
 	// SourceConnectionInfo - Connection information for SQL Server
 	SourceConnectionInfo *SQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -4558,8 +3535,7 @@ type GetUserTablesSQLSyncTaskInput struct {
 	SelectedTargetDatabases *[]string `json:"selectedTargetDatabases,omitempty"`
 }
 
-// GetUserTablesSQLSyncTaskOutput output of the task that collects user tables for the given list of
-// databases
+// GetUserTablesSQLSyncTaskOutput output of the task that collects user tables for the given list of databases
 type GetUserTablesSQLSyncTaskOutput struct {
 	// DatabasesToSourceTables - READ-ONLY; Mapping from database name to list of source tables
 	DatabasesToSourceTables map[string][]DatabaseTable `json:"databasesToSourceTables"`
@@ -4577,8 +3553,8 @@ func (gutssto GetUserTablesSQLSyncTaskOutput) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// GetUserTablesSQLSyncTaskProperties properties for the task that collects user tables for the given list
-// of databases
+// GetUserTablesSQLSyncTaskProperties properties for the task that collects user tables for the given list of
+// databases
 type GetUserTablesSQLSyncTaskProperties struct {
 	// Input - Task input
 	Input *GetUserTablesSQLSyncTaskInput `json:"input,omitempty"`
@@ -5099,8 +4075,8 @@ func (mmsccp MigrateMISyncCompleteCommandProperties) AsBasicCommandProperties() 
 	return &mmsccp, true
 }
 
-// MigrateMySQLAzureDbForMySQLSyncDatabaseInput database specific information for MySQL to Azure Database
-// for MySQL migration task inputs
+// MigrateMySQLAzureDbForMySQLSyncDatabaseInput database specific information for MySQL to Azure Database for
+// MySQL migration task inputs
 type MigrateMySQLAzureDbForMySQLSyncDatabaseInput struct {
 	// Name - Name of the database
 	Name *string `json:"name,omitempty"`
@@ -5135,8 +4111,8 @@ func (mmsadfmssdi MigrateMySQLAzureDbForMySQLSyncDatabaseInput) MarshalJSON() ([
 	return json.Marshal(objectMap)
 }
 
-// MigrateMySQLAzureDbForMySQLSyncTaskInput input for the task that migrates MySQL databases to Azure
-// Database for MySQL for online migrations
+// MigrateMySQLAzureDbForMySQLSyncTaskInput input for the task that migrates MySQL databases to Azure Database
+// for MySQL for online migrations
 type MigrateMySQLAzureDbForMySQLSyncTaskInput struct {
 	// SourceConnectionInfo - Connection information for source MySQL
 	SourceConnectionInfo *MySQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -5609,8 +4585,8 @@ func (mmsadfmsstotl MigrateMySQLAzureDbForMySQLSyncTaskOutputTableLevel) AsBasic
 	return &mmsadfmsstotl, true
 }
 
-// MigrateMySQLAzureDbForMySQLSyncTaskProperties properties for the task that migrates MySQL databases to
-// Azure Database for MySQL for online migrations
+// MigrateMySQLAzureDbForMySQLSyncTaskProperties properties for the task that migrates MySQL databases to Azure
+// Database for MySQL for online migrations
 type MigrateMySQLAzureDbForMySQLSyncTaskProperties struct {
 	// Input - Task input
 	Input *MigrateMySQLAzureDbForMySQLSyncTaskInput `json:"input,omitempty"`
@@ -5826,8 +4802,8 @@ func (mmsadfmsstp *MigrateMySQLAzureDbForMySQLSyncTaskProperties) UnmarshalJSON(
 	return nil
 }
 
-// MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput database specific information for PostgreSQL to
-// Azure Database for PostgreSQL migration task inputs
+// MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput database specific information for PostgreSQL to Azure
+// Database for PostgreSQL migration task inputs
 type MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput struct {
 	// Name - Name of the database
 	Name *string `json:"name,omitempty"`
@@ -5862,8 +4838,8 @@ func (mpsadfpssdi MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput) Marsha
 	return json.Marshal(objectMap)
 }
 
-// MigratePostgreSQLAzureDbForPostgreSQLSyncTaskInput input for the task that migrates PostgreSQL databases
-// to Azure Database for PostgreSQL for online migrations
+// MigratePostgreSQLAzureDbForPostgreSQLSyncTaskInput input for the task that migrates PostgreSQL databases to
+// Azure Database for PostgreSQL for online migrations
 type MigratePostgreSQLAzureDbForPostgreSQLSyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigratePostgreSQLAzureDbForPostgreSQLSyncDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -6584,8 +5560,8 @@ func (msssddi MigrateSQLServerSQLDbDatabaseInput) MarshalJSON() ([]byte, error) 
 	return json.Marshal(objectMap)
 }
 
-// MigrateSQLServerSQLDbSyncDatabaseInput database specific information for SQL to Azure SQL DB sync
-// migration task inputs
+// MigrateSQLServerSQLDbSyncDatabaseInput database specific information for SQL to Azure SQL DB sync migration
+// task inputs
 type MigrateSQLServerSQLDbSyncDatabaseInput struct {
 	// ID - Unique identifier for database
 	ID *string `json:"id,omitempty"`
@@ -6635,8 +5611,8 @@ func (msssdsdi MigrateSQLServerSQLDbSyncDatabaseInput) MarshalJSON() ([]byte, er
 	return json.Marshal(objectMap)
 }
 
-// MigrateSQLServerSQLDbSyncTaskInput input for the task that migrates on-prem SQL Server databases to
-// Azure SQL Database for online migrations
+// MigrateSQLServerSQLDbSyncTaskInput input for the task that migrates on-prem SQL Server databases to Azure
+// SQL Database for online migrations
 type MigrateSQLServerSQLDbSyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLDbSyncDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -7113,8 +6089,8 @@ func (msssdstotl MigrateSQLServerSQLDbSyncTaskOutputTableLevel) AsBasicMigrateSQ
 	return &msssdstotl, true
 }
 
-// MigrateSQLServerSQLDbSyncTaskProperties properties for the task that migrates on-prem SQL Server
-// databases to Azure SQL Database for online migrations
+// MigrateSQLServerSQLDbSyncTaskProperties properties for the task that migrates on-prem SQL Server databases
+// to Azure SQL Database for online migrations
 type MigrateSQLServerSQLDbSyncTaskProperties struct {
 	// Input - Task input
 	Input *MigrateSQLServerSQLDbSyncTaskInput `json:"input,omitempty"`
@@ -7330,8 +6306,8 @@ func (msssdstp *MigrateSQLServerSQLDbSyncTaskProperties) UnmarshalJSON(body []by
 	return nil
 }
 
-// MigrateSQLServerSQLDbTaskInput input for the task that migrates on-prem SQL Server databases to Azure
-// SQL Database
+// MigrateSQLServerSQLDbTaskInput input for the task that migrates on-prem SQL Server databases to Azure SQL
+// Database
 type MigrateSQLServerSQLDbTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLDbDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -7473,8 +6449,7 @@ func (msssdto MigrateSQLServerSQLDbTaskOutput) AsBasicMigrateSQLServerSQLDbTaskO
 	return &msssdto, true
 }
 
-// MigrateSQLServerSQLDbTaskOutputDatabaseLevel database level result for Sql Server to Azure Sql DB
-// migration.
+// MigrateSQLServerSQLDbTaskOutputDatabaseLevel database level result for Sql Server to Azure Sql DB migration.
 type MigrateSQLServerSQLDbTaskOutputDatabaseLevel struct {
 	// DatabaseName - READ-ONLY; Name of the item
 	DatabaseName *string `json:"databaseName,omitempty"`
@@ -7560,8 +6535,8 @@ func (msssdtodl MigrateSQLServerSQLDbTaskOutputDatabaseLevel) AsBasicMigrateSQLS
 	return &msssdtodl, true
 }
 
-// MigrateSQLServerSQLDbTaskOutputDatabaseLevelValidationResult database validation result for Sql Server
-// to Azure Sql DB migration.
+// MigrateSQLServerSQLDbTaskOutputDatabaseLevelValidationResult database validation result for Sql Server to
+// Azure Sql DB migration.
 type MigrateSQLServerSQLDbTaskOutputDatabaseLevelValidationResult struct {
 	// MigrationID - READ-ONLY; Migration Identifier
 	MigrationID *string `json:"migrationId,omitempty"`
@@ -7860,8 +6835,7 @@ func (msssdtotl MigrateSQLServerSQLDbTaskOutputTableLevel) AsBasicMigrateSQLServ
 	return &msssdtotl, true
 }
 
-// MigrateSQLServerSQLDbTaskOutputValidationResult validation result for Sql Server to Azure Sql DB
-// migration.
+// MigrateSQLServerSQLDbTaskOutputValidationResult validation result for Sql Server to Azure Sql DB migration.
 type MigrateSQLServerSQLDbTaskOutputValidationResult struct {
 	// MigrationID - READ-ONLY; Migration Identifier
 	MigrationID *string `json:"migrationId,omitempty"`
@@ -7928,8 +6902,8 @@ func (msssdtovr MigrateSQLServerSQLDbTaskOutputValidationResult) AsBasicMigrateS
 	return &msssdtovr, true
 }
 
-// MigrateSQLServerSQLDbTaskProperties properties for the task that migrates on-prem SQL Server databases
-// to Azure SQL Database
+// MigrateSQLServerSQLDbTaskProperties properties for the task that migrates on-prem SQL Server databases to
+// Azure SQL Database
 type MigrateSQLServerSQLDbTaskProperties struct {
 	// Input - Task input
 	Input *MigrateSQLServerSQLDbTaskInput `json:"input,omitempty"`
@@ -8145,8 +7119,8 @@ func (msssdtp *MigrateSQLServerSQLDbTaskProperties) UnmarshalJSON(body []byte) e
 	return nil
 }
 
-// MigrateSQLServerSQLMIDatabaseInput database specific information for SQL to Azure SQL DB Managed
-// Instance migration task inputs
+// MigrateSQLServerSQLMIDatabaseInput database specific information for SQL to Azure SQL DB Managed Instance
+// migration task inputs
 type MigrateSQLServerSQLMIDatabaseInput struct {
 	// Name - Name of the database
 	Name *string `json:"name,omitempty"`
@@ -8158,8 +7132,8 @@ type MigrateSQLServerSQLMIDatabaseInput struct {
 	BackupFilePaths *[]string `json:"backupFilePaths,omitempty"`
 }
 
-// MigrateSQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure SQL
-// Database Managed Instance online scenario.
+// MigrateSQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure SQL Database
+// Managed Instance online scenario.
 type MigrateSQLServerSQLMISyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLMIDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -8448,8 +7422,8 @@ func (msssmstoml MigrateSQLServerSQLMISyncTaskOutputMigrationLevel) AsBasicMigra
 	return &msssmstoml, true
 }
 
-// MigrateSQLServerSQLMISyncTaskProperties properties for task that migrates SQL Server databases to Azure
-// SQL Database Managed Instance sync scenario
+// MigrateSQLServerSQLMISyncTaskProperties properties for task that migrates SQL Server databases to Azure SQL
+// Database Managed Instance sync scenario
 type MigrateSQLServerSQLMISyncTaskProperties struct {
 	// Input - Task input
 	Input *MigrateSQLServerSQLMISyncTaskInput `json:"input,omitempty"`
@@ -9362,8 +8336,7 @@ func (msssmtp *MigrateSQLServerSQLMITaskProperties) UnmarshalJSON(body []byte) e
 	return nil
 }
 
-// MigrateSQLServerSQLServerDatabaseInput database specific information for SQL to SQL migration task
-// inputs
+// MigrateSQLServerSQLServerDatabaseInput database specific information for SQL to SQL migration task inputs
 type MigrateSQLServerSQLServerDatabaseInput struct {
 	// Name - Name of the database
 	Name *string `json:"name,omitempty"`
@@ -9969,10 +8942,15 @@ func (pl ProjectList) IsEmpty() bool {
 	return pl.Value == nil || len(*pl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (pl ProjectList) hasNextLink() bool {
+	return pl.NextLink != nil && len(*pl.NextLink) != 0
+}
+
 // projectListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (pl ProjectList) projectListPreparer(ctx context.Context) (*http.Request, error) {
-	if pl.NextLink == nil || len(to.String(pl.NextLink)) < 1 {
+	if !pl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10000,11 +8978,16 @@ func (page *ProjectListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.pl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.pl)
+		if err != nil {
+			return err
+		}
+		page.pl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.pl = next
 	return nil
 }
 
@@ -10074,6 +9057,23 @@ type ProjectProperties struct {
 	DatabasesInfo *[]DatabaseInfo `json:"databasesInfo,omitempty"`
 	// ProvisioningState - READ-ONLY; The project's provisioning state. Possible values include: 'ProjectProvisioningStateDeleting', 'ProjectProvisioningStateSucceeded'
 	ProvisioningState ProjectProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProjectProperties.
+func (pp ProjectProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pp.SourcePlatform != "" {
+		objectMap["sourcePlatform"] = pp.SourcePlatform
+	}
+	if pp.TargetPlatform != "" {
+		objectMap["targetPlatform"] = pp.TargetPlatform
+	}
+	objectMap["sourceConnectionInfo"] = pp.SourceConnectionInfo
+	objectMap["targetConnectionInfo"] = pp.TargetConnectionInfo
+	if pp.DatabasesInfo != nil {
+		objectMap["databasesInfo"] = pp.DatabasesInfo
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for ProjectProperties struct.
@@ -10165,6 +9165,16 @@ type ProjectTask struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ProjectTask.
+func (pt ProjectTask) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pt.Etag != nil {
+		objectMap["etag"] = pt.Etag
+	}
+	objectMap["properties"] = pt.Properties
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for ProjectTask struct.
@@ -10679,10 +9689,15 @@ func (ql QuotaList) IsEmpty() bool {
 	return ql.Value == nil || len(*ql.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ql QuotaList) hasNextLink() bool {
+	return ql.NextLink != nil && len(*ql.NextLink) != 0
+}
+
 // quotaListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ql QuotaList) quotaListPreparer(ctx context.Context) (*http.Request, error) {
-	if ql.NextLink == nil || len(to.String(ql.NextLink)) < 1 {
+	if !ql.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10710,11 +9725,16 @@ func (page *QuotaListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ql)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ql)
+		if err != nil {
+			return err
+		}
+		page.ql = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ql = next
 	return nil
 }
 
@@ -10770,6 +9790,15 @@ type ReportableException struct {
 	HResult *int32 `json:"hResult,omitempty"`
 	// StackTrace - READ-ONLY; Stack trace
 	StackTrace *string `json:"stackTrace,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ReportableException.
+func (re ReportableException) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if re.ActionableMessage != nil {
+		objectMap["actionableMessage"] = re.ActionableMessage
+	}
+	return json.Marshal(objectMap)
 }
 
 // Resource ARM resource.
@@ -10927,10 +9956,15 @@ func (rsr ResourceSkusResult) IsEmpty() bool {
 	return rsr.Value == nil || len(*rsr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rsr ResourceSkusResult) hasNextLink() bool {
+	return rsr.NextLink != nil && len(*rsr.NextLink) != 0
+}
+
 // resourceSkusResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rsr ResourceSkusResult) resourceSkusResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rsr.NextLink == nil || len(to.String(rsr.NextLink)) < 1 {
+	if !rsr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10958,11 +9992,16 @@ func (page *ResourceSkusResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rsr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rsr)
+		if err != nil {
+			return err
+		}
+		page.rsr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rsr = next
 	return nil
 }
 
@@ -11275,10 +10314,15 @@ func (sl ServiceList) IsEmpty() bool {
 	return sl.Value == nil || len(*sl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sl ServiceList) hasNextLink() bool {
+	return sl.NextLink != nil && len(*sl.NextLink) != 0
+}
+
 // serviceListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sl ServiceList) serviceListPreparer(ctx context.Context) (*http.Request, error) {
-	if sl.NextLink == nil || len(to.String(sl.NextLink)) < 1 {
+	if !sl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -11306,11 +10350,16 @@ func (page *ServiceListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sl)
+		if err != nil {
+			return err
+		}
+		page.sl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sl = next
 	return nil
 }
 
@@ -11441,10 +10490,15 @@ func (sol ServiceOperationList) IsEmpty() bool {
 	return sol.Value == nil || len(*sol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sol ServiceOperationList) hasNextLink() bool {
+	return sol.NextLink != nil && len(*sol.NextLink) != 0
+}
+
 // serviceOperationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sol ServiceOperationList) serviceOperationListPreparer(ctx context.Context) (*http.Request, error) {
-	if sol.NextLink == nil || len(to.String(sol.NextLink)) < 1 {
+	if !sol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -11472,11 +10526,16 @@ func (page *ServiceOperationListPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sol)
+		if err != nil {
+			return err
+		}
+		page.sol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sol = next
 	return nil
 }
 
@@ -11520,6 +10579,18 @@ type ServiceProperties struct {
 	VirtualSubnetID *string `json:"virtualSubnetId,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServiceProperties.
+func (sp ServiceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.PublicKey != nil {
+		objectMap["publicKey"] = sp.PublicKey
+	}
+	if sp.VirtualSubnetID != nil {
+		objectMap["virtualSubnetId"] = sp.VirtualSubnetID
+	}
+	return json.Marshal(objectMap)
+}
+
 // ServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ServicesCreateOrUpdateFuture struct {
@@ -11549,8 +10620,7 @@ func (future *ServicesCreateOrUpdateFuture) Result(client ServicesClient) (s Ser
 	return
 }
 
-// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ServicesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ServicesDeleteFuture struct {
 	azure.Future
 }
@@ -11663,10 +10733,15 @@ func (ssl ServiceSkuList) IsEmpty() bool {
 	return ssl.Value == nil || len(*ssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ssl ServiceSkuList) hasNextLink() bool {
+	return ssl.NextLink != nil && len(*ssl.NextLink) != 0
+}
+
 // serviceSkuListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ssl ServiceSkuList) serviceSkuListPreparer(ctx context.Context) (*http.Request, error) {
-	if ssl.NextLink == nil || len(to.String(ssl.NextLink)) < 1 {
+	if !ssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -11694,11 +10769,16 @@ func (page *ServiceSkuListPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ssl)
+		if err != nil {
+			return err
+		}
+		page.ssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ssl = next
 	return nil
 }
 
@@ -11732,8 +10812,7 @@ func NewServiceSkuListPage(getNextPage func(context.Context, ServiceSkuList) (Se
 	return ServiceSkuListPage{fn: getNextPage}
 }
 
-// ServicesStartFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ServicesStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ServicesStartFuture struct {
 	azure.Future
 }
@@ -11790,8 +10869,7 @@ type ServiceStatusResponse struct {
 	SupportedTaskTypes *[]string `json:"supportedTaskTypes,omitempty"`
 }
 
-// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ServicesUpdateFuture struct {
 	azure.Future
 }
@@ -11913,8 +10991,8 @@ type SQLMigrationTaskInput struct {
 	TargetConnectionInfo *SQLConnectionInfo `json:"targetConnectionInfo,omitempty"`
 }
 
-// SQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure SQL Database
-// Managed Instance online scenario.
+// SQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure SQL Database Managed
+// Instance online scenario.
 type SQLServerSQLMISyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLMIDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -12027,10 +11105,15 @@ func (tl TaskList) IsEmpty() bool {
 	return tl.Value == nil || len(*tl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tl TaskList) hasNextLink() bool {
+	return tl.NextLink != nil && len(*tl.NextLink) != 0
+}
+
 // taskListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tl TaskList) taskListPreparer(ctx context.Context) (*http.Request, error) {
-	if tl.NextLink == nil || len(to.String(tl.NextLink)) < 1 {
+	if !tl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -12058,11 +11141,16 @@ func (page *TaskListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tl)
+		if err != nil {
+			return err
+		}
+		page.tl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tl = next
 	return nil
 }
 
@@ -12122,8 +11210,8 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ValidateMigrationInputSQLServerSQLDbSyncTaskProperties properties for task that validates migration
-// input for SQL to Azure SQL DB sync migrations
+// ValidateMigrationInputSQLServerSQLDbSyncTaskProperties properties for task that validates migration input
+// for SQL to Azure SQL DB sync migrations
 type ValidateMigrationInputSQLServerSQLDbSyncTaskProperties struct {
 	// Input - Task input
 	Input *ValidateSyncMigrationInputSQLServerTaskInput `json:"input,omitempty"`
@@ -12340,8 +11428,8 @@ func (vmisssdstp *ValidateMigrationInputSQLServerSQLDbSyncTaskProperties) Unmars
 	return nil
 }
 
-// ValidateMigrationInputSQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to
-// Azure SQL Database Managed Instance online scenario.
+// ValidateMigrationInputSQLServerSQLMISyncTaskInput input for task that migrates SQL Server databases to Azure
+// SQL Database Managed Instance online scenario.
 type ValidateMigrationInputSQLServerSQLMISyncTaskInput struct {
 	// SelectedDatabases - Databases to migrate
 	SelectedDatabases *[]MigrateSQLServerSQLMIDatabaseInput `json:"selectedDatabases,omitempty"`
@@ -12357,8 +11445,8 @@ type ValidateMigrationInputSQLServerSQLMISyncTaskInput struct {
 	AzureApp *AzureActiveDirectoryApp `json:"azureApp,omitempty"`
 }
 
-// ValidateMigrationInputSQLServerSQLMISyncTaskOutput output for task that validates migration input for
-// Azure SQL Database Managed Instance online migration
+// ValidateMigrationInputSQLServerSQLMISyncTaskOutput output for task that validates migration input for Azure
+// SQL Database Managed Instance online migration
 type ValidateMigrationInputSQLServerSQLMISyncTaskOutput struct {
 	// ID - READ-ONLY; Database identifier
 	ID *string `json:"id,omitempty"`
@@ -12368,8 +11456,8 @@ type ValidateMigrationInputSQLServerSQLMISyncTaskOutput struct {
 	ValidationErrors *[]ReportableException `json:"validationErrors,omitempty"`
 }
 
-// ValidateMigrationInputSQLServerSQLMISyncTaskProperties properties for task that validates migration
-// input for SQL to Azure SQL Database Managed Instance sync scenario
+// ValidateMigrationInputSQLServerSQLMISyncTaskProperties properties for task that validates migration input
+// for SQL to Azure SQL Database Managed Instance sync scenario
 type ValidateMigrationInputSQLServerSQLMISyncTaskProperties struct {
 	// Input - Task input
 	Input *ValidateMigrationInputSQLServerSQLMISyncTaskInput `json:"input,omitempty"`
@@ -12586,8 +11674,8 @@ func (vmisssmstp *ValidateMigrationInputSQLServerSQLMISyncTaskProperties) Unmars
 	return nil
 }
 
-// ValidateMigrationInputSQLServerSQLMITaskInput input for task that validates migration input for SQL to
-// Azure SQL Managed Instance
+// ValidateMigrationInputSQLServerSQLMITaskInput input for task that validates migration input for SQL to Azure
+// SQL Managed Instance
 type ValidateMigrationInputSQLServerSQLMITaskInput struct {
 	// SourceConnectionInfo - Information for connecting to source
 	SourceConnectionInfo *SQLConnectionInfo `json:"sourceConnectionInfo,omitempty"`
@@ -12626,8 +11714,17 @@ type ValidateMigrationInputSQLServerSQLMITaskOutput struct {
 	DatabaseBackupInfo *DatabaseBackupInfo `json:"databaseBackupInfo,omitempty"`
 }
 
-// ValidateMigrationInputSQLServerSQLMITaskProperties properties for task that validates migration input
-// for SQL to Azure SQL Database Managed Instance
+// MarshalJSON is the custom marshaler for ValidateMigrationInputSQLServerSQLMITaskOutput.
+func (vmisssmto ValidateMigrationInputSQLServerSQLMITaskOutput) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vmisssmto.DatabaseBackupInfo != nil {
+		objectMap["databaseBackupInfo"] = vmisssmto.DatabaseBackupInfo
+	}
+	return json.Marshal(objectMap)
+}
+
+// ValidateMigrationInputSQLServerSQLMITaskProperties properties for task that validates migration input for
+// SQL to Azure SQL Database Managed Instance
 type ValidateMigrationInputSQLServerSQLMITaskProperties struct {
 	// Input - Task input
 	Input *ValidateMigrationInputSQLServerSQLMITaskInput `json:"input,omitempty"`
@@ -12855,8 +11952,8 @@ type ValidateSyncMigrationInputSQLServerTaskInput struct {
 	SelectedDatabases *[]MigrateSQLServerSQLDbSyncDatabaseInput `json:"selectedDatabases,omitempty"`
 }
 
-// ValidateSyncMigrationInputSQLServerTaskOutput output for task that validates migration input for SQL
-// sync migrations
+// ValidateSyncMigrationInputSQLServerTaskOutput output for task that validates migration input for SQL sync
+// migrations
 type ValidateSyncMigrationInputSQLServerTaskOutput struct {
 	// ID - READ-ONLY; Database identifier
 	ID *string `json:"id,omitempty"`

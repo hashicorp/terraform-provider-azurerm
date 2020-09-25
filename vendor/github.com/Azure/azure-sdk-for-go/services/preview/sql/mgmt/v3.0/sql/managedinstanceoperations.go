@@ -232,6 +232,9 @@ func (client ManagedInstanceOperationsClient) ListByManagedInstance(ctx context.
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceOperationsClient", "ListByManagedInstance", resp, "Failure responding to request")
 	}
+	if result.miolr.hasNextLink() && result.miolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

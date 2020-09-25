@@ -31,332 +31,14 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 
-// CompositePathSortOrder enumerates the values for composite path sort order.
-type CompositePathSortOrder string
-
-const (
-	// Ascending ...
-	Ascending CompositePathSortOrder = "Ascending"
-	// Descending ...
-	Descending CompositePathSortOrder = "Descending"
-)
-
-// PossibleCompositePathSortOrderValues returns an array of possible values for the CompositePathSortOrder const type.
-func PossibleCompositePathSortOrderValues() []CompositePathSortOrder {
-	return []CompositePathSortOrder{Ascending, Descending}
-}
-
-// ConflictResolutionMode enumerates the values for conflict resolution mode.
-type ConflictResolutionMode string
-
-const (
-	// Custom ...
-	Custom ConflictResolutionMode = "Custom"
-	// LastWriterWins ...
-	LastWriterWins ConflictResolutionMode = "LastWriterWins"
-)
-
-// PossibleConflictResolutionModeValues returns an array of possible values for the ConflictResolutionMode const type.
-func PossibleConflictResolutionModeValues() []ConflictResolutionMode {
-	return []ConflictResolutionMode{Custom, LastWriterWins}
-}
-
-// ConnectorOffer enumerates the values for connector offer.
-type ConnectorOffer string
-
-const (
-	// Small ...
-	Small ConnectorOffer = "Small"
-)
-
-// PossibleConnectorOfferValues returns an array of possible values for the ConnectorOffer const type.
-func PossibleConnectorOfferValues() []ConnectorOffer {
-	return []ConnectorOffer{Small}
-}
-
-// DatabaseAccountKind enumerates the values for database account kind.
-type DatabaseAccountKind string
-
-const (
-	// GlobalDocumentDB ...
-	GlobalDocumentDB DatabaseAccountKind = "GlobalDocumentDB"
-	// MongoDB ...
-	MongoDB DatabaseAccountKind = "MongoDB"
-	// Parse ...
-	Parse DatabaseAccountKind = "Parse"
-)
-
-// PossibleDatabaseAccountKindValues returns an array of possible values for the DatabaseAccountKind const type.
-func PossibleDatabaseAccountKindValues() []DatabaseAccountKind {
-	return []DatabaseAccountKind{GlobalDocumentDB, MongoDB, Parse}
-}
-
-// DatabaseAccountOfferType enumerates the values for database account offer type.
-type DatabaseAccountOfferType string
-
-const (
-	// Standard ...
-	Standard DatabaseAccountOfferType = "Standard"
-)
-
-// PossibleDatabaseAccountOfferTypeValues returns an array of possible values for the DatabaseAccountOfferType const type.
-func PossibleDatabaseAccountOfferTypeValues() []DatabaseAccountOfferType {
-	return []DatabaseAccountOfferType{Standard}
-}
-
-// DataType enumerates the values for data type.
-type DataType string
-
-const (
-	// LineString ...
-	LineString DataType = "LineString"
-	// MultiPolygon ...
-	MultiPolygon DataType = "MultiPolygon"
-	// Number ...
-	Number DataType = "Number"
-	// Point ...
-	Point DataType = "Point"
-	// Polygon ...
-	Polygon DataType = "Polygon"
-	// String ...
-	String DataType = "String"
-)
-
-// PossibleDataTypeValues returns an array of possible values for the DataType const type.
-func PossibleDataTypeValues() []DataType {
-	return []DataType{LineString, MultiPolygon, Number, Point, Polygon, String}
-}
-
-// DefaultConsistencyLevel enumerates the values for default consistency level.
-type DefaultConsistencyLevel string
-
-const (
-	// BoundedStaleness ...
-	BoundedStaleness DefaultConsistencyLevel = "BoundedStaleness"
-	// ConsistentPrefix ...
-	ConsistentPrefix DefaultConsistencyLevel = "ConsistentPrefix"
-	// Eventual ...
-	Eventual DefaultConsistencyLevel = "Eventual"
-	// Session ...
-	Session DefaultConsistencyLevel = "Session"
-	// Strong ...
-	Strong DefaultConsistencyLevel = "Strong"
-)
-
-// PossibleDefaultConsistencyLevelValues returns an array of possible values for the DefaultConsistencyLevel const type.
-func PossibleDefaultConsistencyLevelValues() []DefaultConsistencyLevel {
-	return []DefaultConsistencyLevel{BoundedStaleness, ConsistentPrefix, Eventual, Session, Strong}
-}
-
-// IndexingMode enumerates the values for indexing mode.
-type IndexingMode string
-
-const (
-	// Consistent ...
-	Consistent IndexingMode = "Consistent"
-	// Lazy ...
-	Lazy IndexingMode = "Lazy"
-	// None ...
-	None IndexingMode = "None"
-)
-
-// PossibleIndexingModeValues returns an array of possible values for the IndexingMode const type.
-func PossibleIndexingModeValues() []IndexingMode {
-	return []IndexingMode{Consistent, Lazy, None}
-}
-
-// IndexKind enumerates the values for index kind.
-type IndexKind string
-
-const (
-	// Hash ...
-	Hash IndexKind = "Hash"
-	// Range ...
-	Range IndexKind = "Range"
-	// Spatial ...
-	Spatial IndexKind = "Spatial"
-)
-
-// PossibleIndexKindValues returns an array of possible values for the IndexKind const type.
-func PossibleIndexKindValues() []IndexKind {
-	return []IndexKind{Hash, Range, Spatial}
-}
-
-// KeyKind enumerates the values for key kind.
-type KeyKind string
-
-const (
-	// Primary ...
-	Primary KeyKind = "primary"
-	// PrimaryReadonly ...
-	PrimaryReadonly KeyKind = "primaryReadonly"
-	// Secondary ...
-	Secondary KeyKind = "secondary"
-	// SecondaryReadonly ...
-	SecondaryReadonly KeyKind = "secondaryReadonly"
-)
-
-// PossibleKeyKindValues returns an array of possible values for the KeyKind const type.
-func PossibleKeyKindValues() []KeyKind {
-	return []KeyKind{Primary, PrimaryReadonly, Secondary, SecondaryReadonly}
-}
-
-// PartitionKind enumerates the values for partition kind.
-type PartitionKind string
-
-const (
-	// PartitionKindHash ...
-	PartitionKindHash PartitionKind = "Hash"
-	// PartitionKindRange ...
-	PartitionKindRange PartitionKind = "Range"
-)
-
-// PossiblePartitionKindValues returns an array of possible values for the PartitionKind const type.
-func PossiblePartitionKindValues() []PartitionKind {
-	return []PartitionKind{PartitionKindHash, PartitionKindRange}
-}
-
-// PrimaryAggregationType enumerates the values for primary aggregation type.
-type PrimaryAggregationType string
-
-const (
-	// PrimaryAggregationTypeAverage ...
-	PrimaryAggregationTypeAverage PrimaryAggregationType = "Average"
-	// PrimaryAggregationTypeLast ...
-	PrimaryAggregationTypeLast PrimaryAggregationType = "Last"
-	// PrimaryAggregationTypeMaximum ...
-	PrimaryAggregationTypeMaximum PrimaryAggregationType = "Maximum"
-	// PrimaryAggregationTypeMinimum ...
-	PrimaryAggregationTypeMinimum PrimaryAggregationType = "Minimum"
-	// PrimaryAggregationTypeNone ...
-	PrimaryAggregationTypeNone PrimaryAggregationType = "None"
-	// PrimaryAggregationTypeTotal ...
-	PrimaryAggregationTypeTotal PrimaryAggregationType = "Total"
-)
-
-// PossiblePrimaryAggregationTypeValues returns an array of possible values for the PrimaryAggregationType const type.
-func PossiblePrimaryAggregationTypeValues() []PrimaryAggregationType {
-	return []PrimaryAggregationType{PrimaryAggregationTypeAverage, PrimaryAggregationTypeLast, PrimaryAggregationTypeMaximum, PrimaryAggregationTypeMinimum, PrimaryAggregationTypeNone, PrimaryAggregationTypeTotal}
-}
-
-// PublicNetworkAccess enumerates the values for public network access.
-type PublicNetworkAccess string
-
-const (
-	// Disabled ...
-	Disabled PublicNetworkAccess = "Disabled"
-	// Enabled ...
-	Enabled PublicNetworkAccess = "Enabled"
-)
-
-// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
-func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
-	return []PublicNetworkAccess{Disabled, Enabled}
-}
-
-// ServerVersion enumerates the values for server version.
-type ServerVersion string
-
-const (
-	// ThreeFullStopSix ...
-	ThreeFullStopSix ServerVersion = "3.6"
-	// ThreeFullStopTwo ...
-	ThreeFullStopTwo ServerVersion = "3.2"
-)
-
-// PossibleServerVersionValues returns an array of possible values for the ServerVersion const type.
-func PossibleServerVersionValues() []ServerVersion {
-	return []ServerVersion{ThreeFullStopSix, ThreeFullStopTwo}
-}
-
-// SpatialType enumerates the values for spatial type.
-type SpatialType string
-
-const (
-	// SpatialTypeLineString ...
-	SpatialTypeLineString SpatialType = "LineString"
-	// SpatialTypeMultiPolygon ...
-	SpatialTypeMultiPolygon SpatialType = "MultiPolygon"
-	// SpatialTypePoint ...
-	SpatialTypePoint SpatialType = "Point"
-	// SpatialTypePolygon ...
-	SpatialTypePolygon SpatialType = "Polygon"
-)
-
-// PossibleSpatialTypeValues returns an array of possible values for the SpatialType const type.
-func PossibleSpatialTypeValues() []SpatialType {
-	return []SpatialType{SpatialTypeLineString, SpatialTypeMultiPolygon, SpatialTypePoint, SpatialTypePolygon}
-}
-
-// TriggerOperation enumerates the values for trigger operation.
-type TriggerOperation string
-
-const (
-	// All ...
-	All TriggerOperation = "All"
-	// Create ...
-	Create TriggerOperation = "Create"
-	// Delete ...
-	Delete TriggerOperation = "Delete"
-	// Replace ...
-	Replace TriggerOperation = "Replace"
-	// Update ...
-	Update TriggerOperation = "Update"
-)
-
-// PossibleTriggerOperationValues returns an array of possible values for the TriggerOperation const type.
-func PossibleTriggerOperationValues() []TriggerOperation {
-	return []TriggerOperation{All, Create, Delete, Replace, Update}
-}
-
-// TriggerType enumerates the values for trigger type.
-type TriggerType string
-
-const (
-	// Post ...
-	Post TriggerType = "Post"
-	// Pre ...
-	Pre TriggerType = "Pre"
-)
-
-// PossibleTriggerTypeValues returns an array of possible values for the TriggerType const type.
-func PossibleTriggerTypeValues() []TriggerType {
-	return []TriggerType{Post, Pre}
-}
-
-// UnitType enumerates the values for unit type.
-type UnitType string
-
-const (
-	// Bytes ...
-	Bytes UnitType = "Bytes"
-	// BytesPerSecond ...
-	BytesPerSecond UnitType = "BytesPerSecond"
-	// Count ...
-	Count UnitType = "Count"
-	// CountPerSecond ...
-	CountPerSecond UnitType = "CountPerSecond"
-	// Milliseconds ...
-	Milliseconds UnitType = "Milliseconds"
-	// Percent ...
-	Percent UnitType = "Percent"
-	// Seconds ...
-	Seconds UnitType = "Seconds"
-)
-
-// PossibleUnitTypeValues returns an array of possible values for the UnitType const type.
-func PossibleUnitTypeValues() []UnitType {
-	return []UnitType{Bytes, BytesPerSecond, Count, CountPerSecond, Milliseconds, Percent, Seconds}
-}
-
 // APIProperties ...
 type APIProperties struct {
 	// ServerVersion - Describes the ServerVersion of an a MongoDB account. Possible values include: 'ThreeFullStopTwo', 'ThreeFullStopSix'
 	ServerVersion ServerVersion `json:"serverVersion,omitempty"`
 }
 
-// ARMProxyResource the resource model definition for a ARM proxy resource. It will have everything other
-// than required location and tags
+// ARMProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
+// required location and tags
 type ARMProxyResource struct {
 	// ID - READ-ONLY; The unique resource identifier of the database account.
 	ID *string `json:"id,omitempty"`
@@ -405,6 +87,18 @@ type AutoscaleSettingsResource struct {
 	AutoUpgradePolicy *AutoUpgradePolicyResource `json:"autoUpgradePolicy,omitempty"`
 	// TargetMaxThroughput - READ-ONLY; Represents target maximum throughput container can scale up to once offer is no longer in pending state.
 	TargetMaxThroughput *int32 `json:"targetMaxThroughput,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AutoscaleSettingsResource.
+func (asr AutoscaleSettingsResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asr.MaxThroughput != nil {
+		objectMap["maxThroughput"] = asr.MaxThroughput
+	}
+	if asr.AutoUpgradePolicy != nil {
+		objectMap["autoUpgradePolicy"] = asr.AutoUpgradePolicy
+	}
+	return json.Marshal(objectMap)
 }
 
 // AutoUpgradePolicyResource cosmos DB resource auto-upgrade policy
@@ -530,8 +224,7 @@ func (ckcup *CassandraKeyspaceCreateUpdateParameters) UnmarshalJSON(body []byte)
 	return nil
 }
 
-// CassandraKeyspaceCreateUpdateProperties properties to create and update Azure Cosmos DB Cassandra
-// keyspace.
+// CassandraKeyspaceCreateUpdateProperties properties to create and update Azure Cosmos DB Cassandra keyspace.
 type CassandraKeyspaceCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a Cassandra keyspace
 	Resource *CassandraKeyspaceResource `json:"resource,omitempty"`
@@ -563,6 +256,15 @@ type CassandraKeyspaceGetPropertiesResource struct {
 	Ts interface{} `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CassandraKeyspaceGetPropertiesResource.
+func (ckgp CassandraKeyspaceGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ckgp.ID != nil {
+		objectMap["id"] = ckgp.ID
+	}
+	return json.Marshal(objectMap)
 }
 
 // CassandraKeyspaceGetResults an Azure Cosmos DB Cassandra keyspace.
@@ -714,8 +416,8 @@ func (future *CassandraResourcesCreateUpdateCassandraKeyspaceFuture) Result(clie
 	return
 }
 
-// CassandraResourcesCreateUpdateCassandraTableFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// CassandraResourcesCreateUpdateCassandraTableFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type CassandraResourcesCreateUpdateCassandraTableFuture struct {
 	azure.Future
 }
@@ -743,8 +445,8 @@ func (future *CassandraResourcesCreateUpdateCassandraTableFuture) Result(client 
 	return
 }
 
-// CassandraResourcesDeleteCassandraKeyspaceFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// CassandraResourcesDeleteCassandraKeyspaceFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type CassandraResourcesDeleteCassandraKeyspaceFuture struct {
 	azure.Future
 }
@@ -766,8 +468,8 @@ func (future *CassandraResourcesDeleteCassandraKeyspaceFuture) Result(client Cas
 	return
 }
 
-// CassandraResourcesDeleteCassandraTableFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// CassandraResourcesDeleteCassandraTableFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type CassandraResourcesDeleteCassandraTableFuture struct {
 	azure.Future
 }
@@ -789,8 +491,124 @@ func (future *CassandraResourcesDeleteCassandraTableFuture) Result(client Cassan
 	return
 }
 
-// CassandraResourcesUpdateCassandraKeyspaceThroughputFuture an abstraction for monitoring and retrieving
+// CassandraResourcesMigrateCassandraKeyspaceToAutoscaleFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type CassandraResourcesMigrateCassandraKeyspaceToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CassandraResourcesMigrateCassandraKeyspaceToAutoscaleFuture) Result(client CassandraResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesMigrateCassandraKeyspaceToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraResourcesMigrateCassandraKeyspaceToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateCassandraKeyspaceToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesMigrateCassandraKeyspaceToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraResourcesMigrateCassandraKeyspaceToManualThroughputFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type CassandraResourcesMigrateCassandraKeyspaceToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CassandraResourcesMigrateCassandraKeyspaceToManualThroughputFuture) Result(client CassandraResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesMigrateCassandraKeyspaceToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraResourcesMigrateCassandraKeyspaceToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateCassandraKeyspaceToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesMigrateCassandraKeyspaceToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraResourcesMigrateCassandraTableToAutoscaleFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type CassandraResourcesMigrateCassandraTableToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CassandraResourcesMigrateCassandraTableToAutoscaleFuture) Result(client CassandraResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesMigrateCassandraTableToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraResourcesMigrateCassandraTableToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateCassandraTableToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesMigrateCassandraTableToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraResourcesMigrateCassandraTableToManualThroughputFuture an abstraction for monitoring and retrieving
 // the results of a long-running operation.
+type CassandraResourcesMigrateCassandraTableToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *CassandraResourcesMigrateCassandraTableToManualThroughputFuture) Result(client CassandraResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesMigrateCassandraTableToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.CassandraResourcesMigrateCassandraTableToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateCassandraTableToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.CassandraResourcesMigrateCassandraTableToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// CassandraResourcesUpdateCassandraKeyspaceThroughputFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
 type CassandraResourcesUpdateCassandraKeyspaceThroughputFuture struct {
 	azure.Future
 }
@@ -996,6 +814,24 @@ type CassandraTableGetPropertiesResource struct {
 	Etag *string `json:"_etag,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CassandraTableGetPropertiesResource.
+func (ctgp CassandraTableGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ctgp.ID != nil {
+		objectMap["id"] = ctgp.ID
+	}
+	if ctgp.DefaultTTL != nil {
+		objectMap["defaultTtl"] = ctgp.DefaultTTL
+	}
+	if ctgp.Schema != nil {
+		objectMap["schema"] = ctgp.Schema
+	}
+	if ctgp.AnalyticalStorageTTL != nil {
+		objectMap["analyticalStorageTtl"] = ctgp.AnalyticalStorageTTL
+	}
+	return json.Marshal(objectMap)
+}
+
 // CassandraTableGetResults an Azure Cosmos DB Cassandra table.
 type CassandraTableGetResults struct {
 	autorest.Response `json:"-"`
@@ -1160,8 +996,8 @@ type ConsistencyPolicy struct {
 	MaxIntervalInSeconds *int32 `json:"maxIntervalInSeconds,omitempty"`
 }
 
-// ContainerPartitionKey the configuration of the partition key to be used for partitioning data into
-// multiple partitions
+// ContainerPartitionKey the configuration of the partition key to be used for partitioning data into multiple
+// partitions
 type ContainerPartitionKey struct {
 	// Paths - List of paths using which data within the container can be partitioned
 	Paths *[]string `json:"paths,omitempty"`
@@ -1171,8 +1007,22 @@ type ContainerPartitionKey struct {
 	Version *int32 `json:"version,omitempty"`
 }
 
-// CreateUpdateOptions createUpdateOptions are a list of key-value pairs that describe the resource.
-// Supported keys are "If-Match", "If-None-Match", "Session-Token" and "Throughput"
+// CorsPolicy the CORS policy for the Cosmos DB database account.
+type CorsPolicy struct {
+	// AllowedOrigins - The origin domains that are permitted to make a request against the service via CORS.
+	AllowedOrigins *string `json:"allowedOrigins,omitempty"`
+	// AllowedMethods - The methods (HTTP request verbs) that the origin domain may use for a CORS request.
+	AllowedMethods *string `json:"allowedMethods,omitempty"`
+	// AllowedHeaders - The request headers that the origin domain may specify on the CORS request.
+	AllowedHeaders *string `json:"allowedHeaders,omitempty"`
+	// ExposedHeaders - The response headers that may be sent in the response to the CORS request and exposed by the browser to the request issuer.
+	ExposedHeaders *string `json:"exposedHeaders,omitempty"`
+	// MaxAgeInSeconds - The maximum amount time that a browser should cache the preflight OPTIONS request.
+	MaxAgeInSeconds *int64 `json:"maxAgeInSeconds,omitempty"`
+}
+
+// CreateUpdateOptions createUpdateOptions are a list of key-value pairs that describe the resource. Supported
+// keys are "If-Match", "If-None-Match", "Session-Token" and "Throughput"
 type CreateUpdateOptions struct {
 	// Throughput - Request Units per second. For example, "throughput": 10000.
 	Throughput *int32 `json:"throughput,omitempty"`
@@ -1336,6 +1186,8 @@ type DatabaseAccountCreateUpdateProperties struct {
 	APIProperties *APIProperties `json:"apiProperties,omitempty"`
 	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
 	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
+	// Cors - The CORS policy for the Cosmos DB database account.
+	Cors *[]CorsPolicy `json:"cors,omitempty"`
 }
 
 // DatabaseAccountGetProperties properties for the database account.
@@ -1385,6 +1237,65 @@ type DatabaseAccountGetProperties struct {
 	APIProperties *APIProperties `json:"apiProperties,omitempty"`
 	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
 	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
+	// Cors - The CORS policy for the Cosmos DB database account.
+	Cors *[]CorsPolicy `json:"cors,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DatabaseAccountGetProperties.
+func (dagp DatabaseAccountGetProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dagp.ProvisioningState != nil {
+		objectMap["provisioningState"] = dagp.ProvisioningState
+	}
+	if dagp.IPRules != nil {
+		objectMap["ipRules"] = dagp.IPRules
+	}
+	if dagp.IsVirtualNetworkFilterEnabled != nil {
+		objectMap["isVirtualNetworkFilterEnabled"] = dagp.IsVirtualNetworkFilterEnabled
+	}
+	if dagp.EnableAutomaticFailover != nil {
+		objectMap["enableAutomaticFailover"] = dagp.EnableAutomaticFailover
+	}
+	if dagp.ConsistencyPolicy != nil {
+		objectMap["consistencyPolicy"] = dagp.ConsistencyPolicy
+	}
+	if dagp.Capabilities != nil {
+		objectMap["capabilities"] = dagp.Capabilities
+	}
+	if dagp.VirtualNetworkRules != nil {
+		objectMap["virtualNetworkRules"] = dagp.VirtualNetworkRules
+	}
+	if dagp.EnableMultipleWriteLocations != nil {
+		objectMap["enableMultipleWriteLocations"] = dagp.EnableMultipleWriteLocations
+	}
+	if dagp.EnableCassandraConnector != nil {
+		objectMap["enableCassandraConnector"] = dagp.EnableCassandraConnector
+	}
+	if dagp.ConnectorOffer != "" {
+		objectMap["connectorOffer"] = dagp.ConnectorOffer
+	}
+	if dagp.DisableKeyBasedMetadataWriteAccess != nil {
+		objectMap["disableKeyBasedMetadataWriteAccess"] = dagp.DisableKeyBasedMetadataWriteAccess
+	}
+	if dagp.KeyVaultKeyURI != nil {
+		objectMap["keyVaultKeyUri"] = dagp.KeyVaultKeyURI
+	}
+	if dagp.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = dagp.PublicNetworkAccess
+	}
+	if dagp.EnableFreeTier != nil {
+		objectMap["enableFreeTier"] = dagp.EnableFreeTier
+	}
+	if dagp.APIProperties != nil {
+		objectMap["apiProperties"] = dagp.APIProperties
+	}
+	if dagp.EnableAnalyticalStorage != nil {
+		objectMap["enableAnalyticalStorage"] = dagp.EnableAnalyticalStorage
+	}
+	if dagp.Cors != nil {
+		objectMap["cors"] = dagp.Cors
+	}
+	return json.Marshal(objectMap)
 }
 
 // DatabaseAccountGetResults an Azure Cosmos DB database account.
@@ -1587,8 +1498,8 @@ func (future *DatabaseAccountsDeleteFuture) Result(client DatabaseAccountsClient
 	return
 }
 
-// DatabaseAccountsFailoverPriorityChangeFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// DatabaseAccountsFailoverPriorityChangeFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type DatabaseAccountsFailoverPriorityChangeFuture struct {
 	azure.Future
 }
@@ -1815,6 +1726,8 @@ type DatabaseAccountUpdateProperties struct {
 	APIProperties *APIProperties `json:"apiProperties,omitempty"`
 	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
 	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
+	// Cors - The CORS policy for the Cosmos DB database account.
+	Cors *[]CorsPolicy `json:"cors,omitempty"`
 }
 
 // ErrorResponse error Response.
@@ -1856,6 +1769,18 @@ type FailoverPolicy struct {
 	LocationName *string `json:"locationName,omitempty"`
 	// FailoverPriority - The failover priority of the region. A failover priority of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists.
 	FailoverPriority *int32 `json:"failoverPriority,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FailoverPolicy.
+func (fp FailoverPolicy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fp.LocationName != nil {
+		objectMap["locationName"] = fp.LocationName
+	}
+	if fp.FailoverPriority != nil {
+		objectMap["failoverPriority"] = fp.FailoverPriority
+	}
+	return json.Marshal(objectMap)
 }
 
 // GremlinDatabaseCreateUpdateParameters parameters to create and update Cosmos DB Gremlin database.
@@ -1989,6 +1914,15 @@ type GremlinDatabaseGetPropertiesResource struct {
 	Ts interface{} `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GremlinDatabaseGetPropertiesResource.
+func (gdgp GremlinDatabaseGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gdgp.ID != nil {
+		objectMap["id"] = gdgp.ID
+	}
+	return json.Marshal(objectMap)
 }
 
 // GremlinDatabaseGetResults an Azure Cosmos DB Gremlin database.
@@ -2248,6 +2182,30 @@ type GremlinGraphGetPropertiesResource struct {
 	Etag *string `json:"_etag,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for GremlinGraphGetPropertiesResource.
+func (gggp GremlinGraphGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gggp.ID != nil {
+		objectMap["id"] = gggp.ID
+	}
+	if gggp.IndexingPolicy != nil {
+		objectMap["indexingPolicy"] = gggp.IndexingPolicy
+	}
+	if gggp.PartitionKey != nil {
+		objectMap["partitionKey"] = gggp.PartitionKey
+	}
+	if gggp.DefaultTTL != nil {
+		objectMap["defaultTtl"] = gggp.DefaultTTL
+	}
+	if gggp.UniqueKeyPolicy != nil {
+		objectMap["uniqueKeyPolicy"] = gggp.UniqueKeyPolicy
+	}
+	if gggp.ConflictResolutionPolicy != nil {
+		objectMap["conflictResolutionPolicy"] = gggp.ConflictResolutionPolicy
+	}
+	return json.Marshal(objectMap)
+}
+
 // GremlinGraphGetResults an Azure Cosmos DB Gremlin graph.
 type GremlinGraphGetResults struct {
 	autorest.Response `json:"-"`
@@ -2371,8 +2329,8 @@ type GremlinGraphResource struct {
 	ConflictResolutionPolicy *ConflictResolutionPolicy `json:"conflictResolutionPolicy,omitempty"`
 }
 
-// GremlinResourcesCreateUpdateGremlinDatabaseFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// GremlinResourcesCreateUpdateGremlinDatabaseFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type GremlinResourcesCreateUpdateGremlinDatabaseFuture struct {
 	azure.Future
 }
@@ -2400,8 +2358,8 @@ func (future *GremlinResourcesCreateUpdateGremlinDatabaseFuture) Result(client G
 	return
 }
 
-// GremlinResourcesCreateUpdateGremlinGraphFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// GremlinResourcesCreateUpdateGremlinGraphFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type GremlinResourcesCreateUpdateGremlinGraphFuture struct {
 	azure.Future
 }
@@ -2429,8 +2387,8 @@ func (future *GremlinResourcesCreateUpdateGremlinGraphFuture) Result(client Grem
 	return
 }
 
-// GremlinResourcesDeleteGremlinDatabaseFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// GremlinResourcesDeleteGremlinDatabaseFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type GremlinResourcesDeleteGremlinDatabaseFuture struct {
 	azure.Future
 }
@@ -2475,6 +2433,122 @@ func (future *GremlinResourcesDeleteGremlinGraphFuture) Result(client GremlinRes
 	return
 }
 
+// GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture) Result(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateGremlinDatabaseToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
+type GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture) Result(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateGremlinDatabaseToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinDatabaseToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// GremlinResourcesMigrateGremlinGraphToAutoscaleFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type GremlinResourcesMigrateGremlinGraphToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *GremlinResourcesMigrateGremlinGraphToAutoscaleFuture) Result(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesMigrateGremlinGraphToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateGremlinGraphToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// GremlinResourcesMigrateGremlinGraphToManualThroughputFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type GremlinResourcesMigrateGremlinGraphToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *GremlinResourcesMigrateGremlinGraphToManualThroughputFuture) Result(client GremlinResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.GremlinResourcesMigrateGremlinGraphToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateGremlinGraphToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.GremlinResourcesMigrateGremlinGraphToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // GremlinResourcesUpdateGremlinDatabaseThroughputFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type GremlinResourcesUpdateGremlinDatabaseThroughputFuture struct {
@@ -2504,8 +2578,8 @@ func (future *GremlinResourcesUpdateGremlinDatabaseThroughputFuture) Result(clie
 	return
 }
 
-// GremlinResourcesUpdateGremlinGraphThroughputFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// GremlinResourcesUpdateGremlinGraphThroughputFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type GremlinResourcesUpdateGremlinGraphThroughputFuture struct {
 	azure.Future
 }
@@ -2588,6 +2662,24 @@ type Location struct {
 	IsZoneRedundant *bool `json:"isZoneRedundant,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Location.
+func (l Location) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if l.LocationName != nil {
+		objectMap["locationName"] = l.LocationName
+	}
+	if l.ProvisioningState != nil {
+		objectMap["provisioningState"] = l.ProvisioningState
+	}
+	if l.FailoverPriority != nil {
+		objectMap["failoverPriority"] = l.FailoverPriority
+	}
+	if l.IsZoneRedundant != nil {
+		objectMap["isZoneRedundant"] = l.IsZoneRedundant
+	}
+	return json.Marshal(objectMap)
+}
+
 // Metric metric data
 type Metric struct {
 	// StartTime - READ-ONLY; The start time for the metric (ISO-8601 format).
@@ -2602,6 +2694,15 @@ type Metric struct {
 	Name *MetricName `json:"name,omitempty"`
 	// MetricValues - READ-ONLY; The metric values for the specified time window and timestep.
 	MetricValues *[]MetricValue `json:"metricValues,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Metric.
+func (mVar Metric) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mVar.Unit != "" {
+		objectMap["unit"] = mVar.Unit
+	}
+	return json.Marshal(objectMap)
 }
 
 // MetricAvailability the availability of the metric.
@@ -2624,6 +2725,15 @@ type MetricDefinition struct {
 	ResourceURI *string `json:"resourceUri,omitempty"`
 	// Name - READ-ONLY; The name information for the metric.
 	Name *MetricName `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MetricDefinition.
+func (md MetricDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if md.Unit != "" {
+		objectMap["unit"] = md.Unit
+	}
+	return json.Marshal(objectMap)
 }
 
 // MetricDefinitionsListResult the response to a list metric definitions request.
@@ -2763,8 +2873,7 @@ func (mdccup *MongoDBCollectionCreateUpdateParameters) UnmarshalJSON(body []byte
 	return nil
 }
 
-// MongoDBCollectionCreateUpdateProperties properties to create and update Azure Cosmos DB MongoDB
-// collection.
+// MongoDBCollectionCreateUpdateProperties properties to create and update Azure Cosmos DB MongoDB collection.
 type MongoDBCollectionCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a MongoDB collection
 	Resource *MongoDBCollectionResource `json:"resource,omitempty"`
@@ -3093,6 +3202,15 @@ type MongoDBDatabaseGetPropertiesResource struct {
 	Etag *string `json:"_etag,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for MongoDBDatabaseGetPropertiesResource.
+func (mddgp MongoDBDatabaseGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mddgp.ID != nil {
+		objectMap["id"] = mddgp.ID
+	}
+	return json.Marshal(objectMap)
+}
+
 // MongoDBDatabaseGetResults an Azure Cosmos DB MongoDB database.
 type MongoDBDatabaseGetResults struct {
 	autorest.Response `json:"-"`
@@ -3207,8 +3325,8 @@ type MongoDBDatabaseResource struct {
 	ID *string `json:"id,omitempty"`
 }
 
-// MongoDBResourcesCreateUpdateMongoDBCollectionFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// MongoDBResourcesCreateUpdateMongoDBCollectionFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type MongoDBResourcesCreateUpdateMongoDBCollectionFuture struct {
 	azure.Future
 }
@@ -3236,8 +3354,8 @@ func (future *MongoDBResourcesCreateUpdateMongoDBCollectionFuture) Result(client
 	return
 }
 
-// MongoDBResourcesCreateUpdateMongoDBDatabaseFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// MongoDBResourcesCreateUpdateMongoDBDatabaseFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
 type MongoDBResourcesCreateUpdateMongoDBDatabaseFuture struct {
 	azure.Future
 }
@@ -3265,8 +3383,8 @@ func (future *MongoDBResourcesCreateUpdateMongoDBDatabaseFuture) Result(client M
 	return
 }
 
-// MongoDBResourcesDeleteMongoDBCollectionFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// MongoDBResourcesDeleteMongoDBCollectionFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type MongoDBResourcesDeleteMongoDBCollectionFuture struct {
 	azure.Future
 }
@@ -3288,8 +3406,8 @@ func (future *MongoDBResourcesDeleteMongoDBCollectionFuture) Result(client Mongo
 	return
 }
 
-// MongoDBResourcesDeleteMongoDBDatabaseFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// MongoDBResourcesDeleteMongoDBDatabaseFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type MongoDBResourcesDeleteMongoDBDatabaseFuture struct {
 	azure.Future
 }
@@ -3308,6 +3426,122 @@ func (future *MongoDBResourcesDeleteMongoDBDatabaseFuture) Result(client MongoDB
 		return
 	}
 	ar.Response = future.Response()
+	return
+}
+
+// MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture) Result(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateMongoDBCollectionToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture an abstraction for monitoring and
+// retrieving the results of a long-running operation.
+type MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture) Result(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateMongoDBCollectionToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBCollectionToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture) Result(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateMongoDBDatabaseToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
+type MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture) Result(client MongoDBResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateMongoDBDatabaseToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.MongoDBResourcesMigrateMongoDBDatabaseToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
 	return
 }
 
@@ -3527,8 +3761,8 @@ func (future *NotebookWorkspacesCreateOrUpdateFuture) Result(client NotebookWork
 	return
 }
 
-// NotebookWorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// NotebookWorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type NotebookWorkspacesDeleteFuture struct {
 	azure.Future
 }
@@ -3550,8 +3784,8 @@ func (future *NotebookWorkspacesDeleteFuture) Result(client NotebookWorkspacesCl
 	return
 }
 
-// NotebookWorkspacesRegenerateAuthTokenFuture an abstraction for monitoring and retrieving the results of
-// a long-running operation.
+// NotebookWorkspacesRegenerateAuthTokenFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type NotebookWorkspacesRegenerateAuthTokenFuture struct {
 	azure.Future
 }
@@ -3694,10 +3928,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3725,11 +3964,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -3791,6 +4035,15 @@ type PartitionMetric struct {
 	MetricValues *[]MetricValue `json:"metricValues,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PartitionMetric.
+func (pm PartitionMetric) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pm.Unit != "" {
+		objectMap["unit"] = pm.Unit
+	}
+	return json.Marshal(objectMap)
+}
+
 // PartitionMetricListResult the response to a list partition metrics request.
 type PartitionMetricListResult struct {
 	autorest.Response `json:"-"`
@@ -3816,6 +4069,15 @@ type PartitionUsage struct {
 	CurrentValue *int64 `json:"currentValue,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PartitionUsage.
+func (pu PartitionUsage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pu.Unit != "" {
+		objectMap["unit"] = pu.Unit
+	}
+	return json.Marshal(objectMap)
+}
+
 // PartitionUsagesResult the response to a list partition level usage request.
 type PartitionUsagesResult struct {
 	autorest.Response `json:"-"`
@@ -3837,6 +4099,15 @@ type PercentileMetric struct {
 	Name *MetricName `json:"name,omitempty"`
 	// MetricValues - READ-ONLY; The percentile metric values for the specified time window and timestep.
 	MetricValues *[]PercentileMetricValue `json:"metricValues,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PercentileMetric.
+func (pm PercentileMetric) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pm.Unit != "" {
+		objectMap["unit"] = pm.Unit
+	}
+	return json.Marshal(objectMap)
 }
 
 // PercentileMetricListResult the response to a list percentile metrics request.
@@ -3968,8 +4239,8 @@ type PrivateEndpointConnectionProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
-// PrivateEndpointConnectionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// PrivateEndpointConnectionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type PrivateEndpointConnectionsCreateOrUpdateFuture struct {
 	azure.Future
 }
@@ -4124,6 +4395,18 @@ type PrivateLinkServiceConnectionStateProperty struct {
 	ActionsRequired *string `json:"actionsRequired,omitempty"`
 	// Description - The private link service connection description.
 	Description *string `json:"description,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkServiceConnectionStateProperty.
+func (plscsp PrivateLinkServiceConnectionStateProperty) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plscsp.Status != nil {
+		objectMap["status"] = plscsp.Status
+	}
+	if plscsp.Description != nil {
+		objectMap["description"] = plscsp.Description
+	}
+	return json.Marshal(objectMap)
 }
 
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
@@ -4296,12 +4579,41 @@ type SQLContainerGetPropertiesResource struct {
 	UniqueKeyPolicy *UniqueKeyPolicy `json:"uniqueKeyPolicy,omitempty"`
 	// ConflictResolutionPolicy - The conflict resolution policy for the container.
 	ConflictResolutionPolicy *ConflictResolutionPolicy `json:"conflictResolutionPolicy,omitempty"`
+	// AnalyticalStorageTTL - Analytical TTL.
+	AnalyticalStorageTTL *int64 `json:"analyticalStorageTtl,omitempty"`
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
 	Ts interface{} `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SQLContainerGetPropertiesResource.
+func (scgp SQLContainerGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if scgp.ID != nil {
+		objectMap["id"] = scgp.ID
+	}
+	if scgp.IndexingPolicy != nil {
+		objectMap["indexingPolicy"] = scgp.IndexingPolicy
+	}
+	if scgp.PartitionKey != nil {
+		objectMap["partitionKey"] = scgp.PartitionKey
+	}
+	if scgp.DefaultTTL != nil {
+		objectMap["defaultTtl"] = scgp.DefaultTTL
+	}
+	if scgp.UniqueKeyPolicy != nil {
+		objectMap["uniqueKeyPolicy"] = scgp.UniqueKeyPolicy
+	}
+	if scgp.ConflictResolutionPolicy != nil {
+		objectMap["conflictResolutionPolicy"] = scgp.ConflictResolutionPolicy
+	}
+	if scgp.AnalyticalStorageTTL != nil {
+		objectMap["analyticalStorageTtl"] = scgp.AnalyticalStorageTTL
+	}
+	return json.Marshal(objectMap)
 }
 
 // SQLContainerGetResults an Azure Cosmos DB container.
@@ -4425,6 +4737,8 @@ type SQLContainerResource struct {
 	UniqueKeyPolicy *UniqueKeyPolicy `json:"uniqueKeyPolicy,omitempty"`
 	// ConflictResolutionPolicy - The conflict resolution policy for the container.
 	ConflictResolutionPolicy *ConflictResolutionPolicy `json:"conflictResolutionPolicy,omitempty"`
+	// AnalyticalStorageTTL - Analytical TTL.
+	AnalyticalStorageTTL *int64 `json:"analyticalStorageTtl,omitempty"`
 }
 
 // SQLDatabaseCreateUpdateParameters parameters to create and update Cosmos DB SQL database.
@@ -4562,6 +4876,21 @@ type SQLDatabaseGetPropertiesResource struct {
 	Colls *string `json:"_colls,omitempty"`
 	// Users - A system generated property that specifies the addressable path of the users resource.
 	Users *string `json:"_users,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SQLDatabaseGetPropertiesResource.
+func (sdgp SQLDatabaseGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sdgp.ID != nil {
+		objectMap["id"] = sdgp.ID
+	}
+	if sdgp.Colls != nil {
+		objectMap["_colls"] = sdgp.Colls
+	}
+	if sdgp.Users != nil {
+		objectMap["_users"] = sdgp.Users
+	}
+	return json.Marshal(objectMap)
 }
 
 // SQLDatabaseGetResults an Azure Cosmos DB SQL database.
@@ -4735,8 +5064,8 @@ func (future *SQLResourcesCreateUpdateSQLDatabaseFuture) Result(client SQLResour
 	return
 }
 
-// SQLResourcesCreateUpdateSQLStoredProcedureFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
+// SQLResourcesCreateUpdateSQLStoredProcedureFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
 type SQLResourcesCreateUpdateSQLStoredProcedureFuture struct {
 	azure.Future
 }
@@ -4914,8 +5243,8 @@ func (future *SQLResourcesDeleteSQLTriggerFuture) Result(client SQLResourcesClie
 	return
 }
 
-// SQLResourcesDeleteSQLUserDefinedFunctionFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// SQLResourcesDeleteSQLUserDefinedFunctionFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type SQLResourcesDeleteSQLUserDefinedFunctionFuture struct {
 	azure.Future
 }
@@ -4937,8 +5266,124 @@ func (future *SQLResourcesDeleteSQLUserDefinedFunctionFuture) Result(client SQLR
 	return
 }
 
-// SQLResourcesUpdateSQLContainerThroughputFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// SQLResourcesMigrateSQLContainerToAutoscaleFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type SQLResourcesMigrateSQLContainerToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *SQLResourcesMigrateSQLContainerToAutoscaleFuture) Result(client SQLResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesMigrateSQLContainerToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesMigrateSQLContainerToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateSQLContainerToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesMigrateSQLContainerToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// SQLResourcesMigrateSQLContainerToManualThroughputFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type SQLResourcesMigrateSQLContainerToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *SQLResourcesMigrateSQLContainerToManualThroughputFuture) Result(client SQLResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesMigrateSQLContainerToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesMigrateSQLContainerToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateSQLContainerToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesMigrateSQLContainerToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// SQLResourcesMigrateSQLDatabaseToAutoscaleFuture an abstraction for monitoring and retrieving the results of
+// a long-running operation.
+type SQLResourcesMigrateSQLDatabaseToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *SQLResourcesMigrateSQLDatabaseToAutoscaleFuture) Result(client SQLResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesMigrateSQLDatabaseToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesMigrateSQLDatabaseToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateSQLDatabaseToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesMigrateSQLDatabaseToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// SQLResourcesMigrateSQLDatabaseToManualThroughputFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type SQLResourcesMigrateSQLDatabaseToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *SQLResourcesMigrateSQLDatabaseToManualThroughputFuture) Result(client SQLResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesMigrateSQLDatabaseToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.SQLResourcesMigrateSQLDatabaseToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateSQLDatabaseToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.SQLResourcesMigrateSQLDatabaseToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// SQLResourcesUpdateSQLContainerThroughputFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type SQLResourcesUpdateSQLContainerThroughputFuture struct {
 	azure.Future
 }
@@ -4966,8 +5411,8 @@ func (future *SQLResourcesUpdateSQLContainerThroughputFuture) Result(client SQLR
 	return
 }
 
-// SQLResourcesUpdateSQLDatabaseThroughputFuture an abstraction for monitoring and retrieving the results
-// of a long-running operation.
+// SQLResourcesUpdateSQLDatabaseThroughputFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type SQLResourcesUpdateSQLDatabaseThroughputFuture struct {
 	azure.Future
 }
@@ -5094,8 +5539,7 @@ func (sspcup *SQLStoredProcedureCreateUpdateParameters) UnmarshalJSON(body []byt
 	return nil
 }
 
-// SQLStoredProcedureCreateUpdateProperties properties to create and update Azure Cosmos DB
-// storedProcedure.
+// SQLStoredProcedureCreateUpdateProperties properties to create and update Azure Cosmos DB storedProcedure.
 type SQLStoredProcedureCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a storedProcedure
 	Resource *SQLStoredProcedureResource `json:"resource,omitempty"`
@@ -5120,6 +5564,18 @@ type SQLStoredProcedureGetPropertiesResource struct {
 	Ts interface{} `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SQLStoredProcedureGetPropertiesResource.
+func (sspgp SQLStoredProcedureGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sspgp.ID != nil {
+		objectMap["id"] = sspgp.ID
+	}
+	if sspgp.Body != nil {
+		objectMap["body"] = sspgp.Body
+	}
+	return json.Marshal(objectMap)
 }
 
 // SQLStoredProcedureGetResults an Azure Cosmos DB storedProcedure.
@@ -5368,6 +5824,24 @@ type SQLTriggerGetPropertiesResource struct {
 	Etag *string `json:"_etag,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SQLTriggerGetPropertiesResource.
+func (stgp SQLTriggerGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if stgp.ID != nil {
+		objectMap["id"] = stgp.ID
+	}
+	if stgp.Body != nil {
+		objectMap["body"] = stgp.Body
+	}
+	if stgp.TriggerType != "" {
+		objectMap["triggerType"] = stgp.TriggerType
+	}
+	if stgp.TriggerOperation != "" {
+		objectMap["triggerOperation"] = stgp.TriggerOperation
+	}
+	return json.Marshal(objectMap)
+}
+
 // SQLTriggerGetResults an Azure Cosmos DB trigger.
 type SQLTriggerGetResults struct {
 	autorest.Response `json:"-"`
@@ -5487,8 +5961,7 @@ type SQLTriggerResource struct {
 	TriggerOperation TriggerOperation `json:"triggerOperation,omitempty"`
 }
 
-// SQLUserDefinedFunctionCreateUpdateParameters parameters to create and update Cosmos DB
-// userDefinedFunction.
+// SQLUserDefinedFunctionCreateUpdateParameters parameters to create and update Cosmos DB userDefinedFunction.
 type SQLUserDefinedFunctionCreateUpdateParameters struct {
 	// SQLUserDefinedFunctionCreateUpdateProperties - Properties to create and update Azure Cosmos DB userDefinedFunction.
 	*SQLUserDefinedFunctionCreateUpdateProperties `json:"properties,omitempty"`
@@ -5613,6 +6086,18 @@ type SQLUserDefinedFunctionGetPropertiesResource struct {
 	Ts interface{} `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SQLUserDefinedFunctionGetPropertiesResource.
+func (sudfgp SQLUserDefinedFunctionGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sudfgp.ID != nil {
+		objectMap["id"] = sudfgp.ID
+	}
+	if sudfgp.Body != nil {
+		objectMap["body"] = sudfgp.Body
+	}
+	return json.Marshal(objectMap)
 }
 
 // SQLUserDefinedFunctionGetResults an Azure Cosmos DB userDefinedFunction.
@@ -5864,6 +6349,15 @@ type TableGetPropertiesResource struct {
 	Etag *string `json:"_etag,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for TableGetPropertiesResource.
+func (tgp TableGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tgp.ID != nil {
+		objectMap["id"] = tgp.ID
+	}
+	return json.Marshal(objectMap)
+}
+
 // TableGetResults an Azure Cosmos DB Table.
 type TableGetResults struct {
 	autorest.Response `json:"-"`
@@ -6006,8 +6500,8 @@ func (future *TableResourcesCreateUpdateTableFuture) Result(client TableResource
 	return
 }
 
-// TableResourcesDeleteTableFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// TableResourcesDeleteTableFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type TableResourcesDeleteTableFuture struct {
 	azure.Future
 }
@@ -6026,6 +6520,64 @@ func (future *TableResourcesDeleteTableFuture) Result(client TableResourcesClien
 		return
 	}
 	ar.Response = future.Response()
+	return
+}
+
+// TableResourcesMigrateTableToAutoscaleFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type TableResourcesMigrateTableToAutoscaleFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *TableResourcesMigrateTableToAutoscaleFuture) Result(client TableResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToAutoscaleFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.TableResourcesMigrateTableToAutoscaleFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateTableToAutoscaleResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToAutoscaleFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// TableResourcesMigrateTableToManualThroughputFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type TableResourcesMigrateTableToManualThroughputFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *TableResourcesMigrateTableToManualThroughputFuture) Result(client TableResourcesClient) (tsgr ThroughputSettingsGetResults, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToManualThroughputFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.TableResourcesMigrateTableToManualThroughputFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if tsgr.Response.Response, err = future.GetResult(sender); err == nil && tsgr.Response.Response.StatusCode != http.StatusNoContent {
+		tsgr, err = client.MigrateTableToManualThroughputResponder(tsgr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.TableResourcesMigrateTableToManualThroughputFuture", "Result", tsgr.Response.Response, "Failure responding to request")
+		}
+	}
 	return
 }
 
@@ -6087,6 +6639,18 @@ type ThroughputSettingsGetPropertiesResource struct {
 	Ts interface{} `json:"_ts,omitempty"`
 	// Etag - READ-ONLY; A system generated property representing the resource etag required for optimistic concurrency control.
 	Etag *string `json:"_etag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ThroughputSettingsGetPropertiesResource.
+func (tsgp ThroughputSettingsGetPropertiesResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tsgp.Throughput != nil {
+		objectMap["throughput"] = tsgp.Throughput
+	}
+	if tsgp.AutoscaleSettings != nil {
+		objectMap["autoscaleSettings"] = tsgp.AutoscaleSettings
+	}
+	return json.Marshal(objectMap)
 }
 
 // ThroughputSettingsGetResults an Azure Cosmos DB resource throughput.
@@ -6200,6 +6764,18 @@ type ThroughputSettingsResource struct {
 	MinimumThroughput *string `json:"minimumThroughput,omitempty"`
 	// OfferReplacePending - READ-ONLY; The throughput replace is pending
 	OfferReplacePending *string `json:"offerReplacePending,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ThroughputSettingsResource.
+func (tsr ThroughputSettingsResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tsr.Throughput != nil {
+		objectMap["throughput"] = tsr.Throughput
+	}
+	if tsr.AutoscaleSettings != nil {
+		objectMap["autoscaleSettings"] = tsr.AutoscaleSettings
+	}
+	return json.Marshal(objectMap)
 }
 
 // ThroughputSettingsUpdateParameters parameters to update Cosmos DB resource throughput.
@@ -6333,15 +6909,15 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// UniqueKey the unique key on that enforces uniqueness constraint on documents in the collection in the
-// Azure Cosmos DB service.
+// UniqueKey the unique key on that enforces uniqueness constraint on documents in the collection in the Azure
+// Cosmos DB service.
 type UniqueKey struct {
 	// Paths - List of paths must be unique for each document in the Azure Cosmos DB service
 	Paths *[]string `json:"paths,omitempty"`
 }
 
-// UniqueKeyPolicy the unique key policy configuration for specifying uniqueness constraints on documents
-// in the collection in the Azure Cosmos DB service.
+// UniqueKeyPolicy the unique key policy configuration for specifying uniqueness constraints on documents in
+// the collection in the Azure Cosmos DB service.
 type UniqueKeyPolicy struct {
 	// UniqueKeys - List of unique keys on that enforces uniqueness constraint on documents in the collection in the Azure Cosmos DB service.
 	UniqueKeys *[]UniqueKey `json:"uniqueKeys,omitempty"`
@@ -6359,6 +6935,15 @@ type Usage struct {
 	Limit *int64 `json:"limit,omitempty"`
 	// CurrentValue - READ-ONLY; Current value for this metric
 	CurrentValue *int64 `json:"currentValue,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Usage.
+func (u Usage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if u.Unit != "" {
+		objectMap["unit"] = u.Unit
+	}
+	return json.Marshal(objectMap)
 }
 
 // UsagesResult the response to a list usage request.

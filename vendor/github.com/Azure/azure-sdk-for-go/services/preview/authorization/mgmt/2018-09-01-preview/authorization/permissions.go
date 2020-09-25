@@ -77,6 +77,9 @@ func (client PermissionsClient) ListForResource(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.PermissionsClient", "ListForResource", resp, "Failure responding to request")
 	}
+	if result.pgr.hasNextLink() && result.pgr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -191,6 +194,9 @@ func (client PermissionsClient) ListForResourceGroup(ctx context.Context, resour
 	result.pgr, err = client.ListForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.PermissionsClient", "ListForResourceGroup", resp, "Failure responding to request")
+	}
+	if result.pgr.hasNextLink() && result.pgr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -161,6 +161,9 @@ func (client EnginesClient) List(ctx context.Context, vaultName string, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.EnginesClient", "List", resp, "Failure responding to request")
 	}
+	if result.ebrl.hasNextLink() && result.ebrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

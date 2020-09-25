@@ -412,6 +412,9 @@ func (client JobExecutionsClient) ListByAgent(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "ListByAgent", resp, "Failure responding to request")
 	}
+	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -556,6 +559,9 @@ func (client JobExecutionsClient) ListByJob(ctx context.Context, resourceGroupNa
 	result.jelr, err = client.ListByJobResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobExecutionsClient", "ListByJob", resp, "Failure responding to request")
+	}
+	if result.jelr.hasNextLink() && result.jelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -310,7 +310,7 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}
 
-	if _, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
+	if _, err = client.UpdateKey(ctx, id.KeyVaultBaseUrl, id.Name, "", parameters); err != nil {
 		return err
 	}
 

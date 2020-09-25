@@ -144,6 +144,12 @@ The following arguments are supported:
 
 * `do_not_run_extensions_on_overprovisioned_machines` - (Optional) Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set? Defaults to `false`.
 
+* `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
+
+* `extension` - (Optional) One or more `extension` blocks as defined below
+
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
+
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
@@ -273,6 +279,38 @@ A `data_disk` block supports the following:
 A `diff_disk_settings` block supports the following:
 
 `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
+
+---
+
+An `extension` block supports the following:
+
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
+
+* `name` - (Required) The name for the Virtual Machine Scale Set Extension.
+
+* `publisher` - (Required) Specifies the Publisher of the Extension.
+
+* `type` - (Required) Specifies the Type of the Extension.
+
+* `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
+
+* `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to `true`.
+
+* `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
+
+* `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
+
+~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
+
+-> **Note:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
+
+* `provision_after_extensions` - (Optional) An ordered list of Extension names which this should be provisioned after.
+
+* `settings` - (Optional) A JSON String which specifies Settings for the Extension.
+
+~> **NOTE:** Keys within the `settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
+
+-> **Note:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
 ---
 
