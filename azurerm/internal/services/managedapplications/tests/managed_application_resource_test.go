@@ -172,10 +172,9 @@ resource "azurerm_managed_application" "test" {
 
   parameter_values = <<VALUES
 	{
-		"location": "${azurerm_resource_group.test.location}",
-        "storageAccountNamePrefix": "store%s",
-        "storageAccountType": "Standard_LRS",
-        "abc": true
+		"location": {"value": "${azurerm_resource_group.test.location}"},
+        "storageAccountNamePrefix": {"value": "store%s"},
+        "storageAccountType": {"value": "Standard_LRS"}
 	}
   VALUES
 }
@@ -223,17 +222,17 @@ resource "azurerm_managed_application" "test" {
 
   parameter_values = <<VALUES
 	{
-		"baseUrl": "",
-        "location": "${azurerm_resource_group.test.location}",
-        "merakiAuthToken": "f451adfb-d00b-4612-8799-b29294217d4a",
-        "subnetAddressPrefix": "10.0.0.0/24",
-        "subnetName": "acctestSubnet",
-        "virtualMachineSize": "Standard_DS12_v2",
-        "virtualNetworkAddressPrefix": "10.0.0.0/16",
-        "virtualNetworkName": "acctestVnet",
-        "virtualNetworkNewOrExisting": "new",
-        "virtualNetworkResourceGroup": "acctestVnetRg",
-        "vmName": "acctestVM",
+		"baseUrl": {"value": ""},
+        "location": {"value": "${azurerm_resource_group.test.location}"},
+        "merakiAuthToken": {"value": "f451adfb-d00b-4612-8799-b29294217d4a"},
+        "subnetAddressPrefix": {"value": "10.0.0.0/24"},
+        "subnetName": {"value": "acctestSubnet"},
+        "virtualMachineSize": {"value": "Standard_DS12_v2"},
+        "virtualNetworkAddressPrefix": {"value": "10.0.0.0/16"},
+        "virtualNetworkName": {"value": "acctestVnet"},
+        "virtualNetworkNewOrExisting": {"value": "new"},
+        "virtualNetworkResourceGroup": {"value": "acctestVnetRg"},
+        "vmName": {"value": "acctestVM"}
 	}
   VALUES
 

@@ -383,7 +383,13 @@ func flattenManagedApplicationParameterValuesValueToString(input interface{}) (s
 		return "", nil
 	}
 
-	result, err := json.Marshal(input.(map[string]interface{}))
+	for k, v := range input.(map[string]interface{}) {
+		if v != nil {
+			delete(input.(map[string]interface{})[k].(map[string]interface{}), "type")
+		}
+	}
+
+	result, err := json.Marshal(input)
 	if err != nil {
 		return "", err
 	}

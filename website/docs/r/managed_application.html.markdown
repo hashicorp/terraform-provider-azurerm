@@ -53,11 +53,11 @@ resource "azurerm_managed_application" "example" {
 
   parameter_values = <<VALUES
   	{
-  		"location": "${azurerm_resource_group.test.location}",
-          "storageAccountNamePrefix": "storeeastus2",
-          "storageAccountType": "Standard_LRS"
+  	   "location": {"value": "${azurerm_resource_group.test.location}"},
+       "storageAccountNamePrefix": {"value": "store%s"},
+       "storageAccountType": {"value": "Standard_LRS"}
   	}
-  VALUES
+    VALUES
 }
 ```
 
