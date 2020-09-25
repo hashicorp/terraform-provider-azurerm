@@ -17,21 +17,85 @@ Manages a API Management Custom Domain.
 ## Example Usage
 
 ```hcl
-resource "azurerm_key_vault" "example" {
-  // TODO
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West US"
+}
+
+resource "azurerm_api_management" "example" {
+  name                = "example-apim"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "Developer_1"
 }
 
 resource "azurerm_key_vault_certificate" "example" {
-  key_vault_id = azurerm_key_vault.example.id
-  // TODO
+  name         = "example-certificate"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=api.example.com"
+      validity_in_months = 12
+
+      subject_alternative_names {
+        dns_names = [
+          "api.example.com",
+          "portal.example.com",
+        ]
+      }
+    }
+  }
 }
 
 resource "azurerm_api_management_custom_domain" "example" {
-  resource_group_name = "example"
-  api_management_name = "example"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+
   proxy {
     host_name    = "api.example.com"
-    key_vault_id = azurerm_key_vault_certificate.example.secret_id
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+
+  developer_portal {
+    host_name    = "portal.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
 }
 ```
@@ -40,7 +104,7 @@ resource "azurerm_api_management_custom_domain" "example" {
 
 The following arguments are supported:
 
-* `api_management_name` - (Required) TODO. Changing this forces a new API Management Custom Domain to be created.
+* `api_management_name` - (Required) The name of the API Management service to configure Custom Domain for. Changing this forces a new API Management Custom Domain to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the API Management resource exists. Changing this forces a new API Management Custom Domain to be created.
 

@@ -119,6 +119,16 @@ func testAccAzureRMApiManagementCustomDomain_basic(data acceptance.TestData) str
 resource "azurerm_api_management_custom_domain" "test" {
   api_management_name = azurerm_api_management.test.name
   resource_group_name = azurerm_resource_group.test.name
+
+  proxy {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+
+  developer_portal {
+    host_name    = "portal.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
 }
 `, template)
 }
@@ -131,6 +141,16 @@ func testAccAzureRMApiManagementCustomDomain_requiresImport(data acceptance.Test
 resource "azurerm_api_management_custom_domain" "import" {
   api_management_name = azurerm_api_management_custom_domain.test.api_management_name
   resource_group_name = azurerm_api_management_custom_domain.test.resource_group_name
+
+  proxy {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+
+  developer_portal {
+    host_name    = "portal.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
 }
 `, template)
 }
@@ -142,12 +162,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -155,21 +175,57 @@ resource "azurerm_api_management" "test" {
   sku_name            = "Developer_1"
 }
 
-resource "azurerm_api_management_api" "test" {
-  name                = "acctestapi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  display_name        = "Butter Parser"
-  path                = "butter-parser"
-  protocols           = ["https", "http"]
-  revision            = "3"
-  description         = "What is my purpose? You parse butter."
-  service_url         = "https://example.com/foo/bar"
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%[3]s"
+  key_vault_id = azurerm_key_vault.test.id
 
-  subscription_key_parameter_names {
-    header = "X-Butter-Robot-API-Key"
-    query  = "location"
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=api.example.com"
+      validity_in_months = 12
+
+      subject_alternative_names {
+        dns_names = [
+          "api.example.com",
+          "portal.example.com",
+        ]
+      }
+    }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
