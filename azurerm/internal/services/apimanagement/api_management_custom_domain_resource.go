@@ -203,32 +203,47 @@ func expandApiManagementCustomDomains(input *schema.ResourceData) *[]apimanageme
 	results := make([]apimanagement.HostnameConfiguration, 0)
 
 	if managementRawVal, ok := input.GetOk("management"); ok {
-		v := managementRawVal.(map[string]interface{})
-		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeManagement)
-		results = append(results, output)
+		vs := managementRawVal.([]interface{})
+		for _, rawVal := range vs {
+			v := rawVal.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeManagement)
+			results = append(results, output)
+		}
 	}
 	if portalRawVal, ok := input.GetOk("portal"); ok {
-		v := portalRawVal.(map[string]interface{})
-		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypePortal)
-		results = append(results, output)
+		vs := portalRawVal.([]interface{})
+		for _, rawVal := range vs {
+			v := rawVal.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypePortal)
+			results = append(results, output)
+		}
 	}
 	if developerPortalRawVal, ok := input.GetOk("developer_portal"); ok {
-		v := developerPortalRawVal.(map[string]interface{})
-		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeDeveloperPortal)
-		results = append(results, output)
+		vs := developerPortalRawVal.([]interface{})
+		for _, rawVal := range vs {
+			v := rawVal.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeDeveloperPortal)
+			results = append(results, output)
+		}
 	}
 	if proxyRawVal, ok := input.GetOk("proxy"); ok {
-		v := proxyRawVal.(map[string]interface{})
-		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
-		if value, ok := v["default_ssl_binding"]; ok {
-			output.DefaultSslBinding = utils.Bool(value.(bool))
+		vs := proxyRawVal.([]interface{})
+		for _, rawVal := range vs {
+			v := rawVal.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeProxy)
+			if value, ok := v["default_ssl_binding"]; ok {
+				output.DefaultSslBinding = utils.Bool(value.(bool))
+			}
+			results = append(results, output)
 		}
-		results = append(results, output)
 	}
 	if scmRawVal, ok := input.GetOk("scm"); ok {
-		v := scmRawVal.(map[string]interface{})
-		output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeScm)
-		results = append(results, output)
+		vs := scmRawVal.([]interface{})
+		for _, rawVal := range vs {
+			v := rawVal.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeScm)
+			results = append(results, output)
+		}
 	}
 	return &results
 }
