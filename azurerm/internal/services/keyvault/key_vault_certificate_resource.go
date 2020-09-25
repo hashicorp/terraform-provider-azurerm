@@ -814,6 +814,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy, certDat
 			} else {
 				sanOutput["emails"] = set.FromStringSlice(cert.EmailAddresses)
 				sanOutput["dns_names"] = set.FromStringSlice(cert.DNSNames)
+				sanOutput["upns"] = set.FromStringSlice([]string{})
 				sanOutputs = append(sanOutputs, sanOutput)
 			}
 		}
