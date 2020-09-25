@@ -188,7 +188,7 @@ func expandDiagnosticLogSettings(d *schema.ResourceData) (*[]aad.LogSettings, er
 		logSettingEnabled := logSettings["enabled"].(bool)
 		var retentionPolicyObject *aad.RetentionPolicy
 		retentionPolicy := logSettings["retention_policy"].([]interface{})
-		if retentionPolicy != nil && len(retentionPolicy) > 0 {
+		if len(retentionPolicy) > 0 {
 			rVal, ok := retentionPolicy[0].(map[string]interface{})
 			if ok {
 				retentionPolicyEnabled := rVal["retention_policy_enabled"].(bool)
