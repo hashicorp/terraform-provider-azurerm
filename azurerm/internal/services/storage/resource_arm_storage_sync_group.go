@@ -52,7 +52,7 @@ func resourceArmStorageSyncGroup() *schema.Resource {
 }
 
 func resourceArmStorageSyncGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StoragesyncGroupClient
+	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -88,7 +88,7 @@ func resourceArmStorageSyncGroupCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StoragesyncGroupClient
+	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ssClient := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -125,7 +125,7 @@ func resourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageSyncGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StoragesyncGroupClient
+	client := meta.(*clients.Client).Storage.SyncGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

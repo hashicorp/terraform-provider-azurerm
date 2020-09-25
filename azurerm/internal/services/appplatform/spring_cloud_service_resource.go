@@ -3,6 +3,7 @@ package appplatform
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
@@ -14,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/validate"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -62,6 +64,54 @@ func resourceArmSpringCloudService() *schema.Resource {
 					"B0",
 					"S0",
 				}, false),
+			},
+
+			"network": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"app_subnet_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: networkValidate.SubnetID,
+						},
+
+						"service_runtime_subnet_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: networkValidate.SubnetID,
+						},
+
+						"cidr_ranges": {
+							Type:     schema.TypeList,
+							Required: true,
+							ForceNew: true,
+							MinItems: 3,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"app_network_resource_group": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+
+						"service_runtime_network_resource_group": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ForceNew: true,
+						},
+					},
+				},
 			},
 
 			"config_server_git_setting": {
@@ -185,7 +235,8 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 	resource := appplatform.ServiceResource{
 		Location: utils.String(location),
 		Properties: &appplatform.ClusterResourceProperties{
-			Trace: expandArmSpringCloudTrace(d.Get("trace").([]interface{})),
+			Trace:          expandArmSpringCloudTrace(d.Get("trace").([]interface{})),
+			NetworkProfile: expandArmSpringCloudNetwork(d.Get("network").([]interface{})),
 		},
 		Sku: &appplatform.Sku{
 			Name: utils.String(d.Get("sku_name").(string)),
@@ -325,6 +376,9 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 		if err := d.Set("trace", flattenArmSpringCloudTrace(resp.Properties.Trace)); err != nil {
 			return fmt.Errorf("failure setting `trace`: %+v", err)
 		}
+		if err := d.Set("network", flattenArmSpringCloudNetwork(resp.Properties.NetworkProfile)); err != nil {
+			return fmt.Errorf("setting `network`: %+v", err)
+		}
 		if resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
 			if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
 				if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
@@ -359,6 +413,26 @@ func resourceArmSpringCloudServiceDelete(d *schema.ResourceData, meta interface{
 	}
 
 	return nil
+}
+
+func expandArmSpringCloudNetwork(input []interface{}) *appplatform.NetworkProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	cidrRanges := utils.ExpandStringSlice(v["cidr_ranges"].([]interface{}))
+	network := &appplatform.NetworkProfile{
+		ServiceRuntimeSubnetID: utils.String(v["service_runtime_subnet_id"].(string)),
+		AppSubnetID:            utils.String(v["app_subnet_id"].(string)),
+		ServiceCidr:            utils.String(strings.Join(*cidrRanges, ",")),
+	}
+	if serviceRuntimeNetworkResourceGroup := v["service_runtime_network_resource_group"].(string); serviceRuntimeNetworkResourceGroup != "" {
+		network.ServiceRuntimeNetworkResourceGroup = utils.String(serviceRuntimeNetworkResourceGroup)
+	}
+	if appNetworkResourceGroup := v["app_network_resource_group"].(string); appNetworkResourceGroup != "" {
+		network.AppNetworkResourceGroup = utils.String(appNetworkResourceGroup)
+	}
+	return network
 }
 
 func expandArmSpringCloudConfigServerGitProperty(input []interface{}) (*appplatform.ConfigServerGitProperty, error) {
@@ -695,6 +769,41 @@ func flattenArmSpringCloudTrace(input *appplatform.TraceProperties) []interface{
 	return []interface{}{
 		map[string]interface{}{
 			"instrumentation_key": instrumentationKey,
+		},
+	}
+}
+
+func flattenArmSpringCloudNetwork(input *appplatform.NetworkProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	var serviceRuntimeSubnetID, appSubnetID, serviceRuntimeNetworkResourceGroup, appNetworkResourceGroup string
+	var cidrRanges []interface{}
+	if input.ServiceRuntimeSubnetID != nil {
+		serviceRuntimeSubnetID = *input.ServiceRuntimeSubnetID
+	}
+	if input.AppSubnetID != nil {
+		appSubnetID = *input.AppSubnetID
+	}
+	if input.ServiceCidr != nil {
+		cidrs := strings.Split(*input.ServiceCidr, ",")
+		cidrRanges = utils.FlattenStringSlice(&cidrs)
+	}
+	if input.ServiceRuntimeNetworkResourceGroup != nil {
+		serviceRuntimeNetworkResourceGroup = *input.ServiceRuntimeNetworkResourceGroup
+	}
+	if input.AppNetworkResourceGroup != nil {
+		appNetworkResourceGroup = *input.AppNetworkResourceGroup
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"app_subnet_id":                          appSubnetID,
+			"service_runtime_subnet_id":              serviceRuntimeSubnetID,
+			"cidr_ranges":                            cidrRanges,
+			"app_network_resource_group":             appNetworkResourceGroup,
+			"service_runtime_network_resource_group": serviceRuntimeNetworkResourceGroup,
 		},
 	}
 }
