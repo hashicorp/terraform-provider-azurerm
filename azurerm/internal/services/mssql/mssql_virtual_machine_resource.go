@@ -522,7 +522,7 @@ func flattenArmSqlVirtualMachineStorageSettings(input *sqlvirtualmachine.SQLStor
 	if input == nil || input.Luns == nil {
 		return []interface{}{}
 	}
-	attrs := make(map[string]interface{}, 0)
+	attrs := make(map[string]interface{})
 
 	if input.Luns != nil {
 		attrs["luns"] = *input.Luns
