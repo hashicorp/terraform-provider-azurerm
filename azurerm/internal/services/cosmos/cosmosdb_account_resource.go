@@ -160,7 +160,6 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-
 						"prefix": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -182,6 +181,11 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"zone_redundant": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -571,7 +575,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(resp)); err != nil {
+	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(resp.DatabaseAccountGetProperties)); err != nil {
 		return fmt.Errorf("Error setting `geo_location`: %+v", err)
 	}
 
@@ -805,6 +809,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData) ([]documen
 		location := documentdb.Location{
 			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
+			IsZoneRedundant:  utils.Bool(data["zone_redundant"].(bool)),
 		}
 
 		locations = append(locations, location)
@@ -877,9 +882,12 @@ func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.Consisten
 	return []interface{}{result}
 }
 
-func flattenAzureRmCosmosDBAccountGeoLocations(account documentdb.DatabaseAccountGetResults) *schema.Set {
+func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccountGetProperties) *schema.Set {
 	locationSet := schema.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
+	}
+	if account == nil {
+		return &locationSet
 	}
 
 	for _, l := range *account.FailoverPolicies {
@@ -888,12 +896,28 @@ func flattenAzureRmCosmosDBAccountGeoLocations(account documentdb.DatabaseAccoun
 			"id":                id,
 			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
+			// there is not zone redundancy information in the FailoverPolicies currently, we have to search it by `id` in the Locations property.
+			"zone_redundant": findZoneRedundant(account.Locations, id),
 		}
 
 		locationSet.Add(lb)
 	}
 
 	return &locationSet
+}
+
+func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
+	if locations == nil {
+		return false
+	}
+	for _, location := range *locations {
+		if location.ID != nil && *location.ID == id {
+			if location.IsZoneRedundant != nil {
+				return *location.IsZoneRedundant
+			}
+		}
+	}
+	return false
 }
 
 func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *schema.Set {
