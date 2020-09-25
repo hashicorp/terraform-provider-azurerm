@@ -172,7 +172,7 @@ resource "azurerm_managed_application" "test" {
 
   parameter_values = <<VALUES
 	{
-		"location": {"value": "${azurerm_resource_group.test.location}"},
+        "location": {"value": "${azurerm_resource_group.test.location}"},
         "storageAccountNamePrefix": {"value": "store%s"},
         "storageAccountType": {"value": "Standard_LRS"}
 	}
@@ -222,7 +222,7 @@ resource "azurerm_managed_application" "test" {
 
   parameter_values = <<VALUES
 	{
-		"baseUrl": {"value": ""},
+        "baseUrl": {"value": ""},
         "location": {"value": "${azurerm_resource_group.test.location}"},
         "merakiAuthToken": {"value": "f451adfb-d00b-4612-8799-b29294217d4a"},
         "subnetAddressPrefix": {"value": "10.0.0.0/24"},
