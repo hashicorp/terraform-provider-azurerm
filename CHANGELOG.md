@@ -2,6 +2,7 @@
 
 FEATURES: 
 
+* **New Data Source:** `azurerm_cosmosdb_sql_storedprocedure` [GH-6189]
 * **New Data Source:** `azurerm_ip_groups` [GH-8556]
 
 IMPROVEMENTS:
