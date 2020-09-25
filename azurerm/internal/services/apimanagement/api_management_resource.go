@@ -750,7 +750,11 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 
 func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
 	results := make([]apimanagement.HostnameConfiguration, 0)
-	hostnameVs := d.Get("hostname_configuration").([]interface{})
+	vs := d.Get("hostname_configuration")
+	if vs == nil {
+		return &results
+	}
+	hostnameVs := vs.([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
 		hostnameV := hostnameRawVal.(map[string]interface{})
