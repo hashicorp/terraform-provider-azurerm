@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_cosmosdb_account` - support the `zone_reduntant` property [GH-8295]
 * `azurerm_cosmosdb_mongo_collection` - will now respect the order of the `keys` property in the `index` block [GH-8602]
 * `azurerm_lighthouse_assignment` - limit the `scope` property to subsriptions [GH-8601]
 * `azurerm_logic_app_workflow` - support for `integration_service_environment_id` [GH-8504]
