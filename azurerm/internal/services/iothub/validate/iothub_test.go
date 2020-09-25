@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestValidateIoTHubName(t *testing.T) {
+func TestIoTHubName(t *testing.T) {
 	validNames := []string{
 		"valid-name",
 		"valid02-name",
@@ -32,7 +32,7 @@ func TestValidateIoTHubName(t *testing.T) {
 	}
 }
 
-func TestValidateIoTHubConsumerGroupName(t *testing.T) {
+func TestIoTHubConsumerGroupName(t *testing.T) {
 	validNames := []string{
 		"valid-name",
 		"valid02-name",
