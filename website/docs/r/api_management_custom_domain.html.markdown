@@ -12,7 +12,7 @@ Manages a API Management Custom Domain.
 
 ## Disclaimers
 
-~> **Note:** It's possible to define Custom Domains both within [the `azurerm_api_management` resource](api_management.html) via the `hostname_configurations` block and by using [the `azurerm_api_management_custom_domain` resource](api_management_custom_domain.html). However it's not possible to use both methods to manage Custom Domains within an API Management Service, since there'll be conflicts.
+~> **Note:** It's possible to define Custom Domains both within [the `azurerm_api_management` resource](api_management.html) via the `hostname_configurations` block and by using this resource. However it's not possible to use both methods to manage Custom Domains within an API Management Service, since there will be conflicts.
 
 ## Example Usage
 
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `api_management_name` - (Required) TODO. Changing this forces a new API Management Custom Domain to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the API Management Custom Domain should exist. Changing this forces a new API Management Custom Domain to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the API Management resource exists. Changing this forces a new API Management Custom Domain to be created.
 
 ---
 

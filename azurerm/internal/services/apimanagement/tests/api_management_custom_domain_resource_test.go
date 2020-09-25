@@ -64,8 +64,6 @@ func testCheckAzureRMApiManagementCustomDomainDestroy(s *terraform.State) error 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				// TODO: Is this an error case? If Custom Domains is destroyed, it should not destroy the API Management Service, so what are we testing for here?
-				// If the entire configuration is torn down, including the API Management Service, then it, too, will not be found, and returning nil is correct.
 				return nil
 			}
 

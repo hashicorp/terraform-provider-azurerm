@@ -95,7 +95,7 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error finding API Management (API Management %q / Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("finding API Management (API Management %q / Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if d.IsNewResource() {
@@ -107,15 +107,15 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 	existing.ServiceProperties.HostnameConfigurations = expandAzureRmApiManagementHostnameConfigurations(d)
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing); err != nil {
-		return fmt.Errorf("Error creating/updating Custom Custom domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Custom Domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Custom Custom domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Custom Domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Custom domain (API Management %q / Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("cannot read ID for Custom Domain (API Management %q / Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -193,7 +193,7 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 	resp.ServiceProperties.HostnameConfigurations = nil
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, resp); err != nil {
-		return fmt.Errorf("Error deleting Custom Custom domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Custom Domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
