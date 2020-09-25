@@ -36,7 +36,7 @@ func TestIotHubID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "IoT Central Application ID",
+			Name:  "IoT Hub ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Devices/IotHubs/hub1",
 			Expected: &IotHubId{
 				Name:          "hub1",
