@@ -8,7 +8,7 @@ func TestKustoEventHubDataConnectionId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *KustoEventHubDataConnectionId
+		Expected *KustoDataConnectionId
 	}{
 		{
 			Name:     "Empty",
@@ -33,7 +33,7 @@ func TestKustoEventHubDataConnectionId(t *testing.T) {
 		{
 			Name:  "Data Connection ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/DataConnections/connection1",
-			Expected: &KustoEventHubDataConnectionId{
+			Expected: &KustoDataConnectionId{
 				Name:          "connection1",
 				Database:      "database1",
 				Cluster:       "cluster1",
@@ -45,7 +45,7 @@ func TestKustoEventHubDataConnectionId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := KustoEventHubDataConnectionID(v.Input)
+		actual, err := KustoDataConnectionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -39,7 +40,7 @@ func resourceArmKustoAttachedDatabaseConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoDataConnectionName,
+				ValidateFunc: validate.KustoDataConnectionName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -50,14 +51,14 @@ func resourceArmKustoAttachedDatabaseConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMKustoClusterName,
+				ValidateFunc: validate.KustoClusterName,
 			},
 
 			"database_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.Any(validateAzureRMKustoDatabaseName, validation.StringInSlice([]string{"*"}, false)),
+				ValidateFunc: validation.Any(validate.KustoDatabaseName, validation.StringInSlice([]string{"*"}, false)),
 			},
 
 			"cluster_resource_id": {
