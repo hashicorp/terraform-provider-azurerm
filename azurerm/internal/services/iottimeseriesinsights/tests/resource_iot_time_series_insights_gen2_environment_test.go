@@ -142,102 +142,102 @@ func testCheckAzureRMIoTTimeSeriesInsightsGen2EnvironmentDestroy(s *terraform.St
 
 func testAccAzureRMIoTTimeSeriesInsightsGen2Environment_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-	features {}
-	}
-	resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-tsi-%d"
-	location = "%s"
-	}
-	resource "azurerm_storage_account" "storage" {
-		name                     = "acctestsatsi%s"
-		location                 = azurerm_resource_group.test.location
-		resource_group_name      = azurerm_resource_group.test.name
-		account_tier             = "Standard"
-		account_replication_type = "LRS"
-	}
-	
-	resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
-	name                = "acctest_tsie%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	sku_name            = "L1"
-	data_retention_time = "P30D"
-	property {
-		ids = ["id"]
-	}  
-	storage {
-		name = azurerm_storage_account.storage.name
-		key = azurerm_storage_account.storage.primary_access_key
-	}
-	}
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-tsi-%d"
+  location = "%s"
+}
+resource "azurerm_storage_account" "storage" {
+  name                     = "acctestsatsi%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
+  name                = "acctest_tsie%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "L1"
+  data_retention_time = "P30D"
+  property {
+    ids = ["id"]
+  }
+  storage {
+    name = azurerm_storage_account.storage.name
+    key  = azurerm_storage_account.storage.primary_access_key
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func testAccAzureRMIoTTimeSeriesInsightsGen2Environment_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	  }
-	  resource "azurerm_resource_group" "test" {
-		name     = "acctestRG-tsi-%d"
-		location = "%s"
-	  }
-	  resource "azurerm_storage_account" "storage" {
-		  name                     = "acctestsatsi%s"
-		  location                 = azurerm_resource_group.test.location
-		  resource_group_name      = azurerm_resource_group.test.name
-		  account_tier             = "Standard"
-		  account_replication_type = "LRS"
-		}
-		
-	  resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
-		name                = "acctest_tsie%d"
-		location            = azurerm_resource_group.test.location
-		resource_group_name = azurerm_resource_group.test.name
-		sku_name            = "L1"
-		data_retention_time = "P30D"
-		property {
-		  ids = ["newid"]
-		}  
-		storage {
-			name = azurerm_storage_account.storage.name
-			key = azurerm_storage_account.storage.primary_access_key
-		}
-	  }
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-tsi-%d"
+  location = "%s"
+}
+resource "azurerm_storage_account" "storage" {
+  name                     = "acctestsatsi%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
+  name                = "acctest_tsie%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "L1"
+  data_retention_time = "P30D"
+  property {
+    ids = ["newid"]
+  }
+  storage {
+    name = azurerm_storage_account.storage.name
+    key  = azurerm_storage_account.storage.primary_access_key
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func testAccAzureRMIoTTimeSeriesInsightsGen2Environment_multiple_property_ids(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	provider "azurerm" {
-		features {}
-	  }
-	  resource "azurerm_resource_group" "test" {
-		name     = "acctestRG-tsi-%d"
-		location = "%s"
-	  }
-	  resource "azurerm_storage_account" "storage" {
-		  name                     = "acctestsatsi%s"
-		  location                 = azurerm_resource_group.test.location
-		  resource_group_name      = azurerm_resource_group.test.name
-		  account_tier             = "Standard"
-		  account_replication_type = "LRS"
-		}
-		
-	  resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
-		name                = "acctest_tsie%d"
-		location            = azurerm_resource_group.test.location
-		resource_group_name = azurerm_resource_group.test.name
-		sku_name            = "L1"
-		data_retention_time = "P30D"
-		property {
-		  ids = ["id", "secondId"]
-		}  
-		storage {
-			name = azurerm_storage_account.storage.name
-			key = azurerm_storage_account.storage.primary_access_key
-		}
-	  }
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-tsi-%d"
+  location = "%s"
+}
+resource "azurerm_storage_account" "storage" {
+  name                     = "acctestsatsi%s"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
+  name                = "acctest_tsie%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "L1"
+  data_retention_time = "P30D"
+  property {
+    ids = ["id", "secondId"]
+  }
+  storage {
+    name = azurerm_storage_account.storage.name
+    key  = azurerm_storage_account.storage.primary_access_key
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
