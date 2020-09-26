@@ -32,10 +32,10 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "example" {
   data_retention_time = "P30D"
   property {
     ids = ["id"]
-  }  
+  }
   storage {
-      name = azurerm_storage_account.storage.name
-      key = azurerm_storage_account.storage.primary_access_key
+    name = azurerm_storage_account.storage.name
+    key  = azurerm_storage_account.storage.primary_access_key
   }
 }
 ```
