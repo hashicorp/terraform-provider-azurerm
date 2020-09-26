@@ -17,7 +17,6 @@ resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "northeurope"
 }
-
 resource "azurerm_storage_account" "storage" {
   name                     = "example"
   location                 = azurerm_resource_group.example.location
@@ -25,9 +24,6 @@ resource "azurerm_storage_account" "storage" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-
-
-
 resource "azurerm_iot_time_series_insights_gen2_environment" "example" {
   name                = "example"
   location            = azurerm_resource_group.example.location
@@ -60,9 +56,9 @@ The following arguments are supported:
 
 * `data_retention_time` - (Required) Specifies the ISO8601 timespan specifying the minimum number of days the environment's events will be available for query. Changing this forces a new resource to be created.
 
-* `property` - A `property` block as defined below.
+* `property` - (Required) A `property` block as defined below.
 
-* `storage` - A `storage` block as defined below.
+* `storage` - (Required) A `storage` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -78,7 +74,7 @@ A `storage` block exports the following:
 
 * `name` - Name of storage account for Azure IoT Time Series Insights Gen2 Environment
 
-* `key` - Access key for storage account for Azure IoT Time Series Insights Gen2 Environment
+* `key` - Access key of storage account for Azure IoT Time Series Insights Gen2 Environment
 
 ## Timeouts
 
