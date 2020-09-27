@@ -102,7 +102,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
   correlation_filter {
     correlation_id = "high"
     label          = "red"
-    properties     = {
+    properties = {
       customProperty = "value"
     }
   }
