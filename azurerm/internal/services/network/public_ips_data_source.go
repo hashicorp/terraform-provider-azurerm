@@ -33,6 +33,7 @@ func dataSourceArmPublicIPs() *schema.Resource {
 			"attached": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"allocation_type": {
