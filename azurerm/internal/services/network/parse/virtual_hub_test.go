@@ -1,14 +1,28 @@
-package network
+package parse
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestParseVirtualHub(t *testing.T) {
+var _ resourceid.Formatter = VirtualHubId{}
+
+func TestVirtualHubIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	id := NewVirtualHubID("group1", "vhub1")
+	actual := id.ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/vhub1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestVirtualHubID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *VirtualHubResourceID
+		Expected *VirtualHubId
 	}{
 		{
 			Name:     "Empty",
@@ -28,7 +42,7 @@ func TestParseVirtualHub(t *testing.T) {
 		{
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualHubs/example",
-			Expected: &VirtualHubResourceID{
+			Expected: &VirtualHubId{
 				Name:          "example",
 				ResourceGroup: "foo",
 			},
@@ -38,7 +52,7 @@ func TestParseVirtualHub(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseVirtualHubID(v.Input)
+		actual, err := VirtualHubID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -53,45 +67,6 @@ func TestParseVirtualHub(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-	}
-}
-
-func TestValidateVirtualHub(t *testing.T) {
-	testData := []struct {
-		Name  string
-		Input string
-		Valid bool
-	}{
-		{
-			Name:  "Empty",
-			Input: "",
-			Valid: false,
-		},
-		{
-			Name:  "No Virtual Hubs Segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-			Valid: false,
-		},
-		{
-			Name:  "No Virtual Hubs Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualHubs/",
-			Valid: false,
-		},
-		{
-			Name:  "Completed",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualHubs/example",
-			Valid: true,
-		},
-	}
-
-	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Input)
-
-		_, errors := ValidateVirtualHubID(v.Input, "virtual_hub_id")
-		isValid := len(errors) == 0
-		if v.Valid != isValid {
-			t.Fatalf("Expected %t but got %t", v.Valid, isValid)
 		}
 	}
 }
