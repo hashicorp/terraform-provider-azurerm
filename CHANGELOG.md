@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_mongo_collection` - will now respect the order of the `keys` property in the `index` block [GH-8602]
 * `azurerm_lighthouse_assignment` - limit the `scope` property to subsriptions [GH-8601]
 * `azurerm_logic_app_workflow` - support for `integration_service_environment_id` [GH-8504]
+* `azurerm_container_group` - support for `dns_config` [GH-7912]
 
 ## 2.29.0 (September 24, 2020)
 
