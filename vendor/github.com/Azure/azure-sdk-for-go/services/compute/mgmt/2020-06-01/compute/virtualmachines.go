@@ -1812,8 +1812,7 @@ func (client VirtualMachinesClient) RunCommandResponder(resp *http.Response) (re
 	return
 }
 
-// SimulateEviction the operation to simulate the eviction of spot virtual machine. The eviction will occur within 30
-// minutes of calling the API
+// SimulateEviction the operation to simulate the eviction of spot virtual machine.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // VMName - the name of the virtual machine.
