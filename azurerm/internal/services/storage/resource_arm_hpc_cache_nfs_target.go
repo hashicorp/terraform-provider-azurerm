@@ -27,10 +27,10 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 		Read:   resourceArmHPCCacheNFSTargetRead,
 		Delete: resourceArmHPCCacheNFSTargetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parsers.HPCCacheTargetID(id)
 			return err
-		}, importHpcCache(storagecache.TargetTypeNfs3)),
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

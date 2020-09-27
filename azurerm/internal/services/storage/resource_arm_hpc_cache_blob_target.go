@@ -25,10 +25,10 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 		Read:   resourceArmHPCCacheBlobTargetRead,
 		Delete: resourceArmHPCCacheBlobTargetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parsers.HPCCacheTargetID(id)
 			return err
-		}, importHpcCache(storagecache.TargetTypeClfs)),
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
