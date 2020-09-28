@@ -62,6 +62,12 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of HPC Cache to use. Possible values are `Standard_2G`, `Standard_4G` and `Standard_8G`. Changing this forces a new resource to be created.
 
+---
+
+* `mtu` - (Optional) The IPv4 maximum transmission unit configured for the subnet of the HPC Cache. Possible values range from 576 - 1500. Defaults to 1500.
+
+* `root_squash_enabled` - (Optional) Whether root squash property is enabled for this HPC Cache.
+
 ## Attributes Reference
 
 The following attributes are exported:
