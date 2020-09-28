@@ -177,6 +177,25 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShare_largeQuota(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_largeQuota(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
@@ -401,6 +420,19 @@ resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
   quota                = 5
+}
+`, template, data.RandomString)
+}
+
+func testAccAzureRMStorageShare_largeQuota(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 6000
 }
 `, template, data.RandomString)
 }
