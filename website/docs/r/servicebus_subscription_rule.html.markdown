@@ -102,6 +102,9 @@ resource "azurerm_servicebus_subscription_rule" "example" {
   correlation_filter {
     correlation_id = "high"
     label          = "red"
+    properties = {
+      customProperty = "value"
+    }
   }
 }
 ```
@@ -145,6 +148,8 @@ The following arguments are supported:
 * `session_id` - (Optional) Session identifier.
 
 * `to` - (Optional) Address to send to.
+
+* `properties` - (Optional) A list of user defined properties to be included in the filter. Specified as a map of name/value pairs.
 
 ~> **NOTE:** When creating a subscription rule of type `CorrelationFilter` at least one property must be set in the `correlation_filter` block.
 
