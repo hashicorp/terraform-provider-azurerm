@@ -340,10 +340,8 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 			profile.Count = utils.Int32(int32(minCount))
 		}
 
-		if maxCount >= 0 && maxCount >= minCount {
+		if maxCount >= 0 {
 			profile.MaxCount = utils.Int32(int32(maxCount))
-		} else if maxCount < minCount {
-			return fmt.Errorf("`max_count` must be higher or equal to `min_count`")
 		} else {
 			return fmt.Errorf("`max_count` must be configured when `enable_auto_scaling` is set to `true`")
 		}
