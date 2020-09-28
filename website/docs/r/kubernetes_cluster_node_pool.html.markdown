@@ -131,7 +131,7 @@ If `enable_auto_scaling` is set to `true`, then the following fields can also be
 
 If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
-* `node_count` - (Required) The number of nodes which should exist within this Node Pool. Valid values are between `1` and `100`.
+* `node_count` - (Required) The number of nodes which should exist within this Node Pool. Valid values are between `0` and `100`.
 
 ## Attributes Reference
 
