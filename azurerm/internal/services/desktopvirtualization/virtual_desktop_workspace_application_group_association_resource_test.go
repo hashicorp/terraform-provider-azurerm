@@ -1,4 +1,4 @@
-package tests
+package desktopvirtualization_test
 
 import (
 	"fmt"
@@ -114,9 +114,6 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(reso
 
 		output := make([]string, 0)
 		output = append(output, *result.ApplicationGroupReferences...)
-		// for _, ref := range *result.ApplicationGroupReferences {
-		// 	output = append(output, ref)
-		// }
 
 		if !contains(output, splitID[1]) {
 			return fmt.Errorf("No Virtual Desktop Workspace <==> Application Group Association exists for Workspace %q and Application Group %q (Resource Group: %q)", id.Name, splitID[1], id.ResourceGroup)

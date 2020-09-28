@@ -1,4 +1,4 @@
-package tests
+package desktopvirtualization_test
 
 import (
 	"fmt"
