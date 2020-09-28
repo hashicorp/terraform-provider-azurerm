@@ -21,7 +21,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_postgresql_server": dataSourcePostgreSqlServer(),
+		"azurerm_postgresql_server":          dataSourcePostgreSqlServer(),
+		"azurerm_postgresql_flexible_server": dataSourcePostgresqlflexibleServer(),
 	}
 }
 
@@ -35,5 +36,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_postgresql_server_key":                     resourceArmPostgreSQLServerKey(),
 		"azurerm_postgresql_virtual_network_rule":           resourceArmPostgreSQLVirtualNetworkRule(),
 		"azurerm_postgresql_active_directory_administrator": resourceArmPostgreSQLAdministrator(),
+		"azurerm_postgresql_flexible_server":                resourceArmPostgresqlFlexibleServer(),
 	}
 }
