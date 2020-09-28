@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,6 +35,8 @@ func resourceArmTemplateDeployment() *schema.Resource {
 			Update: schema.DefaultTimeout(180 * time.Minute),
 			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
+
+		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource."),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
