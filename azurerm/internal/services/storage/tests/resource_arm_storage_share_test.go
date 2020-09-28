@@ -192,6 +192,13 @@ func TestAccAzureRMStorageShare_largeQuota(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageShare_largeQuotaUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -441,6 +448,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Premium"
   account_replication_type = "LRS"
+  account_kind             = "FileStorage"
 
   tags = {
     environment = "staging"
@@ -450,7 +458,39 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   storage_account_name = azurerm_storage_account.test.name
-  quota                = 1000
+  quota                = 6000
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMStorageShare_largeQuotaUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  account_kind             = "FileStorage"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 10000
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
