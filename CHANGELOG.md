@@ -8,11 +8,13 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_cognitive_account` - support for the `S` `sku` [GH-8639]
+* `azurerm_container_group` - support for the `dns_config` block [GH-7912]
 * `azurerm_cosmosdb_account` - support the `zone_reduntant` property [GH-8295]
 * `azurerm_cosmosdb_mongo_collection` - will now respect the order of the `keys` property in the `index` block [GH-8602]
 * `azurerm_lighthouse_assignment` - limit the `scope` property to subsriptions [GH-8601]
-* `azurerm_logic_app_workflow` - support for `integration_service_environment_id` [GH-8504]
-* `azurerm_container_group` - support for `dns_config` [GH-7912]
+* `azurerm_logic_app_workflow` - support for the `integration_service_environment_id` property [GH-8504]
+* `azurerm_servicebus_topic` - validate the `max_size_in_megabytes` property [GH-8648]
+* `azurerm_servicebus_queue` - validate the `max_size_in_megabytes` property [GH-8648]
 
 ## 2.29.0 (September 24, 2020)
 
