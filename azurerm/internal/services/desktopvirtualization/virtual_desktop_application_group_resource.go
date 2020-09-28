@@ -50,8 +50,6 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tags.Schema(),
-
 			"type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -78,6 +76,8 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -96,7 +96,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Virtual Desktop Host Pool %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("Checking for presence of existing Virtual Desktop Host Pool %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -125,18 +125,19 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, context)
-	if err != nil {
-		return fmt.Errorf("Error creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+	err != nil{
+		// return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	result, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Retrieving Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if result.ID == nil {
 		return fmt.Errorf("Cannot read Virtual Desktop Host Pool %q (Resource Group %q) ID", name, resourceGroup)
 	}
+
 	d.SetId(*result.ID)
 
 	return resourceArmVirtualDesktopApplicationGroupRead(d, meta)
@@ -160,13 +161,32 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if props := resp.ApplicationGroupProperties; props != nil {
+		if desc := props.ApplicationGroupType; desc != nil {
+			d.Set("type", desc)
+		}
+
+		if fn := props.FriendlyName; fn != nil {
+			d.Set("friendly_name", fn)
+		}
+
+		if desc := props.Description; desc != nil {
+			d.Set("description", desc)
+		}
+
+		if hstpl := props.HostPoolArmPath; hstpl != nil {
+			d.Set("host_pool_id", hstpl)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -182,9 +202,8 @@ func resourceArmVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, met
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("Deleting Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -87,26 +87,22 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 	read, err := client.Get(ctx, resourceGroup, workspaceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Error retrieving Virtual Desktop Workspace %q (Resource Group %q) was not found", workspaceName, resourceGroup)
+			return fmt.Errorf("Retrieving Virtual Desktop Workspace %q (Resource Group %q) was not found", workspaceName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Desktop Workspace for Association %q (Resource Group %q): %+v", workspaceName, resourceGroup, err)
+		return fmt.Errorf("Retrieving Virtual Desktop Workspace for Association %q (Resource Group %q): %+v", workspaceName, resourceGroup, err)
 	}
 
 	refs := read.ApplicationGroupReferences
 
 	output := make([]string, 0)
 	output = append(output, *refs...)
-	// for _, ref := range *refs {
-	// 	output = append(output, ref)
-	// }
 	output = append(output, applicationGroupReferenceID)
 
 	read.ApplicationGroupReferences = &output
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, workspaceName, read)
-	if err != nil {
-		return fmt.Errorf("Error updating Virtual Desktop Workspace Association for Application Group %q (Resource Group %q): %+v", workspaceName, resourceGroup, err)
+	if _, err = client.CreateOrUpdate(ctx, resourceGroup, workspaceName, read); err != nil {
+		return fmt.Errorf("Updating Virtual Desktop Workspace Association for Application Group %q (Resource Group %q): %+v", workspaceName, resourceGroup, err)
 	}
 
 	d.SetId(resourceID)
@@ -152,26 +148,22 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 			return fmt.Errorf("Virtual Desktop Workspace %q (Resource Group %q) was not found", wsID.Name, wsID.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Desktop Workspace %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
+		return fmt.Errorf("Retrieving Virtual Desktop Workspace %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
 	}
 
 	refs := read.ApplicationGroupReferences
 	if refs == nil {
-		return fmt.Errorf("Error: `ApplicationGroupReferences` was nil for Virtual Desktop Workspace %q (Resource Group %q)", wsID.Name, wsID.ResourceGroup)
+		return fmt.Errorf("ApplicationGroupReferences was nil for Virtual Desktop Workspace %q (Resource Group %q)", wsID.Name, wsID.ResourceGroup)
 	}
 
 	output := make([]string, 0)
 	output = append(output, *refs...)
-	// for _, ref := range *refs {
-	// 	output = append(output, ref)
-	// }
 	output = utils.RemoveFromStringArray(output, applicationGroupReferenceID)
 
 	read.ApplicationGroupReferences = &output
 
-	_, err = client.CreateOrUpdate(ctx, wsID.ResourceGroup, wsID.Name, read)
-	if err != nil {
-		return fmt.Errorf("Error updating Virtual Desktop Workspace Association for Application Group %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
+	if _, err = client.CreateOrUpdate(ctx, wsID.ResourceGroup, wsID.Name, read); err != nil {
+		return fmt.Errorf("Updating Virtual Desktop Workspace Association for Application Group %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
 	}
 
 	return nil

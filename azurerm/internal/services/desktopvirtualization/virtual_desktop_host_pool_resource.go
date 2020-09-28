@@ -51,8 +51,6 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tags.Schema(),
-
 			"type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -75,7 +73,7 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 512),
 			},
 
-			"validation_environment": {
+			"validate_environment": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -100,7 +98,7 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 				}, false),
 			},
 
-			"max_session_limit": {
+			"maximum_sessions_allowed": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 999999),
@@ -125,7 +123,7 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"expiration_time": {
+						"expiration_date": {
 							Type:         schema.TypeString,
 							ValidateFunc: validation.IsRFC3339Time,
 							Required:     true,
@@ -144,6 +142,8 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 					},
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -162,7 +162,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Virtual Desktop Host Pool %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("Checking for presence of existing Virtual Desktop Host Pool %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -177,11 +177,11 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 	hostPoolType := d.Get("type").(string)
 	friendlyName := d.Get("friendly_name").(string)
 	description := d.Get("description").(string)
-	ValidationEnvironment := d.Get("validation_environment").(bool)
+	ValidationEnvironment := d.Get("validate_environment").(bool)
 	LoadBalancerType := d.Get("load_balancer_type").(string)
 	PersonalDesktopAssignmentType := d.Get("personal_desktop_assignment_type").(string)
 	PreferredAppGroupType := d.Get("preferred_app_group_type").(string)
-	maxSessionLimit := int32(d.Get("max_session_limit").(int))
+	maxSessionLimit := int32(d.Get("maximum_sessions_allowed").(int))
 
 	context := desktopvirtualization.HostPool{
 		Location: &location,
@@ -199,19 +199,19 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, context)
-	if err != nil {
-		return fmt.Errorf("Error creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
+		return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	result, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Retrieving Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if result.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Desktop Host Pool %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("Reading Virtual Desktop Host Pool %q (Resource Group %q) ID", name, resourceGroup)
 	}
+
 	d.SetId(*result.ID)
 
 	return resourceArmVirtualDesktopHostPoolRead(d, meta)
@@ -235,7 +235,7 @@ func resourceArmVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -245,20 +245,40 @@ func resourceArmVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interfac
 	}
 
 	if props := resp.HostPoolProperties; props != nil {
-		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {
-			return fmt.Errorf("Error setting `registration_info`: %+v", err)
-		}
-
-		if desc := props.Description; desc != nil {
-			d.Set("description", desc)
+		if hstplt := props.HostPoolType; hstplt != nil {
+			d.Set("type", hstplt)
 		}
 
 		if fn := props.FriendlyName; fn != nil {
 			d.Set("friendly_name", fn)
 		}
 
+		if desc := props.Description; desc != nil {
+			d.Set("description", desc)
+		}
+
+		if ve := props.ValidationEnvironment; ve != nil {
+			d.Set("validate_environment", ve)
+		}
+
 		if mxsl := props.MaxSessionLimit; mxsl != nil {
-			d.Set("max_session_limit", mxsl)
+			d.Set("maximum_sessions_allowed", mxsl)
+		}
+
+		if lbt := props.LoadBalancerType; lbt != nil {
+			d.Set("load_balancer_type", lbt)
+		}
+
+		if pdat := props.PersonalDesktopAssignmentType; pdat != nil {
+			d.Set("personal_desktop_assignment_type", pdat)
+		}
+
+		if pagt := props.PreferredAppGroupType; pagt != nil {
+			d.Set("preferred_app_group_type", pagt)
+		}
+
+		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {
+			return fmt.Errorf("Setting `registration_info`: %+v", err)
 		}
 	}
 
@@ -275,9 +295,8 @@ func resourceArmVirtualDesktopHostPoolDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(true))
-	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(true)); err != nil {
+		return fmt.Errorf("Deleting Virtual Desktop Host Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -291,7 +310,7 @@ func expandVirtualDesktopHostPoolRegistrationInfo(d *schema.ResourceData) *deskt
 
 	v := ri[0].(map[string]interface{})
 
-	expdt, _ := date.ParseTime(time.RFC3339, v["expiration_time"].(string))
+	expdt, _ := date.ParseTime(time.RFC3339, v["expiration_date"].(string))
 
 	configuration := desktopvirtualization.RegistrationInfo{
 		ExpirationTime: &date.Time{
@@ -314,7 +333,7 @@ func flattenVirtualDesktopHostPoolRegistrationInfo(input *desktopvirtualization.
 
 	return []interface{}{
 		map[string]interface{}{
-			"expiration_time": input.ExpirationTime.Format(time.RFC3339),
+			"expiration_date": input.ExpirationTime.Format(time.RFC3339),
 			"token":           *input.Token,
 		},
 	}

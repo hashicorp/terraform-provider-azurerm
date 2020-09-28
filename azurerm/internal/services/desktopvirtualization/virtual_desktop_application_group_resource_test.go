@@ -32,6 +32,25 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualDesktopApplicationGroup_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualDesktopApplicationGroup_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualDesktopApplicationGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
 
@@ -71,7 +90,6 @@ func testCheckAzureRMDesktopVirtualizationApplicationGroupExists(resourceName st
 		}
 
 		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err == nil {
 			return nil
 		}
@@ -101,7 +119,6 @@ func testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy(s *terraform.S
 		}
 
 		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err == nil {
 			return fmt.Errorf("Virtual Desktop Host Pool still exists:\n%#v", result)
 		}

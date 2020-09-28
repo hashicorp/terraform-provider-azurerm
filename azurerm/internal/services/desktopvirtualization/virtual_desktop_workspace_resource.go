@@ -105,9 +105,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 		},
 	}
 
-	// todo: used to be future to wait for completion. Check this.
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, context)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
 		return fmt.Errorf("Error creating Desktop Virtualization Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -119,6 +117,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 	if result.ID == nil {
 		return fmt.Errorf("Cannot read Desktop Virtualization Workspace %q (Resource Group %q) ID", name, resourceGroup)
 	}
+
 	d.SetId(*result.ID)
 
 	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
@@ -147,8 +146,19 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *schema.ResourceData, meta 
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if props := resp.WorkspaceProperties; props != nil {
+		if desc := props.Description; desc != nil {
+			d.Set("description", desc)
+		}
+
+		if fn := props.FriendlyName; fn != nil {
+			d.Set("friendly_name", fn)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -164,8 +174,7 @@ func resourceArmDesktopVirtualizationWorkspaceDelete(d *schema.ResourceData, met
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if _, err = client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
 		return fmt.Errorf("Error deleting Desktop Virtualization Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
