@@ -437,6 +437,7 @@ func WithXML(v interface{}) PrepareDecorator {
 					bytesWithHeader := []byte(withHeader)
 
 					r.ContentLength = int64(len(bytesWithHeader))
+					r.Header.Add("Content-Length", fmt.Sprintf("%d", len(bytesWithHeader)))
 					r.Body = ioutil.NopCloser(bytes.NewReader(bytesWithHeader))
 				}
 			}
