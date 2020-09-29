@@ -301,9 +301,6 @@ resource "azurerm_servicebus_subscription_rule" "test" {
     session_id          = "test_session_id"
     reply_to_session_id = "test_reply_to_session_id"
     content_type        = "test_content_type"
-    properties = {
-      test_key = "test_value"
-    }
   }
 }
 `, template, data.RandomInteger)
