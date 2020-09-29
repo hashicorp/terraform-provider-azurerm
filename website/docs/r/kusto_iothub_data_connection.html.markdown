@@ -58,10 +58,10 @@ resource "azurerm_iothub_shared_access_policy" "example" {
 }
 
 resource "azurerm_iothub_consumer_group" "example" {
-  name                   = "example-consumer-group"
-  iothub_name            = azurerm_iothub.example.name
+  name                 = "example-consumer-group"
+  iothub_name          = azurerm_iothub.example.name
   IotHub_endpoint_name = "events"
-  resource_group_name    = azurerm_resource_group.example.name
+  resource_group_name  = azurerm_resource_group.example.name
 }
 
 resource "azurerm_kusto_iothub_data_connection" "example" {
