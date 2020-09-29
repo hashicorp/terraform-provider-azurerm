@@ -199,6 +199,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"vnet_subnet_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
