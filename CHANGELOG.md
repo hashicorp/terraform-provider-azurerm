@@ -1,5 +1,9 @@
 ## 2.30.0 (Unreleased)
 
+UPGRADE NOTES
+
+* This release renames certain fields within the `azurerm_cosmosdb_account` (data source & resource) and `azurerm_function_app_host_keys` data source to follow HashiCorp's [inclusive language guidelines](https://discuss.hashicorp.com/t/inclusive-language-changes) - where fields have been renamed, existing fields will continue to remain available until the next major version of the Azure Provider (`v3.0`)
+
 FEATURES: 
 
 * **New Data Source:** `azurerm_cosmosdb_sql_storedprocedure` [GH-6189]
