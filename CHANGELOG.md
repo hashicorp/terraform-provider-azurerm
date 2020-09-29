@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_logic_app_workflow` - support for the `integration_service_environment_id` property [GH-8504]
 * `azurerm_servicebus_topic` - validate the `max_size_in_megabytes` property [GH-8648]
 * `azurerm_servicebus_queue` - validate the `max_size_in_megabytes` property [GH-8648]
+* `azurerm_servicebus_subscription_rule` - support the `correlation_filter.properties` property [GH-8646]
 
 ## 2.29.0 (September 24, 2020)
 
