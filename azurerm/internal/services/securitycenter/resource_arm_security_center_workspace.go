@@ -6,8 +6,7 @@ import (
 	"log"
 	"time"
 
-	securityv1 "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
-	securityv3 "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -89,8 +88,8 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("Security Center Subscription workspace cannot be set when pricing tier is `Free`")
 	}
 
-	contact := securityv1.WorkspaceSetting{
-		WorkspaceSettingProperties: &securityv1.WorkspaceSettingProperties{
+	contact := security.WorkspaceSetting{
+		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
 			Scope:       utils.String(d.Get("scope").(string)),
 			WorkspaceID: utils.String(d.Get("workspace_id").(string)),
 		},
@@ -137,13 +136,13 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		d.SetId(*resp.(securityv1.WorkspaceSetting).ID)
+		d.SetId(*resp.(security.WorkspaceSetting).ID)
 	}
 
 	return resourceArmSecurityCenterWorkspaceRead(d, meta)
 }
 
-func isPricingStandard(ctx context.Context, priceClient *securityv3.PricingsClient) (bool, error) {
+func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient) (bool, error) {
 	prices, err := priceClient.List(ctx)
 	if err != nil {
 		return false, fmt.Errorf("Error listing Security Center Subscription pricing: %+v", err)
@@ -155,7 +154,7 @@ func isPricingStandard(ctx context.Context, priceClient *securityv3.PricingsClie
 				return false, fmt.Errorf("%v Security Center Subscription pricing properties is nil", *resourcePrice.Type)
 			}
 
-			if resourcePrice.PricingProperties.PricingTier == securityv3.Standard {
+			if resourcePrice.PricingProperties.PricingTier == security.Standard {
 				return true, nil
 			}
 		}
