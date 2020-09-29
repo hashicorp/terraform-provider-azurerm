@@ -22,6 +22,7 @@ IMPROVEMENTS:
 * `azurerm_servicebus_topic` - validate the `max_size_in_megabytes` property [GH-8648]
 * `azurerm_servicebus_queue` - validate the `max_size_in_megabytes` property [GH-8648]
 * `azurerm_servicebus_subscription_rule` - support the `correlation_filter.properties` property [GH-8646]
+* `storage_management_policy` - support the `appendBlob` value for `blob_types` [GH-8659]
 
 ## 2.29.0 (September 24, 2020)
 
