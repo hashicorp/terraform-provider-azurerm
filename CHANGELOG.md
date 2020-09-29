@@ -24,6 +24,10 @@ IMPROVEMENTS:
 * `azurerm_servicebus_subscription_rule` - support the `correlation_filter.properties` property [GH-8646]
 * `storage_management_policy` - support the `appendBlob` value for `blob_types` [GH-8659]
 
+BUG FIXES:
+
+* `azurerm_linux_virtual_machine_scale_set` - fix empty JSON error in `settings` and `protected_settings` when these values are not used [GH-8627]
+
 ## 2.29.0 (September 24, 2020)
 
 UPGRADE NOTES:
