@@ -197,6 +197,7 @@ func resourceArmCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interfa
 
 func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
+	accountClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -224,16 +225,28 @@ func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface
 		}
 	}
 
-	throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Name)
+	accResp, err := accountClient.Get(ctx, id.ResourceGroup, id.Account)
 	if err != nil {
-		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Database %q (Account: %q): %+v", id.Name, id.Account, err)
+		return fmt.Errorf("reading CosmosDB Account %q (Resource Group %q): %+v", id.Account, id.ResourceGroup, err)
+	}
+
+	if accResp.ID == nil || *accResp.ID == "" {
+		return fmt.Errorf("cosmosDB Account %q (Resource Group %q) ID is empty or nil", id.Account, id.ResourceGroup)
+	}
+
+	// if the cosmos Account is serverless, it could not call the get throughput api
+	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil && !cosmosdbAccountPropsIsServerless(props) {
+		throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(throughputResp.Response) {
+				return fmt.Errorf("Error reading Throughput on Cosmos Mongo Database %q (Account: %q): %+v", id.Name, id.Account, err)
+			} else {
+				d.Set("throughput", nil)
+				d.Set("autoscale_settings", nil)
+			}
 		} else {
-			d.Set("throughput", nil)
-			d.Set("autoscale_settings", nil)
+			common.SetResourceDataThroughputFromResponse(throughputResp, d)
 		}
-	} else {
-		common.SetResourceDataThroughputFromResponse(throughputResp, d)
 	}
 
 	return nil
@@ -262,4 +275,13 @@ func resourceArmCosmosDbMongoDatabaseDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func cosmosdbAccountPropsIsServerless(props *documentdb.DatabaseAccountGetProperties) bool {
+	for _, v := range *props.Capabilities {
+		if *v.Name == "EnableServerless" {
+			return true
+		}
+	}
+	return false
 }
