@@ -671,28 +671,14 @@ resource "azurerm_policy_definition" "test" {
     "if": {
       "not": {
         "field": "location",
-        "in": "[parameters('allowedLocations')]"
+        "equals": "eastus"
       }
     },
     "then": {
-      "effect": "audit"
+      "effect": "deny"
     }
   }
 POLICY_RULE
-
-  parameters = <<PARAMETERS
-  {
-    "allowedLocations": {
-      "type": "Array",
-      "metadata": {
-        "description": "The list of allowed locations for resources.",
-        "displayName": "Allowed locations",
-        "strongType": "location"
-		"defaultValue": "westus"
-      }
-    }
-  }
-PARAMETERS
 }
 `, data.RandomInteger, data.RandomInteger)
 }
