@@ -48,6 +48,13 @@ type MsSqlRecoverableDBId struct {
 	ResourceGroup string
 }
 
+type MsSqlSyncGroupId struct {
+	ResourceGroup string
+	ServerName    string
+	DatabaseName  string
+	Name          string
+}
+
 func NewMsSqlDatabaseID(resourceGroup, msSqlServer, name string) MsSqlDatabaseId {
 	return MsSqlDatabaseId{
 		ResourceGroup: resourceGroup,
@@ -267,4 +274,29 @@ func MssqlRecoverableDBID(input string) (*MsSqlRecoverableDBId, error) {
 	}
 
 	return &recoverableDBId, nil
+}
+
+func MsSqlSyncGroupID(input string) (*MsSqlSyncGroupId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, fmt.Errorf("parsing SQL Sync Group ID %q: %+v", input, err)
+	}
+
+	syncGroupId := MsSqlSyncGroupId{
+		ResourceGroup: id.ResourceGroup,
+	}
+	if syncGroupId.ServerName, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+	if syncGroupId.DatabaseName, err = id.PopSegment("databases"); err != nil {
+		return nil, err
+	}
+	if syncGroupId.Name, err = id.PopSegment("syncGroups"); err != nil {
+		return nil, err
+	}
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &syncGroupId, nil
 }

@@ -49,3 +49,7 @@ func ValidateLongTermRetentionPoliciesIsoFormat(i interface{}, k string) (_ []st
 	}
 	return nil, nil
 }
+
+func ValidateMsSqlSyncGroupName(i interface{}, k string) (_ []string, errors []error) {
+	return nil, nil
+}
