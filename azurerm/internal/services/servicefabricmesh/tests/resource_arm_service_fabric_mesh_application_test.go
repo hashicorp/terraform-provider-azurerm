@@ -26,7 +26,7 @@ func TestAccAzureRMServiceFabricMeshApplication_basic(t *testing.T) {
 					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("service"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -45,21 +45,21 @@ func TestAccAzureRMServiceFabricMeshApplication_update(t *testing.T) {
 					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("service"),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMServiceFabricMeshApplication_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("service"),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMServiceFabricMeshApplication_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("service"),
+			data.ImportStep(),
 		},
 	})
 }

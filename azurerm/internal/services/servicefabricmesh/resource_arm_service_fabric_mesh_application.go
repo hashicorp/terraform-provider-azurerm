@@ -207,6 +207,7 @@ func resourceArmServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData,
 
 func resourceArmServiceFabricMeshApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.ApplicationClient
+	serviceClient := meta.(*clients.Client).ServiceFabricMesh.ServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -230,10 +231,20 @@ func resourceArmServiceFabricMeshApplicationRead(d *schema.ResourceData, meta in
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	/* This does not currently return from the api
-	if err := d.Set("service", flattenServiceFabricMeshApplicationServices(resp.Services)); err != nil {
+	serviceResp, err := serviceClient.List(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Unable to list Service Fabric Mesh Application Services %q - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("reading Service Fabric Mesh Application Services: %+v", err)
+	}
+
+	if err := d.Set("service", flattenServiceFabricMeshApplicationServices(serviceResp.Values())); err != nil {
 		return fmt.Errorf("setting `service`: %+v", err)
-	}*/
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -334,13 +345,10 @@ func expandServiceFabricMeshCodePackageResourceRequests(input []interface{}) *se
 }
 
 // nolint: deadcode unused
-func flattenServiceFabricMeshApplicationServices(input *[]servicefabricmesh.ServiceResourceDescription) []map[string]interface{} {
+func flattenServiceFabricMeshApplicationServices(input []servicefabricmesh.ServiceResourceDescription) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
-	if input == nil {
-		return result
-	}
 
-	for _, service := range *input {
+	for _, service := range input {
 		attr := make(map[string]interface{})
 		if service.Name != nil {
 			attr["name"] = *service.Name
