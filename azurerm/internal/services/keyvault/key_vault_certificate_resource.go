@@ -117,6 +117,11 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Required: true,
 										ForceNew: true,
 									},
+
+									"certificate_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
 								},
 							},
 						},
@@ -620,7 +625,8 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 	issuers := policyRaw["issuer_parameters"].([]interface{})
 	issuer := issuers[0].(map[string]interface{})
 	policy.IssuerParameters = &keyvault.IssuerParameters{
-		Name: utils.String(issuer["name"].(string)),
+		Name:            utils.String(issuer["name"].(string)),
+		CertificateType: utils.String(issuer["certificate_type"].(string)),
 	}
 
 	properties := policyRaw["key_properties"].([]interface{})
@@ -725,9 +731,19 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
-		issuerParams := make(map[string]interface{})
-		issuerParams["name"] = *params.Name
-		policy["issuer_parameters"] = []interface{}{issuerParams}
+		var name, certificateType string
+		if params.Name != nil {
+			name = *params.Name
+		}
+		if params.CertificateType != nil {
+			certificateType = *params.CertificateType
+		}
+		policy["issuer_parameters"] = []interface{}{
+			map[string]interface{}{
+				"name":             name,
+				"certificate_type": certificateType,
+			},
+		}
 	}
 
 	// key properties

@@ -278,6 +278,8 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Certificate Issuer. Possible values include `Self` (for self-signed certificate), or `Unknown` (for a certificate issuing authority like `Let's Encrypt` and Azure direct supported ones). Changing this forces a new resource to be created.
 
+* `certificate_type` - (Optional) Specifies the type of the Certificate.
+
 `key_properties` supports the following:
 
 * `exportable` - (Required) Is this Certificate Exportable? Changing this forces a new resource to be created.
