@@ -120,8 +120,18 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				ForceNew:         true,
 			},
 
+			"last_backup_name": {
+				Type:      schema.TypeString,
+				Optional:  true,
+			},
+
 			"longterm_retention_backup_id": {
 				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"auto_complete_restore": {
+				Type:     schema.TypeBool,
 				Optional: true,
 			},
 
@@ -209,9 +219,10 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 	if d.HasChange("create_mode") {
 		if createMode == string(sql.ManagedDatabaseCreateModePointInTimeRestore) {
 			_, sourceDatabaseExists := d.GetOk("source_database_id")
+			_, recoverableDroppedDatabaseExists := d.GetOk("restorable_dropped_database_id")
 			_, restorePointExists := d.GetOk("restore_point_in_time")
-			if !sourceDatabaseExists || !restorePointExists {
-				return fmt.Errorf("could not create managed database %q in managed instance %q (Resource Group %q) in restore in point create mode. Source database id and restore point in time values should be supplied.", name, managedInstanceName, resourceGroup)
+			if (!sourceDatabaseExists && !recoverableDroppedDatabaseExists) || !restorePointExists  {
+				return fmt.Errorf("could not create managed database %q in managed instance %q (Resource Group %q) in restore in point create mode. Restore point in time and either of source database id or restorable dropped database id values should be supplied.", name, managedInstanceName, resourceGroup)
 			}
 		}
 
@@ -219,9 +230,10 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 			_, collationExists := d.GetOk("collation")
 			_, storageContainerUriExists := d.GetOk("storage_container_uri")
 			_, storageContainerSasExists := d.GetOk("storage_container_sas_token")
+			_, lastBackupExists := d.GetOk("last_backup_name")
 
-			if !collationExists || !storageContainerUriExists || !storageContainerSasExists {
-				return fmt.Errorf("could not create managed database %q in managed instance %q (Resource Group %q) in restore from external backup mode. storage_container_uri and storage_container_sas_token values should be supplied.", name, managedInstanceName, resourceGroup)
+			if !collationExists || !storageContainerUriExists || !storageContainerSasExists || !lastBackupExists {
+				return fmt.Errorf("could not create managed database %q in managed instance %q (Resource Group %q) in restore from external backup mode. storage_container_uri, storage_container_sas_token and last backup name values should be supplied.", name, managedInstanceName, resourceGroup)
 			}
 		}
 
@@ -283,6 +295,14 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 	if v, exists := d.GetOk("restorable_dropped_database_id"); exists {
 		restorableDroppedDatabaseId := v.(string)
 		parameters.ManagedDatabaseProperties.RestorableDroppedDatabaseID = utils.String(restorableDroppedDatabaseId)
+	}
+
+	if v, exists := d.GetOk("last_backup_name"); exists {
+		parameters.ManagedDatabaseProperties.LastBackupName = utils.String(v.(string))
+	}
+
+	if v, exists := d.GetOk("auto_complete_restore"); exists {
+		parameters.ManagedDatabaseProperties.AutoCompleteRestore = utils.Bool(v.(bool))
 	}
 
 	if v, exists := d.GetOk("storage_container_sas_token"); exists {

@@ -48,15 +48,9 @@ func resourceArmMSSQLManagedInstanceKeys() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"server_key_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"uri": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -80,6 +74,11 @@ func resourceArmMSSQLManagedInstanceKeys() *schema.Resource {
 				Computed: true,
 			},
 
+			"server_key_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"kind": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -96,7 +95,6 @@ func resourceArmMSSQLManagedInstanceKeysCreateUpdate(d *schema.ResourceData, met
 
 	managedInstanceId := d.Get("managed_instance_id").(string)
 	keyName := d.Get("key_name").(string)
-	serverKeyType := d.Get("server_key_type").(string)
 
 	id, err := azure.ParseAzureResourceID(managedInstanceId)
 	if err != nil {
@@ -119,20 +117,17 @@ func resourceArmMSSQLManagedInstanceKeysCreateUpdate(d *schema.ResourceData, met
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_managed_instance_keys", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_mssql_managed_instance_key", *existing.ID)
 		}
 	}
 
 	managedInstanceKey := sql.ManagedInstanceKey{
 		ManagedInstanceKeyProperties: &sql.ManagedInstanceKeyProperties{
-			ServerKeyType: sql.ServerKeyType(serverKeyType),
+			ServerKeyType: sql.AzureKeyVault,
 		},
 	}
 
 	if v, exists := d.GetOk("uri"); exists {
-		if sql.ServerKeyType(serverKeyType) == sql.ServiceManaged {
-			return fmt.Errorf("Invalid configuration for Managed instance key %q: Uri is applicable only for AzureKeyvault key type (Managed instance %q, resource group %q)", keyName, managedInstanceName, resGroup)
-		}
 		managedInstanceKey.ManagedInstanceKeyProperties.URI = utils.String(v.(string))
 	}
 

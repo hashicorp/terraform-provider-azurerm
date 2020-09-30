@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -19,7 +18,7 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 		Create: resourceArmMSSQLManagedInstanceEncryptionProtectorCreateUpdate,
 		Read:   resourceArmMSSQLManagedInstanceEncryptionProtectorRead,
 		Update: resourceArmMSSQLManagedInstanceEncryptionProtectorCreateUpdate,
-		Delete: nil,
+		Delete: resourceArmMSSQLManagedInstanceEncryptionProtectorResetToDefault,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -43,13 +42,18 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 			"server_key_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"server_key_type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.ServiceManaged),
+					string(sql.AzureKeyVault),
+				}, false),
 			},
 
 			"uri": {
@@ -98,19 +102,6 @@ func resourceArmMSSQLManagedInstanceEncryptionProtectorCreateUpdate(d *schema.Re
 
 	if _, err := managedInstanceClient.Get(ctx, resGroup, managedInstanceName); err != nil {
 		return fmt.Errorf("Error reading managed SQL instance %s: %v", managedInstanceName, err)
-	}
-
-	if d.IsNewResource() {
-		existing, err := encryptionClient.Get(ctx, resGroup, managedInstanceName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing encryption details( Managed instance %q, Resource Group %q): %+v", managedInstanceName, resGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mssql_managed_instance_encryption_protector", *existing.ID)
-		}
 	}
 
 	keyName := d.Get("server_key_name").(string)
@@ -184,9 +175,11 @@ func resourceArmMSSQLManagedInstanceEncryptionProtectorRead(d *schema.ResourceDa
 	return nil
 }
 
-func resourceArmMSSQLManagedInstanceEncryptionProtectorRevalidate(d *schema.ResourceData, meta interface{}) error {
+// Managed Instance Does not support encryption protector deletion. 
+// Therefore the destroy can default back to ServiceManaged Key encryption rather than to any BYOK TDE protector
+func resourceArmMSSQLManagedInstanceEncryptionProtectorResetToDefault(d *schema.ResourceData, meta interface{}) error {
 	encryptionClient := meta.(*clients.Client).MSSQL.ManagedInstanceEncryptionProtectorsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -197,10 +190,17 @@ func resourceArmMSSQLManagedInstanceEncryptionProtectorRevalidate(d *schema.Reso
 	resGroup := id.ResourceGroup
 	managedInstanceName := id.Path["managedInstances"]
 
-	future, err := encryptionClient.Revalidate(ctx, resGroup, managedInstanceName)
-	if err != nil {
-		return fmt.Errorf("Error revalidating managed SQL instance %s encryption details (Resource Group %q): %+v", managedInstanceName, resGroup, err)
+	managedInstanceEncryption := sql.ManagedInstanceEncryptionProtector{
+		ManagedInstanceEncryptionProtectorProperties: &sql.ManagedInstanceEncryptionProtectorProperties{
+			ServerKeyType: sql.ServiceManaged,
+			ServerKeyName: utils.String("ServiceManaged"),
+		},
 	}
 
-	return future.WaitForCompletionRef(ctx, encryptionClient.Client)
+	encryptionFuture, err := encryptionClient.CreateOrUpdate(ctx, resGroup, managedInstanceName, managedInstanceEncryption)
+	if err != nil {
+		return fmt.Errorf("Error while creating Managed SQL Instance %q encryption details (Resource Group %q): %+v", managedInstanceName, resGroup, err)
+	}
+
+	return encryptionFuture.WaitForCompletionRef(ctx, encryptionClient.Client)
 }
