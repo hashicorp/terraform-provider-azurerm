@@ -301,6 +301,10 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 
 	sku := d.Get("sku").(string)
+	skuChange := d.HasChange("sku")
+	isBasicSku := strings.EqualFold(sku, string(containerregistry.Basic))
+	isPremiumSku := strings.EqualFold(sku, string(containerregistry.Premium))
+
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -309,8 +313,15 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	oldGeoReplicationLocations := old.(*schema.Set)
 	newGeoReplicationLocations := new.(*schema.Set)
 
+	// handle upgrade to Premium SKU first
+	if skuChange && isPremiumSku {
+		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
+			return fmt.Errorf("Error applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+		}
+	}
+
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
-	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+	if networkRuleSet != nil && isBasicSku {
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
@@ -318,10 +329,6 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
-		},
-		Sku: &containerregistry.Sku{
-			Name: containerregistry.SkuName(sku),
-			Tier: containerregistry.SkuTier(sku),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -355,6 +362,13 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	// downgrade to Basic SKU
+	if skuChange && strings.EqualFold(sku, string(containerregistry.Basic)) {
+		if err := applyContainerRegistrySku(d, meta, sku, resourceGroup, name); err != nil {
+			return fmt.Errorf("Error applying sku %q for Container Registry %q (Resource Group %q): %+v", sku, name, resourceGroup, err)
+		}
+	}
+
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -367,6 +381,30 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	d.SetId(*read.ID)
 
 	return resourceArmContainerRegistryRead(d, meta)
+}
+
+func applyContainerRegistrySku(d *schema.ResourceData, meta interface{}, sku string, resourceGroup string, name string) error {
+	client := meta.(*clients.Client).Containers.RegistriesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	parameters := containerregistry.RegistryUpdateParameters{
+		Sku: &containerregistry.Sku{
+			Name: containerregistry.SkuName(sku),
+			Tier: containerregistry.SkuTier(sku),
+		},
+	}
+
+	future, err := client.Update(ctx, resourceGroup, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
