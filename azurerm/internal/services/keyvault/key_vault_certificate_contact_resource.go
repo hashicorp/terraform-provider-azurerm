@@ -196,7 +196,7 @@ func resourceArmKeyVaultCertificateContactDelete(d *schema.ResourceData, meta in
 	}
 
 	if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-		return fmt.Errorf("deleting key vault %q Certificate Contacts: %+v", keyVaultId, err)
+		return fmt.Errorf("deleting key vault %q Certificate Contacts: %+v", *keyVaultId, err)
 	}
 
 	return err
