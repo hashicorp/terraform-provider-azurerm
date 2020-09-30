@@ -397,6 +397,9 @@ func (client ContentKeyPoliciesClient) List(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.ContentKeyPoliciesClient", "List", resp, "Failure responding to request")
 	}
+	if result.ckpc.hasNextLink() && result.ckpc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

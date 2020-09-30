@@ -63,8 +63,10 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, parameters Wo
 			Constraints: []validation.Constraint{{Target: "parameters.WorkspaceProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.ManagedResourceGroupID", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.WorkspaceProperties.Parameters", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomVirtualNetworkID", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomVirtualNetworkID.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+						Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.AmlWorkspaceID", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.AmlWorkspaceID.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+							{Target: "parameters.WorkspaceProperties.Parameters.CustomVirtualNetworkID", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomVirtualNetworkID.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 							{Target: "parameters.WorkspaceProperties.Parameters.CustomPublicSubnetName", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomPublicSubnetName.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 							{Target: "parameters.WorkspaceProperties.Parameters.CustomPrivateSubnetName", Name: validation.Null, Rule: false,
@@ -73,6 +75,8 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, parameters Wo
 								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.EnableNoPublicIP.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 							{Target: "parameters.WorkspaceProperties.Parameters.PrepareEncryption", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.PrepareEncryption.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+							{Target: "parameters.WorkspaceProperties.Parameters.RequireInfrastructureEncryption", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.RequireInfrastructureEncryption.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 						}},
 				}},
 				{Target: "parameters.Sku", Name: validation.Null, Rule: false,
@@ -360,6 +364,9 @@ func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -468,6 +475,9 @@ func (client WorkspacesClient) ListBySubscription(ctx context.Context) (result W
 	result.wlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

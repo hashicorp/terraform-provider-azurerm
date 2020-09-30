@@ -315,6 +315,9 @@ func (client VirtualNetworksClient) List(ctx context.Context, resourceGroupName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.VirtualNetworksClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcvn.hasNextLink() && result.rwcvn.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

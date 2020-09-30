@@ -75,6 +75,9 @@ func (client WorkspaceFeaturesClient) List(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspaceFeaturesClient", "List", resp, "Failure responding to request")
 	}
+	if result.laufr.hasNextLink() && result.laufr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

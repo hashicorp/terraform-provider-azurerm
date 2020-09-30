@@ -73,8 +73,6 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
-* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
-
 * `backup` - (Optional) A `backup` block as defined below.
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
@@ -85,15 +83,19 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the App Service Enabled?
 
+* `identity` - (Optional) A Managed Service Identity block as defined below.
+
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
 * `logs` - (Optional) A `logs` block as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `site_config` - (Optional) A `site_config` block as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `source_control` - (Optional) A Source Control block as defined below
 
-* `identity` - (Optional) A Managed Service Identity block as defined below.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -217,6 +219,8 @@ A `site_config` block supports the following:
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the App Service. Possible options are a Docker container (`DOCKER|<user/image:tag>`), a base-64 encoded Docker Compose file (`COMPOSE|${filebase64("compose.yml")}`) or a base-64 encoded Kubernetes Manifest (`KUBE|${filebase64("kubernetes.yml")}`).
 
+~> **NOTE:** To set this property the App Service Plan to which the App belongs must be configured with `kind = "Linux"`, and `reserved = true` or the API will reject any value supplied.
+
 * `windows_fx_version` - (Optional) The Windows Docker container image (`DOCKER|<user/image:tag>`)
 
 Additional examples of how to run Containers via the `azurerm_app_service` resource can be found in [the `./examples/app-service` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service).
@@ -331,8 +335,6 @@ A `ip_restriction` block supports the following:
 
 ---
 
----
-
 A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
@@ -382,6 +384,20 @@ A `schedule` block supports the following:
 * `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted.
 
 * `start_time` - (Optional) Sets when the schedule should start working.
+
+---
+
+A `source_control` block supports the following:
+
+* `repo_url` - (Required) The URL of the source code repository.
+
+* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'. 
+
+* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified. 
+
+* `rollback_enabled` - (Optional) Enable roll-back for the repository. Defaults to `false` if not specified.
+
+* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git. 
 
 ## Attributes Reference
 

@@ -327,6 +327,9 @@ func (client InputsClient) ListByStreamingJob(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.InputsClient", "ListByStreamingJob", resp, "Failure responding to request")
 	}
+	if result.ilr.hasNextLink() && result.ilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

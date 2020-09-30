@@ -157,6 +157,9 @@ func (client SettingsClient) List(ctx context.Context) (result SettingsListPage,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SettingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

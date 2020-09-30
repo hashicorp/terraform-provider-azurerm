@@ -74,7 +74,7 @@ func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) e
 	if resourceGroup != "" {
 		zone, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(zone.Response) {
 				return fmt.Errorf("Private DNS Zone %q (Resource Group %q) was not found", name, resourceGroup)
 			}
 			return fmt.Errorf("reading Private DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)

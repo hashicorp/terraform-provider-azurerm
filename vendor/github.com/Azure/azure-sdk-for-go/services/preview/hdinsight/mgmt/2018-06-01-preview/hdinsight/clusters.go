@@ -457,6 +457,9 @@ func (client ClustersClient) List(ctx context.Context) (result ClusterListResult
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "List", resp, "Failure responding to request")
 	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -566,6 +569,9 @@ func (client ClustersClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.clr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.clr.hasNextLink() && result.clr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -876,6 +882,84 @@ func (client ClustersClient) UpdateResponder(resp *http.Response) (result Cluste
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// UpdateAutoScaleConfiguration updates the Autoscale Configuration for HDInsight cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// parameters - the parameters for the update autoscale configuration operation.
+func (client ClustersClient) UpdateAutoScaleConfiguration(ctx context.Context, resourceGroupName string, clusterName string, parameters AutoscaleConfigurationUpdateParameter) (result ClustersUpdateAutoScaleConfigurationFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.UpdateAutoScaleConfiguration")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdateAutoScaleConfigurationPreparer(ctx, resourceGroupName, clusterName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateAutoScaleConfiguration", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.UpdateAutoScaleConfigurationSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersClient", "UpdateAutoScaleConfiguration", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// UpdateAutoScaleConfigurationPreparer prepares the UpdateAutoScaleConfiguration request.
+func (client ClustersClient) UpdateAutoScaleConfigurationPreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters AutoscaleConfigurationUpdateParameter) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"roleName":          autorest.Encode("path", "workernode"),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.HDInsight/clusters/{clusterName}/roles/{roleName}/autoscale", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateAutoScaleConfigurationSender sends the UpdateAutoScaleConfiguration request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) UpdateAutoScaleConfigurationSender(req *http.Request) (future ClustersUpdateAutoScaleConfigurationFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// UpdateAutoScaleConfigurationResponder handles the response to the UpdateAutoScaleConfiguration request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) UpdateAutoScaleConfigurationResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }
 

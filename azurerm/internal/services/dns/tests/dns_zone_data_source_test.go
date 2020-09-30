@@ -47,7 +47,8 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 
 func TestAccDataSourceAzureRMDNSZone_withoutResourceGroupName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dns_zone", "test")
-	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	// resource group of DNS zone is always small case
+	resourceGroupName := fmt.Sprintf("acctestrg-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

@@ -34,7 +34,7 @@ func resourceArmApiManagementApiOperation() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"operation_id": azure.SchemaApiManagementChildName(),
 
-			"api_name": azure.SchemaApiManagementChildName(),
+			"api_name": azure.SchemaApiManagementApiName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 

@@ -240,6 +240,9 @@ func (client AutoProvisioningSettingsClient) List(ctx context.Context) (result A
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AutoProvisioningSettingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.apsl.hasNextLink() && result.apsl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

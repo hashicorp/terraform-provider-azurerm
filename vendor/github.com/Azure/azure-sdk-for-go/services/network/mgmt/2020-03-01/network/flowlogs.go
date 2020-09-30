@@ -318,6 +318,9 @@ func (client FlowLogsClient) List(ctx context.Context, resourceGroupName string,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.FlowLogsClient", "List", resp, "Failure responding to request")
 	}
+	if result.fllr.hasNextLink() && result.fllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

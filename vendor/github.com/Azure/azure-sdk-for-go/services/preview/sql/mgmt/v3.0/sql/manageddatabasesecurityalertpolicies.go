@@ -241,6 +241,9 @@ func (client ManagedDatabaseSecurityAlertPoliciesClient) ListByDatabase(ctx cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabaseSecurityAlertPoliciesClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.mdsaplr.hasNextLink() && result.mdsaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

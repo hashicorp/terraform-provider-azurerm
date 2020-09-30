@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -87,6 +87,32 @@ func TestAccAzureRMStorageAccountCustomerManagedKey_updateKey(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccountCustomerManagedKey_testKeyVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccountCustomerManagedKey_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountCustomerManagedKeyExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccountCustomerManagedKey_autoKeyRotation(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountCustomerManagedKeyExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMStorageAccountExistsWithDefaultSettings(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -122,8 +148,8 @@ func testCheckAzureRMStorageAccountExistsWithDefaultSettings(resourceName string
 					}
 				}
 
-				if encryption.KeySource != storage.MicrosoftStorage {
-					return fmt.Errorf("%s keySource not set to default(storage.MicrosoftStorage): %s", resourceName, encryption.KeySource)
+				if encryption.KeySource != storage.KeySourceMicrosoftStorage {
+					return fmt.Errorf("%s keySource not set to default(storage.KeySourceMicrosoftStorage): %s", resourceName, encryption.KeySource)
 				}
 			} else {
 				return fmt.Errorf("storage account encryption properties not found: %s", resourceName)
@@ -201,6 +227,19 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   key_vault_id       = azurerm_key_vault.test.id
   key_name           = azurerm_key_vault_key.second.name
   key_version        = azurerm_key_vault_key.second.version
+}
+`, template)
+}
+
+func testAccAzureRMStorageAccountCustomerManagedKey_autoKeyRotation(data acceptance.TestData) string {
+	template := testAccAzureRMStorageAccountCustomerManagedKey_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  key_vault_id       = azurerm_key_vault.test.id
+  key_name           = azurerm_key_vault_key.first.name
 }
 `, template)
 }

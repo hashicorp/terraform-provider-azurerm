@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -36,6 +35,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			// Required
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -52,11 +52,18 @@ func resourceArmServiceBusQueue() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			// Optional
 			"auto_delete_on_idle": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.ISO8601Duration,
+			},
+
+			"dead_lettering_on_message_expiration": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"default_message_ttl": {
@@ -73,17 +80,35 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
+			"enable_batched_operations": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"enable_express": {
 				Type:     schema.TypeBool,
-				Default:  false,
 				Optional: true,
+				Default:  false,
 			},
 
 			"enable_partitioning": {
 				Type:     schema.TypeBool,
-				Default:  false,
 				Optional: true,
+				Default:  false,
 				ForceNew: true,
+			},
+
+			"forward_dead_lettered_messages_to": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateServiceBusQueueName(),
+			},
+
+			"forward_to": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateServiceBusQueueName(),
 			},
 
 			"lock_duration": {
@@ -92,16 +117,24 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Computed: true,
 			},
 
+			"max_delivery_count": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      10,
+				ValidateFunc: validation.IntAtLeast(1),
+			},
+
 			"max_size_in_megabytes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
 			},
 
 			"requires_duplicate_detection": {
 				Type:     schema.TypeBool,
-				Default:  false,
 				Optional: true,
+				Default:  false,
 				ForceNew: true,
 			},
 
@@ -112,17 +145,20 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"dead_lettering_on_message_expiration": {
-				Type:     schema.TypeBool,
-				Default:  false,
+			"status": {
+				Type:     schema.TypeString,
 				Optional: true,
-			},
-
-			"max_delivery_count": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      10,
-				ValidateFunc: validation.IntAtLeast(1),
+				Default:  string(servicebus.Active),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servicebus.Active),
+					string(servicebus.Creating),
+					string(servicebus.Deleting),
+					string(servicebus.Disabled),
+					string(servicebus.ReceiveDisabled),
+					string(servicebus.Renaming),
+					string(servicebus.SendDisabled),
+					string(servicebus.Unknown),
+				}, false),
 			},
 		},
 	}
@@ -138,15 +174,17 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
+	enableBatchedOperations := d.Get("enable_batched_operations").(bool)
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxSize := int32(d.Get("max_size_in_megabytes").(int))
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
+	maxSizeInMegabytes := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
-	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
+	status := servicebus.EntityStatus(d.Get("status").(string))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -162,13 +200,15 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	parameters := servicebus.SBQueue{
 		Name: &name,
 		SBQueueProperties: &servicebus.SBQueueProperties{
+			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
+			EnableBatchedOperations:          &enableBatchedOperations,
 			EnableExpress:                    &enableExpress,
 			EnablePartitioning:               &enablePartitioning,
-			MaxSizeInMegabytes:               &maxSize,
 			MaxDeliveryCount:                 &maxDeliveryCount,
+			MaxSizeInMegabytes:               &maxSizeInMegabytes,
 			RequiresDuplicateDetection:       &requiresDuplicateDetection,
 			RequiresSession:                  &requiresSession,
-			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
+			Status:                           status,
 		},
 	}
 
@@ -176,12 +216,20 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		parameters.SBQueueProperties.AutoDeleteOnIdle = &autoDeleteOnIdle
 	}
 
-	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.SBQueueProperties.DefaultMessageTimeToLive = &defaultTTL
+	if defaultMessageTTL := d.Get("default_message_ttl").(string); defaultMessageTTL != "" {
+		parameters.SBQueueProperties.DefaultMessageTimeToLive = &defaultMessageTTL
 	}
 
-	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.SBQueueProperties.DuplicateDetectionHistoryTimeWindow = &duplicateWindow
+	if duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateDetectionHistoryTimeWindow != "" {
+		parameters.SBQueueProperties.DuplicateDetectionHistoryTimeWindow = &duplicateDetectionHistoryTimeWindow
+	}
+
+	if forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string); forwardDeadLetteredMessagesTo != "" {
+		parameters.SBQueueProperties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
+	}
+
+	if forwardTo := d.Get("forward_to").(string); forwardTo != "" {
+		parameters.SBQueueProperties.ForwardTo = &forwardTo
 	}
 
 	if lockDuration := d.Get("lock_duration").(string); lockDuration != "" {
@@ -242,24 +290,27 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
 	d.Set("namespace_name", namespaceName)
+	d.Set("resource_group_name", resourceGroup)
 
 	if props := resp.SBQueueProperties; props != nil {
 		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
+		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
 		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 		d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
-		d.Set("lock_duration", props.LockDuration)
-
+		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("enable_express", props.EnableExpress)
 		d.Set("enable_partitioning", props.EnablePartitioning)
+		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
+		d.Set("forward_to", props.ForwardTo)
+		d.Set("lock_duration", props.LockDuration)
+		d.Set("max_delivery_count", props.MaxDeliveryCount)
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 		d.Set("requires_session", props.RequiresSession)
-		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
-		d.Set("max_delivery_count", props.MaxDeliveryCount)
+		d.Set("status", props.Status)
 
-		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
-			maxSize := int(*maxSizeMB)
+		if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
+			maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
 
 			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
 			// then the max size returned by the API will be 16 times greater than the value set.
@@ -272,11 +323,11 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 
 				if namespace.Sku.Name != servicebus.Premium {
 					const partitionCount = 16
-					maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+					maxSizeInMegabytes = int(*apiMaxSizeInMegabytes / partitionCount)
 				}
 			}
 
-			d.Set("max_size_in_megabytes", maxSize)
+			d.Set("max_size_in_megabytes", maxSizeInMegabytes)
 		}
 	}
 

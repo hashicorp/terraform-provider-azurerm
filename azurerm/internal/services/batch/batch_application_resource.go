@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -84,16 +83,14 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.Get(ctx, resourceGroup, accountName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
-			}
-		}
+	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_batch_application", *resp.ID)
+			return fmt.Errorf("checking for presence of existing Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 		}
+	}
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_batch_application", *resp.ID)
 	}
 
 	allowUpdates := d.Get("allow_updates").(bool)
@@ -112,7 +109,7 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, accountName, name)
+	resp, err = client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 	}
