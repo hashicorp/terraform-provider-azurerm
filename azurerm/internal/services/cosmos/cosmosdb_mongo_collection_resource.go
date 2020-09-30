@@ -314,7 +314,7 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 				d.Set("shard_key", k)
 			}
 
-			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes)
+			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, d)
 			if err := d.Set("default_ttl_seconds", ttl); err != nil {
 				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
 			}
@@ -399,7 +399,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 	return &results
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, d *schema.ResourceData) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
 	indexes := make([]map[string]interface{}, 0)
 	systemIndexes := make([]map[string]interface{}, 0)
 	var ttl *int32
@@ -407,10 +407,22 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[s
 		return &indexes, &systemIndexes, ttl
 	}
 
-	for _, v := range *input {
-		index := map[string]interface{}{}
-		systemIndex := map[string]interface{}{}
+	// For mongo db version 3.6, the index "_id" is required, and the api will not return it back
+	if v, ok := d.GetOk("index"); ok {
+		for _, i := range v.(*schema.Set).List() {
+			indexMap := i.(map[string]interface{})
+			if keyList := utils.ExpandStringSlice(indexMap["keys"].([]interface{})); len(*keyList) == 1 && (*keyList)[0] == "_id" {
+				index := map[string]interface{}{}
+				index["keys"] = []string{"_id"}
+				index["unique"] = indexMap["unique"].(bool)
+				indexes = append(indexes, index)
+			}
+		}
+	}
 
+	for _, v := range *input {
+		systemIndex := map[string]interface{}{}
+		index := map[string]interface{}{}
 		if v.Key != nil && v.Key.Keys != nil && len(*v.Key.Keys) > 0 {
 			key := (*v.Key.Keys)[0]
 

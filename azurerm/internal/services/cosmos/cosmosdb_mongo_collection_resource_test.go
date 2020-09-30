@@ -2,6 +2,7 @@ package cosmos_test
 
 import (
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"net/http"
 	"testing"
 
@@ -179,6 +180,25 @@ func TestAccAzureRMCosmosDbMongoCollection_autoscale(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbMongoCollection_ver36(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_mongo_collection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbMongoCollectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbMongoCollection_ver36(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("index.#", "index.1997105887.keys.#", "index.1997105887.keys.0", "index.1997105887.unique"),
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbMongoCollectionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.MongoDbClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -342,4 +362,28 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   }
 }
 `, testAccAzureRMCosmosDbMongoDatabase_basic(data), data.RandomInteger)
+}
+
+func testAccAzureRMCosmosDbMongoCollection_ver36(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+
+resource "azurerm_cosmosdb_mongo_collection" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_mongo_database.test.resource_group_name
+  account_name        = azurerm_cosmosdb_mongo_database.test.account_name
+  database_name       = azurerm_cosmosdb_mongo_database.test.name
+
+  index {
+    keys   = ["_id"]
+    unique = false
+  }
+}
+`, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
 }
