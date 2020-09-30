@@ -113,7 +113,7 @@ func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
 		}
 	*/
 
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 	for topLevelKey, topLevelValue := range items {
 		if topLevelValue == nil {
 			continue
@@ -124,7 +124,7 @@ func filterOutTemplateDeploymentParameters(input interface{}) interface{} {
 
 		// then filter it if necessary
 		if innerVals, ok := topLevelValue.(map[string]interface{}); ok {
-			outputVals := make(map[string]interface{}, 0)
+			outputVals := make(map[string]interface{})
 			for innerKey, innerValue := range innerVals {
 				if strings.EqualFold("type", innerKey) {
 					continue
@@ -199,7 +199,7 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 }
 
 func determineResourceProviderAPIVersionsForResources(ctx context.Context, client *providers.ProvidersClient, providers []resources.Provider) (*map[string]string, error) {
-	resourceProviderApiVersions := make(map[string]string, 0)
+	resourceProviderApiVersions := make(map[string]string)
 
 	for _, provider := range providers {
 		if provider.Namespace == nil {
