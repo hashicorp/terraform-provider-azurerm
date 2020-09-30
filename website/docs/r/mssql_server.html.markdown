@@ -37,7 +37,7 @@ resource "azurerm_mssql_server" "example" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
-  minimal_tls_version          = "1.2"
+  minimum_tls_version          = "1.2"
 
   azuread_administrator {
     login_username = "AzureAD Admin"
@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `minimal_tls_version` - (Optional) The Minimal TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` and `1.2`.
+* `minimum_tls_version` - (Optional) The Minimum TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` and `1.2`.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 

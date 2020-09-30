@@ -137,7 +137,7 @@ func resourceArmMsSqlServer() *schema.Resource {
 				},
 			},
 
-			"minimal_tls_version": {
+			"minimum_tls_version": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -227,7 +227,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
-	if v := d.Get("minimal_tls_version"); v.(string) != "" {
+	if v := d.Get("minimum_tls_version"); v.(string) != "" {
 		props.ServerProperties.MinimalTLSVersion = utils.String(v.(string))
 	}
 
@@ -340,7 +340,7 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
-		d.Set("minimal_tls_version", props.MinimalTLSVersion)
+		d.Set("minimum_tls_version", props.MinimalTLSVersion)
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerPublicNetworkAccessEnabled)
 	}
 
