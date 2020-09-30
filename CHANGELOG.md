@@ -11,6 +11,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: updating `iothub` to `2020-03-01` [GH-8688]
 * dependencies: updating `storagecache` to `2020-03-01` [GH-8078]
 * `azurerm_cognitive_account` - support for the `S` `sku` [GH-8639]
 * `azurerm_container_group` - support for the `dns_config` block [GH-7912]
