@@ -53,13 +53,49 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 
 			"administrator_login": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
+			},
+
+			"sku": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.FlexibleServerSkuName(),
+						},
+
+						"tier": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(postgresqlflexibleservers.Burstable),
+								string(postgresqlflexibleservers.GeneralPurpose),
+								string(postgresqlflexibleservers.MemoryOptimized),
+							}, false),
+						},
+					},
+				},
+			},
+
+			"version": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(postgresqlflexibleservers.OneTwo),
+					string(postgresqlflexibleservers.OneOne),
+				}, false),
 			},
 
 			"availability_zone": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
@@ -71,6 +107,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 					string(postgresqlflexibleservers.Default),
 					string(postgresqlflexibleservers.PointInTimeRestore),
 				}, false),
+				Default: string(postgresqlflexibleservers.Default),
 			},
 
 			"delegated_subnet_argument": {
@@ -136,16 +173,6 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"version": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresqlflexibleservers.OneTwo),
-					string(postgresqlflexibleservers.OneOne),
-				}, false),
-			},
-
 			"administrator_login_password": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -178,31 +205,6 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(0, 59),
-						},
-					},
-				},
-			},
-
-			"sku": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.FlexibleServerSkuName(),
-						},
-
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresqlflexibleservers.Burstable),
-								string(postgresqlflexibleservers.GeneralPurpose),
-								string(postgresqlflexibleservers.MemoryOptimized),
-							}, false),
 						},
 					},
 				},

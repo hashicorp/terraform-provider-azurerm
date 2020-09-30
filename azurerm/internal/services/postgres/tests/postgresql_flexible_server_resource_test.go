@@ -266,7 +266,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-s-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes       = ["10.0.2.0/24"]
+  address_prefixes     = ["10.0.2.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -280,6 +280,8 @@ resource "azurerm_postgresql_flexible_server" "test" {
   name                = "acctest-fs-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  administrator_login = "adminTerraform"
+  version             = "12"
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
@@ -297,6 +299,8 @@ resource "azurerm_postgresql_flexible_server" "import" {
   name                = azurerm_postgresql_flexible_server.test.name
   resource_group_name = azurerm_postgresql_flexible_server.test.resource_group_name
   location            = azurerm_postgresql_flexible_server.test.location
+  administrator_login = azurerm_postgresql_flexible_server.test.administrator_login
+  version             = azurerm_postgresql_flexible_server.test.version
   sku {
     name = azurerm_postgresql_flexible_server.test.sku.0.name
     tier = azurerm_postgresql_flexible_server.test.sku.0.tier
