@@ -59,7 +59,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion":   true,
+							"delete_os_disk_on_deletion":    true,
 							"delete_data_disks_on_deletion": true,
 						},
 					},
@@ -96,7 +96,7 @@ func TestExpandFeatures(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion":   false,
+							"delete_os_disk_on_deletion":    false,
 							"delete_data_disks_on_deletion": false,
 						},
 					},
@@ -430,7 +430,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 			},
 		},
 		{
-			Name: "Delete Data Disk Disabled",
+			Name: "Delete Data Disks Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine": []interface{}{

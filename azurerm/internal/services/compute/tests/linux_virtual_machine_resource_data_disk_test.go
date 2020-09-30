@@ -12,6 +12,25 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func TestAccLinuxVirtualMachine_dataDiskBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_dataDiskBasic(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachine_dataDiskDeleteOnTermination(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
@@ -57,6 +76,32 @@ func TestAccLinuxVirtualMachine_dataDisksRemoved(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					checkVirtualMachineManagedDiskIsDeleted(fmt.Sprintf("acctestRG-%d", data.RandomInteger), "testdatadisk", fmt.Sprintf("acctestVM-%d", data.RandomInteger)),
 				),
+			},
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachine_dataDisksRemovedNotDeleted(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_dataDiskBasic(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_dataDisksRemoved(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					checkVirtualMachineManagedDiskIsDeleted(fmt.Sprintf("acctestRG-%d", data.RandomInteger), "testdatadisk", fmt.Sprintf("acctestVM-%d", data.RandomInteger)),
+				),
+				ExpectError: regexp.MustCompile("bad: Data Disk \"testdatadisk\" for Virtual Machine"),
 			},
 		},
 	})
@@ -169,8 +214,6 @@ func TestAccLinuxVirtualMachine_dataDiskExistingManagedDisk(t *testing.T) {
 		},
 	})
 }
-
-
 
 // excluding from linter - TODO reuse for checking OS disk tests later
 //nolint unparam

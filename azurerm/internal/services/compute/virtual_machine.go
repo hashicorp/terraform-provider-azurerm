@@ -3,6 +3,7 @@ package compute
 import (
 	"context"
 	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -288,7 +289,7 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
-		Computed: true,
+		//Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"caching": {
@@ -536,18 +537,16 @@ func expandVirtualMachineDataDisks(d *schema.ResourceData, meta interface{}) (*[
 
 			existingDisk, err := disksClient.Get(ctx, dataDiskId.ResourceGroup, dataDiskId.Name)
 			if err != nil {
-				return nil, fmt.Errorf("failed to retreive Managed Disk information for Data Disk %q (resource group %q)", dataDiskId.Name, dataDiskId.ResourceGroup)
+				return nil, fmt.Errorf("failed to retrieve Managed Disk information for Data Disk %q (resource group %q)", dataDiskId.Name, dataDiskId.ResourceGroup)
 			}
 
 			dataDisk.ManagedDisk.ID = utils.String(managedDiskId)
 			dataDisk.DiskSizeGB = existingDisk.DiskSizeGB
 
-
 			// If this is the first pass through create option will be empty and the disk id must have been user specified so we set to `Attach`
 			if createOption, ok := disk["create_option"].(string); ok && createOption == "" {
 				dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
 			}
-
 		}
 
 		if diskEncryptionSet, encryptionSetOk := disk["disk_encryption_set_id"].(string); encryptionSetOk && diskEncryptionSet != "" {

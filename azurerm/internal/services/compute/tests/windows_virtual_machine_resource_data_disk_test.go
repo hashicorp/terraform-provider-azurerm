@@ -17,7 +17,7 @@ func TestAccWindowsVirtualMachine_dataDiskBasic(t *testing.T) {
 		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: testWindowsVirtualMachine_dataDiskBasic(data, false),
+				Config: testWindowsVirtualMachine_dataDiskBasic(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkWindowsVirtualMachineExists(data.ResourceName),
 				),

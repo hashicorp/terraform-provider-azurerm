@@ -374,6 +374,9 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	// TODO - put beta env var flag here
 	if true {
 		dataDisks, err = expandVirtualMachineDataDisks(d, meta)
+		if err != nil {
+			return err
+		}
 	}
 
 	secretsRaw := d.Get("secret").([]interface{})
@@ -1049,7 +1052,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
 		}
 	}
-	deleteRemovedDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDisksOnDeletion
+	deleteRemovedDataDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDisksOnDeletion
 	dataDisksToDeleted := make([]compute.DataDisk, 0)
 	// TODO Beta flag here
 	if true {
@@ -1073,7 +1076,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 							break
 						}
 					}
-					if !found && deleteRemovedDisks {
+					if !found && deleteRemovedDataDisks {
 						dataDisksToDeleted = append(dataDisksToDeleted, existingDataDisk)
 					}
 				}
@@ -1119,8 +1122,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 	}
 	// TODO Beta flag here
 	if true {
-		// TODO - delete removed disks if feature flag set
-		if deleteRemovedDisks && len(dataDisksToDeleted) > 0 {
+		if deleteRemovedDataDisks && len(dataDisksToDeleted) > 0 {
 			for _, v := range dataDisksToDeleted {
 				if v.ManagedDisk != nil && v.ManagedDisk.ID != nil {
 					diskId, err := parse.ManagedDiskID(*v.ManagedDisk.ID)
@@ -1138,6 +1140,8 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 							return fmt.Errorf("waiting for delete on Data Disk Data Disk %q (resource group %q) for Linux Virtual Machine %q (resource group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 						}
 					}
+				} else {
+					return fmt.Errorf("could not delete Data Disk %q removed from Virtual Machine %q (resource group %q), Managed Disk ID missing", *v.Name, id.Name, id.ResourceGroup)
 				}
 			}
 		}
