@@ -421,8 +421,9 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, d *schema
 	}
 
 	for _, v := range *input {
-		systemIndex := map[string]interface{}{}
 		index := map[string]interface{}{}
+		systemIndex := map[string]interface{}{}
+
 		if v.Key != nil && v.Key.Keys != nil && len(*v.Key.Keys) > 0 {
 			key := (*v.Key.Keys)[0]
 
