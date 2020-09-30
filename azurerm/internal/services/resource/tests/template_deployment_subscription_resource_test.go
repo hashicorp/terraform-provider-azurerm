@@ -192,7 +192,7 @@ provider "azurerm" {
 resource "azurerm_subscription_template_deployment" "test" {
   name     = "acctestsubdeploy-%d"
   location = %q
-  tags     = {
+  tags = {
     Hello = "World"
   }
 
