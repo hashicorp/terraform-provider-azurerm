@@ -266,7 +266,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-s-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes       = ["10.0.2.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -277,7 +277,7 @@ func testAccAzureRMpostgresqlflexibleServer_basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-FS-%d"
+  name                = "acctest-fs-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku {
@@ -311,7 +311,7 @@ func testAccAzureRMpostgresqlflexibleServer_complete(data acceptance.TestData) s
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-FS-%d"
+  name                         = "acctest-fs-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
@@ -358,7 +358,7 @@ func testAccAzureRMpostgresqlflexibleServer_update(data acceptance.TestData) str
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-FS-%d"
+  name                         = "acctest-fs-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
@@ -405,7 +405,7 @@ func testAccAzureRMpostgresqlflexibleServer_updateMaintenanceWindow(data accepta
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-FS-%d"
+  name                = "acctest-fs-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku {
@@ -428,7 +428,7 @@ func testAccAzureRMpostgresqlflexibleServer_updateMaintenanceWindowUpdated(data 
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-FS-%d"
+  name                = "acctest-fs-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku {
@@ -451,7 +451,7 @@ func testAccAzureRMpostgresqlflexibleServer_updateSku(data acceptance.TestData) 
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-FS-%d"
+  name                = "acctest-fs-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku {
@@ -468,7 +468,7 @@ func testAccAzureRMpostgresqlflexibleServer_updateStorageProfile(data acceptance
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-FS-%d"
+  name                         = "acctest-fs-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
