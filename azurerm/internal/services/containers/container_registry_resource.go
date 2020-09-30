@@ -170,6 +170,64 @@ func resourceArmContainerRegistry() *schema.Resource {
 				},
 			},
 
+			"policies": {
+				Type:       schema.TypeList,
+				MaxItems:   1,
+				Computed:   true,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"retention_policy": {
+							Type:       schema.TypeList,
+							MaxItems:   1,
+							Computed:   true,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+
+									"status": {
+										Type:     schema.TypeString,
+										Default:  string(containerregistry.Disabled),
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerregistry.Disabled),
+											string(containerregistry.Enabled),
+										}, false),
+									},
+								},
+							},
+						},
+
+						"trust_policy": {
+							Type:       schema.TypeList,
+							MaxItems:   1,
+							Computed:   true,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"status": {
+										Type:     schema.TypeString,
+										Default:  string(containerregistry.Disabled),
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerregistry.Disabled),
+											string(containerregistry.Enabled),
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -232,6 +290,11 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
+	policies := expandRegistryPolicies(d)
+	if policies != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+		return fmt.Errorf("`trust_policy` can only be specified for a Premium Sku")
+	}
+
 	parameters := containerregistry.Registry{
 		Location: &location,
 		Sku: &containerregistry.Sku{
@@ -241,6 +304,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		RegistryProperties: &containerregistry.RegistryProperties{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
+			Policies:         policies,
 		},
 
 		Tags: tags.Expand(t),
@@ -325,10 +389,20 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 	}
 
+	policies := expandRegistryPolicies(d)
+	if !isPremiumSku && policies.TrustPolicy.Status == containerregistry.Enabled {
+		return fmt.Errorf("`trust_policy` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set trust_policy {}")
+	}
+
+	if !isPremiumSku && policies.RetentionPolicy.Status == containerregistry.Enabled {
+		return fmt.Errorf("`retention_policy` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set retention_policy {}")
+	}
+
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 			NetworkRuleSet:   networkRuleSet,
+			Policies:         policies,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -516,6 +590,13 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error setting `network_rule_set`: %+v", err)
 	}
 
+	if properties := resp.RegistryProperties; properties != nil {
+		policies := flattenRegistryPolicies(properties.Policies)
+		if err := d.Set("policies", policies); err != nil {
+			return fmt.Errorf("Error setting `policies`: %+v", err)
+		}
+	}
+
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Tier))
 	}
@@ -651,6 +732,44 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 	return &networkRuleSet
 }
 
+func expandRegistryPolicies(d *schema.ResourceData) *containerregistry.Policies {
+	policies := containerregistry.Policies{
+		TrustPolicy: &containerregistry.TrustPolicy{
+			Status: containerregistry.Disabled,
+		},
+		RetentionPolicy: &containerregistry.RetentionPolicy{
+			Status: containerregistry.Disabled,
+		},
+	}
+
+	if v, ok := d.GetOk("policies"); !ok || len(v.([]interface{})) == 0 {
+		return &policies
+	}
+
+	if v, ok := d.GetOk("policies.0.trust_policy.0"); ok {
+		trustPolicy := v.(map[string]interface{})
+		status := trustPolicy["status"].(string)
+
+		policies.TrustPolicy = &containerregistry.TrustPolicy{
+			Type:   containerregistry.Notary,
+			Status: containerregistry.PolicyStatus(status),
+		}
+	}
+
+	if v, ok := d.GetOk("policies.0.retention_policy.0"); ok {
+		retentionPolicy := v.(map[string]interface{})
+		status := retentionPolicy["status"].(string)
+		days := int32(retentionPolicy["days"].(int))
+
+		policies.RetentionPolicy = &containerregistry.RetentionPolicy{
+			Days:   utils.Int32(days),
+			Status: containerregistry.PolicyStatus(status),
+		}
+	}
+
+	return &policies
+}
+
 func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []interface{} {
 	if networkRuleSet == nil {
 		return []interface{}{}
@@ -691,4 +810,27 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 	values["virtual_network"] = virtualNetworkRules
 
 	return []interface{}{values}
+}
+
+func flattenRegistryPolicies(p *containerregistry.Policies) []interface{} {
+	if p == nil {
+		return []interface{}{}
+	}
+
+	policies := make(map[string]interface{})
+
+	if p.TrustPolicy != nil {
+		policy := make(map[string]interface{})
+		policy["status"] = p.TrustPolicy.Status
+		policies["trust_policy"] = []interface{}{policy}
+	}
+
+	if p.RetentionPolicy != nil {
+		policy := make(map[string]interface{})
+		policy["status"] = p.RetentionPolicy.Status
+		policy["days"] = p.RetentionPolicy.Days
+		policies["retention_policy"] = []interface{}{policy}
+	}
+
+	return []interface{}{policies}
 }

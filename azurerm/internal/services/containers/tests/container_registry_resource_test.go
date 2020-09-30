@@ -377,6 +377,50 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistry_policies(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerRegistry_policies(data, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.days", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.status", "enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.trust_policy.0.status", "enabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMContainerRegistry_policies(data, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Allow"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.days", "20"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.status", "enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.trust_policy.0.status", "enabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMContainerRegistry_policies_downgradeUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.status", "disabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.trust_policy.0.status", "disabled"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Containers.RegistriesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -780,4 +824,71 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMContainerRegistry_policies(data acceptance.TestData, days int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = false
+  sku                 = "Premium"
+
+  policies {
+    retention_policy {
+      days = %d
+      status = "enabled"
+    }
+
+    trust_policy {
+      status = "enabled"
+    }
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, days)
+}
+
+func testAccAzureRMContainerRegistry_policies_downgradeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  admin_enabled       = false
+  sku                 = "Basic"
+	network_rule_set = []
+	
+	policies {
+		retention_policy {}
+		trust_policy     {}
+	}
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

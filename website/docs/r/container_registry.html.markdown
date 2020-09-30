@@ -60,6 +60,8 @@ The following arguments are supported:
 
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
+* `policies` - (Optional) A `policies` block as documented below.
+
 `network_rule_set` supports the following:
 
 * `default_action` - (Optional) The behaviour for requests matching no rules. Either `Allow` or `Deny`. Defaults to `Allow`
@@ -84,6 +86,21 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The subnet id from which requests will match the rule.
 
+`policies` support the following:
+
+* `trust_policy` - (Optional) One or more `trust_policy` blocks as defined below.
+
+* `retention_policy` - (Optional) One or more `retention_policy` blocks as defined below.
+
+`trust_policy` supports the following:
+
+* `status` - (Optional) The value that indicates whether the policy is enabled or not. Supported values are `enabled` or `disabled`.
+
+`retention_policy` supports the following:
+
+* `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged.
+
+* `status` - (Optional) The value that indicates whether the policy is enabled or not. Supported values are `enabled` or `disabled`.
 
 ---
 ## Attributes Reference
