@@ -178,7 +178,7 @@ resource "azurerm_api_management" "test" {
   sku_name            = "Developer_1"
 
   identity {
-	type = "SystemAssigned"
+    type = "SystemAssigned"
   }
 }
 
@@ -199,7 +199,7 @@ resource "azurerm_key_vault" "test" {
       "delete",
       "get",
       "update",
-	]
+    ]
 
     key_permissions = [
       "create",
@@ -216,7 +216,7 @@ resource "azurerm_key_vault" "test" {
 
     certificate_permissions = [
       "get",
-	]
+    ]
 
     secret_permissions = [
       "get",
