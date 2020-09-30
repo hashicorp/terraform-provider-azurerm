@@ -95,6 +95,9 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 
 	apiManagementID := d.Get("api_management_id").(string)
 	id, err := azure.ParseAzureResourceID(apiManagementID)
+	if err != nil {
+		return err
+	}
 	resourceGroup := id.Path["resourceGroups"]
 	name := id.Path["service"]
 
