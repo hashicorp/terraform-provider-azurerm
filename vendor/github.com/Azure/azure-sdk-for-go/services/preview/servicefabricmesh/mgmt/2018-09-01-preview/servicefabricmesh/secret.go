@@ -310,6 +310,9 @@ func (client SecretClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -419,6 +422,9 @@ func (client SecretClient) ListBySubscription(ctx context.Context) (result Secre
 	result.srdl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

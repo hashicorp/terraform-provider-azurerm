@@ -316,6 +316,9 @@ func (client VolumeClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.VolumeClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.vrdl.hasNextLink() && result.vrdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -425,6 +428,9 @@ func (client VolumeClient) ListBySubscription(ctx context.Context) (result Volum
 	result.vrdl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.VolumeClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.vrdl.hasNextLink() && result.vrdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

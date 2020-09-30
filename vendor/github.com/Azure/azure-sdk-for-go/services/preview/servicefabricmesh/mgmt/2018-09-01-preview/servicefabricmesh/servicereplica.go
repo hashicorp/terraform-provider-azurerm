@@ -156,6 +156,9 @@ func (client ServiceReplicaClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.ServiceReplicaClient", "List", resp, "Failure responding to request")
 	}
+	if result.srdl.hasNextLink() && result.srdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

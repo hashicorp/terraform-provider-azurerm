@@ -30,331 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-09-01-preview/servicefabricmesh"
 
-// ApplicationScopedVolumeKind enumerates the values for application scoped volume kind.
-type ApplicationScopedVolumeKind string
-
-const (
-	// ServiceFabricVolumeDisk Provides Service Fabric High Availability Volume Disk
-	ServiceFabricVolumeDisk ApplicationScopedVolumeKind = "ServiceFabricVolumeDisk"
-)
-
-// PossibleApplicationScopedVolumeKindValues returns an array of possible values for the ApplicationScopedVolumeKind const type.
-func PossibleApplicationScopedVolumeKindValues() []ApplicationScopedVolumeKind {
-	return []ApplicationScopedVolumeKind{ServiceFabricVolumeDisk}
-}
-
-// AutoScalingMechanismKind enumerates the values for auto scaling mechanism kind.
-type AutoScalingMechanismKind string
-
-const (
-	// AddRemoveReplica Indicates that scaling should be performed by adding or removing replicas.
-	AddRemoveReplica AutoScalingMechanismKind = "AddRemoveReplica"
-)
-
-// PossibleAutoScalingMechanismKindValues returns an array of possible values for the AutoScalingMechanismKind const type.
-func PossibleAutoScalingMechanismKindValues() []AutoScalingMechanismKind {
-	return []AutoScalingMechanismKind{AddRemoveReplica}
-}
-
-// AutoScalingMetricKind enumerates the values for auto scaling metric kind.
-type AutoScalingMetricKind string
-
-const (
-	// AutoScalingMetricKindResource Indicates that the metric is one of resources, like cpu or memory.
-	AutoScalingMetricKindResource AutoScalingMetricKind = "Resource"
-)
-
-// PossibleAutoScalingMetricKindValues returns an array of possible values for the AutoScalingMetricKind const type.
-func PossibleAutoScalingMetricKindValues() []AutoScalingMetricKind {
-	return []AutoScalingMetricKind{AutoScalingMetricKindResource}
-}
-
-// AutoScalingResourceMetricName enumerates the values for auto scaling resource metric name.
-type AutoScalingResourceMetricName string
-
-const (
-	// CPU Indicates that the resource is CPU cores.
-	CPU AutoScalingResourceMetricName = "cpu"
-	// MemoryInGB Indicates that the resource is memory in GB.
-	MemoryInGB AutoScalingResourceMetricName = "memoryInGB"
-)
-
-// PossibleAutoScalingResourceMetricNameValues returns an array of possible values for the AutoScalingResourceMetricName const type.
-func PossibleAutoScalingResourceMetricNameValues() []AutoScalingResourceMetricName {
-	return []AutoScalingResourceMetricName{CPU, MemoryInGB}
-}
-
-// AutoScalingTriggerKind enumerates the values for auto scaling trigger kind.
-type AutoScalingTriggerKind string
-
-const (
-	// AverageLoad Indicates that scaling should be performed based on average load of all replicas in the
-	// service.
-	AverageLoad AutoScalingTriggerKind = "AverageLoad"
-)
-
-// PossibleAutoScalingTriggerKindValues returns an array of possible values for the AutoScalingTriggerKind const type.
-func PossibleAutoScalingTriggerKindValues() []AutoScalingTriggerKind {
-	return []AutoScalingTriggerKind{AverageLoad}
-}
-
-// DiagnosticsSinkKind enumerates the values for diagnostics sink kind.
-type DiagnosticsSinkKind string
-
-const (
-	// AzureInternalMonitoringPipeline Diagnostics settings for Geneva.
-	AzureInternalMonitoringPipeline DiagnosticsSinkKind = "AzureInternalMonitoringPipeline"
-	// Invalid Indicates an invalid sink kind. All Service Fabric enumerations have the invalid type.
-	Invalid DiagnosticsSinkKind = "Invalid"
-)
-
-// PossibleDiagnosticsSinkKindValues returns an array of possible values for the DiagnosticsSinkKind const type.
-func PossibleDiagnosticsSinkKindValues() []DiagnosticsSinkKind {
-	return []DiagnosticsSinkKind{AzureInternalMonitoringPipeline, Invalid}
-}
-
-// HeaderMatchType enumerates the values for header match type.
-type HeaderMatchType string
-
-const (
-	// Exact ...
-	Exact HeaderMatchType = "exact"
-)
-
-// PossibleHeaderMatchTypeValues returns an array of possible values for the HeaderMatchType const type.
-func PossibleHeaderMatchTypeValues() []HeaderMatchType {
-	return []HeaderMatchType{Exact}
-}
-
-// HealthState enumerates the values for health state.
-type HealthState string
-
-const (
-	// HealthStateError Indicates the health state is at an error level. Error health state should be
-	// investigated, as they can impact the correct functionality of the cluster. The value is 3.
-	HealthStateError HealthState = "Error"
-	// HealthStateInvalid Indicates an invalid health state. All Service Fabric enumerations have the invalid
-	// type. The value is zero.
-	HealthStateInvalid HealthState = "Invalid"
-	// HealthStateOk Indicates the health state is okay. The value is 1.
-	HealthStateOk HealthState = "Ok"
-	// HealthStateUnknown Indicates an unknown health status. The value is 65535.
-	HealthStateUnknown HealthState = "Unknown"
-	// HealthStateWarning Indicates the health state is at a warning level. The value is 2.
-	HealthStateWarning HealthState = "Warning"
-)
-
-// PossibleHealthStateValues returns an array of possible values for the HealthState const type.
-func PossibleHealthStateValues() []HealthState {
-	return []HealthState{HealthStateError, HealthStateInvalid, HealthStateOk, HealthStateUnknown, HealthStateWarning}
-}
-
-// Kind enumerates the values for kind.
-type Kind string
-
-const (
-	// KindInlinedValue ...
-	KindInlinedValue Kind = "inlinedValue"
-	// KindSecretResourceProperties ...
-	KindSecretResourceProperties Kind = "SecretResourceProperties"
-	// KindSecretResourcePropertiesBase ...
-	KindSecretResourcePropertiesBase Kind = "SecretResourcePropertiesBase"
-)
-
-// PossibleKindValues returns an array of possible values for the Kind const type.
-func PossibleKindValues() []Kind {
-	return []Kind{KindInlinedValue, KindSecretResourceProperties, KindSecretResourcePropertiesBase}
-}
-
-// KindBasicApplicationScopedVolumeCreationParameters enumerates the values for kind basic application scoped
-// volume creation parameters.
-type KindBasicApplicationScopedVolumeCreationParameters string
-
-const (
-	// KindApplicationScopedVolumeCreationParameters ...
-	KindApplicationScopedVolumeCreationParameters KindBasicApplicationScopedVolumeCreationParameters = "ApplicationScopedVolumeCreationParameters"
-	// KindServiceFabricVolumeDisk ...
-	KindServiceFabricVolumeDisk KindBasicApplicationScopedVolumeCreationParameters = "ServiceFabricVolumeDisk"
-)
-
-// PossibleKindBasicApplicationScopedVolumeCreationParametersValues returns an array of possible values for the KindBasicApplicationScopedVolumeCreationParameters const type.
-func PossibleKindBasicApplicationScopedVolumeCreationParametersValues() []KindBasicApplicationScopedVolumeCreationParameters {
-	return []KindBasicApplicationScopedVolumeCreationParameters{KindApplicationScopedVolumeCreationParameters, KindServiceFabricVolumeDisk}
-}
-
-// KindBasicAutoScalingMechanism enumerates the values for kind basic auto scaling mechanism.
-type KindBasicAutoScalingMechanism string
-
-const (
-	// KindAddRemoveReplica ...
-	KindAddRemoveReplica KindBasicAutoScalingMechanism = "AddRemoveReplica"
-	// KindAutoScalingMechanism ...
-	KindAutoScalingMechanism KindBasicAutoScalingMechanism = "AutoScalingMechanism"
-)
-
-// PossibleKindBasicAutoScalingMechanismValues returns an array of possible values for the KindBasicAutoScalingMechanism const type.
-func PossibleKindBasicAutoScalingMechanismValues() []KindBasicAutoScalingMechanism {
-	return []KindBasicAutoScalingMechanism{KindAddRemoveReplica, KindAutoScalingMechanism}
-}
-
-// KindBasicAutoScalingMetric enumerates the values for kind basic auto scaling metric.
-type KindBasicAutoScalingMetric string
-
-const (
-	// KindAutoScalingMetric ...
-	KindAutoScalingMetric KindBasicAutoScalingMetric = "AutoScalingMetric"
-	// KindResource ...
-	KindResource KindBasicAutoScalingMetric = "Resource"
-)
-
-// PossibleKindBasicAutoScalingMetricValues returns an array of possible values for the KindBasicAutoScalingMetric const type.
-func PossibleKindBasicAutoScalingMetricValues() []KindBasicAutoScalingMetric {
-	return []KindBasicAutoScalingMetric{KindAutoScalingMetric, KindResource}
-}
-
-// KindBasicAutoScalingTrigger enumerates the values for kind basic auto scaling trigger.
-type KindBasicAutoScalingTrigger string
-
-const (
-	// KindAutoScalingTrigger ...
-	KindAutoScalingTrigger KindBasicAutoScalingTrigger = "AutoScalingTrigger"
-	// KindAverageLoad ...
-	KindAverageLoad KindBasicAutoScalingTrigger = "AverageLoad"
-)
-
-// PossibleKindBasicAutoScalingTriggerValues returns an array of possible values for the KindBasicAutoScalingTrigger const type.
-func PossibleKindBasicAutoScalingTriggerValues() []KindBasicAutoScalingTrigger {
-	return []KindBasicAutoScalingTrigger{KindAutoScalingTrigger, KindAverageLoad}
-}
-
-// KindBasicDiagnosticsSinkProperties enumerates the values for kind basic diagnostics sink properties.
-type KindBasicDiagnosticsSinkProperties string
-
-const (
-	// KindAzureInternalMonitoringPipeline ...
-	KindAzureInternalMonitoringPipeline KindBasicDiagnosticsSinkProperties = "AzureInternalMonitoringPipeline"
-	// KindDiagnosticsSinkProperties ...
-	KindDiagnosticsSinkProperties KindBasicDiagnosticsSinkProperties = "DiagnosticsSinkProperties"
-)
-
-// PossibleKindBasicDiagnosticsSinkPropertiesValues returns an array of possible values for the KindBasicDiagnosticsSinkProperties const type.
-func PossibleKindBasicDiagnosticsSinkPropertiesValues() []KindBasicDiagnosticsSinkProperties {
-	return []KindBasicDiagnosticsSinkProperties{KindAzureInternalMonitoringPipeline, KindDiagnosticsSinkProperties}
-}
-
-// KindBasicNetworkResourcePropertiesBase enumerates the values for kind basic network resource properties
-// base.
-type KindBasicNetworkResourcePropertiesBase string
-
-const (
-	// KindLocal ...
-	KindLocal KindBasicNetworkResourcePropertiesBase = "Local"
-	// KindNetworkResourceProperties ...
-	KindNetworkResourceProperties KindBasicNetworkResourcePropertiesBase = "NetworkResourceProperties"
-	// KindNetworkResourcePropertiesBase ...
-	KindNetworkResourcePropertiesBase KindBasicNetworkResourcePropertiesBase = "NetworkResourcePropertiesBase"
-)
-
-// PossibleKindBasicNetworkResourcePropertiesBaseValues returns an array of possible values for the KindBasicNetworkResourcePropertiesBase const type.
-func PossibleKindBasicNetworkResourcePropertiesBaseValues() []KindBasicNetworkResourcePropertiesBase {
-	return []KindBasicNetworkResourcePropertiesBase{KindLocal, KindNetworkResourceProperties, KindNetworkResourcePropertiesBase}
-}
-
-// NetworkKind enumerates the values for network kind.
-type NetworkKind string
-
-const (
-	// Local Indicates a container network local to a single Service Fabric cluster. The value is 1.
-	Local NetworkKind = "Local"
-)
-
-// PossibleNetworkKindValues returns an array of possible values for the NetworkKind const type.
-func PossibleNetworkKindValues() []NetworkKind {
-	return []NetworkKind{Local}
-}
-
-// OperatingSystemType enumerates the values for operating system type.
-type OperatingSystemType string
-
-const (
-	// Linux The required operating system is Linux.
-	Linux OperatingSystemType = "Linux"
-	// Windows The required operating system is Windows.
-	Windows OperatingSystemType = "Windows"
-)
-
-// PossibleOperatingSystemTypeValues returns an array of possible values for the OperatingSystemType const type.
-func PossibleOperatingSystemTypeValues() []OperatingSystemType {
-	return []OperatingSystemType{Linux, Windows}
-}
-
-// ResourceStatus enumerates the values for resource status.
-type ResourceStatus string
-
-const (
-	// Creating Indicates the resource is being created. The value is 3.
-	Creating ResourceStatus = "Creating"
-	// Deleting Indicates the resource is being deleted. The value is 4.
-	Deleting ResourceStatus = "Deleting"
-	// Failed Indicates the resource is not functional due to persistent failures. See statusDetails property
-	// for more details. The value is 5.
-	Failed ResourceStatus = "Failed"
-	// Ready Indicates the resource is ready. The value is 1.
-	Ready ResourceStatus = "Ready"
-	// Unknown Indicates the resource status is unknown. The value is zero.
-	Unknown ResourceStatus = "Unknown"
-	// Upgrading Indicates the resource is upgrading. The value is 2.
-	Upgrading ResourceStatus = "Upgrading"
-)
-
-// PossibleResourceStatusValues returns an array of possible values for the ResourceStatus const type.
-func PossibleResourceStatusValues() []ResourceStatus {
-	return []ResourceStatus{Creating, Deleting, Failed, Ready, Unknown, Upgrading}
-}
-
-// SecretKind enumerates the values for secret kind.
-type SecretKind string
-
-const (
-	// InlinedValue A simple secret resource whose plaintext value is provided by the user.
-	InlinedValue SecretKind = "inlinedValue"
-)
-
-// PossibleSecretKindValues returns an array of possible values for the SecretKind const type.
-func PossibleSecretKindValues() []SecretKind {
-	return []SecretKind{InlinedValue}
-}
-
-// SizeTypes enumerates the values for size types.
-type SizeTypes string
-
-const (
-	// Large ...
-	Large SizeTypes = "Large"
-	// Medium ...
-	Medium SizeTypes = "Medium"
-	// Small ...
-	Small SizeTypes = "Small"
-)
-
-// PossibleSizeTypesValues returns an array of possible values for the SizeTypes const type.
-func PossibleSizeTypesValues() []SizeTypes {
-	return []SizeTypes{Large, Medium, Small}
-}
-
-// VolumeProvider enumerates the values for volume provider.
-type VolumeProvider string
-
-const (
-	// SFAzureFile Provides volumes that are backed by Azure Files.
-	SFAzureFile VolumeProvider = "SFAzureFile"
-)
-
-// PossibleVolumeProviderValues returns an array of possible values for the VolumeProvider const type.
-func PossibleVolumeProviderValues() []VolumeProvider {
-	return []VolumeProvider{SFAzureFile}
-}
-
 // AddRemoveReplicaScalingMechanism describes the horizontal auto scaling mechanism that adds or removes
 // replicas (containers or container groups).
 type AddRemoveReplicaScalingMechanism struct {
@@ -422,6 +97,24 @@ type ApplicationProperties struct {
 	HealthState HealthState `json:"healthState,omitempty"`
 	// UnhealthyEvaluation - READ-ONLY; When the application's health state is not 'Ok', this additional details from service fabric Health Manager for the user to know why the application is marked unhealthy.
 	UnhealthyEvaluation *string `json:"unhealthyEvaluation,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationProperties.
+func (ap ApplicationProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.Description != nil {
+		objectMap["description"] = ap.Description
+	}
+	if ap.Services != nil {
+		objectMap["services"] = ap.Services
+	}
+	if ap.Diagnostics != nil {
+		objectMap["diagnostics"] = ap.Diagnostics
+	}
+	if ap.DebugParams != nil {
+		objectMap["debugParams"] = ap.DebugParams
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationResourceDescription this type describes an application resource.
@@ -603,10 +296,15 @@ func (ardl ApplicationResourceDescriptionList) IsEmpty() bool {
 	return ardl.Value == nil || len(*ardl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ardl ApplicationResourceDescriptionList) hasNextLink() bool {
+	return ardl.NextLink != nil && len(*ardl.NextLink) != 0
+}
+
 // applicationResourceDescriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ardl ApplicationResourceDescriptionList) applicationResourceDescriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if ardl.NextLink == nil || len(to.String(ardl.NextLink)) < 1 {
+	if !ardl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -634,11 +332,16 @@ func (page *ApplicationResourceDescriptionListPage) NextWithContext(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ardl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ardl)
+		if err != nil {
+			return err
+		}
+		page.ardl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ardl = next
 	return nil
 }
 
@@ -694,6 +397,24 @@ type ApplicationResourceProperties struct {
 	HealthState HealthState `json:"healthState,omitempty"`
 	// UnhealthyEvaluation - READ-ONLY; When the application's health state is not 'Ok', this additional details from service fabric Health Manager for the user to know why the application is marked unhealthy.
 	UnhealthyEvaluation *string `json:"unhealthyEvaluation,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ApplicationResourceProperties.
+func (arp ApplicationResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if arp.Description != nil {
+		objectMap["description"] = arp.Description
+	}
+	if arp.Services != nil {
+		objectMap["services"] = arp.Services
+	}
+	if arp.Diagnostics != nil {
+		objectMap["diagnostics"] = arp.Diagnostics
+	}
+	if arp.DebugParams != nil {
+		objectMap["debugParams"] = arp.DebugParams
+	}
+	return json.Marshal(objectMap)
 }
 
 // ApplicationScopedVolume describes a volume whose lifetime is scoped to the application's lifetime.
@@ -1411,6 +1132,54 @@ type ContainerCodePackageProperties struct {
 	InstanceView *ContainerInstanceView `json:"instanceView,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ContainerCodePackageProperties.
+func (ccpp ContainerCodePackageProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ccpp.Name != nil {
+		objectMap["name"] = ccpp.Name
+	}
+	if ccpp.Image != nil {
+		objectMap["image"] = ccpp.Image
+	}
+	if ccpp.ImageRegistryCredential != nil {
+		objectMap["imageRegistryCredential"] = ccpp.ImageRegistryCredential
+	}
+	if ccpp.Entrypoint != nil {
+		objectMap["entrypoint"] = ccpp.Entrypoint
+	}
+	if ccpp.Commands != nil {
+		objectMap["commands"] = ccpp.Commands
+	}
+	if ccpp.EnvironmentVariables != nil {
+		objectMap["environmentVariables"] = ccpp.EnvironmentVariables
+	}
+	if ccpp.Settings != nil {
+		objectMap["settings"] = ccpp.Settings
+	}
+	if ccpp.Labels != nil {
+		objectMap["labels"] = ccpp.Labels
+	}
+	if ccpp.Endpoints != nil {
+		objectMap["endpoints"] = ccpp.Endpoints
+	}
+	if ccpp.Resources != nil {
+		objectMap["resources"] = ccpp.Resources
+	}
+	if ccpp.VolumeRefs != nil {
+		objectMap["volumeRefs"] = ccpp.VolumeRefs
+	}
+	if ccpp.Volumes != nil {
+		objectMap["volumes"] = ccpp.Volumes
+	}
+	if ccpp.Diagnostics != nil {
+		objectMap["diagnostics"] = ccpp.Diagnostics
+	}
+	if ccpp.ReliableCollectionsRefs != nil {
+		objectMap["reliableCollectionsRefs"] = ccpp.ReliableCollectionsRefs
+	}
+	return json.Marshal(objectMap)
+}
+
 // ContainerEvent a container event.
 type ContainerEvent struct {
 	// Name - The name of the container event.
@@ -1686,6 +1455,27 @@ type GatewayProperties struct {
 	IPAddress *string `json:"ipAddress,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for GatewayProperties.
+func (gp GatewayProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if gp.Description != nil {
+		objectMap["description"] = gp.Description
+	}
+	if gp.SourceNetwork != nil {
+		objectMap["sourceNetwork"] = gp.SourceNetwork
+	}
+	if gp.DestinationNetwork != nil {
+		objectMap["destinationNetwork"] = gp.DestinationNetwork
+	}
+	if gp.TCP != nil {
+		objectMap["tcp"] = gp.TCP
+	}
+	if gp.HTTP != nil {
+		objectMap["http"] = gp.HTTP
+	}
+	return json.Marshal(objectMap)
+}
+
 // GatewayResourceDescription this type describes a gateway resource.
 type GatewayResourceDescription struct {
 	autorest.Response `json:"-"`
@@ -1796,8 +1586,8 @@ type GatewayResourceDescriptionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// GatewayResourceDescriptionListIterator provides access to a complete listing of
-// GatewayResourceDescription values.
+// GatewayResourceDescriptionListIterator provides access to a complete listing of GatewayResourceDescription
+// values.
 type GatewayResourceDescriptionListIterator struct {
 	i    int
 	page GatewayResourceDescriptionListPage
@@ -1865,10 +1655,15 @@ func (grdl GatewayResourceDescriptionList) IsEmpty() bool {
 	return grdl.Value == nil || len(*grdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (grdl GatewayResourceDescriptionList) hasNextLink() bool {
+	return grdl.NextLink != nil && len(*grdl.NextLink) != 0
+}
+
 // gatewayResourceDescriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (grdl GatewayResourceDescriptionList) gatewayResourceDescriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if grdl.NextLink == nil || len(to.String(grdl.NextLink)) < 1 {
+	if !grdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1896,11 +1691,16 @@ func (page *GatewayResourceDescriptionListPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.grdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.grdl)
+		if err != nil {
+			return err
+		}
+		page.grdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.grdl = next
 	return nil
 }
 
@@ -1954,6 +1754,27 @@ type GatewayResourceProperties struct {
 	StatusDetails *string `json:"statusDetails,omitempty"`
 	// IPAddress - READ-ONLY; IP address of the gateway. This is populated in the response and is ignored for incoming requests.
 	IPAddress *string `json:"ipAddress,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GatewayResourceProperties.
+func (grp GatewayResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if grp.Description != nil {
+		objectMap["description"] = grp.Description
+	}
+	if grp.SourceNetwork != nil {
+		objectMap["sourceNetwork"] = grp.SourceNetwork
+	}
+	if grp.DestinationNetwork != nil {
+		objectMap["destinationNetwork"] = grp.DestinationNetwork
+	}
+	if grp.TCP != nil {
+		objectMap["tcp"] = grp.TCP
+	}
+	if grp.HTTP != nil {
+		objectMap["http"] = grp.HTTP
+	}
+	return json.Marshal(objectMap)
 }
 
 // HTTPConfig describes the http configuration for external connectivity for this network.
@@ -2022,10 +1843,10 @@ type ImageRegistryCredential struct {
 	Password *string `json:"password,omitempty"`
 }
 
-// InlinedValueSecretResourceProperties describes the properties of a secret resource whose value is
-// provided explicitly as plaintext. The secret resource may have multiple values, each being uniquely
-// versioned. The secret value of each version is stored encrypted, and delivered as plaintext into the
-// context of applications referencing it.
+// InlinedValueSecretResourceProperties describes the properties of a secret resource whose value is provided
+// explicitly as plaintext. The secret resource may have multiple values, each being uniquely versioned. The
+// secret value of each version is stored encrypted, and delivered as plaintext into the context of
+// applications referencing it.
 type InlinedValueSecretResourceProperties struct {
 	// Description - User readable description of the secret.
 	Description *string `json:"description,omitempty"`
@@ -2140,9 +1961,9 @@ func (lnrp LocalNetworkResourceProperties) AsBasicNetworkResourcePropertiesBase(
 	return &lnrp, true
 }
 
-// ManagedProxyResource the resource model definition for Azure Resource Manager proxy resource. It will
-// have everything other than required location and tags. This proxy resource is explicitly created or
-// updated by including it in the parent resource.
+// ManagedProxyResource the resource model definition for Azure Resource Manager proxy resource. It will have
+// everything other than required location and tags. This proxy resource is explicitly created or updated by
+// including it in the parent resource.
 type ManagedProxyResource struct {
 	// ID - READ-ONLY; Fully qualified identifier for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -2150,6 +1971,15 @@ type ManagedProxyResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ManagedProxyResource.
+func (mpr ManagedProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mpr.Name != nil {
+		objectMap["name"] = mpr.Name
+	}
+	return json.Marshal(objectMap)
 }
 
 // NetworkRef describes a network reference in a service.
@@ -2267,8 +2097,8 @@ type NetworkResourceDescriptionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// NetworkResourceDescriptionListIterator provides access to a complete listing of
-// NetworkResourceDescription values.
+// NetworkResourceDescriptionListIterator provides access to a complete listing of NetworkResourceDescription
+// values.
 type NetworkResourceDescriptionListIterator struct {
 	i    int
 	page NetworkResourceDescriptionListPage
@@ -2336,10 +2166,15 @@ func (nrdl NetworkResourceDescriptionList) IsEmpty() bool {
 	return nrdl.Value == nil || len(*nrdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (nrdl NetworkResourceDescriptionList) hasNextLink() bool {
+	return nrdl.NextLink != nil && len(*nrdl.NextLink) != 0
+}
+
 // networkResourceDescriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (nrdl NetworkResourceDescriptionList) networkResourceDescriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if nrdl.NextLink == nil || len(to.String(nrdl.NextLink)) < 1 {
+	if !nrdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2367,11 +2202,16 @@ func (page *NetworkResourceDescriptionListPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.nrdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.nrdl)
+		if err != nil {
+			return err
+		}
+		page.nrdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.nrdl = next
 	return nil
 }
 
@@ -2601,6 +2441,15 @@ type OperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if olr.Value != nil {
+		objectMap["value"] = olr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationListResultIterator provides access to a complete listing of OperationResult values.
 type OperationListResultIterator struct {
 	i    int
@@ -2669,10 +2518,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2700,11 +2554,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -2785,8 +2644,8 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// ResourceLimits this type describes the resource limits for a given container. It describes the most
-// amount of resources a container is allowed to use before being restarted.
+// ResourceLimits this type describes the resource limits for a given container. It describes the most amount
+// of resources a container is allowed to use before being restarted.
 type ResourceLimits struct {
 	// MemoryInGB - The memory limit in GB.
 	MemoryInGB *float64 `json:"memoryInGB,omitempty"`
@@ -2794,10 +2653,9 @@ type ResourceLimits struct {
 	CPU *float64 `json:"cpu,omitempty"`
 }
 
-// ResourceRequests this type describes the requested resources for a given container. It describes the
-// least amount of resources required for the container. A container can consume more than requested
-// resources up to the specified limits before being restarted. Currently, the requested resources are
-// treated as limits.
+// ResourceRequests this type describes the requested resources for a given container. It describes the least
+// amount of resources required for the container. A container can consume more than requested resources up to
+// the specified limits before being restarted. Currently, the requested resources are treated as limits.
 type ResourceRequests struct {
 	// MemoryInGB - The memory request in GB for this container.
 	MemoryInGB *float64 `json:"memoryInGB,omitempty"`
@@ -2989,10 +2847,15 @@ func (srdl SecretResourceDescriptionList) IsEmpty() bool {
 	return srdl.Value == nil || len(*srdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (srdl SecretResourceDescriptionList) hasNextLink() bool {
+	return srdl.NextLink != nil && len(*srdl.NextLink) != 0
+}
+
 // secretResourceDescriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (srdl SecretResourceDescriptionList) secretResourceDescriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if srdl.NextLink == nil || len(to.String(srdl.NextLink)) < 1 {
+	if !srdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3020,11 +2883,16 @@ func (page *SecretResourceDescriptionListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.srdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.srdl)
+		if err != nil {
+			return err
+		}
+		page.srdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.srdl = next
 	return nil
 }
 
@@ -3263,8 +3131,8 @@ type SecretValueProperties struct {
 	Value *string `json:"value,omitempty"`
 }
 
-// SecretValueResourceDescription this type describes a value of a secret resource. The name of this
-// resource is the version identifier corresponding to this secret value.
+// SecretValueResourceDescription this type describes a value of a secret resource. The name of this resource
+// is the version identifier corresponding to this secret value.
 type SecretValueResourceDescription struct {
 	autorest.Response `json:"-"`
 	// SecretValueResourceProperties - This type describes properties of a secret value resource.
@@ -3365,8 +3233,8 @@ func (svrd *SecretValueResourceDescription) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// SecretValueResourceDescriptionList a pageable list of values of a secret resource. The information does
-// not include only the name of the value and not the actual unencrypted value.
+// SecretValueResourceDescriptionList a pageable list of values of a secret resource. The information does not
+// include only the name of the value and not the actual unencrypted value.
 type SecretValueResourceDescriptionList struct {
 	autorest.Response `json:"-"`
 	// Value - One page of the list.
@@ -3444,10 +3312,15 @@ func (svrdl SecretValueResourceDescriptionList) IsEmpty() bool {
 	return svrdl.Value == nil || len(*svrdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (svrdl SecretValueResourceDescriptionList) hasNextLink() bool {
+	return svrdl.NextLink != nil && len(*svrdl.NextLink) != 0
+}
+
 // secretValueResourceDescriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (svrdl SecretValueResourceDescriptionList) secretValueResourceDescriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if svrdl.NextLink == nil || len(to.String(svrdl.NextLink)) < 1 {
+	if !svrdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3475,11 +3348,16 @@ func (page *SecretValueResourceDescriptionListPage) NextWithContext(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.svrdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.svrdl)
+		if err != nil {
+			return err
+		}
+		page.svrdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.svrdl = next
 	return nil
 }
 
@@ -3521,6 +3399,15 @@ type SecretValueResourceProperties struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SecretValueResourceProperties.
+func (svrp SecretValueResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if svrp.Value != nil {
+		objectMap["value"] = svrp.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ServiceProperties describes properties of a service resource.
 type ServiceProperties struct {
 	// Description - User readable description of the service.
@@ -3537,6 +3424,21 @@ type ServiceProperties struct {
 	HealthState HealthState `json:"healthState,omitempty"`
 	// UnhealthyEvaluation - READ-ONLY; When the service's health state is not 'Ok', this additional details from service fabric Health Manager for the user to know why the service is marked unhealthy.
 	UnhealthyEvaluation *string `json:"unhealthyEvaluation,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServiceProperties.
+func (sp ServiceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.Description != nil {
+		objectMap["description"] = sp.Description
+	}
+	if sp.ReplicaCount != nil {
+		objectMap["replicaCount"] = sp.ReplicaCount
+	}
+	if sp.AutoScalingPolicies != nil {
+		objectMap["autoScalingPolicies"] = sp.AutoScalingPolicies
+	}
+	return json.Marshal(objectMap)
 }
 
 // ServiceReplicaDescription describes a replica of a service resource.
@@ -3632,10 +3534,15 @@ func (srdl ServiceReplicaDescriptionList) IsEmpty() bool {
 	return srdl.Value == nil || len(*srdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (srdl ServiceReplicaDescriptionList) hasNextLink() bool {
+	return srdl.NextLink != nil && len(*srdl.NextLink) != 0
+}
+
 // serviceReplicaDescriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (srdl ServiceReplicaDescriptionList) serviceReplicaDescriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if srdl.NextLink == nil || len(to.String(srdl.NextLink)) < 1 {
+	if !srdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3663,11 +3570,16 @@ func (page *ServiceReplicaDescriptionListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.srdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.srdl)
+		if err != nil {
+			return err
+		}
+		page.srdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.srdl = next
 	return nil
 }
 
@@ -3798,8 +3710,8 @@ type ServiceResourceDescriptionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ServiceResourceDescriptionListIterator provides access to a complete listing of
-// ServiceResourceDescription values.
+// ServiceResourceDescriptionListIterator provides access to a complete listing of ServiceResourceDescription
+// values.
 type ServiceResourceDescriptionListIterator struct {
 	i    int
 	page ServiceResourceDescriptionListPage
@@ -3867,10 +3779,15 @@ func (srdl ServiceResourceDescriptionList) IsEmpty() bool {
 	return srdl.Value == nil || len(*srdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (srdl ServiceResourceDescriptionList) hasNextLink() bool {
+	return srdl.NextLink != nil && len(*srdl.NextLink) != 0
+}
+
 // serviceResourceDescriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (srdl ServiceResourceDescriptionList) serviceResourceDescriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if srdl.NextLink == nil || len(to.String(srdl.NextLink)) < 1 {
+	if !srdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3898,11 +3815,16 @@ func (page *ServiceResourceDescriptionListPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.srdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.srdl)
+		if err != nil {
+			return err
+		}
+		page.srdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.srdl = next
 	return nil
 }
 
@@ -3964,9 +3886,36 @@ type ServiceResourceProperties struct {
 	UnhealthyEvaluation *string `json:"unhealthyEvaluation,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServiceResourceProperties.
+func (srp ServiceResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if srp.OsType != "" {
+		objectMap["osType"] = srp.OsType
+	}
+	if srp.CodePackages != nil {
+		objectMap["codePackages"] = srp.CodePackages
+	}
+	if srp.NetworkRefs != nil {
+		objectMap["networkRefs"] = srp.NetworkRefs
+	}
+	if srp.Diagnostics != nil {
+		objectMap["diagnostics"] = srp.Diagnostics
+	}
+	if srp.Description != nil {
+		objectMap["description"] = srp.Description
+	}
+	if srp.ReplicaCount != nil {
+		objectMap["replicaCount"] = srp.ReplicaCount
+	}
+	if srp.AutoScalingPolicies != nil {
+		objectMap["autoScalingPolicies"] = srp.AutoScalingPolicies
+	}
+	return json.Marshal(objectMap)
+}
+
 // Setting describes a setting for the container. The setting file path can be fetched from environment
-// variable "Fabric_SettingPath". The path for Windows container is "C:\\secrets". The path for Linux
-// container is "/var/secrets".
+// variable "Fabric_SettingPath". The path for Windows container is "C:\\secrets". The path for Linux container
+// is "/var/secrets".
 type Setting struct {
 	// Name - The name of the setting.
 	Name *string `json:"name,omitempty"`
@@ -4022,6 +3971,21 @@ type VolumeProperties struct {
 	Provider *string `json:"provider,omitempty"`
 	// AzureFileParameters - This type describes a volume provided by an Azure Files file share.
 	AzureFileParameters *VolumeProviderParametersAzureFile `json:"azureFileParameters,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeProperties.
+func (vp VolumeProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vp.Description != nil {
+		objectMap["description"] = vp.Description
+	}
+	if vp.Provider != nil {
+		objectMap["provider"] = vp.Provider
+	}
+	if vp.AzureFileParameters != nil {
+		objectMap["azureFileParameters"] = vp.AzureFileParameters
+	}
+	return json.Marshal(objectMap)
 }
 
 // VolumeProviderParametersAzureFile this type describes a volume provided by an Azure Files file share.
@@ -4223,10 +4187,15 @@ func (vrdl VolumeResourceDescriptionList) IsEmpty() bool {
 	return vrdl.Value == nil || len(*vrdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vrdl VolumeResourceDescriptionList) hasNextLink() bool {
+	return vrdl.NextLink != nil && len(*vrdl.NextLink) != 0
+}
+
 // volumeResourceDescriptionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vrdl VolumeResourceDescriptionList) volumeResourceDescriptionListPreparer(ctx context.Context) (*http.Request, error) {
-	if vrdl.NextLink == nil || len(to.String(vrdl.NextLink)) < 1 {
+	if !vrdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4254,11 +4223,16 @@ func (page *VolumeResourceDescriptionListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vrdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vrdl)
+		if err != nil {
+			return err
+		}
+		page.vrdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vrdl = next
 	return nil
 }
 
@@ -4306,4 +4280,19 @@ type VolumeResourceProperties struct {
 	Provider *string `json:"provider,omitempty"`
 	// AzureFileParameters - This type describes a volume provided by an Azure Files file share.
 	AzureFileParameters *VolumeProviderParametersAzureFile `json:"azureFileParameters,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VolumeResourceProperties.
+func (vrp VolumeResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vrp.Description != nil {
+		objectMap["description"] = vrp.Description
+	}
+	if vrp.Provider != nil {
+		objectMap["provider"] = vrp.Provider
+	}
+	if vrp.AzureFileParameters != nil {
+		objectMap["azureFileParameters"] = vrp.AzureFileParameters
+	}
+	return json.Marshal(objectMap)
 }

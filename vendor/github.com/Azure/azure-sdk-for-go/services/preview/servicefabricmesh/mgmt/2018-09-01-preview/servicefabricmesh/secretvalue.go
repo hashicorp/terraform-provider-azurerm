@@ -321,6 +321,9 @@ func (client SecretValueClient) List(ctx context.Context, resourceGroupName stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.SecretValueClient", "List", resp, "Failure responding to request")
 	}
+	if result.svrdl.hasNextLink() && result.svrdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

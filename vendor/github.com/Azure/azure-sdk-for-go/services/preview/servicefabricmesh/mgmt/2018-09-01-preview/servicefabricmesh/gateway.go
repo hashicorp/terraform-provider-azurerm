@@ -314,6 +314,9 @@ func (client GatewayClient) ListByResourceGroup(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.GatewayClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.grdl.hasNextLink() && result.grdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -423,6 +426,9 @@ func (client GatewayClient) ListBySubscription(ctx context.Context) (result Gate
 	result.grdl, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabricmesh.GatewayClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.grdl.hasNextLink() && result.grdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
