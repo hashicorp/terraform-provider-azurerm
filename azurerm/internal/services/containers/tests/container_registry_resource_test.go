@@ -846,7 +846,7 @@ resource "azurerm_container_registry" "test" {
 
   policies {
     retention_policy {
-      days = %d
+      days   = %d
       status = "enabled"
     }
 
@@ -879,12 +879,12 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   admin_enabled       = false
   sku                 = "Basic"
-	network_rule_set = []
-	
-	policies {
-		retention_policy {}
-		trust_policy     {}
-	}
+  network_rule_set    = []
+
+  policies {
+    retention_policy {}
+    trust_policy {}
+  }
 
   tags = {
     environment = "production"
