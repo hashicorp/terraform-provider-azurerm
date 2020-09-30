@@ -96,7 +96,7 @@ func TestAccAzureRMCosmosDbMongoDatabase_serverless(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: 	testAccAzureRMCosmosDbMongoDatabase_serverless(data),
+				Config: testAccAzureRMCosmosDbMongoDatabase_serverless(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoDatabaseExists(data.ResourceName),
 				),
