@@ -81,7 +81,7 @@ func (client ResourceProviderCommonClient) GetSubscriptionQuotaPreparer(ctx cont
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-03-22-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

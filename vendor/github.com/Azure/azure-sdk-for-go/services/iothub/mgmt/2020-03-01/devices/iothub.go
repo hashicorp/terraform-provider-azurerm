@@ -42,11 +42,13 @@ func NewIotHubClientWithBaseURI(baseURI string, subscriptionID string) IotHubCli
 	return IotHubClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ManualFailover perform manual fail over of given hub
+// ManualFailover manually initiate a failover for the IoT Hub to its secondary region. To learn more, see
+// https://aka.ms/manualfailover
 // Parameters:
-// iotHubName - iotHub to fail over
-// failoverInput - region to failover to. Must be a azure DR pair
-// resourceGroupName - resource group which Iot Hub belongs to
+// iotHubName - name of the IoT hub to failover
+// failoverInput - region to failover to. Must be the Azure paired region. Get the value from the secondary
+// location in the locations property. To learn more, see https://aka.ms/manualfailover/region
+// resourceGroupName - name of the resource group containing the IoT hub resource
 func (client IotHubClient) ManualFailover(ctx context.Context, iotHubName string, failoverInput FailoverInput, resourceGroupName string) (result IotHubManualFailoverFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotHubClient.ManualFailover")
@@ -87,7 +89,7 @@ func (client IotHubClient) ManualFailoverPreparer(ctx context.Context, iotHubNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-03-22-preview"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
