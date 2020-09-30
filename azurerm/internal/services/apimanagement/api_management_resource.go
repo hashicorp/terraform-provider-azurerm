@@ -862,23 +862,14 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			output["key_vault_id"] = *config.KeyVaultID
 		}
 
-		// Iterate through old state to find sensitive props not returned by API.
-		// This must be done in order to avoid state diffs.
-		// NOTE: this information won't be available during times like Import, so this is a best-effort.
 		existingHostnames := d.Get("hostname_configuration").([]interface{})
 		if len(existingHostnames) > 0 {
 			v := existingHostnames[0].(map[string]interface{})
 
-			if valsRaw, ok := v[azure.ToSnakeCase(string(config.Type))]; ok {
+			snakeCaseConfigType := azure.ToSnakeCase(string(config.Type))
+			if valsRaw, ok := v[snakeCaseConfigType]; ok {
 				vals := valsRaw.([]interface{})
-				for _, val := range vals {
-					oldConfig := val.(map[string]interface{})
-
-					if oldConfig["host_name"] == *config.HostName {
-						output["certificate_password"] = oldConfig["certificate_password"]
-						output["certificate"] = oldConfig["certificate"]
-					}
-				}
+				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
 			}
 		}
 

@@ -161,6 +161,9 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -173,6 +176,52 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
   sku_name            = "Developer_1"
+
+  identity {
+	type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkeyvault%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "create",
+      "delete",
+      "get",
+      "update",
+	]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "get",
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_api_management.test.identity.principal_id
+
+    certificate_permissions = [
+      "get",
+	]
+
+    secret_permissions = [
+      "get",
+    ]
+  }
 }
 
 resource "azurerm_key_vault_certificate" "test" {

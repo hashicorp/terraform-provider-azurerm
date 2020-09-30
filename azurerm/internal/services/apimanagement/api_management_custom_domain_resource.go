@@ -35,9 +35,12 @@ func resourceArmApiManagementCustomDomain() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 
 			"management": {
 				Type:         schema.TypeList,
@@ -90,8 +93,10 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 
 	log.Printf("[INFO] preparing arguments for API Management Custom domain creation.")
 
-	name := d.Get("api_management_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	apiManagementID := d.Get("api_management_id").(string)
+	id, err := azure.ParseAzureResourceID(apiManagementID)
+	resourceGroup := id.Path["resourceGroups"]
+	name := id.Path["service"]
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -99,7 +104,7 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.IsNewResource() {
-		if existing.ServiceProperties.HostnameConfigurations != nil {
+		if existing.ServiceProperties != nil && existing.ServiceProperties.HostnameConfigurations != nil {
 			return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.ID)
 		}
 	}
@@ -118,7 +123,8 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("cannot read ID for Custom Domain (API Management %q / Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	customDomainsID := fmt.Sprintf("%s/customDomains/default", *read.ID)
+	d.SetId(customDomainsID)
 
 	return apiManagementCustomDomainRead(d, meta)
 }
@@ -148,9 +154,9 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", resp.Name)
+	d.Set("api_management_id", resp.ID)
 
-	if props := resp.ServiceProperties.HostnameConfigurations; props != nil {
+	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
 		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
@@ -275,20 +281,10 @@ func flattenApiManagementHostnameConfiguration(input *[]apimanagement.HostnameCo
 			output["key_vault_id"] = *config.KeyVaultID
 		}
 
-		// Iterate through old state to find sensitive props not returned by API.
-		// This must be done in order to avoid state diffs.
-		// NOTE: this information won't be available during times like Import, so this is a best-effort.
 		snakeCaseConfigType := azure.ToSnakeCase(string(config.Type))
 		if valsRaw, ok := d.GetOk(snakeCaseConfigType); ok {
 			vals := valsRaw.([]interface{})
-			for _, val := range vals {
-				oldConfig := val.(map[string]interface{})
-
-				if oldConfig["host_name"] == *config.HostName {
-					output["certificate_password"] = oldConfig["certificate_password"]
-					output["certificate"] = oldConfig["certificate"]
-				}
-			}
+			azure.CopyCertificateAndPassword(vals, *config.HostName, output)
 		}
 
 		switch strings.ToLower(string(config.Type)) {
