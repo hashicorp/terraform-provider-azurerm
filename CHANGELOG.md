@@ -1,4 +1,9 @@
 ## 2.31.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_key_vault_certificate_issuer` - `org_id` is now optional [GH-8687]
+
 ## 2.30.0 (October 01, 2020)
 
 UPGRADE NOTES
