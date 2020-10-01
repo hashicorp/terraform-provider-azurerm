@@ -52,7 +52,7 @@ TEMPLATE
 
 The following arguments are supported:
 
-* `deployment_mode` - (Required) The Deployment Mode for this Resource Group Template Deployment. Possible values are `Complete` (where resources in the Resource Group not specified in the ARM Template will be deployed) and `Incremental` (where resources are additive only).
+* `deployment_mode` - (Required) The Deployment Mode for this Resource Group Template Deployment. Possible values are `Complete` (where resources in the Resource Group not specified in the ARM Template will be destroyed) and `Incremental` (where resources are additive only).
 
 * `name` - (Required) The name which should be used for this Resource Group Template Deployment. Changing this forces a new Resource Group Template Deployment to be created.
 
