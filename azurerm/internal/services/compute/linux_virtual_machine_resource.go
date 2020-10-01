@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
@@ -340,8 +341,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	dataDisks := &[]compute.DataDisk{}
 
-	// TODO - put beta env var flag here
-	if true {
+	if features.VMDataDiskBeta() {
 		dataDisks, err = expandVirtualMachineDataDisks(d, meta)
 		if err != nil {
 			return err
@@ -640,8 +640,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 
-		// TODO beta env var here
-		if true {
+		if features.VMDataDiskBeta() {
 			d.Set("data_disk", flattenVirtualMachineDataDisks(profile.DataDisks))
 		}
 	}
@@ -1204,8 +1203,7 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Skipping Deleting OS Disk from Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	}
 
-	// TODO - put beta env var flag here
-	if true {
+	if features.VMDataDiskBeta() {
 		deleteDataDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDisksOnDeletion
 		if deleteDataDisks {
 			if props := existing.VirtualMachineProperties; props != nil && props.StorageProfile != nil && props.StorageProfile.DataDisks != nil {
