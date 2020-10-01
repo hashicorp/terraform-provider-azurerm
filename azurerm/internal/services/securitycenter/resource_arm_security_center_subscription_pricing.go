@@ -88,12 +88,12 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 	resource_type := d.Get("resource_type").(string)
 
 	if _, err := client.Update(ctx, resource_type, pricing); err != nil {
-		return fmt.Errorf("Error creating/updating Security Center Subscription pricing: %+v", err)
+		return fmt.Errorf("Creating/updating Security Center Subscription pricing: %+v", err)
 	}
 
 	resp, err := client.Get(ctx, resource_type)
 	if err != nil {
-		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
+		return fmt.Errorf("Reading Security Center Subscription pricing: %+v", err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Security Center Subscription pricing ID is nil")
@@ -122,7 +122,7 @@ func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("Error reading %q Security Center Subscription pricing: %+v", id.ResourceType, err)
+		return fmt.Errorf("Reading %q Security Center Subscription pricing: %+v", id.ResourceType, err)
 	}
 
 	if properties := resp.PricingProperties; properties != nil {

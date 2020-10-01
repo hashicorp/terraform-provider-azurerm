@@ -59,7 +59,7 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 		server, err := client.Get(ctx, resourceID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
-				return fmt.Errorf("Error checking for presence of existing Advanced Threat Protection for resource %q: %+v", resourceID, err)
+				return fmt.Errorf("Checking for presence of existing Advanced Threat Protection for resource %q: %+v", resourceID, err)
 			}
 		}
 
@@ -76,7 +76,7 @@ func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, met
 
 	resp, err := client.Create(ctx, resourceID, setting)
 	if err != nil {
-		return fmt.Errorf("Error updating Advanced Threat protection for resource %q: %+v", resourceID, err)
+		return fmt.Errorf("Updating Advanced Threat protection for resource %q: %+v", resourceID, err)
 	}
 
 	if resp.ID == nil {
@@ -105,7 +105,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Advanced Threat protection for resource %q: %+v", id.TargetResourceID, err)
+		return fmt.Errorf("Reading Advanced Threat protection for resource %q: %+v", id.TargetResourceID, err)
 	}
 
 	d.Set("target_resource_id", id.TargetResourceID)
@@ -134,7 +134,7 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := client.Create(ctx, id.TargetResourceID, setting); err != nil {
-		return fmt.Errorf("Error resetting Advanced Threat protection to false for resource %q: %+v", id.TargetResourceID, err)
+		return fmt.Errorf("Resetting Advanced Threat protection to false for resource %q: %+v", id.TargetResourceID, err)
 	}
 
 	return nil

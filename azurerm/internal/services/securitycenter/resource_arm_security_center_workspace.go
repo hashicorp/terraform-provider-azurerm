@@ -67,7 +67,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Security Center Workspace: %+v", err)
+				return fmt.Errorf("Checking for presence of existing Security Center Workspace: %+v", err)
 			}
 		}
 
@@ -81,7 +81,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	isPricingStandard, err := isPricingStandard(ctx, priceClient)
 
 	if err != nil {
-		return fmt.Errorf("Error checking Security Center Subscription pricing tier %v", err)
+		return fmt.Errorf("Checking Security Center Subscription pricing tier %v", err)
 	}
 
 	if !isPricingStandard {
@@ -97,10 +97,10 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 
 	if d.IsNewResource() {
 		if _, err = client.Create(ctx, name, contact); err != nil {
-			return fmt.Errorf("Error creating Security Center Workspace: %+v", err)
+			return fmt.Errorf("Creating Security Center Workspace: %+v", err)
 		}
 	} else if _, err = client.Update(ctx, name, contact); err != nil {
-		return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
+		return fmt.Errorf("Updating Security Center Workspace: %+v", err)
 	}
 
 	// api returns "" for workspace id after an create/update and eventually the new value
@@ -111,7 +111,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, name)
 			if err2 != nil {
-				return resp, "Error", fmt.Errorf("Error reading Security Center Workspace: %+v", err2)
+				return resp, "Error", fmt.Errorf("Reading Security Center Workspace: %+v", err2)
 			}
 
 			if properties := resp.WorkspaceSettingProperties; properties != nil {
@@ -132,7 +132,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 
 	resp, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("Error waiting: %+v", err)
+		return fmt.Errorf("Waiting: %+v", err)
 	}
 
 	if d.IsNewResource() {
@@ -145,7 +145,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 func isPricingStandard(ctx context.Context, priceClient *security.PricingsClient) (bool, error) {
 	prices, err := priceClient.List(ctx)
 	if err != nil {
-		return false, fmt.Errorf("Error listing Security Center Subscription pricing: %+v", err)
+		return false, fmt.Errorf("Listing Security Center Subscription pricing: %+v", err)
 	}
 
 	if prices.Value != nil {
@@ -176,7 +176,7 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Security Center Workspace: %+v", err)
+		return fmt.Errorf("Reading Security Center Workspace: %+v", err)
 	}
 
 	if properties := resp.WorkspaceSettingProperties; properties != nil {
@@ -199,7 +199,7 @@ func resourceArmSecurityCenterWorkspaceDelete(d *schema.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Security Center Workspace: %+v", err)
+		return fmt.Errorf("Deleting Security Center Workspace: %+v", err)
 	}
 
 	return nil
