@@ -20,12 +20,14 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - support the `zone_reduntant` property [GH-8295]
 * `azurerm_cosmosdb_mongo_collection` - will now respect the order of the `keys` property in the `index` block [GH-8602]
 * `azurerm_hpc_cache` -  support the `mtu` and `root_squash_enabled` properties [GH-8078]
+* `azurerm_key_vault` - add support for `enable_rbac_authorization` [GH-8670]
 * `azurerm_lighthouse_assignment` - limit the `scope` property to subsriptions [GH-8601]
 * `azurerm_logic_app_workflow` - support for the `integration_service_environment_id` property [GH-8504]
 * `azurerm_servicebus_topic` - validate the `max_size_in_megabytes` property [GH-8648]
 * `azurerm_servicebus_queue` - validate the `max_size_in_megabytes` property [GH-8648]
 * `azurerm_servicebus_subscription_rule` - support the `correlation_filter.properties` property [GH-8646]
-* `storage_management_policy` - support the `appendBlob` value for `blob_types` [GH-8659]
+* `azurerm_storage_management_policy` - support the `appendBlob` value for `blob_types` [GH-8659]
+
 
 BUG FIXES:
 
