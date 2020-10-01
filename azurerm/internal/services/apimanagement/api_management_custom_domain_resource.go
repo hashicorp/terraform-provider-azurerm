@@ -98,7 +98,7 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.Path["resourceGroups"]
+	resourceGroup := id.ResourceGroup
 	name := id.Path["service"]
 
 	existing, err := client.Get(ctx, resourceGroup, name)
