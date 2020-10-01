@@ -109,10 +109,6 @@ The following arguments are supported:
 
 * `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_F2`.
 
-* `data_diska` - (Optional) A `data_disk` block as defined below
-
-!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VM_DATADISK_BETA` is set to `true` to be used.
-
 ---
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
@@ -135,6 +131,10 @@ The following arguments are supported:
 * `computer_name` - (Optional) Specifies the Hostname which should be used for this Virtual Machine. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name`, then you must specify `computer_name`. Changing this forces a new resource to be created.
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created.
+
+* `data_disk` - (Optional) One or more `data_disk` block as defined below
+
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VM_DATADISK_BETA` is set to `true` to be used.
 
 * `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Changing this forces a new resource to be created.
 
@@ -203,6 +203,32 @@ A `admin_ssh_key` block supports the following:
 A `boot_diagnostics` block supports the following:
 
 * `storage_account_uri` - (Required) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
+
+---
+
+A `data_disk` block supports the following:
+
+* `name` - (Required) The name of the Managed Disk. 
+
+* `lun` - (Required) The Logical Unit Number for the disk on the VM. (Must be unique)
+
+* `caching` - (Required) The caching mode for the managed disk. Possible values include: `None`, `ReadOnly`, and `ReadWrite`.  
+
+* `storage_account_type` - (Required) The storage account type. Possible values include: `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS`, and `UltraSSD_LRS`.  
+
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this Data Disk. 
+
+-> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
+
+* `disk_size_gb` - (Optional) - The size of the disk in GB. Required if `managed_disk_id` not specified.
+
+* `managed_disk_id` - (Optional) - The ID of the existing Managed Disk to use.
+
+~> **NOTE:** If the `delete_data_disks_on_deletion` feature is enabled (which is the default) existing managed disks will be deleted with the VM.
+
+* `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
+
+-> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
 
 ---
 

@@ -310,7 +310,7 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 
 				"name": {
 					Type:         schema.TypeString,
-					Optional:     true,
+					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
@@ -336,6 +336,7 @@ func virtualMachineDataDiskSchema() *schema.Schema {
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validateManagedDiskSizeGB,
 				},
 

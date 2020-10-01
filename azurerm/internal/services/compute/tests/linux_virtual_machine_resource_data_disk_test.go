@@ -501,7 +501,6 @@ resource "azurerm_linux_virtual_machine" "test" {
     lun                  = 1
     caching              = "None"
     storage_account_type = "Standard_LRS"
-    disk_size_gb         = azurerm_managed_disk.test.disk_size_gb
     managed_disk_id      = azurerm_managed_disk.test.id
   }
 
