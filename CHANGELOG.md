@@ -9,11 +9,14 @@ FEATURES:
 * **New Data Source:** `azurerm_cosmosdb_sql_storedprocedure` [GH-6189]
 * **New Data Source:** `azurerm_ip_groups` [GH-8556]
 * **New Resource:** `azurerm_ip_groups` [GH-8556]
+* **New Resource:** `azurerm_resource_group_template_deployment` [GH-8672]
+* **New Resource:** `azurerm_subscription_template_deployment` [GH-8672]
 
 IMPROVEMENTS:
 
 * dependencies: updating `iothub` to `2020-03-01` [GH-8688]
 * dependencies: updating `storagecache` to `2020-03-01` [GH-8078]
+* dependencies: updating `resources` to API Version `2020-06-01` [GH-8672]
 * `azurerm_analysis_services_server` - support for the `S8v2` and `S9v2` SKU's [GH-8707]
 * `azurerm_cognitive_account` - support for the `S` `sku` [GH-8639]
 * `azurerm_container_group` - support for the `dns_config` block [GH-7912]
