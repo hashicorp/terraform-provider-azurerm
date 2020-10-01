@@ -34,6 +34,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_monitor_metric_alert` - property wait when creating/updating multiple monitor metric alerts [GH-8667]
 * `azurerm_linux_virtual_machine_scale_set` - fix empty JSON error in `settings` and `protected_settings` when these values are not used [GH-8627]
 
 ## 2.29.0 (September 24, 2020)
