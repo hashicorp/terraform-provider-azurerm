@@ -85,7 +85,7 @@ func (client ProvidersClient) GetPreparer(ctx context.Context, resourceProviderN
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -110,6 +110,83 @@ func (client ProvidersClient) GetSender(req *http.Request) (*http.Response, erro
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ProvidersClient) GetResponder(resp *http.Response) (result Provider, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetAtTenantScope gets the specified resource provider at the tenant level.
+// Parameters:
+// resourceProviderNamespace - the namespace of the resource provider.
+// expand - the $expand query parameter. For example, to include property aliases in response, use
+// $expand=resourceTypes/aliases.
+func (client ProvidersClient) GetAtTenantScope(ctx context.Context, resourceProviderNamespace string, expand string) (result Provider, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProvidersClient.GetAtTenantScope")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetAtTenantScopePreparer(ctx, resourceProviderNamespace, expand)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "GetAtTenantScope", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetAtTenantScopeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "GetAtTenantScope", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetAtTenantScopeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "GetAtTenantScope", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetAtTenantScopePreparer prepares the GetAtTenantScope request.
+func (client ProvidersClient) GetAtTenantScopePreparer(ctx context.Context, resourceProviderNamespace string, expand string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceProviderNamespace": autorest.Encode("path", resourceProviderNamespace),
+	}
+
+	const APIVersion = "2020-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/providers/{resourceProviderNamespace}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetAtTenantScopeSender sends the GetAtTenantScope request. The method will close the
+// http.Response Body if it receives an error.
+func (client ProvidersClient) GetAtTenantScopeSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// GetAtTenantScopeResponder handles the response to the GetAtTenantScope request. The method always
+// closes the http.Response Body.
+func (client ProvidersClient) GetAtTenantScopeResponder(resp *http.Response) (result Provider, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -167,7 +244,7 @@ func (client ProvidersClient) ListPreparer(ctx context.Context, top *int32, expa
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -241,6 +318,124 @@ func (client ProvidersClient) ListComplete(ctx context.Context, top *int32, expa
 	return
 }
 
+// ListAtTenantScope gets all resource providers for the tenant.
+// Parameters:
+// top - the number of results to return. If null is passed returns all providers.
+// expand - the properties to include in the results. For example, use &$expand=metadata in the query string to
+// retrieve resource provider metadata. To include property aliases in response, use
+// $expand=resourceTypes/aliases.
+func (client ProvidersClient) ListAtTenantScope(ctx context.Context, top *int32, expand string) (result ProviderListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProvidersClient.ListAtTenantScope")
+		defer func() {
+			sc := -1
+			if result.plr.Response.Response != nil {
+				sc = result.plr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listAtTenantScopeNextResults
+	req, err := client.ListAtTenantScopePreparer(ctx, top, expand)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "ListAtTenantScope", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListAtTenantScopeSender(req)
+	if err != nil {
+		result.plr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "ListAtTenantScope", resp, "Failure sending request")
+		return
+	}
+
+	result.plr, err = client.ListAtTenantScopeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "ListAtTenantScope", resp, "Failure responding to request")
+	}
+	if result.plr.hasNextLink() && result.plr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
+
+	return
+}
+
+// ListAtTenantScopePreparer prepares the ListAtTenantScope request.
+func (client ProvidersClient) ListAtTenantScopePreparer(ctx context.Context, top *int32, expand string) (*http.Request, error) {
+	const APIVersion = "2020-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPath("/providers"),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListAtTenantScopeSender sends the ListAtTenantScope request. The method will close the
+// http.Response Body if it receives an error.
+func (client ProvidersClient) ListAtTenantScopeSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+}
+
+// ListAtTenantScopeResponder handles the response to the ListAtTenantScope request. The method always
+// closes the http.Response Body.
+func (client ProvidersClient) ListAtTenantScopeResponder(resp *http.Response) (result ProviderListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listAtTenantScopeNextResults retrieves the next set of results, if any.
+func (client ProvidersClient) listAtTenantScopeNextResults(ctx context.Context, lastResults ProviderListResult) (result ProviderListResult, err error) {
+	req, err := lastResults.providerListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "resources.ProvidersClient", "listAtTenantScopeNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListAtTenantScopeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "resources.ProvidersClient", "listAtTenantScopeNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListAtTenantScopeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "resources.ProvidersClient", "listAtTenantScopeNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListAtTenantScopeComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ProvidersClient) ListAtTenantScopeComplete(ctx context.Context, top *int32, expand string) (result ProviderListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ProvidersClient.ListAtTenantScope")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListAtTenantScope(ctx, top, expand)
+	return
+}
+
 // Register registers a subscription with a resource provider.
 // Parameters:
 // resourceProviderNamespace - the namespace of the resource provider to register.
@@ -283,7 +478,7 @@ func (client ProvidersClient) RegisterPreparer(ctx context.Context, resourceProv
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -356,7 +551,7 @@ func (client ProvidersClient) UnregisterPreparer(ctx context.Context, resourcePr
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
