@@ -574,8 +574,18 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) []interface{} {
 	result := make([]interface{}, 0)
 	for _, v := range *input {
 		dataDisk := make(map[string]interface{})
-		dataDisk["name"] = *v.Name
-		dataDisk["lun"] = int(*v.Lun)
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
+		dataDisk["name"] = name
+
+		var lun int
+		if v.Lun != nil {
+			lun = int(*v.Lun)
+		}
+		dataDisk["lun"] = lun
+
 		dataDisk["caching"] = string(v.Caching)
 		storageAccountType := ""
 		managedDiskID := ""
@@ -592,7 +602,12 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) []interface{} {
 		dataDisk["storage_account_type"] = storageAccountType
 		dataDisk["managed_disk_id"] = managedDiskID
 		dataDisk["disk_encryption_set_id"] = diskEncryptionSetID
-		dataDisk["disk_size_gb"] = int(*v.DiskSizeGB)
+		var diskSizeGB int
+		if v.DiskSizeGB != nil {
+			diskSizeGB = int(*v.DiskSizeGB)
+		}
+		dataDisk["disk_size_gb"] = diskSizeGB
+
 		dataDisk["create_option"] = v.CreateOption
 
 		writeAccelerator := false
