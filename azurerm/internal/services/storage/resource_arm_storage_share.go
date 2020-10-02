@@ -115,7 +115,7 @@ func resourceArmStorageShare() *schema.Resource {
 
 			"tier": {
 				Type:     schema.TypeString,
-				Required: false,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Cool",
 					"Hot",
