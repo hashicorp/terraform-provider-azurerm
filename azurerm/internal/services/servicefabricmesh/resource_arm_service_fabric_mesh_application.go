@@ -343,7 +343,6 @@ func expandServiceFabricMeshCodePackageResourceRequests(input []interface{}) *se
 	}
 }
 
-// nolint: deadcode unused
 func flattenServiceFabricMeshApplicationServices(input []servicefabricmesh.ServiceResourceDescription) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 
