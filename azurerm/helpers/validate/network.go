@@ -18,21 +18,6 @@ func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 	return warnings, errors
 }
 
-// IsCIDR is a SchemaValidateFunc which tests if the provided value is of type string and a valid IPv4 or IPv6 CIDR
-func IsCIDR(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-		return warnings, errors
-	}
-
-	if _, _, err := net.ParseCIDR(v); err != nil {
-		errors = append(errors, fmt.Errorf("expected %q to be a valid IPv4 or IPv6 Value, got %v: %v", k, i, err))
-	}
-
-	return warnings, errors
-}
-
 func IPv4Address(i interface{}, k string) (warnings []string, errors []error) {
 	return validateIpv4Address(i, k, false)
 }
