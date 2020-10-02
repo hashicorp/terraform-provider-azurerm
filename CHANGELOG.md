@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * `azurerm_dedicated_host` - add support for `DSv4-Type1` `sku_name` [GH-8718]
 * `azurerm_iothub` - Support for `public_network_access_enabled` [GH-8586]
 * `azurerm_key_vault_certificate_issuer` - `org_id` is now optional [GH-8687]
+* `azurerm_mssql_server` - support the `minimum_tls_version` property [GH-8361]
 
 ENHANCEMENTS:
 
