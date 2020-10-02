@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * `azurerm_iothub` - Support for `public_network_access_enabled` [GH-8586]
 * `azurerm_key_vault_certificate_issuer` - `org_id` is now optional [GH-8687]
 * `azurerm_mssql_server` - support the `minimum_tls_version` property [GH-8361]
+* `azurerm_mssql_virtual_machine` - Add support for `storage_configuration_settings` [GH-8623]
 
 ENHANCEMENTS:
 
