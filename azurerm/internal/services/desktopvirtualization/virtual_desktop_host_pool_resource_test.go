@@ -186,7 +186,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   load_balancer_type   = "BreadthFirst"
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
 func testAccAzureRMVirtualDesktopHostPool_complete(data acceptance.TestData) string {
@@ -227,7 +227,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   }
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
 func testAccAzureRMVirtualDesktopHostPool_requiresImport(data acceptance.TestData) string {

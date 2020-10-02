@@ -183,7 +183,7 @@ resource "azurerm_virtual_desktop_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
 }
 
 func testAccAzureRMDesktopVirtualizationWorkspace_complete(data acceptance.TestData) string {
@@ -205,7 +205,7 @@ resource "azurerm_virtual_desktop_workspace" "test" {
   description         = "acceptance test by creating acctws%d"
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), data.RandomInteger)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomInteger)
 }
 
 func testAccAzureRMDesktopVirtualizationWorkspace_requiresImport(data acceptance.TestData) string {

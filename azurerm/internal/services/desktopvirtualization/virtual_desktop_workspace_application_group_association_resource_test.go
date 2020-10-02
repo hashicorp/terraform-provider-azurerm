@@ -216,7 +216,7 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "test
   application_group_reference_id = azurerm_virtual_desktop_application_group.test.id
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
 func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_complete(data acceptance.TestData) string {
@@ -284,7 +284,7 @@ resource "azurerm_virtual_desktop_workspace_application_group_association" "pers
   application_group_reference_id = azurerm_virtual_desktop_application_group.personal.id
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
 }
 
 func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_requiresImport(data acceptance.TestData) string {

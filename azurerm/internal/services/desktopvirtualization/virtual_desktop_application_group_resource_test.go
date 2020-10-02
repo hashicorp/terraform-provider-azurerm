@@ -191,7 +191,7 @@ resource "azurerm_virtual_desktop_application_group" "test" {
   host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
 
 func testAccAzureRMVirtualDesktopApplicationGroup_complete(data acceptance.TestData) string {
@@ -228,7 +228,7 @@ resource "azurerm_virtual_desktop_application_group" "test" {
   }
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
 
 func testAccAzureRMVirtualDesktopApplicationGroup_requiresImport(data acceptance.TestData) string {
