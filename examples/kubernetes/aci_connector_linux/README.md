@@ -1,4 +1,4 @@
-## Example: Virtual Machine with Role Assignment
+## Example: AKS Cluster with Virtual Nodes (ACI)
 
 This example is used to demonstrate how to provision an AKS cluster that uses virtual nodes (Azure Container Instances).
 
