@@ -51,6 +51,39 @@ func TestAccAzureRMDesktopVirtualizationWorkspace_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDesktopVirtualizationWorkspace_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDesktopVirtualizationWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDesktopVirtualizationWorkspace_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDesktopVirtualizationWorkspaceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMDesktopVirtualizationWorkspace_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDesktopVirtualizationWorkspaceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMDesktopVirtualizationWorkspace_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDesktopVirtualizationWorkspaceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDesktopVirtualizationWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_workspace", "test")
 
@@ -165,14 +198,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_workspace" "test" {
-  name                = "acctws%d"
+  name                = "acctestWS%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   friendly_name       = "Acceptance Test!"
   description         = "acceptance test by creating acctws%d"
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8), data.RandomInteger)
 }
 
 func testAccAzureRMDesktopVirtualizationWorkspace_requiresImport(data acceptance.TestData) string {

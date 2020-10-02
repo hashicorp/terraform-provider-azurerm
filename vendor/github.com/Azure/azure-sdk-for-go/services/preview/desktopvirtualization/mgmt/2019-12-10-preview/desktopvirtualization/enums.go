@@ -70,13 +70,13 @@ type HostPoolType string
 const (
 	// Personal ...
 	Personal HostPoolType = "Personal"
-	// Shared ...
-	Shared HostPoolType = "Shared"
+	// Pooled ...
+	Pooled HostPoolType = "Pooled"
 )
 
 // PossibleHostPoolTypeValues returns an array of possible values for the HostPoolType const type.
 func PossibleHostPoolTypeValues() []HostPoolType {
-	return []HostPoolType{Personal, Shared}
+	return []HostPoolType{Personal, Pooled}
 }
 
 // LoadBalancerType enumerates the values for load balancer type.
@@ -126,6 +126,23 @@ const (
 // PossiblePreferredAppGroupTypeValues returns an array of possible values for the PreferredAppGroupType const type.
 func PossiblePreferredAppGroupTypeValues() []PreferredAppGroupType {
 	return []PreferredAppGroupType{PreferredAppGroupTypeDesktop, PreferredAppGroupTypeNone, PreferredAppGroupTypeRailApplications}
+}
+
+// RegistrationTokenOperation enumerates the values for registration token operation.
+type RegistrationTokenOperation string
+
+const (
+	// Delete ...
+	Delete RegistrationTokenOperation = "Delete"
+	// None ...
+	None RegistrationTokenOperation = "None"
+	// Update ...
+	Update RegistrationTokenOperation = "Update"
+)
+
+// PossibleRegistrationTokenOperationValues returns an array of possible values for the RegistrationTokenOperation const type.
+func PossibleRegistrationTokenOperationValues() []RegistrationTokenOperation {
+	return []RegistrationTokenOperation{Delete, None, Update}
 }
 
 // SessionState enumerates the values for session state.

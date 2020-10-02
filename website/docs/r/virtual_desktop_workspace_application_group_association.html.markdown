@@ -1,5 +1,5 @@
 ---
-subcategory: "Network"
+subcategory: "Desktop Virtualization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_desktop_workspace_application_group_association"
 description: |-
@@ -26,7 +26,7 @@ resource "azurerm_virtual_desktop_host_pool" "pooledbreadthfirst" {
   name                = "pooledbreadthfirst"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  type                = "Shared"
+  type                = "Pooled"
   load_balancer_type  = "BreadthFirst"
 }
 

@@ -1,7 +1,7 @@
 ---
-subcategory: "Network"
+subcategory: "Desktop Virtualization"
 layout: "azurerm"
-page_title: "Azure Resource Manager: virtual_desktop_host_pool"
+page_title: "Azure Resource Manager: azurerm_virtual_desktop_host_pool"
 description: |-
   Manages a Virtual Desktop Host Pool.
 ---
@@ -26,13 +26,13 @@ resource "azurerm_virtual_desktop_host_pool" "pooleddepthfirst" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  name                   = "pooleddepthfirst"
-  friendly_name          = "pooleddepthfirst"
-  validation_environment = true
-  description            = "Acceptance Test: A pooled host pool - pooleddepthfirst"
-  type                   = "Shared"
-  max_session_limit      = 50
-  load_balancer_type     = "DepthFirst"
+  name                     = "pooleddepthfirst"
+  friendly_name            = "pooleddepthfirst"
+  validation_environment   = true
+  description              = "Acceptance Test: A pooled host pool - pooleddepthfirst"
+  type                     = "Shared"
+  maximum_sessions_allowed = 50
+  load_balancer_type       = "DepthFirst"
 }
 
 resource "azurerm_virtual_desktop_host_pool" "personalautomatic" {
@@ -43,10 +43,11 @@ resource "azurerm_virtual_desktop_host_pool" "personalautomatic" {
   friendly_name                    = "personalautomatic"
   description                      = "Acceptance Test: A Personal host pool - personalautomatic"
   type                             = "Personal"
+  load_balancer_type               = "Persistent"
   personal_desktop_assignment_type = "Automatic"
 
   registration_info {
-    expiration_time = "2021-09-18T18:46:43Z"
+    expiration_date = "2021-09-18T18:46:43Z"
   }
 }
 
@@ -70,7 +71,11 @@ The following arguments are supported:
     located. Changing the location/region forces a new resource to be created.
 
 * `type` - (Required) The type of the Virtual Desktop Host Pool. Valid options are
-    `Personal` or `Shared`. Changing the type forces a new resource to be created.
+    `Personal` or `Pooled`. Changing the type forces a new resource to be created.
+
+* `load_balancer_type` -  (Optional) `Breadthfirst` load balancing distributes new user sessions across all available session hosts in the host pool.
+    `Depthfirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
+    `Persistent` should be used if the host pool type is `Personal`
 
 * `friendly_name` - (Optional) A friendly name for the Virtual Desktop Host Pool.
 
@@ -78,17 +83,12 @@ The following arguments are supported:
 
 * `validation_environment` -  (Optional) Allows you to test service changes before they are deployed to production. Defaults to `false`.
 
-* `load_balancer_type` -  (Optional) `Breadthfirst` load balancing distributes new user sessions across all available session hosts in the host pool.
-    `Depthfirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
-
-~> **NOTE:** `load_balancer_type` is required if the `type` of your Virtual Desktop Host Pool is `Shared`
-
 * `personal_desktop_assignment_type` - (Optional) `Automatic` assignment – The service will select an available host and assign it to an user.
     `Direct` Assisnment – Admin selects a specific host to assign to an user.
 
 ~> **NOTE:** `personal_desktop_assignment_type` is required if the `type` of your Virtual Desktop Host Pool is `Personal`
 
-* `max_session_limit` (Optional) A valid integer value from 0 to 999999 for the maximum number of users that have concurrent sessions on a session host. 
+* `maximum_sessions_allowed` (Optional) A valid integer value from 0 to 999999 for the maximum number of users that have concurrent sessions on a session host. 
     Should only be set if the `type` of your Virtual Desktop Host Pool is `Shared`.
 
 * `preferred_app_group_type` (Optional) Option to specify the preferred Application Group type for the Virtual Desktop Host Pool.
@@ -100,7 +100,7 @@ The following arguments are supported:
 
 The `registration_info` block supports:
 
-* `expiration_time` - (Optional) A valid `RFC3339Time` for the expiration of the token.
+* `expiration_date` - (Optional) A valid `RFC3339Time` for the expiration of the token.
 
 ## Attributes Reference
 

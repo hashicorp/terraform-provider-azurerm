@@ -103,7 +103,7 @@ func (client StartMenuItemsClient) ListPreparer(ctx context.Context, resourceGro
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

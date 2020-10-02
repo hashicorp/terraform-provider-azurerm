@@ -104,7 +104,7 @@ func (client ApplicationGroupsClient) CreateOrUpdatePreparer(ctx context.Context
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -194,7 +194,7 @@ func (client ApplicationGroupsClient) DeletePreparer(ctx context.Context, resour
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -281,7 +281,7 @@ func (client ApplicationGroupsClient) GetPreparer(ctx context.Context, resourceG
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -369,7 +369,7 @@ func (client ApplicationGroupsClient) ListByResourceGroupPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -491,7 +491,7 @@ func (client ApplicationGroupsClient) ListBySubscriptionPreparer(ctx context.Con
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -620,7 +620,7 @@ func (client ApplicationGroupsClient) UpdatePreparer(ctx context.Context, resour
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

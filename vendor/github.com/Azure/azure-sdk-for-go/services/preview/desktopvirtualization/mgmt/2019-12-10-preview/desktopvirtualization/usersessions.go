@@ -110,7 +110,7 @@ func (client UserSessionsClient) DeletePreparer(ctx context.Context, resourceGro
 		"userSessionId":     autorest.Encode("path", userSessionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -210,7 +210,7 @@ func (client UserSessionsClient) DisconnectPreparer(ctx context.Context, resourc
 		"userSessionId":     autorest.Encode("path", userSessionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -307,7 +307,7 @@ func (client UserSessionsClient) GetPreparer(ctx context.Context, resourceGroupN
 		"userSessionId":     autorest.Encode("path", userSessionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -404,7 +404,7 @@ func (client UserSessionsClient) ListPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -534,7 +534,7 @@ func (client UserSessionsClient) ListByHostPoolPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -673,7 +673,7 @@ func (client UserSessionsClient) SendMessageMethodPreparer(ctx context.Context, 
 		"userSessionId":     autorest.Encode("path", userSessionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

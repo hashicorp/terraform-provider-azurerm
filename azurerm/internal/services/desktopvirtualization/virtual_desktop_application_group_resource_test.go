@@ -41,6 +41,39 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMVirtualDesktopApplicationGroup_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualDesktopApplicationGroup_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_application_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualDesktopApplicationGroup_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualDesktopApplicationGroup_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			{
 				Config: testAccAzureRMVirtualDesktopApplicationGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
@@ -143,28 +176,59 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_host_pool" "test" {
-  name                             = "acctws"
+  name                             = "acctestHP"
   location                         = azurerm_resource_group.test.location
   resource_group_name              = azurerm_resource_group.test.name
-  validation_environment           = true
-  description                      = "Acceptance Test: A host pool"
-  type                             = "Shared"
+  type                             = "Pooled"
   load_balancer_type               = "BreadthFirst"
-  personal_desktop_assignment_type = "Automatic"
 }
 
 resource "azurerm_virtual_desktop_application_group" "test" {
-  name                = "acctws%d"
+  name                = "acctestAG%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  friendly_name = "TestAppGroup"
-  description   = "Acceptance Test: An application group"
-  type          = "Desktop"
-  host_pool_id  = azurerm_virtual_desktop_host_pool.test.id
+  type                = "Desktop"
+  host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+}
+
+func testAccAzureRMVirtualDesktopApplicationGroup_complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktop-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                             = "acctestHP"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  validate_environment             = true
+  description                      = "Acceptance Test: A host pool"
+  type                             = "Pooled"
+  load_balancer_type               = "BreadthFirst"
+}
+
+resource "azurerm_virtual_desktop_application_group" "test" {
+  name                = "acctestAG%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  type                = "Desktop"
+  host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
+  friendly_name       = "TestAppGroup"
+  description         = "Acceptance Test: An application group"
+  tags                = {
+    purpose = "acceptance-testing"
+  }
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }
 
 func testAccAzureRMVirtualDesktopApplicationGroup_requiresImport(data acceptance.TestData) string {
@@ -176,8 +240,6 @@ resource "azurerm_virtual_desktop_application_group" "import" {
   name                = azurerm_virtual_desktop_application_group.test.name
   location            = azurerm_virtual_desktop_application_group.test.location
   resource_group_name = azurerm_virtual_desktop_application_group.test.resource_group_name
-  friendly_name       = azurerm_virtual_desktop_application_group.test.friendly_name
-  description         = azurerm_virtual_desktop_application_group.test.description
   type                = azurerm_virtual_desktop_application_group.test.type
   host_pool_id        = azurerm_virtual_desktop_application_group.test.host_pool_id
 }

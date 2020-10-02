@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-01-23-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -93,15 +93,12 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	description := d.Get("description").(string)
-	friendlyName := d.Get("friendly_name").(string)
-
 	context := desktopvirtualization.Workspace{
 		Location: &location,
 		Tags:     tags.Expand(t),
 		WorkspaceProperties: &desktopvirtualization.WorkspaceProperties{
-			Description:  &description,
-			FriendlyName: &friendlyName,
+			Description:  utils.String(d.Get("description").(string)),
+			FriendlyName: utils.String(d.Get("friendly_name").(string)),
 		},
 	}
 

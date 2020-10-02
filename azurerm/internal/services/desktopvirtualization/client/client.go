@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-01-23-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

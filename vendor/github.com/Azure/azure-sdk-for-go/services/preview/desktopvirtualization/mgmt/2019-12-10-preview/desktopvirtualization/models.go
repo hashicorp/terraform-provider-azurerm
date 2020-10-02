@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-01-23-preview/desktopvirtualization"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 
 // Application schema for Application properties.
 type Application struct {
@@ -372,7 +372,7 @@ func NewApplicationGroupListPage(getNextPage func(context.Context, ApplicationGr
 // ApplicationGroupPatch applicationGroup properties that can be patched.
 type ApplicationGroupPatch struct {
 	// Tags - tags to be updated
-	Tags interface{} `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// ApplicationGroupPatchProperties - ApplicationGroup properties that can be patched.
 	*ApplicationGroupPatchProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -406,7 +406,7 @@ func (agp *ApplicationGroupPatch) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "tags":
 			if v != nil {
-				var tags interface{}
+				var tags map[string]*string
 				err = json.Unmarshal(*v, &tags)
 				if err != nil {
 					return err
@@ -663,7 +663,7 @@ func NewApplicationListPage(getNextPage func(context.Context, ApplicationList) (
 // ApplicationPatch application properties that can be patched.
 type ApplicationPatch struct {
 	// Tags - tags to be updated
-	Tags interface{} `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// ApplicationPatchProperties - Detailed properties for Application
 	*ApplicationPatchProperties `json:"properties,omitempty"`
 }
@@ -691,7 +691,7 @@ func (ap *ApplicationPatch) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "tags":
 			if v != nil {
-				var tags interface{}
+				var tags map[string]*string
 				err = json.Unmarshal(*v, &tags)
 				if err != nil {
 					return err
@@ -901,7 +901,7 @@ func (dl DesktopList) MarshalJSON() ([]byte, error) {
 // DesktopPatch desktop properties that can be patched.
 type DesktopPatch struct {
 	// Tags - tags to be updated
-	Tags interface{} `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// DesktopPatchProperties - Detailed properties for Desktop
 	*DesktopPatchProperties `json:"properties,omitempty"`
 }
@@ -929,7 +929,7 @@ func (dp *DesktopPatch) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "tags":
 			if v != nil {
-				var tags interface{}
+				var tags map[string]*string
 				err = json.Unmarshal(*v, &tags)
 				if err != nil {
 					return err
@@ -1252,7 +1252,7 @@ func NewHostPoolListPage(getNextPage func(context.Context, HostPoolList) (HostPo
 // HostPoolPatch hostPool properties that can be patched.
 type HostPoolPatch struct {
 	// Tags - tags to be updated
-	Tags interface{} `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// HostPoolPatchProperties - HostPool properties that can be patched.
 	*HostPoolPatchProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
@@ -1286,7 +1286,7 @@ func (hpp *HostPoolPatch) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "tags":
 			if v != nil {
-				var tags interface{}
+				var tags map[string]*string
 				err = json.Unmarshal(*v, &tags)
 				if err != nil {
 					return err
@@ -1367,7 +1367,7 @@ type HostPoolProperties struct {
 	FriendlyName *string `json:"friendlyName,omitempty"`
 	// Description - Description of HostPool.
 	Description *string `json:"description,omitempty"`
-	// HostPoolType - HostPool type for desktop. Possible values include: 'Personal', 'Shared'
+	// HostPoolType - HostPool type for desktop. Possible values include: 'Personal', 'Pooled'
 	HostPoolType HostPoolType `json:"hostPoolType,omitempty"`
 	// PersonalDesktopAssignmentType - PersonalDesktopAssignment type for HostPool. Possible values include: 'Automatic', 'Direct'
 	PersonalDesktopAssignmentType PersonalDesktopAssignmentType `json:"personalDesktopAssignmentType,omitempty"`
@@ -1455,14 +1455,16 @@ type RegistrationInfo struct {
 	ExpirationTime *date.Time `json:"expirationTime,omitempty"`
 	// Token - The registration token base64 encoded string.
 	Token *string `json:"token,omitempty"`
-	// ResetToken - Update registration token.
-	ResetToken *bool `json:"resetToken,omitempty"`
+	// RegistrationTokenOperation - The type of resetting the token. Possible values include: 'Delete', 'None', 'Update'
+	RegistrationTokenOperation RegistrationTokenOperation `json:"registrationTokenOperation,omitempty"`
 }
 
 // RegistrationInfoPatch represents a RegistrationInfo definition.
 type RegistrationInfoPatch struct {
-	// ResetToken - Update registration token.
-	ResetToken *bool `json:"resetToken,omitempty"`
+	// ExpirationTime - Expiration time of registration token.
+	ExpirationTime *date.Time `json:"expirationTime,omitempty"`
+	// RegistrationTokenOperation - The type of resetting the token. Possible values include: 'Delete', 'None', 'Update'
+	RegistrationTokenOperation RegistrationTokenOperation `json:"registrationTokenOperation,omitempty"`
 }
 
 // Resource ...
@@ -2696,7 +2698,7 @@ func NewWorkspaceListPage(getNextPage func(context.Context, WorkspaceList) (Work
 // WorkspacePatch workspace properties that can be patched.
 type WorkspacePatch struct {
 	// Tags - tags to be updated
-	Tags interface{} `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
 	// WorkspacePatchProperties - Detailed properties for Workspace
 	*WorkspacePatchProperties `json:"properties,omitempty"`
 }
@@ -2724,7 +2726,7 @@ func (wp *WorkspacePatch) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "tags":
 			if v != nil {
-				var tags interface{}
+				var tags map[string]*string
 				err = json.Unmarshal(*v, &tags)
 				if err != nil {
 					return err

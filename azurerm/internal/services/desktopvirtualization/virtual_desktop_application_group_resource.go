@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-01-23-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -55,8 +55,8 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Desktop",
-					"RemoteApp",
+					string(desktopvirtualization.ApplicationGroupTypeDesktop),
+					string(desktopvirtualization.ApplicationGroupTypeRemoteApp),
 				}, false),
 			},
 
@@ -108,25 +108,19 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	ApplicationGroupType := d.Get("type").(string)
-	friendlyName := d.Get("friendly_name").(string)
-	description := d.Get("description").(string)
-	hostPoolID := d.Get("host_pool_id").(string)
-
 	context := desktopvirtualization.ApplicationGroup{
 		Location: &location,
 		Tags:     tags.Expand(t),
 		ApplicationGroupProperties: &desktopvirtualization.ApplicationGroupProperties{
-			ApplicationGroupType: desktopvirtualization.ApplicationGroupType(ApplicationGroupType),
-			FriendlyName:         &friendlyName,
-			Description:          &description,
-			HostPoolArmPath:      &hostPoolID,
+			ApplicationGroupType: desktopvirtualization.ApplicationGroupType(d.Get("type").(string)),
+			FriendlyName:         utils.String(d.Get("friendly_name").(string)),
+			Description:          utils.String(d.Get("description").(string)),
+			HostPoolArmPath:      utils.String(d.Get("host_pool_id").(string)),
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, context)
-	err != nil{
-		// return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, context); err != nil {
+		return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	result, err := client.Get(ctx, resourceGroup, name)
@@ -172,9 +166,7 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 	}
 
 	if props := resp.ApplicationGroupProperties; props != nil {
-		if desc := props.ApplicationGroupType; desc != nil {
-			d.Set("type", desc)
-		}
+		d.Set("type", string(props.ApplicationGroupType))
 
 		if fn := props.FriendlyName; fn != nil {
 			d.Set("friendly_name", fn)

@@ -1,5 +1,5 @@
 ---
-subcategory: "Network"
+subcategory: "Desktop Virtualization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_desktop_workspace"
 description: |-

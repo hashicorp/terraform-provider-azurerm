@@ -104,7 +104,7 @@ func (client DesktopsClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -192,7 +192,7 @@ func (client DesktopsClient) ListPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -286,7 +286,7 @@ func (client DesktopsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-23-preview"
+	const APIVersion = "2019-12-10-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

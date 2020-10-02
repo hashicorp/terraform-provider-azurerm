@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-01-23-preview/desktopvirtualization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -56,8 +56,19 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Personal",
-					"Shared",
+					string(desktopvirtualization.Personal),
+					string(desktopvirtualization.Pooled),
+				}, false),
+			},
+
+			"load_balancer_type": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(desktopvirtualization.BreadthFirst),
+					string(desktopvirtualization.DepthFirst),
+					string(desktopvirtualization.Persistent),
 				}, false),
 			},
 
@@ -79,28 +90,20 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 				Default:  false,
 			},
 
-			"load_balancer_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"BreadthFirst",
-					"DepthFirst",
-				}, false),
-			},
-
 			"personal_desktop_assignment_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Automatic",
-					"Direct",
+					string(desktopvirtualization.Automatic),
+					string(desktopvirtualization.Direct),
 				}, false),
 			},
 
 			"maximum_sessions_allowed": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      999999,
 				ValidateFunc: validation.IntBetween(0, 999999),
 			},
 
@@ -110,11 +113,11 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 				ForceNew:    true,
 				Description: "Preferred App Group type to display",
 				ValidateFunc: validation.StringInSlice([]string{
-					"Desktop",
-					"None",
-					"RailApplications",
+					string(desktopvirtualization.PreferredAppGroupTypeDesktop),
+					string(desktopvirtualization.PreferredAppGroupTypeNone),
+					string(desktopvirtualization.PreferredAppGroupTypeRailApplications),
 				}, false),
-				Default: "Desktop",
+				Default: string(desktopvirtualization.PreferredAppGroupTypeDesktop),
 			},
 
 			"registration_info": {
@@ -174,27 +177,18 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	hostPoolType := d.Get("type").(string)
-	friendlyName := d.Get("friendly_name").(string)
-	description := d.Get("description").(string)
-	ValidationEnvironment := d.Get("validate_environment").(bool)
-	LoadBalancerType := d.Get("load_balancer_type").(string)
-	PersonalDesktopAssignmentType := d.Get("personal_desktop_assignment_type").(string)
-	PreferredAppGroupType := d.Get("preferred_app_group_type").(string)
-	maxSessionLimit := int32(d.Get("maximum_sessions_allowed").(int))
-
 	context := desktopvirtualization.HostPool{
 		Location: &location,
 		Tags:     tags.Expand(t),
 		HostPoolProperties: &desktopvirtualization.HostPoolProperties{
-			HostPoolType:                  desktopvirtualization.HostPoolType(hostPoolType),
-			FriendlyName:                  &friendlyName,
-			Description:                   &description,
-			ValidationEnvironment:         &ValidationEnvironment,
-			MaxSessionLimit:               &maxSessionLimit,
-			LoadBalancerType:              desktopvirtualization.LoadBalancerType(LoadBalancerType),
-			PersonalDesktopAssignmentType: desktopvirtualization.PersonalDesktopAssignmentType(PersonalDesktopAssignmentType),
-			PreferredAppGroupType:         desktopvirtualization.PreferredAppGroupType(PreferredAppGroupType),
+			HostPoolType:                  desktopvirtualization.HostPoolType(d.Get("type").(string)),
+			FriendlyName:                  utils.String(d.Get("friendly_name").(string)),
+			Description:                   utils.String(d.Get("description").(string)),
+			ValidationEnvironment:         utils.Bool(d.Get("validate_environment").(bool)),
+			MaxSessionLimit:               utils.Int32(int32(d.Get("maximum_sessions_allowed").(int))),
+			LoadBalancerType:              desktopvirtualization.LoadBalancerType(d.Get("load_balancer_type").(string)),
+			PersonalDesktopAssignmentType: desktopvirtualization.PersonalDesktopAssignmentType(d.Get("personal_desktop_assignment_type").(string)),
+			PreferredAppGroupType:         desktopvirtualization.PreferredAppGroupType(d.Get("preferred_app_group_type").(string)),
 			RegistrationInfo:              expandVirtualDesktopHostPoolRegistrationInfo(d),
 		},
 	}
@@ -245,9 +239,7 @@ func resourceArmVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interfac
 	}
 
 	if props := resp.HostPoolProperties; props != nil {
-		if hstplt := props.HostPoolType; hstplt != nil {
-			d.Set("type", hstplt)
-		}
+		d.Set("type", string(props.HostPoolType))
 
 		if fn := props.FriendlyName; fn != nil {
 			d.Set("friendly_name", fn)
@@ -265,17 +257,9 @@ func resourceArmVirtualDesktopHostPoolRead(d *schema.ResourceData, meta interfac
 			d.Set("maximum_sessions_allowed", mxsl)
 		}
 
-		if lbt := props.LoadBalancerType; lbt != nil {
-			d.Set("load_balancer_type", lbt)
-		}
-
-		if pdat := props.PersonalDesktopAssignmentType; pdat != nil {
-			d.Set("personal_desktop_assignment_type", pdat)
-		}
-
-		if pagt := props.PreferredAppGroupType; pagt != nil {
-			d.Set("preferred_app_group_type", pagt)
-		}
+		d.Set("load_balancer_type", string(props.LoadBalancerType))
+		d.Set("personal_desktop_assignment_type", string(props.PersonalDesktopAssignmentType))
+		d.Set("preferred_app_group_type", string(props.PreferredAppGroupType))
 
 		if err := d.Set("registration_info", flattenVirtualDesktopHostPoolRegistrationInfo(props.RegistrationInfo)); err != nil {
 			return fmt.Errorf("Setting `registration_info`: %+v", err)
@@ -303,20 +287,28 @@ func resourceArmVirtualDesktopHostPoolDelete(d *schema.ResourceData, meta interf
 }
 
 func expandVirtualDesktopHostPoolRegistrationInfo(d *schema.ResourceData) *desktopvirtualization.RegistrationInfo {
-	ri := d.Get("registration_info").([]interface{})
-	if len(ri) == 0 {
+	old, new := d.GetChange("registration_info")
+	oldInterfaces := old.([]interface{})
+	newInterfaces := new.([]interface{})
+
+	if len(oldInterfaces) == 0 && len(newInterfaces) == 0 {
 		return nil
 	}
 
-	v := ri[0].(map[string]interface{})
+	if len(oldInterfaces) != 0 && len(newInterfaces) == 0 {
+		deleteConfig := desktopvirtualization.RegistrationInfo{
+			RegistrationTokenOperation: (desktopvirtualization.Delete),
+		}
+		return &deleteConfig
+	}
 
+	v := newInterfaces[0].(map[string]interface{})
 	expdt, _ := date.ParseTime(time.RFC3339, v["expiration_date"].(string))
-
 	configuration := desktopvirtualization.RegistrationInfo{
 		ExpirationTime: &date.Time{
 			Time: expdt,
 		},
-		ResetToken: utils.Bool(true),
+		RegistrationTokenOperation: (desktopvirtualization.Update),
 	}
 
 	return &configuration

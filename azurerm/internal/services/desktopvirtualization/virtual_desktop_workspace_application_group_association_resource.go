@@ -97,6 +97,9 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 
 	output := make([]string, 0)
 	output = append(output, *refs...)
+	if contains(output, applicationGroupReferenceID) {
+		return fmt.Errorf("Virtual Desktop Workspace Application Group Association already exists for Workspace %q and Application Group %q (Resource Group: %q)", workspaceName, agName, resourceGroup)
+	}
 	output = append(output, applicationGroupReferenceID)
 
 	read.ApplicationGroupReferences = &output
@@ -167,4 +170,13 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 	}
 
 	return nil
+}
+
+func contains(s []string, r string) bool {
+	for _, a := range s {
+		if a == r {
+			return true
+		}
+	}
+	return false
 }
