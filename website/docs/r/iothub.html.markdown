@@ -137,7 +137,7 @@ The following arguments are supported:
 
 * `route` - (Optional) A `route` block as defined below.
 
-* `public_network_access` - (Optional) Is the IotHub resource accessible from a public network? 
+* `public_network_access_enabled` - (Optional) Is the IotHub resource accessible from a public network? 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

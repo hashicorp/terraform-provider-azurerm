@@ -663,7 +663,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  public_network_access = true
+  public_network_access_enabled = true
 
   tags = {
     purpose = "testing"
@@ -693,7 +693,7 @@ resource "azurerm_iothub" "test" {
     capacity = "1"
   }
 
-  public_network_access = false
+  public_network_access_enabled = false
 
   tags = {
     purpose = "testing"

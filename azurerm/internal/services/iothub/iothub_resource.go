@@ -403,7 +403,7 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
-			"public_network_access": {
+			"public_network_access_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -514,7 +514,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// nolint staticcheck
-	if v, ok := d.GetOkExists("public_network_access"); ok {
+	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
 		enabled := devices.Disabled
 		if v.(bool) {
 			enabled = devices.Enabled
@@ -637,7 +637,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
-			d.Set("public_network_access", enabled == devices.Enabled)
+			d.Set("public_network_access_enabled", enabled == devices.Enabled)
 		}
 	}
 
