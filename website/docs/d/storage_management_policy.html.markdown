@@ -69,7 +69,7 @@ The following arguments are supported:
 
 `snapshot` supports the following:
 
-* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot.
+* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snapshot.
 
 ## Timeouts
 
