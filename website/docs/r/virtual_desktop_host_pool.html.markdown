@@ -30,7 +30,7 @@ resource "azurerm_virtual_desktop_host_pool" "pooleddepthfirst" {
   friendly_name            = "pooleddepthfirst"
   validation_environment   = true
   description              = "Acceptance Test: A pooled host pool - pooleddepthfirst"
-  type                     = "Shared"
+  type                     = "Pooled"
   maximum_sessions_allowed = 50
   load_balancer_type       = "DepthFirst"
 }
