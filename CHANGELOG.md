@@ -1,5 +1,9 @@
 ## 2.31.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_service_fabric_mesh_application` [GH-6761]
+
 IMPROVEMENTS:
 
 * `azurerm_app_service` - allow v6 IPs for the `ip_restriction` property [GH-8599]
