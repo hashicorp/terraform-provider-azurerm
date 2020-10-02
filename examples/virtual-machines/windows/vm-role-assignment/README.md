@@ -1,6 +1,6 @@
 ## Example: Virtual Machine with Role Assignment
 
-This example is used to demonstrate how to perform a role assigned to a Virtual Machine to grant it permissions to access another Azure resource.
+This example is used to demonstrate how to perform a role assigned to a Virtual Machine (with System Assigned identity) to grant it permissions to access another Azure resource.
 
 This example provisions:
 - Windows Virtual Machine with System Assigned identity
