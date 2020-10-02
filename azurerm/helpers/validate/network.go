@@ -6,6 +6,7 @@ import (
 	"regexp"
 )
 
+// CIDR is a SchemaValidateFunc which tests if the provided value is a valid IPv4 CIDR
 func CIDR(i interface{}, k string) (warnings []string, errors []error) {
 	cidr := i.(string)
 
