@@ -58,6 +58,8 @@ The following arguments are supported:
 
 * `quota` - (Optional) The maximum size of the share, in gigabytes. For Standard storage accounts, this must be greater than 0 and less than 5120 GB (5 TB). For Premium FileStorage storage accounts, this must be greater than 100 GB and less than 102400 GB (100 TB). Default is 5120.
 
+* `tier` - (Optional) The performance tier of the share.  Possible values are `Cool` (general purpose V2 / GPv2 storage account), `Hot` (GPv2 storage account), `Premium` (FileStorage storage account), `TransactionOptimized` (GPv2 storage account).
+
 * `metadata` - (Optional) A mapping of MetaData for this File Share.
 
 ---

@@ -113,6 +113,17 @@ func resourceArmStorageShare() *schema.Resource {
 				Computed: true,
 			},
 
+			"tier": {
+				Type:     schema.TypeString,
+				Required: false,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Cool",
+					"Hot",
+					"Premium",
+					"TransactionOptimized",
+				}, false),
+			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
