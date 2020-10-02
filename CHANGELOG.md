@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_app_service` - allow v6 IPs for the `ip_restriction` property [GH-8599]
 * `azurerm_dedicated_host` - add support for `DSv4-Type1` `sku_name` [GH-8718]
 * `azurerm_key_vault_certificate_issuer` - `org_id` is now optional [GH-8687]
 
