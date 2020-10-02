@@ -1068,7 +1068,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 				for _, existingDataDisk := range *existing.VirtualMachineProperties.StorageProfile.DataDisks {
 					found := false
 					for _, dataDisk := range *updatedDataDisks {
-						if *dataDisk.Name == *existingDataDisk.Name {
+						if existingDataDisk.Name != nil && *dataDisk.Name == *existingDataDisk.Name {
 							dataDisks = append(dataDisks, existingDataDisk)
 							found = true
 							break

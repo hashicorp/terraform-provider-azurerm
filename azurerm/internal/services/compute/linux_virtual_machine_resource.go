@@ -1005,8 +1005,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 	}
 	deleteRemovedDataDisks := meta.(*clients.Client).Features.VirtualMachine.DeleteDataDisksOnDeletion
 	dataDisksToDeleted := make([]compute.DataDisk, 0)
-	// TODO Beta flag here
-	if true {
+	if features.VMDataDiskBeta() {
 		if d.HasChange("data_disk") {
 			shouldUpdate = true
 			updatedDataDisks, err := expandVirtualMachineDataDisks(d, meta)
@@ -1072,8 +1071,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Updated Linux Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 	}
 
-	// TODO Beta flag here
-	if true {
+	if features.VMDataDiskBeta() {
 		if deleteRemovedDataDisks && len(dataDisksToDeleted) > 0 {
 			for _, v := range dataDisksToDeleted {
 				if v.ManagedDisk != nil && v.ManagedDisk.ID != nil {
