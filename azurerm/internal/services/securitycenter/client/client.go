@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -10,6 +11,9 @@ type Client struct {
 	PricingClient                  *security.PricingsClient
 	WorkspaceClient                *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
+	// Note. This is patched version of the client
+	// - With fixes for https://github.com/Azure/azure-sdk-for-go/issues/12634
+	AutomationsClient *azuresdkhacks.AutomationsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -27,10 +31,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	AdvancedThreatProtectionClient := security.NewAdvancedThreatProtectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AdvancedThreatProtectionClient.Client, o.ResourceManagerAuthorizer)
 
+	AutomationsClient := azuresdkhacks.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ContactsClient:                 &ContactsClient,
 		PricingClient:                  &PricingClient,
 		WorkspaceClient:                &WorkspaceClient,
 		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,
+		AutomationsClient:              &AutomationsClient,
 	}
 }
