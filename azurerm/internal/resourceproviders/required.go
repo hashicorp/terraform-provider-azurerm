@@ -65,6 +65,7 @@ func Required() map[string]struct{} {
 		"Microsoft.SecurityInsights":        {},
 		"Microsoft.ServiceBus":              {},
 		"Microsoft.ServiceFabric":           {},
+		"Microsoft.ServiceFabricMesh":       {},
 		"Microsoft.Sql":                     {},
 		"Microsoft.Storage":                 {},
 		"Microsoft.StreamAnalytics":         {},

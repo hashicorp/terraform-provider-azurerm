@@ -73,6 +73,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
@@ -157,6 +158,7 @@ func SupportedServices() []common.ServiceRegistration {
 		sentinel.Registration{},
 		servicebus.Registration{},
 		servicefabric.Registration{},
+		servicefabricmesh.Registration{},
 		signalr.Registration{},
 		sql.Registration{},
 		storage.Registration{},
