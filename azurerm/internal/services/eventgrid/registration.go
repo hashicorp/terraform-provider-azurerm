@@ -32,5 +32,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_eventgrid_domain_topic":       resourceArmEventGridDomainTopic(),
 		"azurerm_eventgrid_event_subscription": resourceArmEventGridEventSubscription(),
 		"azurerm_eventgrid_topic":              resourceArmEventGridTopic(),
+		"azurerm_eventgrid_system_topic":       resourceArmEventGridSystemTopic(),
 	}
 }
