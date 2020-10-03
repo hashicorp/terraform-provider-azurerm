@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -178,8 +178,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.SystemAssigned),
+								string(containerservice.ResourceIdentityTypeSystemAssigned),
+								string(containerservice.ResourceIdentityTypeUserAssigned),
 							}, false),
+						},
+						"user_assigned_identity_id": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -1706,11 +1711,22 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *containerservice.ManagedClusterIdentity {
 	if len(input) == 0 || input[0] == nil {
 		return &containerservice.ManagedClusterIdentity{
-			Type: containerservice.None,
+			Type: containerservice.ResourceIdentityTypeNone,
 		}
 	}
 
 	values := input[0].(map[string]interface{})
+
+	if containerservice.ResourceIdentityType(values["type"].(string)) == containerservice.ResourceIdentityTypeUserAssigned {
+		userAssignedIdentities := map[string]*containerservice.ManagedClusterIdentityUserAssignedIdentitiesValue{
+			values["user_assigned_identity_id"].(string): {},
+		}
+
+		return &containerservice.ManagedClusterIdentity{
+			Type:                   containerservice.ResourceIdentityType(values["type"].(string)),
+			UserAssignedIdentities: userAssignedIdentities,
+		}
+	}
 
 	return &containerservice.ManagedClusterIdentity{
 		Type: containerservice.ResourceIdentityType(values["type"].(string)),
@@ -1859,7 +1875,7 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 
 func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
 	// if it's none, omit the block
-	if input == nil || input.Type == containerservice.None {
+	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
 		return []interface{}{}
 	}
 
@@ -1873,6 +1889,15 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 	identity["tenant_id"] = ""
 	if input.TenantID != nil {
 		identity["tenant_id"] = *input.TenantID
+	}
+
+	identity["user_assigned_identity_id"] = ""
+	if input.UserAssignedIdentities != nil {
+		keys := []string{}
+		for key := range input.UserAssignedIdentities {
+			keys = append(keys, key)
+		}
+		identity["user_assigned_identity_id"] = keys[0]
 	}
 
 	identity["type"] = string(input.Type)

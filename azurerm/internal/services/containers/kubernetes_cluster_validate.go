@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -105,7 +105,7 @@ func validateKubernetesCluster(d *schema.ResourceData, cluster *containerservice
 
 		hasIdentity := false
 		if identity := cluster.Identity; identity != nil {
-			hasIdentity = identity.Type != containerservice.None
+			hasIdentity = identity.Type != containerservice.ResourceIdentityTypeNone
 		}
 
 		if hasIdentity {
