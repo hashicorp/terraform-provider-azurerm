@@ -43,8 +43,7 @@ The following arguments are supported:
     create the Virtual Desktop Workspace. Changing the resource group name forces
     a new resource to be created.
 
-* `location` - (Required) The location/region where the Virtual Desktop Workspace is
-    located. Changing the location/region forces a new resource to be created.
+* `location` - (Required) The location/region where the Virtual Desktop Workspace is located. Changing the location/region forces a new resource to be created.
 
 * `friendly_name` - (Optional) A friendly name for the Virtual Desktop Workspace.
 
