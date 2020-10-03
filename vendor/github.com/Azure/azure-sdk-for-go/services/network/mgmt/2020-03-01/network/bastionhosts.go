@@ -299,6 +299,9 @@ func (client BastionHostsClient) List(ctx context.Context) (result BastionHostLi
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "List", resp, "Failure responding to request")
 	}
+	if result.bhlr.hasNextLink() && result.bhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -408,6 +411,9 @@ func (client BastionHostsClient) ListByResourceGroup(ctx context.Context, resour
 	result.bhlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.BastionHostsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.bhlr.hasNextLink() && result.bhlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

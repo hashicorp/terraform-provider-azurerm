@@ -327,6 +327,9 @@ func (client DashboardsClient) ListByResourceGroup(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.DashboardsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -435,6 +438,9 @@ func (client DashboardsClient) ListBySubscription(ctx context.Context) (result D
 	result.dlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "portal.DashboardsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -337,6 +337,9 @@ func (client RecordSetsClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -460,6 +463,9 @@ func (client RecordSetsClient) ListByType(ctx context.Context, resourceGroupName
 	result.rslr, err = client.ListByTypeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.RecordSetsClient", "ListByType", resp, "Failure responding to request")
+	}
+	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

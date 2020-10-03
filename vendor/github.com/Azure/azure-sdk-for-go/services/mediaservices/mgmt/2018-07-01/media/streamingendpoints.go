@@ -340,6 +340,9 @@ func (client StreamingEndpointsClient) List(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingEndpointsClient", "List", resp, "Failure responding to request")
 	}
+	if result.selr.hasNextLink() && result.selr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

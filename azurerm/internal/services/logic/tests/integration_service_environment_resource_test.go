@@ -36,7 +36,6 @@ func TestAccAzureRMIntegrationServiceEnvironment_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -68,7 +67,6 @@ func TestAccAzureRMIntegrationServiceEnvironment_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -100,7 +98,6 @@ func TestAccAzureRMIntegrationServiceEnvironment_developer(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -131,7 +128,6 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 			{
@@ -150,7 +146,6 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 			{
@@ -169,7 +164,6 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -200,7 +194,6 @@ func TestAccAzureRMIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_outbound_ip_addresses.#"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			data.RequiresImportErrorStep(testAccAzureRMIntegrationServiceEnvironment_requiresImport),
 		},
@@ -278,7 +271,8 @@ resource "azurerm_subnet" "isesubnet1" {
   delegation {
     name = "integrationServiceEnvironments"
     service_delegation {
-      name = "Microsoft.Logic/integrationServiceEnvironments"
+      name    = "Microsoft.Logic/integrationServiceEnvironments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
     }
   }
 }

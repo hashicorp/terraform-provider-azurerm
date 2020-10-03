@@ -93,6 +93,9 @@ func (client TenantActivityLogsClient) List(ctx context.Context, filter string, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.TenantActivityLogsClient", "List", resp, "Failure responding to request")
 	}
+	if result.edc.hasNextLink() && result.edc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

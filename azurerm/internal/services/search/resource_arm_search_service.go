@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -109,6 +109,15 @@ func resourceArmSearchService() *schema.Resource {
 				Default:  true,
 			},
 
+			"allowed_ips": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.IPv4Address,
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -131,7 +140,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, nil)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -151,6 +160,9 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		},
 		ServiceProperties: &search.ServiceProperties{
 			PublicNetworkAccess: publicNetworkAccess,
+			NetworkRuleSet: &search.NetworkRuleSet{
+				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
+			},
 		},
 		Tags: tags.Expand(t),
 	}
@@ -165,8 +177,13 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, nil); err != nil {
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, nil)
+	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Search Service %q (ResourceGroup %q): %s", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("error waiting for the completion of the creating/updating of Search Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, nil)
@@ -220,6 +237,8 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		d.Set("public_network_access_enabled", props.PublicNetworkAccess != "Disabled")
+
+		d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 	}
 
 	adminKeysClient := meta.(*clients.Client).Search.AdminKeysClient
@@ -276,4 +295,32 @@ func flattenSearchQueryKeys(input []search.QueryKey) []interface{} {
 	}
 
 	return results
+}
+
+func expandSearchServiceIPRules(input []interface{}) *[]search.IPRule {
+	output := make([]search.IPRule, 0)
+	if input == nil {
+		return &output
+	}
+
+	for _, rule := range input {
+		if rule != nil {
+			output = append(output, search.IPRule{
+				Value: utils.String(rule.(string)),
+			})
+		}
+	}
+
+	return &output
+}
+
+func flattenSearchServiceIPRules(input *search.NetworkRuleSet) []interface{} {
+	if input == nil || *input.IPRules == nil || len(*input.IPRules) == 0 {
+		return nil
+	}
+	result := make([]interface{}, 0)
+	for _, rule := range *input.IPRules {
+		result = append(result, rule.Value)
+	}
+	return result
 }

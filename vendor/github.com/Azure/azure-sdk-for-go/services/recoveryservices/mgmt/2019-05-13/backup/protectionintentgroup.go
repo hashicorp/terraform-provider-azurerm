@@ -77,6 +77,9 @@ func (client ProtectionIntentGroupClient) List(ctx context.Context, vaultName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionIntentGroupClient", "List", resp, "Failure responding to request")
 	}
+	if result.pirl.hasNextLink() && result.pirl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

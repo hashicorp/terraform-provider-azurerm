@@ -37,7 +37,7 @@ output "automation_account_id" {
 
 * `secondary_key` - The Secondary Access Key for the Automation Account.
 
-* `endpoint` - The Endpoint for this Auomation Account.
+* `endpoint` - The Endpoint for this Automation Account.
 
 ## Timeouts
 

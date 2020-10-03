@@ -161,6 +161,8 @@ The `features` block supports the following:
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
+* `template_deployment` - (Optional) A `template_deployment` block as defined below.
+
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
 * `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
@@ -176,6 +178,12 @@ The `key_vault` block supports the following:
 ~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period(90 days) has passed.
 
 ~> **Note:** When recovering soft deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
+
+---
+
+The `template_deployment` block supports the following:
+
+* `delete_nested_items_during_deletion` - (Optional) Should the `azurerm_resource_group_template_deployment` resource attempt to delete resources that have been provisioned by the ARM Template, when the Resource Group Template Deployment is deleted? Defaults to `true`.
 
 ---
 
