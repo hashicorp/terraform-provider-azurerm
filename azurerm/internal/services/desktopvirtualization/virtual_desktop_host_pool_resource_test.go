@@ -223,7 +223,7 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   }
 
   tags = {
-    purpose = "acceptance-testing"
+    Purpose = "Acceptance-Testing"
   }
 }
 
