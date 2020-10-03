@@ -202,7 +202,7 @@ resource "azurerm_virtual_desktop_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   friendly_name       = "Acceptance Test!"
-  description         = "acceptance test by creating acctws%d"
+  description         = "Acceptance Test by creating acctws%d"
 }
 
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomInteger)
