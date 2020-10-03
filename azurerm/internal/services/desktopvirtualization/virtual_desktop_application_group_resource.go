@@ -101,7 +101,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_host_pool", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", *existing.ID)
 		}
 	}
 
