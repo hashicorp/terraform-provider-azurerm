@@ -224,7 +224,7 @@ resource "azurerm_virtual_desktop_application_group" "test" {
   friendly_name       = "TestAppGroup"
   description         = "Acceptance Test: An application group"
   tags = {
-    purpose = "acceptance-testing"
+    Purpose = "Acceptance-Testing"
   }
 }
 
