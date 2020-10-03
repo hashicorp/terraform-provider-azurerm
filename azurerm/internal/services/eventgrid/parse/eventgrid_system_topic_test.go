@@ -23,7 +23,7 @@ func TestEventGridSystemTopicId(t *testing.T) {
 		{
 			Name:  "EventGrid System Topic ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/systemTopics/systemTopic1",
-			Expected: &EventGridTopicId{
+			Expected: &EventGridSystemTopicId{
 				Name:          "systemTopic1",
 				ResourceGroup: "resGroup1",
 			},
