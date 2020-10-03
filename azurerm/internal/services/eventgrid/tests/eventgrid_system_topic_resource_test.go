@@ -26,7 +26,7 @@ func TestAccAzureRMEventGridSystemTopic_basic(t *testing.T) {
 					testCheckAzureRMEventGridSystemTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "source"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metrics_resource_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_resource_id"),
 				),
 			},
 			data.ImportStep(),
@@ -72,7 +72,7 @@ func TestAccAzureRMEventGridSystemTopic_basicWithTags(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "source"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metrics_resource_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_resource_id"),
 				),
 			},
 			data.ImportStep(),
@@ -154,7 +154,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctesteg-system-topic-%[2]d"
+  name                     = "acctestegst%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -162,13 +162,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                = "acctesteg-system-topic-%d"
+  name                = "acctestegst%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   source              = azurerm_storage_account.test.id
   topic_type          = "Microsoft.Storage.StorageAccounts"
 }
-`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
 }
 
 func testAccAzureRMEventGridSystemTopic_requiresImport(data acceptance.TestData) string {
@@ -199,7 +199,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctesteg-system-topic-%[2]d"
+  name                     = "acctestegst%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -207,7 +207,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                = "acctesteg-system-topic-%d"
+  name                = "acctestegst%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -218,5 +218,5 @@ resource "azurerm_eventgrid_system_topic" "test" {
     "foo" = "bar"
   }
 }
-`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, location, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
 }
