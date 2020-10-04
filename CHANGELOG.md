@@ -17,6 +17,11 @@ IMPROVEMENTS:
 * `azurerm_mssql_virtual_machine` - Add support for `storage_configuration_settings` [GH-8623]
 * `azurerm_backup_policy_vm` - validate daily backups is > `7` [GH-7898]
 
+BUG FIXES:
+
+* `azurerm_function_app` - mark the `app_settings` block as computed [GH-8682]
+* `azurerm_function_app_slot` - mark the `app_settings` block as computed [GH-8682]
+
 ---
 
 For information on changes between the v2.30.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v2.md).
