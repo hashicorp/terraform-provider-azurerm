@@ -54,7 +54,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Linked Service.
 
-* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linfked Service.
+* `parameters` - (Optional) A map of parameters to associate with the Data Factory Linked Service.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
 

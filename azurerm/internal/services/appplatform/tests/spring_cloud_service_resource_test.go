@@ -83,7 +83,6 @@ func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
 				Config: testAccAzureRMSpringCloudService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 				),
 			},
 			data.ImportStep(
@@ -94,6 +93,33 @@ func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
 				"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
 				"config_server_git_setting.0.repository.0.http_basic_auth.0.username",
 				"config_server_git_setting.0.repository.0.http_basic_auth.0.password",
+			),
+		},
+	})
+}
+
+func TestAccAzureRMSpringCloudService_virtualNetwork(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSpringCloudService_virtualNetwork(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.service_runtime_network_resource_group"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "network.0.app_network_resource_group"),
+				),
+			},
+			data.ImportStep(
+				// those field returned by api are "*"
+				// import state verify ignore those fields
+				"config_server_git_setting.0.ssh_auth.0.private_key",
+				"config_server_git_setting.0.ssh_auth.0.host_key",
+				"config_server_git_setting.0.ssh_auth.0.host_key_algorithm",
 			),
 		},
 	})
@@ -250,6 +276,92 @@ resource "azurerm_spring_cloud_service" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMSpringCloudService_virtualNetwork(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-spring-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestai-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "internal1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "internal2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.1.0/24"
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "Azure Spring Cloud Resource Provider"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Owner"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
+resource "azurerm_spring_cloud_service" "test" {
+  name                = "acctest-sc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  network {
+    app_subnet_id             = azurerm_subnet.test1.id
+    service_runtime_subnet_id = azurerm_subnet.test2.id
+    cidr_ranges               = ["10.4.0.0/16", "10.5.0.0/16", "10.3.0.1/16"]
+  }
+
+  config_server_git_setting {
+    uri          = "git@bitbucket.org:Azure-Samples/piggymetrics.git"
+    label        = "config"
+    search_paths = ["dir1", "dir4"]
+
+    ssh_auth {
+      private_key                      = file("testdata/private_key")
+      host_key                         = file("testdata/host_key")
+      host_key_algorithm               = "ssh-rsa"
+      strict_host_key_checking_enabled = false
+    }
+  }
+
+  trace {
+    instrumentation_key = azurerm_application_insights.test.instrumentation_key
+  }
+
+  tags = {
+    Env = "Test"
+  }
+
+  depends_on = [azurerm_role_assignment.test]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMSpringCloudService_requiresImport(data acceptance.TestData) string {

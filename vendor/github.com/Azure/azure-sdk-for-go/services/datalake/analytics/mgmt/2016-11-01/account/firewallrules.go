@@ -318,6 +318,9 @@ func (client FirewallRulesClient) ListByAccount(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.frlr.hasNextLink() && result.frlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

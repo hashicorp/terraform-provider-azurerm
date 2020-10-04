@@ -27,6 +27,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_storage_container":                  dataSourceArmStorageContainer(),
 		"azurerm_storage_management_policy":          dataSourceArmStorageManagementPolicy(),
 		"azurerm_storage_sync":                       dataSourceArmStorageSync(),
+		"azurerm_storage_sync_group":                 dataSourceArmStorageSyncGroup(),
 	}
 }
 
@@ -49,5 +50,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_storage_table":                        resourceArmStorageTable(),
 		"azurerm_storage_table_entity":                 resourceArmStorageTableEntity(),
 		"azurerm_storage_sync":                         resourceArmStorageSync(),
+		"azurerm_storage_sync_group":                   resourceArmStorageSyncGroup(),
 	}
 }

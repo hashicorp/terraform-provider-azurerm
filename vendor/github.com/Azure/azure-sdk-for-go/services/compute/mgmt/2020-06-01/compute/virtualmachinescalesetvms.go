@@ -392,6 +392,9 @@ func (client VirtualMachineScaleSetVMsClient) List(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachineScaleSetVMsClient", "List", resp, "Failure responding to request")
 	}
+	if result.vmssvlr.hasNextLink() && result.vmssvlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1124,8 +1127,7 @@ func (client VirtualMachineScaleSetVMsClient) RunCommandResponder(resp *http.Res
 	return
 }
 
-// SimulateEviction the operation to simulate the eviction of spot virtual machine in a VM scale set. The eviction will
-// occur within 30 minutes of calling the API
+// SimulateEviction the operation to simulate the eviction of spot virtual machine in a VM scale set.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // VMScaleSetName - the name of the VM scale set.

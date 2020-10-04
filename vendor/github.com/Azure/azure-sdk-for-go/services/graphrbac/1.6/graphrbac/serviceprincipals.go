@@ -306,6 +306,9 @@ func (client ServicePrincipalsClient) List(ctx context.Context, filter string) (
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.ServicePrincipalsClient", "List", resp, "Failure responding to request")
 	}
+	if result.splr.hasNextLink() && result.splr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -543,6 +546,9 @@ func (client ServicePrincipalsClient) ListOwners(ctx context.Context, objectID s
 	result.dolr, err = client.ListOwnersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.ServicePrincipalsClient", "ListOwners", resp, "Failure responding to request")
+	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -157,6 +157,9 @@ func (client WorkflowRunActionsClient) List(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowRunActionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.wralr.hasNextLink() && result.wralr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

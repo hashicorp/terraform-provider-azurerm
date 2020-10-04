@@ -73,6 +73,9 @@ func (client UsagesClient) List(ctx context.Context, location string) (result Qu
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.UsagesClient", "List", resp, "Failure responding to request")
 	}
+	if result.ql.hasNextLink() && result.ql.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

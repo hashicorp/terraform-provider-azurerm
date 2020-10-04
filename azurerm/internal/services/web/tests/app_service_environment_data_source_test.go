@@ -21,6 +21,9 @@ func TestAccDataSourceAzureRMAppServiceEnvironment_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "front_end_scale_factor"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "pricing_tier"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "internal_ip_address"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "service_ip_address"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_ip_addresses"),
 				),
 			},
 		},

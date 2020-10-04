@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
 
-* `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below. 
+* `client_certificate_thumbprint` - (Optional) One or more `client_certificate_thumbprint` blocks as defined below. 
 
 * `client_certificate_common_name` - (Optional) A `client_certificate_common_name` block as defined below. 
 

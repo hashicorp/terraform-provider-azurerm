@@ -854,6 +854,9 @@ func (client IntegrationRuntimesClient) ListByFactory(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.irlr.hasNextLink() && result.irlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

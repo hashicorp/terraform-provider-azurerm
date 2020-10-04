@@ -315,6 +315,9 @@ func (client AvailabilityGroupListenersClient) ListByGroup(ctx context.Context, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.AvailabilityGroupListenersClient", "ListByGroup", resp, "Failure responding to request")
 	}
+	if result.agllr.hasNextLink() && result.agllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

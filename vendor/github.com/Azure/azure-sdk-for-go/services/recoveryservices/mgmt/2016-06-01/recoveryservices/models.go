@@ -30,185 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 
-// AuthType enumerates the values for auth type.
-type AuthType string
-
-const (
-	// AAD ...
-	AAD AuthType = "AAD"
-	// AccessControlService ...
-	AccessControlService AuthType = "AccessControlService"
-	// ACS ...
-	ACS AuthType = "ACS"
-	// AzureActiveDirectory ...
-	AzureActiveDirectory AuthType = "AzureActiveDirectory"
-	// Invalid ...
-	Invalid AuthType = "Invalid"
-)
-
-// PossibleAuthTypeValues returns an array of possible values for the AuthType const type.
-func PossibleAuthTypeValues() []AuthType {
-	return []AuthType{AAD, AccessControlService, ACS, AzureActiveDirectory, Invalid}
-}
-
-// AuthTypeBasicResourceCertificateDetails enumerates the values for auth type basic resource certificate
-// details.
-type AuthTypeBasicResourceCertificateDetails string
-
-const (
-	// AuthTypeAccessControlService ...
-	AuthTypeAccessControlService AuthTypeBasicResourceCertificateDetails = "AccessControlService"
-	// AuthTypeAzureActiveDirectory ...
-	AuthTypeAzureActiveDirectory AuthTypeBasicResourceCertificateDetails = "AzureActiveDirectory"
-	// AuthTypeResourceCertificateDetails ...
-	AuthTypeResourceCertificateDetails AuthTypeBasicResourceCertificateDetails = "ResourceCertificateDetails"
-)
-
-// PossibleAuthTypeBasicResourceCertificateDetailsValues returns an array of possible values for the AuthTypeBasicResourceCertificateDetails const type.
-func PossibleAuthTypeBasicResourceCertificateDetailsValues() []AuthTypeBasicResourceCertificateDetails {
-	return []AuthTypeBasicResourceCertificateDetails{AuthTypeAccessControlService, AuthTypeAzureActiveDirectory, AuthTypeResourceCertificateDetails}
-}
-
-// PrivateEndpointConnectionStatus enumerates the values for private endpoint connection status.
-type PrivateEndpointConnectionStatus string
-
-const (
-	// Approved ...
-	Approved PrivateEndpointConnectionStatus = "Approved"
-	// Disconnected ...
-	Disconnected PrivateEndpointConnectionStatus = "Disconnected"
-	// Pending ...
-	Pending PrivateEndpointConnectionStatus = "Pending"
-	// Rejected ...
-	Rejected PrivateEndpointConnectionStatus = "Rejected"
-)
-
-// PossiblePrivateEndpointConnectionStatusValues returns an array of possible values for the PrivateEndpointConnectionStatus const type.
-func PossiblePrivateEndpointConnectionStatusValues() []PrivateEndpointConnectionStatus {
-	return []PrivateEndpointConnectionStatus{Approved, Disconnected, Pending, Rejected}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// ProvisioningStateDeleting ...
-	ProvisioningStateDeleting ProvisioningState = "Deleting"
-	// ProvisioningStateFailed ...
-	ProvisioningStateFailed ProvisioningState = "Failed"
-	// ProvisioningStatePending ...
-	ProvisioningStatePending ProvisioningState = "Pending"
-	// ProvisioningStateSucceeded ...
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStatePending, ProvisioningStateSucceeded}
-}
-
-// ResourceIdentityType enumerates the values for resource identity type.
-type ResourceIdentityType string
-
-const (
-	// None ...
-	None ResourceIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned ResourceIdentityType = "SystemAssigned"
-)
-
-// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
-func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{None, SystemAssigned}
-}
-
-// SkuName enumerates the values for sku name.
-type SkuName string
-
-const (
-	// RS0 ...
-	RS0 SkuName = "RS0"
-	// Standard ...
-	Standard SkuName = "Standard"
-)
-
-// PossibleSkuNameValues returns an array of possible values for the SkuName const type.
-func PossibleSkuNameValues() []SkuName {
-	return []SkuName{RS0, Standard}
-}
-
-// TriggerType enumerates the values for trigger type.
-type TriggerType string
-
-const (
-	// ForcedUpgrade ...
-	ForcedUpgrade TriggerType = "ForcedUpgrade"
-	// UserTriggered ...
-	UserTriggered TriggerType = "UserTriggered"
-)
-
-// PossibleTriggerTypeValues returns an array of possible values for the TriggerType const type.
-func PossibleTriggerTypeValues() []TriggerType {
-	return []TriggerType{ForcedUpgrade, UserTriggered}
-}
-
-// UsagesUnit enumerates the values for usages unit.
-type UsagesUnit string
-
-const (
-	// Bytes ...
-	Bytes UsagesUnit = "Bytes"
-	// BytesPerSecond ...
-	BytesPerSecond UsagesUnit = "BytesPerSecond"
-	// Count ...
-	Count UsagesUnit = "Count"
-	// CountPerSecond ...
-	CountPerSecond UsagesUnit = "CountPerSecond"
-	// Percent ...
-	Percent UsagesUnit = "Percent"
-	// Seconds ...
-	Seconds UsagesUnit = "Seconds"
-)
-
-// PossibleUsagesUnitValues returns an array of possible values for the UsagesUnit const type.
-func PossibleUsagesUnitValues() []UsagesUnit {
-	return []UsagesUnit{Bytes, BytesPerSecond, Count, CountPerSecond, Percent, Seconds}
-}
-
-// VaultPrivateEndpointState enumerates the values for vault private endpoint state.
-type VaultPrivateEndpointState string
-
-const (
-	// VaultPrivateEndpointStateEnabled ...
-	VaultPrivateEndpointStateEnabled VaultPrivateEndpointState = "Enabled"
-	// VaultPrivateEndpointStateNone ...
-	VaultPrivateEndpointStateNone VaultPrivateEndpointState = "None"
-)
-
-// PossibleVaultPrivateEndpointStateValues returns an array of possible values for the VaultPrivateEndpointState const type.
-func PossibleVaultPrivateEndpointStateValues() []VaultPrivateEndpointState {
-	return []VaultPrivateEndpointState{VaultPrivateEndpointStateEnabled, VaultPrivateEndpointStateNone}
-}
-
-// VaultUpgradeState enumerates the values for vault upgrade state.
-type VaultUpgradeState string
-
-const (
-	// Failed ...
-	Failed VaultUpgradeState = "Failed"
-	// InProgress ...
-	InProgress VaultUpgradeState = "InProgress"
-	// Unknown ...
-	Unknown VaultUpgradeState = "Unknown"
-	// Upgraded ...
-	Upgraded VaultUpgradeState = "Upgraded"
-)
-
-// PossibleVaultUpgradeStateValues returns an array of possible values for the VaultUpgradeState const type.
-func PossibleVaultUpgradeStateValues() []VaultUpgradeState {
-	return []VaultUpgradeState{Failed, InProgress, Unknown, Upgraded}
-}
-
 // CertificateRequest details of the certificate to be uploaded to the vault.
 type CertificateRequest struct {
 	Properties *RawCertificateData `json:"properties,omitempty"`
@@ -244,8 +65,7 @@ type ClientDiscoveryDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// ClientDiscoveryForLogSpecification class to represent shoebox log specification in json client
-// discovery.
+// ClientDiscoveryForLogSpecification class to represent shoebox log specification in json client discovery.
 type ClientDiscoveryForLogSpecification struct {
 	// Name - Name of the log.
 	Name *string `json:"name,omitempty"`
@@ -277,8 +97,8 @@ type ClientDiscoveryResponse struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ClientDiscoveryResponseIterator provides access to a complete listing of
-// ClientDiscoveryValueForSingleAPI values.
+// ClientDiscoveryResponseIterator provides access to a complete listing of ClientDiscoveryValueForSingleAPI
+// values.
 type ClientDiscoveryResponseIterator struct {
 	i    int
 	page ClientDiscoveryResponsePage
@@ -346,10 +166,15 @@ func (cdr ClientDiscoveryResponse) IsEmpty() bool {
 	return cdr.Value == nil || len(*cdr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cdr ClientDiscoveryResponse) hasNextLink() bool {
+	return cdr.NextLink != nil && len(*cdr.NextLink) != 0
+}
+
 // clientDiscoveryResponsePreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cdr ClientDiscoveryResponse) clientDiscoveryResponsePreparer(ctx context.Context) (*http.Request, error) {
-	if cdr.NextLink == nil || len(to.String(cdr.NextLink)) < 1 {
+	if !cdr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -377,11 +202,16 @@ func (page *ClientDiscoveryResponsePage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cdr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cdr)
+		if err != nil {
+			return err
+		}
+		page.cdr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cdr = next
 	return nil
 }
 
@@ -435,6 +265,15 @@ type IdentityData struct {
 	TenantID *string `json:"tenantId,omitempty"`
 	// Type - The identity type. Possible values include: 'SystemAssigned', 'None'
 	Type ResourceIdentityType `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IdentityData.
+func (ID IdentityData) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ID.Type != "" {
+		objectMap["type"] = ID.Type
+	}
+	return json.Marshal(objectMap)
 }
 
 // JobsSummary summary of the replication job data for this vault.
@@ -555,12 +394,33 @@ type PrivateEndpointConnection struct {
 	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = pec.PrivateEndpoint
+	}
+	if pec.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = pec.PrivateLinkServiceConnectionState
+	}
+	return json.Marshal(objectMap)
+}
+
 // PrivateEndpointConnectionVaultProperties information to be stored in Vault properties as an element of
 // privateEndpointConnections List.
 type PrivateEndpointConnectionVaultProperties struct {
 	// ID - READ-ONLY; Format of id subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.[Service]/{resource}/{resourceName}/privateEndpointConnections/{connectionName}.
 	ID         *string                    `json:"id,omitempty"`
 	Properties *PrivateEndpointConnection `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionVaultProperties.
+func (pecvp PrivateEndpointConnectionVaultProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pecvp.Properties != nil {
+		objectMap["properties"] = pecvp.Properties
+	}
+	return json.Marshal(objectMap)
 }
 
 // PrivateLinkResource information of the private link resource.
@@ -723,10 +583,15 @@ func (plr PrivateLinkResources) IsEmpty() bool {
 	return plr.Value == nil || len(*plr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (plr PrivateLinkResources) hasNextLink() bool {
+	return plr.NextLink != nil && len(*plr.NextLink) != 0
+}
+
 // privateLinkResourcesPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (plr PrivateLinkResources) privateLinkResourcesPreparer(ctx context.Context) (*http.Request, error) {
-	if plr.NextLink == nil || len(to.String(plr.NextLink)) < 1 {
+	if !plr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -754,11 +619,16 @@ func (page *PrivateLinkResourcesPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.plr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.plr)
+		if err != nil {
+			return err
+		}
+		page.plr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.plr = next
 	return nil
 }
 
@@ -843,6 +713,15 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 	// ETag - Optional ETag.
 	ETag *string `json:"eTag,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if r.ETag != nil {
+		objectMap["eTag"] = r.ETag
+	}
+	return json.Marshal(objectMap)
 }
 
 // ResourceCertificateAndAadDetails certificate details representing the Vault credentials for AAD.
@@ -1277,6 +1156,13 @@ type VaultCertificateResponse struct {
 	Properties BasicResourceCertificateDetails `json:"properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VaultCertificateResponse.
+func (vcr VaultCertificateResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	objectMap["properties"] = vcr.Properties
+	return json.Marshal(objectMap)
+}
+
 // UnmarshalJSON is the custom unmarshaler for VaultCertificateResponse struct.
 func (vcr *VaultCertificateResponse) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -1433,6 +1319,15 @@ type VaultList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for VaultList.
+func (vl VaultList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vl.Value != nil {
+		objectMap["value"] = vl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // VaultListIterator provides access to a complete listing of Vault values.
 type VaultListIterator struct {
 	i    int
@@ -1501,10 +1396,15 @@ func (vl VaultList) IsEmpty() bool {
 	return vl.Value == nil || len(*vl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vl VaultList) hasNextLink() bool {
+	return vl.NextLink != nil && len(*vl.NextLink) != 0
+}
+
 // vaultListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vl VaultList) vaultListPreparer(ctx context.Context) (*http.Request, error) {
-	if vl.NextLink == nil || len(to.String(vl.NextLink)) < 1 {
+	if !vl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1532,11 +1432,16 @@ func (page *VaultListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vl)
+		if err != nil {
+			return err
+		}
+		page.vl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vl = next
 	return nil
 }
 
@@ -1581,6 +1486,15 @@ type VaultProperties struct {
 	PrivateEndpointStateForBackup VaultPrivateEndpointState `json:"privateEndpointStateForBackup,omitempty"`
 	// PrivateEndpointStateForSiteRecovery - READ-ONLY; Private endpoint state for site recovery. Possible values include: 'VaultPrivateEndpointStateNone', 'VaultPrivateEndpointStateEnabled'
 	PrivateEndpointStateForSiteRecovery VaultPrivateEndpointState `json:"privateEndpointStateForSiteRecovery,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VaultProperties.
+func (vp VaultProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vp.UpgradeDetails != nil {
+		objectMap["upgradeDetails"] = vp.UpgradeDetails
+	}
+	return json.Marshal(objectMap)
 }
 
 // VaultUsage usages of a vault.

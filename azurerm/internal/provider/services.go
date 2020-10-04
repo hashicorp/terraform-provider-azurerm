@@ -40,6 +40,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning"
@@ -71,6 +72,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
@@ -127,6 +129,7 @@ func SupportedServices() []common.ServiceRegistration {
 		machinelearning.Registration{},
 		maintenance.Registration{},
 		managedapplications.Registration{},
+		lighthouse.Registration{},
 		managementgroup.Registration{},
 		maps.Registration{},
 		mariadb.Registration{},
@@ -153,6 +156,7 @@ func SupportedServices() []common.ServiceRegistration {
 		sentinel.Registration{},
 		servicebus.Registration{},
 		servicefabric.Registration{},
+		servicefabricmesh.Registration{},
 		signalr.Registration{},
 		sql.Registration{},
 		storage.Registration{},

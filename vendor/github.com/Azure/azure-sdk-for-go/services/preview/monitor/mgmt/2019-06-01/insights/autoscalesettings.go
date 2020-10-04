@@ -311,6 +311,9 @@ func (client AutoscaleSettingsClient) ListByResourceGroup(ctx context.Context, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.asrc.hasNextLink() && result.asrc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -419,6 +422,9 @@ func (client AutoscaleSettingsClient) ListBySubscription(ctx context.Context) (r
 	result.asrc, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.AutoscaleSettingsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.asrc.hasNextLink() && result.asrc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

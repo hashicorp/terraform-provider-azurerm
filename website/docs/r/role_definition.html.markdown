@@ -67,6 +67,8 @@ The following attributes are exported:
 
 * `id` - The Role Definition ID.
 
+* `role_definition_resource_id` - The Azure Resource Manager ID for the resource
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
@@ -81,5 +83,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Role Definitions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_role_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000
+terraform import azurerm_role_definition.example "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000|/subscriptions/00000000-0000-0000-0000-000000000000"
 ```
+
+-> **NOTE:** This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
