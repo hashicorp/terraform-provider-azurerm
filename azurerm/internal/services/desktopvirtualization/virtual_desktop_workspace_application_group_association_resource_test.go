@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(t *testing.T) {
@@ -137,7 +138,7 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(reso
 		output := make([]string, 0)
 		output = append(output, *result.ApplicationGroupReferences...)
 
-		if !contains(output, splitID[1]) {
+		if !utils.ContainsInStringArray(output, splitID[1]) {
 			return fmt.Errorf("No Virtual Desktop Workspace <==> Application Group Association exists for Workspace %q and Application Group %q (Resource Group: %q)", id.Name, splitID[1], id.ResourceGroup)
 		}
 
@@ -212,8 +213,8 @@ resource "azurerm_virtual_desktop_application_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_workspace_application_group_association" "test" {
-  workspace_id                   = azurerm_virtual_desktop_workspace.test.id
-  application_group_reference_id = azurerm_virtual_desktop_application_group.test.id
+  workspace_id         = azurerm_virtual_desktop_workspace.test.id
+  application_group_id = azurerm_virtual_desktop_application_group.test.id
 }
 
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
@@ -256,8 +257,8 @@ resource "azurerm_virtual_desktop_application_group" "test" {
 }
 
 resource "azurerm_virtual_desktop_workspace_application_group_association" "test" {
-  workspace_id                   = azurerm_virtual_desktop_workspace.test.id
-  application_group_reference_id = azurerm_virtual_desktop_application_group.test.id
+  workspace_id         = azurerm_virtual_desktop_workspace.test.id
+  application_group_id = azurerm_virtual_desktop_application_group.test.id
 }
 
 resource "azurerm_virtual_desktop_host_pool" "personal" {
@@ -280,8 +281,8 @@ resource "azurerm_virtual_desktop_application_group" "personal" {
 }
 
 resource "azurerm_virtual_desktop_workspace_application_group_association" "personal" {
-  workspace_id                   = azurerm_virtual_desktop_workspace.test.id
-  application_group_reference_id = azurerm_virtual_desktop_application_group.personal.id
+  workspace_id         = azurerm_virtual_desktop_workspace.test.id
+  application_group_id = azurerm_virtual_desktop_application_group.personal.id
 }
 
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8), data.RandomIntOfLength(8))
@@ -293,17 +294,8 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_requiresIm
 %s
 
 resource "azurerm_virtual_desktop_workspace_application_group_association" "import" {
-  workspace_id                   = azurerm_virtual_desktop_workspace_application_group_association.test.workspace_id
-  application_group_reference_id = azurerm_virtual_desktop_workspace_application_group_association.test.application_group_reference_id
+  workspace_id         = azurerm_virtual_desktop_workspace_application_group_association.test.workspace_id
+  application_group_id = azurerm_virtual_desktop_workspace_application_group_association.test.application_group_id
 }
 `, template)
-}
-
-func contains(s []string, r string) bool {
-	for _, a := range s {
-		if a == r {
-			return true
-		}
-	}
-	return false
 }

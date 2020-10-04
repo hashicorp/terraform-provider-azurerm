@@ -45,8 +45,8 @@ resource "azurerm_virtual_desktop_workspace" "workspace" {
 }
 
 resource "azurerm_virtual_desktop_workspace_application_group_association" "workspaceremoteapp" {
-  workspace_id                   = azurerm_virtual_desktop_workspace.workspace.id
-  application_group_reference_id = azurerm_virtual_desktop_application_group.remoteapp.id
+  workspace_id         = azurerm_virtual_desktop_workspace.workspace.id
+  application_group_id = azurerm_virtual_desktop_application_group.remoteapp.id
 }
 ```
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `workspace_id` - (Required) The resource ID for the Virtual Desktop Workspace.
 
-* `application_group_reference_id` - (Required) The resource ID for the Virtual Desktop Application Group.
+* `application_group_id` - (Required) The resource ID for the Virtual Desktop Application Group.
 
 ## Attributes Reference
 
