@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -68,6 +68,7 @@ func resourceArmDedicatedHost() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"DSv3-Type1",
 					"DSv3-Type2",
+					"DSv4-Type1",
 					"ESv3-Type1",
 					"ESv3-Type2",
 					"FSv2-Type2",
@@ -172,7 +173,7 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroup)
+	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroup, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(group.Response) {
 			log.Printf("[INFO] Parent Dedicated Host Group %q does not exist - removing from state", d.Id())

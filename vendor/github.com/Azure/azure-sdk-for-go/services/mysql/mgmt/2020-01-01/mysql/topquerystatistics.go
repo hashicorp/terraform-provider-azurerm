@@ -185,6 +185,9 @@ func (client TopQueryStatisticsClient) ListByServer(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.TopQueryStatisticsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.tqsrl.hasNextLink() && result.tqsrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

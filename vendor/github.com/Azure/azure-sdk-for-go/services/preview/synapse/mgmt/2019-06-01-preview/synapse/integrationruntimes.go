@@ -51,13 +51,13 @@ func NewIntegrationRuntimesClientWithBaseURI(baseURI string, subscriptionID stri
 // integrationRuntime - integration runtime resource definition.
 // ifMatch - eTag of the integration runtime entity. Should only be specified for update, for which it should
 // match existing entity or can be * for unconditional update.
-func (client IntegrationRuntimesClient) Create(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string, integrationRuntime IntegrationRuntimeResource, ifMatch string) (result IntegrationRuntimeResource, err error) {
+func (client IntegrationRuntimesClient) Create(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string, integrationRuntime IntegrationRuntimeResource, ifMatch string) (result IntegrationRuntimesCreateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Create")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -80,16 +80,10 @@ func (client IntegrationRuntimesClient) Create(ctx context.Context, resourceGrou
 		return
 	}
 
-	resp, err := client.CreateSender(req)
+	result, err = client.CreateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Create", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Create", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.CreateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Create", resp, "Failure responding to request")
 	}
 
 	return
@@ -125,8 +119,14 @@ func (client IntegrationRuntimesClient) CreatePreparer(ctx context.Context, reso
 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
-func (client IntegrationRuntimesClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client IntegrationRuntimesClient) CreateSender(req *http.Request) (future IntegrationRuntimesCreateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -134,7 +134,7 @@ func (client IntegrationRuntimesClient) CreateSender(req *http.Request) (*http.R
 func (client IntegrationRuntimesClient) CreateResponder(resp *http.Response) (result IntegrationRuntimeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -146,13 +146,13 @@ func (client IntegrationRuntimesClient) CreateResponder(resp *http.Response) (re
 // resourceGroupName - the name of the resource group. The name is case insensitive.
 // workspaceName - the name of the workspace
 // integrationRuntimeName - integration runtime name
-func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result autorest.Response, err error) {
+func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, integrationRuntimeName string) (result IntegrationRuntimesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IntegrationRuntimesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -173,16 +173,10 @@ func (client IntegrationRuntimesClient) Delete(ctx context.Context, resourceGrou
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Delete", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "Delete", resp, "Failure responding to request")
 	}
 
 	return
@@ -212,8 +206,14 @@ func (client IntegrationRuntimesClient) DeletePreparer(ctx context.Context, reso
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (future IntegrationRuntimesDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -221,7 +221,7 @@ func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (*http.R
 func (client IntegrationRuntimesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -362,6 +362,9 @@ func (client IntegrationRuntimesClient) ListByWorkspace(ctx context.Context, res
 	result.irlr, err = client.ListByWorkspaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.IntegrationRuntimesClient", "ListByWorkspace", resp, "Failure responding to request")
+	}
+	if result.irlr.hasNextLink() && result.irlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

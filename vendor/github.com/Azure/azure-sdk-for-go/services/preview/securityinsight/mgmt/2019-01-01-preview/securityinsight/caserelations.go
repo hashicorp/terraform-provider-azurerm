@@ -134,7 +134,6 @@ func (client CaseRelationsClient) CreateOrUpdateRelationSender(req *http.Request
 func (client CaseRelationsClient) CreateOrUpdateRelationResponder(resp *http.Response) (result CaseRelation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -231,7 +230,6 @@ func (client CaseRelationsClient) DeleteRelationSender(req *http.Request) (*http
 func (client CaseRelationsClient) DeleteRelationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -327,7 +325,6 @@ func (client CaseRelationsClient) GetRelationSender(req *http.Request) (*http.Re
 func (client CaseRelationsClient) GetRelationResponder(resp *http.Response) (result CaseRelation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -391,6 +388,9 @@ func (client CaseRelationsClient) List(ctx context.Context, resourceGroupName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.CaseRelationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.crl.hasNextLink() && result.crl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -441,7 +441,6 @@ func (client CaseRelationsClient) ListSender(req *http.Request) (*http.Response,
 func (client CaseRelationsClient) ListResponder(resp *http.Response) (result CaseRelationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

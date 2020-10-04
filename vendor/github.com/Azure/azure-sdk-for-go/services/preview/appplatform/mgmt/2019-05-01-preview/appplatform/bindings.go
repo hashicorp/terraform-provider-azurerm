@@ -318,6 +318,9 @@ func (client BindingsClient) List(ctx context.Context, resourceGroupName string,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.BindingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.brc.hasNextLink() && result.brc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

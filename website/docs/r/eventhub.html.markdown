@@ -43,7 +43,7 @@ resource "azurerm_eventhub" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the EventHub Namespace resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
 * `namespace_name` - (Required) Specifies the name of the EventHub Namespace. Changing this forces a new resource to be created.
 

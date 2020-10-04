@@ -55,6 +55,34 @@ func MsSqlDBCollation() schema.SchemaValidateFunc {
 	)
 }
 
+func MsSqlRestorableDatabaseID(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return warnings, errors
+	}
+
+	if _, err := parse.MssqlRestorableDBID(v); err != nil {
+		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Restorable Database resource id: %v", k, err))
+	}
+
+	return warnings, errors
+}
+
+func MsSqlRecoverableDatabaseID(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return warnings, errors
+	}
+
+	if _, err := parse.MssqlRecoverableDBID(v); err != nil {
+		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Recoverable Database resource id: %v", k, err))
+	}
+
+	return warnings, errors
+}
+
 func MsSqlDatabaseMinCapacity(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(float64)
 	if !ok {

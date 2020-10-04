@@ -354,6 +354,9 @@ func (client ExperimentsClient) ListByProfile(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ExperimentsClient", "ListByProfile", resp, "Failure responding to request")
 	}
+	if result.el.hasNextLink() && result.el.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

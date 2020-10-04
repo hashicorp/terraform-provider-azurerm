@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
@@ -66,7 +65,6 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				ValidateFunc: validate.MsSqlDatabaseAutoPauseDelay,
 			},
 
-			// recovery is not support in version 2017-10-01-preview
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -78,6 +76,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 					string(sql.CreateModeOnlineSecondary),
 					string(sql.CreateModePointInTimeRestore),
 					string(sql.CreateModeRestore),
+					string(sql.CreateModeRecovery),
 					string(sql.CreateModeRestoreExternalBackup),
 					string(sql.CreateModeRestoreExternalBackupSecondary),
 					string(sql.CreateModeRestoreLongTermRetentionBackup),
@@ -131,6 +130,18 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
+			},
+
+			"recover_database_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.MsSqlRecoverableDatabaseID,
+			},
+
+			"restore_dropped_database_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.MsSqlRestorableDatabaseID,
 			},
 
 			"read_replica_count": {
@@ -289,7 +300,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	sqlServerId := d.Get("server_id").(string)
 	serverId, _ := parse.MsSqlServerID(sqlServerId)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -338,9 +349,16 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	createMode, ok := d.GetOk("create_mode")
-	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
+	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
 		return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", createMode.(string))
 	}
+	if _, dbok := d.GetOk("recover_database_id"); ok && createMode.(string) == string(sql.CreateModeRecovery) && !dbok {
+		return fmt.Errorf("'recover_database_id' is required for create_mode %s", createMode.(string))
+	}
+	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
+		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
+	}
+
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 
 	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
@@ -374,6 +392,14 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("creation_source_database_id"); ok {
 		params.DatabaseProperties.SourceDatabaseID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("recover_database_id"); ok {
+		params.DatabaseProperties.RecoverableDatabaseID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("restore_dropped_database_id"); ok {
+		params.DatabaseProperties.RestorableDroppedDatabaseID = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, params)
