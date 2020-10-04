@@ -143,12 +143,12 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema
 	output = append(output, *read.ApplicationGroupReferences...)
 
 	if !utils.ContainsInStringArray(output, splitID[1]) {
-		log.Printf("[DEBUG] Association between Virtual Destkop Workspace %q (Resource Group %q) and Virtual Desktop Application Group %q was not found - removing from state!", wsID.Name, wsID.ResourceGroup, splitID[1])
+		log.Printf("[DEBUG] Association between Virtual Desktop Workspace %q (Resource Group %q) and Virtual Desktop Application Group %q was not found - removing from state!", wsID.Name, wsID.ResourceGroup, splitID[1])
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("application_group_id", string(splitID[1]))
+	d.Set("application_group_id", splitID[1])
 
 	return nil
 }
