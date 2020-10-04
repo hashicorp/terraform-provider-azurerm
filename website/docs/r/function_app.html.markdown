@@ -385,6 +385,8 @@ The following attributes are exported:
 
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
 
+* `publishing_profile` - The XML publishing profile for this function app
+
 * `kind` - The Function App kind - such as `functionapp,linux,container`
 
 ---

@@ -2,9 +2,11 @@ package web
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -144,6 +146,12 @@ func dataSourceFunctionApp() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"publishing_profile": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -200,6 +208,17 @@ func dataSourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(*resp.ID)
+
+	publishProfileReader, err := client.ListPublishingProfileXMLWithSecrets(ctx, resourceGroup, name, web.CsmPublishingProfileOptions{})
+	if err != nil {
+		return err
+	}
+	publishProfileBytes, err := ioutil.ReadAll(*publishProfileReader.Value)
+	if err != nil {
+		return err
+	}
+	(*publishProfileReader.Value).Close()
+	d.Set("publishing_profile", string(publishProfileBytes))
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)

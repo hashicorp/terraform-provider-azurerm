@@ -38,6 +38,7 @@ func TestAccFunctionApp_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
 				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("publishing_profile").Exists(),
 			),
 		},
 		data.ImportStep(),

@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"strings"
 	"time"
@@ -235,6 +236,12 @@ func resourceFunctionApp() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"publishing_profile": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -587,6 +594,17 @@ func resourceFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", id.SiteName, id.ResourceGroup, err)
 	}
+
+	publishProfileReader, err := client.ListPublishingProfileXMLWithSecrets(ctx, id.ResourceGroup, id.Name, web.CsmPublishingProfileOptions{})
+	if err != nil {
+		return err
+	}
+	publishProfileBytes, err := ioutil.ReadAll(*publishProfileReader.Value)
+	if err != nil {
+		return err
+	}
+	(*publishProfileReader.Value).Close()
+	d.Set("publishing_profile", string(publishProfileBytes))
 
 	d.Set("name", id.SiteName)
 	d.Set("resource_group_name", id.ResourceGroup)
