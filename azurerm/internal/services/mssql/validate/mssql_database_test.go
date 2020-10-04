@@ -214,27 +214,3 @@ func TestMsSqlDBCollation(t *testing.T) {
 		})
 	}
 }
-
-func TestMsSqlDatabaseMinCapacity(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"0", false},
-		{"0.0", false},
-		{"0.5", false},
-		{"0.05", true},
-		{"7", true},
-		{"360", true},
-		{"1.75", false},
-		{"1.0", false},
-	}
-
-	for _, test := range testCases {
-		_, es := MsSqlDatabaseMinCapacity(test.input, "name")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-	}
-}
