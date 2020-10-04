@@ -50,7 +50,7 @@ func resourceArmEventGridSystemTopic() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"source": {
+			"source_resource_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -100,7 +100,7 @@ func resourceArmEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	source := d.Get("source").(string)
+	source := d.Get("source_resource_id").(string)
 	topicType := d.Get("topic_type").(string)
 
 	if d.IsNewResource() {
@@ -119,15 +119,13 @@ func resourceArmEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta in
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	systemtopicProperties := &eventgrid.SystemTopicProperties{
-		Source:    &source,
-		TopicType: &topicType,
-	}
-
 	systemTopic := eventgrid.SystemTopic{
-		Location:              &location,
-		SystemTopicProperties: systemtopicProperties,
-		Tags:                  tags.Expand(t),
+		Location: &location,
+		SystemTopicProperties: &eventgrid.SystemTopicProperties{
+			Source:    &source,
+			TopicType: &topicType,
+		},
+		Tags: tags.Expand(t),
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid System Topic creation with Properties: %+v.", systemTopic)
@@ -182,7 +180,7 @@ func resourceArmEventGridSystemTopicRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.SystemTopicProperties; props != nil {
-		d.Set("source", props.Source)
+		d.Set("source_resource_id", props.Source)
 		d.Set("topic_type", props.TopicType)
 		d.Set("metric_resource_id", props.MetricResourceID)
 	}

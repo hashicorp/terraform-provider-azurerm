@@ -24,7 +24,7 @@ func TestAccAzureRMEventGridSystemTopic_basic(t *testing.T) {
 				Config: testAccAzureRMEventGridSystemTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridSystemTopicExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "source"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "source_resource_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_resource_id"),
 				),
@@ -56,7 +56,7 @@ func TestAccAzureRMEventGridSystemTopic_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridSystemTopic_basicWithTags(t *testing.T) {
+func TestAccAzureRMEventGridSystemTopic_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -65,12 +65,12 @@ func TestAccAzureRMEventGridSystemTopic_basicWithTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridSystemTopicDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridSystemTopic_basicWithTags(data),
+				Config: testAccAzureRMEventGridSystemTopic_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridSystemTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "source"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.Foo", "Bar"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "source_resource_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_resource_id"),
 				),
@@ -149,7 +149,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 
@@ -162,10 +162,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                = "acctestegst%d"
+  name                = "acctestEGST%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  source              = azurerm_storage_account.test.id
+  source_resource_id  = azurerm_storage_account.test.id
   topic_type          = "Microsoft.Storage.StorageAccounts"
 }
 `, data.RandomInteger, location, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
@@ -180,13 +180,13 @@ resource "azurerm_eventgrid_system_topic" "import" {
   name                = azurerm_eventgrid_system_topic.test.name
   location            = azurerm_eventgrid_system_topic.test.location
   resource_group_name = azurerm_eventgrid_system_topic.test.resource_group_name
-  source              = azurerm_eventgrid_system_topic.test.source
+  source_resource_id  = azurerm_eventgrid_system_topic.test.source_resource_id
   topic_type          = azurerm_eventgrid_system_topic.test.topic_type
 }
 `, template)
 }
 
-func testAccAzureRMEventGridSystemTopic_basicWithTags(data acceptance.TestData) string {
+func testAccAzureRMEventGridSystemTopic_complete(data acceptance.TestData) string {
 	location := "westus2"
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -194,7 +194,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 
@@ -207,15 +207,14 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                = "acctestegst%d"
+  name                = "acctestEGST%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  source     = azurerm_storage_account.test.id
-  topic_type = "Microsoft.Storage.StorageAccounts"
+  source_resource_id = azurerm_storage_account.test.id
+  topic_type         = "Microsoft.Storage.StorageAccounts"
 
   tags = {
-    "foo" = "bar"
+    "Foo" = "Bar"
   }
 }
 `, data.RandomInteger, location, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
