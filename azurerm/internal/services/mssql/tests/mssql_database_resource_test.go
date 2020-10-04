@@ -173,6 +173,7 @@ func TestAccAzureRMMsSqlDatabase_GP_Serverless(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
@@ -445,6 +446,25 @@ func TestAccAzureRMMsSqlDatabase_updateSku(t *testing.T) {
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMMsSqlDatabase_updateSku2(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_minCapacity0(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_minCapacity0(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
@@ -1079,6 +1099,20 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%d"
   server_id = azurerm_sql_server.test.id
   sku_name  = "HS_Gen5_4"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_minCapacity0(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%d"
+  server_id = azurerm_sql_server.test.id
+
+  min_capacity = 0
 }
 `, template, data.RandomInteger)
 }
