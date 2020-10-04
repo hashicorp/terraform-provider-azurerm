@@ -82,21 +82,3 @@ func MsSqlRecoverableDatabaseID(i interface{}, k string) (warnings []string, err
 
 	return warnings, errors
 }
-
-func MsSqlDatabaseMinCapacity(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(float64)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be float64", k))
-		return warnings, errors
-	}
-	valid := []float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}
-
-	for _, validFloat := range valid {
-		if v == validFloat {
-			return warnings, errors
-		}
-	}
-
-	errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
-	return warnings, errors
-}
