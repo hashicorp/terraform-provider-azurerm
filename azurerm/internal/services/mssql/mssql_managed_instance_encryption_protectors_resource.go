@@ -49,7 +49,6 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 			"server_key_type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.ServiceManaged),
 					string(sql.AzureKeyVault),

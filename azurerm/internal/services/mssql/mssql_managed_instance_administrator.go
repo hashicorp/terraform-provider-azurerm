@@ -60,7 +60,6 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 			"tenant_id": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validation.IsUUID,
 			},
