@@ -173,8 +173,8 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"retention_policy": {
 				Type:       schema.TypeList,
 				MaxItems:   1,
-				Computed:   true,
 				Optional:   true,
+				Computed:   true,
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -196,15 +196,15 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"trust_policy": {
 				Type:       schema.TypeList,
 				MaxItems:   1,
-				Computed:   true,
 				Optional:   true,
+				Computed:   true,
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
-							Default:  false,
 							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -364,7 +364,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	skuChange := d.HasChange("sku")
 	isBasicSku := strings.EqualFold(sku, string(containerregistry.Basic))
 	isPremiumSku := strings.EqualFold(sku, string(containerregistry.Premium))
-	isStandardSku := strings.EqualFold(sku, string(containerregistry.Standard))
+		 := strings.EqualFold(sku, string(containerregistry.Standard))
 
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
