@@ -14,7 +14,7 @@ Manages a Resource Group.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "group1"
   location = "West Europe"
 }
 ```
