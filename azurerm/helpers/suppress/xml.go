@@ -3,25 +3,15 @@ package suppress
 import (
 	"encoding/xml"
 	"io"
-	"reflect"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress`
 )
 
 // Deprecated: moved to internal and will be removed in 3.0
-func XmlDiff(_, old, new string, _ *schema.ResourceData) bool {
-	oldTokens, err := expandXmlTokensFromString(old)
-	if err != nil {
-		return false
-	}
-
-	newTokens, err := expandXmlTokensFromString(new)
-	if err != nil {
-		return false
-	}
-
-	return reflect.DeepEqual(oldTokens, newTokens)
+func XmlDiff(k, old, new string, d *schema.ResourceData) bool {
+	return suppress.XmlDiff(k, old, new, d)
 }
 
 // This function will extract all XML tokens from a string, but ignoring all white-space tokens
