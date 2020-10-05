@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// moved to internal and will be removed in 3.0 (nor marked as deprecated as it would affect many packages)
 func CaseDifference(_, old, new string, _ *schema.ResourceData) bool {
 	return strings.EqualFold(old, new)
 }

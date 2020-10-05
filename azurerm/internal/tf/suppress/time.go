@@ -6,7 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// Deprecated: moved to internal and will be removed in 3.0
 func RFC3339Time(_, old, new string, _ *schema.ResourceData) bool {
 	ot, oerr := time.Parse(time.RFC3339, old)
 	nt, nerr := time.Parse(time.RFC3339, new)

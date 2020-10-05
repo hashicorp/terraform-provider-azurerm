@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// Deprecated: moved to internal and will be removed in 3.0
 func XmlDiff(_, old, new string, _ *schema.ResourceData) bool {
 	oldTokens, err := expandXmlTokensFromString(old)
 	if err != nil {
