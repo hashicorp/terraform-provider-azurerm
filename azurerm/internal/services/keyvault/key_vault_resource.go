@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -309,7 +309,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+		if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 		}
 	}
@@ -445,7 +445,7 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			virtualNetworkName := id.Path["virtualNetworks"]
-			if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+			if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 				virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 			}
 		}
@@ -670,7 +670,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 					}
 
 					virtualNetworkName := id.Path["virtualNetworks"]
-					if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+					if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 					}
 				}

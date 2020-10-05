@@ -1,4 +1,4 @@
-package tf
+package acceptance
 
 import (
 	"strconv"
@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
-func AccRandTimeInt() int {
+func RandTimeInt() int {
 	// acctest.RantInt() returns a value of size:
 	// 000000000000000000
 	// YYMMddHHmmsshhRRRR
