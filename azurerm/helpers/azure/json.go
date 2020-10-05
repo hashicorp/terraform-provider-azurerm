@@ -1,9 +1,6 @@
 package azure
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
