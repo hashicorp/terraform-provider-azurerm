@@ -5,12 +5,11 @@ import (
 	"math"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
-	"time"
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -65,7 +64,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	}
 
 	testData := TestData{
-		RandomInteger:   AccRandTimeInt(),
+		RandomInteger:   tf.AccRandTimeInt(),
 		RandomString:    acctest.RandString(5),
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
 		Environment:     *env,
@@ -125,22 +124,4 @@ func (td *TestData) RandomStringOfLength(len int) string {
 	}
 
 	return acctest.RandString(len)
-}
-
-func AccRandTimeInt() int {
-	// acctest.RantInt() returns a value of size:
-	// 000000000000000000
-	// YYMMddHHmmsshhRRRR
-
-	//go format: 2006-01-02 15:04:05.00
-
-	timeStr := strings.Replace(time.Now().Local().Format("060102150405.00"), ".", "", 1)
-	postfix := acctest.RandStringFromCharSet(4, "0123456789")
-
-	i, err := strconv.Atoi(timeStr + postfix)
-	if err != nil {
-		panic(err)
-	}
-
-	return i
 }
