@@ -1,6 +1,8 @@
-package azure
+package utils
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestIPv6Compression(t *testing.T) {
 	cases := []struct {
@@ -40,44 +42,6 @@ func TestIPv6Compression(t *testing.T) {
 			r := NormalizeIPv6Address(tc.Input)
 			if (r != tc.Output) && tc.Valid {
 				t.Fatalf("Expected NormalizeIPv6Address to return '%q' for '%q' (got '%q')", tc.Output, tc.Input, r)
-			}
-		})
-	}
-}
-
-func TestHashIPv6Address(t *testing.T) {
-	cases := []struct {
-		Name   string
-		Input  interface{}
-		Output int
-	}{
-		{
-			Name:   "input empty",
-			Input:  "",
-			Output: 0,
-		},
-		{
-			Name:   "uncompressed",
-			Input:  "2001:0db8:85a3:0:0:8a2e:0370:7334",
-			Output: 3242211790,
-		},
-		{
-			Name:   "invalid",
-			Input:  "2001::invalid",
-			Output: 0,
-		},
-		{
-			Name:   "compressed",
-			Input:  "2001:db8:85a3::8a2e:370:7334",
-			Output: 3242211790,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.Name, func(t *testing.T) {
-			r := HashIPv6Address(tc.Input)
-			if r != tc.Output {
-				t.Fatalf("Expected HashIPv6Address to return '%d' for '%q' (got '%d')", tc.Output, tc.Input, r)
 			}
 		})
 	}
