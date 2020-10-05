@@ -1,11 +1,10 @@
-package azure
+package utils
 
 import (
 	"encoding/json"
 	"fmt"
 )
 
-// Deprecated: moved to utils and will be removed in 3.0
 func NormalizeJson(jsonString interface{}) string {
 	if jsonString == nil || jsonString == "" {
 		return ""
