@@ -462,23 +462,6 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 			}
 		}
 	}
-	/*
-		if d.HasChange("gateway_ip_configuration") {
-			oldRaw, newRaw := d.GetChange("gateway_ip_configuration")
-			oldVS := oldRaw.([]interface{})
-			newVS := newRaw.([]interface{})
-
-			// If we're creating the application gateway return the current gateway ip configuration.
-			if len(oldVS) == 0 {
-				return &results, false
-			}
-
-			// The application gateway needs to be stopped if a gateway ip configuration is added or removed
-			if len(oldVS) != len(newVS) {
-				return &results, true
-			}
-		}
-	*/
 
 	if d.HasChange("short_term_retention_policy") {
 		v := d.Get("short_term_retention_policy")
