@@ -8,17 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// Deprecated: moved to internal and will be removed in 3.0
 func HashInt(v interface{}) int {
 	return hashcode.String(strconv.Itoa(v.(int)))
 }
 
-// Deprecated: moved to internal and will be removed in 3.0
 func HashStringIgnoreCase(v interface{}) int {
 	return hashcode.String(strings.ToLower(v.(string)))
 }
 
-// Deprecated: moved to internal and will be removed in 3.0
 func FromStringSlice(slice []string) *schema.Set {
 	set := &schema.Set{F: schema.HashString}
 	for _, v := range slice {
