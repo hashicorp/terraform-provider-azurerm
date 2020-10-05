@@ -20,21 +20,21 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 				"weekly_retention": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					Default:      "PT0S",
+					Computed:     true,
 					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 				},
 				// MonthlyRetention - The monthly retention policy for an LTR backup in an ISO 8601 format.
 				"monthly_retention": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					Default:      "PT0S",
+					Computed:     true,
 					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 				},
 				// YearlyRetention - The yearly retention policy for an LTR backup in an ISO 8601 format.
 				"yearly_retention": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					Default:      "PT0S",
+					Computed:     true,
 					ValidateFunc: azure.ValidateLongTermRetentionPoliciesIsoFormat,
 				},
 				// WeekOfYear - The week of year to take the yearly backup in an ISO 8601 format.

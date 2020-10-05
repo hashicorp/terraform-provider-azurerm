@@ -444,12 +444,14 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	// hyper-scale SKU's do not support LRP currently
-	if d.HasChange("long_term_retention_policy") && !strings.HasPrefix(skuName.(string), "HS") {
+	if d.HasChange("long_term_retention_policy") {
 		v := d.Get("long_term_retention_policy")
 		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
 		if longTermRetentionProps != nil {
-			longTermRetentionPolicy := sql.BackupLongTermRetentionPolicy{
-				LongTermRetentionPolicyProperties: longTermRetentionProps,
+			longTermRetentionPolicy := sql.BackupLongTermRetentionPolicy{}
+
+			if !strings.HasPrefix(skuName.(string), "HS") {
+				longTermRetentionPolicy.LongTermRetentionPolicyProperties = longTermRetentionProps
 			}
 
 			longTermRetentionfuture, err := longTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, longTermRetentionPolicy)
@@ -467,8 +469,10 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		v := d.Get("short_term_retention_policy")
 		backupShortTermPolicyProps := helper.ExpandShortTermRetentionPolicy(v.([]interface{}))
 		if backupShortTermPolicyProps != nil {
-			backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{
-				BackupShortTermRetentionPolicyProperties: backupShortTermPolicyProps,
+			backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{}
+
+			if !strings.HasPrefix(skuName.(string), "HS") {
+				backupShortTermPolicy.BackupShortTermRetentionPolicyProperties = backupShortTermPolicyProps
 			}
 
 			shortTermRetentionFuture, err := shortTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, backupShortTermPolicy)
@@ -576,6 +580,11 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		if err := d.Set("short_term_retention_policy", flattenShortTermPolicy); err != nil {
 			return fmt.Errorf("failure in setting `short_term_retention_policy`: %+v", err)
 		}
+	} else {
+		// HS SKUs need the retention policies zeroing for state consistency
+		zero := make([]interface{}, 0)
+		d.Set("long_term_retention_policy", zero)
+		d.Set("short_term_retention_policy", zero)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
