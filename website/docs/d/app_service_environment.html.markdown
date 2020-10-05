@@ -1,55 +1,58 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_app_service_environment"
+page_title: "Azure Resource Manager: Data Source: azurerm_app_service_environment"
 description: |-
   Gets information about an existing App Service Environment.
 ---
 
 # Data Source: azurerm_app_service_environment
 
-Use this data source to access information about an existing App Service Environment
+Use this data source to access information about an existing App Service Environment.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_app_service_environment" "example" {
-  name                = "example-ase"
-  resource_group_name = "example-rg"
+  name                = "existing-ase"
+  resource_group_name = "existing-rg"
 }
 
-output "app_service_environment_id" {
-  value = "${data.azurerm_app_service_environment.id}"
+output "id" {
+  value = data.azurerm_app_service_environment.example.id
 }
-
 ```
 
-## Argument Reference
+## Arguments Reference
 
-* `name` - (Required) The name of the App Service Environment.
+The following arguments are supported:
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service Environment exists.
+- `name` - (Required) The name of this App Service Environment.
 
-## Attribute Reference
+- `resource_group_name` - (Required) The name of the Resource Group where the App Service Environment exists.
 
-* `id` - The ID of the App Service Environment.
+## Attributes Reference
 
-* `location` - The Azure location where the App Service Environment exists
+In addition to the Arguments listed above - the following Attributes are exported:
 
-* `front_end_scale_factor` - The number of app instances per App Service Environment Front End
+- `id` - The ID of the App Service Environment.
 
-* `pricing_tier` - The Pricing Tier (Isolated SKU) of the App Service Environment.
+- `front_end_scale_factor` - The number of app instances per App Service Environment Front End.
 
-* `internal_ip_address` - IP address of internal load balancer of the App Service Environment.
+- `internal_ip_address` - IP address of internal load balancer of the App Service Environment.
 
-* `service_ip_address` - IP address of service endpoint of the App Service Environment.
+- `location` - The Azure Region where the App Service Environment exists.
 
-* `outbound_ip_addresses` - Outbound IP addresses of the App Service Environment.
+- `outbound_ip_addresses` - List of outbound IP addresses of the App Service Environment.
 
-* `tags` - A mapping of tags assigned to the resource.
+- `pricing_tier` - The Pricing Tier (Isolated SKU) of the App Service Environment.
+
+- `service_ip_address` - IP address of service endpoint of the App Service Environment.
+
+- `tags` - A mapping of tags assigned to the App Service Environment.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.
+- `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.

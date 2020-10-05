@@ -182,6 +182,46 @@ func TestAccAzureRMIotHub_fallbackRoute(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMIotHub_publicAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMIotHub_publicAccessEnabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMIotHub_publicAccessDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMIotHub_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.ResourceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -242,7 +282,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-iothub-%d"
   location = "%s"
 }
 
@@ -600,4 +640,64 @@ resource "azurerm_iothub" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMIotHub_publicAccessEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  public_network_access_enabled = true
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMIotHub_publicAccessDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-iothub-%d"
+  location = "%s"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "B1"
+    capacity = "1"
+  }
+
+  public_network_access_enabled = false
+
+  tags = {
+    purpose = "testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
