@@ -126,7 +126,6 @@ func (client VirtualAppliancesClient) CreateOrUpdateSender(req *http.Request) (f
 func (client VirtualAppliancesClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualAppliance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client VirtualAppliancesClient) DeleteSender(req *http.Request) (future Vi
 func (client VirtualAppliancesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -281,7 +279,6 @@ func (client VirtualAppliancesClient) GetSender(req *http.Request) (*http.Respon
 func (client VirtualAppliancesClient) GetResponder(resp *http.Response) (result VirtualAppliance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +316,9 @@ func (client VirtualAppliancesClient) List(ctx context.Context) (result VirtualA
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "List", resp, "Failure responding to request")
 	}
+	if result.valr.hasNextLink() && result.valr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -353,7 +353,6 @@ func (client VirtualAppliancesClient) ListSender(req *http.Request) (*http.Respo
 func (client VirtualAppliancesClient) ListResponder(resp *http.Response) (result VirtualApplianceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -430,6 +429,9 @@ func (client VirtualAppliancesClient) ListByResourceGroup(ctx context.Context, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualAppliancesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.valr.hasNextLink() && result.valr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -465,7 +467,6 @@ func (client VirtualAppliancesClient) ListByResourceGroupSender(req *http.Reques
 func (client VirtualAppliancesClient) ListByResourceGroupResponder(resp *http.Response) (result VirtualApplianceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -581,7 +582,6 @@ func (client VirtualAppliancesClient) UpdateTagsSender(req *http.Request) (*http
 func (client VirtualAppliancesClient) UpdateTagsResponder(resp *http.Response) (result VirtualAppliance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

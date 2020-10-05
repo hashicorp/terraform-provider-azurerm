@@ -111,7 +111,6 @@ func (client PrivateLinkResourcesClient) GetSender(req *http.Request) (*http.Res
 func (client PrivateLinkResourcesClient) GetResponder(resp *http.Response) (result PrivateLinkResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -152,6 +151,9 @@ func (client PrivateLinkResourcesClient) List(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.PrivateLinkResourcesClient", "List", resp, "Failure responding to request")
 	}
+	if result.plr.hasNextLink() && result.plr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -188,7 +190,6 @@ func (client PrivateLinkResourcesClient) ListSender(req *http.Request) (*http.Re
 func (client PrivateLinkResourcesClient) ListResponder(resp *http.Response) (result PrivateLinkResources, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -71,6 +71,9 @@ func (client ManagedRuleSetsClient) List(ctx context.Context) (result ManagedRul
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ManagedRuleSetsClient", "List", resp, "Failure responding to request")
 	}
+	if result.mrsdl.hasNextLink() && result.mrsdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -105,7 +108,6 @@ func (client ManagedRuleSetsClient) ListSender(req *http.Request) (*http.Respons
 func (client ManagedRuleSetsClient) ListResponder(resp *http.Response) (result ManagedRuleSetDefinitionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -116,7 +116,6 @@ func (client SmartGroupsClient) ChangeStateSender(req *http.Request) (*http.Resp
 func (client SmartGroupsClient) ChangeStateResponder(resp *http.Response) (result SmartGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -174,6 +173,9 @@ func (client SmartGroupsClient) GetAll(ctx context.Context, targetResource strin
 	result.sgl, err = client.GetAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartGroupsClient", "GetAll", resp, "Failure responding to request")
+	}
+	if result.sgl.hasNextLink() && result.sgl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -242,7 +244,6 @@ func (client SmartGroupsClient) GetAllSender(req *http.Request) (*http.Response,
 func (client SmartGroupsClient) GetAllResponder(resp *http.Response) (result SmartGroupsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -359,7 +360,6 @@ func (client SmartGroupsClient) GetByIDSender(req *http.Request) (*http.Response
 func (client SmartGroupsClient) GetByIDResponder(resp *http.Response) (result SmartGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -439,7 +439,6 @@ func (client SmartGroupsClient) GetHistorySender(req *http.Request) (*http.Respo
 func (client SmartGroupsClient) GetHistoryResponder(resp *http.Response) (result SmartGroupModification, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

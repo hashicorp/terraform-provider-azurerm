@@ -134,7 +134,6 @@ func (client AdaptiveNetworkHardeningsClient) EnforceSender(req *http.Request) (
 func (client AdaptiveNetworkHardeningsClient) EnforceResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -226,7 +225,6 @@ func (client AdaptiveNetworkHardeningsClient) GetSender(req *http.Request) (*htt
 func (client AdaptiveNetworkHardeningsClient) GetResponder(resp *http.Response) (result AdaptiveNetworkHardening, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -280,6 +278,9 @@ func (client AdaptiveNetworkHardeningsClient) ListByExtendedResource(ctx context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AdaptiveNetworkHardeningsClient", "ListByExtendedResource", resp, "Failure responding to request")
 	}
+	if result.anhl.hasNextLink() && result.anhl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -318,7 +319,6 @@ func (client AdaptiveNetworkHardeningsClient) ListByExtendedResourceSender(req *
 func (client AdaptiveNetworkHardeningsClient) ListByExtendedResourceResponder(resp *http.Response) (result AdaptiveNetworkHardeningsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

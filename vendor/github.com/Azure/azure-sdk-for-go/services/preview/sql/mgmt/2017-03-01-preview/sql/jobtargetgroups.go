@@ -127,7 +127,6 @@ func (client JobTargetGroupsClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client JobTargetGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result JobTargetGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client JobTargetGroupsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client JobTargetGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -288,7 +286,6 @@ func (client JobTargetGroupsClient) GetSender(req *http.Request) (*http.Response
 func (client JobTargetGroupsClient) GetResponder(resp *http.Response) (result JobTargetGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -331,6 +328,9 @@ func (client JobTargetGroupsClient) ListByAgent(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "ListByAgent", resp, "Failure responding to request")
 	}
+	if result.jtglr.hasNextLink() && result.jtglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -368,7 +368,6 @@ func (client JobTargetGroupsClient) ListByAgentSender(req *http.Request) (*http.
 func (client JobTargetGroupsClient) ListByAgentResponder(resp *http.Response) (result JobTargetGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

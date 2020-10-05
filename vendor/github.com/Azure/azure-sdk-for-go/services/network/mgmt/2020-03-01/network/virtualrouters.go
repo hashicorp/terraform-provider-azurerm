@@ -125,7 +125,6 @@ func (client VirtualRoutersClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client VirtualRoutersClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualRouter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client VirtualRoutersClient) DeleteSender(req *http.Request) (future Virtu
 func (client VirtualRoutersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,7 +278,6 @@ func (client VirtualRoutersClient) GetSender(req *http.Request) (*http.Response,
 func (client VirtualRoutersClient) GetResponder(resp *http.Response) (result VirtualRouter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -318,6 +315,9 @@ func (client VirtualRoutersClient) List(ctx context.Context) (result VirtualRout
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualRoutersClient", "List", resp, "Failure responding to request")
 	}
+	if result.vrlr.hasNextLink() && result.vrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -352,7 +352,6 @@ func (client VirtualRoutersClient) ListSender(req *http.Request) (*http.Response
 func (client VirtualRoutersClient) ListResponder(resp *http.Response) (result VirtualRouterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -429,6 +428,9 @@ func (client VirtualRoutersClient) ListByResourceGroup(ctx context.Context, reso
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualRoutersClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.vrlr.hasNextLink() && result.vrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -464,7 +466,6 @@ func (client VirtualRoutersClient) ListByResourceGroupSender(req *http.Request) 
 func (client VirtualRoutersClient) ListByResourceGroupResponder(resp *http.Response) (result VirtualRouterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

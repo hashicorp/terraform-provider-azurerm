@@ -71,6 +71,9 @@ func (client OperationsClient) List(ctx context.Context) (result ServiceOperatio
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.OperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sol.hasNextLink() && result.sol.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -101,7 +104,6 @@ func (client OperationsClient) ListSender(req *http.Request) (*http.Response, er
 func (client OperationsClient) ListResponder(resp *http.Response) (result ServiceOperationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -115,7 +115,6 @@ func (client RestorableDroppedManagedDatabasesClient) GetSender(req *http.Reques
 func (client RestorableDroppedManagedDatabasesClient) GetResponder(resp *http.Response) (result RestorableDroppedManagedDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,6 +156,9 @@ func (client RestorableDroppedManagedDatabasesClient) ListByInstance(ctx context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RestorableDroppedManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.rdmdlr.hasNextLink() && result.rdmdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -193,7 +195,6 @@ func (client RestorableDroppedManagedDatabasesClient) ListByInstanceSender(req *
 func (client RestorableDroppedManagedDatabasesClient) ListByInstanceResponder(resp *http.Response) (result RestorableDroppedManagedDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

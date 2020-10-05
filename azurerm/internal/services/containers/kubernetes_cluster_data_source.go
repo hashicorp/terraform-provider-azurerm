@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -745,14 +745,14 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values := make(map[string]interface{})
 
 	routes := make([]interface{}, 0)
-	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+	if httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey); httpApplicationRouting != nil {
 		enabled := false
 		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
 		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+		if v := kubernetesAddonProfilelocateInConfig(httpApplicationRouting.Config, "HTTPApplicationRoutingZoneName"); v != nil {
 			zoneName = *v
 		}
 
@@ -765,15 +765,15 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values["http_application_routing"] = routes
 
 	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsagent"]; omsAgent != nil {
+	if omsAgent := kubernetesAddonProfileLocate(profile, omsAgentKey); omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
 
 		workspaceID := ""
-		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceID = *workspaceResourceID
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != nil {
+			workspaceID = *v
 		}
 
 		omsagentIdentity := flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(omsAgent.Identity)
@@ -788,7 +788,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values["oms_agent"] = agents
 
 	kubeDashboards := make([]interface{}, 0)
-	if kubeDashboard := profile["kubeDashboard"]; kubeDashboard != nil {
+	if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
 		enabled := false
 		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -802,7 +802,7 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values["kube_dashboard"] = kubeDashboards
 
 	azurePolicies := make([]interface{}, 0)
-	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
+	if azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey); azurePolicy != nil {
 		enabled := false
 		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
 			enabled = *enabledVal

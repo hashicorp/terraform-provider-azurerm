@@ -114,7 +114,6 @@ func (client RoleDefinitionsClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client RoleDefinitionsClient) CreateOrUpdateResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client RoleDefinitionsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client RoleDefinitionsClient) DeleteResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -264,7 +262,6 @@ func (client RoleDefinitionsClient) GetSender(req *http.Request) (*http.Response
 func (client RoleDefinitionsClient) GetResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -340,7 +337,6 @@ func (client RoleDefinitionsClient) GetByIDSender(req *http.Request) (*http.Resp
 func (client RoleDefinitionsClient) GetByIDResponder(resp *http.Response) (result RoleDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -382,6 +378,9 @@ func (client RoleDefinitionsClient) List(ctx context.Context, scope string, filt
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleDefinitionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rdlr.hasNextLink() && result.rdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -419,7 +418,6 @@ func (client RoleDefinitionsClient) ListSender(req *http.Request) (*http.Respons
 func (client RoleDefinitionsClient) ListResponder(resp *http.Response) (result RoleDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

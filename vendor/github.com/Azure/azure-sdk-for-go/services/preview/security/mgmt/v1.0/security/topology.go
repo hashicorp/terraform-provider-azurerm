@@ -122,7 +122,6 @@ func (client TopologyClient) GetSender(req *http.Request) (*http.Response, error
 func (client TopologyClient) GetResponder(resp *http.Response) (result TopologyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -166,6 +165,9 @@ func (client TopologyClient) List(ctx context.Context) (result TopologyListPage,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TopologyClient", "List", resp, "Failure responding to request")
 	}
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -200,7 +202,6 @@ func (client TopologyClient) ListSender(req *http.Request) (*http.Response, erro
 func (client TopologyClient) ListResponder(resp *http.Response) (result TopologyList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -281,6 +282,9 @@ func (client TopologyClient) ListByHomeRegion(ctx context.Context) (result Topol
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TopologyClient", "ListByHomeRegion", resp, "Failure responding to request")
 	}
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -316,7 +320,6 @@ func (client TopologyClient) ListByHomeRegionSender(req *http.Request) (*http.Re
 func (client TopologyClient) ListByHomeRegionResponder(resp *http.Response) (result TopologyList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

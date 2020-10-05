@@ -114,7 +114,6 @@ func (client PrivateEndpointsClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client PrivateEndpointsClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateEndpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client PrivateEndpointsClient) DeleteSender(req *http.Request) (future Pri
 func (client PrivateEndpointsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -269,7 +267,6 @@ func (client PrivateEndpointsClient) GetSender(req *http.Request) (*http.Respons
 func (client PrivateEndpointsClient) GetResponder(resp *http.Response) (result PrivateEndpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -309,6 +306,9 @@ func (client PrivateEndpointsClient) List(ctx context.Context, resourceGroupName
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateEndpointsClient", "List", resp, "Failure responding to request")
 	}
+	if result.pelr.hasNextLink() && result.pelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -344,7 +344,6 @@ func (client PrivateEndpointsClient) ListSender(req *http.Request) (*http.Respon
 func (client PrivateEndpointsClient) ListResponder(resp *http.Response) (result PrivateEndpointListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -419,6 +418,9 @@ func (client PrivateEndpointsClient) ListBySubscription(ctx context.Context) (re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateEndpointsClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.pelr.hasNextLink() && result.pelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -453,7 +455,6 @@ func (client PrivateEndpointsClient) ListBySubscriptionSender(req *http.Request)
 func (client PrivateEndpointsClient) ListBySubscriptionResponder(resp *http.Response) (result PrivateEndpointListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

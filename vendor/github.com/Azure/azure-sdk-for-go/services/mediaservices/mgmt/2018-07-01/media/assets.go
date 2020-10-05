@@ -114,7 +114,6 @@ func (client AssetsClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client AssetsClient) CreateOrUpdateResponder(resp *http.Response) (result Asset, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,7 +191,6 @@ func (client AssetsClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client AssetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -269,7 +267,6 @@ func (client AssetsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client AssetsClient) GetResponder(resp *http.Response) (result Asset, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,7 +345,6 @@ func (client AssetsClient) GetEncryptionKeySender(req *http.Request) (*http.Resp
 func (client AssetsClient) GetEncryptionKeyResponder(resp *http.Response) (result StorageEncryptedAssetDecryptionData, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -392,6 +388,9 @@ func (client AssetsClient) List(ctx context.Context, resourceGroupName string, a
 	result.ac, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "List", resp, "Failure responding to request")
+	}
+	if result.ac.hasNextLink() && result.ac.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -438,7 +437,6 @@ func (client AssetsClient) ListSender(req *http.Request) (*http.Response, error)
 func (client AssetsClient) ListResponder(resp *http.Response) (result AssetCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -557,7 +555,6 @@ func (client AssetsClient) ListContainerSasSender(req *http.Request) (*http.Resp
 func (client AssetsClient) ListContainerSasResponder(resp *http.Response) (result AssetContainerSas, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -635,7 +632,6 @@ func (client AssetsClient) ListStreamingLocatorsSender(req *http.Request) (*http
 func (client AssetsClient) ListStreamingLocatorsResponder(resp *http.Response) (result ListStreamingLocatorsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -716,7 +712,6 @@ func (client AssetsClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client AssetsClient) UpdateResponder(resp *http.Response) (result Asset, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

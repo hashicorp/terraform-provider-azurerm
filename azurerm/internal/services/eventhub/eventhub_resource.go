@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -160,7 +159,7 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -273,8 +272,8 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
-	if !(32 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32"))
+	if !(1024 >= value && value >= 1) {
+		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32 or between 1 and 1024 if using a dedicated Event Hubs Cluster"))
 	}
 
 	return warnings, errors
@@ -283,8 +282,8 @@ func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string,
 func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
-	if !(7 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7"))
+	if !(90 >= value && value >= 1) {
+		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7 or between 1 and 90 if using a dedicated Event Hubs Cluster"))
 	}
 
 	return warnings, errors

@@ -121,7 +121,6 @@ func (client AzureFirewallsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client AzureFirewallsClient) CreateOrUpdateResponder(resp *http.Response) (result AzureFirewall, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client AzureFirewallsClient) DeleteSender(req *http.Request) (future Azure
 func (client AzureFirewallsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,7 +270,6 @@ func (client AzureFirewallsClient) GetSender(req *http.Request) (*http.Response,
 func (client AzureFirewallsClient) GetResponder(resp *http.Response) (result AzureFirewall, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -312,6 +309,9 @@ func (client AzureFirewallsClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "List", resp, "Failure responding to request")
 	}
+	if result.aflr.hasNextLink() && result.aflr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -347,7 +347,6 @@ func (client AzureFirewallsClient) ListSender(req *http.Request) (*http.Response
 func (client AzureFirewallsClient) ListResponder(resp *http.Response) (result AzureFirewallListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -422,6 +421,9 @@ func (client AzureFirewallsClient) ListAll(ctx context.Context) (result AzureFir
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AzureFirewallsClient", "ListAll", resp, "Failure responding to request")
 	}
+	if result.aflr.hasNextLink() && result.aflr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -456,7 +458,6 @@ func (client AzureFirewallsClient) ListAllSender(req *http.Request) (*http.Respo
 func (client AzureFirewallsClient) ListAllResponder(resp *http.Response) (result AzureFirewallListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -572,7 +573,6 @@ func (client AzureFirewallsClient) UpdateTagsSender(req *http.Request) (future A
 func (client AzureFirewallsClient) UpdateTagsResponder(resp *http.Response) (result AzureFirewall, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

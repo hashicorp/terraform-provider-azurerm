@@ -123,7 +123,6 @@ func (client IntegrationAccountPartnersClient) CreateOrUpdateSender(req *http.Re
 func (client IntegrationAccountPartnersClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountPartner, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client IntegrationAccountPartnersClient) DeleteSender(req *http.Request) (
 func (client IntegrationAccountPartnersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -278,7 +276,6 @@ func (client IntegrationAccountPartnersClient) GetSender(req *http.Request) (*ht
 func (client IntegrationAccountPartnersClient) GetResponder(resp *http.Response) (result IntegrationAccountPartner, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -320,6 +317,9 @@ func (client IntegrationAccountPartnersClient) List(ctx context.Context, resourc
 	result.iaplr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountPartnersClient", "List", resp, "Failure responding to request")
+	}
+	if result.iaplr.hasNextLink() && result.iaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -363,7 +363,6 @@ func (client IntegrationAccountPartnersClient) ListSender(req *http.Request) (*h
 func (client IntegrationAccountPartnersClient) ListResponder(resp *http.Response) (result IntegrationAccountPartnerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -480,7 +479,6 @@ func (client IntegrationAccountPartnersClient) ListContentCallbackURLSender(req 
 func (client IntegrationAccountPartnersClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

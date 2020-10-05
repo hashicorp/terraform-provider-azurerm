@@ -114,7 +114,6 @@ func (client WorkflowRunOperationsClient) GetSender(req *http.Request) (*http.Re
 func (client WorkflowRunOperationsClient) GetResponder(resp *http.Response) (result WorkflowRun, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

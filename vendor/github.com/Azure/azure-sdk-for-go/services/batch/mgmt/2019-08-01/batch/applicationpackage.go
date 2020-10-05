@@ -137,7 +137,6 @@ func (client ApplicationPackageClient) ActivateSender(req *http.Request) (*http.
 func (client ApplicationPackageClient) ActivateResponder(resp *http.Response) (result ApplicationPackage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -241,7 +240,6 @@ func (client ApplicationPackageClient) CreateSender(req *http.Request) (*http.Re
 func (client ApplicationPackageClient) CreateResponder(resp *http.Response) (result ApplicationPackage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -337,7 +335,6 @@ func (client ApplicationPackageClient) DeleteSender(req *http.Request) (*http.Re
 func (client ApplicationPackageClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -432,7 +429,6 @@ func (client ApplicationPackageClient) GetSender(req *http.Request) (*http.Respo
 func (client ApplicationPackageClient) GetResponder(resp *http.Response) (result ApplicationPackage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -487,6 +483,9 @@ func (client ApplicationPackageClient) List(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.ApplicationPackageClient", "List", resp, "Failure responding to request")
 	}
+	if result.lapr.hasNextLink() && result.lapr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -527,7 +526,6 @@ func (client ApplicationPackageClient) ListSender(req *http.Request) (*http.Resp
 func (client ApplicationPackageClient) ListResponder(resp *http.Response) (result ListApplicationPackagesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

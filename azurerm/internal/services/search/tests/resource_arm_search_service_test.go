@@ -68,6 +68,7 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 					resource.TestCheckResourceAttr(data.ResourceName, "query_keys.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -89,6 +90,7 @@ func TestAccAzureRMSearchService_update(t *testing.T) {
 					testCheckAzureRMSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
+					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "true"),
 				),
 			},
 			{
@@ -97,8 +99,45 @@ func TestAccAzureRMSearchService_update(t *testing.T) {
 					testCheckAzureRMSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "false"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAzureRMSearchService_ipRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSearchService_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSearchService_ipRules(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMSearchService_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSearchServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -220,9 +259,37 @@ resource "azurerm_search_service" "test" {
   replica_count       = 2
   partition_count     = 3
 
+  public_network_access_enabled = false
+
   tags = {
     environment = "Production"
     residential = "Area"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMSearchService_ipRules(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-search-%d"
+  location = "%s"
+}
+
+resource "azurerm_search_service" "test" {
+  name                = "acctestsearchservice%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  allowed_ips = ["168.1.5.65"]
+
+  tags = {
+    environment = "staging"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

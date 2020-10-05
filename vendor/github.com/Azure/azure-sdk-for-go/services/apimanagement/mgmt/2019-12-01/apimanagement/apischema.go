@@ -142,7 +142,6 @@ func (client APISchemaClient) CreateOrUpdateSender(req *http.Request) (future AP
 func (client APISchemaClient) CreateOrUpdateResponder(resp *http.Response) (result SchemaContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -246,7 +245,6 @@ func (client APISchemaClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client APISchemaClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -342,7 +340,6 @@ func (client APISchemaClient) GetSender(req *http.Request) (*http.Response, erro
 func (client APISchemaClient) GetResponder(resp *http.Response) (result SchemaContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -439,7 +436,6 @@ func (client APISchemaClient) GetEntityTagSender(req *http.Request) (*http.Respo
 func (client APISchemaClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -504,6 +500,9 @@ func (client APISchemaClient) ListByAPI(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APISchemaClient", "ListByAPI", resp, "Failure responding to request")
 	}
+	if result.sc.hasNextLink() && result.sc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -550,7 +549,6 @@ func (client APISchemaClient) ListByAPISender(req *http.Request) (*http.Response
 func (client APISchemaClient) ListByAPIResponder(resp *http.Response) (result SchemaCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

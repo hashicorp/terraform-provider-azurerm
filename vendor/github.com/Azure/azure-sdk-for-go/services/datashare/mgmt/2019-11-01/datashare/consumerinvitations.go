@@ -110,7 +110,6 @@ func (client ConsumerInvitationsClient) GetSender(req *http.Request) (*http.Resp
 func (client ConsumerInvitationsClient) GetResponder(resp *http.Response) (result ConsumerInvitation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -150,6 +149,9 @@ func (client ConsumerInvitationsClient) ListInvitations(ctx context.Context, ski
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ConsumerInvitationsClient", "ListInvitations", resp, "Failure responding to request")
 	}
+	if result.cil.hasNextLink() && result.cil.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -183,7 +185,6 @@ func (client ConsumerInvitationsClient) ListInvitationsSender(req *http.Request)
 func (client ConsumerInvitationsClient) ListInvitationsResponder(resp *http.Response) (result ConsumerInvitationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -303,7 +304,6 @@ func (client ConsumerInvitationsClient) RejectInvitationSender(req *http.Request
 func (client ConsumerInvitationsClient) RejectInvitationResponder(resp *http.Response) (result ConsumerInvitation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -107,7 +107,6 @@ func (client PolicyMetadataClient) GetResourceSender(req *http.Request) (*http.R
 func (client PolicyMetadataClient) GetResourceResponder(resp *http.Response) (result PolicyMetadata, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -154,6 +153,9 @@ func (client PolicyMetadataClient) List(ctx context.Context, top *int32) (result
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyMetadataClient", "List", resp, "Failure responding to request")
 	}
+	if result.pmc.hasNextLink() && result.pmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -187,7 +189,6 @@ func (client PolicyMetadataClient) ListSender(req *http.Request) (*http.Response
 func (client PolicyMetadataClient) ListResponder(resp *http.Response) (result PolicyMetadataCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

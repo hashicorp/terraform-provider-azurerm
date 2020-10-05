@@ -32,861 +32,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 
-// AadConnectivityState enumerates the values for aad connectivity state.
-type AadConnectivityState string
-
-const (
-	// Connected ...
-	Connected AadConnectivityState = "Connected"
-	// Discovered ...
-	Discovered AadConnectivityState = "Discovered"
-	// NotLicensed ...
-	NotLicensed AadConnectivityState = "NotLicensed"
-)
-
-// PossibleAadConnectivityStateValues returns an array of possible values for the AadConnectivityState const type.
-func PossibleAadConnectivityStateValues() []AadConnectivityState {
-	return []AadConnectivityState{Connected, Discovered, NotLicensed}
-}
-
-// Action enumerates the values for action.
-type Action string
-
-const (
-	// Add ...
-	Add Action = "Add"
-	// Recommended ...
-	Recommended Action = "Recommended"
-	// Remove ...
-	Remove Action = "Remove"
-)
-
-// PossibleActionValues returns an array of possible values for the Action const type.
-func PossibleActionValues() []Action {
-	return []Action{Add, Recommended, Remove}
-}
-
-// ActionType enumerates the values for action type.
-type ActionType string
-
-const (
-	// ActionTypeAutomationAction ...
-	ActionTypeAutomationAction ActionType = "AutomationAction"
-	// ActionTypeEventHub ...
-	ActionTypeEventHub ActionType = "EventHub"
-	// ActionTypeLogicApp ...
-	ActionTypeLogicApp ActionType = "LogicApp"
-	// ActionTypeWorkspace ...
-	ActionTypeWorkspace ActionType = "Workspace"
-)
-
-// PossibleActionTypeValues returns an array of possible values for the ActionType const type.
-func PossibleActionTypeValues() []ActionType {
-	return []ActionType{ActionTypeAutomationAction, ActionTypeEventHub, ActionTypeLogicApp, ActionTypeWorkspace}
-}
-
-// AlertNotifications enumerates the values for alert notifications.
-type AlertNotifications string
-
-const (
-	// Off Don't get notifications on new alerts
-	Off AlertNotifications = "Off"
-	// On Get notifications on new alerts
-	On AlertNotifications = "On"
-)
-
-// PossibleAlertNotificationsValues returns an array of possible values for the AlertNotifications const type.
-func PossibleAlertNotificationsValues() []AlertNotifications {
-	return []AlertNotifications{Off, On}
-}
-
-// AlertsToAdmins enumerates the values for alerts to admins.
-type AlertsToAdmins string
-
-const (
-	// AlertsToAdminsOff Don't send notification on new alerts to the subscription's admins
-	AlertsToAdminsOff AlertsToAdmins = "Off"
-	// AlertsToAdminsOn Send notification on new alerts to the subscription's admins
-	AlertsToAdminsOn AlertsToAdmins = "On"
-)
-
-// PossibleAlertsToAdminsValues returns an array of possible values for the AlertsToAdmins const type.
-func PossibleAlertsToAdminsValues() []AlertsToAdmins {
-	return []AlertsToAdmins{AlertsToAdminsOff, AlertsToAdminsOn}
-}
-
-// AssessedResourceType enumerates the values for assessed resource type.
-type AssessedResourceType string
-
-const (
-	// AssessedResourceTypeAdditionalData ...
-	AssessedResourceTypeAdditionalData AssessedResourceType = "AdditionalData"
-	// AssessedResourceTypeContainerRegistryVulnerability ...
-	AssessedResourceTypeContainerRegistryVulnerability AssessedResourceType = "ContainerRegistryVulnerability"
-	// AssessedResourceTypeServerVulnerabilityAssessment ...
-	AssessedResourceTypeServerVulnerabilityAssessment AssessedResourceType = "ServerVulnerabilityAssessment"
-	// AssessedResourceTypeSQLServerVulnerability ...
-	AssessedResourceTypeSQLServerVulnerability AssessedResourceType = "SqlServerVulnerability"
-)
-
-// PossibleAssessedResourceTypeValues returns an array of possible values for the AssessedResourceType const type.
-func PossibleAssessedResourceTypeValues() []AssessedResourceType {
-	return []AssessedResourceType{AssessedResourceTypeAdditionalData, AssessedResourceTypeContainerRegistryVulnerability, AssessedResourceTypeServerVulnerabilityAssessment, AssessedResourceTypeSQLServerVulnerability}
-}
-
-// AutoProvision enumerates the values for auto provision.
-type AutoProvision string
-
-const (
-	// AutoProvisionOff Do not install security agent on the VMs automatically
-	AutoProvisionOff AutoProvision = "Off"
-	// AutoProvisionOn Install missing security agent on VMs automatically
-	AutoProvisionOn AutoProvision = "On"
-)
-
-// PossibleAutoProvisionValues returns an array of possible values for the AutoProvision const type.
-func PossibleAutoProvisionValues() []AutoProvision {
-	return []AutoProvision{AutoProvisionOff, AutoProvisionOn}
-}
-
-// ConfigurationStatus enumerates the values for configuration status.
-type ConfigurationStatus string
-
-const (
-	// Configured ...
-	Configured ConfigurationStatus = "Configured"
-	// Failed ...
-	Failed ConfigurationStatus = "Failed"
-	// InProgress ...
-	InProgress ConfigurationStatus = "InProgress"
-	// NoStatus ...
-	NoStatus ConfigurationStatus = "NoStatus"
-	// NotConfigured ...
-	NotConfigured ConfigurationStatus = "NotConfigured"
-)
-
-// PossibleConfigurationStatusValues returns an array of possible values for the ConfigurationStatus const type.
-func PossibleConfigurationStatusValues() []ConfigurationStatus {
-	return []ConfigurationStatus{Configured, Failed, InProgress, NoStatus, NotConfigured}
-}
-
-// ConfigurationStatus1 enumerates the values for configuration status 1.
-type ConfigurationStatus1 string
-
-const (
-	// ConfigurationStatus1Configured ...
-	ConfigurationStatus1Configured ConfigurationStatus1 = "Configured"
-	// ConfigurationStatus1Failed ...
-	ConfigurationStatus1Failed ConfigurationStatus1 = "Failed"
-	// ConfigurationStatus1InProgress ...
-	ConfigurationStatus1InProgress ConfigurationStatus1 = "InProgress"
-	// ConfigurationStatus1NoStatus ...
-	ConfigurationStatus1NoStatus ConfigurationStatus1 = "NoStatus"
-	// ConfigurationStatus1NotConfigured ...
-	ConfigurationStatus1NotConfigured ConfigurationStatus1 = "NotConfigured"
-)
-
-// PossibleConfigurationStatus1Values returns an array of possible values for the ConfigurationStatus1 const type.
-func PossibleConfigurationStatus1Values() []ConfigurationStatus1 {
-	return []ConfigurationStatus1{ConfigurationStatus1Configured, ConfigurationStatus1Failed, ConfigurationStatus1InProgress, ConfigurationStatus1NoStatus, ConfigurationStatus1NotConfigured}
-}
-
-// ConfigurationStatus2 enumerates the values for configuration status 2.
-type ConfigurationStatus2 string
-
-const (
-	// ConfigurationStatus2Configured ...
-	ConfigurationStatus2Configured ConfigurationStatus2 = "Configured"
-	// ConfigurationStatus2Failed ...
-	ConfigurationStatus2Failed ConfigurationStatus2 = "Failed"
-	// ConfigurationStatus2InProgress ...
-	ConfigurationStatus2InProgress ConfigurationStatus2 = "InProgress"
-	// ConfigurationStatus2NoStatus ...
-	ConfigurationStatus2NoStatus ConfigurationStatus2 = "NoStatus"
-	// ConfigurationStatus2NotConfigured ...
-	ConfigurationStatus2NotConfigured ConfigurationStatus2 = "NotConfigured"
-)
-
-// PossibleConfigurationStatus2Values returns an array of possible values for the ConfigurationStatus2 const type.
-func PossibleConfigurationStatus2Values() []ConfigurationStatus2 {
-	return []ConfigurationStatus2{ConfigurationStatus2Configured, ConfigurationStatus2Failed, ConfigurationStatus2InProgress, ConfigurationStatus2NoStatus, ConfigurationStatus2NotConfigured}
-}
-
-// ConnectionType enumerates the values for connection type.
-type ConnectionType string
-
-const (
-	// External ...
-	External ConnectionType = "External"
-	// Internal ...
-	Internal ConnectionType = "Internal"
-)
-
-// PossibleConnectionTypeValues returns an array of possible values for the ConnectionType const type.
-func PossibleConnectionTypeValues() []ConnectionType {
-	return []ConnectionType{External, Internal}
-}
-
-// ControlType enumerates the values for control type.
-type ControlType string
-
-const (
-	// BuiltIn Azure Security Center managed assessments
-	BuiltIn ControlType = "BuiltIn"
-	// Custom Non Azure Security Center managed assessments
-	Custom ControlType = "Custom"
-)
-
-// PossibleControlTypeValues returns an array of possible values for the ControlType const type.
-func PossibleControlTypeValues() []ControlType {
-	return []ControlType{BuiltIn, Custom}
-}
-
-// Direction enumerates the values for direction.
-type Direction string
-
-const (
-	// Inbound ...
-	Inbound Direction = "Inbound"
-	// Outbound ...
-	Outbound Direction = "Outbound"
-)
-
-// PossibleDirectionValues returns an array of possible values for the Direction const type.
-func PossibleDirectionValues() []Direction {
-	return []Direction{Inbound, Outbound}
-}
-
-// EnforcementMode enumerates the values for enforcement mode.
-type EnforcementMode string
-
-const (
-	// Audit ...
-	Audit EnforcementMode = "Audit"
-	// Enforce ...
-	Enforce EnforcementMode = "Enforce"
-	// None ...
-	None EnforcementMode = "None"
-)
-
-// PossibleEnforcementModeValues returns an array of possible values for the EnforcementMode const type.
-func PossibleEnforcementModeValues() []EnforcementMode {
-	return []EnforcementMode{Audit, Enforce, None}
-}
-
-// EnforcementMode1 enumerates the values for enforcement mode 1.
-type EnforcementMode1 string
-
-const (
-	// EnforcementMode1Audit ...
-	EnforcementMode1Audit EnforcementMode1 = "Audit"
-	// EnforcementMode1Enforce ...
-	EnforcementMode1Enforce EnforcementMode1 = "Enforce"
-	// EnforcementMode1None ...
-	EnforcementMode1None EnforcementMode1 = "None"
-)
-
-// PossibleEnforcementMode1Values returns an array of possible values for the EnforcementMode1 const type.
-func PossibleEnforcementMode1Values() []EnforcementMode1 {
-	return []EnforcementMode1{EnforcementMode1Audit, EnforcementMode1Enforce, EnforcementMode1None}
-}
-
-// EnforcementSupport enumerates the values for enforcement support.
-type EnforcementSupport string
-
-const (
-	// NotSupported ...
-	NotSupported EnforcementSupport = "NotSupported"
-	// Supported ...
-	Supported EnforcementSupport = "Supported"
-	// Unknown ...
-	Unknown EnforcementSupport = "Unknown"
-)
-
-// PossibleEnforcementSupportValues returns an array of possible values for the EnforcementSupport const type.
-func PossibleEnforcementSupportValues() []EnforcementSupport {
-	return []EnforcementSupport{NotSupported, Supported, Unknown}
-}
-
-// EventSource enumerates the values for event source.
-type EventSource string
-
-const (
-	// Alerts ...
-	Alerts EventSource = "Alerts"
-	// Assessments ...
-	Assessments EventSource = "Assessments"
-)
-
-// PossibleEventSourceValues returns an array of possible values for the EventSource const type.
-func PossibleEventSourceValues() []EventSource {
-	return []EventSource{Alerts, Assessments}
-}
-
-// Exe enumerates the values for exe.
-type Exe string
-
-const (
-	// ExeAudit ...
-	ExeAudit Exe = "Audit"
-	// ExeEnforce ...
-	ExeEnforce Exe = "Enforce"
-	// ExeNone ...
-	ExeNone Exe = "None"
-)
-
-// PossibleExeValues returns an array of possible values for the Exe const type.
-func PossibleExeValues() []Exe {
-	return []Exe{ExeAudit, ExeEnforce, ExeNone}
-}
-
-// Executable enumerates the values for executable.
-type Executable string
-
-const (
-	// ExecutableAudit ...
-	ExecutableAudit Executable = "Audit"
-	// ExecutableEnforce ...
-	ExecutableEnforce Executable = "Enforce"
-	// ExecutableNone ...
-	ExecutableNone Executable = "None"
-)
-
-// PossibleExecutableValues returns an array of possible values for the Executable const type.
-func PossibleExecutableValues() []Executable {
-	return []Executable{ExecutableAudit, ExecutableEnforce, ExecutableNone}
-}
-
-// ExpandControlsEnum enumerates the values for expand controls enum.
-type ExpandControlsEnum string
-
-const (
-	// Definition Add definition object for each control
-	Definition ExpandControlsEnum = "definition"
-)
-
-// PossibleExpandControlsEnumValues returns an array of possible values for the ExpandControlsEnum const type.
-func PossibleExpandControlsEnumValues() []ExpandControlsEnum {
-	return []ExpandControlsEnum{Definition}
-}
-
-// ExternalSecuritySolutionKind enumerates the values for external security solution kind.
-type ExternalSecuritySolutionKind string
-
-const (
-	// AAD ...
-	AAD ExternalSecuritySolutionKind = "AAD"
-	// ATA ...
-	ATA ExternalSecuritySolutionKind = "ATA"
-	// CEF ...
-	CEF ExternalSecuritySolutionKind = "CEF"
-)
-
-// PossibleExternalSecuritySolutionKindValues returns an array of possible values for the ExternalSecuritySolutionKind const type.
-func PossibleExternalSecuritySolutionKindValues() []ExternalSecuritySolutionKind {
-	return []ExternalSecuritySolutionKind{AAD, ATA, CEF}
-}
-
-// Family enumerates the values for family.
-type Family string
-
-const (
-	// Ngfw ...
-	Ngfw Family = "Ngfw"
-	// SaasWaf ...
-	SaasWaf Family = "SaasWaf"
-	// Va ...
-	Va Family = "Va"
-	// Waf ...
-	Waf Family = "Waf"
-)
-
-// PossibleFamilyValues returns an array of possible values for the Family const type.
-func PossibleFamilyValues() []Family {
-	return []Family{Ngfw, SaasWaf, Va, Waf}
-}
-
-// FileType enumerates the values for file type.
-type FileType string
-
-const (
-	// FileTypeDll ...
-	FileTypeDll FileType = "Dll"
-	// FileTypeExe ...
-	FileTypeExe FileType = "Exe"
-	// FileTypeExecutable ...
-	FileTypeExecutable FileType = "Executable"
-	// FileTypeMsi ...
-	FileTypeMsi FileType = "Msi"
-	// FileTypeScript ...
-	FileTypeScript FileType = "Script"
-	// FileTypeUnknown ...
-	FileTypeUnknown FileType = "Unknown"
-)
-
-// PossibleFileTypeValues returns an array of possible values for the FileType const type.
-func PossibleFileTypeValues() []FileType {
-	return []FileType{FileTypeDll, FileTypeExe, FileTypeExecutable, FileTypeMsi, FileTypeScript, FileTypeUnknown}
-}
-
-// Issue enumerates the values for issue.
-type Issue string
-
-const (
-	// ExecutableViolationsAudited ...
-	ExecutableViolationsAudited Issue = "ExecutableViolationsAudited"
-	// MsiAndScriptViolationsAudited ...
-	MsiAndScriptViolationsAudited Issue = "MsiAndScriptViolationsAudited"
-	// MsiAndScriptViolationsBlocked ...
-	MsiAndScriptViolationsBlocked Issue = "MsiAndScriptViolationsBlocked"
-	// RulesViolatedManually ...
-	RulesViolatedManually Issue = "RulesViolatedManually"
-	// ViolationsAudited ...
-	ViolationsAudited Issue = "ViolationsAudited"
-	// ViolationsBlocked ...
-	ViolationsBlocked Issue = "ViolationsBlocked"
-)
-
-// PossibleIssueValues returns an array of possible values for the Issue const type.
-func PossibleIssueValues() []Issue {
-	return []Issue{ExecutableViolationsAudited, MsiAndScriptViolationsAudited, MsiAndScriptViolationsBlocked, RulesViolatedManually, ViolationsAudited, ViolationsBlocked}
-}
-
-// KindEnum enumerates the values for kind enum.
-type KindEnum string
-
-const (
-	// KindAAD ...
-	KindAAD KindEnum = "AAD"
-	// KindATA ...
-	KindATA KindEnum = "ATA"
-	// KindCEF ...
-	KindCEF KindEnum = "CEF"
-	// KindExternalSecuritySolution ...
-	KindExternalSecuritySolution KindEnum = "ExternalSecuritySolution"
-)
-
-// PossibleKindEnumValues returns an array of possible values for the KindEnum const type.
-func PossibleKindEnumValues() []KindEnum {
-	return []KindEnum{KindAAD, KindATA, KindCEF, KindExternalSecuritySolution}
-}
-
-// Msi enumerates the values for msi.
-type Msi string
-
-const (
-	// MsiAudit ...
-	MsiAudit Msi = "Audit"
-	// MsiEnforce ...
-	MsiEnforce Msi = "Enforce"
-	// MsiNone ...
-	MsiNone Msi = "None"
-)
-
-// PossibleMsiValues returns an array of possible values for the Msi const type.
-func PossibleMsiValues() []Msi {
-	return []Msi{MsiAudit, MsiEnforce, MsiNone}
-}
-
-// Operator enumerates the values for operator.
-type Operator string
-
-const (
-	// Contains ...
-	Contains Operator = "Contains"
-	// EndsWith ...
-	EndsWith Operator = "EndsWith"
-	// Equals ...
-	Equals Operator = "Equals"
-	// GreaterThan ...
-	GreaterThan Operator = "GreaterThan"
-	// GreaterThanOrEqualTo ...
-	GreaterThanOrEqualTo Operator = "GreaterThanOrEqualTo"
-	// LesserThan ...
-	LesserThan Operator = "LesserThan"
-	// LesserThanOrEqualTo ...
-	LesserThanOrEqualTo Operator = "LesserThanOrEqualTo"
-	// NotEquals ...
-	NotEquals Operator = "NotEquals"
-	// StartsWith ...
-	StartsWith Operator = "StartsWith"
-)
-
-// PossibleOperatorValues returns an array of possible values for the Operator const type.
-func PossibleOperatorValues() []Operator {
-	return []Operator{Contains, EndsWith, Equals, GreaterThan, GreaterThanOrEqualTo, LesserThan, LesserThanOrEqualTo, NotEquals, StartsWith}
-}
-
-// PricingTier enumerates the values for pricing tier.
-type PricingTier string
-
-const (
-	// Free Get free Azure security center experience with basic security features
-	Free PricingTier = "Free"
-	// Standard Get the standard Azure security center experience with advanced security features
-	Standard PricingTier = "Standard"
-)
-
-// PossiblePricingTierValues returns an array of possible values for the PricingTier const type.
-func PossiblePricingTierValues() []PricingTier {
-	return []PricingTier{Free, Standard}
-}
-
-// PropertyType enumerates the values for property type.
-type PropertyType string
-
-const (
-	// Boolean ...
-	Boolean PropertyType = "Boolean"
-	// Integer ...
-	Integer PropertyType = "Integer"
-	// Number ...
-	Number PropertyType = "Number"
-	// String ...
-	String PropertyType = "String"
-)
-
-// PossiblePropertyTypeValues returns an array of possible values for the PropertyType const type.
-func PossiblePropertyTypeValues() []PropertyType {
-	return []PropertyType{Boolean, Integer, Number, String}
-}
-
-// Protocol enumerates the values for protocol.
-type Protocol string
-
-const (
-	// All ...
-	All Protocol = "*"
-	// TCP ...
-	TCP Protocol = "TCP"
-	// UDP ...
-	UDP Protocol = "UDP"
-)
-
-// PossibleProtocolValues returns an array of possible values for the Protocol const type.
-func PossibleProtocolValues() []Protocol {
-	return []Protocol{All, TCP, UDP}
-}
-
-// Rank enumerates the values for rank.
-type Rank string
-
-const (
-	// RankCritical ...
-	RankCritical Rank = "Critical"
-	// RankHigh ...
-	RankHigh Rank = "High"
-	// RankLow ...
-	RankLow Rank = "Low"
-	// RankMedium ...
-	RankMedium Rank = "Medium"
-	// RankNone ...
-	RankNone Rank = "None"
-)
-
-// PossibleRankValues returns an array of possible values for the Rank const type.
-func PossibleRankValues() []Rank {
-	return []Rank{RankCritical, RankHigh, RankLow, RankMedium, RankNone}
-}
-
-// RecommendationAction enumerates the values for recommendation action.
-type RecommendationAction string
-
-const (
-	// RecommendationActionAdd ...
-	RecommendationActionAdd RecommendationAction = "Add"
-	// RecommendationActionRecommended ...
-	RecommendationActionRecommended RecommendationAction = "Recommended"
-	// RecommendationActionRemove ...
-	RecommendationActionRemove RecommendationAction = "Remove"
-)
-
-// PossibleRecommendationActionValues returns an array of possible values for the RecommendationAction const type.
-func PossibleRecommendationActionValues() []RecommendationAction {
-	return []RecommendationAction{RecommendationActionAdd, RecommendationActionRecommended, RecommendationActionRemove}
-}
-
-// RecommendationAction1 enumerates the values for recommendation action 1.
-type RecommendationAction1 string
-
-const (
-	// RecommendationAction1Add ...
-	RecommendationAction1Add RecommendationAction1 = "Add"
-	// RecommendationAction1Recommended ...
-	RecommendationAction1Recommended RecommendationAction1 = "Recommended"
-	// RecommendationAction1Remove ...
-	RecommendationAction1Remove RecommendationAction1 = "Remove"
-)
-
-// PossibleRecommendationAction1Values returns an array of possible values for the RecommendationAction1 const type.
-func PossibleRecommendationAction1Values() []RecommendationAction1 {
-	return []RecommendationAction1{RecommendationAction1Add, RecommendationAction1Recommended, RecommendationAction1Remove}
-}
-
-// RecommendationStatus enumerates the values for recommendation status.
-type RecommendationStatus string
-
-const (
-	// RecommendationStatusNoStatus ...
-	RecommendationStatusNoStatus RecommendationStatus = "NoStatus"
-	// RecommendationStatusNotAvailable ...
-	RecommendationStatusNotAvailable RecommendationStatus = "NotAvailable"
-	// RecommendationStatusNotRecommended ...
-	RecommendationStatusNotRecommended RecommendationStatus = "NotRecommended"
-	// RecommendationStatusRecommended ...
-	RecommendationStatusRecommended RecommendationStatus = "Recommended"
-)
-
-// PossibleRecommendationStatusValues returns an array of possible values for the RecommendationStatus const type.
-func PossibleRecommendationStatusValues() []RecommendationStatus {
-	return []RecommendationStatus{RecommendationStatusNoStatus, RecommendationStatusNotAvailable, RecommendationStatusNotRecommended, RecommendationStatusRecommended}
-}
-
-// ReportedSeverity enumerates the values for reported severity.
-type ReportedSeverity string
-
-const (
-	// High ...
-	High ReportedSeverity = "High"
-	// Information ...
-	Information ReportedSeverity = "Information"
-	// Low ...
-	Low ReportedSeverity = "Low"
-	// Silent ...
-	Silent ReportedSeverity = "Silent"
-)
-
-// PossibleReportedSeverityValues returns an array of possible values for the ReportedSeverity const type.
-func PossibleReportedSeverityValues() []ReportedSeverity {
-	return []ReportedSeverity{High, Information, Low, Silent}
-}
-
-// RuleState enumerates the values for rule state.
-type RuleState string
-
-const (
-	// Disabled ...
-	Disabled RuleState = "Disabled"
-	// Enabled ...
-	Enabled RuleState = "Enabled"
-	// Expired ...
-	Expired RuleState = "Expired"
-)
-
-// PossibleRuleStateValues returns an array of possible values for the RuleState const type.
-func PossibleRuleStateValues() []RuleState {
-	return []RuleState{Disabled, Enabled, Expired}
-}
-
-// Script enumerates the values for script.
-type Script string
-
-const (
-	// ScriptAudit ...
-	ScriptAudit Script = "Audit"
-	// ScriptEnforce ...
-	ScriptEnforce Script = "Enforce"
-	// ScriptNone ...
-	ScriptNone Script = "None"
-)
-
-// PossibleScriptValues returns an array of possible values for the Script const type.
-func PossibleScriptValues() []Script {
-	return []Script{ScriptAudit, ScriptEnforce, ScriptNone}
-}
-
-// SettingKind enumerates the values for setting kind.
-type SettingKind string
-
-const (
-	// SettingKindAlertSuppressionSetting ...
-	SettingKindAlertSuppressionSetting SettingKind = "AlertSuppressionSetting"
-	// SettingKindDataExportSetting ...
-	SettingKindDataExportSetting SettingKind = "DataExportSetting"
-)
-
-// PossibleSettingKindValues returns an array of possible values for the SettingKind const type.
-func PossibleSettingKindValues() []SettingKind {
-	return []SettingKind{SettingKindAlertSuppressionSetting, SettingKindDataExportSetting}
-}
-
-// Severity enumerates the values for severity.
-type Severity string
-
-const (
-	// SeverityHigh ...
-	SeverityHigh Severity = "High"
-	// SeverityLow ...
-	SeverityLow Severity = "Low"
-	// SeverityMedium ...
-	SeverityMedium Severity = "Medium"
-)
-
-// PossibleSeverityValues returns an array of possible values for the Severity const type.
-func PossibleSeverityValues() []Severity {
-	return []Severity{SeverityHigh, SeverityLow, SeverityMedium}
-}
-
-// Source enumerates the values for source.
-type Source string
-
-const (
-	// SourceAzure ...
-	SourceAzure Source = "Azure"
-	// SourceOnPremise ...
-	SourceOnPremise Source = "OnPremise"
-	// SourceResourceDetails ...
-	SourceResourceDetails Source = "ResourceDetails"
-)
-
-// PossibleSourceValues returns an array of possible values for the Source const type.
-func PossibleSourceValues() []Source {
-	return []Source{SourceAzure, SourceOnPremise, SourceResourceDetails}
-}
-
-// SourceSystem enumerates the values for source system.
-type SourceSystem string
-
-const (
-	// SourceSystemAzureAppLocker ...
-	SourceSystemAzureAppLocker SourceSystem = "Azure_AppLocker"
-	// SourceSystemAzureAuditD ...
-	SourceSystemAzureAuditD SourceSystem = "Azure_AuditD"
-	// SourceSystemNonAzureAppLocker ...
-	SourceSystemNonAzureAppLocker SourceSystem = "NonAzure_AppLocker"
-	// SourceSystemNonAzureAuditD ...
-	SourceSystemNonAzureAuditD SourceSystem = "NonAzure_AuditD"
-	// SourceSystemNone ...
-	SourceSystemNone SourceSystem = "None"
-)
-
-// PossibleSourceSystemValues returns an array of possible values for the SourceSystem const type.
-func PossibleSourceSystemValues() []SourceSystem {
-	return []SourceSystem{SourceSystemAzureAppLocker, SourceSystemAzureAuditD, SourceSystemNonAzureAppLocker, SourceSystemNonAzureAuditD, SourceSystemNone}
-}
-
-// State enumerates the values for state.
-type State string
-
-const (
-	// StateFailed At least one supported regulatory compliance control in the given standard has a state of
-	// failed
-	StateFailed State = "Failed"
-	// StatePassed All supported regulatory compliance controls in the given standard have a passed state
-	StatePassed State = "Passed"
-	// StateSkipped All supported regulatory compliance controls in the given standard have a state of skipped
-	StateSkipped State = "Skipped"
-	// StateUnsupported No supported regulatory compliance data for the given standard
-	StateUnsupported State = "Unsupported"
-)
-
-// PossibleStateValues returns an array of possible values for the State const type.
-func PossibleStateValues() []State {
-	return []State{StateFailed, StatePassed, StateSkipped, StateUnsupported}
-}
-
-// Status enumerates the values for status.
-type Status string
-
-const (
-	// Initiated ...
-	Initiated Status = "Initiated"
-	// Revoked ...
-	Revoked Status = "Revoked"
-)
-
-// PossibleStatusValues returns an array of possible values for the Status const type.
-func PossibleStatusValues() []Status {
-	return []Status{Initiated, Revoked}
-}
-
-// StatusReason enumerates the values for status reason.
-type StatusReason string
-
-const (
-	// StatusReasonExpired ...
-	StatusReasonExpired StatusReason = "Expired"
-	// StatusReasonNewerRequestInitiated ...
-	StatusReasonNewerRequestInitiated StatusReason = "NewerRequestInitiated"
-	// StatusReasonUserRequested ...
-	StatusReasonUserRequested StatusReason = "UserRequested"
-)
-
-// PossibleStatusReasonValues returns an array of possible values for the StatusReason const type.
-func PossibleStatusReasonValues() []StatusReason {
-	return []StatusReason{StatusReasonExpired, StatusReasonNewerRequestInitiated, StatusReasonUserRequested}
-}
-
-// SubAssessmentStatusCode enumerates the values for sub assessment status code.
-type SubAssessmentStatusCode string
-
-const (
-	// Healthy The resource is healthy
-	Healthy SubAssessmentStatusCode = "Healthy"
-	// NotApplicable Assessment for this resource did not happen
-	NotApplicable SubAssessmentStatusCode = "NotApplicable"
-	// Unhealthy The resource has a security issue that needs to be addressed
-	Unhealthy SubAssessmentStatusCode = "Unhealthy"
-)
-
-// PossibleSubAssessmentStatusCodeValues returns an array of possible values for the SubAssessmentStatusCode const type.
-func PossibleSubAssessmentStatusCodeValues() []SubAssessmentStatusCode {
-	return []SubAssessmentStatusCode{Healthy, NotApplicable, Unhealthy}
-}
-
-// TransportProtocol enumerates the values for transport protocol.
-type TransportProtocol string
-
-const (
-	// TransportProtocolTCP ...
-	TransportProtocolTCP TransportProtocol = "TCP"
-	// TransportProtocolUDP ...
-	TransportProtocolUDP TransportProtocol = "UDP"
-)
-
-// PossibleTransportProtocolValues returns an array of possible values for the TransportProtocol const type.
-func PossibleTransportProtocolValues() []TransportProtocol {
-	return []TransportProtocol{TransportProtocolTCP, TransportProtocolUDP}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// BinarySignature ...
-	BinarySignature Type = "BinarySignature"
-	// File ...
-	File Type = "File"
-	// FileHash ...
-	FileHash Type = "FileHash"
-	// ProductSignature ...
-	ProductSignature Type = "ProductSignature"
-	// PublisherSignature ...
-	PublisherSignature Type = "PublisherSignature"
-	// VersionAndAboveSignature ...
-	VersionAndAboveSignature Type = "VersionAndAboveSignature"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{BinarySignature, File, FileHash, ProductSignature, PublisherSignature, VersionAndAboveSignature}
-}
-
-// ValueType enumerates the values for value type.
-type ValueType string
-
-const (
-	// ValueTypeIPCidr An IP range in CIDR format (e.g. '192.168.0.1/8').
-	ValueTypeIPCidr ValueType = "IpCidr"
-	// ValueTypeString Any string value.
-	ValueTypeString ValueType = "String"
-)
-
-// PossibleValueTypeValues returns an array of possible values for the ValueType const type.
-func PossibleValueTypeValues() []ValueType {
-	return []ValueType{ValueTypeIPCidr, ValueTypeString}
-}
-
 // AadConnectivityState1 describes an Azure resource with kind
 type AadConnectivityState1 struct {
 	// ConnectivityState - Possible values include: 'Discovered', 'NotLicensed', 'Connected'
@@ -956,8 +101,8 @@ type AadSolutionProperties struct {
 	ConnectivityState AadConnectivityState `json:"connectivityState,omitempty"`
 }
 
-// AdaptiveNetworkHardening the resource whose properties describes the Adaptive Network Hardening settings
-// for some Azure resource
+// AdaptiveNetworkHardening the resource whose properties describes the Adaptive Network Hardening settings for
+// some Azure resource
 type AdaptiveNetworkHardening struct {
 	autorest.Response `json:"-"`
 	// AdaptiveNetworkHardeningProperties - Properties of the Adaptive Network Hardening resource
@@ -1149,10 +294,15 @@ func (anhl AdaptiveNetworkHardeningsList) IsEmpty() bool {
 	return anhl.Value == nil || len(*anhl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (anhl AdaptiveNetworkHardeningsList) hasNextLink() bool {
+	return anhl.NextLink != nil && len(*anhl.NextLink) != 0
+}
+
 // adaptiveNetworkHardeningsListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (anhl AdaptiveNetworkHardeningsList) adaptiveNetworkHardeningsListPreparer(ctx context.Context) (*http.Request, error) {
-	if anhl.NextLink == nil || len(to.String(anhl.NextLink)) < 1 {
+	if !anhl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1180,11 +330,16 @@ func (page *AdaptiveNetworkHardeningsListPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.anhl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.anhl)
+		if err != nil {
+			return err
+		}
+		page.anhl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.anhl = next
 	return nil
 }
 
@@ -1531,6 +686,15 @@ type AlertList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for AlertList.
+func (al AlertList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if al.Value != nil {
+		objectMap["value"] = al.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // AlertListIterator provides access to a complete listing of Alert values.
 type AlertListIterator struct {
 	i    int
@@ -1599,10 +763,15 @@ func (al AlertList) IsEmpty() bool {
 	return al.Value == nil || len(*al.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (al AlertList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
 // alertListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (al AlertList) alertListPreparer(ctx context.Context) (*http.Request, error) {
-	if al.NextLink == nil || len(to.String(al.NextLink)) < 1 {
+	if !al.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1630,11 +799,16 @@ func (page *AlertListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.al)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.al = next
 	return nil
 }
 
@@ -1814,12 +988,36 @@ type AlertsSuppressionRuleProperties struct {
 	ExpirationDateUtc *date.Time `json:"expirationDateUtc,omitempty"`
 	// Reason - The reason for dismissing the alert
 	Reason *string `json:"reason,omitempty"`
-	// State - Possible states of the rule. Possible values include: 'Enabled', 'Disabled', 'Expired'
+	// State - Possible states of the rule. Possible values include: 'RuleStateEnabled', 'RuleStateDisabled', 'RuleStateExpired'
 	State RuleState `json:"state,omitempty"`
 	// Comment - Any comment regarding the rule
 	Comment *string `json:"comment,omitempty"`
 	// SuppressionAlertsScope - The suppression conditions
 	SuppressionAlertsScope *SuppressionAlertsScope `json:"suppressionAlertsScope,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AlertsSuppressionRuleProperties.
+func (asrp AlertsSuppressionRuleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asrp.AlertType != nil {
+		objectMap["alertType"] = asrp.AlertType
+	}
+	if asrp.ExpirationDateUtc != nil {
+		objectMap["expirationDateUtc"] = asrp.ExpirationDateUtc
+	}
+	if asrp.Reason != nil {
+		objectMap["reason"] = asrp.Reason
+	}
+	if asrp.State != "" {
+		objectMap["state"] = asrp.State
+	}
+	if asrp.Comment != nil {
+		objectMap["comment"] = asrp.Comment
+	}
+	if asrp.SuppressionAlertsScope != nil {
+		objectMap["suppressionAlertsScope"] = asrp.SuppressionAlertsScope
+	}
+	return json.Marshal(objectMap)
 }
 
 // AlertsSuppressionRulesList suppression rules list for subscription.
@@ -1830,8 +1028,16 @@ type AlertsSuppressionRulesList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// AlertsSuppressionRulesListIterator provides access to a complete listing of AlertsSuppressionRule
-// values.
+// MarshalJSON is the custom marshaler for AlertsSuppressionRulesList.
+func (asrl AlertsSuppressionRulesList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if asrl.Value != nil {
+		objectMap["value"] = asrl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// AlertsSuppressionRulesListIterator provides access to a complete listing of AlertsSuppressionRule values.
 type AlertsSuppressionRulesListIterator struct {
 	i    int
 	page AlertsSuppressionRulesListPage
@@ -1899,10 +1105,15 @@ func (asrl AlertsSuppressionRulesList) IsEmpty() bool {
 	return asrl.Value == nil || len(*asrl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (asrl AlertsSuppressionRulesList) hasNextLink() bool {
+	return asrl.NextLink != nil && len(*asrl.NextLink) != 0
+}
+
 // alertsSuppressionRulesListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (asrl AlertsSuppressionRulesList) alertsSuppressionRulesListPreparer(ctx context.Context) (*http.Request, error) {
-	if asrl.NextLink == nil || len(to.String(asrl.NextLink)) < 1 {
+	if !asrl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1930,11 +1141,16 @@ func (page *AlertsSuppressionRulesListPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.asrl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.asrl)
+		if err != nil {
+			return err
+		}
+		page.asrl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.asrl = next
 	return nil
 }
 
@@ -1977,8 +1193,7 @@ type AllowedConnectionsList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// AllowedConnectionsListIterator provides access to a complete listing of AllowedConnectionsResource
-// values.
+// AllowedConnectionsListIterator provides access to a complete listing of AllowedConnectionsResource values.
 type AllowedConnectionsListIterator struct {
 	i    int
 	page AllowedConnectionsListPage
@@ -2046,10 +1261,15 @@ func (ACL AllowedConnectionsList) IsEmpty() bool {
 	return ACL.Value == nil || len(*ACL.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ACL AllowedConnectionsList) hasNextLink() bool {
+	return ACL.NextLink != nil && len(*ACL.NextLink) != 0
+}
+
 // allowedConnectionsListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ACL AllowedConnectionsList) allowedConnectionsListPreparer(ctx context.Context) (*http.Request, error) {
-	if ACL.NextLink == nil || len(to.String(ACL.NextLink)) < 1 {
+	if !ACL.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2077,11 +1297,16 @@ func (page *AllowedConnectionsListPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ACL)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ACL)
+		if err != nil {
+			return err
+		}
+		page.ACL = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ACL = next
 	return nil
 }
 
@@ -2205,8 +1430,8 @@ type AllowedConnectionsResourceProperties struct {
 	ConnectableResources *[]ConnectableResource `json:"connectableResources,omitempty"`
 }
 
-// AllowlistCustomAlertRule a custom alert rule that checks if a value (depends on the custom alert type)
-// is allowed
+// AllowlistCustomAlertRule a custom alert rule that checks if a value (depends on the custom alert type) is
+// allowed
 type AllowlistCustomAlertRule struct {
 	// AllowlistValues - The values to allow. The format of the values depends on the rule type.
 	AllowlistValues *[]string `json:"allowlistValues,omitempty"`
@@ -2220,6 +1445,21 @@ type AllowlistCustomAlertRule struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 	// RuleType - The type of the custom alert rule.
 	RuleType *string `json:"ruleType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AllowlistCustomAlertRule.
+func (acar AllowlistCustomAlertRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if acar.AllowlistValues != nil {
+		objectMap["allowlistValues"] = acar.AllowlistValues
+	}
+	if acar.IsEnabled != nil {
+		objectMap["isEnabled"] = acar.IsEnabled
+	}
+	if acar.RuleType != nil {
+		objectMap["ruleType"] = acar.RuleType
+	}
+	return json.Marshal(objectMap)
 }
 
 // AppWhitelistingGroup ...
@@ -2322,8 +1562,8 @@ type AppWhitelistingGroupData struct {
 	PathRecommendations *[]PathRecommendation `json:"pathRecommendations,omitempty"`
 }
 
-// AppWhitelistingGroups represents a list of VM/server groups and set of rules that are Recommended by
-// Azure Security Center to be allowed
+// AppWhitelistingGroups represents a list of VM/server groups and set of rules that are Recommended by Azure
+// Security Center to be allowed
 type AppWhitelistingGroups struct {
 	autorest.Response `json:"-"`
 	Value             *[]AppWhitelistingGroup `json:"value,omitempty"`
@@ -2357,6 +1597,15 @@ type AscLocation struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AscLocation.
+func (al AscLocation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if al.Properties != nil {
+		objectMap["properties"] = al.Properties
+	}
+	return json.Marshal(objectMap)
 }
 
 // AscLocationList list of locations where ASC saves your data
@@ -2436,10 +1685,15 @@ func (all AscLocationList) IsEmpty() bool {
 	return all.Value == nil || len(*all.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (all AscLocationList) hasNextLink() bool {
+	return all.NextLink != nil && len(*all.NextLink) != 0
+}
+
 // ascLocationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (all AscLocationList) ascLocationListPreparer(ctx context.Context) (*http.Request, error) {
-	if all.NextLink == nil || len(to.String(all.NextLink)) < 1 {
+	if !all.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2467,11 +1721,16 @@ func (page *AscLocationListPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.all)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.all)
+		if err != nil {
+			return err
+		}
+		page.all = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.all = next
 	return nil
 }
 
@@ -2650,6 +1909,104 @@ func (asp *AtaSolutionProperties) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// BasicAuthenticationDetailsProperties settings for cloud authentication management
+type BasicAuthenticationDetailsProperties interface {
+	AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool)
+	AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool)
+	AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool)
+	AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool)
+}
+
+// AuthenticationDetailsProperties settings for cloud authentication management
+type AuthenticationDetailsProperties struct {
+	// AuthenticationProvisioningState - READ-ONLY; State of the multi-cloud connector. Possible values include: 'Valid', 'Invalid', 'Expired', 'IncorrectPolicy'
+	AuthenticationProvisioningState AuthenticationProvisioningState `json:"authenticationProvisioningState,omitempty"`
+	// GrantedPermissions - READ-ONLY; The permissions detected in the cloud account.
+	GrantedPermissions *[]PermissionProperty `json:"grantedPermissions,omitempty"`
+	// AuthenticationType - Possible values include: 'AuthenticationTypeAuthenticationDetailsProperties', 'AuthenticationTypeAwsCreds', 'AuthenticationTypeAwsAssumeRole', 'AuthenticationTypeGcpCredentials'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+}
+
+func unmarshalBasicAuthenticationDetailsProperties(body []byte) (BasicAuthenticationDetailsProperties, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["authenticationType"] {
+	case string(AuthenticationTypeAwsCreds):
+		var acadp AwsCredsAuthenticationDetailsProperties
+		err := json.Unmarshal(body, &acadp)
+		return acadp, err
+	case string(AuthenticationTypeAwsAssumeRole):
+		var aaradp AwAssumeRoleAuthenticationDetailsProperties
+		err := json.Unmarshal(body, &aaradp)
+		return aaradp, err
+	case string(AuthenticationTypeGcpCredentials):
+		var gcdp GcpCredentialsDetailsProperties
+		err := json.Unmarshal(body, &gcdp)
+		return gcdp, err
+	default:
+		var adp AuthenticationDetailsProperties
+		err := json.Unmarshal(body, &adp)
+		return adp, err
+	}
+}
+func unmarshalBasicAuthenticationDetailsPropertiesArray(body []byte) ([]BasicAuthenticationDetailsProperties, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	adpArray := make([]BasicAuthenticationDetailsProperties, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		adp, err := unmarshalBasicAuthenticationDetailsProperties(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		adpArray[index] = adp
+	}
+	return adpArray, nil
+}
+
+// MarshalJSON is the custom marshaler for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) MarshalJSON() ([]byte, error) {
+	adp.AuthenticationType = AuthenticationTypeAuthenticationDetailsProperties
+	objectMap := make(map[string]interface{})
+	if adp.AuthenticationType != "" {
+		objectMap["authenticationType"] = adp.AuthenticationType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAwsCredsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAwAssumeRoleAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsGcpCredentialsDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool) {
+	return &adp, true
+}
+
+// AsBasicAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AuthenticationDetailsProperties.
+func (adp AuthenticationDetailsProperties) AsBasicAuthenticationDetailsProperties() (BasicAuthenticationDetailsProperties, bool) {
+	return &adp, true
 }
 
 // Automation the security automation resource.
@@ -2978,11 +2335,11 @@ func (aala AutomationActionLogicApp) AsBasicAutomationAction() (BasicAutomationA
 	return &aala, true
 }
 
-// AutomationActionWorkspace the Log Analytics Workspace to which event data will be exported. Security
-// alerts data will reside in the 'SecurityAlert' table and the assessments data will reside in the
-// 'SecurityRecommendation' table (under the 'Security'/'SecurityCenterFree' solutions). Note that in order
-// to view the data in the workspace, the Security Center Log Analytics free/standard solution needs to be
-// enabled on that workspace. To learn more about Security Center continuous export capabilities, visit
+// AutomationActionWorkspace the Log Analytics Workspace to which event data will be exported. Security alerts
+// data will reside in the 'SecurityAlert' table and the assessments data will reside in the
+// 'SecurityRecommendation' table (under the 'Security'/'SecurityCenterFree' solutions). Note that in order to
+// view the data in the workspace, the Security Center Log Analytics free/standard solution needs to be enabled
+// on that workspace. To learn more about Security Center continuous export capabilities, visit
 // https://aka.ms/ASCExportLearnMore
 type AutomationActionWorkspace struct {
 	// WorkspaceResourceID - The fully qualified Log Analytics Workspace Azure Resource ID.
@@ -3036,6 +2393,15 @@ type AutomationList struct {
 	Value *[]Automation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AutomationList.
+func (al AutomationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if al.Value != nil {
+		objectMap["value"] = al.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // AutomationListIterator provides access to a complete listing of Automation values.
@@ -3106,10 +2472,15 @@ func (al AutomationList) IsEmpty() bool {
 	return al.Value == nil || len(*al.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (al AutomationList) hasNextLink() bool {
+	return al.NextLink != nil && len(*al.NextLink) != 0
+}
+
 // automationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (al AutomationList) automationListPreparer(ctx context.Context) (*http.Request, error) {
-	if al.NextLink == nil || len(to.String(al.NextLink)) < 1 {
+	if !al.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3137,11 +2508,16 @@ func (page *AutomationListPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.al)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.al)
+		if err != nil {
+			return err
+		}
+		page.al = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.al = next
 	return nil
 }
 
@@ -3175,8 +2551,8 @@ func NewAutomationListPage(getNextPage func(context.Context, AutomationList) (Au
 	return AutomationListPage{fn: getNextPage}
 }
 
-// AutomationProperties a set of properties that defines the behavior of the automation configuration. To
-// learn more about the supported security events data models schemas - please visit
+// AutomationProperties a set of properties that defines the behavior of the automation configuration. To learn
+// more about the supported security events data models schemas - please visit
 // https://aka.ms/ASCAutomationSchemas.
 type AutomationProperties struct {
 	// Description - The security automation description.
@@ -3264,9 +2640,9 @@ type AutomationScope struct {
 	ScopePath *string `json:"scopePath,omitempty"`
 }
 
-// AutomationSource the source event types which evaluate the security automation set of rules. For example
-// - security alerts and security assessments. To learn more about the supported security events data
-// models schemas - please visit https://aka.ms/ASCAutomationSchemas.
+// AutomationSource the source event types which evaluate the security automation set of rules. For example -
+// security alerts and security assessments. To learn more about the supported security events data models
+// schemas - please visit https://aka.ms/ASCAutomationSchemas.
 type AutomationSource struct {
 	// EventSource - A valid event source type. Possible values include: 'Assessments', 'Alerts'
 	EventSource EventSource `json:"eventSource,omitempty"`
@@ -3275,8 +2651,8 @@ type AutomationSource struct {
 }
 
 // AutomationTriggeringRule a rule which is evaluated upon event interception. The rule is configured by
-// comparing a specific value from the event model to an expected value. This comparison is done by using
-// one of the supported operators set.
+// comparing a specific value from the event model to an expected value. This comparison is done by using one
+// of the supported operators set.
 type AutomationTriggeringRule struct {
 	// PropertyJPath - The JPath of the entity model property that should be checked.
 	PropertyJPath *string `json:"propertyJPath,omitempty"`
@@ -3379,8 +2755,16 @@ type AutoProvisioningSettingList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// AutoProvisioningSettingListIterator provides access to a complete listing of AutoProvisioningSetting
-// values.
+// MarshalJSON is the custom marshaler for AutoProvisioningSettingList.
+func (apsl AutoProvisioningSettingList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if apsl.Value != nil {
+		objectMap["value"] = apsl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// AutoProvisioningSettingListIterator provides access to a complete listing of AutoProvisioningSetting values.
 type AutoProvisioningSettingListIterator struct {
 	i    int
 	page AutoProvisioningSettingListPage
@@ -3448,10 +2832,15 @@ func (apsl AutoProvisioningSettingList) IsEmpty() bool {
 	return apsl.Value == nil || len(*apsl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (apsl AutoProvisioningSettingList) hasNextLink() bool {
+	return apsl.NextLink != nil && len(*apsl.NextLink) != 0
+}
+
 // autoProvisioningSettingListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (apsl AutoProvisioningSettingList) autoProvisioningSettingListPreparer(ctx context.Context) (*http.Request, error) {
-	if apsl.NextLink == nil || len(to.String(apsl.NextLink)) < 1 {
+	if !apsl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3479,11 +2868,16 @@ func (page *AutoProvisioningSettingListPage) NextWithContext(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.apsl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.apsl)
+		if err != nil {
+			return err
+		}
+		page.apsl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.apsl = next
 	return nil
 }
 
@@ -3523,11 +2917,131 @@ type AutoProvisioningSettingProperties struct {
 	AutoProvision AutoProvision `json:"autoProvision,omitempty"`
 }
 
+// AwAssumeRoleAuthenticationDetailsProperties AWS cloud account connector based assume role, the role enables
+// delegating access to your AWS resources. The role is composed of role arn and external id, for more details,
+// refer to <a href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html">Creating a
+// Role to Delegate Permissions to an IAM User (write only)</a>
+type AwAssumeRoleAuthenticationDetailsProperties struct {
+	// AccountID - READ-ONLY; The ID of the cloud account
+	AccountID *string `json:"accountId,omitempty"`
+	// AwsAssumeRoleArn - Assumed role ID is an identifier that you can use to create temporary security credentials.
+	AwsAssumeRoleArn *string `json:"awsAssumeRoleArn,omitempty"`
+	// AwsExternalID - A unique identifier that is required when you assume a role in another account.
+	AwsExternalID *string `json:"awsExternalId,omitempty"`
+	// AuthenticationProvisioningState - READ-ONLY; State of the multi-cloud connector. Possible values include: 'Valid', 'Invalid', 'Expired', 'IncorrectPolicy'
+	AuthenticationProvisioningState AuthenticationProvisioningState `json:"authenticationProvisioningState,omitempty"`
+	// GrantedPermissions - READ-ONLY; The permissions detected in the cloud account.
+	GrantedPermissions *[]PermissionProperty `json:"grantedPermissions,omitempty"`
+	// AuthenticationType - Possible values include: 'AuthenticationTypeAuthenticationDetailsProperties', 'AuthenticationTypeAwsCreds', 'AuthenticationTypeAwsAssumeRole', 'AuthenticationTypeGcpCredentials'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) MarshalJSON() ([]byte, error) {
+	aaradp.AuthenticationType = AuthenticationTypeAwsAssumeRole
+	objectMap := make(map[string]interface{})
+	if aaradp.AwsAssumeRoleArn != nil {
+		objectMap["awsAssumeRoleArn"] = aaradp.AwsAssumeRoleArn
+	}
+	if aaradp.AwsExternalID != nil {
+		objectMap["awsExternalId"] = aaradp.AwsExternalID
+	}
+	if aaradp.AuthenticationType != "" {
+		objectMap["authenticationType"] = aaradp.AuthenticationType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAwsCredsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAwAssumeRoleAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool) {
+	return &aaradp, true
+}
+
+// AsGcpCredentialsDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsBasicAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwAssumeRoleAuthenticationDetailsProperties.
+func (aaradp AwAssumeRoleAuthenticationDetailsProperties) AsBasicAuthenticationDetailsProperties() (BasicAuthenticationDetailsProperties, bool) {
+	return &aaradp, true
+}
+
+// AwsCredsAuthenticationDetailsProperties AWS cloud account connector based credentials, the credentials is
+// composed of access key id and secret key, for more details, refer to <a
+// href="https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html">Creating an IAM User in Your
+// AWS Account (write only)</a>
+type AwsCredsAuthenticationDetailsProperties struct {
+	// AccountID - READ-ONLY; The ID of the cloud account
+	AccountID *string `json:"accountId,omitempty"`
+	// AwsAccessKeyID - Public key element of the AWS credential object (write only)
+	AwsAccessKeyID *string `json:"awsAccessKeyId,omitempty"`
+	// AwsSecretAccessKey - Secret key element of the AWS credential object (write only)
+	AwsSecretAccessKey *string `json:"awsSecretAccessKey,omitempty"`
+	// AuthenticationProvisioningState - READ-ONLY; State of the multi-cloud connector. Possible values include: 'Valid', 'Invalid', 'Expired', 'IncorrectPolicy'
+	AuthenticationProvisioningState AuthenticationProvisioningState `json:"authenticationProvisioningState,omitempty"`
+	// GrantedPermissions - READ-ONLY; The permissions detected in the cloud account.
+	GrantedPermissions *[]PermissionProperty `json:"grantedPermissions,omitempty"`
+	// AuthenticationType - Possible values include: 'AuthenticationTypeAuthenticationDetailsProperties', 'AuthenticationTypeAwsCreds', 'AuthenticationTypeAwsAssumeRole', 'AuthenticationTypeGcpCredentials'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) MarshalJSON() ([]byte, error) {
+	acadp.AuthenticationType = AuthenticationTypeAwsCreds
+	objectMap := make(map[string]interface{})
+	if acadp.AwsAccessKeyID != nil {
+		objectMap["awsAccessKeyId"] = acadp.AwsAccessKeyID
+	}
+	if acadp.AwsSecretAccessKey != nil {
+		objectMap["awsSecretAccessKey"] = acadp.AwsSecretAccessKey
+	}
+	if acadp.AuthenticationType != "" {
+		objectMap["authenticationType"] = acadp.AuthenticationType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAwsCredsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool) {
+	return &acadp, true
+}
+
+// AsAwAssumeRoleAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsGcpCredentialsDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsBasicAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for AwsCredsAuthenticationDetailsProperties.
+func (acadp AwsCredsAuthenticationDetailsProperties) AsBasicAuthenticationDetailsProperties() (BasicAuthenticationDetailsProperties, bool) {
+	return &acadp, true
+}
+
 // AzureResourceDetails details of the Azure resource that was assessed
 type AzureResourceDetails struct {
 	// ID - READ-ONLY; Azure resource Id of the assessed resource
 	ID *string `json:"id,omitempty"`
-	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremise', 'SourceAzure'
+	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremiseSQL', 'SourceOnPremise', 'SourceAzure'
 	Source Source `json:"source,omitempty"`
 }
 
@@ -3541,8 +3055,18 @@ func (ard AzureResourceDetails) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// AsOnPremiseSQLResourceDetails is the BasicResourceDetails implementation for AzureResourceDetails.
+func (ard AzureResourceDetails) AsOnPremiseSQLResourceDetails() (*OnPremiseSQLResourceDetails, bool) {
+	return nil, false
+}
+
 // AsOnPremiseResourceDetails is the BasicResourceDetails implementation for AzureResourceDetails.
 func (ard AzureResourceDetails) AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool) {
+	return nil, false
+}
+
+// AsBasicOnPremiseResourceDetails is the BasicResourceDetails implementation for AzureResourceDetails.
+func (ard AzureResourceDetails) AsBasicOnPremiseResourceDetails() (BasicOnPremiseResourceDetails, bool) {
 	return nil, false
 }
 
@@ -3869,6 +3393,15 @@ type ComplianceList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ComplianceList.
+func (cl ComplianceList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cl.Value != nil {
+		objectMap["value"] = cl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ComplianceListIterator provides access to a complete listing of Compliance values.
 type ComplianceListIterator struct {
 	i    int
@@ -3937,10 +3470,15 @@ func (cl ComplianceList) IsEmpty() bool {
 	return cl.Value == nil || len(*cl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cl ComplianceList) hasNextLink() bool {
+	return cl.NextLink != nil && len(*cl.NextLink) != 0
+}
+
 // complianceListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cl ComplianceList) complianceListPreparer(ctx context.Context) (*http.Request, error) {
-	if cl.NextLink == nil || len(to.String(cl.NextLink)) < 1 {
+	if !cl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3968,11 +3506,16 @@ func (page *ComplianceListPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cl)
+		if err != nil {
+			return err
+		}
+		page.cl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cl = next
 	return nil
 }
 
@@ -4050,6 +3593,284 @@ type ConnectedResource struct {
 type ConnectedWorkspace struct {
 	// ID - Azure resource ID of the connected OMS workspace
 	ID *string `json:"id,omitempty"`
+}
+
+// ConnectorSetting the connector setting
+type ConnectorSetting struct {
+	autorest.Response `json:"-"`
+	// ConnectorSettingProperties - Connector setting data
+	*ConnectorSettingProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectorSetting.
+func (cs ConnectorSetting) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cs.ConnectorSettingProperties != nil {
+		objectMap["properties"] = cs.ConnectorSettingProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ConnectorSetting struct.
+func (cs *ConnectorSetting) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var connectorSettingProperties ConnectorSettingProperties
+				err = json.Unmarshal(*v, &connectorSettingProperties)
+				if err != nil {
+					return err
+				}
+				cs.ConnectorSettingProperties = &connectorSettingProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				cs.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cs.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cs.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ConnectorSettingList for a subscription, list of all cloud account connectors and their settings
+type ConnectorSettingList struct {
+	autorest.Response `json:"-"`
+	// Value - List of all the cloud account connector settings
+	Value *[]ConnectorSetting `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URI to fetch the next page.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ConnectorSettingList.
+func (csl ConnectorSettingList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if csl.Value != nil {
+		objectMap["value"] = csl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// ConnectorSettingListIterator provides access to a complete listing of ConnectorSetting values.
+type ConnectorSettingListIterator struct {
+	i    int
+	page ConnectorSettingListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ConnectorSettingListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectorSettingListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ConnectorSettingListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ConnectorSettingListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ConnectorSettingListIterator) Response() ConnectorSettingList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ConnectorSettingListIterator) Value() ConnectorSetting {
+	if !iter.page.NotDone() {
+		return ConnectorSetting{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ConnectorSettingListIterator type.
+func NewConnectorSettingListIterator(page ConnectorSettingListPage) ConnectorSettingListIterator {
+	return ConnectorSettingListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (csl ConnectorSettingList) IsEmpty() bool {
+	return csl.Value == nil || len(*csl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (csl ConnectorSettingList) hasNextLink() bool {
+	return csl.NextLink != nil && len(*csl.NextLink) != 0
+}
+
+// connectorSettingListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (csl ConnectorSettingList) connectorSettingListPreparer(ctx context.Context) (*http.Request, error) {
+	if !csl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(csl.NextLink)))
+}
+
+// ConnectorSettingListPage contains a page of ConnectorSetting values.
+type ConnectorSettingListPage struct {
+	fn  func(context.Context, ConnectorSettingList) (ConnectorSettingList, error)
+	csl ConnectorSettingList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ConnectorSettingListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ConnectorSettingListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.csl)
+		if err != nil {
+			return err
+		}
+		page.csl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ConnectorSettingListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ConnectorSettingListPage) NotDone() bool {
+	return !page.csl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ConnectorSettingListPage) Response() ConnectorSettingList {
+	return page.csl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ConnectorSettingListPage) Values() []ConnectorSetting {
+	if page.csl.IsEmpty() {
+		return nil
+	}
+	return *page.csl.Value
+}
+
+// Creates a new instance of the ConnectorSettingListPage type.
+func NewConnectorSettingListPage(getNextPage func(context.Context, ConnectorSettingList) (ConnectorSettingList, error)) ConnectorSettingListPage {
+	return ConnectorSettingListPage{fn: getNextPage}
+}
+
+// ConnectorSettingProperties describes properties of an connector setting
+type ConnectorSettingProperties struct {
+	// HybridComputeSettings - Settings for hybrid compute management, these settings are relevant only Arc autoProvision (Hybrid Compute).
+	HybridComputeSettings *HybridComputeSettingsProperties `json:"hybridComputeSettings,omitempty"`
+	// AuthenticationDetails - Settings for authentication management, these settings are relevant only for the cloud connector.
+	AuthenticationDetails BasicAuthenticationDetailsProperties `json:"authenticationDetails,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for ConnectorSettingProperties struct.
+func (csp *ConnectorSettingProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "hybridComputeSettings":
+			if v != nil {
+				var hybridComputeSettings HybridComputeSettingsProperties
+				err = json.Unmarshal(*v, &hybridComputeSettings)
+				if err != nil {
+					return err
+				}
+				csp.HybridComputeSettings = &hybridComputeSettings
+			}
+		case "authenticationDetails":
+			if v != nil {
+				authenticationDetails, err := unmarshalBasicAuthenticationDetailsProperties(*v)
+				if err != nil {
+					return err
+				}
+				csp.AuthenticationDetails = authenticationDetails
+			}
+		}
+	}
+
+	return nil
 }
 
 // Contact contact details for security issues
@@ -4202,10 +4023,15 @@ func (cl ContactList) IsEmpty() bool {
 	return cl.Value == nil || len(*cl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (cl ContactList) hasNextLink() bool {
+	return cl.NextLink != nil && len(*cl.NextLink) != 0
+}
+
 // contactListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (cl ContactList) contactListPreparer(ctx context.Context) (*http.Request, error) {
-	if cl.NextLink == nil || len(to.String(cl.NextLink)) < 1 {
+	if !cl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4233,11 +4059,16 @@ func (page *ContactListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.cl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.cl)
+		if err != nil {
+			return err
+		}
+		page.cl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.cl = next
 	return nil
 }
 
@@ -4351,6 +4182,18 @@ type CustomAlertRule struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 	// RuleType - The type of the custom alert rule.
 	RuleType *string `json:"ruleType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CustomAlertRule.
+func (car CustomAlertRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if car.IsEnabled != nil {
+		objectMap["isEnabled"] = car.IsEnabled
+	}
+	if car.RuleType != nil {
+		objectMap["ruleType"] = car.RuleType
+	}
+	return json.Marshal(objectMap)
 }
 
 // CVE CVE details
@@ -4476,6 +4319,21 @@ type DenylistCustomAlertRule struct {
 	RuleType *string `json:"ruleType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DenylistCustomAlertRule.
+func (dcar DenylistCustomAlertRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dcar.DenylistValues != nil {
+		objectMap["denylistValues"] = dcar.DenylistValues
+	}
+	if dcar.IsEnabled != nil {
+		objectMap["isEnabled"] = dcar.IsEnabled
+	}
+	if dcar.RuleType != nil {
+		objectMap["ruleType"] = dcar.RuleType
+	}
+	return json.Marshal(objectMap)
+}
+
 // DeviceSecurityGroup the device security group resource
 type DeviceSecurityGroup struct {
 	autorest.Response `json:"-"`
@@ -4558,6 +4416,15 @@ type DeviceSecurityGroupList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DeviceSecurityGroupList.
+func (dsgl DeviceSecurityGroupList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dsgl.Value != nil {
+		objectMap["value"] = dsgl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // DeviceSecurityGroupListIterator provides access to a complete listing of DeviceSecurityGroup values.
 type DeviceSecurityGroupListIterator struct {
 	i    int
@@ -4626,10 +4493,15 @@ func (dsgl DeviceSecurityGroupList) IsEmpty() bool {
 	return dsgl.Value == nil || len(*dsgl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dsgl DeviceSecurityGroupList) hasNextLink() bool {
+	return dsgl.NextLink != nil && len(*dsgl.NextLink) != 0
+}
+
 // deviceSecurityGroupListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dsgl DeviceSecurityGroupList) deviceSecurityGroupListPreparer(ctx context.Context) (*http.Request, error) {
-	if dsgl.NextLink == nil || len(to.String(dsgl.NextLink)) < 1 {
+	if !dsgl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4657,11 +4529,16 @@ func (page *DeviceSecurityGroupListPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dsgl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dsgl)
+		if err != nil {
+			return err
+		}
+		page.dsgl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dsgl = next
 	return nil
 }
 
@@ -4798,8 +4675,17 @@ type DiscoveredSecuritySolutionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// DiscoveredSecuritySolutionListIterator provides access to a complete listing of
-// DiscoveredSecuritySolution values.
+// MarshalJSON is the custom marshaler for DiscoveredSecuritySolutionList.
+func (dssl DiscoveredSecuritySolutionList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dssl.Value != nil {
+		objectMap["value"] = dssl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// DiscoveredSecuritySolutionListIterator provides access to a complete listing of DiscoveredSecuritySolution
+// values.
 type DiscoveredSecuritySolutionListIterator struct {
 	i    int
 	page DiscoveredSecuritySolutionListPage
@@ -4867,10 +4753,15 @@ func (dssl DiscoveredSecuritySolutionList) IsEmpty() bool {
 	return dssl.Value == nil || len(*dssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dssl DiscoveredSecuritySolutionList) hasNextLink() bool {
+	return dssl.NextLink != nil && len(*dssl.NextLink) != 0
+}
+
 // discoveredSecuritySolutionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dssl DiscoveredSecuritySolutionList) discoveredSecuritySolutionListPreparer(ctx context.Context) (*http.Request, error) {
-	if dssl.NextLink == nil || len(to.String(dssl.NextLink)) < 1 {
+	if !dssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4898,11 +4789,16 @@ func (page *DiscoveredSecuritySolutionListPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dssl)
+		if err != nil {
+			return err
+		}
+		page.dssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dssl = next
 	return nil
 }
 
@@ -5081,6 +4977,15 @@ type ExternalSecuritySolutionList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ExternalSecuritySolutionList.
+func (essl ExternalSecuritySolutionList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if essl.Value != nil {
+		objectMap["value"] = essl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // UnmarshalJSON is the custom unmarshaler for ExternalSecuritySolutionList struct.
 func (essl *ExternalSecuritySolutionList) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -5182,10 +5087,15 @@ func (essl ExternalSecuritySolutionList) IsEmpty() bool {
 	return essl.Value == nil || len(*essl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (essl ExternalSecuritySolutionList) hasNextLink() bool {
+	return essl.NextLink != nil && len(*essl.NextLink) != 0
+}
+
 // externalSecuritySolutionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (essl ExternalSecuritySolutionList) externalSecuritySolutionListPreparer(ctx context.Context) (*http.Request, error) {
-	if essl.NextLink == nil || len(to.String(essl.NextLink)) < 1 {
+	if !essl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5213,11 +5123,16 @@ func (page *ExternalSecuritySolutionListPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.essl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.essl)
+		if err != nil {
+			return err
+		}
+		page.essl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.essl = next
 	return nil
 }
 
@@ -5349,6 +5264,144 @@ func (essp *ExternalSecuritySolutionProperties) UnmarshalJSON(body []byte) error
 	return nil
 }
 
+// GcpCredentialsDetailsProperties GCP cloud account connector based service to service credentials, the
+// credentials is composed of organization id and json api key (write only)</a>
+type GcpCredentialsDetailsProperties struct {
+	// OrganizationID - The Organization ID of the GCP cloud account
+	OrganizationID *string `json:"organizationId,omitempty"`
+	// Type - Type field of the API key (write only)
+	Type *string `json:"type,omitempty"`
+	// ProjectID - Project Id field of the API key (write only)
+	ProjectID *string `json:"projectId,omitempty"`
+	// PrivateKeyID - Private key Id field of the API key (write only)
+	PrivateKeyID *string `json:"privateKeyId,omitempty"`
+	// PrivateKey - Private key field of the API key (write only)
+	PrivateKey *string `json:"privateKey,omitempty"`
+	// ClientEmail - Client email field of the API key (write only)
+	ClientEmail *string `json:"clientEmail,omitempty"`
+	// ClientID - Client Id field of the API key (write only)
+	ClientID *string `json:"clientId,omitempty"`
+	// AuthURI - Auth Uri field of the API key (write only)
+	AuthURI *string `json:"authUri,omitempty"`
+	// TokenURI - Token Uri field of the API key (write only)
+	TokenURI *string `json:"tokenUri,omitempty"`
+	// AuthProviderX509CertURL - Auth provider x509 certificate url field of the API key (write only)
+	AuthProviderX509CertURL *string `json:"authProviderX509CertUrl,omitempty"`
+	// ClientX509CertURL - Client x509 certificate url field of the API key (write only)
+	ClientX509CertURL *string `json:"clientX509CertUrl,omitempty"`
+	// AuthenticationProvisioningState - READ-ONLY; State of the multi-cloud connector. Possible values include: 'Valid', 'Invalid', 'Expired', 'IncorrectPolicy'
+	AuthenticationProvisioningState AuthenticationProvisioningState `json:"authenticationProvisioningState,omitempty"`
+	// GrantedPermissions - READ-ONLY; The permissions detected in the cloud account.
+	GrantedPermissions *[]PermissionProperty `json:"grantedPermissions,omitempty"`
+	// AuthenticationType - Possible values include: 'AuthenticationTypeAuthenticationDetailsProperties', 'AuthenticationTypeAwsCreds', 'AuthenticationTypeAwsAssumeRole', 'AuthenticationTypeGcpCredentials'
+	AuthenticationType AuthenticationType `json:"authenticationType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) MarshalJSON() ([]byte, error) {
+	gcdp.AuthenticationType = AuthenticationTypeGcpCredentials
+	objectMap := make(map[string]interface{})
+	if gcdp.OrganizationID != nil {
+		objectMap["organizationId"] = gcdp.OrganizationID
+	}
+	if gcdp.Type != nil {
+		objectMap["type"] = gcdp.Type
+	}
+	if gcdp.ProjectID != nil {
+		objectMap["projectId"] = gcdp.ProjectID
+	}
+	if gcdp.PrivateKeyID != nil {
+		objectMap["privateKeyId"] = gcdp.PrivateKeyID
+	}
+	if gcdp.PrivateKey != nil {
+		objectMap["privateKey"] = gcdp.PrivateKey
+	}
+	if gcdp.ClientEmail != nil {
+		objectMap["clientEmail"] = gcdp.ClientEmail
+	}
+	if gcdp.ClientID != nil {
+		objectMap["clientId"] = gcdp.ClientID
+	}
+	if gcdp.AuthURI != nil {
+		objectMap["authUri"] = gcdp.AuthURI
+	}
+	if gcdp.TokenURI != nil {
+		objectMap["tokenUri"] = gcdp.TokenURI
+	}
+	if gcdp.AuthProviderX509CertURL != nil {
+		objectMap["authProviderX509CertUrl"] = gcdp.AuthProviderX509CertURL
+	}
+	if gcdp.ClientX509CertURL != nil {
+		objectMap["clientX509CertUrl"] = gcdp.ClientX509CertURL
+	}
+	if gcdp.AuthenticationType != "" {
+		objectMap["authenticationType"] = gcdp.AuthenticationType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAwsCredsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsAwsCredsAuthenticationDetailsProperties() (*AwsCredsAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsAwAssumeRoleAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsAwAssumeRoleAuthenticationDetailsProperties() (*AwAssumeRoleAuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsGcpCredentialsDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsGcpCredentialsDetailsProperties() (*GcpCredentialsDetailsProperties, bool) {
+	return &gcdp, true
+}
+
+// AsAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsAuthenticationDetailsProperties() (*AuthenticationDetailsProperties, bool) {
+	return nil, false
+}
+
+// AsBasicAuthenticationDetailsProperties is the BasicAuthenticationDetailsProperties implementation for GcpCredentialsDetailsProperties.
+func (gcdp GcpCredentialsDetailsProperties) AsBasicAuthenticationDetailsProperties() (BasicAuthenticationDetailsProperties, bool) {
+	return &gcdp, true
+}
+
+// HybridComputeSettingsProperties settings for hybrid compute management
+type HybridComputeSettingsProperties struct {
+	// HybridComputeProvisioningState - READ-ONLY; State of the service principal and its secret. Possible values include: 'HybridComputeProvisioningStateValid', 'HybridComputeProvisioningStateInvalid', 'HybridComputeProvisioningStateExpired'
+	HybridComputeProvisioningState HybridComputeProvisioningState `json:"hybridComputeProvisioningState,omitempty"`
+	// AutoProvision - Whether or not to automatically install Azure Arc (hybrid compute) agents on machines. Possible values include: 'AutoProvisionOn', 'AutoProvisionOff'
+	AutoProvision AutoProvision `json:"autoProvision,omitempty"`
+	// ResourceGroupName - The name of the resource group where Arc (Hybrid Compute) connectors are connected.
+	ResourceGroupName *string `json:"resourceGroupName,omitempty"`
+	// Region - The location where the meta data of machines will be stored
+	Region *string `json:"region,omitempty"`
+	// ProxyServer - For a non-Azure machine that is not connected directly to the internet, specify a proxy server that the non-Azure machine can use.
+	ProxyServer *ProxyServerProperties `json:"proxyServer,omitempty"`
+	// ServicePrincipal - An object to access resources that are secured by an Azure AD tenant.
+	ServicePrincipal *ServicePrincipalProperties `json:"servicePrincipal,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for HybridComputeSettingsProperties.
+func (hcsp HybridComputeSettingsProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if hcsp.AutoProvision != "" {
+		objectMap["autoProvision"] = hcsp.AutoProvision
+	}
+	if hcsp.ResourceGroupName != nil {
+		objectMap["resourceGroupName"] = hcsp.ResourceGroupName
+	}
+	if hcsp.Region != nil {
+		objectMap["region"] = hcsp.Region
+	}
+	if hcsp.ProxyServer != nil {
+		objectMap["proxyServer"] = hcsp.ProxyServer
+	}
+	if hcsp.ServicePrincipal != nil {
+		objectMap["servicePrincipal"] = hcsp.ServicePrincipal
+	}
+	return json.Marshal(objectMap)
+}
+
 // InformationProtectionKeyword the information type keyword.
 type InformationProtectionKeyword struct {
 	// Pattern - The keyword pattern.
@@ -5443,8 +5496,17 @@ type InformationProtectionPolicyList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// InformationProtectionPolicyListIterator provides access to a complete listing of
-// InformationProtectionPolicy values.
+// MarshalJSON is the custom marshaler for InformationProtectionPolicyList.
+func (ippl InformationProtectionPolicyList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ippl.Value != nil {
+		objectMap["value"] = ippl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// InformationProtectionPolicyListIterator provides access to a complete listing of InformationProtectionPolicy
+// values.
 type InformationProtectionPolicyListIterator struct {
 	i    int
 	page InformationProtectionPolicyListPage
@@ -5512,10 +5574,15 @@ func (ippl InformationProtectionPolicyList) IsEmpty() bool {
 	return ippl.Value == nil || len(*ippl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ippl InformationProtectionPolicyList) hasNextLink() bool {
+	return ippl.NextLink != nil && len(*ippl.NextLink) != 0
+}
+
 // informationProtectionPolicyListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ippl InformationProtectionPolicyList) informationProtectionPolicyListPreparer(ctx context.Context) (*http.Request, error) {
-	if ippl.NextLink == nil || len(to.String(ippl.NextLink)) < 1 {
+	if !ippl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5543,11 +5610,16 @@ func (page *InformationProtectionPolicyListPage) NextWithContext(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ippl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ippl)
+		if err != nil {
+			return err
+		}
+		page.ippl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ippl = next
 	return nil
 }
 
@@ -5631,8 +5703,16 @@ type JitNetworkAccessPoliciesList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// JitNetworkAccessPoliciesListIterator provides access to a complete listing of JitNetworkAccessPolicy
-// values.
+// MarshalJSON is the custom marshaler for JitNetworkAccessPoliciesList.
+func (jnapl JitNetworkAccessPoliciesList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if jnapl.Value != nil {
+		objectMap["value"] = jnapl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// JitNetworkAccessPoliciesListIterator provides access to a complete listing of JitNetworkAccessPolicy values.
 type JitNetworkAccessPoliciesListIterator struct {
 	i    int
 	page JitNetworkAccessPoliciesListPage
@@ -5700,10 +5780,15 @@ func (jnapl JitNetworkAccessPoliciesList) IsEmpty() bool {
 	return jnapl.Value == nil || len(*jnapl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jnapl JitNetworkAccessPoliciesList) hasNextLink() bool {
+	return jnapl.NextLink != nil && len(*jnapl.NextLink) != 0
+}
+
 // jitNetworkAccessPoliciesListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jnapl JitNetworkAccessPoliciesList) jitNetworkAccessPoliciesListPreparer(ctx context.Context) (*http.Request, error) {
-	if jnapl.NextLink == nil || len(to.String(jnapl.NextLink)) < 1 {
+	if !jnapl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5731,11 +5816,16 @@ func (page *JitNetworkAccessPoliciesListPage) NextWithContext(ctx context.Contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jnapl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jnapl)
+		if err != nil {
+			return err
+		}
+		page.jnapl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jnapl = next
 	return nil
 }
 
@@ -5900,6 +5990,18 @@ type JitNetworkAccessPolicyProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for JitNetworkAccessPolicyProperties.
+func (jnapp JitNetworkAccessPolicyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if jnapp.VirtualMachines != nil {
+		objectMap["virtualMachines"] = jnapp.VirtualMachines
+	}
+	if jnapp.Requests != nil {
+		objectMap["requests"] = jnapp.Requests
+	}
+	return json.Marshal(objectMap)
+}
+
 // JitNetworkAccessPolicyVirtualMachine ...
 type JitNetworkAccessPolicyVirtualMachine struct {
 	// ID - Resource ID of the virtual machine that is linked to this policy
@@ -5980,10 +6082,28 @@ type ListCustomAlertRule struct {
 	RuleType *string `json:"ruleType,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ListCustomAlertRule.
+func (lcar ListCustomAlertRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lcar.IsEnabled != nil {
+		objectMap["isEnabled"] = lcar.IsEnabled
+	}
+	if lcar.RuleType != nil {
+		objectMap["ruleType"] = lcar.RuleType
+	}
+	return json.Marshal(objectMap)
+}
+
 // Location describes an Azure resource with location
 type Location struct {
 	// Location - READ-ONLY; Location where the resource is stored
 	Location *string `json:"location,omitempty"`
+}
+
+// BasicOnPremiseResourceDetails details of the On Premise resource that was assessed
+type BasicOnPremiseResourceDetails interface {
+	AsOnPremiseSQLResourceDetails() (*OnPremiseSQLResourceDetails, bool)
+	AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool)
 }
 
 // OnPremiseResourceDetails details of the On Premise resource that was assessed
@@ -5996,8 +6116,45 @@ type OnPremiseResourceDetails struct {
 	SourceComputerID *string `json:"sourceComputerId,omitempty"`
 	// MachineName - The name of the machine
 	MachineName *string `json:"machineName,omitempty"`
-	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremise', 'SourceAzure'
+	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremiseSQL', 'SourceOnPremise', 'SourceAzure'
 	Source Source `json:"source,omitempty"`
+}
+
+func unmarshalBasicOnPremiseResourceDetails(body []byte) (BasicOnPremiseResourceDetails, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["source"] {
+	case string(SourceOnPremiseSQL):
+		var opsrd OnPremiseSQLResourceDetails
+		err := json.Unmarshal(body, &opsrd)
+		return opsrd, err
+	default:
+		var oprd OnPremiseResourceDetails
+		err := json.Unmarshal(body, &oprd)
+		return oprd, err
+	}
+}
+func unmarshalBasicOnPremiseResourceDetailsArray(body []byte) ([]BasicOnPremiseResourceDetails, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	oprdArray := make([]BasicOnPremiseResourceDetails, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		oprd, err := unmarshalBasicOnPremiseResourceDetails(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		oprdArray[index] = oprd
+	}
+	return oprdArray, nil
 }
 
 // MarshalJSON is the custom marshaler for OnPremiseResourceDetails.
@@ -6022,8 +6179,18 @@ func (oprd OnPremiseResourceDetails) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// AsOnPremiseSQLResourceDetails is the BasicResourceDetails implementation for OnPremiseResourceDetails.
+func (oprd OnPremiseResourceDetails) AsOnPremiseSQLResourceDetails() (*OnPremiseSQLResourceDetails, bool) {
+	return nil, false
+}
+
 // AsOnPremiseResourceDetails is the BasicResourceDetails implementation for OnPremiseResourceDetails.
 func (oprd OnPremiseResourceDetails) AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool) {
+	return &oprd, true
+}
+
+// AsBasicOnPremiseResourceDetails is the BasicResourceDetails implementation for OnPremiseResourceDetails.
+func (oprd OnPremiseResourceDetails) AsBasicOnPremiseResourceDetails() (BasicOnPremiseResourceDetails, bool) {
 	return &oprd, true
 }
 
@@ -6042,6 +6209,82 @@ func (oprd OnPremiseResourceDetails) AsBasicResourceDetails() (BasicResourceDeta
 	return &oprd, true
 }
 
+// OnPremiseSQLResourceDetails details of the On Premise Sql resource that was assessed
+type OnPremiseSQLResourceDetails struct {
+	// ServerName - The Sql server name installed on the machine
+	ServerName *string `json:"serverName,omitempty"`
+	// DatabaseName - The Sql database name installed on the machine
+	DatabaseName *string `json:"databaseName,omitempty"`
+	// WorkspaceID - Azure resource Id of the workspace the machine is attached to
+	WorkspaceID *string `json:"workspaceId,omitempty"`
+	// Vmuuid - The unique Id of the machine
+	Vmuuid *string `json:"vmuuid,omitempty"`
+	// SourceComputerID - The oms agent Id installed on the machine
+	SourceComputerID *string `json:"sourceComputerId,omitempty"`
+	// MachineName - The name of the machine
+	MachineName *string `json:"machineName,omitempty"`
+	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremiseSQL', 'SourceOnPremise', 'SourceAzure'
+	Source Source `json:"source,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OnPremiseSQLResourceDetails.
+func (opsrd OnPremiseSQLResourceDetails) MarshalJSON() ([]byte, error) {
+	opsrd.Source = SourceOnPremiseSQL
+	objectMap := make(map[string]interface{})
+	if opsrd.ServerName != nil {
+		objectMap["serverName"] = opsrd.ServerName
+	}
+	if opsrd.DatabaseName != nil {
+		objectMap["databaseName"] = opsrd.DatabaseName
+	}
+	if opsrd.WorkspaceID != nil {
+		objectMap["workspaceId"] = opsrd.WorkspaceID
+	}
+	if opsrd.Vmuuid != nil {
+		objectMap["vmuuid"] = opsrd.Vmuuid
+	}
+	if opsrd.SourceComputerID != nil {
+		objectMap["sourceComputerId"] = opsrd.SourceComputerID
+	}
+	if opsrd.MachineName != nil {
+		objectMap["machineName"] = opsrd.MachineName
+	}
+	if opsrd.Source != "" {
+		objectMap["source"] = opsrd.Source
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsOnPremiseSQLResourceDetails is the BasicResourceDetails implementation for OnPremiseSQLResourceDetails.
+func (opsrd OnPremiseSQLResourceDetails) AsOnPremiseSQLResourceDetails() (*OnPremiseSQLResourceDetails, bool) {
+	return &opsrd, true
+}
+
+// AsOnPremiseResourceDetails is the BasicResourceDetails implementation for OnPremiseSQLResourceDetails.
+func (opsrd OnPremiseSQLResourceDetails) AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool) {
+	return nil, false
+}
+
+// AsBasicOnPremiseResourceDetails is the BasicResourceDetails implementation for OnPremiseSQLResourceDetails.
+func (opsrd OnPremiseSQLResourceDetails) AsBasicOnPremiseResourceDetails() (BasicOnPremiseResourceDetails, bool) {
+	return &opsrd, true
+}
+
+// AsAzureResourceDetails is the BasicResourceDetails implementation for OnPremiseSQLResourceDetails.
+func (opsrd OnPremiseSQLResourceDetails) AsAzureResourceDetails() (*AzureResourceDetails, bool) {
+	return nil, false
+}
+
+// AsResourceDetails is the BasicResourceDetails implementation for OnPremiseSQLResourceDetails.
+func (opsrd OnPremiseSQLResourceDetails) AsResourceDetails() (*ResourceDetails, bool) {
+	return nil, false
+}
+
+// AsBasicResourceDetails is the BasicResourceDetails implementation for OnPremiseSQLResourceDetails.
+func (opsrd OnPremiseSQLResourceDetails) AsBasicResourceDetails() (BasicResourceDetails, bool) {
+	return &opsrd, true
+}
+
 // Operation possible operation in the REST API of Microsoft.Security
 type Operation struct {
 	// Name - READ-ONLY; Name of the operation
@@ -6049,6 +6292,15 @@ type Operation struct {
 	// Origin - READ-ONLY; Where the operation is originated
 	Origin  *string           `json:"origin,omitempty"`
 	Display *OperationDisplay `json:"display,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationDisplay security operation display
@@ -6070,6 +6322,15 @@ type OperationList struct {
 	Value *[]Operation `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationList.
+func (ol OperationList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ol.Value != nil {
+		objectMap["value"] = ol.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationListIterator provides access to a complete listing of Operation values.
@@ -6140,10 +6401,15 @@ func (ol OperationList) IsEmpty() bool {
 	return ol.Value == nil || len(*ol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ol OperationList) hasNextLink() bool {
+	return ol.NextLink != nil && len(*ol.NextLink) != 0
+}
+
 // operationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ol OperationList) operationListPreparer(ctx context.Context) (*http.Request, error) {
-	if ol.NextLink == nil || len(to.String(ol.NextLink)) < 1 {
+	if !ol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6171,11 +6437,16 @@ func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ol)
+		if err != nil {
+			return err
+		}
+		page.ol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ol = next
 	return nil
 }
 
@@ -6310,6 +6581,15 @@ type PricingList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for PricingList.
+func (pl PricingList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pl.Value != nil {
+		objectMap["value"] = pl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // PricingListIterator provides access to a complete listing of Pricing values.
 type PricingListIterator struct {
 	i    int
@@ -6378,10 +6658,15 @@ func (pl PricingList) IsEmpty() bool {
 	return pl.Value == nil || len(*pl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (pl PricingList) hasNextLink() bool {
+	return pl.NextLink != nil && len(*pl.NextLink) != 0
+}
+
 // pricingListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (pl PricingList) pricingListPreparer(ctx context.Context) (*http.Request, error) {
-	if pl.NextLink == nil || len(to.String(pl.NextLink)) < 1 {
+	if !pl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6409,11 +6694,16 @@ func (page *PricingListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.pl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.pl)
+		if err != nil {
+			return err
+		}
+		page.pl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.pl = next
 	return nil
 }
 
@@ -6464,6 +6754,15 @@ type ProtectionMode struct {
 	Script Script `json:"script,omitempty"`
 	// Executable - Possible values include: 'ExecutableAudit', 'ExecutableEnforce', 'ExecutableNone'
 	Executable Executable `json:"executable,omitempty"`
+}
+
+// ProxyServerProperties for a non-Azure machine that is not connected directly to the internet, specify a
+// proxy server that the non-Azure machine can use.
+type ProxyServerProperties struct {
+	// IP - Proxy server IP
+	IP *string `json:"ip,omitempty"`
+	// Port - Proxy server port
+	Port *string `json:"port,omitempty"`
 }
 
 // PublisherInfo represents the publisher information of a process/rule
@@ -6559,6 +6858,15 @@ type RegulatoryComplianceAssessmentList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegulatoryComplianceAssessmentList.
+func (rcal RegulatoryComplianceAssessmentList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rcal.Value != nil {
+		objectMap["value"] = rcal.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // RegulatoryComplianceAssessmentListIterator provides access to a complete listing of
 // RegulatoryComplianceAssessment values.
 type RegulatoryComplianceAssessmentListIterator struct {
@@ -6628,10 +6936,15 @@ func (rcal RegulatoryComplianceAssessmentList) IsEmpty() bool {
 	return rcal.Value == nil || len(*rcal.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rcal RegulatoryComplianceAssessmentList) hasNextLink() bool {
+	return rcal.NextLink != nil && len(*rcal.NextLink) != 0
+}
+
 // regulatoryComplianceAssessmentListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rcal RegulatoryComplianceAssessmentList) regulatoryComplianceAssessmentListPreparer(ctx context.Context) (*http.Request, error) {
-	if rcal.NextLink == nil || len(to.String(rcal.NextLink)) < 1 {
+	if !rcal.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6659,11 +6972,16 @@ func (page *RegulatoryComplianceAssessmentListPage) NextWithContext(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rcal)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rcal)
+		if err != nil {
+			return err
+		}
+		page.rcal = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rcal = next
 	return nil
 }
 
@@ -6715,6 +7033,15 @@ type RegulatoryComplianceAssessmentProperties struct {
 	SkippedResources *int32 `json:"skippedResources,omitempty"`
 	// UnsupportedResources - READ-ONLY; The given assessment's related resources count with unsupported state.
 	UnsupportedResources *int32 `json:"unsupportedResources,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RegulatoryComplianceAssessmentProperties.
+func (rcap RegulatoryComplianceAssessmentProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rcap.State != "" {
+		objectMap["state"] = rcap.State
+	}
+	return json.Marshal(objectMap)
 }
 
 // RegulatoryComplianceControl regulatory compliance control details and state
@@ -6799,8 +7126,17 @@ type RegulatoryComplianceControlList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// RegulatoryComplianceControlListIterator provides access to a complete listing of
-// RegulatoryComplianceControl values.
+// MarshalJSON is the custom marshaler for RegulatoryComplianceControlList.
+func (rccl RegulatoryComplianceControlList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rccl.Value != nil {
+		objectMap["value"] = rccl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// RegulatoryComplianceControlListIterator provides access to a complete listing of RegulatoryComplianceControl
+// values.
 type RegulatoryComplianceControlListIterator struct {
 	i    int
 	page RegulatoryComplianceControlListPage
@@ -6868,10 +7204,15 @@ func (rccl RegulatoryComplianceControlList) IsEmpty() bool {
 	return rccl.Value == nil || len(*rccl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rccl RegulatoryComplianceControlList) hasNextLink() bool {
+	return rccl.NextLink != nil && len(*rccl.NextLink) != 0
+}
+
 // regulatoryComplianceControlListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rccl RegulatoryComplianceControlList) regulatoryComplianceControlListPreparer(ctx context.Context) (*http.Request, error) {
-	if rccl.NextLink == nil || len(to.String(rccl.NextLink)) < 1 {
+	if !rccl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6899,11 +7240,16 @@ func (page *RegulatoryComplianceControlListPage) NextWithContext(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rccl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rccl)
+		if err != nil {
+			return err
+		}
+		page.rccl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rccl = next
 	return nil
 }
 
@@ -6949,6 +7295,15 @@ type RegulatoryComplianceControlProperties struct {
 	FailedAssessments *int32 `json:"failedAssessments,omitempty"`
 	// SkippedAssessments - READ-ONLY; The number of supported regulatory compliance assessments of the given control with a skipped state
 	SkippedAssessments *int32 `json:"skippedAssessments,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RegulatoryComplianceControlProperties.
+func (rccp RegulatoryComplianceControlProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rccp.State != "" {
+		objectMap["state"] = rccp.State
+	}
+	return json.Marshal(objectMap)
 }
 
 // RegulatoryComplianceStandard regulatory compliance standard details and state
@@ -7032,6 +7387,15 @@ type RegulatoryComplianceStandardList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegulatoryComplianceStandardList.
+func (rcsl RegulatoryComplianceStandardList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rcsl.Value != nil {
+		objectMap["value"] = rcsl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // RegulatoryComplianceStandardListIterator provides access to a complete listing of
 // RegulatoryComplianceStandard values.
 type RegulatoryComplianceStandardListIterator struct {
@@ -7101,10 +7465,15 @@ func (rcsl RegulatoryComplianceStandardList) IsEmpty() bool {
 	return rcsl.Value == nil || len(*rcsl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rcsl RegulatoryComplianceStandardList) hasNextLink() bool {
+	return rcsl.NextLink != nil && len(*rcsl.NextLink) != 0
+}
+
 // regulatoryComplianceStandardListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rcsl RegulatoryComplianceStandardList) regulatoryComplianceStandardListPreparer(ctx context.Context) (*http.Request, error) {
-	if rcsl.NextLink == nil || len(to.String(rcsl.NextLink)) < 1 {
+	if !rcsl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7132,11 +7501,16 @@ func (page *RegulatoryComplianceStandardListPage) NextWithContext(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rcsl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rcsl)
+		if err != nil {
+			return err
+		}
+		page.rcsl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rcsl = next
 	return nil
 }
 
@@ -7184,6 +7558,15 @@ type RegulatoryComplianceStandardProperties struct {
 	UnsupportedControls *int32 `json:"unsupportedControls,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RegulatoryComplianceStandardProperties.
+func (rcsp RegulatoryComplianceStandardProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rcsp.State != "" {
+		objectMap["state"] = rcsp.State
+	}
+	return json.Marshal(objectMap)
+}
+
 // Resource describes an Azure resource.
 type Resource struct {
 	// ID - READ-ONLY; Resource Id
@@ -7196,14 +7579,16 @@ type Resource struct {
 
 // BasicResourceDetails details of the resource that was assessed
 type BasicResourceDetails interface {
+	AsOnPremiseSQLResourceDetails() (*OnPremiseSQLResourceDetails, bool)
 	AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool)
+	AsBasicOnPremiseResourceDetails() (BasicOnPremiseResourceDetails, bool)
 	AsAzureResourceDetails() (*AzureResourceDetails, bool)
 	AsResourceDetails() (*ResourceDetails, bool)
 }
 
 // ResourceDetails details of the resource that was assessed
 type ResourceDetails struct {
-	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremise', 'SourceAzure'
+	// Source - Possible values include: 'SourceResourceDetails', 'SourceOnPremiseSQL', 'SourceOnPremise', 'SourceAzure'
 	Source Source `json:"source,omitempty"`
 }
 
@@ -7215,6 +7600,10 @@ func unmarshalBasicResourceDetails(body []byte) (BasicResourceDetails, error) {
 	}
 
 	switch m["source"] {
+	case string(SourceOnPremiseSQL):
+		var opsrd OnPremiseSQLResourceDetails
+		err := json.Unmarshal(body, &opsrd)
+		return opsrd, err
 	case string(SourceOnPremise):
 		var oprd OnPremiseResourceDetails
 		err := json.Unmarshal(body, &oprd)
@@ -7258,8 +7647,18 @@ func (rd ResourceDetails) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// AsOnPremiseSQLResourceDetails is the BasicResourceDetails implementation for ResourceDetails.
+func (rd ResourceDetails) AsOnPremiseSQLResourceDetails() (*OnPremiseSQLResourceDetails, bool) {
+	return nil, false
+}
+
 // AsOnPremiseResourceDetails is the BasicResourceDetails implementation for ResourceDetails.
 func (rd ResourceDetails) AsOnPremiseResourceDetails() (*OnPremiseResourceDetails, bool) {
+	return nil, false
+}
+
+// AsBasicOnPremiseResourceDetails is the BasicResourceDetails implementation for ResourceDetails.
+func (rd ResourceDetails) AsBasicOnPremiseResourceDetails() (BasicOnPremiseResourceDetails, bool) {
 	return nil, false
 }
 
@@ -7520,10 +7919,15 @@ func (sscdl SecureScoreControlDefinitionList) IsEmpty() bool {
 	return sscdl.Value == nil || len(*sscdl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sscdl SecureScoreControlDefinitionList) hasNextLink() bool {
+	return sscdl.NextLink != nil && len(*sscdl.NextLink) != 0
+}
+
 // secureScoreControlDefinitionListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sscdl SecureScoreControlDefinitionList) secureScoreControlDefinitionListPreparer(ctx context.Context) (*http.Request, error) {
-	if sscdl.NextLink == nil || len(to.String(sscdl.NextLink)) < 1 {
+	if !sscdl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7551,11 +7955,16 @@ func (page *SecureScoreControlDefinitionListPage) NextWithContext(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sscdl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sscdl)
+		if err != nil {
+			return err
+		}
+		page.sscdl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sscdl = next
 	return nil
 }
 
@@ -7595,8 +8004,8 @@ type SecureScoreControlDefinitionSource struct {
 	SourceType ControlType `json:"sourceType,omitempty"`
 }
 
-// SecureScoreControlDetails details of the security control, its score, and the health status of the
-// relevant resources.
+// SecureScoreControlDetails details of the security control, its score, and the health status of the relevant
+// resources.
 type SecureScoreControlDetails struct {
 	*SecureScoreControlScoreDetails `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id
@@ -7676,8 +8085,7 @@ type SecureScoreControlList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// SecureScoreControlListIterator provides access to a complete listing of SecureScoreControlDetails
-// values.
+// SecureScoreControlListIterator provides access to a complete listing of SecureScoreControlDetails values.
 type SecureScoreControlListIterator struct {
 	i    int
 	page SecureScoreControlListPage
@@ -7745,10 +8153,15 @@ func (sscl SecureScoreControlList) IsEmpty() bool {
 	return sscl.Value == nil || len(*sscl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sscl SecureScoreControlList) hasNextLink() bool {
+	return sscl.NextLink != nil && len(*sscl.NextLink) != 0
+}
+
 // secureScoreControlListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sscl SecureScoreControlList) secureScoreControlListPreparer(ctx context.Context) (*http.Request, error) {
-	if sscl.NextLink == nil || len(to.String(sscl.NextLink)) < 1 {
+	if !sscl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7776,11 +8189,16 @@ func (page *SecureScoreControlListPage) NextWithContext(ctx context.Context) (er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sscl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sscl)
+		if err != nil {
+			return err
+		}
+		page.sscl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sscl = next
 	return nil
 }
 
@@ -8112,10 +8530,15 @@ func (ssl SecureScoresList) IsEmpty() bool {
 	return ssl.Value == nil || len(*ssl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ssl SecureScoresList) hasNextLink() bool {
+	return ssl.NextLink != nil && len(*ssl.NextLink) != 0
+}
+
 // secureScoresListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ssl SecureScoresList) secureScoresListPreparer(ctx context.Context) (*http.Request, error) {
-	if ssl.NextLink == nil || len(to.String(ssl.NextLink)) < 1 {
+	if !ssl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8143,11 +8566,16 @@ func (page *SecureScoresListPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ssl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ssl)
+		if err != nil {
+			return err
+		}
+		page.ssl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ssl = next
 	return nil
 }
 
@@ -8250,6 +8678,14 @@ func (svp ServerVulnerabilityProperties) AsBasicAdditionalData() (BasicAdditiona
 	return &svp, true
 }
 
+// ServicePrincipalProperties details of the service principal.
+type ServicePrincipalProperties struct {
+	// ApplicationID - Application id of service principal.
+	ApplicationID *string `json:"applicationId,omitempty"`
+	// Secret - A secret string that the application uses to prove its identity, also can be referred to as application password (write only).
+	Secret *string `json:"secret,omitempty"`
+}
+
 // Setting represents a security setting in Azure Security Center.
 type Setting struct {
 	autorest.Response `json:"-"`
@@ -8261,6 +8697,15 @@ type Setting struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Setting.
+func (s Setting) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if s.Kind != "" {
+		objectMap["kind"] = s.Kind
+	}
+	return json.Marshal(objectMap)
 }
 
 // SettingResource the kind of the security setting
@@ -8275,6 +8720,15 @@ type SettingResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for SettingResource.
+func (sr SettingResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sr.Kind != "" {
+		objectMap["kind"] = sr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
 // SettingsList subscription settings list.
 type SettingsList struct {
 	autorest.Response `json:"-"`
@@ -8282,6 +8736,15 @@ type SettingsList struct {
 	Value *[]Setting `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SettingsList.
+func (sl SettingsList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sl.Value != nil {
+		objectMap["value"] = sl.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // SettingsListIterator provides access to a complete listing of Setting values.
@@ -8352,10 +8815,15 @@ func (sl SettingsList) IsEmpty() bool {
 	return sl.Value == nil || len(*sl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sl SettingsList) hasNextLink() bool {
+	return sl.NextLink != nil && len(*sl.NextLink) != 0
+}
+
 // settingsListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sl SettingsList) settingsListPreparer(ctx context.Context) (*http.Request, error) {
-	if sl.NextLink == nil || len(to.String(sl.NextLink)) < 1 {
+	if !sl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8383,11 +8851,16 @@ func (page *SettingsListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sl)
+		if err != nil {
+			return err
+		}
+		page.sl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sl = next
 	return nil
 }
 
@@ -8615,10 +9088,15 @@ func (sal SubAssessmentList) IsEmpty() bool {
 	return sal.Value == nil || len(*sal.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sal SubAssessmentList) hasNextLink() bool {
+	return sal.NextLink != nil && len(*sal.NextLink) != 0
+}
+
 // subAssessmentListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sal SubAssessmentList) subAssessmentListPreparer(ctx context.Context) (*http.Request, error) {
-	if sal.NextLink == nil || len(to.String(sal.NextLink)) < 1 {
+	if !sal.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8646,11 +9124,16 @@ func (page *SubAssessmentListPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sal)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sal)
+		if err != nil {
+			return err
+		}
+		page.sal = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sal = next
 	return nil
 }
 
@@ -8703,6 +9186,17 @@ type SubAssessmentProperties struct {
 	TimeGenerated   *date.Time           `json:"timeGenerated,omitempty"`
 	ResourceDetails BasicResourceDetails `json:"resourceDetails,omitempty"`
 	AdditionalData  BasicAdditionalData  `json:"additionalData,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SubAssessmentProperties.
+func (sap SubAssessmentProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sap.Status != nil {
+		objectMap["status"] = sap.Status
+	}
+	objectMap["resourceDetails"] = sap.ResourceDetails
+	objectMap["additionalData"] = sap.AdditionalData
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for SubAssessmentProperties struct.
@@ -8990,10 +9484,15 @@ func (tl TaskList) IsEmpty() bool {
 	return tl.Value == nil || len(*tl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tl TaskList) hasNextLink() bool {
+	return tl.NextLink != nil && len(*tl.NextLink) != 0
+}
+
 // taskListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tl TaskList) taskListPreparer(ctx context.Context) (*http.Request, error) {
-	if tl.NextLink == nil || len(to.String(tl.NextLink)) < 1 {
+	if !tl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9021,11 +9520,16 @@ func (page *TaskListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tl)
+		if err != nil {
+			return err
+		}
+		page.tl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tl = next
 	return nil
 }
 
@@ -9059,8 +9563,7 @@ func NewTaskListPage(getNextPage func(context.Context, TaskList) (TaskList, erro
 	return TaskListPage{fn: getNextPage}
 }
 
-// TaskParameters changing set of properties, depending on the task type that is derived from the name
-// field
+// TaskParameters changing set of properties, depending on the task type that is derived from the name field
 type TaskParameters struct {
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
 	AdditionalProperties map[string]interface{} `json:""`
@@ -9126,8 +9629,17 @@ type TaskProperties struct {
 	SubState *string `json:"subState,omitempty"`
 }
 
-// ThresholdCustomAlertRule a custom alert rule that checks if a value (depends on the custom alert type)
-// is within the given range.
+// MarshalJSON is the custom marshaler for TaskProperties.
+func (tp TaskProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tp.SecurityTaskParameters != nil {
+		objectMap["securityTaskParameters"] = tp.SecurityTaskParameters
+	}
+	return json.Marshal(objectMap)
+}
+
+// ThresholdCustomAlertRule a custom alert rule that checks if a value (depends on the custom alert type) is
+// within the given range.
 type ThresholdCustomAlertRule struct {
 	// MinThreshold - The minimum threshold.
 	MinThreshold *int32 `json:"minThreshold,omitempty"`
@@ -9143,8 +9655,26 @@ type ThresholdCustomAlertRule struct {
 	RuleType *string `json:"ruleType,omitempty"`
 }
 
-// TimeWindowCustomAlertRule a custom alert rule that checks if the number of activities (depends on the
-// custom alert type) in a time window is within the given range.
+// MarshalJSON is the custom marshaler for ThresholdCustomAlertRule.
+func (tcar ThresholdCustomAlertRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tcar.MinThreshold != nil {
+		objectMap["minThreshold"] = tcar.MinThreshold
+	}
+	if tcar.MaxThreshold != nil {
+		objectMap["maxThreshold"] = tcar.MaxThreshold
+	}
+	if tcar.IsEnabled != nil {
+		objectMap["isEnabled"] = tcar.IsEnabled
+	}
+	if tcar.RuleType != nil {
+		objectMap["ruleType"] = tcar.RuleType
+	}
+	return json.Marshal(objectMap)
+}
+
+// TimeWindowCustomAlertRule a custom alert rule that checks if the number of activities (depends on the custom
+// alert type) in a time window is within the given range.
 type TimeWindowCustomAlertRule struct {
 	// DisplayName - READ-ONLY; The display name of the custom alert.
 	DisplayName *string `json:"displayName,omitempty"`
@@ -9160,6 +9690,27 @@ type TimeWindowCustomAlertRule struct {
 	MaxThreshold *int32 `json:"maxThreshold,omitempty"`
 	// TimeWindowSize - The time window size in iso8601 format.
 	TimeWindowSize *string `json:"timeWindowSize,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TimeWindowCustomAlertRule.
+func (twcar TimeWindowCustomAlertRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if twcar.IsEnabled != nil {
+		objectMap["isEnabled"] = twcar.IsEnabled
+	}
+	if twcar.RuleType != nil {
+		objectMap["ruleType"] = twcar.RuleType
+	}
+	if twcar.MinThreshold != nil {
+		objectMap["minThreshold"] = twcar.MinThreshold
+	}
+	if twcar.MaxThreshold != nil {
+		objectMap["maxThreshold"] = twcar.MaxThreshold
+	}
+	if twcar.TimeWindowSize != nil {
+		objectMap["timeWindowSize"] = twcar.TimeWindowSize
+	}
+	return json.Marshal(objectMap)
 }
 
 // TopologyList ...
@@ -9239,10 +9790,15 @@ func (tl TopologyList) IsEmpty() bool {
 	return tl.Value == nil || len(*tl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tl TopologyList) hasNextLink() bool {
+	return tl.NextLink != nil && len(*tl.NextLink) != 0
+}
+
 // topologyListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tl TopologyList) topologyListPreparer(ctx context.Context) (*http.Request, error) {
-	if tl.NextLink == nil || len(to.String(tl.NextLink)) < 1 {
+	if !tl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9270,11 +9826,16 @@ func (page *TopologyListPage) NextWithContext(ctx context.Context) (err error) {
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tl)
+		if err != nil {
+			return err
+		}
+		page.tl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tl = next
 	return nil
 }
 
@@ -9571,6 +10132,15 @@ type WorkspaceSettingList struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for WorkspaceSettingList.
+func (wsl WorkspaceSettingList) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wsl.Value != nil {
+		objectMap["value"] = wsl.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // WorkspaceSettingListIterator provides access to a complete listing of WorkspaceSetting values.
 type WorkspaceSettingListIterator struct {
 	i    int
@@ -9639,10 +10209,15 @@ func (wsl WorkspaceSettingList) IsEmpty() bool {
 	return wsl.Value == nil || len(*wsl.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wsl WorkspaceSettingList) hasNextLink() bool {
+	return wsl.NextLink != nil && len(*wsl.NextLink) != 0
+}
+
 // workspaceSettingListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wsl WorkspaceSettingList) workspaceSettingListPreparer(ctx context.Context) (*http.Request, error) {
-	if wsl.NextLink == nil || len(to.String(wsl.NextLink)) < 1 {
+	if !wsl.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9670,11 +10245,16 @@ func (page *WorkspaceSettingListPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wsl)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wsl)
+		if err != nil {
+			return err
+		}
+		page.wsl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wsl = next
 	return nil
 }
 

@@ -185,6 +185,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled_for_deployment", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled_for_disk_encryption", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled_for_template_deployment", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_rbac_authorization", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
 				),
 			},
@@ -831,6 +832,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  enable_rbac_authorization       = true
 
   tags = {
     environment = "Staging"
@@ -864,6 +866,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  enable_rbac_authorization       = true
 
   tags = {
     environment = "Staging"
@@ -899,6 +902,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  enable_rbac_authorization       = true
 
   tags = {
     environment = "Staging"
@@ -1153,12 +1157,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "vault%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
-  soft_delete_enabled = true
+  name                       = "vault%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1177,13 +1182,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "vault%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "premium"
-  soft_delete_enabled      = true
-  purge_protection_enabled = true
+  name                       = "vault%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "premium"
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

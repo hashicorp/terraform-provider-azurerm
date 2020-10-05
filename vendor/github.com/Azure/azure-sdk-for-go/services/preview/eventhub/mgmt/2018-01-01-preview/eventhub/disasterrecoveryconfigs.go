@@ -127,7 +127,6 @@ func (client DisasterRecoveryConfigsClient) BreakPairingSender(req *http.Request
 func (client DisasterRecoveryConfigsClient) BreakPairingResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -217,7 +216,6 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilitySender(req *htt
 func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -311,7 +309,6 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdateSender(req *http.Reque
 func (client DisasterRecoveryConfigsClient) CreateOrUpdateResponder(resp *http.Response) (result ArmDisasterRecovery, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -402,7 +399,6 @@ func (client DisasterRecoveryConfigsClient) DeleteSender(req *http.Request) (*ht
 func (client DisasterRecoveryConfigsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -492,7 +488,6 @@ func (client DisasterRecoveryConfigsClient) FailOverSender(req *http.Request) (*
 func (client DisasterRecoveryConfigsClient) FailOverResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -582,7 +577,6 @@ func (client DisasterRecoveryConfigsClient) GetSender(req *http.Request) (*http.
 func (client DisasterRecoveryConfigsClient) GetResponder(resp *http.Response) (result ArmDisasterRecovery, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -677,7 +671,6 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleSender(req *http
 func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleResponder(resp *http.Response) (result AuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -728,6 +721,9 @@ func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "List", resp, "Failure responding to request")
 	}
+	if result.adrlr.hasNextLink() && result.adrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -764,7 +760,6 @@ func (client DisasterRecoveryConfigsClient) ListSender(req *http.Request) (*http
 func (client DisasterRecoveryConfigsClient) ListResponder(resp *http.Response) (result ArmDisasterRecoveryListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -856,6 +851,9 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.C
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.DisasterRecoveryConfigsClient", "ListAuthorizationRules", resp, "Failure responding to request")
 	}
+	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -893,7 +891,6 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesSender(req *ht
 func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesResponder(resp *http.Response) (result AuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1025,7 +1022,6 @@ func (client DisasterRecoveryConfigsClient) ListKeysSender(req *http.Request) (*
 func (client DisasterRecoveryConfigsClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

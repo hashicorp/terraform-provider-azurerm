@@ -130,7 +130,6 @@ func (client LiveEventsClient) CreateSender(req *http.Request) (future LiveEvent
 func (client LiveEventsClient) CreateResponder(resp *http.Response) (result LiveEvent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client LiveEventsClient) DeleteSender(req *http.Request) (future LiveEvent
 func (client LiveEventsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -301,7 +299,6 @@ func (client LiveEventsClient) GetSender(req *http.Request) (*http.Response, err
 func (client LiveEventsClient) GetResponder(resp *http.Response) (result LiveEvent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -342,6 +339,9 @@ func (client LiveEventsClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "List", resp, "Failure responding to request")
 	}
+	if result.lelr.hasNextLink() && result.lelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -378,7 +378,6 @@ func (client LiveEventsClient) ListSender(req *http.Request) (*http.Response, er
 func (client LiveEventsClient) ListResponder(resp *http.Response) (result LiveEventListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -501,7 +500,6 @@ func (client LiveEventsClient) ResetSender(req *http.Request) (future LiveEvents
 func (client LiveEventsClient) ResetResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -586,7 +584,6 @@ func (client LiveEventsClient) StartSender(req *http.Request) (future LiveEvents
 func (client LiveEventsClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -674,7 +671,6 @@ func (client LiveEventsClient) StopSender(req *http.Request) (future LiveEventsS
 func (client LiveEventsClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -762,7 +758,6 @@ func (client LiveEventsClient) UpdateSender(req *http.Request) (future LiveEvent
 func (client LiveEventsClient) UpdateResponder(resp *http.Response) (result LiveEvent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

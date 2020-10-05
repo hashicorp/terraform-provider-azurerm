@@ -127,7 +127,6 @@ func (client IntegrationAccountCertificatesClient) CreateOrUpdateSender(req *htt
 func (client IntegrationAccountCertificatesClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountCertificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client IntegrationAccountCertificatesClient) DeleteSender(req *http.Reques
 func (client IntegrationAccountCertificatesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -282,7 +280,6 @@ func (client IntegrationAccountCertificatesClient) GetSender(req *http.Request) 
 func (client IntegrationAccountCertificatesClient) GetResponder(resp *http.Response) (result IntegrationAccountCertificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,6 +321,9 @@ func (client IntegrationAccountCertificatesClient) List(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountCertificatesClient", "List", resp, "Failure responding to request")
 	}
+	if result.iaclr.hasNextLink() && result.iaclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -363,7 +363,6 @@ func (client IntegrationAccountCertificatesClient) ListSender(req *http.Request)
 func (client IntegrationAccountCertificatesClient) ListResponder(resp *http.Response) (result IntegrationAccountCertificateListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

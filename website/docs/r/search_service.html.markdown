@@ -44,11 +44,15 @@ The following arguments are supported:
 
 ---
 
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
+
 * `partition_count` - (Optional) The number of partitions which should be created.
 
 * `replica_count` - (Optional) The number of replica's which should be created.
 
 -> **Note:** `partition_count` and `replica_count` can only be configured when using a `standard` sku.
+
+* `allowed_ips` - (Optional) A list of IPv4 addresses that are allowed access to the search service endpoint. 
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Search Service.
 

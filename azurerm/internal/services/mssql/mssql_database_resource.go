@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -16,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
@@ -66,7 +66,6 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				ValidateFunc: validate.MsSqlDatabaseAutoPauseDelay,
 			},
 
-			// recovery is not support in version 2017-10-01-preview
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -78,6 +77,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 					string(sql.CreateModeOnlineSecondary),
 					string(sql.CreateModePointInTimeRestore),
 					string(sql.CreateModeRestore),
+					string(sql.CreateModeRecovery),
 					string(sql.CreateModeRestoreExternalBackup),
 					string(sql.CreateModeRestoreExternalBackupSecondary),
 					string(sql.CreateModeRestoreLongTermRetentionBackup),
@@ -96,7 +96,6 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"elastic_pool_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.MsSqlElasticPoolID,
 			},
 
@@ -123,7 +122,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: azValidate.FloatInSlice([]float64{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5}),
+				ValidateFunc: azValidate.FloatInSlice([]float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}),
 			},
 
 			"restore_point_in_time": {
@@ -132,6 +131,18 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
+			},
+
+			"recover_database_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.MsSqlRecoverableDatabaseID,
+			},
+
+			"restore_dropped_database_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.MsSqlRestorableDatabaseID,
 			},
 
 			"read_replica_count": {
@@ -156,11 +167,9 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				}, false),
 			},
 
-			// hyper_scale can not be changed into other sku
 			"sku_name": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ForceNew:         true,
 				Computed:         true,
 				ValidateFunc:     validate.MsSqlDBSkuName(),
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -268,6 +277,13 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+				// "hyperscale can not change to other sku
+				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
+			}),
+		),
 	}
 }
 
@@ -285,7 +301,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	sqlServerId := d.Get("server_id").(string)
 	serverId, _ := parse.MsSqlServerID(sqlServerId)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -308,6 +324,14 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Location is empty from making Read request on MsSql Server %q", serverId.Name)
 	}
 
+	// when disassociating mssql db from elastic pool, the sku_name must be specific
+	if d.HasChange("elastic_pool_id") {
+		if old, new := d.GetChange("elastic_pool_id"); old.(string) != "" && new.(string) == "" {
+			if v, ok := d.GetOk("sku_name"); !ok || (ok && v.(string) == "ElasticPool") {
+				return fmt.Errorf("`sku_name` must be assigned and not be `ElasticPool` when disassociating MsSql Database %q from MsSql Elastic Pool", name)
+			}
+		}
+	}
 	params := sql.Database{
 		Name:     &name,
 		Location: &location,
@@ -326,9 +350,16 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	}
 
 	createMode, ok := d.GetOk("create_mode")
-	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
+	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
 		return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", createMode.(string))
 	}
+	if _, dbok := d.GetOk("recover_database_id"); ok && createMode.(string) == string(sql.CreateModeRecovery) && !dbok {
+		return fmt.Errorf("'recover_database_id' is required for create_mode %s", createMode.(string))
+	}
+	if _, dbok := d.GetOk("restore_dropped_database_id"); ok && createMode.(string) == string(sql.CreateModeRestore) && !dbok {
+		return fmt.Errorf("'restore_dropped_database_id' is required for create_mode %s", createMode.(string))
+	}
+
 	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
 
 	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
@@ -340,13 +371,11 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
 	}
 
-	if v, ok := d.GetOkExists("read_scale"); ok {
-		if v.(bool) {
-			params.DatabaseProperties.ReadScale = sql.DatabaseReadScaleEnabled
-		} else {
-			params.DatabaseProperties.ReadScale = sql.DatabaseReadScaleDisabled
-		}
+	readScale := sql.DatabaseReadScaleDisabled
+	if v := d.Get("read_scale").(bool); v {
+		readScale = sql.DatabaseReadScaleEnabled
 	}
+	params.DatabaseProperties.ReadScale = readScale
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
 		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(sql.CreateModePointInTimeRestore) {
@@ -364,6 +393,14 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("creation_source_database_id"); ok {
 		params.DatabaseProperties.SourceDatabaseID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("recover_database_id"); ok {
+		params.DatabaseProperties.RecoverableDatabaseID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("restore_dropped_database_id"); ok {
+		params.DatabaseProperties.RestorableDroppedDatabaseID = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, params)

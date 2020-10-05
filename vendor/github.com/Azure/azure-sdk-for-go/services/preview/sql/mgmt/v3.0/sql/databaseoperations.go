@@ -118,7 +118,6 @@ func (client DatabaseOperationsClient) CancelSender(req *http.Request) (*http.Re
 func (client DatabaseOperationsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -160,6 +159,9 @@ func (client DatabaseOperationsClient) ListByDatabase(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DatabaseOperationsClient", "ListByDatabase", resp, "Failure responding to request")
 	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -197,7 +199,6 @@ func (client DatabaseOperationsClient) ListByDatabaseSender(req *http.Request) (
 func (client DatabaseOperationsClient) ListByDatabaseResponder(resp *http.Response) (result DatabaseOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

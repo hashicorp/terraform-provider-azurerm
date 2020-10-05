@@ -140,7 +140,6 @@ func (client DataFlowsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client DataFlowsClient) CreateOrUpdateResponder(resp *http.Response) (result DataFlowResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -234,7 +233,6 @@ func (client DataFlowsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client DataFlowsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -333,7 +331,6 @@ func (client DataFlowsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client DataFlowsClient) GetResponder(resp *http.Response) (result DataFlowResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -386,6 +383,9 @@ func (client DataFlowsClient) ListByFactory(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowsClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.dflr.hasNextLink() && result.dflr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -422,7 +422,6 @@ func (client DataFlowsClient) ListByFactorySender(req *http.Request) (*http.Resp
 func (client DataFlowsClient) ListByFactoryResponder(resp *http.Response) (result DataFlowListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

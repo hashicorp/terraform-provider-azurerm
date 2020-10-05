@@ -66,7 +66,7 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 					resource.TestCheckResourceAttr(data.ResourceName, "max_size_gb", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
@@ -96,11 +96,25 @@ func TestAccAzureRMMsSqlDatabase_elasticPool(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMMsSqlDatabase_elasticPool(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "elastic_pool_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "ElasticPool"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_elasticPoolDisassociation(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -159,6 +173,7 @@ func TestAccAzureRMMsSqlDatabase_GP_Serverless(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
@@ -204,7 +219,7 @@ func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "read_replica_count", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "HS_Gen4_1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "HS_Gen5_2"),
 				),
 			},
 			data.ImportStep(),
@@ -213,7 +228,7 @@ func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "read_replica_count", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "HS_Gen4_1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "HS_Gen5_2"),
 				),
 			},
 			data.ImportStep(),
@@ -235,7 +250,7 @@ func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 				),
 			},
 			data.ImportStep("create_mode", "creation_source_database_id"),
@@ -286,10 +301,50 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 				),
 			},
 			data.ImportStep("create_mode", "creation_source_database_id", "sample_name"),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_createRestoreMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_createRestoreMode(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("create_mode", "creation_source_database_id"),
+
+			{
+				PreConfig: func() { time.Sleep(8 * time.Minute) },
+				Config:    testAccAzureRMMsSqlDatabase_createRestoreModeDBDeleted(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+
+			data.ImportStep(),
+
+			{
+				PreConfig: func() { time.Sleep(8 * time.Minute) },
+				Config:    testAccAzureRMMsSqlDatabase_createRestoreModeDBRestored(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					testCheckAzureRMMsSqlDatabaseExists("azurerm_mssql_database.restore"),
+				),
+			},
+
+			data.ImportStep("create_mode", "restore_dropped_database_id"),
 		},
 	})
 }
@@ -357,7 +412,59 @@ func TestAccAzureRMMsSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 			},
 			data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
 			{
+				Config: testAccAzureRMMsSqlDatabase_withBlobAuditingPolicesDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
 				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_updateSku(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_updateSku2(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_minCapacity0(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_minCapacity0(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
@@ -478,7 +585,7 @@ resource "azurerm_mssql_database" "test" {
   license_type = "BasePrice"
   max_size_gb  = 1
   sample_name  = "AdventureWorksLT"
-  sku_name     = "GP_Gen4_2"
+  sku_name     = "GP_Gen5_2"
 
   tags = {
     ENV = "Test"
@@ -498,7 +605,7 @@ resource "azurerm_mssql_database" "test" {
   collation    = "SQL_AltDiction_CP850_CI_AI"
   license_type = "LicenseIncluded"
   max_size_gb  = 2
-  sku_name     = "GP_Gen4_2"
+  sku_name     = "GP_Gen5_2"
 
   tags = {
     ENV = "Staging"
@@ -517,18 +624,18 @@ resource "azurerm_mssql_elasticpool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   server_name         = azurerm_sql_server.test.name
-  max_size_gb         = 4.8828125
-  zone_redundant      = false
+  max_size_gb         = 5
 
   sku {
-    name     = "BasicPool"
-    tier     = "Basic"
-    capacity = 50
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
   }
 
   per_database_settings {
-    min_capacity = 0
-    max_capacity = 5
+    min_capacity = 0.25
+    max_capacity = 4
   }
 }
 
@@ -536,6 +643,40 @@ resource "azurerm_mssql_database" "test" {
   name            = "acctest-db-%[2]d"
   server_id       = azurerm_sql_server.test.id
   elastic_pool_id = azurerm_mssql_elasticpool.test.id
+  sku_name        = "ElasticPool"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_elasticPoolDisassociation(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
+  max_size_gb         = 5
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_sql_server.test.id
+  sku_name  = "GP_Gen5_2"
 }
 `, template, data.RandomInteger)
 }
@@ -592,7 +733,7 @@ resource "azurerm_mssql_database" "test" {
   name               = "acctest-db-%d"
   server_id          = azurerm_sql_server.test.id
   read_replica_count = 2
-  sku_name           = "HS_Gen4_1"
+  sku_name           = "HS_Gen5_2"
 }
 `, template, data.RandomInteger)
 }
@@ -606,7 +747,7 @@ resource "azurerm_mssql_database" "test" {
   name               = "acctest-db-%d"
   server_id          = azurerm_sql_server.test.id
   read_replica_count = 4
-  sku_name           = "HS_Gen4_1"
+  sku_name           = "HS_Gen5_2"
 }
 `, template, data.RandomInteger)
 }
@@ -700,6 +841,106 @@ resource "azurerm_mssql_database" "secondary" {
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
+func testAccAzureRMMsSqlDatabase_createRestoreMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+resource "azurerm_mssql_database" "copy" {
+  name                        = "acctest-dbc-%[1]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Copy"
+  creation_source_database_id = azurerm_mssql_database.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMsSqlDatabase_createRestoreModeDBDeleted(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMsSqlDatabase_createRestoreModeDBRestored(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+resource "azurerm_mssql_database" "restore" {
+  name                        = "acctest-dbr-%[1]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Restore"
+  restore_dropped_database_id = azurerm_mssql_server.test.restorable_dropped_database_ids[0]
+}
+
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data acceptance.TestData, state string) string {
 	template := testAccAzureRMMsSqlDatabase_template(data)
 	return fmt.Sprintf(`
@@ -720,7 +961,7 @@ resource "azurerm_mssql_database" "test" {
   license_type = "BasePrice"
   max_size_gb  = 1
   sample_name  = "AdventureWorksLT"
-  sku_name     = "GP_Gen4_2"
+  sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
     retention_days             = 15
@@ -805,4 +1046,73 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withBlobAuditingPolicesDisabled(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name                     = "acctest-db-%[3]d"
+  server_id                = azurerm_sql_server.test.id
+  extended_auditing_policy = []
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_updateSku(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%d"
+  server_id = azurerm_sql_server.test.id
+  sku_name  = "HS_Gen5_2"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_updateSku2(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%d"
+  server_id = azurerm_sql_server.test.id
+  sku_name  = "HS_Gen5_4"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_minCapacity0(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%d"
+  server_id = azurerm_sql_server.test.id
+
+  min_capacity = 0
+}
+`, template, data.RandomInteger)
 }

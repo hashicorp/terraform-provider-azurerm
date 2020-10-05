@@ -3,7 +3,7 @@ package containers
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -392,7 +392,9 @@ func findDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfil
 				break
 			}
 		}
-	} else {
+	}
+
+	if agentPool == nil {
 		// otherwise we need to fall back to the name of the first agent pool
 		for _, v := range *input {
 			if v.Name == nil {

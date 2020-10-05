@@ -113,7 +113,6 @@ func (client AssignmentOperationsClient) GetSender(req *http.Request) (*http.Res
 func (client AssignmentOperationsClient) GetResponder(resp *http.Response) (result AssignmentOperation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -156,6 +155,9 @@ func (client AssignmentOperationsClient) List(ctx context.Context, resourceScope
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentOperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.aol.hasNextLink() && result.aol.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -191,7 +193,6 @@ func (client AssignmentOperationsClient) ListSender(req *http.Request) (*http.Re
 func (client AssignmentOperationsClient) ListResponder(resp *http.Response) (result AssignmentOperationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

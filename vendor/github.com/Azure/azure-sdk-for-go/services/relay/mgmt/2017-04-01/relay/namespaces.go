@@ -115,7 +115,6 @@ func (client NamespacesClient) CheckNameAvailabilityMethodSender(req *http.Reque
 func (client NamespacesClient) CheckNameAvailabilityMethodResponder(resp *http.Response) (result CheckNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client NamespacesClient) CreateOrUpdateSender(req *http.Request) (future N
 func (client NamespacesClient) CreateOrUpdateResponder(resp *http.Response) (result Namespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,7 +303,6 @@ func (client NamespacesClient) CreateOrUpdateAuthorizationRuleSender(req *http.R
 func (client NamespacesClient) CreateOrUpdateAuthorizationRuleResponder(resp *http.Response) (result AuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -391,7 +388,6 @@ func (client NamespacesClient) DeleteSender(req *http.Request) (future Namespace
 func (client NamespacesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -480,7 +476,6 @@ func (client NamespacesClient) DeleteAuthorizationRuleSender(req *http.Request) 
 func (client NamespacesClient) DeleteAuthorizationRuleResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -565,7 +560,6 @@ func (client NamespacesClient) GetSender(req *http.Request) (*http.Response, err
 func (client NamespacesClient) GetResponder(resp *http.Response) (result Namespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -655,7 +649,6 @@ func (client NamespacesClient) GetAuthorizationRuleSender(req *http.Request) (*h
 func (client NamespacesClient) GetAuthorizationRuleResponder(resp *http.Response) (result AuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -693,6 +686,9 @@ func (client NamespacesClient) List(ctx context.Context) (result NamespaceListRe
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "List", resp, "Failure responding to request")
 	}
+	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -727,7 +723,6 @@ func (client NamespacesClient) ListSender(req *http.Request) (*http.Response, er
 func (client NamespacesClient) ListResponder(resp *http.Response) (result NamespaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -815,6 +810,9 @@ func (client NamespacesClient) ListAuthorizationRules(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "ListAuthorizationRules", resp, "Failure responding to request")
 	}
+	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -851,7 +849,6 @@ func (client NamespacesClient) ListAuthorizationRulesSender(req *http.Request) (
 func (client NamespacesClient) ListAuthorizationRulesResponder(resp *http.Response) (result AuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -935,6 +932,9 @@ func (client NamespacesClient) ListByResourceGroup(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.NamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.nlr.hasNextLink() && result.nlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -970,7 +970,6 @@ func (client NamespacesClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client NamespacesClient) ListByResourceGroupResponder(resp *http.Response) (result NamespaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1097,7 +1096,6 @@ func (client NamespacesClient) ListKeysSender(req *http.Request) (*http.Response
 func (client NamespacesClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1190,7 +1188,6 @@ func (client NamespacesClient) RegenerateKeysSender(req *http.Request) (*http.Re
 func (client NamespacesClient) RegenerateKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1280,7 +1277,6 @@ func (client NamespacesClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client NamespacesClient) UpdateResponder(resp *http.Response) (result Namespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

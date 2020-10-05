@@ -118,7 +118,6 @@ func (client ExtendedServerBlobAuditingPoliciesClient) CreateOrUpdateSender(req 
 func (client ExtendedServerBlobAuditingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ExtendedServerBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client ExtendedServerBlobAuditingPoliciesClient) GetSender(req *http.Reque
 func (client ExtendedServerBlobAuditingPoliciesClient) GetResponder(resp *http.Response) (result ExtendedServerBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -238,6 +236,9 @@ func (client ExtendedServerBlobAuditingPoliciesClient) ListByServer(ctx context.
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ExtendedServerBlobAuditingPoliciesClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.esbaplr.hasNextLink() && result.esbaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -274,7 +275,6 @@ func (client ExtendedServerBlobAuditingPoliciesClient) ListByServerSender(req *h
 func (client ExtendedServerBlobAuditingPoliciesClient) ListByServerResponder(resp *http.Response) (result ExtendedServerBlobAuditingPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

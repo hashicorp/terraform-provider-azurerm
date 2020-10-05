@@ -116,7 +116,6 @@ func (client InvitationsClient) CreateSender(req *http.Request) (*http.Response,
 func (client InvitationsClient) CreateResponder(resp *http.Response) (result Invitation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client InvitationsClient) DeleteSender(req *http.Request) (*http.Response,
 func (client InvitationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -275,7 +273,6 @@ func (client InvitationsClient) GetSender(req *http.Request) (*http.Response, er
 func (client InvitationsClient) GetResponder(resp *http.Response) (result Invitation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -289,7 +286,9 @@ func (client InvitationsClient) GetResponder(resp *http.Response) (result Invita
 // accountName - the name of the share account.
 // shareName - the name of the share.
 // skipToken - the continuation token
-func (client InvitationsClient) ListByShare(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (result InvitationListPage, err error) {
+// filter - filters the results using OData syntax.
+// orderby - sorts the results using OData syntax.
+func (client InvitationsClient) ListByShare(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (result InvitationListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/InvitationsClient.ListByShare")
 		defer func() {
@@ -301,7 +300,7 @@ func (client InvitationsClient) ListByShare(ctx context.Context, resourceGroupNa
 		}()
 	}
 	result.fn = client.listByShareNextResults
-	req, err := client.ListBySharePreparer(ctx, resourceGroupName, accountName, shareName, skipToken)
+	req, err := client.ListBySharePreparer(ctx, resourceGroupName, accountName, shareName, skipToken, filter, orderby)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.InvitationsClient", "ListByShare", nil, "Failure preparing request")
 		return
@@ -318,12 +317,15 @@ func (client InvitationsClient) ListByShare(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.InvitationsClient", "ListByShare", resp, "Failure responding to request")
 	}
+	if result.il.hasNextLink() && result.il.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
 
 // ListBySharePreparer prepares the ListByShare request.
-func (client InvitationsClient) ListBySharePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (*http.Request, error) {
+func (client InvitationsClient) ListBySharePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -337,6 +339,12 @@ func (client InvitationsClient) ListBySharePreparer(ctx context.Context, resourc
 	}
 	if len(skipToken) > 0 {
 		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if len(orderby) > 0 {
+		queryParameters["$orderby"] = autorest.Encode("query", orderby)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -358,7 +366,6 @@ func (client InvitationsClient) ListByShareSender(req *http.Request) (*http.Resp
 func (client InvitationsClient) ListByShareResponder(resp *http.Response) (result InvitationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,7 +395,7 @@ func (client InvitationsClient) listByShareNextResults(ctx context.Context, last
 }
 
 // ListByShareComplete enumerates all values, automatically crossing page boundaries as required.
-func (client InvitationsClient) ListByShareComplete(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string) (result InvitationListIterator, err error) {
+func (client InvitationsClient) ListByShareComplete(ctx context.Context, resourceGroupName string, accountName string, shareName string, skipToken string, filter string, orderby string) (result InvitationListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/InvitationsClient.ListByShare")
 		defer func() {
@@ -399,6 +406,6 @@ func (client InvitationsClient) ListByShareComplete(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByShare(ctx, resourceGroupName, accountName, shareName, skipToken)
+	result.page, err = client.ListByShare(ctx, resourceGroupName, accountName, shareName, skipToken, filter, orderby)
 	return
 }

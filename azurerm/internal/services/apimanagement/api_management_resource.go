@@ -158,12 +158,36 @@ func resourceArmApiManagementService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"location": azure.SchemaLocation(),
 
+						"virtual_network_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"subnet_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+								},
+							},
+						},
+
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"public_ip_addresses": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Computed: true,
+						},
+
+						"private_ip_addresses": {
 							Type: schema.TypeList,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -281,21 +305,21 @@ func resourceArmApiManagementService() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema("management"),
+								Schema: apiManagementResourceHostnameSchema(),
 							},
 						},
 						"portal": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema("portal"),
+								Schema: apiManagementResourceHostnameSchema(),
 							},
 						},
 						"developer_portal": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema("developer_portal"),
+								Schema: apiManagementResourceHostnameSchema(),
 							},
 						},
 						"proxy": {
@@ -309,7 +333,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema("scm"),
+								Schema: apiManagementResourceHostnameSchema(),
 							},
 						},
 					},
@@ -494,16 +518,20 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		Sku:  sku,
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
-		identity, err := expandAzureRmApiManagementIdentity(d)
-		if err != nil {
-			return fmt.Errorf("Error expanding `identity`: %+v", err)
-		}
-		properties.Identity = identity
+	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := expandAzureRmApiManagementIdentity(identityRaw)
+	if err != nil {
+		return fmt.Errorf("Error expanding `identity`: %+v", err)
 	}
+	properties.Identity = identity
 
 	if _, ok := d.GetOk("additional_location"); ok {
-		properties.ServiceProperties.AdditionalLocations = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		var err error
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		if err != nil {
+			return err
+		}
 	}
 
 	if notificationSenderEmail != "" {
@@ -905,8 +933,9 @@ func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanage
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) *[]apimanagement.AdditionalLocation {
+func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
+	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
 	additionalLocations := make([]apimanagement.AdditionalLocation, 0)
 
@@ -919,10 +948,24 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *
 			Sku:      sku,
 		}
 
+		childVnetConfig := config["virtual_network_configuration"].([]interface{})
+		switch {
+		case len(childVnetConfig) == 0 && len(parentVnetConfig) > 0:
+			return nil, fmt.Errorf("`virtual_network_configuration` must be specified in any `additional_location` block when top-level `virtual_network_configuration` is supplied")
+		case len(childVnetConfig) > 0 && len(parentVnetConfig) == 0:
+			return nil, fmt.Errorf("`virtual_network_configuration` must be empty in all `additional_location` blocks when top-level `virtual_network_configuration` is not supplied")
+		case len(childVnetConfig) > 0 && len(parentVnetConfig) > 0:
+			v := childVnetConfig[0].(map[string]interface{})
+			subnetResourceId := v["subnet_id"].(string)
+			additionalLocation.VirtualNetworkConfiguration = &apimanagement.VirtualNetworkConfiguration{
+				SubnetResourceID: &subnetResourceId,
+			}
+		}
+
 		additionalLocations = append(additionalLocations, additionalLocation)
 	}
 
-	return &additionalLocations
+	return &additionalLocations, nil
 }
 
 func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) []interface{} {
@@ -942,9 +985,15 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			output["public_ip_addresses"] = *prop.PublicIPAddresses
 		}
 
+		if prop.PrivateIPAddresses != nil {
+			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+		}
+
 		if prop.GatewayRegionalURL != nil {
 			output["gateway_regional_url"] = *prop.GatewayRegionalURL
 		}
+
+		output["virtual_network_configuration"] = flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
 
 		results = append(results, output)
 	}
@@ -952,38 +1001,36 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 	return results
 }
 
-func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.ServiceIdentity, error) {
-	var identityIdSet *schema.Set
-	managedServiceIdentity := apimanagement.ServiceIdentity{}
-
-	vs := d.Get("identity").([]interface{})
+func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.ServiceIdentity, error) {
 	if len(vs) == 0 {
-		managedServiceIdentity.Type = apimanagement.None
-	} else {
-		v := vs[0].(map[string]interface{})
-		identityType, exists := v["type"]
-		if !exists {
-			return nil, fmt.Errorf("`type` must be specified when `identity` is set")
-		}
-		managedServiceIdentity.Type = apimanagement.ApimIdentityType(identityType.(string))
-		if identityIds, exists := v["identity_ids"]; exists {
-			identityIdSet = (identityIds.(*schema.Set))
-		}
+		return &apimanagement.ServiceIdentity{
+			Type: apimanagement.None,
+		}, nil
+	}
+
+	v := vs[0].(map[string]interface{})
+	managedServiceIdentity := apimanagement.ServiceIdentity{
+		Type: apimanagement.ApimIdentityType(v["type"].(string)),
+	}
+
+	var identityIdSet []interface{}
+	if identityIds, exists := v["identity_ids"]; exists {
+		identityIdSet = identityIds.(*schema.Set).List()
 	}
 
 	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
 	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
-		if identityIdSet == nil || identityIdSet.Len() == 0 {
+		if len(identityIdSet) == 0 {
 			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
 		}
 
 		userAssignedIdentities := make(map[string]*apimanagement.UserIdentityProperties)
-		for _, id := range identityIdSet.List() {
+		for _, id := range identityIdSet {
 			userAssignedIdentities[id.(string)] = &apimanagement.UserIdentityProperties{}
 		}
 
 		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
-	} else if identityIdSet != nil && identityIdSet.Len() > 0 {
+	} else if len(identityIdSet) > 0 {
 		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
 		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
@@ -992,12 +1039,11 @@ func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.
 }
 
 func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
-	if identity == nil {
+	if identity == nil || identity.Type == apimanagement.None {
 		return make([]interface{}, 0)
 	}
 
 	result := make(map[string]interface{})
-
 	result["type"] = string(identity.Type)
 
 	if identity.PrincipalID != nil {
@@ -1076,9 +1122,9 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 	}
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
-		if p, ok := d.GetOkExists("protocols.0.enable_http2"); ok {
-			customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(p.(bool)))
-		}
+		vpr := vp[0].(map[string]interface{})
+		enableHttp2 := vpr["enable_http2"].(bool)
+		customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(enableHttp2))
 	}
 
 	return customProperties
@@ -1134,7 +1180,7 @@ func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.Virtua
 	return []interface{}{virtualNetworkConfiguration}
 }
 
-func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.Schema {
+func apiManagementResourceHostnameSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"host_name": {
 			Type:         schema.TypeString,
@@ -1146,10 +1192,6 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
-			ConflictsWith: []string{
-				fmt.Sprintf("hostname_configuration.0.%s.0.certificate", schemaName),
-				fmt.Sprintf("hostname_configuration.0.%s.0.certificate_password", schemaName),
-			},
 		},
 
 		"certificate": {
@@ -1157,9 +1199,6 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			ConflictsWith: []string{
-				fmt.Sprintf("hostname_configuration.0.%s.0.key_vault_id", schemaName),
-			},
 		},
 
 		"certificate_password": {
@@ -1167,9 +1206,6 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			ConflictsWith: []string{
-				fmt.Sprintf("hostname_configuration.0.%s.0.key_vault_id", schemaName),
-			},
 		},
 
 		"negotiate_client_certificate": {
@@ -1181,7 +1217,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 }
 
 func apiManagementResourceHostnameProxySchema() map[string]*schema.Schema {
-	hostnameSchema := apiManagementResourceHostnameSchema("proxy")
+	hostnameSchema := apiManagementResourceHostnameSchema()
 
 	hostnameSchema["default_ssl_binding"] = &schema.Schema{
 		Type:     schema.TypeBool,

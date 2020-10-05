@@ -115,7 +115,6 @@ func (client AlertsSuppressionRulesClient) DeleteSender(req *http.Request) (*htt
 func (client AlertsSuppressionRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -194,7 +193,6 @@ func (client AlertsSuppressionRulesClient) GetSender(req *http.Request) (*http.R
 func (client AlertsSuppressionRulesClient) GetResponder(resp *http.Response) (result AlertsSuppressionRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -240,6 +238,9 @@ func (client AlertsSuppressionRulesClient) List(ctx context.Context, alertType s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsSuppressionRulesClient", "List", resp, "Failure responding to request")
 	}
+	if result.asrl.hasNextLink() && result.asrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -277,7 +278,6 @@ func (client AlertsSuppressionRulesClient) ListSender(req *http.Request) (*http.
 func (client AlertsSuppressionRulesClient) ListResponder(resp *http.Response) (result AlertsSuppressionRulesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -404,7 +404,6 @@ func (client AlertsSuppressionRulesClient) UpdateSender(req *http.Request) (*htt
 func (client AlertsSuppressionRulesClient) UpdateResponder(resp *http.Response) (result AlertsSuppressionRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

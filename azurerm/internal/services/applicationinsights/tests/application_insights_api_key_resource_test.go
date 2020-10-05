@@ -46,8 +46,8 @@ func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMApplicationInsightsAPIKey_requiresImport(data, "[]", "[]"),
-				ExpectError: acceptance.RequiresImportError("azurerm_application_insights"),
+				Config:      testAccAzureRMApplicationInsightsAPIKey_requiresImport(data, "[]", `["annotations"]`),
+				ExpectError: acceptance.RequiresImportError("azurerm_application_insights_api_key"),
 			},
 		},
 	})

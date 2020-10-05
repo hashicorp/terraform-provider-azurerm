@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -95,7 +94,7 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -111,22 +110,32 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	ipAddress := d.Get("gateway_address").(string)
 
-	addressSpaces := expandLocalNetworkGatewayAddressSpaces(d)
-
 	t := d.Get("tags").(map[string]interface{})
 
 	gateway := network.LocalNetworkGateway{
 		Name:     &name,
 		Location: &location,
 		LocalNetworkGatewayPropertiesFormat: &network.LocalNetworkGatewayPropertiesFormat{
-			LocalNetworkAddressSpace: &network.AddressSpace{
-				AddressPrefixes: &addressSpaces,
-			},
-			GatewayIPAddress: &ipAddress,
-			BgpSettings:      expandLocalNetworkGatewayBGPSettings(d),
+			LocalNetworkAddressSpace: &network.AddressSpace{},
+			GatewayIPAddress:         &ipAddress,
+			BgpSettings:              expandLocalNetworkGatewayBGPSettings(d),
 		},
 		Tags: tags.Expand(t),
 	}
+
+	// There is a bug in the provider where the address space ordering doesn't change as expected.
+	// In the UI we have to remove the current list of addresses in the address space and re-add them in the new order and we'll copy that here.
+	if !d.IsNewResource() && d.HasChange("address_space") {
+		future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
+		if err != nil {
+			return fmt.Errorf("error removing Local Network Gateway address space %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("error waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+	}
+	gateway.LocalNetworkGatewayPropertiesFormat.LocalNetworkAddressSpace.AddressPrefixes = expandLocalNetworkGatewayAddressSpaces(d)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 	if err != nil {
@@ -250,14 +259,14 @@ func expandLocalNetworkGatewayBGPSettings(d *schema.ResourceData) *network.BgpSe
 	return &bgpSettings
 }
 
-func expandLocalNetworkGatewayAddressSpaces(d *schema.ResourceData) []string {
+func expandLocalNetworkGatewayAddressSpaces(d *schema.ResourceData) *[]string {
 	prefixes := make([]string, 0)
 
 	for _, pref := range d.Get("address_space").([]interface{}) {
 		prefixes = append(prefixes, pref.(string))
 	}
 
-	return prefixes
+	return &prefixes
 }
 
 func flattenLocalNetworkGatewayBGPSettings(input *network.BgpSettings) []interface{} {

@@ -150,7 +150,6 @@ func (client APIIssueAttachmentClient) CreateOrUpdateSender(req *http.Request) (
 func (client APIIssueAttachmentClient) CreateOrUpdateResponder(resp *http.Response) (result IssueAttachmentContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -254,7 +253,6 @@ func (client APIIssueAttachmentClient) DeleteSender(req *http.Request) (*http.Re
 func (client APIIssueAttachmentClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -354,7 +352,6 @@ func (client APIIssueAttachmentClient) GetSender(req *http.Request) (*http.Respo
 func (client APIIssueAttachmentClient) GetResponder(resp *http.Response) (result IssueAttachmentContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -455,7 +452,6 @@ func (client APIIssueAttachmentClient) GetEntityTagSender(req *http.Request) (*h
 func (client APIIssueAttachmentClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -524,6 +520,9 @@ func (client APIIssueAttachmentClient) ListByService(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIIssueAttachmentClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.iac.hasNextLink() && result.iac.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -571,7 +570,6 @@ func (client APIIssueAttachmentClient) ListByServiceSender(req *http.Request) (*
 func (client APIIssueAttachmentClient) ListByServiceResponder(resp *http.Response) (result IssueAttachmentCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

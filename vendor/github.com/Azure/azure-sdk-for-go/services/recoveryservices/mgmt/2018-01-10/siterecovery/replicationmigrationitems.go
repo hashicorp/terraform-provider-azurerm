@@ -127,7 +127,6 @@ func (client ReplicationMigrationItemsClient) CreateSender(req *http.Request) (f
 func (client ReplicationMigrationItemsClient) CreateResponder(resp *http.Response) (result MigrationItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client ReplicationMigrationItemsClient) DeleteSender(req *http.Request) (f
 func (client ReplicationMigrationItemsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -290,7 +288,6 @@ func (client ReplicationMigrationItemsClient) GetSender(req *http.Request) (*htt
 func (client ReplicationMigrationItemsClient) GetResponder(resp *http.Response) (result MigrationItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -330,6 +327,9 @@ func (client ReplicationMigrationItemsClient) List(ctx context.Context, skipToke
 	result.mic, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "List", resp, "Failure responding to request")
+	}
+	if result.mic.hasNextLink() && result.mic.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -373,7 +373,6 @@ func (client ReplicationMigrationItemsClient) ListSender(req *http.Request) (*ht
 func (client ReplicationMigrationItemsClient) ListResponder(resp *http.Response) (result MigrationItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -451,6 +450,9 @@ func (client ReplicationMigrationItemsClient) ListByReplicationProtectionContain
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationMigrationItemsClient", "ListByReplicationProtectionContainers", resp, "Failure responding to request")
 	}
+	if result.mic.hasNextLink() && result.mic.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -489,7 +491,6 @@ func (client ReplicationMigrationItemsClient) ListByReplicationProtectionContain
 func (client ReplicationMigrationItemsClient) ListByReplicationProtectionContainersResponder(resp *http.Response) (result MigrationItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -616,7 +617,6 @@ func (client ReplicationMigrationItemsClient) MigrateSender(req *http.Request) (
 func (client ReplicationMigrationItemsClient) MigrateResponder(resp *http.Response) (result MigrationItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -706,7 +706,6 @@ func (client ReplicationMigrationItemsClient) ResyncSender(req *http.Request) (f
 func (client ReplicationMigrationItemsClient) ResyncResponder(resp *http.Response) (result MigrationItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -796,7 +795,6 @@ func (client ReplicationMigrationItemsClient) TestMigrateSender(req *http.Reques
 func (client ReplicationMigrationItemsClient) TestMigrateResponder(resp *http.Response) (result MigrationItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -888,7 +886,6 @@ func (client ReplicationMigrationItemsClient) TestMigrateCleanupSender(req *http
 func (client ReplicationMigrationItemsClient) TestMigrateCleanupResponder(resp *http.Response) (result MigrationItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -971,7 +968,6 @@ func (client ReplicationMigrationItemsClient) UpdateSender(req *http.Request) (f
 func (client ReplicationMigrationItemsClient) UpdateResponder(resp *http.Response) (result MigrationItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

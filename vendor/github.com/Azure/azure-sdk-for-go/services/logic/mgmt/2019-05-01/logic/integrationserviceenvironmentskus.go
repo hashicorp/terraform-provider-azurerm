@@ -76,6 +76,9 @@ func (client IntegrationServiceEnvironmentSkusClient) List(ctx context.Context, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationServiceEnvironmentSkusClient", "List", resp, "Failure responding to request")
 	}
+	if result.isesl.hasNextLink() && result.isesl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -112,7 +115,6 @@ func (client IntegrationServiceEnvironmentSkusClient) ListSender(req *http.Reque
 func (client IntegrationServiceEnvironmentSkusClient) ListResponder(resp *http.Response) (result IntegrationServiceEnvironmentSkuList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

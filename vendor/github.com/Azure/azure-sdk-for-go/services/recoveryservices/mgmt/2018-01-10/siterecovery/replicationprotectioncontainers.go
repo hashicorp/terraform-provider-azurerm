@@ -116,7 +116,6 @@ func (client ReplicationProtectionContainersClient) CreateSender(req *http.Reque
 func (client ReplicationProtectionContainersClient) CreateResponder(resp *http.Response) (result ProtectionContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client ReplicationProtectionContainersClient) DeleteSender(req *http.Reque
 func (client ReplicationProtectionContainersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -274,7 +272,6 @@ func (client ReplicationProtectionContainersClient) DiscoverProtectableItemSende
 func (client ReplicationProtectionContainersClient) DiscoverProtectableItemResponder(resp *http.Response) (result ProtectionContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -352,7 +349,6 @@ func (client ReplicationProtectionContainersClient) GetSender(req *http.Request)
 func (client ReplicationProtectionContainersClient) GetResponder(resp *http.Response) (result ProtectionContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -390,6 +386,9 @@ func (client ReplicationProtectionContainersClient) List(ctx context.Context) (r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "List", resp, "Failure responding to request")
 	}
+	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -426,7 +425,6 @@ func (client ReplicationProtectionContainersClient) ListSender(req *http.Request
 func (client ReplicationProtectionContainersClient) ListResponder(resp *http.Response) (result ProtectionContainerCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -503,6 +501,9 @@ func (client ReplicationProtectionContainersClient) ListByReplicationFabrics(ctx
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectionContainersClient", "ListByReplicationFabrics", resp, "Failure responding to request")
 	}
+	if result.pcc.hasNextLink() && result.pcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -540,7 +541,6 @@ func (client ReplicationProtectionContainersClient) ListByReplicationFabricsSend
 func (client ReplicationProtectionContainersClient) ListByReplicationFabricsResponder(resp *http.Response) (result ProtectionContainerCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -659,7 +659,6 @@ func (client ReplicationProtectionContainersClient) SwitchProtectionSender(req *
 func (client ReplicationProtectionContainersClient) SwitchProtectionResponder(resp *http.Response) (result ProtectionContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

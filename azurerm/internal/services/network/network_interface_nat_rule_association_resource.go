@@ -6,13 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -119,11 +118,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 		for _, existingRule := range *p.LoadBalancerInboundNatRules {
 			if id := existingRule.ID; id != nil {
 				if *id == natRuleId {
-					if features.ShouldResourcesBeImported() {
-						return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
-					}
-
-					continue
+					return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
 				}
 
 				rules = append(rules, existingRule)
@@ -176,7 +171,9 @@ func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, m
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", networkInterfaceName, resourceGroup)
+			log.Printf("Network Interface %q (Resource Group %q) was not found - removing from state!", networkInterfaceName, resourceGroup)
+			d.SetId("")
+			return nil
 		}
 
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)

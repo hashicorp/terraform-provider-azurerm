@@ -119,7 +119,6 @@ func (client RecoveryPointsClient) GetSender(req *http.Request) (*http.Response,
 func (client RecoveryPointsClient) GetResponder(resp *http.Response) (result RecoveryPointResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -164,6 +163,9 @@ func (client RecoveryPointsClient) List(ctx context.Context, vaultName string, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.RecoveryPointsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rprl.hasNextLink() && result.rprl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -206,7 +208,6 @@ func (client RecoveryPointsClient) ListSender(req *http.Request) (*http.Response
 func (client RecoveryPointsClient) ListResponder(resp *http.Response) (result RecoveryPointResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

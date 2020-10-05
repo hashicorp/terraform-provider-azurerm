@@ -865,7 +865,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login_password = "${md5(%d)}!"
 }
 
-resource "azurerm_sql_virtual_network_rule" "rule1" {
+resource "azurerm_sql_virtual_network_rule" "test" {
   name                                 = "acctestsqlvnetrule1%d"
   resource_group_name                  = azurerm_resource_group.test.name
   server_name                          = azurerm_sql_server.test.name

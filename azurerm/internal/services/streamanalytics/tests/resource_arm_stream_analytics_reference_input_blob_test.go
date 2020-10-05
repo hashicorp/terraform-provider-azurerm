@@ -245,7 +245,7 @@ func testAccAzureRMStreamAnalyticsReferenceInputBlob_updated(data acceptance.Tes
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestsa2%s"
   resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.data.Locations.Primary
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -292,9 +292,8 @@ resource "azurerm_stream_analytics_reference_input_blob" "import" {
   dynamic "serialization" {
     for_each = azurerm_stream_analytics_reference_input_blob.test.serialization
     content {
-      encoding        = lookup(serialization.value, "encoding", null)
-      field_delimiter = lookup(serialization.value, "field_delimiter", null)
-      type            = serialization.value.type
+      encoding = lookup(serialization.value, "encoding", null)
+      type     = serialization.value.type
     }
   }
 }
@@ -314,23 +313,22 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.data.Locations.Primary}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.data.Locations.Primary}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60

@@ -124,7 +124,6 @@ func (client MigrationConfigsClient) CompleteMigrationSender(req *http.Request) 
 func (client MigrationConfigsClient) CompleteMigrationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -219,7 +218,6 @@ func (client MigrationConfigsClient) CreateAndStartMigrationSender(req *http.Req
 func (client MigrationConfigsClient) CreateAndStartMigrationResponder(resp *http.Response) (result MigrationConfigProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -306,7 +304,6 @@ func (client MigrationConfigsClient) DeleteSender(req *http.Request) (*http.Resp
 func (client MigrationConfigsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -392,7 +389,6 @@ func (client MigrationConfigsClient) GetSender(req *http.Request) (*http.Respons
 func (client MigrationConfigsClient) GetResponder(resp *http.Response) (result MigrationConfigProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -443,6 +439,9 @@ func (client MigrationConfigsClient) List(ctx context.Context, resourceGroupName
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsClient", "List", resp, "Failure responding to request")
 	}
+	if result.mclr.hasNextLink() && result.mclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -479,7 +478,6 @@ func (client MigrationConfigsClient) ListSender(req *http.Request) (*http.Respon
 func (client MigrationConfigsClient) ListResponder(resp *http.Response) (result MigrationConfigListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -603,7 +601,6 @@ func (client MigrationConfigsClient) RevertSender(req *http.Request) (*http.Resp
 func (client MigrationConfigsClient) RevertResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

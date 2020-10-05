@@ -126,7 +126,6 @@ func (client SpatialAnchorsAccountsClient) CreateSender(req *http.Request) (*htt
 func (client SpatialAnchorsAccountsClient) CreateResponder(resp *http.Response) (result SpatialAnchorsAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,7 +213,6 @@ func (client SpatialAnchorsAccountsClient) DeleteSender(req *http.Request) (*htt
 func (client SpatialAnchorsAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -301,7 +299,6 @@ func (client SpatialAnchorsAccountsClient) GetSender(req *http.Request) (*http.R
 func (client SpatialAnchorsAccountsClient) GetResponder(resp *http.Response) (result SpatialAnchorsAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -389,7 +386,6 @@ func (client SpatialAnchorsAccountsClient) GetKeysSender(req *http.Request) (*ht
 func (client SpatialAnchorsAccountsClient) GetKeysResponder(resp *http.Response) (result SpatialAnchorsAccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -437,6 +433,9 @@ func (client SpatialAnchorsAccountsClient) ListByResourceGroup(ctx context.Conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.saal.hasNextLink() && result.saal.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -472,7 +471,6 @@ func (client SpatialAnchorsAccountsClient) ListByResourceGroupSender(req *http.R
 func (client SpatialAnchorsAccountsClient) ListByResourceGroupResponder(resp *http.Response) (result SpatialAnchorsAccountList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -547,6 +545,9 @@ func (client SpatialAnchorsAccountsClient) ListBySubscription(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mixedreality.SpatialAnchorsAccountsClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.saal.hasNextLink() && result.saal.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -581,7 +582,6 @@ func (client SpatialAnchorsAccountsClient) ListBySubscriptionSender(req *http.Re
 func (client SpatialAnchorsAccountsClient) ListBySubscriptionResponder(resp *http.Response) (result SpatialAnchorsAccountList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -709,7 +709,6 @@ func (client SpatialAnchorsAccountsClient) RegenerateKeysSender(req *http.Reques
 func (client SpatialAnchorsAccountsClient) RegenerateKeysResponder(resp *http.Response) (result SpatialAnchorsAccountKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -800,7 +799,6 @@ func (client SpatialAnchorsAccountsClient) UpdateSender(req *http.Request) (*htt
 func (client SpatialAnchorsAccountsClient) UpdateResponder(resp *http.Response) (result SpatialAnchorsAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

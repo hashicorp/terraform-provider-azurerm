@@ -65,16 +65,16 @@ func TestPolicyScopeID(t *testing.T) {
 			Name:  "Management Group ID",
 			Input: "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
 			Expected: ScopeAtManagementGroup{
-				scopeId:           "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
-				ManagementGroupId: "00000000-0000-0000-0000-000000000000",
+				scopeId:             "/providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000",
+				ManagementGroupName: "00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
 			Name:  "Management Group ID with readable id",
 			Input: "/providers/Microsoft.Management/managementGroups/group1",
 			Expected: ScopeAtManagementGroup{
-				scopeId:           "/providers/Microsoft.Management/managementGroups/group1",
-				ManagementGroupId: "group1",
+				scopeId:             "/providers/Microsoft.Management/managementGroups/group1",
+				ManagementGroupName: "group1",
 			},
 		},
 	}

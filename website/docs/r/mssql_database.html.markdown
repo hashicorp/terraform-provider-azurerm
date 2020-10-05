@@ -10,6 +10,8 @@ description: |-
 
 Manages a MS SQL Database.
 
+~> **NOTE:** The Database Extended Auditing Policy Can be set inline here as well as with the [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html) resource. You can only use one or the other and using both will cause a conflict.
+
 ## Example Usage
 
 ```hcl
@@ -76,13 +78,13 @@ The following arguments are supported:
 
 * `auto_pause_delay_in_minutes` - (Optional) Time in minutes after which database is automatically paused. A value of `-1` means that automatic pause is disabled. This property is only settable for General Purpose Serverless databases.
 
-* `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. 
+* `create_mode` - (Optional) The create mode of the database. Possible values are `Copy`, `Default`, `OnlineSecondary`, `PointInTimeRestore`, `Recovery`, `Restore`, `RestoreExternalBackup`, `RestoreExternalBackupSecondary`, `RestoreLongTermRetentionBackup` and `Secondary`. 
 
 * `creation_source_database_id` - (Optional) The id of the source database to be referred to create the new database. This should only be used for databases with `create_mode` values that use another database as reference. Changing this forces a new resource to be created.
 
 * `collation` - (Optional) Specifies the collation of the database. Changing this forces a new resource to be created.
 
-* `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database. Changing this forces a new resource to be created.
+* `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database.
 
 * `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
@@ -94,13 +96,17 @@ The following arguments are supported:
 
 * `restore_point_in_time` - (Required) Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for `create_mode`= `PointInTimeRestore`  databases.
 
+* `recover_database_id` - (Optional) The ID of the database to be recovered. This property is only applicable when the `create_mode` is `Recovery`.
+
+* `restore_dropped_database_id` - (Optional) The ID of the database to be restored. This property is only applicable when the `create_mode` is `Restore`.
+
 * `read_replica_count` - (Optional) The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.
 
 * `read_scale` - (Optional) If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. This property is only settable for Premium and Business Critical databases.
 
 * `sample_name` - (Optional) Specifies the name of the sample schema to apply when creating this database. Possible value is `AdventureWorksLT`.
 
-* `sku_name` - (Optional) Specifies the name of the sku used by the database. Changing this forces a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
+* `sku_name` - (Optional) Specifies the name of the sku used by the database. Only changing this from tier `Hyperscale` to another tier will force a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
 
 ~> **NOTE** The default sku_name value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity.
 

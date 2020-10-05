@@ -15,10 +15,6 @@ Policy definitions do not take effect until they are assigned to a scope using a
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_policy_definition" "policy" {
   name         = "accTestPolicy"
   policy_type  = "Custom"
@@ -29,7 +25,7 @@ resource "azurerm_policy_definition" "policy" {
     {
     "category": "General"
     }
-  
+
 METADATA
 
 
@@ -75,14 +71,17 @@ The following arguments are supported:
 
 * `mode` - (Required) The policy mode that allows you to specify which resource
     types will be evaluated.  The value can be "All", "Indexed" or
-    "NotSpecified". Changing this resource forces a new resource to be
-    created.
+    "NotSpecified".
 
 * `display_name` - (Required) The display name of the policy definition.
 
 * `description` - (Optional) The description of the policy definition.
 
 * `management_group_name` - (Optional) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
+
+* `management_group_id` - (Optional / **Deprecated in favour of `management_group_name`**) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
+
+~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
 
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
     is a json object representing the rule that contains an if and

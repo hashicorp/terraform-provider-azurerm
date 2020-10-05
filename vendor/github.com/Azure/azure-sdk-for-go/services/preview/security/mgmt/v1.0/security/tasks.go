@@ -122,7 +122,6 @@ func (client TasksClient) GetResourceGroupLevelTaskSender(req *http.Request) (*h
 func (client TasksClient) GetResourceGroupLevelTaskResponder(resp *http.Response) (result Task, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client TasksClient) GetSubscriptionLevelTaskSender(req *http.Request) (*ht
 func (client TasksClient) GetSubscriptionLevelTaskResponder(resp *http.Response) (result Task, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -249,6 +247,9 @@ func (client TasksClient) List(ctx context.Context, filter string) (result TaskL
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "List", resp, "Failure responding to request")
 	}
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -286,7 +287,6 @@ func (client TasksClient) ListSender(req *http.Request) (*http.Response, error) 
 func (client TasksClient) ListResponder(resp *http.Response) (result TaskList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,6 +369,9 @@ func (client TasksClient) ListByHomeRegion(ctx context.Context, filter string) (
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "ListByHomeRegion", resp, "Failure responding to request")
 	}
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -407,7 +410,6 @@ func (client TasksClient) ListByHomeRegionSender(req *http.Request) (*http.Respo
 func (client TasksClient) ListByHomeRegionResponder(resp *http.Response) (result TaskList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -496,6 +498,9 @@ func (client TasksClient) ListByResourceGroup(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.TasksClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -535,7 +540,6 @@ func (client TasksClient) ListByResourceGroupSender(req *http.Request) (*http.Re
 func (client TasksClient) ListByResourceGroupResponder(resp *http.Response) (result TaskList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -663,7 +667,6 @@ func (client TasksClient) UpdateResourceGroupLevelTaskStateSender(req *http.Requ
 func (client TasksClient) UpdateResourceGroupLevelTaskStateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -746,7 +749,6 @@ func (client TasksClient) UpdateSubscriptionLevelTaskStateSender(req *http.Reque
 func (client TasksClient) UpdateSubscriptionLevelTaskStateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

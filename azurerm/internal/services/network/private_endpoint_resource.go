@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -217,7 +216,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -604,7 +603,7 @@ func flattenArmPrivateDnsZoneConfigs(input *[]network.PrivateDNSZoneConfig, zone
 
 		if name := v.Name; name != nil {
 			result["name"] = *name
-			// I have to consturct this because the SDK does not expose it in it's PrivateDNSZoneConfig struct
+			// I have to consturct this because the SDK does not expose it in its PrivateDNSZoneConfig struct
 			result["id"] = fmt.Sprintf("%s/privateDnsZoneConfigs/%s", zoneGroupId, *name)
 		}
 

@@ -124,7 +124,6 @@ func (client AllowedConnectionsClient) GetSender(req *http.Request) (*http.Respo
 func (client AllowedConnectionsClient) GetResponder(resp *http.Response) (result AllowedConnectionsResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -168,6 +167,9 @@ func (client AllowedConnectionsClient) List(ctx context.Context) (result Allowed
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.ACL.hasNextLink() && result.ACL.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -202,7 +204,6 @@ func (client AllowedConnectionsClient) ListSender(req *http.Request) (*http.Resp
 func (client AllowedConnectionsClient) ListResponder(resp *http.Response) (result AllowedConnectionsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -283,6 +284,9 @@ func (client AllowedConnectionsClient) ListByHomeRegion(ctx context.Context) (re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "ListByHomeRegion", resp, "Failure responding to request")
 	}
+	if result.ACL.hasNextLink() && result.ACL.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -318,7 +322,6 @@ func (client AllowedConnectionsClient) ListByHomeRegionSender(req *http.Request)
 func (client AllowedConnectionsClient) ListByHomeRegionResponder(resp *http.Response) (result AllowedConnectionsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -169,7 +168,6 @@ func resourceArmMariaDbServer() *schema.Resource {
 			"ssl_enforcement_enabled": {
 				Type:         schema.TypeBool,
 				Optional:     true, // required in 3.0
-				Computed:     true, // remove computed in 3.0
 				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
@@ -268,7 +266,7 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -296,10 +294,7 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	ssl := mariadb.SslEnforcementEnumEnabled
-	if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(mariadb.SslEnforcementEnumDisabled)) {
-		ssl = mariadb.SslEnforcementEnumDisabled
-	}
-	if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
 		ssl = mariadb.SslEnforcementEnumDisabled
 	}
 
@@ -421,9 +416,6 @@ func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	ssl := mariadb.SslEnforcementEnumEnabled
-	if v := d.Get("ssl_enforcement"); strings.EqualFold(v.(string), string(mariadb.SslEnforcementEnumDisabled)) {
-		ssl = mariadb.SslEnforcementEnumDisabled
-	}
 	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
 		ssl = mariadb.SslEnforcementEnumDisabled
 	}

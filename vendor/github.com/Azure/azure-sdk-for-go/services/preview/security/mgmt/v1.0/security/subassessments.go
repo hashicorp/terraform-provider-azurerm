@@ -83,7 +83,7 @@ func (client SubAssessmentsClient) Get(ctx context.Context, scope string, assess
 func (client SubAssessmentsClient) GetPreparer(ctx context.Context, scope string, assessmentName string, subAssessmentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"assessmentName":    autorest.Encode("path", assessmentName),
-		"scope":             autorest.Encode("path", scope),
+		"scope":             scope,
 		"subAssessmentName": autorest.Encode("path", subAssessmentName),
 	}
 
@@ -111,7 +111,6 @@ func (client SubAssessmentsClient) GetSender(req *http.Request) (*http.Response,
 func (client SubAssessmentsClient) GetResponder(resp *http.Response) (result SubAssessment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -153,6 +152,9 @@ func (client SubAssessmentsClient) List(ctx context.Context, scope string, asses
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SubAssessmentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sal.hasNextLink() && result.sal.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -161,7 +163,7 @@ func (client SubAssessmentsClient) List(ctx context.Context, scope string, asses
 func (client SubAssessmentsClient) ListPreparer(ctx context.Context, scope string, assessmentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"assessmentName": autorest.Encode("path", assessmentName),
-		"scope":          autorest.Encode("path", scope),
+		"scope":          scope,
 	}
 
 	const APIVersion = "2019-01-01-preview"
@@ -188,7 +190,6 @@ func (client SubAssessmentsClient) ListSender(req *http.Request) (*http.Response
 func (client SubAssessmentsClient) ListResponder(resp *http.Response) (result SubAssessmentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -266,6 +267,9 @@ func (client SubAssessmentsClient) ListAll(ctx context.Context, scope string) (r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SubAssessmentsClient", "ListAll", resp, "Failure responding to request")
 	}
+	if result.sal.hasNextLink() && result.sal.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -273,7 +277,7 @@ func (client SubAssessmentsClient) ListAll(ctx context.Context, scope string) (r
 // ListAllPreparer prepares the ListAll request.
 func (client SubAssessmentsClient) ListAllPreparer(ctx context.Context, scope string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"scope": autorest.Encode("path", scope),
+		"scope": scope,
 	}
 
 	const APIVersion = "2019-01-01-preview"
@@ -300,7 +304,6 @@ func (client SubAssessmentsClient) ListAllSender(req *http.Request) (*http.Respo
 func (client SubAssessmentsClient) ListAllResponder(resp *http.Response) (result SubAssessmentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

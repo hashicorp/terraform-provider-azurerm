@@ -73,6 +73,9 @@ func (client SecureScoreControlDefinitionsClient) List(ctx context.Context) (res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlDefinitionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sscdl.hasNextLink() && result.sscdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -103,7 +106,6 @@ func (client SecureScoreControlDefinitionsClient) ListSender(req *http.Request) 
 func (client SecureScoreControlDefinitionsClient) ListResponder(resp *http.Response) (result SecureScoreControlDefinitionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -185,6 +187,9 @@ func (client SecureScoreControlDefinitionsClient) ListBySubscription(ctx context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlDefinitionsClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.sscdl.hasNextLink() && result.sscdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -219,7 +224,6 @@ func (client SecureScoreControlDefinitionsClient) ListBySubscriptionSender(req *
 func (client SecureScoreControlDefinitionsClient) ListBySubscriptionResponder(resp *http.Response) (result SecureScoreControlDefinitionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

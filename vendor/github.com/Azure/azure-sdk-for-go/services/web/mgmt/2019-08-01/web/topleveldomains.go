@@ -107,7 +107,6 @@ func (client TopLevelDomainsClient) GetSender(req *http.Request) (*http.Response
 func (client TopLevelDomainsClient) GetResponder(resp *http.Response) (result TopLevelDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -145,6 +144,9 @@ func (client TopLevelDomainsClient) List(ctx context.Context) (result TopLevelDo
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.TopLevelDomainsClient", "List", resp, "Failure responding to request")
 	}
+	if result.tldc.hasNextLink() && result.tldc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -179,7 +181,6 @@ func (client TopLevelDomainsClient) ListSender(req *http.Request) (*http.Respons
 func (client TopLevelDomainsClient) ListResponder(resp *http.Response) (result TopLevelDomainCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -257,6 +258,9 @@ func (client TopLevelDomainsClient) ListAgreements(ctx context.Context, name str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.TopLevelDomainsClient", "ListAgreements", resp, "Failure responding to request")
 	}
+	if result.tlac.hasNextLink() && result.tlac.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -294,7 +298,6 @@ func (client TopLevelDomainsClient) ListAgreementsSender(req *http.Request) (*ht
 func (client TopLevelDomainsClient) ListAgreementsResponder(resp *http.Response) (result TldLegalAgreementCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

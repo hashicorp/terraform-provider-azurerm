@@ -125,7 +125,6 @@ func (client TopQueryStatisticsClient) GetSender(req *http.Request) (*http.Respo
 func (client TopQueryStatisticsClient) GetResponder(resp *http.Response) (result QueryStatistic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -186,6 +185,9 @@ func (client TopQueryStatisticsClient) ListByServer(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.TopQueryStatisticsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.tqsrl.hasNextLink() && result.tqsrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -224,7 +226,6 @@ func (client TopQueryStatisticsClient) ListByServerSender(req *http.Request) (*h
 func (client TopQueryStatisticsClient) ListByServerResponder(resp *http.Response) (result TopQueryStatisticsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

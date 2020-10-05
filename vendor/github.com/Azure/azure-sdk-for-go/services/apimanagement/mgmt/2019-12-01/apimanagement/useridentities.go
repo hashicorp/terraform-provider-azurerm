@@ -87,6 +87,9 @@ func (client UserIdentitiesClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.UserIdentitiesClient", "List", resp, "Failure responding to request")
 	}
+	if result.uic.hasNextLink() && result.uic.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -124,7 +127,6 @@ func (client UserIdentitiesClient) ListSender(req *http.Request) (*http.Response
 func (client UserIdentitiesClient) ListResponder(resp *http.Response) (result UserIdentityCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

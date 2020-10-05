@@ -92,6 +92,9 @@ func (client ActionsClient) ListByAlertRule(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.ActionsClient", "ListByAlertRule", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -130,7 +133,6 @@ func (client ActionsClient) ListByAlertRuleSender(req *http.Request) (*http.Resp
 func (client ActionsClient) ListByAlertRuleResponder(resp *http.Response) (result ActionsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

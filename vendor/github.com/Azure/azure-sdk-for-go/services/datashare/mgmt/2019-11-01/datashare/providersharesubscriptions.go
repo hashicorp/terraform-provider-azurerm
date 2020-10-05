@@ -114,7 +114,6 @@ func (client ProviderShareSubscriptionsClient) GetByShareSender(req *http.Reques
 func (client ProviderShareSubscriptionsClient) GetByShareResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,6 +156,9 @@ func (client ProviderShareSubscriptionsClient) ListByShare(ctx context.Context, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datashare.ProviderShareSubscriptionsClient", "ListByShare", resp, "Failure responding to request")
 	}
+	if result.pssl.hasNextLink() && result.pssl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -197,7 +199,6 @@ func (client ProviderShareSubscriptionsClient) ListByShareSender(req *http.Reque
 func (client ProviderShareSubscriptionsClient) ListByShareResponder(resp *http.Response) (result ProviderShareSubscriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,7 +315,6 @@ func (client ProviderShareSubscriptionsClient) ReinstateSender(req *http.Request
 func (client ProviderShareSubscriptionsClient) ReinstateResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -394,7 +394,6 @@ func (client ProviderShareSubscriptionsClient) RevokeSender(req *http.Request) (
 func (client ProviderShareSubscriptionsClient) RevokeResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

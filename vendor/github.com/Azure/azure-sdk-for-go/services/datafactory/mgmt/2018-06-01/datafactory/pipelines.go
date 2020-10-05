@@ -143,7 +143,6 @@ func (client PipelinesClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client PipelinesClient) CreateOrUpdateResponder(resp *http.Response) (result PipelineResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -264,7 +263,6 @@ func (client PipelinesClient) CreateRunSender(req *http.Request) (*http.Response
 func (client PipelinesClient) CreateRunResponder(resp *http.Response) (result CreateRunResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,7 +356,6 @@ func (client PipelinesClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client PipelinesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -457,7 +454,6 @@ func (client PipelinesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client PipelinesClient) GetResponder(resp *http.Response) (result PipelineResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -510,6 +506,9 @@ func (client PipelinesClient) ListByFactory(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.plr.hasNextLink() && result.plr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -546,7 +545,6 @@ func (client PipelinesClient) ListByFactorySender(req *http.Request) (*http.Resp
 func (client PipelinesClient) ListByFactoryResponder(resp *http.Response) (result PipelineListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

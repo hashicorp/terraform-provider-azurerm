@@ -124,7 +124,6 @@ func (client ManagedInstancesClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client ManagedInstancesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client ManagedInstancesClient) DeleteSender(req *http.Request) (future Man
 func (client ManagedInstancesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,7 +275,6 @@ func (client ManagedInstancesClient) GetSender(req *http.Request) (*http.Respons
 func (client ManagedInstancesClient) GetResponder(resp *http.Response) (result ManagedInstance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,6 +312,9 @@ func (client ManagedInstancesClient) List(ctx context.Context) (result ManagedIn
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "List", resp, "Failure responding to request")
 	}
+	if result.milr.hasNextLink() && result.milr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -349,7 +349,6 @@ func (client ManagedInstancesClient) ListSender(req *http.Request) (*http.Respon
 func (client ManagedInstancesClient) ListResponder(resp *http.Response) (result ManagedInstanceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -427,6 +426,9 @@ func (client ManagedInstancesClient) ListByResourceGroup(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.milr.hasNextLink() && result.milr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -462,7 +464,6 @@ func (client ManagedInstancesClient) ListByResourceGroupSender(req *http.Request
 func (client ManagedInstancesClient) ListByResourceGroupResponder(resp *http.Response) (result ManagedInstanceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -579,7 +580,6 @@ func (client ManagedInstancesClient) UpdateSender(req *http.Request) (future Man
 func (client ManagedInstancesClient) UpdateResponder(resp *http.Response) (result ManagedInstance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

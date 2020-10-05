@@ -112,7 +112,6 @@ func (client LocationsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client LocationsClient) GetResponder(resp *http.Response) (result AscLocation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +157,9 @@ func (client LocationsClient) List(ctx context.Context) (result AscLocationListP
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.LocationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.all.hasNextLink() && result.all.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -192,7 +194,6 @@ func (client LocationsClient) ListSender(req *http.Request) (*http.Response, err
 func (client LocationsClient) ListResponder(resp *http.Response) (result AscLocationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

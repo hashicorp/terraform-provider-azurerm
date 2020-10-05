@@ -116,7 +116,6 @@ func (client LongTermRetentionBackupsClient) DeleteSender(req *http.Request) (fu
 func (client LongTermRetentionBackupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -198,7 +197,6 @@ func (client LongTermRetentionBackupsClient) DeleteByResourceGroupSender(req *ht
 func (client LongTermRetentionBackupsClient) DeleteByResourceGroupResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,7 +275,6 @@ func (client LongTermRetentionBackupsClient) GetSender(req *http.Request) (*http
 func (client LongTermRetentionBackupsClient) GetResponder(resp *http.Response) (result LongTermRetentionBackup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -360,7 +357,6 @@ func (client LongTermRetentionBackupsClient) GetByResourceGroupSender(req *http.
 func (client LongTermRetentionBackupsClient) GetByResourceGroupResponder(resp *http.Response) (result LongTermRetentionBackup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -403,6 +399,9 @@ func (client LongTermRetentionBackupsClient) ListByDatabase(ctx context.Context,
 	result.ltrblr, err = client.ListByDatabaseResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByDatabase", resp, "Failure responding to request")
+	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -447,7 +446,6 @@ func (client LongTermRetentionBackupsClient) ListByDatabaseSender(req *http.Requ
 func (client LongTermRetentionBackupsClient) ListByDatabaseResponder(resp *http.Response) (result LongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -526,6 +524,9 @@ func (client LongTermRetentionBackupsClient) ListByLocation(ctx context.Context,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByLocation", resp, "Failure responding to request")
 	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -567,7 +568,6 @@ func (client LongTermRetentionBackupsClient) ListByLocationSender(req *http.Requ
 func (client LongTermRetentionBackupsClient) ListByLocationResponder(resp *http.Response) (result LongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -650,6 +650,9 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupDatabase(ctx con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupDatabase", resp, "Failure responding to request")
 	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -694,7 +697,6 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupDatabaseSender(r
 func (client LongTermRetentionBackupsClient) ListByResourceGroupDatabaseResponder(resp *http.Response) (result LongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -775,6 +777,9 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupLocation(ctx con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupLocation", resp, "Failure responding to request")
 	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -817,7 +822,6 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupLocationSender(r
 func (client LongTermRetentionBackupsClient) ListByResourceGroupLocationResponder(resp *http.Response) (result LongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -899,6 +903,9 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupServer(ctx conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByResourceGroupServer", resp, "Failure responding to request")
 	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -942,7 +949,6 @@ func (client LongTermRetentionBackupsClient) ListByResourceGroupServerSender(req
 func (client LongTermRetentionBackupsClient) ListByResourceGroupServerResponder(resp *http.Response) (result LongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1022,6 +1028,9 @@ func (client LongTermRetentionBackupsClient) ListByServer(ctx context.Context, l
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.LongTermRetentionBackupsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.ltrblr.hasNextLink() && result.ltrblr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1064,7 +1073,6 @@ func (client LongTermRetentionBackupsClient) ListByServerSender(req *http.Reques
 func (client LongTermRetentionBackupsClient) ListByServerResponder(resp *http.Response) (result LongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

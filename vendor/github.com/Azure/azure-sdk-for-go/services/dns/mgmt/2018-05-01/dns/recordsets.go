@@ -132,7 +132,6 @@ func (client RecordSetsClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client RecordSetsClient) CreateOrUpdateResponder(resp *http.Response) (result RecordSet, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -219,7 +218,6 @@ func (client RecordSetsClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client RecordSetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -298,7 +296,6 @@ func (client RecordSetsClient) GetSender(req *http.Request) (*http.Response, err
 func (client RecordSetsClient) GetResponder(resp *http.Response) (result RecordSet, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -343,6 +340,9 @@ func (client RecordSetsClient) ListAllByDNSZone(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "ListAllByDNSZone", resp, "Failure responding to request")
 	}
+	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -385,7 +385,6 @@ func (client RecordSetsClient) ListAllByDNSZoneSender(req *http.Request) (*http.
 func (client RecordSetsClient) ListAllByDNSZoneResponder(resp *http.Response) (result RecordSetListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -467,6 +466,9 @@ func (client RecordSetsClient) ListByDNSZone(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "ListByDNSZone", resp, "Failure responding to request")
 	}
+	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -509,7 +511,6 @@ func (client RecordSetsClient) ListByDNSZoneSender(req *http.Request) (*http.Res
 func (client RecordSetsClient) ListByDNSZoneResponder(resp *http.Response) (result RecordSetListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -592,6 +593,9 @@ func (client RecordSetsClient) ListByType(ctx context.Context, resourceGroupName
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "ListByType", resp, "Failure responding to request")
 	}
+	if result.rslr.hasNextLink() && result.rslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -635,7 +639,6 @@ func (client RecordSetsClient) ListByTypeSender(req *http.Request) (*http.Respon
 func (client RecordSetsClient) ListByTypeResponder(resp *http.Response) (result RecordSetListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -764,7 +767,6 @@ func (client RecordSetsClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client RecordSetsClient) UpdateResponder(resp *http.Response) (result RecordSet, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

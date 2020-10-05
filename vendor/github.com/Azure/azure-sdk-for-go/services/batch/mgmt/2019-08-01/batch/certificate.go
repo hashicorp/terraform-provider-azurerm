@@ -129,7 +129,6 @@ func (client CertificateClient) CancelDeletionSender(req *http.Request) (*http.R
 func (client CertificateClient) CancelDeletionResponder(resp *http.Response) (result Certificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -238,7 +237,6 @@ func (client CertificateClient) CreateSender(req *http.Request) (future Certific
 func (client CertificateClient) CreateResponder(resp *http.Response) (result Certificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -329,7 +327,6 @@ func (client CertificateClient) DeleteSender(req *http.Request) (future Certific
 func (client CertificateClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -419,7 +416,6 @@ func (client CertificateClient) GetSender(req *http.Request) (*http.Response, er
 func (client CertificateClient) GetResponder(resp *http.Response) (result Certificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,6 +469,9 @@ func (client CertificateClient) ListByBatchAccount(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "ListByBatchAccount", resp, "Failure responding to request")
 	}
+	if result.lcr.hasNextLink() && result.lcr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -518,7 +517,6 @@ func (client CertificateClient) ListByBatchAccountSender(req *http.Request) (*ht
 func (client CertificateClient) ListByBatchAccountResponder(resp *http.Response) (result ListCertificatesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -655,7 +653,6 @@ func (client CertificateClient) UpdateSender(req *http.Request) (*http.Response,
 func (client CertificateClient) UpdateResponder(resp *http.Response) (result Certificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

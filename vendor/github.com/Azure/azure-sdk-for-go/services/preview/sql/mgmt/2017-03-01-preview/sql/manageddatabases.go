@@ -123,7 +123,6 @@ func (client ManagedDatabasesClient) CompleteRestoreSender(req *http.Request) (f
 func (client ManagedDatabasesClient) CompleteRestoreResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -204,7 +203,6 @@ func (client ManagedDatabasesClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client ManagedDatabasesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -283,7 +281,6 @@ func (client ManagedDatabasesClient) DeleteSender(req *http.Request) (future Man
 func (client ManagedDatabasesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -361,7 +358,6 @@ func (client ManagedDatabasesClient) GetSender(req *http.Request) (*http.Respons
 func (client ManagedDatabasesClient) GetResponder(resp *http.Response) (result ManagedDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -403,6 +399,9 @@ func (client ManagedDatabasesClient) ListByInstance(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.mdlr.hasNextLink() && result.mdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -439,7 +438,6 @@ func (client ManagedDatabasesClient) ListByInstanceSender(req *http.Request) (*h
 func (client ManagedDatabasesClient) ListByInstanceResponder(resp *http.Response) (result ManagedDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -558,7 +556,6 @@ func (client ManagedDatabasesClient) UpdateSender(req *http.Request) (future Man
 func (client ManagedDatabasesClient) UpdateResponder(resp *http.Response) (result ManagedDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

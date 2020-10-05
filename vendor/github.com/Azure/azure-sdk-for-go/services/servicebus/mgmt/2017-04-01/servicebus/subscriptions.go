@@ -132,7 +132,6 @@ func (client SubscriptionsClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client SubscriptionsClient) CreateOrUpdateResponder(resp *http.Response) (result SBSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -227,7 +226,6 @@ func (client SubscriptionsClient) DeleteSender(req *http.Request) (*http.Respons
 func (client SubscriptionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -321,7 +319,6 @@ func (client SubscriptionsClient) GetSender(req *http.Request) (*http.Response, 
 func (client SubscriptionsClient) GetResponder(resp *http.Response) (result SBSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -389,6 +386,9 @@ func (client SubscriptionsClient) ListByTopic(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.SubscriptionsClient", "ListByTopic", resp, "Failure responding to request")
 	}
+	if result.sslr.hasNextLink() && result.sslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -432,7 +432,6 @@ func (client SubscriptionsClient) ListByTopicSender(req *http.Request) (*http.Re
 func (client SubscriptionsClient) ListByTopicResponder(resp *http.Response) (result SBSubscriptionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

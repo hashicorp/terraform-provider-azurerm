@@ -167,7 +167,7 @@ The following arguments are supported:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
-* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
 
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
@@ -302,6 +302,8 @@ A `http_listener` block supports the following:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
+
 ---
 
 A `identity` block supports the following:
@@ -351,6 +353,8 @@ A `probe` block support the following:
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 - 20 seconds.
+
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from http settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
 
 * `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend http settings. Defaults to `false`.
 

@@ -113,7 +113,6 @@ func (client IPGroupsClient) CreateOrUpdateSender(req *http.Request) (future IPG
 func (client IPGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result IPGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client IPGroupsClient) DeleteSender(req *http.Request) (future IPGroupsDel
 func (client IPGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -269,7 +267,6 @@ func (client IPGroupsClient) GetSender(req *http.Request) (*http.Response, error
 func (client IPGroupsClient) GetResponder(resp *http.Response) (result IPGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -307,6 +304,9 @@ func (client IPGroupsClient) List(ctx context.Context) (result IPGroupListResult
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.IPGroupsClient", "List", resp, "Failure responding to request")
 	}
+	if result.iglr.hasNextLink() && result.iglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -341,7 +341,6 @@ func (client IPGroupsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client IPGroupsClient) ListResponder(resp *http.Response) (result IPGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -418,6 +417,9 @@ func (client IPGroupsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.IPGroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.iglr.hasNextLink() && result.iglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -453,7 +455,6 @@ func (client IPGroupsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client IPGroupsClient) ListByResourceGroupResponder(resp *http.Response) (result IPGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -569,7 +570,6 @@ func (client IPGroupsClient) UpdateGroupsSender(req *http.Request) (*http.Respon
 func (client IPGroupsClient) UpdateGroupsResponder(resp *http.Response) (result IPGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

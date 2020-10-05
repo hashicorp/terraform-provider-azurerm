@@ -47,6 +47,8 @@ The following attributes are exported:
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
+* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account.
+
 * `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
 
 * `capabilities` - Capabilities enabled on this Cosmos DB account.
@@ -80,13 +82,13 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_master_key` - The Primary master key for the CosmosDB Account.
+* `primary_key` - The Primary master key for the CosmosDB Account.
 
-* `secondary_master_key` - The Secondary master key for the CosmosDB Account.
+* `secondary_key` - The Secondary master key for the CosmosDB Account.
 
-* `primary_readonly_master_key` - The Primary read-only master Key for the CosmosDB Account.
+* `primary_readonly_key` - The Primary read-only master Key for the CosmosDB Account.
 
-* `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
+* `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
 
 ## Timeouts
 

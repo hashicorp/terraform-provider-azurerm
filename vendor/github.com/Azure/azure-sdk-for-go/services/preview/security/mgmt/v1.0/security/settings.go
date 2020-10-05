@@ -114,7 +114,6 @@ func (client SettingsClient) GetSender(req *http.Request) (*http.Response, error
 func (client SettingsClient) GetResponder(resp *http.Response) (result Setting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -158,6 +157,9 @@ func (client SettingsClient) List(ctx context.Context) (result SettingsListPage,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SettingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sl.hasNextLink() && result.sl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -192,7 +194,6 @@ func (client SettingsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client SettingsClient) ListResponder(resp *http.Response) (result SettingsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -312,7 +313,6 @@ func (client SettingsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client SettingsClient) UpdateResponder(resp *http.Response) (result Setting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

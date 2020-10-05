@@ -34,7 +34,7 @@ resource "azurerm_automation_schedule" "example" {
   automation_account_name = azurerm_automation_account.example.name
   frequency               = "Week"
   interval                = 1
-  timezone                = "Central Europe Standard Time"
+  timezone                = "Australia/Perth"
   start_time              = "2014-04-15T18:00:15+02:00"
   description             = "This is an example schedule"
   week_days               = ["Friday"]
@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `expiry_time` -  (Optional) The end time of the schedule.
 
-* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values
+* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://s2.automation.ext.azure.com/api/Orchestrator/TimeZones?_=1594792230258
 
 * `week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
 

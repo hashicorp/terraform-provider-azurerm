@@ -76,6 +76,9 @@ func (client ProtectionContainersGroupClient) List(ctx context.Context, vaultNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectionContainersGroupClient", "List", resp, "Failure responding to request")
 	}
+	if result.pcrl.hasNextLink() && result.pcrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -115,7 +118,6 @@ func (client ProtectionContainersGroupClient) ListSender(req *http.Request) (*ht
 func (client ProtectionContainersGroupClient) ListResponder(resp *http.Response) (result ProtectionContainerResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

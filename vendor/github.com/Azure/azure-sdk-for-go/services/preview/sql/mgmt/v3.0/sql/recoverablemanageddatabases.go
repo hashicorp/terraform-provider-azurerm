@@ -114,7 +114,6 @@ func (client RecoverableManagedDatabasesClient) GetSender(req *http.Request) (*h
 func (client RecoverableManagedDatabasesClient) GetResponder(resp *http.Response) (result RecoverableManagedDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -156,6 +155,9 @@ func (client RecoverableManagedDatabasesClient) ListByInstance(ctx context.Conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.RecoverableManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.rmdlr.hasNextLink() && result.rmdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -192,7 +194,6 @@ func (client RecoverableManagedDatabasesClient) ListByInstanceSender(req *http.R
 func (client RecoverableManagedDatabasesClient) ListByInstanceResponder(resp *http.Response) (result RecoverableManagedDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

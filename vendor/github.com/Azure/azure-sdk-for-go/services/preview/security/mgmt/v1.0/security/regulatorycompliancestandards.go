@@ -115,7 +115,6 @@ func (client RegulatoryComplianceStandardsClient) GetSender(req *http.Request) (
 func (client RegulatoryComplianceStandardsClient) GetResponder(resp *http.Response) (result RegulatoryComplianceStandard, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -161,6 +160,9 @@ func (client RegulatoryComplianceStandardsClient) List(ctx context.Context, filt
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.RegulatoryComplianceStandardsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rcsl.hasNextLink() && result.rcsl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -198,7 +200,6 @@ func (client RegulatoryComplianceStandardsClient) ListSender(req *http.Request) 
 func (client RegulatoryComplianceStandardsClient) ListResponder(resp *http.Response) (result RegulatoryComplianceStandardList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -78,6 +78,9 @@ func (client ProtectableItemsClient) List(ctx context.Context, vaultName string,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectableItemsClient", "List", resp, "Failure responding to request")
 	}
+	if result.wpirl.hasNextLink() && result.wpirl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -120,7 +123,6 @@ func (client ProtectableItemsClient) ListSender(req *http.Request) (*http.Respon
 func (client ProtectableItemsClient) ListResponder(resp *http.Response) (result WorkloadProtectableItemResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

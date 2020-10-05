@@ -115,7 +115,6 @@ func (client PublishedArtifactsClient) GetSender(req *http.Request) (*http.Respo
 func (client PublishedArtifactsClient) GetResponder(resp *http.Response) (result ArtifactModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -159,6 +158,9 @@ func (client PublishedArtifactsClient) List(ctx context.Context, resourceScope s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedArtifactsClient", "List", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -195,7 +197,6 @@ func (client PublishedArtifactsClient) ListSender(req *http.Request) (*http.Resp
 func (client PublishedArtifactsClient) ListResponder(resp *http.Response) (result ArtifactList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

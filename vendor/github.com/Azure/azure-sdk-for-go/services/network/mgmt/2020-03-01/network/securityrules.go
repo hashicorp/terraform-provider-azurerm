@@ -115,7 +115,6 @@ func (client SecurityRulesClient) CreateOrUpdateSender(req *http.Request) (futur
 func (client SecurityRulesClient) CreateOrUpdateResponder(resp *http.Response) (result SecurityRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -193,7 +192,6 @@ func (client SecurityRulesClient) DeleteSender(req *http.Request) (future Securi
 func (client SecurityRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -270,7 +268,6 @@ func (client SecurityRulesClient) GetSender(req *http.Request) (*http.Response, 
 func (client SecurityRulesClient) GetResponder(resp *http.Response) (result SecurityRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -311,6 +308,9 @@ func (client SecurityRulesClient) List(ctx context.Context, resourceGroupName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.SecurityRulesClient", "List", resp, "Failure responding to request")
 	}
+	if result.srlr.hasNextLink() && result.srlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -347,7 +347,6 @@ func (client SecurityRulesClient) ListSender(req *http.Request) (*http.Response,
 func (client SecurityRulesClient) ListResponder(resp *http.Response) (result SecurityRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

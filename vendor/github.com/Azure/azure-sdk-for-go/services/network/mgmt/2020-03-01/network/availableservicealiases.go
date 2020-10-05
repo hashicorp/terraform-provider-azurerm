@@ -74,6 +74,9 @@ func (client AvailableServiceAliasesClient) List(ctx context.Context, location s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AvailableServiceAliasesClient", "List", resp, "Failure responding to request")
 	}
+	if result.asar.hasNextLink() && result.asar.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -109,7 +112,6 @@ func (client AvailableServiceAliasesClient) ListSender(req *http.Request) (*http
 func (client AvailableServiceAliasesClient) ListResponder(resp *http.Response) (result AvailableServiceAliasesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -187,6 +189,9 @@ func (client AvailableServiceAliasesClient) ListByResourceGroup(ctx context.Cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.AvailableServiceAliasesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.asar.hasNextLink() && result.asar.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -223,7 +228,6 @@ func (client AvailableServiceAliasesClient) ListByResourceGroupSender(req *http.
 func (client AvailableServiceAliasesClient) ListByResourceGroupResponder(resp *http.Response) (result AvailableServiceAliasesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

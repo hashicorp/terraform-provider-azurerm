@@ -73,6 +73,9 @@ func (client DomainRegistrationProviderClient) ListOperations(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DomainRegistrationProviderClient", "ListOperations", resp, "Failure responding to request")
 	}
+	if result.coc.hasNextLink() && result.coc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -103,7 +106,6 @@ func (client DomainRegistrationProviderClient) ListOperationsSender(req *http.Re
 func (client DomainRegistrationProviderClient) ListOperationsResponder(resp *http.Response) (result CsmOperationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

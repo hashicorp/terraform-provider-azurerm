@@ -71,6 +71,9 @@ func (client ProviderClient) GetAvailableStacks(ctx context.Context, osTypeSelec
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "GetAvailableStacks", resp, "Failure responding to request")
 	}
+	if result.asc.hasNextLink() && result.asc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -104,7 +107,6 @@ func (client ProviderClient) GetAvailableStacksSender(req *http.Request) (*http.
 func (client ProviderClient) GetAvailableStacksResponder(resp *http.Response) (result ApplicationStackCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -179,6 +181,9 @@ func (client ProviderClient) GetAvailableStacksOnPrem(ctx context.Context, osTyp
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "GetAvailableStacksOnPrem", resp, "Failure responding to request")
 	}
+	if result.asc.hasNextLink() && result.asc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -216,7 +221,6 @@ func (client ProviderClient) GetAvailableStacksOnPremSender(req *http.Request) (
 func (client ProviderClient) GetAvailableStacksOnPremResponder(resp *http.Response) (result ApplicationStackCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -292,6 +296,9 @@ func (client ProviderClient) ListOperations(ctx context.Context) (result CsmOper
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "ListOperations", resp, "Failure responding to request")
 	}
+	if result.coc.hasNextLink() && result.coc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -322,7 +329,6 @@ func (client ProviderClient) ListOperationsSender(req *http.Request) (*http.Resp
 func (client ProviderClient) ListOperationsResponder(resp *http.Response) (result CsmOperationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

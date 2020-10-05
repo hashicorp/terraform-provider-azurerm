@@ -10,6 +10,8 @@ description: |-
 
 Manages a Blob Target within a HPC Cache.
 
+~> **NOTE:**: By request of the service team the provider no longer automatically registering the `Microsoft.StorageCache` Resource Provider for this resource. To register it you can run `az provider register --namespace 'Microsoft.StorageCache'`.
+
 ## Example Usage
 
 ```hcl
@@ -29,7 +31,7 @@ resource "azurerm_subnet" "example" {
   name                 = "examplesubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_hpc_cache" "example" {

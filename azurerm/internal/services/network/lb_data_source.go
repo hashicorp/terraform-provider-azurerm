@@ -102,12 +102,12 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 }
 
 func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
 	client := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {

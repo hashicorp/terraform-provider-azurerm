@@ -127,7 +127,6 @@ func (client InstancePoolsClient) CreateOrUpdateSender(req *http.Request) (futur
 func (client InstancePoolsClient) CreateOrUpdateResponder(resp *http.Response) (result InstancePool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client InstancePoolsClient) DeleteSender(req *http.Request) (future Instan
 func (client InstancePoolsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,7 +278,6 @@ func (client InstancePoolsClient) GetSender(req *http.Request) (*http.Response, 
 func (client InstancePoolsClient) GetResponder(resp *http.Response) (result InstancePool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -318,6 +315,9 @@ func (client InstancePoolsClient) List(ctx context.Context) (result InstancePool
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstancePoolsClient", "List", resp, "Failure responding to request")
 	}
+	if result.iplr.hasNextLink() && result.iplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -352,7 +352,6 @@ func (client InstancePoolsClient) ListSender(req *http.Request) (*http.Response,
 func (client InstancePoolsClient) ListResponder(resp *http.Response) (result InstancePoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -430,6 +429,9 @@ func (client InstancePoolsClient) ListByResourceGroup(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstancePoolsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.iplr.hasNextLink() && result.iplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -465,7 +467,6 @@ func (client InstancePoolsClient) ListByResourceGroupSender(req *http.Request) (
 func (client InstancePoolsClient) ListByResourceGroupResponder(resp *http.Response) (result InstancePoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -582,7 +583,6 @@ func (client InstancePoolsClient) UpdateSender(req *http.Request) (future Instan
 func (client InstancePoolsClient) UpdateResponder(resp *http.Response) (result InstancePool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

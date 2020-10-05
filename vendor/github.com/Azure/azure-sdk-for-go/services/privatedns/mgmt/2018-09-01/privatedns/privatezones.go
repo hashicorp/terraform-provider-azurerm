@@ -125,7 +125,6 @@ func (client PrivateZonesClient) CreateOrUpdateSender(req *http.Request) (future
 func (client PrivateZonesClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client PrivateZonesClient) DeleteSender(req *http.Request) (future Private
 func (client PrivateZonesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -284,7 +282,6 @@ func (client PrivateZonesClient) GetSender(req *http.Request) (*http.Response, e
 func (client PrivateZonesClient) GetResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,6 +321,9 @@ func (client PrivateZonesClient) List(ctx context.Context, top *int32) (result P
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "List", resp, "Failure responding to request")
 	}
+	if result.pzlr.hasNextLink() && result.pzlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -361,7 +361,6 @@ func (client PrivateZonesClient) ListSender(req *http.Request) (*http.Response, 
 func (client PrivateZonesClient) ListResponder(resp *http.Response) (result PrivateZoneListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -439,6 +438,9 @@ func (client PrivateZonesClient) ListByResourceGroup(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.pzlr.hasNextLink() && result.pzlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -477,7 +479,6 @@ func (client PrivateZonesClient) ListByResourceGroupSender(req *http.Request) (*
 func (client PrivateZonesClient) ListByResourceGroupResponder(resp *http.Response) (result PrivateZoneListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -599,7 +600,6 @@ func (client PrivateZonesClient) UpdateSender(req *http.Request) (future Private
 func (client PrivateZonesClient) UpdateResponder(resp *http.Response) (result PrivateZone, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

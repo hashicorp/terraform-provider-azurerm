@@ -122,7 +122,6 @@ func (client IntegrationAccountSessionsClient) CreateOrUpdateSender(req *http.Re
 func (client IntegrationAccountSessionsClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountSession, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client IntegrationAccountSessionsClient) DeleteSender(req *http.Request) (
 func (client IntegrationAccountSessionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,7 +275,6 @@ func (client IntegrationAccountSessionsClient) GetSender(req *http.Request) (*ht
 func (client IntegrationAccountSessionsClient) GetResponder(resp *http.Response) (result IntegrationAccountSession, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,6 +316,9 @@ func (client IntegrationAccountSessionsClient) List(ctx context.Context, resourc
 	result.iaslr, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountSessionsClient", "List", resp, "Failure responding to request")
+	}
+	if result.iaslr.hasNextLink() && result.iaslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -362,7 +362,6 @@ func (client IntegrationAccountSessionsClient) ListSender(req *http.Request) (*h
 func (client IntegrationAccountSessionsClient) ListResponder(resp *http.Response) (result IntegrationAccountSessionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

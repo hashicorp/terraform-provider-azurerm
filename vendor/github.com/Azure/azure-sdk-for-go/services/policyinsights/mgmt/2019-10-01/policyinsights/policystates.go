@@ -97,6 +97,9 @@ func (client PolicyStatesClient) ListQueryResultsForManagementGroup(ctx context.
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "ListQueryResultsForManagementGroup", resp, "Failure responding to request")
 	}
+	if result.psqr.hasNextLink() && result.psqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -157,7 +160,6 @@ func (client PolicyStatesClient) ListQueryResultsForManagementGroupSender(req *h
 func (client PolicyStatesClient) ListQueryResultsForManagementGroupResponder(resp *http.Response) (result PolicyStatesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -257,6 +259,9 @@ func (client PolicyStatesClient) ListQueryResultsForPolicyDefinition(ctx context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "ListQueryResultsForPolicyDefinition", resp, "Failure responding to request")
 	}
+	if result.psqr.hasNextLink() && result.psqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -318,7 +323,6 @@ func (client PolicyStatesClient) ListQueryResultsForPolicyDefinitionSender(req *
 func (client PolicyStatesClient) ListQueryResultsForPolicyDefinitionResponder(resp *http.Response) (result PolicyStatesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -418,6 +422,9 @@ func (client PolicyStatesClient) ListQueryResultsForPolicySetDefinition(ctx cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "ListQueryResultsForPolicySetDefinition", resp, "Failure responding to request")
 	}
+	if result.psqr.hasNextLink() && result.psqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -479,7 +486,6 @@ func (client PolicyStatesClient) ListQueryResultsForPolicySetDefinitionSender(re
 func (client PolicyStatesClient) ListQueryResultsForPolicySetDefinitionResponder(resp *http.Response) (result PolicyStatesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -579,6 +585,9 @@ func (client PolicyStatesClient) ListQueryResultsForResource(ctx context.Context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "ListQueryResultsForResource", resp, "Failure responding to request")
 	}
+	if result.psqr.hasNextLink() && result.psqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -641,7 +650,6 @@ func (client PolicyStatesClient) ListQueryResultsForResourceSender(req *http.Req
 func (client PolicyStatesClient) ListQueryResultsForResourceResponder(resp *http.Response) (result PolicyStatesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -741,6 +749,9 @@ func (client PolicyStatesClient) ListQueryResultsForResourceGroup(ctx context.Co
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "ListQueryResultsForResourceGroup", resp, "Failure responding to request")
 	}
+	if result.psqr.hasNextLink() && result.psqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -801,7 +812,6 @@ func (client PolicyStatesClient) ListQueryResultsForResourceGroupSender(req *htt
 func (client PolicyStatesClient) ListQueryResultsForResourceGroupResponder(resp *http.Response) (result PolicyStatesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -903,6 +913,9 @@ func (client PolicyStatesClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "ListQueryResultsForResourceGroupLevelPolicyAssignment", resp, "Failure responding to request")
 	}
+	if result.psqr.hasNextLink() && result.psqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -965,7 +978,6 @@ func (client PolicyStatesClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 func (client PolicyStatesClient) ListQueryResultsForResourceGroupLevelPolicyAssignmentResponder(resp *http.Response) (result PolicyStatesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1064,6 +1076,9 @@ func (client PolicyStatesClient) ListQueryResultsForSubscription(ctx context.Con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "ListQueryResultsForSubscription", resp, "Failure responding to request")
 	}
+	if result.psqr.hasNextLink() && result.psqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1123,7 +1138,6 @@ func (client PolicyStatesClient) ListQueryResultsForSubscriptionSender(req *http
 func (client PolicyStatesClient) ListQueryResultsForSubscriptionResponder(resp *http.Response) (result PolicyStatesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1224,6 +1238,9 @@ func (client PolicyStatesClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyStatesClient", "ListQueryResultsForSubscriptionLevelPolicyAssignment", resp, "Failure responding to request")
 	}
+	if result.psqr.hasNextLink() && result.psqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1285,7 +1302,6 @@ func (client PolicyStatesClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 func (client PolicyStatesClient) ListQueryResultsForSubscriptionLevelPolicyAssignmentResponder(resp *http.Response) (result PolicyStatesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1422,7 +1438,6 @@ func (client PolicyStatesClient) SummarizeForManagementGroupSender(req *http.Req
 func (client PolicyStatesClient) SummarizeForManagementGroupResponder(resp *http.Response) (result SummarizeResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1524,7 +1539,6 @@ func (client PolicyStatesClient) SummarizeForPolicyDefinitionSender(req *http.Re
 func (client PolicyStatesClient) SummarizeForPolicyDefinitionResponder(resp *http.Response) (result SummarizeResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1626,7 +1640,6 @@ func (client PolicyStatesClient) SummarizeForPolicySetDefinitionSender(req *http
 func (client PolicyStatesClient) SummarizeForPolicySetDefinitionResponder(resp *http.Response) (result SummarizeResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1725,7 +1738,6 @@ func (client PolicyStatesClient) SummarizeForResourceSender(req *http.Request) (
 func (client PolicyStatesClient) SummarizeForResourceResponder(resp *http.Response) (result SummarizeResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1826,7 +1838,6 @@ func (client PolicyStatesClient) SummarizeForResourceGroupSender(req *http.Reque
 func (client PolicyStatesClient) SummarizeForResourceGroupResponder(resp *http.Response) (result SummarizeResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1931,7 +1942,6 @@ func (client PolicyStatesClient) SummarizeForResourceGroupLevelPolicyAssignmentS
 func (client PolicyStatesClient) SummarizeForResourceGroupLevelPolicyAssignmentResponder(resp *http.Response) (result SummarizeResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2030,7 +2040,6 @@ func (client PolicyStatesClient) SummarizeForSubscriptionSender(req *http.Reques
 func (client PolicyStatesClient) SummarizeForSubscriptionResponder(resp *http.Response) (result SummarizeResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2132,7 +2141,6 @@ func (client PolicyStatesClient) SummarizeForSubscriptionLevelPolicyAssignmentSe
 func (client PolicyStatesClient) SummarizeForSubscriptionLevelPolicyAssignmentResponder(resp *http.Response) (result SummarizeResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2207,7 +2215,6 @@ func (client PolicyStatesClient) TriggerResourceGroupEvaluationSender(req *http.
 func (client PolicyStatesClient) TriggerResourceGroupEvaluationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -2279,7 +2286,6 @@ func (client PolicyStatesClient) TriggerSubscriptionEvaluationSender(req *http.R
 func (client PolicyStatesClient) TriggerSubscriptionEvaluationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

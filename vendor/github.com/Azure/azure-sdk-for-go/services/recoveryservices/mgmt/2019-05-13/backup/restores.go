@@ -122,7 +122,6 @@ func (client RestoresClient) TriggerSender(req *http.Request) (*http.Response, e
 func (client RestoresClient) TriggerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

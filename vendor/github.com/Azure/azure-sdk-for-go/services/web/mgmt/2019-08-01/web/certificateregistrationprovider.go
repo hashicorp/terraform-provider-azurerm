@@ -73,6 +73,9 @@ func (client CertificateRegistrationProviderClient) ListOperations(ctx context.C
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "ListOperations", resp, "Failure responding to request")
 	}
+	if result.coc.hasNextLink() && result.coc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -103,7 +106,6 @@ func (client CertificateRegistrationProviderClient) ListOperationsSender(req *ht
 func (client CertificateRegistrationProviderClient) ListOperationsResponder(resp *http.Response) (result CsmOperationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

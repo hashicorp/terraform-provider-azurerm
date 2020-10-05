@@ -113,7 +113,6 @@ func (client DomainsClient) CreateOrUpdateSender(req *http.Request) (future Doma
 func (client DomainsClient) CreateOrUpdateResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client DomainsClient) DeleteSender(req *http.Request) (future DomainsDelet
 func (client DomainsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -264,7 +262,6 @@ func (client DomainsClient) GetSender(req *http.Request) (*http.Response, error)
 func (client DomainsClient) GetResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -312,6 +309,9 @@ func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -353,7 +353,6 @@ func (client DomainsClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client DomainsClient) ListByResourceGroupResponder(resp *http.Response) (result DomainsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -437,6 +436,9 @@ func (client DomainsClient) ListBySubscription(ctx context.Context, filter strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -477,7 +479,6 @@ func (client DomainsClient) ListBySubscriptionSender(req *http.Request) (*http.R
 func (client DomainsClient) ListBySubscriptionResponder(resp *http.Response) (result DomainsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -590,7 +591,6 @@ func (client DomainsClient) ListSharedAccessKeysSender(req *http.Request) (*http
 func (client DomainsClient) ListSharedAccessKeysResponder(resp *http.Response) (result DomainSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -675,7 +675,6 @@ func (client DomainsClient) RegenerateKeySender(req *http.Request) (*http.Respon
 func (client DomainsClient) RegenerateKeyResponder(resp *http.Response) (result DomainSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -754,7 +753,6 @@ func (client DomainsClient) UpdateSender(req *http.Request) (future DomainsUpdat
 func (client DomainsClient) UpdateResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -5,14 +5,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -157,17 +156,15 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, watcherName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Packet Capture %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_packet_capture", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_packet_capture", *existing.ID)
 	}
 
 	storageLocation, err := expandArmPacketCaptureStorageLocation(d)

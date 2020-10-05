@@ -81,6 +81,9 @@ func (client SecureScoreControlsClient) List(ctx context.Context, expand ExpandC
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sscl.hasNextLink() && result.sscl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -118,7 +121,6 @@ func (client SecureScoreControlsClient) ListSender(req *http.Request) (*http.Res
 func (client SecureScoreControlsClient) ListResponder(resp *http.Response) (result SecureScoreControlList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,6 +205,9 @@ func (client SecureScoreControlsClient) ListBySecureScore(ctx context.Context, s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.SecureScoreControlsClient", "ListBySecureScore", resp, "Failure responding to request")
 	}
+	if result.sscl.hasNextLink() && result.sscl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -241,7 +246,6 @@ func (client SecureScoreControlsClient) ListBySecureScoreSender(req *http.Reques
 func (client SecureScoreControlsClient) ListBySecureScoreResponder(resp *http.Response) (result SecureScoreControlList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -16,8 +16,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,9 +35,11 @@ func resourceArmEventHubNamespace() *schema.Resource {
 		Read:   resourceArmEventHubNamespaceRead,
 		Update: resourceArmEventHubNamespaceCreateUpdate,
 		Delete: resourceArmEventHubNamespaceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.NamespaceID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -77,6 +81,47 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"dedicated_cluster_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ValidateEventHubDedicatedClusterID,
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventhub.SystemAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"maximum_throughput_units": {
@@ -208,7 +253,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -226,6 +271,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
+	zoneRedundant := d.Get("zone_redundant").(bool)
 
 	parameters := eventhub.EHNamespace{
 		Location: &location,
@@ -234,10 +280,16 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 			Tier:     eventhub.SkuTier(sku),
 			Capacity: &capacity,
 		},
+		Identity: expandEventHubIdentity(d.Get("identity").([]interface{})),
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
+			ZoneRedundant:        utils.Bool(zoneRedundant),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v := d.Get("dedicated_cluster_id").(string); v != "" {
+		parameters.EHNamespaceProperties.ClusterArmID = utils.String(v)
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
@@ -293,24 +345,22 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["namespaces"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on EventHub Namespace %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on EventHub Namespace %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -320,23 +370,29 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("capacity", sku.Capacity)
 	}
 
+	if err := d.Set("identity", flattenEventHubIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
+
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+		d.Set("zone_redundant", props.ZoneRedundant)
+		d.Set("dedicated_cluster_id", props.ClusterArmID)
 	}
 
-	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
+	ruleset, err := client.GetNetworkRuleSet(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on EventHub Namespace %q Network Ruleset: %+v", name, err)
+		return fmt.Errorf("Error making Read request on EventHub Namespace %q Network Ruleset: %+v", id.Name, err)
 	}
 
 	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
-		return fmt.Errorf("Error setting `network_ruleset` for Evenhub Namespace %s: %v", name, err)
+		return fmt.Errorf("Error setting `network_ruleset` for Evenhub Namespace %s: %v", id.Name, err)
 	}
 
-	keys, err := client.ListKeys(ctx, resGroup, name, eventHubNamespaceDefaultAuthorizationRule)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
-		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", name, err)
+		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", id.Name, err)
 	} else {
 		d.Set("default_primary_connection_string_alias", keys.AliasPrimaryConnectionString)
 		d.Set("default_secondary_connection_string_alias", keys.AliasSecondaryConnectionString)
@@ -354,22 +410,20 @@ func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NamespaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["namespaces"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request of EventHub Namespace %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error issuing delete request of EventHub Namespace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return waitForEventHubNamespaceToBeDeleted(ctx, client, resGroup, name, d)
+	return waitForEventHubNamespaceToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
 }
 
 func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string, d *schema.ResourceData) error {
@@ -495,4 +549,39 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset eventhub.NetworkRuleSet) []i
 		"virtual_network_rule": vnetBlocks,
 		"ip_rule":              ipBlocks,
 	}}
+}
+
+func expandEventHubIdentity(input []interface{}) *eventhub.Identity {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &eventhub.Identity{
+		Type: eventhub.IdentityType(v["type"].(string)),
+	}
+}
+
+func flattenEventHubIdentity(input *eventhub.Identity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	principalID := ""
+	if input.PrincipalID != nil {
+		principalID = *input.PrincipalID
+	}
+
+	tenantID := ""
+	if input.TenantID != nil {
+		tenantID = *input.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(input.Type),
+			"principal_id": principalID,
+			"tenant_id":    tenantID,
+		},
+	}
 }

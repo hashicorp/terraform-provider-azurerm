@@ -134,7 +134,6 @@ func (client LiveOutputsClient) CreateSender(req *http.Request) (future LiveOutp
 func (client LiveOutputsClient) CreateResponder(resp *http.Response) (result LiveOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -226,7 +225,6 @@ func (client LiveOutputsClient) DeleteSender(req *http.Request) (future LiveOutp
 func (client LiveOutputsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -317,7 +315,6 @@ func (client LiveOutputsClient) GetSender(req *http.Request) (*http.Response, er
 func (client LiveOutputsClient) GetResponder(resp *http.Response) (result LiveOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -367,6 +364,9 @@ func (client LiveOutputsClient) List(ctx context.Context, resourceGroupName stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveOutputsClient", "List", resp, "Failure responding to request")
 	}
+	if result.lolr.hasNextLink() && result.lolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -404,7 +404,6 @@ func (client LiveOutputsClient) ListSender(req *http.Request) (*http.Response, e
 func (client LiveOutputsClient) ListResponder(resp *http.Response) (result LiveOutputListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

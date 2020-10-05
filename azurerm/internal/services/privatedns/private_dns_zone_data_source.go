@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -74,7 +74,7 @@ func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) e
 	if resourceGroup != "" {
 		zone, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(zone.Response) {
 				return fmt.Errorf("Private DNS Zone %q (Resource Group %q) was not found", name, resourceGroup)
 			}
 			return fmt.Errorf("reading Private DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)

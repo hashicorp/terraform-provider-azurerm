@@ -122,7 +122,6 @@ func (client OriginsClient) GetSender(req *http.Request) (*http.Response, error)
 func (client OriginsClient) GetResponder(resp *http.Response) (result Origin, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -172,6 +171,9 @@ func (client OriginsClient) ListByEndpoint(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.OriginsClient", "ListByEndpoint", resp, "Failure responding to request")
 	}
+	if result.olr.hasNextLink() && result.olr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -209,7 +211,6 @@ func (client OriginsClient) ListByEndpointSender(req *http.Request) (*http.Respo
 func (client OriginsClient) ListByEndpointResponder(resp *http.Response) (result OriginListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -337,7 +338,6 @@ func (client OriginsClient) UpdateSender(req *http.Request) (future OriginsUpdat
 func (client OriginsClient) UpdateResponder(resp *http.Response) (result Origin, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

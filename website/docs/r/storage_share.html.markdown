@@ -10,6 +10,8 @@ description: |-
 
 Manages a File Share within Azure Storage.
 
+~> **Note:** The storage share supports two storage tiers: premium and standard. Standard file shares are created in general purpose (GPv1 or GPv2) storage accounts and premium file shares are created in FileStorage storage accounts. For further information, refer to the section "What storage tiers are supported in Azure Files?" of [documentation](https://docs.microsoft.com/en-us/azure/storage/files/storage-files-faq#general).
+
 ## Example Usage
 
 ```hcl
@@ -72,7 +74,9 @@ A `access_policy` block supports the following:
 
 * `expiry` - (Required) The time at which this Access Policy should be valid until, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 
-* `permissions` - (Required) The permissions which should be associated with this Shared Identifier. Possible value is combination of `d` (delete), `l` (list), `r` (read) and `w` (write).
+* `permissions` - (Required) The permissions which should be associated with this Shared Identifier. Possible value is combination of `r` (read), `w` (write), `d` (delete), and `l` (list).
+
+~> **Note:** Permission order is strict at the service side, and permissions need to be listed in the order above. 
 
 * `start` - (Required) The time at which this Access Policy should be valid from, in [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) format.
 

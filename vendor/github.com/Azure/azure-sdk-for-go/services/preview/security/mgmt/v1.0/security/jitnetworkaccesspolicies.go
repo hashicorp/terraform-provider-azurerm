@@ -132,7 +132,6 @@ func (client JitNetworkAccessPoliciesClient) CreateOrUpdateSender(req *http.Requ
 func (client JitNetworkAccessPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result JitNetworkAccessPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,7 +219,6 @@ func (client JitNetworkAccessPoliciesClient) DeleteSender(req *http.Request) (*h
 func (client JitNetworkAccessPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -307,7 +305,6 @@ func (client JitNetworkAccessPoliciesClient) GetSender(req *http.Request) (*http
 func (client JitNetworkAccessPoliciesClient) GetResponder(resp *http.Response) (result JitNetworkAccessPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -400,7 +397,6 @@ func (client JitNetworkAccessPoliciesClient) InitiateSender(req *http.Request) (
 func (client JitNetworkAccessPoliciesClient) InitiateResponder(resp *http.Response) (result JitNetworkAccessRequest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -444,6 +440,9 @@ func (client JitNetworkAccessPoliciesClient) List(ctx context.Context) (result J
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "List", resp, "Failure responding to request")
 	}
+	if result.jnapl.hasNextLink() && result.jnapl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -478,7 +477,6 @@ func (client JitNetworkAccessPoliciesClient) ListSender(req *http.Request) (*htt
 func (client JitNetworkAccessPoliciesClient) ListResponder(resp *http.Response) (result JitNetworkAccessPoliciesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -559,6 +557,9 @@ func (client JitNetworkAccessPoliciesClient) ListByRegion(ctx context.Context) (
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "ListByRegion", resp, "Failure responding to request")
 	}
+	if result.jnapl.hasNextLink() && result.jnapl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -594,7 +595,6 @@ func (client JitNetworkAccessPoliciesClient) ListByRegionSender(req *http.Reques
 func (client JitNetworkAccessPoliciesClient) ListByRegionResponder(resp *http.Response) (result JitNetworkAccessPoliciesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -683,6 +683,9 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroup(ctx context.Con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.jnapl.hasNextLink() && result.jnapl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -718,7 +721,6 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroupSender(req *http
 func (client JitNetworkAccessPoliciesClient) ListByResourceGroupResponder(resp *http.Response) (result JitNetworkAccessPoliciesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -807,6 +809,9 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegion(ctx co
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.JitNetworkAccessPoliciesClient", "ListByResourceGroupAndRegion", resp, "Failure responding to request")
 	}
+	if result.jnapl.hasNextLink() && result.jnapl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -843,7 +848,6 @@ func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegionSender(
 func (client JitNetworkAccessPoliciesClient) ListByResourceGroupAndRegionResponder(resp *http.Response) (result JitNetworkAccessPoliciesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

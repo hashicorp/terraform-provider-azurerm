@@ -31,7 +31,7 @@ We recommend using either a Service Principal or Managed Service Identity when r
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=2.0.0"
+  version = "=2.20.0"
   features {}
 }
 
@@ -129,9 +129,15 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 * `disable_terraform_partner_id` - (Optional) Disable sending the Terraform Partner ID if a custom `partner_id` isn't specified, which allows Microsoft to better understand the usage of Terraform. The Partner ID does not give HashiCorp any direct access to usage information. This can also be sourced from the `ARM_DISABLE_TERRAFORM_PARTNER_ID` environment variable. Defaults to `false`.
 
+* `metadata_host` - (Optional) The Hostname of the Azure Metadata Service (for example `management.azure.com`), used to obtain the Cloud Environment when using a Custom Azure Environment. This can also be sourced from the `ARM_METADATA_HOST` Environment Variable.
+
+~> **Note:** `environment` must be set to the requested environment name in the list of available environments held in the `metadata_host`.
+
 * `partner_id` - (Optional) A GUID/UUID that is [registered](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#register-guids-and-offers) with Microsoft to facilitate partner resource usage attribution. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
 
 * `skip_credentials_validation` - (Optional) Should the AzureRM Provider skip verifying the credentials being used are valid? This can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` Environment Variable. Defaults to `false`.
+
+~> **Note:** if `skip_credentials_validation` is false, AzureRM Provider will send request to list all available providers.
 
 * `skip_provider_registration` - (Optional) Should the AzureRM Provider skip registering the Resource Providers it supports? This can also be sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` Environment Variable. Defaults to `false`.
 
@@ -155,6 +161,8 @@ The `features` block supports the following:
 
 * `key_vault` - (Optional) A `key_vault` block as defined below.
 
+* `template_deployment` - (Optional) A `template_deployment` block as defined below.
+
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
 * `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
@@ -173,11 +181,17 @@ The `key_vault` block supports the following:
 
 ---
 
+The `template_deployment` block supports the following:
+
+* `delete_nested_items_during_deletion` - (Optional) Should the `azurerm_resource_group_template_deployment` resource attempt to delete resources that have been provisioned by the ARM Template, when the Resource Group Template Deployment is deleted? Defaults to `true`.
+
+---
+
 The `virtual_machine` block supports the following:
 
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
-~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has it's own flags for managing this within the resource.
+~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
 
 ---
 

@@ -84,6 +84,9 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForManagementGroup(ct
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "ListQueryResultsForManagementGroup", resp, "Failure responding to request")
 	}
+	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -126,7 +129,6 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForManagementGroupSen
 func (client PolicyTrackedResourcesClient) ListQueryResultsForManagementGroupResponder(resp *http.Response) (result PolicyTrackedResourcesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -212,6 +214,9 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResource(ctx conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "ListQueryResultsForResource", resp, "Failure responding to request")
 	}
+	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -253,7 +258,6 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceSender(req
 func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceResponder(resp *http.Response) (result PolicyTrackedResourcesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -340,6 +344,9 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceGroup(ctx 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "ListQueryResultsForResourceGroup", resp, "Failure responding to request")
 	}
+	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -382,7 +389,6 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceGroupSende
 func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceGroupResponder(resp *http.Response) (result PolicyTrackedResourcesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -468,6 +474,9 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForSubscription(ctx c
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyTrackedResourcesClient", "ListQueryResultsForSubscription", resp, "Failure responding to request")
 	}
+	if result.ptrqr.hasNextLink() && result.ptrqr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -509,7 +518,6 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForSubscriptionSender
 func (client PolicyTrackedResourcesClient) ListQueryResultsForSubscriptionResponder(resp *http.Response) (result PolicyTrackedResourcesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

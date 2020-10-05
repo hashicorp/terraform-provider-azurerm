@@ -145,7 +145,6 @@ func (client DatasetsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client DatasetsClient) CreateOrUpdateResponder(resp *http.Response) (result DatasetResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -239,7 +238,6 @@ func (client DatasetsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client DatasetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -338,7 +336,6 @@ func (client DatasetsClient) GetSender(req *http.Request) (*http.Response, error
 func (client DatasetsClient) GetResponder(resp *http.Response) (result DatasetResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -391,6 +388,9 @@ func (client DatasetsClient) ListByFactory(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DatasetsClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.dlr.hasNextLink() && result.dlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -427,7 +427,6 @@ func (client DatasetsClient) ListByFactorySender(req *http.Request) (*http.Respo
 func (client DatasetsClient) ListByFactoryResponder(resp *http.Response) (result DatasetListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

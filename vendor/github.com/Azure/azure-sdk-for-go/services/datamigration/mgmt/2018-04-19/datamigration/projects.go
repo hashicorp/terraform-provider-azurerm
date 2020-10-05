@@ -115,7 +115,6 @@ func (client ProjectsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client ProjectsClient) CreateOrUpdateResponder(resp *http.Response) (result Project, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client ProjectsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client ProjectsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -276,7 +274,6 @@ func (client ProjectsClient) GetSender(req *http.Request) (*http.Response, error
 func (client ProjectsClient) GetResponder(resp *http.Response) (result Project, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -318,6 +315,9 @@ func (client ProjectsClient) ListByResourceGroup(ctx context.Context, groupName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datamigration.ProjectsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.pl.hasNextLink() && result.pl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -354,7 +354,6 @@ func (client ProjectsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ProjectsClient) ListByResourceGroupResponder(resp *http.Response) (result ProjectList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,7 +472,6 @@ func (client ProjectsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client ProjectsClient) UpdateResponder(resp *http.Response) (result Project, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -125,7 +125,6 @@ func (client CertificatesClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client CertificatesClient) CreateOrUpdateResponder(resp *http.Response) (result CertificateResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client CertificatesClient) DeleteSender(req *http.Request) (*http.Response
 func (client CertificatesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -282,7 +280,6 @@ func (client CertificatesClient) GetSender(req *http.Request) (*http.Response, e
 func (client CertificatesClient) GetResponder(resp *http.Response) (result CertificateResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,6 +321,9 @@ func (client CertificatesClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CertificatesClient", "List", resp, "Failure responding to request")
 	}
+	if result.crc.hasNextLink() && result.crc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -360,7 +360,6 @@ func (client CertificatesClient) ListSender(req *http.Request) (*http.Response, 
 func (client CertificatesClient) ListResponder(resp *http.Response) (result CertificateResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

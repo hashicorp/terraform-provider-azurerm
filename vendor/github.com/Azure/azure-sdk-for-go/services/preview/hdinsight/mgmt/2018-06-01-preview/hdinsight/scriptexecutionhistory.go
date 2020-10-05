@@ -75,6 +75,9 @@ func (client ScriptExecutionHistoryClient) ListByCluster(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptExecutionHistoryClient", "ListByCluster", resp, "Failure responding to request")
 	}
+	if result.saehl.hasNextLink() && result.saehl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -111,7 +114,6 @@ func (client ScriptExecutionHistoryClient) ListByClusterSender(req *http.Request
 func (client ScriptExecutionHistoryClient) ListByClusterResponder(resp *http.Response) (result ScriptActionExecutionHistoryList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -226,7 +228,6 @@ func (client ScriptExecutionHistoryClient) PromoteSender(req *http.Request) (*ht
 func (client ScriptExecutionHistoryClient) PromoteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

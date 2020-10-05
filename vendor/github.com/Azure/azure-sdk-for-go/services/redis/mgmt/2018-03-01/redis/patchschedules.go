@@ -42,7 +42,7 @@ func NewPatchSchedulesClientWithBaseURI(baseURI string, subscriptionID string) P
 	return PatchSchedulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or replace the patching schedule for Redis cache (requires Premium SKU).
+// CreateOrUpdate create or replace the patching schedule for Redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the Redis cache.
@@ -121,7 +121,6 @@ func (client PatchSchedulesClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client PatchSchedulesClient) CreateOrUpdateResponder(resp *http.Response) (result PatchSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -129,7 +128,7 @@ func (client PatchSchedulesClient) CreateOrUpdateResponder(resp *http.Response) 
 	return
 }
 
-// Delete deletes the patching schedule of a redis cache (requires Premium SKU).
+// Delete deletes the patching schedule of a redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the redis cache.
@@ -198,14 +197,13 @@ func (client PatchSchedulesClient) DeleteSender(req *http.Request) (*http.Respon
 func (client PatchSchedulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
 }
 
-// Get gets the patching schedule of a redis cache (requires Premium SKU).
+// Get gets the patching schedule of a redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the redis cache.
@@ -274,7 +272,6 @@ func (client PatchSchedulesClient) GetSender(req *http.Request) (*http.Response,
 func (client PatchSchedulesClient) GetResponder(resp *http.Response) (result PatchSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,6 +312,9 @@ func (client PatchSchedulesClient) ListByRedisResource(ctx context.Context, reso
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "ListByRedisResource", resp, "Failure responding to request")
 	}
+	if result.pslr.hasNextLink() && result.pslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -351,7 +351,6 @@ func (client PatchSchedulesClient) ListByRedisResourceSender(req *http.Request) 
 func (client PatchSchedulesClient) ListByRedisResourceResponder(resp *http.Response) (result PatchScheduleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

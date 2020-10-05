@@ -252,7 +252,6 @@ resource "azurerm_storage_account" "updated" {
 
 resource "azurerm_storage_container" "updated" {
   name                  = "example2"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
@@ -293,9 +292,8 @@ resource "azurerm_stream_analytics_stream_input_blob" "import" {
   dynamic "serialization" {
     for_each = azurerm_stream_analytics_stream_input_blob.test.serialization
     content {
-      encoding        = lookup(serialization.value, "encoding", null)
-      field_delimiter = lookup(serialization.value, "field_delimiter", null)
-      type            = serialization.value.type
+      encoding = lookup(serialization.value, "encoding", null)
+      type     = serialization.value.type
     }
   }
 }
@@ -323,7 +321,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }

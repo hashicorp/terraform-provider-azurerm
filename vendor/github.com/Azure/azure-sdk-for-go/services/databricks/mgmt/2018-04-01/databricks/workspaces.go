@@ -63,14 +63,20 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, parameters Wo
 			Constraints: []validation.Constraint{{Target: "parameters.WorkspaceProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.ManagedResourceGroupID", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.WorkspaceProperties.Parameters", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomVirtualNetworkID", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomVirtualNetworkID.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+						Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.AmlWorkspaceID", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.AmlWorkspaceID.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+							{Target: "parameters.WorkspaceProperties.Parameters.CustomVirtualNetworkID", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomVirtualNetworkID.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 							{Target: "parameters.WorkspaceProperties.Parameters.CustomPublicSubnetName", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomPublicSubnetName.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 							{Target: "parameters.WorkspaceProperties.Parameters.CustomPrivateSubnetName", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.CustomPrivateSubnetName.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 							{Target: "parameters.WorkspaceProperties.Parameters.EnableNoPublicIP", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.EnableNoPublicIP.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+							{Target: "parameters.WorkspaceProperties.Parameters.PrepareEncryption", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.PrepareEncryption.Value", Name: validation.Null, Rule: true, Chain: nil}}},
+							{Target: "parameters.WorkspaceProperties.Parameters.RequireInfrastructureEncryption", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Parameters.RequireInfrastructureEncryption.Value", Name: validation.Null, Rule: true, Chain: nil}}},
 						}},
 				}},
 				{Target: "parameters.Sku", Name: validation.Null, Rule: false,
@@ -140,7 +146,6 @@ func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future W
 func (client WorkspacesClient) CreateOrUpdateResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -227,7 +232,6 @@ func (client WorkspacesClient) DeleteSender(req *http.Request) (future Workspace
 func (client WorkspacesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -313,7 +317,6 @@ func (client WorkspacesClient) GetSender(req *http.Request) (*http.Response, err
 func (client WorkspacesClient) GetResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,6 +364,9 @@ func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -396,7 +402,6 @@ func (client WorkspacesClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client WorkspacesClient) ListByResourceGroupResponder(resp *http.Response) (result WorkspaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -471,6 +476,9 @@ func (client WorkspacesClient) ListBySubscription(ctx context.Context) (result W
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "databricks.WorkspacesClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.wlr.hasNextLink() && result.wlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -505,7 +513,6 @@ func (client WorkspacesClient) ListBySubscriptionSender(req *http.Request) (*htt
 func (client WorkspacesClient) ListBySubscriptionResponder(resp *http.Response) (result WorkspaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -632,7 +639,6 @@ func (client WorkspacesClient) UpdateSender(req *http.Request) (future Workspace
 func (client WorkspacesClient) UpdateResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

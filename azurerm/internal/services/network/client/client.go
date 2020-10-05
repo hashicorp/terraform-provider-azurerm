@@ -1,7 +1,8 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	networkLegacy "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -16,8 +17,12 @@ type Client struct {
 	ExpressRouteCircuitsClient           *network.ExpressRouteCircuitsClient
 	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
+	FirewallPolicyClient                 *network.FirewallPoliciesClient
+	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
-	LoadBalancersClient                  *network.LoadBalancersClient
+	IPGroupsClient                       *network.IPGroupsClient
+	LoadBalancersClient                  *networkLegacy.LoadBalancersClient
+	LoadBalancerLoadBalancingRulesClient *networkLegacy.LoadBalancerLoadBalancingRulesClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
 	PointToSiteVpnGatewaysClient         *network.P2sVpnGatewaysClient
 	ProfileClient                        *network.ProfilesClient
@@ -26,6 +31,7 @@ type Client struct {
 	PublicIPsClient                      *network.PublicIPAddressesClient
 	PublicIPPrefixesClient               *network.PublicIPPrefixesClient
 	RoutesClient                         *network.RoutesClient
+	RouteFiltersClient                   *network.RouteFiltersClient
 	RouteTablesClient                    *network.RouteTablesClient
 	SecurityGroupClient                  *network.SecurityGroupsClient
 	SecurityRuleClient                   *network.SecurityRulesClient
@@ -44,6 +50,8 @@ type Client struct {
 	WebApplicationFirewallPoliciesClient *network.WebApplicationFirewallPoliciesClient
 	PrivateDnsZoneGroupClient            *network.PrivateDNSZoneGroupsClient
 	PrivateLinkServiceClient             *network.PrivateLinkServicesClient
+	ServiceAssociationLinkClient         *network.ServiceAssociationLinksClient
+	ResourceNavigationLinkClient         *network.ResourceNavigationLinksClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -77,11 +85,23 @@ func NewClient(o *common.ClientOptions) *Client {
 	ExpressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
 
+	FirewallPolicyClient := network.NewFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FirewallPolicyClient.Client, o.ResourceManagerAuthorizer)
+
+	HubVirtualNetworkConnectionClient := network.NewHubVirtualNetworkConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HubVirtualNetworkConnectionClient.Client, o.ResourceManagerAuthorizer)
+
 	InterfacesClient := network.NewInterfacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&InterfacesClient.Client, o.ResourceManagerAuthorizer)
 
-	LoadBalancersClient := network.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	IpGroupsClient := network.NewIPGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&IpGroupsClient.Client, o.ResourceManagerAuthorizer)
+
+	LoadBalancersClient := networkLegacy.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LoadBalancersClient.Client, o.ResourceManagerAuthorizer)
+
+	LoadBalancerLoadBalancingRulesClient := networkLegacy.NewLoadBalancerLoadBalancingRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LoadBalancerLoadBalancingRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
@@ -122,6 +142,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	RoutesClient := network.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RoutesClient.Client, o.ResourceManagerAuthorizer)
 
+	RouteFiltersClient := network.NewRouteFiltersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RouteFiltersClient.Client, o.ResourceManagerAuthorizer)
+
 	RouteTablesClient := network.NewRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RouteTablesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -161,6 +184,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	WebApplicationFirewallPoliciesClient := network.NewWebApplicationFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WebApplicationFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
+	ServiceAssociationLinkClient := network.NewServiceAssociationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServiceAssociationLinkClient.Client, o.ResourceManagerAuthorizer)
+
+	ResourceNavigationLinkClient := network.NewResourceNavigationLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ResourceNavigationLinkClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ApplicationGatewaysClient:            &ApplicationGatewaysClient,
 		ApplicationSecurityGroupsClient:      &ApplicationSecurityGroupsClient,
@@ -172,8 +201,12 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteCircuitsClient:           &ExpressRouteCircuitsClient,
 		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
+		FirewallPolicyClient:                 &FirewallPolicyClient,
+		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
+		IPGroupsClient:                       &IpGroupsClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
+		LoadBalancerLoadBalancingRulesClient: &LoadBalancerLoadBalancingRulesClient,
 		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,
 		PointToSiteVpnGatewaysClient:         &pointToSiteVpnGatewaysClient,
 		ProfileClient:                        &ProfileClient,
@@ -182,6 +215,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		PublicIPsClient:                      &PublicIPsClient,
 		PublicIPPrefixesClient:               &PublicIPPrefixesClient,
 		RoutesClient:                         &RoutesClient,
+		RouteFiltersClient:                   &RouteFiltersClient,
 		RouteTablesClient:                    &RouteTablesClient,
 		SecurityGroupClient:                  &SecurityGroupClient,
 		SecurityRuleClient:                   &SecurityRuleClient,
@@ -200,5 +234,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		WebApplicationFirewallPoliciesClient: &WebApplicationFirewallPoliciesClient,
 		PrivateDnsZoneGroupClient:            &PrivateDnsZoneGroupClient,
 		PrivateLinkServiceClient:             &PrivateLinkServiceClient,
+		ServiceAssociationLinkClient:         &ServiceAssociationLinkClient,
+		ResourceNavigationLinkClient:         &ResourceNavigationLinkClient,
 	}
 }

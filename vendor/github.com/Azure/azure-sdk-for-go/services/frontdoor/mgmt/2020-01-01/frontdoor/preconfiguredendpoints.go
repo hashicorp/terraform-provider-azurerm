@@ -86,6 +86,9 @@ func (client PreconfiguredEndpointsClient) List(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.PreconfiguredEndpointsClient", "List", resp, "Failure responding to request")
 	}
+	if result.pel.hasNextLink() && result.pel.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -122,7 +125,6 @@ func (client PreconfiguredEndpointsClient) ListSender(req *http.Request) (*http.
 func (client PreconfiguredEndpointsClient) ListResponder(resp *http.Response) (result PreconfiguredEndpointList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

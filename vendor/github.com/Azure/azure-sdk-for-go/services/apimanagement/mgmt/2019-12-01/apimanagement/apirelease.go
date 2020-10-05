@@ -137,7 +137,6 @@ func (client APIReleaseClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client APIReleaseClient) CreateOrUpdateResponder(resp *http.Response) (result APIReleaseContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -235,7 +234,6 @@ func (client APIReleaseClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client APIReleaseClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -329,7 +327,6 @@ func (client APIReleaseClient) GetSender(req *http.Request) (*http.Response, err
 func (client APIReleaseClient) GetResponder(resp *http.Response) (result APIReleaseContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -424,7 +421,6 @@ func (client APIReleaseClient) GetEntityTagSender(req *http.Request) (*http.Resp
 func (client APIReleaseClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -489,6 +485,9 @@ func (client APIReleaseClient) ListByService(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIReleaseClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.arc.hasNextLink() && result.arc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -535,7 +534,6 @@ func (client APIReleaseClient) ListByServiceSender(req *http.Request) (*http.Res
 func (client APIReleaseClient) ListByServiceResponder(resp *http.Response) (result APIReleaseCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -673,7 +671,6 @@ func (client APIReleaseClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client APIReleaseClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

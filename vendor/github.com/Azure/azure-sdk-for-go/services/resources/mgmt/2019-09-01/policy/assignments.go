@@ -129,7 +129,6 @@ func (client AssignmentsClient) CreateSender(req *http.Request) (*http.Response,
 func (client AssignmentsClient) CreateResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -223,7 +222,6 @@ func (client AssignmentsClient) CreateByIDSender(req *http.Request) (*http.Respo
 func (client AssignmentsClient) CreateByIDResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -304,7 +302,6 @@ func (client AssignmentsClient) DeleteSender(req *http.Request) (*http.Response,
 func (client AssignmentsClient) DeleteResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -384,7 +381,6 @@ func (client AssignmentsClient) DeleteByIDSender(req *http.Request) (*http.Respo
 func (client AssignmentsClient) DeleteByIDResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -463,7 +459,6 @@ func (client AssignmentsClient) GetSender(req *http.Request) (*http.Response, er
 func (client AssignmentsClient) GetResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -542,7 +537,6 @@ func (client AssignmentsClient) GetByIDSender(req *http.Request) (*http.Response
 func (client AssignmentsClient) GetByIDResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -590,6 +584,9 @@ func (client AssignmentsClient) List(ctx context.Context, filter string) (result
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -627,7 +624,6 @@ func (client AssignmentsClient) ListSender(req *http.Request) (*http.Response, e
 func (client AssignmentsClient) ListResponder(resp *http.Response) (result AssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -712,6 +708,9 @@ func (client AssignmentsClient) ListForManagementGroup(ctx context.Context, mana
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "ListForManagementGroup", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -747,7 +746,6 @@ func (client AssignmentsClient) ListForManagementGroupSender(req *http.Request) 
 func (client AssignmentsClient) ListForManagementGroupResponder(resp *http.Response) (result AssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -857,6 +855,9 @@ func (client AssignmentsClient) ListForResource(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "ListForResource", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -899,7 +900,6 @@ func (client AssignmentsClient) ListForResourceSender(req *http.Request) (*http.
 func (client AssignmentsClient) ListForResourceResponder(resp *http.Response) (result AssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -994,6 +994,9 @@ func (client AssignmentsClient) ListForResourceGroup(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "ListForResourceGroup", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1032,7 +1035,6 @@ func (client AssignmentsClient) ListForResourceGroupSender(req *http.Request) (*
 func (client AssignmentsClient) ListForResourceGroupResponder(resp *http.Response) (result AssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

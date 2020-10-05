@@ -47,7 +47,7 @@ resource "azurerm_subnet" "example" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "example" {
@@ -122,7 +122,7 @@ The following arguments are supported:
 
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
-* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Changing this forces a new resource to be created.
+* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine?
 
 * `availability_set_id` - (Optional) Specifies the ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 
@@ -139,6 +139,8 @@ The following arguments are supported:
 -> In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://security.stackexchange.com/questions/69407/why-is-using-an-ssh-key-more-secure-than-using-passwords).
 
 -> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
+
+* `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
 
 * `eviction_policy` - (Optional) Specifies what should happen when the Virtual Machine is evicted for price reasons when using a Spot instance. At this time the only supported value is `Deallocate`. Changing this forces a new resource to be created.
 
@@ -180,7 +182,7 @@ The following arguments are supported:
 
 A `additional_capabilities` block supports the following:
 
-* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`. Changing this forces a new resource to be created.
+* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine? Defaults to `false`.
 
 ---
 

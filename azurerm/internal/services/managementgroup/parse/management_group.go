@@ -7,11 +7,11 @@ import (
 )
 
 type ManagementGroupId struct {
-	GroupId string
+	Name string
 }
 
 func ManagementGroupID(input string) (*ManagementGroupId, error) {
-	regex := regexp.MustCompile(`^/providers/[Mm]icrosoft\.[Mm]anagement/management[Gg]roups/`)
+	regex := regexp.MustCompile(`^/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
 	if !regex.MatchString(input) {
 		return nil, fmt.Errorf("Unable to parse Management Group ID %q", input)
 	}
@@ -31,7 +31,7 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 	}
 
 	id := ManagementGroupId{
-		GroupId: groupID,
+		Name: groupID,
 	}
 
 	return &id, nil

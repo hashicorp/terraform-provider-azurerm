@@ -108,7 +108,6 @@ func (client DeletedWebAppsClient) GetDeletedWebAppByLocationSender(req *http.Re
 func (client DeletedWebAppsClient) GetDeletedWebAppByLocationResponder(resp *http.Response) (result DeletedSite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -146,6 +145,9 @@ func (client DeletedWebAppsClient) List(ctx context.Context) (result DeletedWebA
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DeletedWebAppsClient", "List", resp, "Failure responding to request")
 	}
+	if result.dwac.hasNextLink() && result.dwac.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -180,7 +182,6 @@ func (client DeletedWebAppsClient) ListSender(req *http.Request) (*http.Response
 func (client DeletedWebAppsClient) ListResponder(resp *http.Response) (result DeletedWebAppCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -255,6 +256,9 @@ func (client DeletedWebAppsClient) ListByLocation(ctx context.Context, location 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DeletedWebAppsClient", "ListByLocation", resp, "Failure responding to request")
 	}
+	if result.dwac.hasNextLink() && result.dwac.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -290,7 +294,6 @@ func (client DeletedWebAppsClient) ListByLocationSender(req *http.Request) (*htt
 func (client DeletedWebAppsClient) ListByLocationResponder(resp *http.Response) (result DeletedWebAppCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

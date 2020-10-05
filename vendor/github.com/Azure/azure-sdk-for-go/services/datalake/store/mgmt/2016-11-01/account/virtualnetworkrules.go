@@ -124,7 +124,6 @@ func (client VirtualNetworkRulesClient) CreateOrUpdateSender(req *http.Request) 
 func (client VirtualNetworkRulesClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualNetworkRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client VirtualNetworkRulesClient) DeleteSender(req *http.Request) (*http.R
 func (client VirtualNetworkRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -279,7 +277,6 @@ func (client VirtualNetworkRulesClient) GetSender(req *http.Request) (*http.Resp
 func (client VirtualNetworkRulesClient) GetResponder(resp *http.Response) (result VirtualNetworkRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -320,6 +317,9 @@ func (client VirtualNetworkRulesClient) ListByAccount(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -356,7 +356,6 @@ func (client VirtualNetworkRulesClient) ListByAccountSender(req *http.Request) (
 func (client VirtualNetworkRulesClient) ListByAccountResponder(resp *http.Response) (result VirtualNetworkRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -477,7 +476,6 @@ func (client VirtualNetworkRulesClient) UpdateSender(req *http.Request) (*http.R
 func (client VirtualNetworkRulesClient) UpdateResponder(resp *http.Response) (result VirtualNetworkRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

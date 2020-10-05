@@ -106,6 +106,9 @@ func (client OperationClient) ListByTags(ctx context.Context, resourceGroupName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OperationClient", "ListByTags", resp, "Failure responding to request")
 	}
+	if result.trc.hasNextLink() && result.trc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -155,7 +158,6 @@ func (client OperationClient) ListByTagsSender(req *http.Request) (*http.Respons
 func (client OperationClient) ListByTagsResponder(resp *http.Response) (result TagResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

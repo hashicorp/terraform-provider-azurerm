@@ -117,7 +117,6 @@ func (client ServerDNSAliasesClient) AcquireSender(req *http.Request) (future Se
 func (client ServerDNSAliasesClient) AcquireResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -195,7 +194,6 @@ func (client ServerDNSAliasesClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client ServerDNSAliasesClient) CreateOrUpdateResponder(resp *http.Response) (result ServerDNSAlias, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -274,7 +272,6 @@ func (client ServerDNSAliasesClient) DeleteSender(req *http.Request) (future Ser
 func (client ServerDNSAliasesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -352,7 +349,6 @@ func (client ServerDNSAliasesClient) GetSender(req *http.Request) (*http.Respons
 func (client ServerDNSAliasesClient) GetResponder(resp *http.Response) (result ServerDNSAlias, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -394,6 +390,9 @@ func (client ServerDNSAliasesClient) ListByServer(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.sdalr.hasNextLink() && result.sdalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -430,7 +429,6 @@ func (client ServerDNSAliasesClient) ListByServerSender(req *http.Request) (*htt
 func (client ServerDNSAliasesClient) ListByServerResponder(resp *http.Response) (result ServerDNSAliasListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

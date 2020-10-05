@@ -114,7 +114,6 @@ func (client PartnerNamespacesClient) CreateOrUpdateSender(req *http.Request) (f
 func (client PartnerNamespacesClient) CreateOrUpdateResponder(resp *http.Response) (result PartnerNamespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client PartnerNamespacesClient) DeleteSender(req *http.Request) (future Pa
 func (client PartnerNamespacesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -265,7 +263,6 @@ func (client PartnerNamespacesClient) GetSender(req *http.Request) (*http.Respon
 func (client PartnerNamespacesClient) GetResponder(resp *http.Response) (result PartnerNamespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -313,6 +310,9 @@ func (client PartnerNamespacesClient) ListByResourceGroup(ctx context.Context, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.pnlr.hasNextLink() && result.pnlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -354,7 +354,6 @@ func (client PartnerNamespacesClient) ListByResourceGroupSender(req *http.Reques
 func (client PartnerNamespacesClient) ListByResourceGroupResponder(resp *http.Response) (result PartnerNamespacesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -438,6 +437,9 @@ func (client PartnerNamespacesClient) ListBySubscription(ctx context.Context, fi
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerNamespacesClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.pnlr.hasNextLink() && result.pnlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -478,7 +480,6 @@ func (client PartnerNamespacesClient) ListBySubscriptionSender(req *http.Request
 func (client PartnerNamespacesClient) ListBySubscriptionResponder(resp *http.Response) (result PartnerNamespacesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -591,7 +592,6 @@ func (client PartnerNamespacesClient) ListSharedAccessKeysSender(req *http.Reque
 func (client PartnerNamespacesClient) ListSharedAccessKeysResponder(resp *http.Response) (result PartnerNamespaceSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -676,7 +676,6 @@ func (client PartnerNamespacesClient) RegenerateKeySender(req *http.Request) (*h
 func (client PartnerNamespacesClient) RegenerateKeyResponder(resp *http.Response) (result PartnerNamespaceSharedAccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -755,7 +754,6 @@ func (client PartnerNamespacesClient) UpdateSender(req *http.Request) (future Pa
 func (client PartnerNamespacesClient) UpdateResponder(resp *http.Response) (result PartnerNamespace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
