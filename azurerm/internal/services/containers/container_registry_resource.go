@@ -364,7 +364,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	skuChange := d.HasChange("sku")
 	isBasicSku := strings.EqualFold(sku, string(containerregistry.Basic))
 	isPremiumSku := strings.EqualFold(sku, string(containerregistry.Premium))
-		 := strings.EqualFold(sku, string(containerregistry.Standard))
+	isStandardSku := strings.EqualFold(sku, string(containerregistry.Standard))
 
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
