@@ -1,4 +1,4 @@
-c---
+---
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_system_topic"
