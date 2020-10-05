@@ -80,7 +80,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the EventGrid System Topic.
 
-* `metric_resource_id` - The ID of the Resource used by Azure Monitor.
+* `metric_resource_id` - The Metric Resource ID of the EventGrid System Topic.
 
 ## Timeouts
 
