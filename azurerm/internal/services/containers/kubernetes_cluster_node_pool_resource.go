@@ -102,10 +102,9 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"max_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				// NOTE: rather than setting `0` users should instead pass `null` here
-				ValidateFunc: validation.IntBetween(1, 100),
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"max_pods": {
