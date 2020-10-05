@@ -391,9 +391,9 @@ func TestAccAzureRMContainerRegistry_policies(t *testing.T) {
 					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Allow"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.days", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.status", "enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.trust_policy.0.status", "enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "trust_policy.0.enabled", "true"),
 				),
 			},
 			{
@@ -402,9 +402,9 @@ func TestAccAzureRMContainerRegistry_policies(t *testing.T) {
 					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.default_action", "Allow"),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.0.virtual_network.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.days", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.status", "enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.trust_policy.0.status", "enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.days", "20"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "trust_policy.0.enabled", "true"),
 				),
 			},
 			{
@@ -412,8 +412,8 @@ func TestAccAzureRMContainerRegistry_policies(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "network_rule_set.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.retention_policy.0.status", "disabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policies.0.trust_policy.0.status", "disabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_policy.0.enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "trust_policy.0.enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -833,30 +833,28 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestACR%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_enabled       = false
   sku                 = "Premium"
 
-  policies {
-    retention_policy {
-      days   = %d
-      status = "enabled"
-    }
+  retention_policy {
+    days    = %d
+    enabled = true
+  }
 
-    trust_policy {
-      status = "enabled"
-    }
+  trust_policy {
+    enabled = true
   }
 
   tags = {
-    environment = "production"
+    Environment = "Production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, days)
@@ -869,25 +867,23 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
+  name                = "acctestACR%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_enabled       = false
   sku                 = "Basic"
   network_rule_set    = []
 
-  policies {
-    retention_policy {}
-    trust_policy {}
-  }
+  retention_policy {}
+  trust_policy {}
 
   tags = {
-    environment = "production"
+    Environment = "Production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
