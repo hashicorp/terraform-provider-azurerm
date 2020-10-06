@@ -8,12 +8,12 @@ import (
 )
 
 func dataSourceArmCognitiveAccount() *schema.Resource {
-	return &schema.Resource {
+	return &schema.Resource{
 		Read: dataSourceArmCognitiveAccountRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 
@@ -27,13 +27,13 @@ func dataSourceArmCognitiveAccount() *schema.Resource {
 			},
 
 			"sku": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
-				Elem: &schema.Resource {
+				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},

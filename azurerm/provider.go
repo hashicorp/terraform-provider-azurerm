@@ -120,7 +120,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_builtin_role_definition":                dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_cdn_profile":                            dataSourceArmCdnProfile(),
 			"azurerm_client_config":                          dataSourceArmClientConfig(),
-		    "azurerm_cognitive_account":                      dataSourceArmCognitiveAccount(),
+			"azurerm_cognitive_account":                      dataSourceArmCognitiveAccount(),
 			"azurerm_kubernetes_service_versions":            dataSourceArmKubernetesServiceVersions(),
 			"azurerm_container_registry":                     dataSourceArmContainerRegistry(),
 			"azurerm_cosmosdb_account":                       dataSourceArmCosmosDbAccount(),
