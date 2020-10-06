@@ -1442,6 +1442,13 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
 	}
 
+	appGWSkuTier := d.Get("sku.0.tier").(string)
+	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
+
+	if appGWSkuTier != "WAF_v2" && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `WAF_v2` allows `file_upload_limit_mb` to exceed 500MB")
+	}
+
 	if v, ok := d.GetOk("firewall_policy_id"); ok {
 		id := v.(string)
 		gateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
