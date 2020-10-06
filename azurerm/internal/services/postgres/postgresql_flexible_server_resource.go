@@ -2,6 +2,9 @@ package postgres
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,8 +19,6 @@ import (
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"time"
 )
 
 func resourceArmPostgresqlFlexibleServer() *schema.Resource {
@@ -210,24 +211,15 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				},
 			},
 
-			"storage_profile": {
-				Type:     schema.TypeList,
+			"backup_retention_days": {
+				Type:     schema.TypeInt,
 				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"backup_retention_days": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
+			},
 
-						"storage_mb": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432}),
-						},
-					},
-				},
+			"storage_mb": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432}),
 			},
 
 			"byok_enforcement": {
@@ -307,7 +299,7 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			HaEnabled:                  haEnabled,
 			MaintenanceWindow:          expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{})),
-			StorageProfile:             expandArmServerStorageProfile(d.Get("storage_profile").([]interface{})),
+			StorageProfile:             expandArmServerStorageProfile(d),
 			Tags:                       tags.Expand(d.Get("tags").(map[string]interface{})),
 		},
 		Sku:  expandArmServerSku(d.Get("sku").([]interface{})),
@@ -374,11 +366,21 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
 			return fmt.Errorf("setting `maintenance_window`: %+v", err)
 		}
-		d.Set("point_in_time_utc", props.PointInTimeUTC.Format(time.RFC3339))
-		d.Set("source_server_name", props.SourceServerName)
-		if err := d.Set("storage_profile", flattenArmServerStorageProfile(props.StorageProfile)); err != nil {
-			return fmt.Errorf("setting `storage_profile`: %+v", err)
+		if props.PointInTimeUTC != nil {
+			d.Set("point_in_time_utc", props.PointInTimeUTC.Format(time.RFC3339))
 		}
+		if props.SourceServerName != nil {
+			d.Set("source_server_name", props.SourceServerName)
+		}
+		if storage := props.StorageProfile; storage != nil {
+			if storage.StorageMB != nil {
+				d.Set("storage_mb", storage.StorageMB)
+			}
+			if storage.BackupRetentionDays != nil {
+				d.Set("backup_retention_days", storage.BackupRetentionDays)
+			}
+		}
+
 		d.Set("version", props.Version)
 		d.Set("byok_enforcement", props.ByokEnforcement)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
@@ -409,8 +411,8 @@ func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta inte
 	if d.HasChange("administrator_login_password") {
 		parameters.ServerPropertiesForUpdate.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
 	}
-	if d.HasChange("storage_profile") {
-		parameters.ServerPropertiesForUpdate.StorageProfile = expandArmServerStorageProfile(d.Get("storage_profile").([]interface{}))
+	if d.HasChange("backup_retention_days") || d.HasChange("storage_mb") {
+		parameters.ServerPropertiesForUpdate.StorageProfile = expandArmServerStorageProfile(d)
 	}
 	if d.HasChange("ha_enabled") {
 		haEnabled := postgresqlflexibleservers.Disabled
@@ -494,15 +496,18 @@ func expandArmServerMaintenanceWindow(input []interface{}) *postgresqlflexiblese
 	}
 }
 
-func expandArmServerStorageProfile(input []interface{}) *postgresqlflexibleservers.StorageProfile {
-	if len(input) == 0 {
-		return nil
+func expandArmServerStorageProfile(d *schema.ResourceData) *postgresqlflexibleservers.StorageProfile {
+	storage := postgresqlflexibleservers.StorageProfile{}
+
+	if v, ok := d.GetOk("backup_retention_days"); ok {
+		storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
 	}
-	v := input[0].(map[string]interface{})
-	return &postgresqlflexibleservers.StorageProfile{
-		BackupRetentionDays: utils.Int32(int32(v["backup_retention_days"].(int))),
-		StorageMB:           utils.Int32(int32(v["storage_mb"].(int))),
+
+	if v, ok := d.GetOk("storage_mb"); ok {
+		storage.StorageMB = utils.Int32(int32(v.(int)))
 	}
+
+	return &storage
 }
 
 func expandArmServerSku(input []interface{}) *postgresqlflexibleservers.Sku {
@@ -580,27 +585,6 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 			"day_of_week":  dayOfWeek,
 			"start_hour":   startHour,
 			"start_minute": startMinute,
-		},
-	}
-}
-
-func flattenArmServerStorageProfile(input *postgresqlflexibleservers.StorageProfile) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var backupRetentionDays int32
-	if input.BackupRetentionDays != nil {
-		backupRetentionDays = *input.BackupRetentionDays
-	}
-	var storageMb int32
-	if input.StorageMB != nil {
-		storageMb = *input.StorageMB
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"backup_retention_days": backupRetentionDays,
-			"storage_mb":            storageMb,
 		},
 	}
 }
