@@ -36,6 +36,10 @@ func dataSourceArmCognitiveAccount() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"tier": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},

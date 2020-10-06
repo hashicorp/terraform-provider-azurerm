@@ -57,3 +57,5 @@ The following attributes are exported:
 * `sku` supports the following:
 
 * `name` - The Sku Name used for this Cognitive Services Account.
+
+* `tier` - The Sku Tier used for this Cognitive Services Account.
