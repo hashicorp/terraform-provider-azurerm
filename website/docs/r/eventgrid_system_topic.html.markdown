@@ -52,24 +52,24 @@ The following arguments are supported:
 * `source_resource_id` - (Required) The ID of the EventGrid System Topic Source. Changing this forces a new EventGrid System Topic to be created.
 
 * `topic_type` - (Required) The Topic Type of the EventGrid System Topic. Changing this forces a new EventGrid System Topic to be created. Possible values are:
-  * `Microsoft.Eventhub.Namespaces`
-  * `Microsoft.Storage.StorageAccounts`
-  * `Microsoft.Resources.Subscriptions`
-  * `Microsoft.Resources.ResourceGroups`
-  * `Microsoft.Devices.IoTHubs`
-  * `Microsoft.EventGrid.Topics`
-  * `Microsoft.ServiceBus.Namespaces`
-  * `Microsoft.ContainerRegistry.Registries`
-  * `Microsoft.Media.MediaServices`
-  * `Microsoft.Maps.Accounts`
-  * `Microsoft.EventGrid.Domains`
   * `Microsoft.AppConfiguration.ConfigurationStores`
-  * `Microsoft.KeyVault.vaults`
-  * `Microsoft.Web.Sites`
-  * `Microsoft.Web.ServerFarms`
-  * `Microsoft.SignalRService.SignalR`
-  * `Microsoft.MachineLearningServices.Workspaces`
   * `Microsoft.Communication.CommunicationServices`
+  * `Microsoft.ContainerRegistry.Registries`
+  * `Microsoft.Devices.IoTHubs`
+  * `Microsoft.EventGrid.Domains`
+  * `Microsoft.EventGrid.Topics`
+  * `Microsoft.Eventhub.Namespaces`
+  * `Microsoft.KeyVault.vaults`
+  * `Microsoft.MachineLearningServices.Workspaces`
+  * `Microsoft.Maps.Accounts`
+  * `Microsoft.Media.MediaServices`
+  * `Microsoft.Resources.ResourceGroups`
+  * `Microsoft.Resources.Subscriptions`
+  * `Microsoft.ServiceBus.Namespaces`
+  * `Microsoft.SignalRService.SignalR`
+  * `Microsoft.Storage.StorageAccounts`
+  * `Microsoft.Web.ServerFarms`
+  * `Microsoft.Web.Sites`
 ---
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the EventGrid System Topic.
