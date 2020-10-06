@@ -73,16 +73,16 @@ func dataSourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{})
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Cognitive Account %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Error: Cognitive Services Account %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error reading the state of AzureRM Cognitive Account %q: %+v", name, err)
+		return fmt.Errorf("Error reading the state of AzureRM Cognitive Services Account %q: %+v", name, err)
 	}
 
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Keys for Cognitive Account %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Error: Keys for Cognitive Services Account %q (Resource Group %q) were not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", name, resourceGroup, err)
 	}
