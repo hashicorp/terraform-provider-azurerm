@@ -140,9 +140,6 @@ func testCheckAzureRMEventGridSystemTopicExists(resourceName string) resource.Te
 }
 
 func testAccAzureRMEventGridSystemTopic_basic(data acceptance.TestData) string {
-	// TODO: confirm if this is still the case
-	// currently only supported in "West Central US" & "West US 2"
-	location := "westus2"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,7 +165,7 @@ resource "azurerm_eventgrid_system_topic" "test" {
   source_resource_id  = azurerm_storage_account.test.id
   topic_type          = "Microsoft.Storage.StorageAccounts"
 }
-`, data.RandomInteger, location, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
 }
 
 func testAccAzureRMEventGridSystemTopic_requiresImport(data acceptance.TestData) string {
@@ -187,7 +184,6 @@ resource "azurerm_eventgrid_system_topic" "import" {
 }
 
 func testAccAzureRMEventGridSystemTopic_complete(data acceptance.TestData) string {
-	location := "westus2"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -217,5 +213,5 @@ resource "azurerm_eventgrid_system_topic" "test" {
     "Foo" = "Bar"
   }
 }
-`, data.RandomInteger, location, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
 }
