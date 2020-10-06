@@ -288,7 +288,7 @@ A `http_listener` block supports the following:
 
 * `frontend_port_name` - (Required) The Name of the Frontend Port use for this HTTP Listener.
 
-* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener.
+* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener. Setting this value changes Listener Type to 'Multi site'.
 
 * `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
 
