@@ -236,13 +236,13 @@ func testAccAzureRMVirtualDesktopHostPool_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_virtual_desktop_host_pool" "import" {
-  name                   = azurerm_virtual_desktop_host_pool.test.name
-  location               = azurerm_virtual_desktop_host_pool.test.location
-  resource_group_name    = azurerm_virtual_desktop_host_pool.test.resource_group_name
-  validation_environment = azurerm_virtual_desktop_host_pool.test.validation_environment
-  description            = azurerm_virtual_desktop_host_pool.test.description
-  type                   = azurerm_virtual_desktop_host_pool.test.type
-  load_balancer_type     = azurerm_virtual_desktop_host_pool.test.load_balancer_type
+  name                 = azurerm_virtual_desktop_host_pool.test.name
+  location             = azurerm_virtual_desktop_host_pool.test.location
+  resource_group_name  = azurerm_virtual_desktop_host_pool.test.resource_group_name
+  validate_environment = azurerm_virtual_desktop_host_pool.test.validate_environment
+  description          = azurerm_virtual_desktop_host_pool.test.description
+  type                 = azurerm_virtual_desktop_host_pool.test.type
+  load_balancer_type   = azurerm_virtual_desktop_host_pool.test.load_balancer_type
 }
 `, template)
 }

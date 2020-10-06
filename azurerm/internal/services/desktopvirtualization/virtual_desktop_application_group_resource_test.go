@@ -44,7 +44,7 @@ func TestAccAzureRMVirtualDesktopApplicationGroup_complete(t *testing.T) {
 				Config: testAccAzureRMVirtualDesktopApplicationGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDesktopVirtualizationApplicationGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 				),
 			},
 		},

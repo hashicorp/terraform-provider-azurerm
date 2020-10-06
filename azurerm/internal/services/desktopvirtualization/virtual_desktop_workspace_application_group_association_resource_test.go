@@ -90,7 +90,7 @@ func TestAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_requiresIm
 		CheckDestroy: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualDesktopApplicationGroup_basic(data),
+				Config: testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociation_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(data.ResourceName),
 				),
@@ -138,7 +138,7 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(reso
 		output := make([]string, 0)
 		output = append(output, *result.ApplicationGroupReferences...)
 
-		if !utils.ContainsInStringArray(output, splitID[1]) {
+		if !utils.SliceContainsValue(output, splitID[1]) {
 			return fmt.Errorf("No Virtual Desktop Workspace <==> Application Group Association exists for Workspace %q and Application Group %q (Resource Group: %q)", id.Name, splitID[1], id.ResourceGroup)
 		}
 

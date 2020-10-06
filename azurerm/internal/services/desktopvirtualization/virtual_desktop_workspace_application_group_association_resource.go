@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
@@ -97,8 +98,8 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 
 	output := make([]string, 0)
 	output = append(output, *refs...)
-	if utils.ContainsInStringArray(output, applicationGroupReferenceID) {
-		return fmt.Errorf("Virtual Desktop Workspace Application Group Association already exists for Workspace %q and Application Group %q (Resource Group: %q)", workspaceName, agName, resourceGroup)
+	if utils.SliceContainsValue(output, applicationGroupReferenceID) {
+		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", resourceID)
 	}
 	output = append(output, applicationGroupReferenceID)
 
@@ -136,13 +137,13 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema
 			return nil
 		}
 
-		return fmt.Errorf("Making Read request on Virtual Desktop Host Pool %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
+		return fmt.Errorf("Making Read request on Virtual Desktop Desktop Workspace %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
 	}
 
 	output := make([]string, 0)
 	output = append(output, *read.ApplicationGroupReferences...)
 
-	if !utils.ContainsInStringArray(output, splitID[1]) {
+	if !utils.SliceContainsValue(output, splitID[1]) {
 		log.Printf("[DEBUG] Association between Virtual Desktop Workspace %q (Resource Group %q) and Virtual Desktop Application Group %q was not found - removing from state!", wsID.Name, wsID.ResourceGroup, splitID[1])
 		d.SetId("")
 		return nil
