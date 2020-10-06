@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -23,9 +22,6 @@ const typeLogicApp = "logicapp"
 const typeEventHub = "eventhub"
 const typeLogAnalytics = "loganalytics"
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func resourceArmSecurityCenterAutomation() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmSecurityCenterAutomationCreateUpdate,
@@ -125,7 +121,7 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 
 						"rule_set": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"rule": {
@@ -162,17 +158,7 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 	}
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	f, err := os.OpenFile("provider_debug.log", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-
-	fmt.Fprintf(f, "CreateUpdate: start\n")
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,11 +181,8 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 		}
 	}
 
-	// Top level props
 	enabled := d.Get("enabled").(bool)
 	description := fmt.Sprintf("Created by Terraform")
-
-	fmt.Fprintf(f, "CreateUpdate: basic resource info: %s, %s, %s\n", name, resGroup, location)
 
 	// Build automation struct
 	automation := security.Automation{
@@ -211,6 +194,7 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 	}
 
 	automation.AutomationProperties.Scopes = expandScopes(d.Get("scopes").([]interface{}))
+	var err error
 	automation.AutomationProperties.Actions, err = expandActions(d.Get("action").([]interface{}))
 	if err != nil {
 		return err
@@ -220,35 +204,22 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 		return err
 	}
 
-	// Create our patched struct with real struct embedded
+	// Create our patched/hacked struct with real struct embedded
 	patchedAutomation := azuresdkhacks.Automation{
 		Automation: automation,
 	}
-
-	fmt.Fprintf(f, "CreateUpdate: configuration is %s\n", spew.Sdump(patchedAutomation))
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, patchedAutomation)
 	if err != nil {
 		return fmt.Errorf("Error creating Security Center automation: %+v", err)
 	}
-	fmt.Fprintf(f, "CreateUpdate: API call %s", resp.Status)
 
+	// Important steps
 	d.SetId(*resp.ID)
-
 	return resourceArmSecurityCenterAutomationRead(d, meta)
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interface{}) error {
-	f, err := os.OpenFile("provider_debug2.log", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-
-	fmt.Fprintf(f, "Read: start with id %s\n", d.Id())
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -292,22 +263,11 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 		if err = d.Set("source", flattenSources(properties.Sources)); err != nil {
 			return fmt.Errorf("Error reading Security Center automation sources: %+v", err)
 		}
-
-		// sourcesFlat := flattenSources(properties.Sources)
-		// fmt.Fprintf(f, "Read: sourcesFlat %s\n", spew.Sdump(sourcesFlat))
 	}
-
-	fmt.Fprintf(f, "basic props: %s %s %s %s\n", spew.Sdump(d.Get("name")), spew.Sdump(d.Get("resource_group_name")), spew.Sdump(d.Get("location")), spew.Sdump(d.Get("enabled")))
-	fmt.Fprintf(f, "scopes: %s\n", spew.Sdump(d.Get("scopes")))
-	fmt.Fprintf(f, "actions: %s\n", spew.Sdump(d.Get("action")))
-	fmt.Fprintf(f, "sources: %s\n", spew.Sdump(d.Get("source")))
 
 	return nil
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SecurityCenter.AutomationsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -333,9 +293,6 @@ func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func expandSources(sourcesRaw []interface{}) *[]security.AutomationSource {
 	f, err := os.OpenFile("provider_debug5.log", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
@@ -405,9 +362,6 @@ func expandSources(sourcesRaw []interface{}) *[]security.AutomationSource {
 	return &output
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func expandScopes(scopePathsRaw []interface{}) *[]security.AutomationScope {
 	scopes := make([]security.AutomationScope, 0)
 
@@ -425,9 +379,6 @@ func expandScopes(scopePathsRaw []interface{}) *[]security.AutomationScope {
 	return &scopes
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func expandActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction, error) {
 	if len(actionsRaw) == 0 {
 		return &[]security.BasicAutomationAction{}, nil
@@ -494,26 +445,23 @@ func expandActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction,
 	return &output, nil
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func flattenSources(sources *[]security.AutomationSource) []map[string]interface{} {
-	f, err := os.OpenFile("provider_debug6.log", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-
 	if sources == nil {
 		return make([]map[string]interface{}, 0)
 	}
 
-	results := make([]map[string]interface{}, 0)
+	resultSlice := make([]map[string]interface{}, 0)
 	for _, source := range *sources {
+		ruleSetSlice := make([]interface{}, 0)
 
-		ruleSets := make([]interface{}, 0)
+		// RuleSets is an optional field
+		if source.RuleSets == nil {
+			continue
+		}
+
 		for _, ruleSet := range *source.RuleSets {
-			rules := make([]map[string]string, 0)
+			ruleSlice := make([]map[string]string, 0)
+
 			for _, rule := range *ruleSet.Rules {
 				ruleMap := map[string]string{
 					"property_path":  *rule.PropertyJPath,
@@ -521,62 +469,57 @@ func flattenSources(sources *[]security.AutomationSource) []map[string]interface
 					"operator":       string(rule.Operator),
 					"property_type":  string(rule.PropertyType),
 				}
-				rules = append(rules, ruleMap)
+				ruleSlice = append(ruleSlice, ruleMap)
 			}
 
 			ruleSetMap := map[string]interface{}{
-				"rule": rules,
+				"rule": ruleSlice,
 			}
-			ruleSets = append(ruleSets, ruleSetMap)
+			ruleSetSlice = append(ruleSetSlice, ruleSetMap)
 		}
 
 		sourceMap := map[string]interface{}{
 			"event_source": source.EventSource,
-			"rule_set":     ruleSets,
+			"rule_set":     ruleSetSlice,
 		}
-		results = append(results, sourceMap)
+		resultSlice = append(resultSlice, sourceMap)
 	}
 
-	return results
+	return resultSlice
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func flattenScopes(scopes *[]security.AutomationScope) []string {
 	if scopes == nil {
 		return []string{}
 	}
 
-	results := make([]string, 0)
+	resultSlice := make([]string, 0)
 	for _, scope := range *scopes {
 		if scope.ScopePath == nil {
 			continue
 		}
 
-		results = append(results, *scope.ScopePath)
+		resultSlice = append(resultSlice, *scope.ScopePath)
 	}
 
-	return results
+	return resultSlice
 }
 
-// ===========================================================================================
-//
-// ===========================================================================================
 func flattenActions(actions *[]security.BasicAutomationAction) []map[string]string {
 	if actions == nil {
 		return []map[string]string{}
 	}
 
-	results := make([]map[string]string, 0)
+	resultSlice := make([]map[string]string, 0)
 	for _, action := range *actions {
+		// Use type assertion to discover the underlying action
 		actionLogicApp, isLogicApp := action.(security.AutomationActionLogicApp)
 		if isLogicApp {
 			actionMap := map[string]string{
 				"resource_id": *actionLogicApp.LogicAppResourceID,
 				"type":        "LogicApp",
 			}
-			results = append(results, actionMap)
+			resultSlice = append(resultSlice, actionMap)
 		}
 
 		actionEventHub, isEventHub := action.(security.AutomationActionEventHub)
@@ -585,7 +528,7 @@ func flattenActions(actions *[]security.BasicAutomationAction) []map[string]stri
 				"resource_id": *actionEventHub.EventHubResourceID,
 				"type":        "EventHub",
 			}
-			results = append(results, actionMap)
+			resultSlice = append(resultSlice, actionMap)
 		}
 
 		actionLogAnalytics, isLogAnalytics := action.(security.AutomationActionWorkspace)
@@ -594,9 +537,9 @@ func flattenActions(actions *[]security.BasicAutomationAction) []map[string]stri
 				"resource_id": *actionLogAnalytics.WorkspaceResourceID,
 				"type":        "LogAnalytics",
 			}
-			results = append(results, actionMap)
+			resultSlice = append(resultSlice, actionMap)
 		}
 	}
 
-	return results
+	return resultSlice
 }
