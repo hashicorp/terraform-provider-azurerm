@@ -32,7 +32,8 @@ import (
 // TODO: confirm locking as appropriate
 
 func resourceWindowsVirtualMachine() *schema.Resource {
-	return &schema.Resource{
+	// TODO - return to non-conditional schema post beta
+	windowsVirtualMachineSchema := &schema.Resource{
 		Create: resourceWindowsVirtualMachineCreate,
 		Read:   resourceWindowsVirtualMachineRead,
 		Update: resourceWindowsVirtualMachineUpdate,
@@ -137,7 +138,8 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 
 			"custom_data": base64.OptionalSchema(true),
 
-			"data_disk": virtualMachineDataDiskSchema(),
+			// TODO - post Beta schema
+			//"data_disk": virtualMachineDataDiskSchema(),
 
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
@@ -305,6 +307,12 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			},
 		},
 	}
+
+	if features.VMDataDiskBeta() {
+		windowsVirtualMachineSchema.Schema["data_disk"] = virtualMachineDataDiskSchema()
+	}
+
+	return windowsVirtualMachineSchema
 }
 
 func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
@@ -1069,7 +1077,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 					found := false
 					for _, dataDisk := range *updatedDataDisks {
 						if existingDataDisk.Name != nil && *dataDisk.Name == *existingDataDisk.Name {
-							dataDisks = append(dataDisks, existingDataDisk)
+							updateDisk, err := rationaliseDataDiskForUpdate(&existingDataDisk, &dataDisk, id.Name)
+							if err != nil {
+								return err
+							}
+							dataDisks = append(dataDisks, *updateDisk)
 							found = true
 							break
 						}
