@@ -31,7 +31,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_eventgrid_system_topic" "example" {
-  name                = "examplesystemtopic"
+  name                = "example-topic"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   source_resource_id  = azurerm_storage_account.example.id
