@@ -180,11 +180,11 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error parsing Azure Firewall Management IP Configurations: %+v", err)
 		}
 
-		if !azure.SliceContainsValue(*subnetToLock, (*mgmtSubnetName)[0]) {
+		if !utils.SliceContainsValue(*subnetToLock, (*mgmtSubnetName)[0]) {
 			*subnetToLock = append(*subnetToLock, (*mgmtSubnetName)[0])
 		}
 
-		if !azure.SliceContainsValue(*vnetToLock, (*mgmtVirtualNetworkName)[0]) {
+		if !utils.SliceContainsValue(*vnetToLock, (*mgmtVirtualNetworkName)[0]) {
 			*vnetToLock = append(*vnetToLock, (*mgmtVirtualNetworkName)[0])
 		}
 		if *mgmtIPConfig != nil {
@@ -331,12 +331,12 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 				}
 				subnetName := parsedSubnetID.Path["subnets"]
 
-				if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
+				if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
 					subnetNamesToLock = append(subnetNamesToLock, subnetName)
 				}
 
 				virtualNetworkName := parsedSubnetID.Path["virtualNetworks"]
-				if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+				if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 				}
 			}
@@ -350,12 +350,12 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 				}
 				subnetName := parsedSubnetID.Path["subnets"]
 
-				if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
+				if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
 					subnetNamesToLock = append(subnetNamesToLock, subnetName)
 				}
 
 				virtualNetworkName := parsedSubnetID.Path["virtualNetworks"]
-				if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+				if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 				}
 			}
@@ -412,11 +412,11 @@ func expandArmFirewallIPConfigurations(configs []interface{}) (*[]network.AzureF
 			subnetName := subnetID.Path["subnets"]
 			virtualNetworkName := subnetID.Path["virtualNetworks"]
 
-			if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
+			if !utils.SliceContainsValue(subnetNamesToLock, subnetName) {
 				subnetNamesToLock = append(subnetNamesToLock, subnetName)
 			}
 
-			if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+			if !utils.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 			}
 

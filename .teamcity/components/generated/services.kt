@@ -71,6 +71,7 @@ var services = mapOf(
         "sentinel" to "Sentinel",
         "servicebus" to "ServiceBus",
         "servicefabric" to "Service Fabric",
+        "servicefabricmesh" to "Service Fabric Mesh",
         "signalr" to "SignalR",
         "sql" to "SQL",
         "storage" to "Storage",

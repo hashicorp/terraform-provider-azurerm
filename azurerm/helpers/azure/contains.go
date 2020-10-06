@@ -1,11 +1,8 @@
 package azure
 
-func SliceContainsValue(input []string, value string) bool {
-	for _, v := range input {
-		if v == value {
-			return true
-		}
-	}
+import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
-	return false
+// Deprecated: moved to utils and will be remove din 3.0
+func SliceContainsValue(input []string, value string) bool {
+	return utils.SliceContainsValue(input, value)
 }
