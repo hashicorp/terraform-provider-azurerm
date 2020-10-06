@@ -1201,7 +1201,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"file_upload_limit_mb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 500),
+							ValidateFunc: validation.IntBetween(1, 750),
 							Default:      100,
 						},
 						"request_body_check": {
