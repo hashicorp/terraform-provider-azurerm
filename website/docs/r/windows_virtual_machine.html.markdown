@@ -201,17 +201,23 @@ A `data_disk` block supports the following:
 
 * `name` - (Required) The name of the Managed Disk. 
 
+~> **NOTE:** Changing this value after creation is not supported.
+
 * `lun` - (Required) The Logical Unit Number for the disk on the VM. (Must be unique)
 
 * `caching` - (Required) The caching mode for the managed disk. Possible values include: `None`, `ReadOnly`, and `ReadWrite`.  
 
 * `storage_account_type` - (Required) The storage account type. Possible values include: `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS`, and `UltraSSD_LRS`.  
 
+~> **NOTE:** Changing this value after creation is not supported.
+
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this Data Disk. 
 
 -> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
 * `disk_size_gb` - (Optional) - The size of the disk in GB. Required if `managed_disk_id` not specified.
+
+~> **NOTE:** Changing this value after creation is not supported.
 
 * `managed_disk_id` - (Optional) - The ID of the existing Managed Disk to use.
 
