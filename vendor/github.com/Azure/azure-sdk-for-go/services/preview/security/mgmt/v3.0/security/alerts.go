@@ -98,7 +98,7 @@ func (client AlertsClient) GetResourceGroupLevelAlertsPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client AlertsClient) GetSubscriptionLevelAlertPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -214,7 +214,9 @@ func (client AlertsClient) GetSubscriptionLevelAlertResponder(resp *http.Respons
 // filter - oData filter. Optional.
 // selectParameter - oData select. Optional.
 // expand - oData expand. Optional.
-func (client AlertsClient) List(ctx context.Context, filter string, selectParameter string, expand string) (result AlertListPage, err error) {
+// autoDismissRuleName - the name of an existing auto dismiss rule. Use it to simulate the rule on existing
+// alerts and get the alerts that would have been dismissed if the rule was enabled when the alert was created
+func (client AlertsClient) List(ctx context.Context, filter string, selectParameter string, expand string, autoDismissRuleName string) (result AlertListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.List")
 		defer func() {
@@ -232,7 +234,7 @@ func (client AlertsClient) List(ctx context.Context, filter string, selectParame
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, filter, selectParameter, expand)
+	req, err := client.ListPreparer(ctx, filter, selectParameter, expand, autoDismissRuleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "List", nil, "Failure preparing request")
 		return
@@ -257,12 +259,12 @@ func (client AlertsClient) List(ctx context.Context, filter string, selectParame
 }
 
 // ListPreparer prepares the List request.
-func (client AlertsClient) ListPreparer(ctx context.Context, filter string, selectParameter string, expand string) (*http.Request, error) {
+func (client AlertsClient) ListPreparer(ctx context.Context, filter string, selectParameter string, expand string, autoDismissRuleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -274,6 +276,9 @@ func (client AlertsClient) ListPreparer(ctx context.Context, filter string, sele
 	}
 	if len(expand) > 0 {
 		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+	if len(autoDismissRuleName) > 0 {
+		queryParameters["autoDismissRuleName"] = autorest.Encode("query", autoDismissRuleName)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -324,7 +329,7 @@ func (client AlertsClient) listNextResults(ctx context.Context, lastResults Aler
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AlertsClient) ListComplete(ctx context.Context, filter string, selectParameter string, expand string) (result AlertListIterator, err error) {
+func (client AlertsClient) ListComplete(ctx context.Context, filter string, selectParameter string, expand string, autoDismissRuleName string) (result AlertListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.List")
 		defer func() {
@@ -335,7 +340,7 @@ func (client AlertsClient) ListComplete(ctx context.Context, filter string, sele
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, filter, selectParameter, expand)
+	result.page, err = client.List(ctx, filter, selectParameter, expand, autoDismissRuleName)
 	return
 }
 
@@ -346,7 +351,9 @@ func (client AlertsClient) ListComplete(ctx context.Context, filter string, sele
 // filter - oData filter. Optional.
 // selectParameter - oData select. Optional.
 // expand - oData expand. Optional.
-func (client AlertsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string) (result AlertListPage, err error) {
+// autoDismissRuleName - the name of an existing auto dismiss rule. Use it to simulate the rule on existing
+// alerts and get the alerts that would have been dismissed if the rule was enabled when the alert was created
+func (client AlertsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string, autoDismissRuleName string) (result AlertListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListByResourceGroup")
 		defer func() {
@@ -368,7 +375,7 @@ func (client AlertsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	}
 
 	result.fn = client.listByResourceGroupNextResults
-	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, filter, selectParameter, expand)
+	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, filter, selectParameter, expand, autoDismissRuleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListByResourceGroup", nil, "Failure preparing request")
 		return
@@ -393,13 +400,13 @@ func (client AlertsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 }
 
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
-func (client AlertsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string) (*http.Request, error) {
+func (client AlertsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string, autoDismissRuleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -411,6 +418,9 @@ func (client AlertsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 	}
 	if len(expand) > 0 {
 		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+	if len(autoDismissRuleName) > 0 {
+		queryParameters["autoDismissRuleName"] = autorest.Encode("query", autoDismissRuleName)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -461,7 +471,7 @@ func (client AlertsClient) listByResourceGroupNextResults(ctx context.Context, l
 }
 
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AlertsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string) (result AlertListIterator, err error) {
+func (client AlertsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string, autoDismissRuleName string) (result AlertListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListByResourceGroup")
 		defer func() {
@@ -472,7 +482,7 @@ func (client AlertsClient) ListByResourceGroupComplete(ctx context.Context, reso
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, filter, selectParameter, expand)
+	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, filter, selectParameter, expand, autoDismissRuleName)
 	return
 }
 
@@ -484,7 +494,9 @@ func (client AlertsClient) ListByResourceGroupComplete(ctx context.Context, reso
 // filter - oData filter. Optional.
 // selectParameter - oData select. Optional.
 // expand - oData expand. Optional.
-func (client AlertsClient) ListResourceGroupLevelAlertsByRegion(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string) (result AlertListPage, err error) {
+// autoDismissRuleName - the name of an existing auto dismiss rule. Use it to simulate the rule on existing
+// alerts and get the alerts that would have been dismissed if the rule was enabled when the alert was created
+func (client AlertsClient) ListResourceGroupLevelAlertsByRegion(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string, autoDismissRuleName string) (result AlertListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListResourceGroupLevelAlertsByRegion")
 		defer func() {
@@ -506,7 +518,7 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegion(ctx context.Cont
 	}
 
 	result.fn = client.listResourceGroupLevelAlertsByRegionNextResults
-	req, err := client.ListResourceGroupLevelAlertsByRegionPreparer(ctx, resourceGroupName, filter, selectParameter, expand)
+	req, err := client.ListResourceGroupLevelAlertsByRegionPreparer(ctx, resourceGroupName, filter, selectParameter, expand, autoDismissRuleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListResourceGroupLevelAlertsByRegion", nil, "Failure preparing request")
 		return
@@ -531,14 +543,14 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegion(ctx context.Cont
 }
 
 // ListResourceGroupLevelAlertsByRegionPreparer prepares the ListResourceGroupLevelAlertsByRegion request.
-func (client AlertsClient) ListResourceGroupLevelAlertsByRegionPreparer(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string) (*http.Request, error) {
+func (client AlertsClient) ListResourceGroupLevelAlertsByRegionPreparer(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string, autoDismissRuleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"ascLocation":       autorest.Encode("path", client.AscLocation),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -550,6 +562,9 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegionPreparer(ctx cont
 	}
 	if len(expand) > 0 {
 		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+	if len(autoDismissRuleName) > 0 {
+		queryParameters["autoDismissRuleName"] = autorest.Encode("query", autoDismissRuleName)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -600,7 +615,7 @@ func (client AlertsClient) listResourceGroupLevelAlertsByRegionNextResults(ctx c
 }
 
 // ListResourceGroupLevelAlertsByRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AlertsClient) ListResourceGroupLevelAlertsByRegionComplete(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string) (result AlertListIterator, err error) {
+func (client AlertsClient) ListResourceGroupLevelAlertsByRegionComplete(ctx context.Context, resourceGroupName string, filter string, selectParameter string, expand string, autoDismissRuleName string) (result AlertListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListResourceGroupLevelAlertsByRegion")
 		defer func() {
@@ -611,7 +626,7 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegionComplete(ctx cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListResourceGroupLevelAlertsByRegion(ctx, resourceGroupName, filter, selectParameter, expand)
+	result.page, err = client.ListResourceGroupLevelAlertsByRegion(ctx, resourceGroupName, filter, selectParameter, expand, autoDismissRuleName)
 	return
 }
 
@@ -621,7 +636,9 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegionComplete(ctx cont
 // filter - oData filter. Optional.
 // selectParameter - oData select. Optional.
 // expand - oData expand. Optional.
-func (client AlertsClient) ListSubscriptionLevelAlertsByRegion(ctx context.Context, filter string, selectParameter string, expand string) (result AlertListPage, err error) {
+// autoDismissRuleName - the name of an existing auto dismiss rule. Use it to simulate the rule on existing
+// alerts and get the alerts that would have been dismissed if the rule was enabled when the alert was created
+func (client AlertsClient) ListSubscriptionLevelAlertsByRegion(ctx context.Context, filter string, selectParameter string, expand string, autoDismissRuleName string) (result AlertListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListSubscriptionLevelAlertsByRegion")
 		defer func() {
@@ -639,7 +656,7 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegion(ctx context.Conte
 	}
 
 	result.fn = client.listSubscriptionLevelAlertsByRegionNextResults
-	req, err := client.ListSubscriptionLevelAlertsByRegionPreparer(ctx, filter, selectParameter, expand)
+	req, err := client.ListSubscriptionLevelAlertsByRegionPreparer(ctx, filter, selectParameter, expand, autoDismissRuleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.AlertsClient", "ListSubscriptionLevelAlertsByRegion", nil, "Failure preparing request")
 		return
@@ -664,13 +681,13 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegion(ctx context.Conte
 }
 
 // ListSubscriptionLevelAlertsByRegionPreparer prepares the ListSubscriptionLevelAlertsByRegion request.
-func (client AlertsClient) ListSubscriptionLevelAlertsByRegionPreparer(ctx context.Context, filter string, selectParameter string, expand string) (*http.Request, error) {
+func (client AlertsClient) ListSubscriptionLevelAlertsByRegionPreparer(ctx context.Context, filter string, selectParameter string, expand string, autoDismissRuleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"ascLocation":    autorest.Encode("path", client.AscLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -682,6 +699,9 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegionPreparer(ctx conte
 	}
 	if len(expand) > 0 {
 		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+	if len(autoDismissRuleName) > 0 {
+		queryParameters["autoDismissRuleName"] = autorest.Encode("query", autoDismissRuleName)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -732,7 +752,7 @@ func (client AlertsClient) listSubscriptionLevelAlertsByRegionNextResults(ctx co
 }
 
 // ListSubscriptionLevelAlertsByRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AlertsClient) ListSubscriptionLevelAlertsByRegionComplete(ctx context.Context, filter string, selectParameter string, expand string) (result AlertListIterator, err error) {
+func (client AlertsClient) ListSubscriptionLevelAlertsByRegionComplete(ctx context.Context, filter string, selectParameter string, expand string, autoDismissRuleName string) (result AlertListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertsClient.ListSubscriptionLevelAlertsByRegion")
 		defer func() {
@@ -743,7 +763,7 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegionComplete(ctx conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListSubscriptionLevelAlertsByRegion(ctx, filter, selectParameter, expand)
+	result.page, err = client.ListSubscriptionLevelAlertsByRegion(ctx, filter, selectParameter, expand, autoDismissRuleName)
 	return
 }
 
@@ -803,7 +823,7 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissPreparer(c
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -889,7 +909,7 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivatePrepare
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -968,7 +988,7 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissPreparer(ct
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1047,7 +1067,7 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivatePreparer
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

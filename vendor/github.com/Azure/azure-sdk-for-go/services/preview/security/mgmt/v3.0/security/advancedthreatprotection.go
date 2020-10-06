@@ -85,7 +85,7 @@ func (client AdvancedThreatProtectionClient) CreatePreparer(ctx context.Context,
 		"settingName": autorest.Encode("path", "current"),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -160,7 +160,7 @@ func (client AdvancedThreatProtectionClient) GetPreparer(ctx context.Context, re
 		"settingName": autorest.Encode("path", "current"),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

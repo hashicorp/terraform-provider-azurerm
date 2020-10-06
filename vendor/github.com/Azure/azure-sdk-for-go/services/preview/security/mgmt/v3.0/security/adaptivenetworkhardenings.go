@@ -102,7 +102,7 @@ func (client AdaptiveNetworkHardeningsClient) EnforcePreparer(ctx context.Contex
 		"subscriptionId":                        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -201,7 +201,7 @@ func (client AdaptiveNetworkHardeningsClient) GetPreparer(ctx context.Context, r
 		"subscriptionId":                       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -295,7 +295,7 @@ func (client AdaptiveNetworkHardeningsClient) ListByExtendedResourcePreparer(ctx
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

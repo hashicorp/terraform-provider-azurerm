@@ -26,32 +26,30 @@ import (
 	"net/http"
 )
 
-// AllowedConnectionsClient is the API spec for Microsoft.Security (Azure Security Center) resource provider
-type AllowedConnectionsClient struct {
+// TopologyClient is the API spec for Microsoft.Security (Azure Security Center) resource provider
+type TopologyClient struct {
 	BaseClient
 }
 
-// NewAllowedConnectionsClient creates an instance of the AllowedConnectionsClient client.
-func NewAllowedConnectionsClient(subscriptionID string, ascLocation string) AllowedConnectionsClient {
-	return NewAllowedConnectionsClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
+// NewTopologyClient creates an instance of the TopologyClient client.
+func NewTopologyClient(subscriptionID string, ascLocation string) TopologyClient {
+	return NewTopologyClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewAllowedConnectionsClientWithBaseURI creates an instance of the AllowedConnectionsClient client using a custom
-// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
-// stack).
-func NewAllowedConnectionsClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) AllowedConnectionsClient {
-	return AllowedConnectionsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
+// NewTopologyClientWithBaseURI creates an instance of the TopologyClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewTopologyClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) TopologyClient {
+	return TopologyClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
-// Get gets the list of all possible traffic between resources for the subscription and location, based on connection
-// type.
+// Get gets a specific topology component.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
-// connectionType - the type of allowed connections (Internal, External)
-func (client AllowedConnectionsClient) Get(ctx context.Context, resourceGroupName string, connectionType ConnectionType) (result AllowedConnectionsResource, err error) {
+// topologyResourceName - name of a topology resources collection.
+func (client TopologyClient) Get(ctx context.Context, resourceGroupName string, topologyResourceName string) (result TopologyResource, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AllowedConnectionsClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -67,40 +65,40 @@ func (client AllowedConnectionsClient) Get(ctx context.Context, resourceGroupNam
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AllowedConnectionsClient", "Get", err.Error())
+		return result, validation.NewError("security.TopologyClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, connectionType)
+	req, err := client.GetPreparer(ctx, resourceGroupName, topologyResourceName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client AllowedConnectionsClient) GetPreparer(ctx context.Context, resourceGroupName string, connectionType ConnectionType) (*http.Request, error) {
+func (client TopologyClient) GetPreparer(ctx context.Context, resourceGroupName string, topologyResourceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"ascLocation":       autorest.Encode("path", client.AscLocation),
-		"connectionType":    autorest.Encode("path", connectionType),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"ascLocation":          autorest.Encode("path", client.AscLocation),
+		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
+		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
+		"topologyResourceName": autorest.Encode("path", topologyResourceName),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -108,20 +106,20 @@ func (client AllowedConnectionsClient) GetPreparer(ctx context.Context, resource
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/locations/{ascLocation}/allowedConnections/{connectionType}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Security/locations/{ascLocation}/topologies/{topologyResourceName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client AllowedConnectionsClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client TopologyClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client AllowedConnectionsClient) GetResponder(resp *http.Response) (result AllowedConnectionsResource, err error) {
+func (client TopologyClient) GetResponder(resp *http.Response) (result TopologyResource, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -131,14 +129,14 @@ func (client AllowedConnectionsClient) GetResponder(resp *http.Response) (result
 	return
 }
 
-// List gets the list of all possible traffic between resources for the subscription
-func (client AllowedConnectionsClient) List(ctx context.Context) (result AllowedConnectionsListPage, err error) {
+// List gets a list that allows to build a topology view of a subscription.
+func (client TopologyClient) List(ctx context.Context) (result TopologyListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AllowedConnectionsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.List")
 		defer func() {
 			sc := -1
-			if result.ACL.Response.Response != nil {
-				sc = result.ACL.Response.Response.StatusCode
+			if result.tl.Response.Response != nil {
+				sc = result.tl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -146,28 +144,28 @@ func (client AllowedConnectionsClient) List(ctx context.Context) (result Allowed
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AllowedConnectionsClient", "List", err.Error())
+		return result, validation.NewError("security.TopologyClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.ACL.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "List", resp, "Failure sending request")
+		result.tl.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.ACL, err = client.ListResponder(resp)
+	result.tl, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "List", resp, "Failure responding to request")
 	}
-	if result.ACL.hasNextLink() && result.ACL.IsEmpty() {
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 	}
 
@@ -175,12 +173,12 @@ func (client AllowedConnectionsClient) List(ctx context.Context) (result Allowed
 }
 
 // ListPreparer prepares the List request.
-func (client AllowedConnectionsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+func (client TopologyClient) ListPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,20 +186,20 @@ func (client AllowedConnectionsClient) ListPreparer(ctx context.Context) (*http.
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/allowedConnections", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/topologies", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client AllowedConnectionsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client TopologyClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client AllowedConnectionsClient) ListResponder(resp *http.Response) (result AllowedConnectionsList, err error) {
+func (client TopologyClient) ListResponder(resp *http.Response) (result TopologyList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -212,10 +210,10 @@ func (client AllowedConnectionsClient) ListResponder(resp *http.Response) (resul
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client AllowedConnectionsClient) listNextResults(ctx context.Context, lastResults AllowedConnectionsList) (result AllowedConnectionsList, err error) {
-	req, err := lastResults.allowedConnectionsListPreparer(ctx)
+func (client TopologyClient) listNextResults(ctx context.Context, lastResults TopologyList) (result TopologyList, err error) {
+	req, err := lastResults.topologyListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "security.TopologyClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -223,19 +221,19 @@ func (client AllowedConnectionsClient) listNextResults(ctx context.Context, last
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "security.TopologyClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AllowedConnectionsClient) ListComplete(ctx context.Context) (result AllowedConnectionsListIterator, err error) {
+func (client TopologyClient) ListComplete(ctx context.Context) (result TopologyListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AllowedConnectionsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -248,14 +246,14 @@ func (client AllowedConnectionsClient) ListComplete(ctx context.Context) (result
 	return
 }
 
-// ListByHomeRegion gets the list of all possible traffic between resources for the subscription and location.
-func (client AllowedConnectionsClient) ListByHomeRegion(ctx context.Context) (result AllowedConnectionsListPage, err error) {
+// ListByHomeRegion gets a list that allows to build a topology view of a subscription and location.
+func (client TopologyClient) ListByHomeRegion(ctx context.Context) (result TopologyListPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AllowedConnectionsClient.ListByHomeRegion")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.ListByHomeRegion")
 		defer func() {
 			sc := -1
-			if result.ACL.Response.Response != nil {
-				sc = result.ACL.Response.Response.StatusCode
+			if result.tl.Response.Response != nil {
+				sc = result.tl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -263,28 +261,28 @@ func (client AllowedConnectionsClient) ListByHomeRegion(ctx context.Context) (re
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("security.AllowedConnectionsClient", "ListByHomeRegion", err.Error())
+		return result, validation.NewError("security.TopologyClient", "ListByHomeRegion", err.Error())
 	}
 
 	result.fn = client.listByHomeRegionNextResults
 	req, err := client.ListByHomeRegionPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "ListByHomeRegion", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "ListByHomeRegion", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListByHomeRegionSender(req)
 	if err != nil {
-		result.ACL.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "ListByHomeRegion", resp, "Failure sending request")
+		result.tl.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "ListByHomeRegion", resp, "Failure sending request")
 		return
 	}
 
-	result.ACL, err = client.ListByHomeRegionResponder(resp)
+	result.tl, err = client.ListByHomeRegionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "ListByHomeRegion", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "ListByHomeRegion", resp, "Failure responding to request")
 	}
-	if result.ACL.hasNextLink() && result.ACL.IsEmpty() {
+	if result.tl.hasNextLink() && result.tl.IsEmpty() {
 		err = result.NextWithContext(ctx)
 	}
 
@@ -292,13 +290,13 @@ func (client AllowedConnectionsClient) ListByHomeRegion(ctx context.Context) (re
 }
 
 // ListByHomeRegionPreparer prepares the ListByHomeRegion request.
-func (client AllowedConnectionsClient) ListByHomeRegionPreparer(ctx context.Context) (*http.Request, error) {
+func (client TopologyClient) ListByHomeRegionPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"ascLocation":    autorest.Encode("path", client.AscLocation),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -306,20 +304,20 @@ func (client AllowedConnectionsClient) ListByHomeRegionPreparer(ctx context.Cont
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/locations/{ascLocation}/allowedConnections", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/locations/{ascLocation}/topologies", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListByHomeRegionSender sends the ListByHomeRegion request. The method will close the
 // http.Response Body if it receives an error.
-func (client AllowedConnectionsClient) ListByHomeRegionSender(req *http.Request) (*http.Response, error) {
+func (client TopologyClient) ListByHomeRegionSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByHomeRegionResponder handles the response to the ListByHomeRegion request. The method always
 // closes the http.Response Body.
-func (client AllowedConnectionsClient) ListByHomeRegionResponder(resp *http.Response) (result AllowedConnectionsList, err error) {
+func (client TopologyClient) ListByHomeRegionResponder(resp *http.Response) (result TopologyList, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -330,10 +328,10 @@ func (client AllowedConnectionsClient) ListByHomeRegionResponder(resp *http.Resp
 }
 
 // listByHomeRegionNextResults retrieves the next set of results, if any.
-func (client AllowedConnectionsClient) listByHomeRegionNextResults(ctx context.Context, lastResults AllowedConnectionsList) (result AllowedConnectionsList, err error) {
-	req, err := lastResults.allowedConnectionsListPreparer(ctx)
+func (client TopologyClient) listByHomeRegionNextResults(ctx context.Context, lastResults TopologyList) (result TopologyList, err error) {
+	req, err := lastResults.topologyListPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "listByHomeRegionNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "security.TopologyClient", "listByHomeRegionNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -341,19 +339,19 @@ func (client AllowedConnectionsClient) listByHomeRegionNextResults(ctx context.C
 	resp, err := client.ListByHomeRegionSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "listByHomeRegionNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "security.TopologyClient", "listByHomeRegionNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListByHomeRegionResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "security.AllowedConnectionsClient", "listByHomeRegionNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "security.TopologyClient", "listByHomeRegionNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListByHomeRegionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AllowedConnectionsClient) ListByHomeRegionComplete(ctx context.Context) (result AllowedConnectionsListIterator, err error) {
+func (client TopologyClient) ListByHomeRegionComplete(ctx context.Context) (result TopologyListIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/AllowedConnectionsClient.ListByHomeRegion")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopologyClient.ListByHomeRegion")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {

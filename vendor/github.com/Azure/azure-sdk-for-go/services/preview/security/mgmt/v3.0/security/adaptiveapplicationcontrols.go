@@ -43,9 +43,9 @@ func NewAdaptiveApplicationControlsClientWithBaseURI(baseURI string, subscriptio
 	return AdaptiveApplicationControlsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
-// Delete delete an application control VM/server group
+// Delete delete an application control machine group
 // Parameters:
-// groupName - name of an application control VM/server group
+// groupName - name of an application control machine group
 func (client AdaptiveApplicationControlsClient) Delete(ctx context.Context, groupName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AdaptiveApplicationControlsClient.Delete")
@@ -92,7 +92,7 @@ func (client AdaptiveApplicationControlsClient) DeletePreparer(ctx context.Conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -124,8 +124,8 @@ func (client AdaptiveApplicationControlsClient) DeleteResponder(resp *http.Respo
 
 // Get gets an application control VM/server group.
 // Parameters:
-// groupName - name of an application control VM/server group
-func (client AdaptiveApplicationControlsClient) Get(ctx context.Context, groupName string) (result AppWhitelistingGroup, err error) {
+// groupName - name of an application control machine group
+func (client AdaptiveApplicationControlsClient) Get(ctx context.Context, groupName string) (result AdaptiveApplicationControlGroup, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AdaptiveApplicationControlsClient.Get")
 		defer func() {
@@ -171,7 +171,7 @@ func (client AdaptiveApplicationControlsClient) GetPreparer(ctx context.Context,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -192,7 +192,7 @@ func (client AdaptiveApplicationControlsClient) GetSender(req *http.Request) (*h
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client AdaptiveApplicationControlsClient) GetResponder(resp *http.Response) (result AppWhitelistingGroup, err error) {
+func (client AdaptiveApplicationControlsClient) GetResponder(resp *http.Response) (result AdaptiveApplicationControlGroup, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -202,11 +202,11 @@ func (client AdaptiveApplicationControlsClient) GetResponder(resp *http.Response
 	return
 }
 
-// List gets a list of application control VM/server groups for the subscription.
+// List gets a list of application control machine groups for the subscription.
 // Parameters:
 // includePathRecommendations - include the policy rules
 // summary - return output in a summarized form
-func (client AdaptiveApplicationControlsClient) List(ctx context.Context, includePathRecommendations *bool, summary *bool) (result AppWhitelistingGroups, err error) {
+func (client AdaptiveApplicationControlsClient) List(ctx context.Context, includePathRecommendations *bool, summary *bool) (result AdaptiveApplicationControlGroups, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AdaptiveApplicationControlsClient.List")
 		defer func() {
@@ -250,7 +250,7 @@ func (client AdaptiveApplicationControlsClient) ListPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -277,7 +277,7 @@ func (client AdaptiveApplicationControlsClient) ListSender(req *http.Request) (*
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client AdaptiveApplicationControlsClient) ListResponder(resp *http.Response) (result AppWhitelistingGroups, err error) {
+func (client AdaptiveApplicationControlsClient) ListResponder(resp *http.Response) (result AdaptiveApplicationControlGroups, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -287,11 +287,10 @@ func (client AdaptiveApplicationControlsClient) ListResponder(resp *http.Respons
 	return
 }
 
-// Put update an application control VM/server group
+// Put update an application control machine group
 // Parameters:
-// groupName - name of an application control VM/server group
-// body - the updated VM/server group data
-func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, groupName string, body AppWhitelistingPutGroupData) (result AppWhitelistingGroup, err error) {
+// groupName - name of an application control machine group
+func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, groupName string, body AdaptiveApplicationControlGroup) (result AdaptiveApplicationControlGroup, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AdaptiveApplicationControlsClient.Put")
 		defer func() {
@@ -304,7 +303,9 @@ func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, groupNa
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}},
+		{TargetValue: body,
+			Constraints: []validation.Constraint{{Target: "body.AdaptiveApplicationControlGroupData", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("security.AdaptiveApplicationControlsClient", "Put", err.Error())
 	}
 
@@ -330,18 +331,22 @@ func (client AdaptiveApplicationControlsClient) Put(ctx context.Context, groupNa
 }
 
 // PutPreparer prepares the Put request.
-func (client AdaptiveApplicationControlsClient) PutPreparer(ctx context.Context, groupName string, body AppWhitelistingPutGroupData) (*http.Request, error) {
+func (client AdaptiveApplicationControlsClient) PutPreparer(ctx context.Context, groupName string, body AdaptiveApplicationControlGroup) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"ascLocation":    autorest.Encode("path", client.AscLocation),
 		"groupName":      autorest.Encode("path", groupName),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-06-01-preview"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	body.ID = nil
+	body.Name = nil
+	body.Type = nil
+	body.Location = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -360,7 +365,7 @@ func (client AdaptiveApplicationControlsClient) PutSender(req *http.Request) (*h
 
 // PutResponder handles the response to the Put request. The method always
 // closes the http.Response Body.
-func (client AdaptiveApplicationControlsClient) PutResponder(resp *http.Response) (result AppWhitelistingGroup, err error) {
+func (client AdaptiveApplicationControlsClient) PutResponder(resp *http.Response) (result AdaptiveApplicationControlGroup, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),

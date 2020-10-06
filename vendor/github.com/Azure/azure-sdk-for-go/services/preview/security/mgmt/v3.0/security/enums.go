@@ -70,6 +70,49 @@ func PossibleActionTypeValues() []ActionType {
 	return []ActionType{ActionTypeAutomationAction, ActionTypeEventHub, ActionTypeLogicApp, ActionTypeWorkspace}
 }
 
+// AlertIntent enumerates the values for alert intent.
+type AlertIntent string
+
+const (
+	// Collection ...
+	Collection AlertIntent = "Collection"
+	// CommandAndControl ...
+	CommandAndControl AlertIntent = "CommandAndControl"
+	// CredentialAccess ...
+	CredentialAccess AlertIntent = "CredentialAccess"
+	// DefenseEvasion ...
+	DefenseEvasion AlertIntent = "DefenseEvasion"
+	// Discovery ...
+	Discovery AlertIntent = "Discovery"
+	// Execution ...
+	Execution AlertIntent = "Execution"
+	// Exfiltration ...
+	Exfiltration AlertIntent = "Exfiltration"
+	// Exploitation ...
+	Exploitation AlertIntent = "Exploitation"
+	// Impact ...
+	Impact AlertIntent = "Impact"
+	// InitialAccess ...
+	InitialAccess AlertIntent = "InitialAccess"
+	// LateralMovement ...
+	LateralMovement AlertIntent = "LateralMovement"
+	// Persistence ...
+	Persistence AlertIntent = "Persistence"
+	// PreAttack ...
+	PreAttack AlertIntent = "PreAttack"
+	// PrivilegeEscalation ...
+	PrivilegeEscalation AlertIntent = "PrivilegeEscalation"
+	// Probing ...
+	Probing AlertIntent = "Probing"
+	// Unknown ...
+	Unknown AlertIntent = "Unknown"
+)
+
+// PossibleAlertIntentValues returns an array of possible values for the AlertIntent const type.
+func PossibleAlertIntentValues() []AlertIntent {
+	return []AlertIntent{Collection, CommandAndControl, CredentialAccess, DefenseEvasion, Discovery, Execution, Exfiltration, Exploitation, Impact, InitialAccess, LateralMovement, Persistence, PreAttack, PrivilegeEscalation, Probing, Unknown}
+}
+
 // AlertNotifications enumerates the values for alert notifications.
 type AlertNotifications string
 
@@ -83,6 +126,25 @@ const (
 // PossibleAlertNotificationsValues returns an array of possible values for the AlertNotifications const type.
 func PossibleAlertNotificationsValues() []AlertNotifications {
 	return []AlertNotifications{Off, On}
+}
+
+// AlertSeverity enumerates the values for alert severity.
+type AlertSeverity string
+
+const (
+	// High ...
+	High AlertSeverity = "High"
+	// Informational ...
+	Informational AlertSeverity = "Informational"
+	// Low ...
+	Low AlertSeverity = "Low"
+	// Medium ...
+	Medium AlertSeverity = "Medium"
+)
+
+// PossibleAlertSeverityValues returns an array of possible values for the AlertSeverity const type.
+func PossibleAlertSeverityValues() []AlertSeverity {
+	return []AlertSeverity{High, Informational, Low, Medium}
 }
 
 // AlertsToAdmins enumerates the values for alerts to admins.
@@ -117,6 +179,44 @@ const (
 // PossibleAssessedResourceTypeValues returns an array of possible values for the AssessedResourceType const type.
 func PossibleAssessedResourceTypeValues() []AssessedResourceType {
 	return []AssessedResourceType{AssessedResourceTypeAdditionalData, AssessedResourceTypeContainerRegistryVulnerability, AssessedResourceTypeServerVulnerabilityAssessment, AssessedResourceTypeSQLServerVulnerability}
+}
+
+// AssessmentStatusCode enumerates the values for assessment status code.
+type AssessmentStatusCode string
+
+const (
+	// Healthy The resource is healthy
+	Healthy AssessmentStatusCode = "Healthy"
+	// NotApplicable Assessment for this resource did not happen
+	NotApplicable AssessmentStatusCode = "NotApplicable"
+	// Unhealthy The resource has a security issue that needs to be addressed
+	Unhealthy AssessmentStatusCode = "Unhealthy"
+)
+
+// PossibleAssessmentStatusCodeValues returns an array of possible values for the AssessmentStatusCode const type.
+func PossibleAssessmentStatusCodeValues() []AssessmentStatusCode {
+	return []AssessmentStatusCode{Healthy, NotApplicable, Unhealthy}
+}
+
+// AssessmentType enumerates the values for assessment type.
+type AssessmentType string
+
+const (
+	// BuiltIn Azure Security Center managed assessments
+	BuiltIn AssessmentType = "BuiltIn"
+	// CustomerManaged User assessments pushed directly by the user or other third party to Azure Security
+	// Center
+	CustomerManaged AssessmentType = "CustomerManaged"
+	// CustomPolicy User defined policies that are automatically ingested from Azure Policy to Azure Security
+	// Center
+	CustomPolicy AssessmentType = "CustomPolicy"
+	// VerifiedPartner An assessment that was created by a verified 3rd party if the user connected it to ASC
+	VerifiedPartner AssessmentType = "VerifiedPartner"
+)
+
+// PossibleAssessmentTypeValues returns an array of possible values for the AssessmentType const type.
+func PossibleAssessmentTypeValues() []AssessmentType {
+	return []AssessmentType{BuiltIn, CustomerManaged, CustomPolicy, VerifiedPartner}
 }
 
 // AuthenticationProvisioningState enumerates the values for authentication provisioning state.
@@ -161,15 +261,36 @@ func PossibleAuthenticationTypeValues() []AuthenticationType {
 type AutoProvision string
 
 const (
-	// AutoProvisionOff Do not install Azure Arc agent on the VMs automatically
+	// AutoProvisionOff Do not install security agent on the VMs automatically
 	AutoProvisionOff AutoProvision = "Off"
-	// AutoProvisionOn Install missing Azure Arc agent on VMs automatically
+	// AutoProvisionOn Install missing security agent on VMs automatically
 	AutoProvisionOn AutoProvision = "On"
 )
 
 // PossibleAutoProvisionValues returns an array of possible values for the AutoProvision const type.
 func PossibleAutoProvisionValues() []AutoProvision {
 	return []AutoProvision{AutoProvisionOff, AutoProvisionOn}
+}
+
+// Category enumerates the values for category.
+type Category string
+
+const (
+	// Compute ...
+	Compute Category = "Compute"
+	// Data ...
+	Data Category = "Data"
+	// IdentityAndAccess ...
+	IdentityAndAccess Category = "IdentityAndAccess"
+	// IoT ...
+	IoT Category = "IoT"
+	// Networking ...
+	Networking Category = "Networking"
+)
+
+// PossibleCategoryValues returns an array of possible values for the Category const type.
+func PossibleCategoryValues() []Category {
+	return []Category{Compute, Data, IdentityAndAccess, IoT, Networking}
 }
 
 // ConfigurationStatus enumerates the values for configuration status.
@@ -254,15 +375,28 @@ func PossibleConnectionTypeValues() []ConnectionType {
 type ControlType string
 
 const (
-	// BuiltIn Azure Security Center managed assessments
-	BuiltIn ControlType = "BuiltIn"
-	// Custom Non Azure Security Center managed assessments
-	Custom ControlType = "Custom"
+	// ControlTypeBuiltIn Azure Security Center managed assessments
+	ControlTypeBuiltIn ControlType = "BuiltIn"
+	// ControlTypeCustom Non Azure Security Center managed assessments
+	ControlTypeCustom ControlType = "Custom"
 )
 
 // PossibleControlTypeValues returns an array of possible values for the ControlType const type.
 func PossibleControlTypeValues() []ControlType {
-	return []ControlType{BuiltIn, Custom}
+	return []ControlType{ControlTypeBuiltIn, ControlTypeCustom}
+}
+
+// DataSource enumerates the values for data source.
+type DataSource string
+
+const (
+	// TwinData Devices twin data
+	TwinData DataSource = "TwinData"
+)
+
+// PossibleDataSourceValues returns an array of possible values for the DataSource const type.
+func PossibleDataSourceValues() []DataSource {
+	return []DataSource{TwinData}
 }
 
 // Direction enumerates the values for direction.
@@ -297,38 +431,21 @@ func PossibleEnforcementModeValues() []EnforcementMode {
 	return []EnforcementMode{Audit, Enforce, None}
 }
 
-// EnforcementMode1 enumerates the values for enforcement mode 1.
-type EnforcementMode1 string
-
-const (
-	// EnforcementMode1Audit ...
-	EnforcementMode1Audit EnforcementMode1 = "Audit"
-	// EnforcementMode1Enforce ...
-	EnforcementMode1Enforce EnforcementMode1 = "Enforce"
-	// EnforcementMode1None ...
-	EnforcementMode1None EnforcementMode1 = "None"
-)
-
-// PossibleEnforcementMode1Values returns an array of possible values for the EnforcementMode1 const type.
-func PossibleEnforcementMode1Values() []EnforcementMode1 {
-	return []EnforcementMode1{EnforcementMode1Audit, EnforcementMode1Enforce, EnforcementMode1None}
-}
-
 // EnforcementSupport enumerates the values for enforcement support.
 type EnforcementSupport string
 
 const (
-	// NotSupported ...
-	NotSupported EnforcementSupport = "NotSupported"
-	// Supported ...
-	Supported EnforcementSupport = "Supported"
-	// Unknown ...
-	Unknown EnforcementSupport = "Unknown"
+	// EnforcementSupportNotSupported ...
+	EnforcementSupportNotSupported EnforcementSupport = "NotSupported"
+	// EnforcementSupportSupported ...
+	EnforcementSupportSupported EnforcementSupport = "Supported"
+	// EnforcementSupportUnknown ...
+	EnforcementSupportUnknown EnforcementSupport = "Unknown"
 )
 
 // PossibleEnforcementSupportValues returns an array of possible values for the EnforcementSupport const type.
 func PossibleEnforcementSupportValues() []EnforcementSupport {
-	return []EnforcementSupport{NotSupported, Supported, Unknown}
+	return []EnforcementSupport{EnforcementSupportNotSupported, EnforcementSupportSupported, EnforcementSupportUnknown}
 }
 
 // EventSource enumerates the values for event source.
@@ -391,6 +508,34 @@ const (
 // PossibleExpandControlsEnumValues returns an array of possible values for the ExpandControlsEnum const type.
 func PossibleExpandControlsEnumValues() []ExpandControlsEnum {
 	return []ExpandControlsEnum{Definition}
+}
+
+// ExpandEnum enumerates the values for expand enum.
+type ExpandEnum string
+
+const (
+	// Links All links associated with an assessment
+	Links ExpandEnum = "links"
+	// Metadata Assessment metadata
+	Metadata ExpandEnum = "metadata"
+)
+
+// PossibleExpandEnumValues returns an array of possible values for the ExpandEnum const type.
+func PossibleExpandEnumValues() []ExpandEnum {
+	return []ExpandEnum{Links, Metadata}
+}
+
+// ExportData enumerates the values for export data.
+type ExportData string
+
+const (
+	// RawEvents Agent raw events
+	RawEvents ExportData = "RawEvents"
+)
+
+// PossibleExportDataValues returns an array of possible values for the ExportData const type.
+func PossibleExportDataValues() []ExportData {
+	return []ExportData{RawEvents}
 }
 
 // ExternalSecuritySolutionKind enumerates the values for external security solution kind.
@@ -469,6 +614,23 @@ func PossibleHybridComputeProvisioningStateValues() []HybridComputeProvisioningS
 	return []HybridComputeProvisioningState{HybridComputeProvisioningStateExpired, HybridComputeProvisioningStateInvalid, HybridComputeProvisioningStateValid}
 }
 
+// ImplementationEffort enumerates the values for implementation effort.
+type ImplementationEffort string
+
+const (
+	// ImplementationEffortHigh ...
+	ImplementationEffortHigh ImplementationEffort = "High"
+	// ImplementationEffortLow ...
+	ImplementationEffortLow ImplementationEffort = "Low"
+	// ImplementationEffortModerate ...
+	ImplementationEffortModerate ImplementationEffort = "Moderate"
+)
+
+// PossibleImplementationEffortValues returns an array of possible values for the ImplementationEffort const type.
+func PossibleImplementationEffortValues() []ImplementationEffort {
+	return []ImplementationEffort{ImplementationEffortHigh, ImplementationEffortLow, ImplementationEffortModerate}
+}
+
 // Issue enumerates the values for issue.
 type Issue string
 
@@ -496,19 +658,36 @@ func PossibleIssueValues() []Issue {
 type KindEnum string
 
 const (
-	// KindAAD ...
-	KindAAD KindEnum = "AAD"
-	// KindATA ...
-	KindATA KindEnum = "ATA"
-	// KindCEF ...
-	KindCEF KindEnum = "CEF"
-	// KindExternalSecuritySolution ...
-	KindExternalSecuritySolution KindEnum = "ExternalSecuritySolution"
+	// KindDataExportSettings ...
+	KindDataExportSettings KindEnum = "DataExportSettings"
+	// KindSetting ...
+	KindSetting KindEnum = "Setting"
+	// KindSettingResource ...
+	KindSettingResource KindEnum = "SettingResource"
 )
 
 // PossibleKindEnumValues returns an array of possible values for the KindEnum const type.
 func PossibleKindEnumValues() []KindEnum {
-	return []KindEnum{KindAAD, KindATA, KindCEF, KindExternalSecuritySolution}
+	return []KindEnum{KindDataExportSettings, KindSetting, KindSettingResource}
+}
+
+// KindEnum1 enumerates the values for kind enum 1.
+type KindEnum1 string
+
+const (
+	// KindAAD ...
+	KindAAD KindEnum1 = "AAD"
+	// KindATA ...
+	KindATA KindEnum1 = "ATA"
+	// KindCEF ...
+	KindCEF KindEnum1 = "CEF"
+	// KindExternalSecuritySolution ...
+	KindExternalSecuritySolution KindEnum1 = "ExternalSecuritySolution"
+)
+
+// PossibleKindEnum1Values returns an array of possible values for the KindEnum1 const type.
+func PossibleKindEnum1Values() []KindEnum1 {
+	return []KindEnum1{KindAAD, KindATA, KindCEF, KindExternalSecuritySolution}
 }
 
 // Msi enumerates the values for msi.
@@ -628,6 +807,44 @@ func PossibleProtocolValues() []Protocol {
 	return []Protocol{All, TCP, UDP}
 }
 
+// ProvisioningState enumerates the values for provisioning state.
+type ProvisioningState string
+
+const (
+	// ProvisioningStateFailed ...
+	ProvisioningStateFailed ProvisioningState = "Failed"
+	// ProvisioningStateSucceeded ...
+	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+	// ProvisioningStateUpdating ...
+	ProvisioningStateUpdating ProvisioningState = "Updating"
+)
+
+// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
+func PossibleProvisioningStateValues() []ProvisioningState {
+	return []ProvisioningState{ProvisioningStateFailed, ProvisioningStateSucceeded, ProvisioningStateUpdating}
+}
+
+// ProvisioningState1 enumerates the values for provisioning state 1.
+type ProvisioningState1 string
+
+const (
+	// ProvisioningState1Canceled ...
+	ProvisioningState1Canceled ProvisioningState1 = "Canceled"
+	// ProvisioningState1Deprovisioning ...
+	ProvisioningState1Deprovisioning ProvisioningState1 = "Deprovisioning"
+	// ProvisioningState1Failed ...
+	ProvisioningState1Failed ProvisioningState1 = "Failed"
+	// ProvisioningState1Provisioning ...
+	ProvisioningState1Provisioning ProvisioningState1 = "Provisioning"
+	// ProvisioningState1Succeeded ...
+	ProvisioningState1Succeeded ProvisioningState1 = "Succeeded"
+)
+
+// PossibleProvisioningState1Values returns an array of possible values for the ProvisioningState1 const type.
+func PossibleProvisioningState1Values() []ProvisioningState1 {
+	return []ProvisioningState1{ProvisioningState1Canceled, ProvisioningState1Deprovisioning, ProvisioningState1Failed, ProvisioningState1Provisioning, ProvisioningState1Succeeded}
+}
+
 // Rank enumerates the values for rank.
 type Rank string
 
@@ -683,6 +900,46 @@ func PossibleRecommendationAction1Values() []RecommendationAction1 {
 	return []RecommendationAction1{RecommendationAction1Add, RecommendationAction1Recommended, RecommendationAction1Remove}
 }
 
+// RecommendationConfigStatus enumerates the values for recommendation config status.
+type RecommendationConfigStatus string
+
+const (
+	// Disabled ...
+	Disabled RecommendationConfigStatus = "Disabled"
+	// Enabled ...
+	Enabled RecommendationConfigStatus = "Enabled"
+)
+
+// PossibleRecommendationConfigStatusValues returns an array of possible values for the RecommendationConfigStatus const type.
+func PossibleRecommendationConfigStatusValues() []RecommendationConfigStatus {
+	return []RecommendationConfigStatus{Disabled, Enabled}
+}
+
+// RecommendationSeverity enumerates the values for recommendation severity.
+type RecommendationSeverity string
+
+const (
+	// RecommendationSeverityHealthy ...
+	RecommendationSeverityHealthy RecommendationSeverity = "Healthy"
+	// RecommendationSeverityHigh ...
+	RecommendationSeverityHigh RecommendationSeverity = "High"
+	// RecommendationSeverityLow ...
+	RecommendationSeverityLow RecommendationSeverity = "Low"
+	// RecommendationSeverityMedium ...
+	RecommendationSeverityMedium RecommendationSeverity = "Medium"
+	// RecommendationSeverityNotApplicable ...
+	RecommendationSeverityNotApplicable RecommendationSeverity = "NotApplicable"
+	// RecommendationSeverityOffByPolicy ...
+	RecommendationSeverityOffByPolicy RecommendationSeverity = "OffByPolicy"
+	// RecommendationSeverityUnknown ...
+	RecommendationSeverityUnknown RecommendationSeverity = "Unknown"
+)
+
+// PossibleRecommendationSeverityValues returns an array of possible values for the RecommendationSeverity const type.
+func PossibleRecommendationSeverityValues() []RecommendationSeverity {
+	return []RecommendationSeverity{RecommendationSeverityHealthy, RecommendationSeverityHigh, RecommendationSeverityLow, RecommendationSeverityMedium, RecommendationSeverityNotApplicable, RecommendationSeverityOffByPolicy, RecommendationSeverityUnknown}
+}
+
 // RecommendationStatus enumerates the values for recommendation status.
 type RecommendationStatus string
 
@@ -702,23 +959,97 @@ func PossibleRecommendationStatusValues() []RecommendationStatus {
 	return []RecommendationStatus{RecommendationStatusNoStatus, RecommendationStatusNotAvailable, RecommendationStatusNotRecommended, RecommendationStatusRecommended}
 }
 
+// RecommendationType enumerates the values for recommendation type.
+type RecommendationType string
+
+const (
+	// IoTACRAuthentication Authentication schema used for pull an edge module from an ACR repository does not
+	// use Service Principal Authentication.
+	IoTACRAuthentication RecommendationType = "IoT_ACRAuthentication"
+	// IoTAgentSendsUnutilizedMessages IoT agent message size capacity is currently underutilized, causing an
+	// increase in the number of sent messages. Adjust message intervals for better utilization.
+	IoTAgentSendsUnutilizedMessages RecommendationType = "IoT_AgentSendsUnutilizedMessages"
+	// IoTBaseline Identified security related system configuration issues.
+	IoTBaseline RecommendationType = "IoT_Baseline"
+	// IoTEdgeHubMemOptimize You can optimize Edge Hub memory usage by turning off protocol heads for any
+	// protocols not used by Edge modules in your solution.
+	IoTEdgeHubMemOptimize RecommendationType = "IoT_EdgeHubMemOptimize"
+	// IoTEdgeLoggingOptions Logging is disabled for this edge module.
+	IoTEdgeLoggingOptions RecommendationType = "IoT_EdgeLoggingOptions"
+	// IoTInconsistentModuleSettings A minority within a device security group has inconsistent Edge Module
+	// settings with the rest of their group.
+	IoTInconsistentModuleSettings RecommendationType = "IoT_InconsistentModuleSettings"
+	// IoTInstallAgent Install the Azure Security of Things Agent.
+	IoTInstallAgent RecommendationType = "IoT_InstallAgent"
+	// IoTIPFilterDenyAll IP Filter Configuration should have rules defined for allowed traffic and should deny
+	// all other traffic by default.
+	IoTIPFilterDenyAll RecommendationType = "IoT_IPFilter_DenyAll"
+	// IoTIPFilterPermissiveRule An Allow IP Filter rules source IP range is too large. Overly permissive rules
+	// might expose your IoT hub to malicious intenders.
+	IoTIPFilterPermissiveRule RecommendationType = "IoT_IPFilter_PermissiveRule"
+	// IoTOpenPorts A listening endpoint was found on the device.
+	IoTOpenPorts RecommendationType = "IoT_OpenPorts"
+	// IoTPermissiveFirewallPolicy An Allowed firewall policy was found (INPUT/OUTPUT). The policy should Deny
+	// all traffic by default and define rules to allow necessary communication to/from the device.
+	IoTPermissiveFirewallPolicy RecommendationType = "IoT_PermissiveFirewallPolicy"
+	// IoTPermissiveInputFirewallRules A rule in the firewall has been found that contains a permissive pattern
+	// for a wide range of IP addresses or Ports.
+	IoTPermissiveInputFirewallRules RecommendationType = "IoT_PermissiveInputFirewallRules"
+	// IoTPermissiveOutputFirewallRules A rule in the firewall has been found that contains a permissive
+	// pattern for a wide range of IP addresses or Ports.
+	IoTPermissiveOutputFirewallRules RecommendationType = "IoT_PermissiveOutputFirewallRules"
+	// IoTPrivilegedDockerOptions Edge module is configured to run in privileged mode, with extensive Linux
+	// capabilities or with host-level network access (send/receive data to host machine).
+	IoTPrivilegedDockerOptions RecommendationType = "IoT_PrivilegedDockerOptions"
+	// IoTSharedCredentials Same authentication credentials to the IoT Hub used by multiple devices. This could
+	// indicate an illegitimate device impersonating a legitimate device. It also exposes the risk of device
+	// impersonation by an attacker.
+	IoTSharedCredentials RecommendationType = "IoT_SharedCredentials"
+	// IoTVulnerableTLSCipherSuite Insecure TLS configurations detected. Immediate upgrade recommended.
+	IoTVulnerableTLSCipherSuite RecommendationType = "IoT_VulnerableTLSCipherSuite"
+)
+
+// PossibleRecommendationTypeValues returns an array of possible values for the RecommendationType const type.
+func PossibleRecommendationTypeValues() []RecommendationType {
+	return []RecommendationType{IoTACRAuthentication, IoTAgentSendsUnutilizedMessages, IoTBaseline, IoTEdgeHubMemOptimize, IoTEdgeLoggingOptions, IoTInconsistentModuleSettings, IoTInstallAgent, IoTIPFilterDenyAll, IoTIPFilterPermissiveRule, IoTOpenPorts, IoTPermissiveFirewallPolicy, IoTPermissiveInputFirewallRules, IoTPermissiveOutputFirewallRules, IoTPrivilegedDockerOptions, IoTSharedCredentials, IoTVulnerableTLSCipherSuite}
+}
+
 // ReportedSeverity enumerates the values for reported severity.
 type ReportedSeverity string
 
 const (
-	// High ...
-	High ReportedSeverity = "High"
-	// Information ...
-	Information ReportedSeverity = "Information"
-	// Low ...
-	Low ReportedSeverity = "Low"
-	// Silent ...
-	Silent ReportedSeverity = "Silent"
+	// ReportedSeverityHigh ...
+	ReportedSeverityHigh ReportedSeverity = "High"
+	// ReportedSeverityInformational ...
+	ReportedSeverityInformational ReportedSeverity = "Informational"
+	// ReportedSeverityLow ...
+	ReportedSeverityLow ReportedSeverity = "Low"
+	// ReportedSeverityMedium ...
+	ReportedSeverityMedium ReportedSeverity = "Medium"
 )
 
 // PossibleReportedSeverityValues returns an array of possible values for the ReportedSeverity const type.
 func PossibleReportedSeverityValues() []ReportedSeverity {
-	return []ReportedSeverity{High, Information, Low, Silent}
+	return []ReportedSeverity{ReportedSeverityHigh, ReportedSeverityInformational, ReportedSeverityLow, ReportedSeverityMedium}
+}
+
+// ResourceStatus enumerates the values for resource status.
+type ResourceStatus string
+
+const (
+	// ResourceStatusHealthy This assessment on the resource is healthy
+	ResourceStatusHealthy ResourceStatus = "Healthy"
+	// ResourceStatusNotApplicable This assessment is not applicable to this resource
+	ResourceStatusNotApplicable ResourceStatus = "NotApplicable"
+	// ResourceStatusNotHealthy This assessment on the resource is not healthy
+	ResourceStatusNotHealthy ResourceStatus = "NotHealthy"
+	// ResourceStatusOffByPolicy This assessment is turned off by policy on this subscription
+	ResourceStatusOffByPolicy ResourceStatus = "OffByPolicy"
+)
+
+// PossibleResourceStatusValues returns an array of possible values for the ResourceStatus const type.
+func PossibleResourceStatusValues() []ResourceStatus {
+	return []ResourceStatus{ResourceStatusHealthy, ResourceStatusNotApplicable, ResourceStatusNotHealthy, ResourceStatusOffByPolicy}
 }
 
 // RuleState enumerates the values for rule state.
@@ -738,6 +1069,67 @@ func PossibleRuleStateValues() []RuleState {
 	return []RuleState{RuleStateDisabled, RuleStateEnabled, RuleStateExpired}
 }
 
+// RuleType enumerates the values for rule type.
+type RuleType string
+
+const (
+	// RuleTypeActiveConnectionsNotInAllowedRange ...
+	RuleTypeActiveConnectionsNotInAllowedRange RuleType = "ActiveConnectionsNotInAllowedRange"
+	// RuleTypeAllowlistCustomAlertRule ...
+	RuleTypeAllowlistCustomAlertRule RuleType = "AllowlistCustomAlertRule"
+	// RuleTypeAmqpC2DMessagesNotInAllowedRange ...
+	RuleTypeAmqpC2DMessagesNotInAllowedRange RuleType = "AmqpC2DMessagesNotInAllowedRange"
+	// RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange ...
+	RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange RuleType = "AmqpC2DRejectedMessagesNotInAllowedRange"
+	// RuleTypeAmqpD2CMessagesNotInAllowedRange ...
+	RuleTypeAmqpD2CMessagesNotInAllowedRange RuleType = "AmqpD2CMessagesNotInAllowedRange"
+	// RuleTypeConnectionToIPNotAllowed ...
+	RuleTypeConnectionToIPNotAllowed RuleType = "ConnectionToIpNotAllowed"
+	// RuleTypeCustomAlertRule ...
+	RuleTypeCustomAlertRule RuleType = "CustomAlertRule"
+	// RuleTypeDenylistCustomAlertRule ...
+	RuleTypeDenylistCustomAlertRule RuleType = "DenylistCustomAlertRule"
+	// RuleTypeDirectMethodInvokesNotInAllowedRange ...
+	RuleTypeDirectMethodInvokesNotInAllowedRange RuleType = "DirectMethodInvokesNotInAllowedRange"
+	// RuleTypeFailedLocalLoginsNotInAllowedRange ...
+	RuleTypeFailedLocalLoginsNotInAllowedRange RuleType = "FailedLocalLoginsNotInAllowedRange"
+	// RuleTypeFileUploadsNotInAllowedRange ...
+	RuleTypeFileUploadsNotInAllowedRange RuleType = "FileUploadsNotInAllowedRange"
+	// RuleTypeHTTPC2DMessagesNotInAllowedRange ...
+	RuleTypeHTTPC2DMessagesNotInAllowedRange RuleType = "HttpC2DMessagesNotInAllowedRange"
+	// RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange ...
+	RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange RuleType = "HttpC2DRejectedMessagesNotInAllowedRange"
+	// RuleTypeHTTPD2CMessagesNotInAllowedRange ...
+	RuleTypeHTTPD2CMessagesNotInAllowedRange RuleType = "HttpD2CMessagesNotInAllowedRange"
+	// RuleTypeListCustomAlertRule ...
+	RuleTypeListCustomAlertRule RuleType = "ListCustomAlertRule"
+	// RuleTypeLocalUserNotAllowed ...
+	RuleTypeLocalUserNotAllowed RuleType = "LocalUserNotAllowed"
+	// RuleTypeMqttC2DMessagesNotInAllowedRange ...
+	RuleTypeMqttC2DMessagesNotInAllowedRange RuleType = "MqttC2DMessagesNotInAllowedRange"
+	// RuleTypeMqttC2DRejectedMessagesNotInAllowedRange ...
+	RuleTypeMqttC2DRejectedMessagesNotInAllowedRange RuleType = "MqttC2DRejectedMessagesNotInAllowedRange"
+	// RuleTypeMqttD2CMessagesNotInAllowedRange ...
+	RuleTypeMqttD2CMessagesNotInAllowedRange RuleType = "MqttD2CMessagesNotInAllowedRange"
+	// RuleTypeProcessNotAllowed ...
+	RuleTypeProcessNotAllowed RuleType = "ProcessNotAllowed"
+	// RuleTypeQueuePurgesNotInAllowedRange ...
+	RuleTypeQueuePurgesNotInAllowedRange RuleType = "QueuePurgesNotInAllowedRange"
+	// RuleTypeThresholdCustomAlertRule ...
+	RuleTypeThresholdCustomAlertRule RuleType = "ThresholdCustomAlertRule"
+	// RuleTypeTimeWindowCustomAlertRule ...
+	RuleTypeTimeWindowCustomAlertRule RuleType = "TimeWindowCustomAlertRule"
+	// RuleTypeTwinUpdatesNotInAllowedRange ...
+	RuleTypeTwinUpdatesNotInAllowedRange RuleType = "TwinUpdatesNotInAllowedRange"
+	// RuleTypeUnauthorizedOperationsNotInAllowedRange ...
+	RuleTypeUnauthorizedOperationsNotInAllowedRange RuleType = "UnauthorizedOperationsNotInAllowedRange"
+)
+
+// PossibleRuleTypeValues returns an array of possible values for the RuleType const type.
+func PossibleRuleTypeValues() []RuleType {
+	return []RuleType{RuleTypeActiveConnectionsNotInAllowedRange, RuleTypeAllowlistCustomAlertRule, RuleTypeAmqpC2DMessagesNotInAllowedRange, RuleTypeAmqpC2DRejectedMessagesNotInAllowedRange, RuleTypeAmqpD2CMessagesNotInAllowedRange, RuleTypeConnectionToIPNotAllowed, RuleTypeCustomAlertRule, RuleTypeDenylistCustomAlertRule, RuleTypeDirectMethodInvokesNotInAllowedRange, RuleTypeFailedLocalLoginsNotInAllowedRange, RuleTypeFileUploadsNotInAllowedRange, RuleTypeHTTPC2DMessagesNotInAllowedRange, RuleTypeHTTPC2DRejectedMessagesNotInAllowedRange, RuleTypeHTTPD2CMessagesNotInAllowedRange, RuleTypeListCustomAlertRule, RuleTypeLocalUserNotAllowed, RuleTypeMqttC2DMessagesNotInAllowedRange, RuleTypeMqttC2DRejectedMessagesNotInAllowedRange, RuleTypeMqttD2CMessagesNotInAllowedRange, RuleTypeProcessNotAllowed, RuleTypeQueuePurgesNotInAllowedRange, RuleTypeThresholdCustomAlertRule, RuleTypeTimeWindowCustomAlertRule, RuleTypeTwinUpdatesNotInAllowedRange, RuleTypeUnauthorizedOperationsNotInAllowedRange}
+}
+
 // Script enumerates the values for script.
 type Script string
 
@@ -755,21 +1147,6 @@ func PossibleScriptValues() []Script {
 	return []Script{ScriptAudit, ScriptEnforce, ScriptNone}
 }
 
-// SettingKind enumerates the values for setting kind.
-type SettingKind string
-
-const (
-	// SettingKindAlertSuppressionSetting ...
-	SettingKindAlertSuppressionSetting SettingKind = "AlertSuppressionSetting"
-	// SettingKindDataExportSetting ...
-	SettingKindDataExportSetting SettingKind = "DataExportSetting"
-)
-
-// PossibleSettingKindValues returns an array of possible values for the SettingKind const type.
-func PossibleSettingKindValues() []SettingKind {
-	return []SettingKind{SettingKindAlertSuppressionSetting, SettingKindDataExportSetting}
-}
-
 // Severity enumerates the values for severity.
 type Severity string
 
@@ -785,6 +1162,21 @@ const (
 // PossibleSeverityValues returns an array of possible values for the Severity const type.
 func PossibleSeverityValues() []Severity {
 	return []Severity{SeverityHigh, SeverityLow, SeverityMedium}
+}
+
+// SolutionStatus enumerates the values for solution status.
+type SolutionStatus string
+
+const (
+	// SolutionStatusDisabled ...
+	SolutionStatusDisabled SolutionStatus = "Disabled"
+	// SolutionStatusEnabled ...
+	SolutionStatusEnabled SolutionStatus = "Enabled"
+)
+
+// PossibleSolutionStatusValues returns an array of possible values for the SolutionStatus const type.
+func PossibleSolutionStatusValues() []SolutionStatus {
+	return []SolutionStatus{SolutionStatusDisabled, SolutionStatusEnabled}
 }
 
 // Source enumerates the values for source.
@@ -883,17 +1275,44 @@ func PossibleStatusReasonValues() []StatusReason {
 type SubAssessmentStatusCode string
 
 const (
-	// Healthy The resource is healthy
-	Healthy SubAssessmentStatusCode = "Healthy"
-	// NotApplicable Assessment for this resource did not happen
-	NotApplicable SubAssessmentStatusCode = "NotApplicable"
-	// Unhealthy The resource has a security issue that needs to be addressed
-	Unhealthy SubAssessmentStatusCode = "Unhealthy"
+	// SubAssessmentStatusCodeHealthy The resource is healthy
+	SubAssessmentStatusCodeHealthy SubAssessmentStatusCode = "Healthy"
+	// SubAssessmentStatusCodeNotApplicable Assessment for this resource did not happen
+	SubAssessmentStatusCodeNotApplicable SubAssessmentStatusCode = "NotApplicable"
+	// SubAssessmentStatusCodeUnhealthy The resource has a security issue that needs to be addressed
+	SubAssessmentStatusCodeUnhealthy SubAssessmentStatusCode = "Unhealthy"
 )
 
 // PossibleSubAssessmentStatusCodeValues returns an array of possible values for the SubAssessmentStatusCode const type.
 func PossibleSubAssessmentStatusCodeValues() []SubAssessmentStatusCode {
-	return []SubAssessmentStatusCode{Healthy, NotApplicable, Unhealthy}
+	return []SubAssessmentStatusCode{SubAssessmentStatusCodeHealthy, SubAssessmentStatusCodeNotApplicable, SubAssessmentStatusCodeUnhealthy}
+}
+
+// Threats enumerates the values for threats.
+type Threats string
+
+const (
+	// AccountBreach ...
+	AccountBreach Threats = "accountBreach"
+	// DataExfiltration ...
+	DataExfiltration Threats = "dataExfiltration"
+	// DataSpillage ...
+	DataSpillage Threats = "dataSpillage"
+	// DenialOfService ...
+	DenialOfService Threats = "denialOfService"
+	// ElevationOfPrivilege ...
+	ElevationOfPrivilege Threats = "elevationOfPrivilege"
+	// MaliciousInsider ...
+	MaliciousInsider Threats = "maliciousInsider"
+	// MissingCoverage ...
+	MissingCoverage Threats = "missingCoverage"
+	// ThreatResistance ...
+	ThreatResistance Threats = "threatResistance"
+)
+
+// PossibleThreatsValues returns an array of possible values for the Threats const type.
+func PossibleThreatsValues() []Threats {
+	return []Threats{AccountBreach, DataExfiltration, DataSpillage, DenialOfService, ElevationOfPrivilege, MaliciousInsider, MissingCoverage, ThreatResistance}
 }
 
 // TransportProtocol enumerates the values for transport protocol.
@@ -932,6 +1351,38 @@ const (
 // PossibleTypeValues returns an array of possible values for the Type const type.
 func PossibleTypeValues() []Type {
 	return []Type{BinarySignature, File, FileHash, ProductSignature, PublisherSignature, VersionAndAboveSignature}
+}
+
+// UnmaskedIPLoggingStatus enumerates the values for unmasked ip logging status.
+type UnmaskedIPLoggingStatus string
+
+const (
+	// UnmaskedIPLoggingStatusDisabled Unmasked IP logging is disabled
+	UnmaskedIPLoggingStatusDisabled UnmaskedIPLoggingStatus = "Disabled"
+	// UnmaskedIPLoggingStatusEnabled Unmasked IP logging is enabled
+	UnmaskedIPLoggingStatusEnabled UnmaskedIPLoggingStatus = "Enabled"
+)
+
+// PossibleUnmaskedIPLoggingStatusValues returns an array of possible values for the UnmaskedIPLoggingStatus const type.
+func PossibleUnmaskedIPLoggingStatusValues() []UnmaskedIPLoggingStatus {
+	return []UnmaskedIPLoggingStatus{UnmaskedIPLoggingStatusDisabled, UnmaskedIPLoggingStatusEnabled}
+}
+
+// UserImpact enumerates the values for user impact.
+type UserImpact string
+
+const (
+	// UserImpactHigh ...
+	UserImpactHigh UserImpact = "High"
+	// UserImpactLow ...
+	UserImpactLow UserImpact = "Low"
+	// UserImpactModerate ...
+	UserImpactModerate UserImpact = "Moderate"
+)
+
+// PossibleUserImpactValues returns an array of possible values for the UserImpact const type.
+func PossibleUserImpactValues() []UserImpact {
+	return []UserImpact{UserImpactHigh, UserImpactLow, UserImpactModerate}
 }
 
 // ValueType enumerates the values for value type.
