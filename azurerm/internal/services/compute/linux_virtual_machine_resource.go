@@ -1028,11 +1028,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 					found := false
 					for _, dataDisk := range *updatedDataDisks {
 						if existingDataDisk.Name != nil && *dataDisk.Name == *existingDataDisk.Name {
-							updateDisk, err := rationaliseDataDiskForUpdate(&existingDataDisk, &dataDisk, id.Name)
-							if err != nil {
-								return err
-							}
-							dataDisks = append(dataDisks, *updateDisk)
+							dataDisks = append(dataDisks, existingDataDisk)
 							found = true
 							break
 						}

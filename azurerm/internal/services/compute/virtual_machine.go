@@ -597,9 +597,11 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) []interface{} {
 				diskEncryptionSetID = *v.ManagedDisk.DiskEncryptionSet.ID
 			}
 		}
+
 		dataDisk["storage_account_type"] = storageAccountType
 		dataDisk["managed_disk_id"] = managedDiskID
 		dataDisk["disk_encryption_set_id"] = diskEncryptionSetID
+
 		var diskSizeGB int
 		if v.DiskSizeGB != nil {
 			diskSizeGB = int(*v.DiskSizeGB)
@@ -630,25 +632,4 @@ func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) []interface{} {
 	}
 
 	return result
-}
-
-func rationaliseDataDiskForUpdate(existing, update *compute.DataDisk, vmName string) (*compute.DataDisk, error) {
-	// This has to be non nil to get here
-	name := *update.Name
-	if existing.ManagedDisk == nil || existing.ManagedDisk.ID == nil {
-		return nil, fmt.Errorf("existing Data Disk ID missing for %q, cannot update Data Disks for Virtual Machine %q", name, vmName)
-	} else {
-		if update.ManagedDisk != nil && update.ManagedDisk.ID != nil && *update.ManagedDisk.ID != *existing.ManagedDisk.ID {
-			return nil, fmt.Errorf("cannot update in place Managed Disk ID for %q, Virtual Machine %q", name, vmName)
-		}
-		if update.ManagedDisk.StorageAccountType != existing.ManagedDisk.StorageAccountType {
-			return nil, fmt.Errorf("changing Storage Account Type for %q, Virtual Machine %q is not allowed", name, vmName)
-		}
-		update.ManagedDisk = &compute.ManagedDiskParameters{
-			ID: existing.ManagedDisk.ID,
-		}
-		update.CreateOption = existing.CreateOption
-	}
-
-	return update, nil
 }
