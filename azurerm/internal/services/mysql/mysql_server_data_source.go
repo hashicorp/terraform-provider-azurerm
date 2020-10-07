@@ -243,11 +243,14 @@ func dataSourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("error making read request to mysql server security alert policy: %+v", err)
 		}
 
+		accountKey := ""
+		
+		if secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey != nil {
+			accountKey = *secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey
+		}
+
 		if !utils.ResponseWasNotFound(secResp.Response) {
-			block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, "")
-			if secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey != nil {
-				block.(map[string]interface{})["storage_account_access_key"] = secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey
-			}
+			block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, accountKey)
 			if err := d.Set("threat_detection_policy", block); err != nil {
 				return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 			}
