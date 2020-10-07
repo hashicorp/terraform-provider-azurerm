@@ -7,6 +7,10 @@ UPGRADE NOTES
 FEATURES:
 
 * **New Resource:** `azurerm_service_fabric_mesh_application` [GH-6761]
+* **New Resource:** `azurerm_virtual_desktop_workspace` [GH-8605]
+* **New Resource:** `azurerm_virtual_desktop_host_pool` [GH-8605]
+* **New Resource:** `azurerm_virtual_desktop_application_group` [GH-8605]
+* **New Resource:** `azurerm_virtual_desktop_workspace_application_group_association` [GH-8605]
 
 IMPROVEMENTS:
 
