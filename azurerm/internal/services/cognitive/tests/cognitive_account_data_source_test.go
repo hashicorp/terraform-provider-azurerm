@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMCognitiveAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_cognitive_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,7 +21,7 @@ func TestAccDataSourceAzureRMCognitiveAccount_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
@@ -38,15 +38,21 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-	name                = "acctestcogacc-%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	kind                = "Face"
-	sku_name            = "S0"
+  name                = "acctestcogacc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  kind                = "Face"
+  sku_name            = "S0"
 
   tags = {
     Acceptance = "Test"
   }
 }
-`, rInt, location, rString)
+
+data "azurerm_cognitive_account" "test" {
+  name                 = azurerm_cognitive_account.test.name
+  virtual_network_name = azurerm_cognitive_account.test.virtual_network_name
+  resource_group_name  = azurerm_cognitive_account.test.resource_group_name
+}
+`, template)
 }
