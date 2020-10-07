@@ -58,6 +58,12 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"administrator_login_password": {
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
+			},
+
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -88,8 +94,8 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresqlflexibleservers.OneTwo),
 					string(postgresqlflexibleservers.OneOne),
+					string(postgresqlflexibleservers.OneTwo),
 				}, false),
 			},
 
@@ -104,27 +110,18 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  string(postgresqlflexibleservers.Default),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresqlflexibleservers.Default),
 					string(postgresqlflexibleservers.PointInTimeRestore),
 				}, false),
-				Default: string(postgresqlflexibleservers.Default),
 			},
 
-			"delegated_subnet_argument": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"subnet_arm_resource_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-					},
-				},
+			"delegated_subnet_resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"display_name": {
@@ -163,9 +160,10 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			},
 
 			"point_in_time_utc": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsRFC3339Time,
 			},
 
 			"source_server_name": {
@@ -174,14 +172,10 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"administrator_login_password": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
 			"ha_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"maintenance_window": {
@@ -190,6 +184,11 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"custom_window": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
 						"day_of_week": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -214,6 +213,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			"backup_retention_days": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  7,
 			},
 
 			"storage_mb": {
@@ -227,7 +227,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"fully_qualified_domain_name": {
+			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -246,6 +246,8 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"properties_tags": tags.Schema(),
 
 			"tags": tags.Schema(),
 		},
@@ -278,7 +280,6 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	pointInTimeUTC, _ := time.Parse(time.RFC3339, d.Get("point_in_time_utc").(string))
 	haEnabled := postgresqlflexibleservers.Disabled
 	if d.Get("ha_enabled").(bool) {
 		haEnabled = postgresqlflexibleservers.Enabled
@@ -291,19 +292,27 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
 			AvailabilityZone:           utils.String(d.Get("availability_zone").(string)),
 			CreateMode:                 postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
-			DelegatedSubnetArguments:   expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_argument").([]interface{})),
+			DelegatedSubnetArguments:   expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_resource_id").(string)),
 			DisplayName:                utils.String(d.Get("display_name").(string)),
-			PointInTimeUTC:             &date.Time{Time: pointInTimeUTC},
 			SourceServerName:           utils.String(d.Get("source_server_name").(string)),
 			Version:                    postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			HaEnabled:                  haEnabled,
 			MaintenanceWindow:          expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{})),
 			StorageProfile:             expandArmServerStorageProfile(d),
-			Tags:                       tags.Expand(d.Get("tags").(map[string]interface{})),
+			Tags:                       tags.Expand(d.Get("properties_tags").(map[string]interface{})),
 		},
 		Sku:  expandArmServerSku(d.Get("sku").([]interface{})),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	pointInTimeUTC := d.Get("point_in_time_utc").(string)
+	if pointInTimeUTC != "" {
+		v, err := time.Parse(time.RFC3339, pointInTimeUTC)
+		if err != nil {
+			return fmt.Errorf("unable to parse `point_in_time_utc` value")
+		}
+		parameters.ServerProperties.PointInTimeUTC = &date.Time{Time: v}
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
@@ -347,51 +356,88 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		}
 		return fmt.Errorf("retrieving Postgresqlflexibleservers Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+
+	name := id.Name
+	resourceGroup := id.ResourceGroup
+
+	d.Set("name", name)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if err := d.Set("identity", flattenArmServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
-		d.Set("administrator_login_password", props.AdministratorLoginPassword)
+
+		// sensitive prop not returned by API, pull it from config and write to state.
+		adminPassword := d.Get("administrator_login_password").(string)
+		d.Set("administrator_login_password", adminPassword)
 		d.Set("availability_zone", props.AvailabilityZone)
-		d.Set("create_mode", props.CreateMode)
-		if err := d.Set("delegated_subnet_argument", flattenArmServerServerPropertiesDelegatedSubnetArguments(props.DelegatedSubnetArguments)); err != nil {
-			return fmt.Errorf("setting `delegated_subnet_argument`: %+v", err)
+
+		// Default comes back as an empty string
+		if props.CreateMode == "" {
+			d.Set("create_mode", string(postgresqlflexibleservers.Default))
+		} else {
+			d.Set("create_mode", props.CreateMode)
 		}
+
+		if props.DelegatedSubnetArguments != nil && props.DelegatedSubnetArguments.SubnetArmResourceID != nil {
+			d.Set("delegated_subnet_resource_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
+		}
+
 		d.Set("display_name", props.DisplayName)
 		d.Set("ha_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
+
 		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
 			return fmt.Errorf("setting `maintenance_window`: %+v", err)
 		}
+
 		if props.PointInTimeUTC != nil {
 			d.Set("point_in_time_utc", props.PointInTimeUTC.Format(time.RFC3339))
 		}
+
 		if props.SourceServerName != nil {
 			d.Set("source_server_name", props.SourceServerName)
 		}
+
 		if storage := props.StorageProfile; storage != nil {
 			if storage.StorageMB != nil {
 				d.Set("storage_mb", storage.StorageMB)
 			}
+
 			if storage.BackupRetentionDays != nil {
 				d.Set("backup_retention_days", storage.BackupRetentionDays)
 			}
 		}
 
 		d.Set("version", props.Version)
-		d.Set("byok_enforcement", props.ByokEnforcement)
-		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
-		d.Set("ha_state", props.HaState)
-		d.Set("public_network_access", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
-		d.Set("standby_availability_zone", props.StandbyAvailabilityZone)
+
+		// computed
+		d.Set("byok_enforcement", string(*props.ByokEnforcement))
+		d.Set("fqdn", string(*props.FullyQualifiedDomainName))
+		d.Set("public_network_access", string(props.PublicNetworkAccess))
+		d.Set("ha_state", string(props.HaState))
+
+		if props.StandbyAvailabilityZone != nil {
+			d.Set("standby_availability_zone", string(*props.StandbyAvailabilityZone))
+		}
 	}
+
 	if err := d.Set("sku", flattenArmServerSku(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
-	return tags.FlattenAndSet(d, resp.Tags)
+
+	if resp.ServerProperties.Tags != nil && len(resp.ServerProperties.Tags) > 0 {
+		if err := parse.FlattenAndSetPropertyTags(d, resp.ServerProperties.Tags); err != nil {
+			return fmt.Errorf("setting `properties_tags`: %+v", err)
+		}
+	}
+
+	if resp.Tags != nil && len(resp.Tags) > 0 {
+		tags.FlattenAndSet(d, resp.Tags)
+	}
+
+	return nil
 }
 
 func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -473,13 +519,13 @@ func expandArmServerIdentity(input []interface{}) *postgresqlflexibleservers.Ide
 	}
 }
 
-func expandArmServerServerPropertiesDelegatedSubnetArguments(input []interface{}) *postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments {
+func expandArmServerServerPropertiesDelegatedSubnetArguments(input string) *postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments {
 	if len(input) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+
 	return &postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments{
-		SubnetArmResourceID: utils.String(v["subnet_arm_resource_id"].(string)),
+		SubnetArmResourceID: utils.String(input),
 	}
 }
 
@@ -488,12 +534,19 @@ func expandArmServerMaintenanceWindow(input []interface{}) *postgresqlflexiblese
 		return nil
 	}
 	v := input[0].(map[string]interface{})
-	return &postgresqlflexibleservers.MaintenanceWindow{
-		CustomWindow: utils.String("Enabled"),
-		StartHour:    utils.Int32(int32(v["start_hour"].(int))),
-		StartMinute:  utils.Int32(int32(v["start_minute"].(int))),
-		DayOfWeek:    utils.Int32(int32(v["day_of_week"].(int))),
+
+	maintenanceWindow := postgresqlflexibleservers.MaintenanceWindow{
+		StartHour:   utils.Int32(int32(v["start_hour"].(int))),
+		StartMinute: utils.Int32(int32(v["start_minute"].(int))),
+		DayOfWeek:   utils.Int32(int32(v["day_of_week"].(int))),
 	}
+
+	maintenanceWindow.CustomWindow = utils.String(string(postgresqlflexibleservers.Disabled))
+	if v["custom_window"].(bool) {
+		maintenanceWindow.CustomWindow = utils.String(string(postgresqlflexibleservers.Enabled))
+	}
+
+	return &maintenanceWindow
 }
 
 func expandArmServerStorageProfile(d *schema.ResourceData) *postgresqlflexibleservers.StorageProfile {
