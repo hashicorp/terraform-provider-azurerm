@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -99,11 +100,11 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["service"]
+	serviceName := id.Path["service"]
 
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.Get(ctx, resourceGroup, serviceName)
 	if err != nil {
-		return fmt.Errorf("finding API Management (API Management %q / Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("finding API Management (API Management %q / Resource Group %q): %s", serviceName, resourceGroup, err)
 	}
 
 	if d.IsNewResource() {
@@ -114,16 +115,16 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 
 	existing.ServiceProperties.HostnameConfigurations = expandApiManagementCustomDomains(d)
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing); err != nil {
-		return fmt.Errorf("creating/updating Custom Domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, existing); err != nil {
+		return fmt.Errorf("creating/updating Custom Domain (API Management %q / Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, resourceGroup, serviceName)
 	if err != nil {
-		return fmt.Errorf("retrieving Custom Domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Custom Domain (API Management %q / Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("cannot read ID for Custom Domain (API Management %q / Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("cannot read ID for Custom Domain (API Management %q / Resource Group %q)", serviceName, resourceGroup)
 	}
 
 	customDomainsID := fmt.Sprintf("%s/customDomains/default", *read.ID)
@@ -137,23 +138,22 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiManagementCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
-
 	resourceGroup := id.ResourceGroup
-	name := id.Path["service"]
+	serviceName := id.ServiceName
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, serviceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("API Management Service %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("API Management Service %q was not found in Resource Group %q - removing from state!", serviceName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -178,31 +178,30 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiManagementCustomDomainID(d.Id())
 	if err != nil {
 		return err
 	}
-
 	resourceGroup := id.ResourceGroup
-	name := id.Path["service"]
+	serviceName := id.ServiceName
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, serviceName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("API Management Service %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("API Management Service %q was not found in Resource Group %q - removing from state!", serviceName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
-	log.Printf("[DEBUG] Deleting API Management Custom domain (API Management %q / Resource Group %q)", name, resourceGroup)
+	log.Printf("[DEBUG] Deleting API Management Custom domain (API Management %q / Resource Group %q)", serviceName, resourceGroup)
 
 	resp.ServiceProperties.HostnameConfigurations = nil
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, resp); err != nil {
-		return fmt.Errorf("deleting Custom Domain (API Management %q / Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, resp); err != nil {
+		return fmt.Errorf("deleting Custom Domain (API Management %q / Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
 	return nil
