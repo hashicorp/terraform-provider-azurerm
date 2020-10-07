@@ -436,12 +436,12 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test.id
-		trigger_url = "https://example.net/this_is_never_validated_by_azure"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   source {
-		event_source = "Alerts"
+    event_source = "Alerts"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
@@ -483,7 +483,7 @@ resource "azurerm_security_center_automation" "test" {
   }
 
   source {
-		event_source = "Alerts"
+    event_source = "Alerts"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
@@ -522,12 +522,12 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type              = "EventHub"
-		resource_id       = azurerm_eventhub_namespace.test.id
-		connection_string = azurerm_eventhub_namespace.test.default_primary_connection_string
+    resource_id       = azurerm_eventhub_namespace.test.id
+    connection_string = azurerm_eventhub_namespace.test.default_primary_connection_string
   }
 
   source {
-		event_source = "Alerts"
+    event_source = "Alerts"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
@@ -548,12 +548,12 @@ resource "azurerm_security_center_automation" "import" {
 
   action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test.id
-		trigger_url = "https://example.net/this_is_never_validated_by_azure"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   source {
-		event_source = "Alerts"
+    event_source = "Alerts"
   }
 }
 `, testAccAzureRMSecurityCenterAutomation_logicApp(data))
@@ -590,20 +590,20 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test.id
-		trigger_url = "https://example.net/this_is_never_validated_by_azure"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   source {
-		event_source = "Alerts"
-		rule_set {
-			rule {
-				property_path = "properties.metadata.severity"
-				operator = "Equals"
-				expected_value = "High"
-				property_type = "String"
-			}
-		}
+    event_source = "Alerts"
+    rule_set {
+      rule {
+        property_path  = "properties.metadata.severity"
+        operator       = "Equals"
+        expected_value = "High"
+        property_type  = "String"
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
@@ -642,20 +642,20 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test.id
-		trigger_url = "https://example.net/this_is_never_validated_by_azure"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   source {
-		event_source = "Alerts"
-		rule_set {
-			rule {
-				property_path = "properties.metadata.severity"
-				operator = "Equals"
-				expected_value = "High"
-				property_type = "String"
-			}
-		}
+    event_source = "Alerts"
+    rule_set {
+      rule {
+        property_path  = "properties.metadata.severity"
+        operator       = "Equals"
+        expected_value = "High"
+        property_type  = "String"
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
@@ -692,32 +692,32 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test.id
-		trigger_url = "https://example.net/this_is_never_validated_by_azure"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   source {
-		event_source = "Alerts"
-		rule_set {
-			rule {
-				property_path = "properties.metadata.severity"
-				operator = "Equals"
-				expected_value = "Low"
-				property_type = "String"
-			}
-			rule {
-				property_path = "properties.metadata.severity"
-				operator = "Equals"
-				expected_value = "Medium"
-				property_type = "String"
-			}
-			rule {
-				property_path = "properties.metadata.severity"
-				operator = "Equals"
-				expected_value = "High"
-				property_type = "String"
-			}						
-		}
+    event_source = "Alerts"
+    rule_set {
+      rule {
+        property_path  = "properties.metadata.severity"
+        operator       = "Equals"
+        expected_value = "Low"
+        property_type  = "String"
+      }
+      rule {
+        property_path  = "properties.metadata.severity"
+        operator       = "Equals"
+        expected_value = "Medium"
+        property_type  = "String"
+      }
+      rule {
+        property_path  = "properties.metadata.severity"
+        operator       = "Equals"
+        expected_value = "High"
+        property_type  = "String"
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
@@ -754,40 +754,40 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test.id
-		trigger_url = "https://example.net/this_is_never_validated_by_azure"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   source {
-		event_source = "Alerts"
-		rule_set {
-			rule {
-				property_path = "properties.metadata.title"
-				operator = "Equals"
-				expected_value = "Tony Iommi"
-				property_type = "String"
-			}
-			rule {
-				property_path = "properties.metadata.title"
-				operator = "Equals"
-				expected_value = "Ozzy Osbourne"
-				property_type = "String"
-			}
-		}
-		rule_set {
-			rule {
-				property_path = "properties.metadata.title"
-				operator = "Equals"
-				expected_value = "Bill Ward"
-				property_type = "String"
-			}	
-			rule {
-				property_path = "properties.metadata.title"
-				operator = "Equals"
-				expected_value = "Geezer Butler"
-				property_type = "String"
-			}									
-		}
+    event_source = "Alerts"
+    rule_set {
+      rule {
+        property_path  = "properties.metadata.title"
+        operator       = "Equals"
+        expected_value = "Tony Iommi"
+        property_type  = "String"
+      }
+      rule {
+        property_path  = "properties.metadata.title"
+        operator       = "Equals"
+        expected_value = "Ozzy Osbourne"
+        property_type  = "String"
+      }
+    }
+    rule_set {
+      rule {
+        property_path  = "properties.metadata.title"
+        operator       = "Equals"
+        expected_value = "Bill Ward"
+        property_type  = "String"
+      }
+      rule {
+        property_path  = "properties.metadata.title"
+        operator       = "Equals"
+        expected_value = "Geezer Butler"
+        property_type  = "String"
+      }
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
@@ -830,18 +830,18 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test.id
-		trigger_url = "https://example.net/this_is_never_validated_by_azure"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
-	action {
+  action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test2.id
-		trigger_url = "https://example.net/this_is_also_never_validated_by_azure"
-	}
-	
+    resource_id = azurerm_logic_app_workflow.test2.id
+    trigger_url = "https://example.net/this_is_also_never_validated_by_azure"
+  }
+
   source {
-		event_source = "Alerts"
+    event_source = "Alerts"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
@@ -878,45 +878,45 @@ resource "azurerm_security_center_automation" "test" {
 
   action {
     type        = "LogicApp"
-		resource_id = azurerm_logic_app_workflow.test.id
-		trigger_url = "https://example.net/this_is_never_validated_by_azure"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   source {
-		event_source = "Alerts"
-		rule_set {
-			rule {
-				property_path = "properties.metadata.severity"
-				operator = "Equals"
-				expected_value = "Low"
-				property_type = "String"
-			}					
-		}
-	}
-	
+    event_source = "Alerts"
+    rule_set {
+      rule {
+        property_path  = "properties.metadata.severity"
+        operator       = "Equals"
+        expected_value = "Low"
+        property_type  = "String"
+      }
+    }
+  }
+
   source {
-		event_source = "Assessments"
-		rule_set {
-			rule {
-				property_path = "properties.metadata.severity"
-				operator = "Equals"
-				expected_value = "Low"
-				property_type = "String"
-			}					
-		}
-	}	
-	
+    event_source = "Assessments"
+    rule_set {
+      rule {
+        property_path  = "properties.metadata.severity"
+        operator       = "Equals"
+        expected_value = "Low"
+        property_type  = "String"
+      }
+    }
+  }
+
   source {
-		event_source = "SubAssessments"
-		rule_set {
-			rule {
-				property_path = "properties.metadata.severity"
-				operator = "Equals"
-				expected_value = "Low"
-				property_type = "String"
-			}					
-		}
-  }		
+    event_source = "SubAssessments"
+    rule_set {
+      rule {
+        property_path  = "properties.metadata.severity"
+        operator       = "Equals"
+        expected_value = "Low"
+        property_type  = "String"
+      }
+    }
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
