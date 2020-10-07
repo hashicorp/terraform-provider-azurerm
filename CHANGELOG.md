@@ -20,6 +20,7 @@ IMPROVEMENTS:
 * `azurerm_key_vault_certificate_issuer` - the `org_id` property is now optional [GH-8687]
 * `azurerm_kubernetes_cluster_node_pool` - `node_count`, `min_node`, and `max_node` can now be set to `0` [GH-8300]
 * `azurerm_mssql_database` - support `0` for the `min_capacity` property [GH-8308]
+* `azurerm_mssql_database` - add support for `long_term_retention_policy` and `short_term_retention_policy` [GH-8765] 
 * `azurerm_mssql_server` - support the `minimum_tls_version` property [GH-8361]
 * `azurerm_mssql_virtual_machine` - Add support for `storage_configuration_settings` [GH-8623]
 * `azurerm_security_center_subscription_pricing` - now supports per `resource_type` pricing [GH-8549]
