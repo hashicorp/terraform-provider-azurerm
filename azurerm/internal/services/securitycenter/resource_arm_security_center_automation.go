@@ -454,28 +454,26 @@ func flattenSources(sources *[]security.AutomationSource) []map[string]interface
 	for _, source := range *sources {
 		ruleSetSlice := make([]interface{}, 0)
 
-		// RuleSets is an optional field
-		if source.RuleSets == nil {
-			continue
-		}
+		// RuleSets is an optional field need check for nil
+		if source.RuleSets != nil {
+			for _, ruleSet := range *source.RuleSets {
+				ruleSlice := make([]map[string]string, 0)
 
-		for _, ruleSet := range *source.RuleSets {
-			ruleSlice := make([]map[string]string, 0)
-
-			for _, rule := range *ruleSet.Rules {
-				ruleMap := map[string]string{
-					"property_path":  *rule.PropertyJPath,
-					"expected_value": *rule.ExpectedValue,
-					"operator":       string(rule.Operator),
-					"property_type":  string(rule.PropertyType),
+				for _, rule := range *ruleSet.Rules {
+					ruleMap := map[string]string{
+						"property_path":  *rule.PropertyJPath,
+						"expected_value": *rule.ExpectedValue,
+						"operator":       string(rule.Operator),
+						"property_type":  string(rule.PropertyType),
+					}
+					ruleSlice = append(ruleSlice, ruleMap)
 				}
-				ruleSlice = append(ruleSlice, ruleMap)
-			}
 
-			ruleSetMap := map[string]interface{}{
-				"rule": ruleSlice,
+				ruleSetMap := map[string]interface{}{
+					"rule": ruleSlice,
+				}
+				ruleSetSlice = append(ruleSetSlice, ruleSetMap)
 			}
-			ruleSetSlice = append(ruleSetSlice, ruleSetMap)
 		}
 
 		sourceMap := map[string]interface{}{
