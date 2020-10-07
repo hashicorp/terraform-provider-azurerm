@@ -2,6 +2,7 @@ package cognitive
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,6 +15,10 @@ import (
 func dataSourceArmCognitiveAccount() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmCognitiveAccountRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

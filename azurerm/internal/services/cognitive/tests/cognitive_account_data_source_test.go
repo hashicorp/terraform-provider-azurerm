@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMCognitiveAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCognitiveAccount_basic(data),
+				Config: testAccDataSourceCognitiveAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
@@ -26,12 +26,11 @@ func TestAccDataSourceAzureRMCognitiveAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
 			},
-			data.ImportStep(),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMCognitiveAccount_basic(rInt int, rString string, location string) string {
+func testAccDataSourceCognitiveAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -39,31 +38,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "Face"
-
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
+	name                = "acctestcogacc-%d"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+	kind                = "Face"
+	sku_name            = "S0"
 
   tags = {
     Acceptance = "Test"
   }
 }
 `, rInt, location, rString)
-}
-
-func testAccDataSourceAzureRMCognitiveAccount_basicWithDataSource(rInt int, rString string, location string) string {
-	config := testAccDataSourceAzureRMCognitiveAccount_basic(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_cognitive_account" "test" {
-  name                = "${azurerm_cognitive_account.test.name}"
-  resource_group_name = "${azurerm_cognitive_account.test.resource_group_name}"
-}
-`, config)
 }
