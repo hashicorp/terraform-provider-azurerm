@@ -92,18 +92,16 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 						},
 
 						"trigger_url": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-							//DiffSuppressFunc: func(_ string, old string, new string, _ *schema.ResourceData) bool { return true },
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 
 						"connection_string": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-							//DiffSuppressFunc: func(_ string, old string, new string, _ *schema.ResourceData) bool { return true },
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -261,7 +259,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 			return fmt.Errorf("Error reading Security Center automation scopes: %+v", err)
 		}
 
-		if err = d.Set("action", flattenActions(properties.Actions)); err != nil {
+		if err = d.Set("action", flattenActions(properties.Actions, d)); err != nil {
 			return fmt.Errorf("Error reading Security Center automation actions: %+v", err)
 		}
 
@@ -508,29 +506,57 @@ func flattenScopes(scopes *[]security.AutomationScope) []string {
 	return resultSlice
 }
 
-func flattenActions(actions *[]security.BasicAutomationAction) []map[string]string {
+func flattenActions(actions *[]security.BasicAutomationAction, d *schema.ResourceData) []map[string]string {
 	if actions == nil {
 		return []map[string]string{}
 	}
 
+	// Get existing schema data for actions
+	schemaDataActions, schemaDataActionsOk := d.GetOk("action")
+
 	resultSlice := make([]map[string]string, 0)
-	for _, action := range *actions {
+
+	for i, action := range *actions {
 		// Use type assertion to discover the underlying action
 		actionLogicApp, isLogicApp := action.(security.AutomationActionLogicApp)
 		if isLogicApp {
 			actionMap := map[string]string{
 				"resource_id": *actionLogicApp.LogicAppResourceID,
 				"type":        "LogicApp",
+				"trigger_url": "",
 			}
+
+			// Need to merge in trigger_url as it's not returned by API Get operation
+			// Otherwise don't have consistent state
+			if schemaDataActionsOk {
+				actionsSlice := schemaDataActions.([]interface{})
+				dataAction := actionsSlice[i].(map[string]interface{})
+				if dataAction["trigger_url"].(string) != "" {
+					actionMap["trigger_url"] = dataAction["trigger_url"].(string)
+				}
+			}
+
 			resultSlice = append(resultSlice, actionMap)
 		}
 
 		actionEventHub, isEventHub := action.(security.AutomationActionEventHub)
 		if isEventHub {
 			actionMap := map[string]string{
-				"resource_id": *actionEventHub.EventHubResourceID,
-				"type":        "EventHub",
+				"resource_id":       *actionEventHub.EventHubResourceID,
+				"type":              "EventHub",
+				"connection_string": "",
 			}
+
+			// Need to merge in connection_string as it's not returned by API Get operation
+			// Otherwise don't have consistent state
+			if schemaDataActionsOk {
+				actionsSlice := schemaDataActions.([]interface{})
+				dataAction := actionsSlice[i].(map[string]interface{})
+				if dataAction["connection_string"].(string) != "" {
+					actionMap["connection_string"] = dataAction["connection_string"].(string)
+				}
+			}
+
 			resultSlice = append(resultSlice, actionMap)
 		}
 
