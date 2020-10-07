@@ -92,16 +92,19 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 						},
 
 						"trigger_url": {
-							Type:         schema.TypeString,
-							Optional:     true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+							//DiffSuppressFunc: func(_ string, old string, new string, _ *schema.ResourceData) bool { return true },
 							ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 						},
 
 						"connection_string": {
-							Type:         schema.TypeString,
-							Optional:     true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+							//DiffSuppressFunc: func(_ string, old string, new string, _ *schema.ResourceData) bool { return true },
 							ValidateFunc: validation.StringIsNotEmpty,
-							Sensitive:    true,
 						},
 					},
 				},
@@ -194,11 +197,13 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 	}
 
 	automation.AutomationProperties.Scopes = expandScopes(d.Get("scopes").([]interface{}))
+
 	var err error
 	automation.AutomationProperties.Actions, err = expandActions(d.Get("action").([]interface{}))
 	if err != nil {
 		return err
 	}
+
 	automation.AutomationProperties.Sources = expandSources(d.Get("source").([]interface{}))
 	if err != nil {
 		return err
