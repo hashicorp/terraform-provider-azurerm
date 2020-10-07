@@ -31,11 +31,9 @@ func TestAccDataSourceAzureRMCognitiveAccount_basic(t *testing.T) {
 }
 
 func testAccDataSourceCognitiveAccount_basic(data acceptance.TestData) string {
+	template := testAccDataCognitiveAccount_template(data)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
@@ -55,4 +53,17 @@ data "azurerm_cognitive_account" "test" {
   resource_group_name  = azurerm_cognitive_account.test.resource_group_name
 }
 `, template)
+}
+
+func testAccDataCognitiveAccount_template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
