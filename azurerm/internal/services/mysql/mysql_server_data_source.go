@@ -2,21 +2,12 @@ package mysql
 
 import (
 	"fmt"
-	"log"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
-	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -29,10 +20,10 @@ const (
 
 func dataSourceArmMySqlServer() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceArmMySqlServerRead,
+		Read: dataSourceArmMySqlServerRead,
 
 		Timeouts: &schema.ResourceTimeout{
-			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -48,13 +39,13 @@ func dataSourceArmMySqlServer() *schema.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:          schema.TypeBool,
-				Computed:      true,
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"backup_retention_days": {
-				Type:          schema.TypeInt,
-				Computed:      true,
+				Type:     schema.TypeInt,
+				Computed: true,
 			},
 
 			"fqdn": {
@@ -63,8 +54,8 @@ func dataSourceArmMySqlServer() *schema.Resource {
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:          schema.TypeBool,
-				Computed:      true,
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"infrastructure_encryption_enabled": {
@@ -82,8 +73,8 @@ func dataSourceArmMySqlServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"restore_point_in_time": {
-				Type:         schema.TypeString,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"sku_name": {
@@ -116,8 +107,8 @@ func dataSourceArmMySqlServer() *schema.Resource {
 			},
 
 			"ssl_enforcement_enabled": {
-				Type:         schema.TypeBool,
-				Computed:     true,
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"ssl_minimal_tls_version_enforced": {
@@ -126,8 +117,8 @@ func dataSourceArmMySqlServer() *schema.Resource {
 			},
 
 			"storage_mb": {
-				Type:         schema.TypeInt,
-				Computed:     true,
+				Type:     schema.TypeInt,
+				Computed: true,
 			},
 
 			"threat_detection_policy": {
@@ -147,7 +138,7 @@ func dataSourceArmMySqlServer() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
-							Set:      schema.HashString
+							Set: schema.HashString,
 						},
 
 						"email_account_admins": {
@@ -165,19 +156,19 @@ func dataSourceArmMySqlServer() *schema.Resource {
 						},
 
 						"retention_days": {
-							Type:         schema.TypeInt,
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 
 						"storage_account_access_key": {
-							Type:         schema.TypeString,
-							Computed: true,
-							Sensitive:    true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 
 						"storage_endpoint": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -193,7 +184,7 @@ func dataSourceArmMySqlServer() *schema.Resource {
 	}
 }
 
-func dataSourceArmMySqlServerRead( d*schema.ResourceData, meta interface{}) error {
+func dataSourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.ServersClient
 	securityClient := meta.(*clients.Client).MySQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -205,7 +196,7 @@ func dataSourceArmMySqlServerRead( d*schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: MySQL server %q in account %q (Resource Group %q) was not found", name, accountName, resourceGroup)
+			return fmt.Errorf("Error: MySQL server %q in Resource Group %q was not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on AzureRM MySQL server %q: %+v", name, err)
 	}
@@ -216,6 +207,8 @@ func dataSourceArmMySqlServerRead( d*schema.ResourceData, meta interface{}) erro
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
+	tier := mysql.Basic
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
@@ -245,7 +238,7 @@ func dataSourceArmMySqlServerRead( d*schema.ResourceData, meta interface{}) erro
 	}
 
 	if tier == mysql.GeneralPurpose || tier == mysql.MemoryOptimized {
-		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
+		secResp, err := securityClient.Get(ctx, resourceGroup, name)
 		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
 			return fmt.Errorf("error making read request to mysql server security alert policy: %+v", err)
 		}
@@ -253,7 +246,7 @@ func dataSourceArmMySqlServerRead( d*schema.ResourceData, meta interface{}) erro
 		if !utils.ResponseWasNotFound(secResp.Response) {
 			block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, "")
 			if secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey != nil {
-				block["storage_account_access_key"] = secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey
+				block.(map[string]interface{})["storage_account_access_key"] = secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey
 			}
 			if err := d.Set("threat_detection_policy", block); err != nil {
 				return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
