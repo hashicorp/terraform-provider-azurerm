@@ -1,170 +1,134 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_connection_monitor"
-sidebar_current: "docs-azurerm-resource-network-connection-monitor"
 description: |-
-  Configures a Network Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
-
+  Manages a Network Connection Monitor.
 ---
 
-# azurerm_connection_monitor
+# azurerm_network_connection_monitor
 
-Configures a Network Connection Monitor to monitor communication between a Virtual Machine and an endpoint using a Network Watcher.
+Manages a Network Connection Monitor.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "connection-monitor-rg"
-  location = "West US"
+provider "azurerm" {
+  features {}
 }
 
-resource "azurerm_network_watcher" "test" {
-  name                = "network-watcher"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+data "azurerm_resource_group" "example" {
+  name = "example-resources"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "production-network"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_network_watcher" "example" {
+  name                = "example-nw"
+  location            = data.azurerm_resource_group.example.location
+  resource_group_name = data.azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
+data "azurerm_virtual_machine" "src" {
+  name                = "example-vm"
+  resource_group_name = data.azurerm_resource_group.example.name
 }
 
-resource "azurerm_network_interface" "test" {
-  name                = "cmtest-nic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_virtual_machine" "test" {
-  name                  = "cmtest-vm"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_F2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  storage_os_disk {
-    name              = "osdisk"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "cmtest-vm"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-}
-
-resource "azurerm_virtual_machine_extension" "test" {
-  name                       = "cmtest-vm-network-watcher"
-  location                   = "${azurerm_resource_group.test.location}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
-  virtual_machine_name       = "${azurerm_virtual_machine.test.name}"
+resource "azurerm_virtual_machine_extension" "src" {
+  name                       = "network-watcher"
+  virtual_machine_id         = data.azurerm_virtual_machine.src.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"
   auto_upgrade_minor_version = true
 }
 
-resource "azurerm_network_connection_monitor" "test" {
-  name                 = "cmtest-connectionmonitor"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
+resource "azurerm_network_connection_monitor" "example" {
+  name                 = "example-ncm"
+  network_watcher_name = azurerm_network_watcher.example.name
+  resource_group_name  = data.azurerm_resource_group.example.name
+  location             = azurerm_network_watcher.example.location
+
+  auto_start          = false
+  interval_in_seconds = 30
 
   source {
-    virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+    virtual_machine_id = data.azurerm_virtual_machine.src.id
+    port               = 20020
   }
 
   destination {
     address = "terraform.io"
-    port    = 80
+    port    = 443
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.test"]
+  tags = {
+    foo = "bar"
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.src]
 }
 ```
 
-~> **NOTE:** This Resource requires that [the Network Watcher Agent Virtual Machine Extension](https://docs.microsoft.com/en-us/azure/network-watcher/connection-monitor) is installed on the Virtual Machine before monitoring can be started. The extension can be installed via [the `azurerm_virtual_machine_extension` resource](virtual_machine_extension.html).
-
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Network Connection Monitor. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Network Connection Monitor. Changing this forces a new Network Connection Monitor to be created.
 
-* `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Network Connection Monitor should exist. Changing this forces a new Network Connection Monitor to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Connection Monitor. Changing this forces a new resource to be created.
-
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
-
-* `auto_start` - (Optional) Specifies whether the connection monitor will start automatically once created. Defaults to `true`. Changing this forces a new resource to be created.
-
-* `interval_in_seconds` - (Optional) Monitoring interval in seconds. Defaults to `60`.
-
-* `source` - (Required) A `source` block as defined below.
+* `location` - (Required) The Azure Region where the Network Connection Monitor should exist. Changing this forces a new Network Connection Monitor to be created.
 
 * `destination` - (Required) A `destination` block as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new Network Connection Monitor to be created.
+
+* `source` - (Required) A `source` block as defined below.
 
 ---
 
-A `source` block contains:
+* `auto_start` - (Optional) Will the connection monitor start automatically once created? Changing this forces a new Network Connection Monitor to be created.
 
-* `virtual_machine_id` - (Required) The ID of the Virtual Machine to monitor connectivity from.
+* `interval_in_seconds` - (Optional) Monitoring interval in seconds.
 
-* `port` - (Optional) The port on the Virtual Machine to monitor connectivity from. Defaults to `0` (Dynamic Port Assignment).
+* `tags` - (Optional) A mapping of tags which should be assigned to the Network Connection Monitor.
 
-A `destination` block contains:
+---
 
-* `virtual_machine_id` - (Optional) The ID of the Virtual Machine to monitor connectivity to.
+A `destination` block supports the following:
 
-* `address` - (Optional) IP address or domain name to monitor connectivity to.
+* `port` - (Required) The destination port used by connection monitor.
 
-* `port` - (Required) The port on the destination to monitor connectivity to.
+* `address` - (Optional) The address of the connection monitor destination (IP or domain name). Conflicts with `destination.0.virtual_machine_id`
 
-~> **NOTE:** One of `virtual_machine_id` or `address` must be specified.
+* `virtual_machine_id` - (Optional) The ID of the virtual machine used as the destination by connection monitor. Conflicts with `destination.0.address`
+
+---
+
+A `source` block supports the following:
+
+* `virtual_machine_id` - (Required) The ID of the virtual machine used as the source by connection monitor.
+
+* `port` - (Optional) The source port used by connection monitor.
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The Connection Monitor ID.
+* `id` - The ID of the Network Connection Monitor.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Connection Monitor.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Connection Monitor.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Connection Monitor.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Connection Monitor.
 
 ## Import
 
-Connection Monitors can be imported using the `resource id`, e.g.
+Network Connection Monitors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_connection_monitor.monitor1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/monitor1
+terraform import azurerm_network_connection_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/connectionMonitor1
 ```

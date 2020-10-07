@@ -1,9 +1,9 @@
 ---
+subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
-sidebar_current: "docs-azurerm-datasource-cosmosdb-account"
 description: |-
-  Gets information about the specified CosmosDB (formally DocumentDB) Account.
+  Gets information about an existing CosmosDB (formally DocumentDB) Account.
 ---
 
 # Data Source: azurerm_cosmosdb_account
@@ -13,13 +13,13 @@ Use this data source to access information about an existing CosmosDB (formally 
 ## Example Usage
 
 ```hcl
-data "azurerm_cosmosdb_account" "test" {
+data "azurerm_cosmosdb_account" "example" {
   name                = "tfex-cosmosdb-account"
   resource_group_name = "tfex-cosmosdb-account-rg"
 }
 
 output "cosmosdb_account_endpoint" {
-  value = "${data.azurerm_cosmosdb_account.jobs.endpoint}"
+  value = data.azurerm_cosmosdb_account.jobs.endpoint
 }
 ```
 
@@ -27,9 +27,9 @@ output "cosmosdb_account_endpoint" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CosmosDB Account.
+* `name` - Specifies the name of the CosmosDB Account.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group in which the CosmosDB Account resides.
+* `resource_group_name` - Specifies the name of the resource group in which the CosmosDB Account resides.
 
 ## Attributes Reference
 
@@ -46,6 +46,8 @@ The following attributes are exported:
 * `kind` - The Kind of the CosmosDB account.
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
+
+* `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account.
 
 * `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
 
@@ -80,10 +82,16 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_master_key` - The Primary master key for the CosmosDB Account.
+* `primary_key` - The Primary master key for the CosmosDB Account.
 
-* `secondary_master_key` - The Secondary master key for the CosmosDB Account.
+* `secondary_key` - The Secondary master key for the CosmosDB Account.
 
-* `primary_readonly_master_key` - The Primary read-only master Key for the CosmosDB Account.
+* `primary_readonly_key` - The Primary read-only master Key for the CosmosDB Account.
 
-* `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
+* `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.

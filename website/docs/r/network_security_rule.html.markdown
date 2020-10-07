@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_security_rule"
-sidebar_current: "docs-azurerm-resource-network-security-rule"
 description: |-
   Manages a Network Security Rule.
 
@@ -18,18 +18,18 @@ At this time you cannot use a Network Security Group with in-line Network Securi
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_network_security_group" "test" {
+resource "azurerm_network_security_group" "example" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_network_security_rule" "test" {
+resource "azurerm_network_security_rule" "example" {
   name                        = "test123"
   priority                    = 100
   direction                   = "Outbound"
@@ -39,8 +39,8 @@ resource "azurerm_network_security_rule" "test" {
   destination_port_range      = "*"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  network_security_group_name = "${azurerm_network_security_group.test.name}"
+  resource_group_name         = azurerm_resource_group.example.name
+  network_security_group_name = azurerm_network_security_group.example.name
 }
 ```
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `description` - (Optional) A description for this rule. Restricted to 140 characters.
 
-* `protocol` - (Required) Network protocol this rule applies to. Possible values include `Tcp`, `Udp` or `*` (which matches both).
+* `protocol` - (Required) Network protocol this rule applies to. Possible values include `Tcp`, `Udp`, `Icmp`, or `*` (which matches all).
 
 * `source_port_range` - (Optional) Source Port or Range. Integer or range between `0` and `65535` or `*` to match any. This is required if `source_port_ranges` is not specified.
 
@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `source_application_security_group_ids` - (Optional) A List of source Application Security Group ID's
 
-* `destination_address_prefix` - (Optional) CIDR or destination IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. This is required if `destination_address_prefixes` is not specified.
+* `destination_address_prefix` - (Optional) CIDR or destination IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. Besides, it also supports all available Service Tags like ‘Sql.WestEurope‘, ‘Storage.EastUS‘, etc. You can list the available service tags with the cli: ```shell az network list-service-tags --location westcentralus```. For further information please see [Azure CLI - az network list-service-tags](https://docs.microsoft.com/en-us/cli/azure/network?view=azure-cli-latest#az-network-list-service-tags). This is required if `destination_address_prefixes` is not specified.
 
 * `destination_address_prefixes` - (Optional) List of destination address prefixes. Tags may not be used. This is required if `destination_address_prefix` is not specified.
 
@@ -88,8 +88,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Network Security Rule ID.
+* `id` - The ID of the Network Security Rule.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Security Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Security Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Security Rule.
 
 ## Import
 

@@ -3,7 +3,7 @@ package azure
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func TestValidateResourceGroupName(t *testing.T) {
@@ -48,11 +48,11 @@ func TestValidateResourceGroupName(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    acctest.RandString(80),
+			Value:    acctest.RandString(90),
 			ErrCount: 0,
 		},
 		{
-			Value:    acctest.RandString(81),
+			Value:    acctest.RandString(91),
 			ErrCount: 1,
 		},
 	}
@@ -61,7 +61,8 @@ func TestValidateResourceGroupName(t *testing.T) {
 		_, errors := validateResourceGroupName(tc.Value, "azurerm_resource_group")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected validateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
+			t.Fatalf("Expected "+
+				"validateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
 		}
 	}
 }

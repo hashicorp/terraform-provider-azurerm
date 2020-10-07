@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_route_table"
-sidebar_current: "docs-azurerm-resource-network-route-table"
 description: |-
   Manages a Route Table
 
@@ -11,18 +11,23 @@ description: |-
 
 Manages a Route Table
 
+~> **NOTE on Route Tables and Routes:** Terraform currently
+provides both a standalone [Route resource](route.html), and allows for Routes to be defined in-line within the [Route Table resource](route_table.html).
+At this time you cannot use a Route Table with in-line Routes in conjunction with any Route resources. Doing so will cause a conflict of Route configurations and will overwrite Routes.
+
+
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_route_table" "test" {
+resource "azurerm_route_table" "example" {
   name                          = "acceptanceTestSecurityGroup1"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  location                      = azurerm_resource_group.example.location
+  resource_group_name           = azurerm_resource_group.example.name
   disable_bgp_route_propagation = false
 
   route {
@@ -49,6 +54,8 @@ The following arguments are supported:
 
 * `route` - (Optional) [List of objects](/docs/configuration/attr-as-blocks.html) representing routes. Each object accepts the arguments documented below.
 
+-> **NOTE** Since `route` can be configured both inline and via the separate `azurerm_route` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+
 * `disable_bgp_route_propagation` - (Optional) Boolean flag which controls propagation of routes learned by BGP on that route table. True means disable.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -70,10 +77,19 @@ The following attributes are exported:
 * `id` - The Route Table ID.
 * `subnets` - The collection of Subnets associated with this route table.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Route Table.
+* `update` - (Defaults to 30 minutes) Used when updating the Route Table.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Route Table.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Route Table.
+
 ## Import
 
 Route Tables can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_route_table.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/routeTables/mytable1
+terraform import azurerm_route_table.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/routeTables/mytable1
 ```

@@ -35,7 +35,8 @@ func NewStreamingJobsClient(subscriptionID string) StreamingJobsClient {
 	return NewStreamingJobsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStreamingJobsClientWithBaseURI creates an instance of the StreamingJobsClient client.
+// NewStreamingJobsClientWithBaseURI creates an instance of the StreamingJobsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewStreamingJobsClientWithBaseURI(baseURI string, subscriptionID string) StreamingJobsClient {
 	return StreamingJobsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -112,8 +113,7 @@ func (client StreamingJobsClient) CreateOrReplacePreparer(ctx context.Context, s
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) CreateOrReplaceSender(req *http.Request) (future StreamingJobsCreateOrReplaceFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -126,7 +126,6 @@ func (client StreamingJobsClient) CreateOrReplaceSender(req *http.Request) (futu
 func (client StreamingJobsClient) CreateOrReplaceResponder(resp *http.Response) (result StreamingJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,8 +189,7 @@ func (client StreamingJobsClient) DeletePreparer(ctx context.Context, resourceGr
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) DeleteSender(req *http.Request) (future StreamingJobsDeleteFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -204,7 +202,6 @@ func (client StreamingJobsClient) DeleteSender(req *http.Request) (future Stream
 func (client StreamingJobsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -279,8 +276,7 @@ func (client StreamingJobsClient) GetPreparer(ctx context.Context, resourceGroup
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -288,7 +284,6 @@ func (client StreamingJobsClient) GetSender(req *http.Request) (*http.Response, 
 func (client StreamingJobsClient) GetResponder(resp *http.Response) (result StreamingJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -331,6 +326,9 @@ func (client StreamingJobsClient) List(ctx context.Context, expand string) (resu
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sjlr.hasNextLink() && result.sjlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -360,8 +358,7 @@ func (client StreamingJobsClient) ListPreparer(ctx context.Context, expand strin
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -369,7 +366,6 @@ func (client StreamingJobsClient) ListSender(req *http.Request) (*http.Response,
 func (client StreamingJobsClient) ListResponder(resp *http.Response) (result StreamingJobListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -451,6 +447,9 @@ func (client StreamingJobsClient) ListByResourceGroup(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.sjlr.hasNextLink() && result.sjlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -481,8 +480,7 @@ func (client StreamingJobsClient) ListByResourceGroupPreparer(ctx context.Contex
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -490,7 +488,6 @@ func (client StreamingJobsClient) ListByResourceGroupSender(req *http.Request) (
 func (client StreamingJobsClient) ListByResourceGroupResponder(resp *http.Response) (result StreamingJobListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -597,8 +594,7 @@ func (client StreamingJobsClient) StartPreparer(ctx context.Context, resourceGro
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) StartSender(req *http.Request) (future StreamingJobsStartFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -611,7 +607,6 @@ func (client StreamingJobsClient) StartSender(req *http.Request) (future Streami
 func (client StreamingJobsClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -675,8 +670,7 @@ func (client StreamingJobsClient) StopPreparer(ctx context.Context, resourceGrou
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) StopSender(req *http.Request) (future StreamingJobsStopFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -689,7 +683,6 @@ func (client StreamingJobsClient) StopSender(req *http.Request) (future Streamin
 func (client StreamingJobsClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -770,8 +763,7 @@ func (client StreamingJobsClient) UpdatePreparer(ctx context.Context, streamingJ
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingJobsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -779,7 +771,6 @@ func (client StreamingJobsClient) UpdateSender(req *http.Request) (*http.Respons
 func (client StreamingJobsClient) UpdateResponder(resp *http.Response) (result StreamingJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

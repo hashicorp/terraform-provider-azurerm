@@ -1,7 +1,7 @@
 ---
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_certificate"
-sidebar_current: "docs-azurerm-resource-key-vault-certificate"
 description: |-
   Manages a Key Vault Certificate.
 
@@ -16,26 +16,25 @@ Manages a Key Vault Certificate.
 ~> **Note:** this example assumed the PFX file is located in the same directory at `certificate-to-import.pfx`.
 
 ```hcl
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "key-vault-certificate-example"
   location = "West Europe"
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                = "keyvaultcertexample"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "create",
@@ -88,12 +87,12 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_certificate" "test" {
-  name     = "imported-cert"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+resource "azurerm_key_vault_certificate" "example" {
+  name         = "imported-cert"
+  key_vault_id = azurerm_key_vault.example.id
 
   certificate {
-    contents = "${filebase64("certificate-to-import.pfx")}"
+    contents = filebase64("certificate-to-import.pfx")
     password = ""
   }
 
@@ -119,42 +118,69 @@ resource "azurerm_key_vault_certificate" "test" {
 ## Example Usage (Generating a new certificate)
 
 ```hcl
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "key-vault-certificate-example"
   location = "West Europe"
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                = "keyvaultcertexample"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
-      "create","delete","deleteissuers",
-      "get","getissuers","import","list",
-      "listissuers","managecontacts","manageissuers",
-      "setissuers","update",
+      "create",
+      "delete",
+      "deleteissuers",
+      "get",
+      "getissuers",
+      "import",
+      "list",
+      "listissuers",
+      "managecontacts",
+      "manageissuers",
+      "setissuers",
+      "update",
     ]
 
     key_permissions = [
-      "backup","create","decrypt","delete","encrypt","get",
-      "import","list","purge","recover","restore","sign",
-      "unwrapKey","update","verify","wrapKey",
+      "backup",
+      "create",
+      "decrypt",
+      "delete",
+      "encrypt",
+      "get",
+      "import",
+      "list",
+      "purge",
+      "recover",
+      "restore",
+      "sign",
+      "unwrapKey",
+      "update",
+      "verify",
+      "wrapKey",
     ]
 
     secret_permissions = [
-      "backup","delete","get","list","purge","recover","restore","set",
+      "backup",
+      "delete",
+      "get",
+      "list",
+      "purge",
+      "recover",
+      "restore",
+      "set",
     ]
   }
 
@@ -163,9 +189,9 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_certificate" "test" {
-  name     = "generated-cert"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+resource "azurerm_key_vault_certificate" "example" {
+  name         = "generated-cert"
+  key_vault_id = azurerm_key_vault.example.id
 
   certificate_policy {
     issuer_parameters {
@@ -246,11 +272,11 @@ The following arguments are supported:
 * `key_properties` - (Required) A `key_properties` block as defined below.
 * `lifetime_action` - (Optional) A `lifetime_action` block as defined below.
 * `secret_properties` - (Required) A `secret_properties` block as defined below.
-* `x509_certificate_properties` - (Optional) A `x509_certificate_properties` block as defined below.
+* `x509_certificate_properties` - (Optional) A `x509_certificate_properties` block as defined below. Required when `certificate` block is not specified.
 
 `issuer_parameters` supports the following:
 
-* `name` - (Required) The name of the Certificate Issuer. Possible values include `Self`, or the name of a certificate issuing authority supported by Azure. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Certificate Issuer. Possible values include `Self` (for self-signed certificate), or `Unknown` (for a certificate issuing authority like `Let's Encrypt` and Azure direct supported ones). Changing this forces a new resource to be created.
 
 `key_properties` supports the following:
 
@@ -299,14 +325,36 @@ The following attributes are exported:
 * `id` - The Key Vault Certificate ID.
 * `secret_id` - The ID of the associated Key Vault Secret.
 * `version` - The current version of the Key Vault Certificate.
-* `certificate_data` - The raw Key Vault Certificate.
-* `thumbprint` - The X509 Thumbprint of the Key Vault Certificate returned as hex string.
+* `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
+* `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
+* `certificate_attribute` - A `certificate_attribute` block as defined below.
 
+---
+
+A `certificate_attribute` block exports the following:
+
+* `created` - The create time of the Key Vault Certificate.
+* `enabled` - whether the Key Vault Certificate is enabled.
+* `expires` - The expires time of the Key Vault Certificate.
+* `not_before` - The not before valid time of the Key Vault Certificate.
+* `recovery_level` - The deletion recovery level of the Key Vault Certificate.
+* `updated` - The recent update time of the Key Vault Certificate.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate.
 
 ## Import
 
 Key Vault Certificates can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_certificate.test https://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_certificate.examplehttps://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

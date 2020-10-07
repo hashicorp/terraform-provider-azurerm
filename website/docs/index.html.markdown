@@ -1,7 +1,6 @@
 ---
 layout: "azurerm"
 page_title: "Provider: Azure"
-sidebar_current: "docs-azurerm-index"
 description: |-
   The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through its APIs.
 
@@ -17,10 +16,10 @@ Interested in the provider's latest features, or want to make sure you're up to 
 
 Terraform supports a number of different methods for authenticating to Azure:
 
-* [Authenticating to Azure using the Azure CLI](auth/azure_cli.html)
-* [Authenticating to Azure using Managed Service Identity](auth/managed_service_identity.html)
-* [Authenticating to Azure using a Service Principal and a Client Certificate](auth/service_principal_client_certificate.html)
-* [Authenticating to Azure using a Service Principal and a Client Secret](auth/service_principal_client_secret.html)
+* [Authenticating to Azure using the Azure CLI](guides/azure_cli.html)
+* [Authenticating to Azure using Managed Service Identity](guides/managed_service_identity.html)
+* [Authenticating to Azure using a Service Principal and a Client Certificate](guides/service_principal_client_certificate.html)
+* [Authenticating to Azure using a Service Principal and a Client Secret](guides/service_principal_client_secret.html)
 
 ---
 
@@ -32,20 +31,21 @@ We recommend using either a Service Principal or Managed Service Identity when r
 # Configure the Azure Provider
 provider "azurerm" {
   # whilst the `version` attribute is optional, we recommend pinning to a given version of the Provider
-  version = "=1.28.0"
+  version = "=2.20.0"
+  features {}
 }
 
 # Create a resource group
-resource "azurerm_resource_group" "test" {
-  name     = "production"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 # Create a virtual network within the resource group
-resource "azurerm_virtual_network" "test" {
-  name                = "production-network"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_virtual_network" "example" {
+  name                = "example-network"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.0.0.0/16"]
 }
 ```
@@ -81,14 +81,15 @@ If you have configuration questions, or general questions about using the provid
 * [Terraform's community resources](https://www.terraform.io/docs/extend/community/index.html)
 * [HashiCorp support](https://support.hashicorp.com) for Terraform Enterprise customers
 
-
 ## Argument Reference
 
 The following arguments are supported:
 
+* `features` - (Required) A `features` block as defined below which can be used to customize the behaviour of certain Azure Provider resources.
+
 * `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
-* `environment` - (Optional) The Cloud Environment which should be used. Possible values are `public`, `usgovernment`, `german` and `china`. Defaults to `public`. This can also be sourced from the `ARM_ENVIRONMENT` environment variable.
+* `environment` - (Optional) The Cloud Environment which should be used. Possible values are `public`, `usgovernment`, `german`, and `china`. Defaults to `public`. This can also be sourced from the `ARM_ENVIRONMENT` environment variable.
 
 * `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
 
@@ -102,7 +103,7 @@ When authenticating as a Service Principal using a Client Certificate, the follo
 
 * `client_certificate_path` - (Optional) The path to the Client Certificate associated with the Service Principal which should be used. This can also be sourced from the `ARM_CLIENT_CERTIFICATE_PATH` Environment Variable.
 
-More information on [how to configure a Service Principal using a Client Certificate can be found in this guide](auth/service_principal_client_certificate.html).
+More information on [how to configure a Service Principal using a Client Certificate can be found in this guide](guides/service_principal_client_certificate.html).
 
 ---
 
@@ -110,7 +111,7 @@ When authenticating as a Service Principal using a Client Secret, the following 
 
 * `client_secret` - (Optional) The Client Secret which should be used. This can also be sourced from the `ARM_CLIENT_SECRET` Environment Variable.
 
-More information on [how to configure a Service Principal using a Client Secret can be found in this guide](auth/service_principal_client_secret.html).
+More information on [how to configure a Service Principal using a Client Secret can be found in this guide](guides/service_principal_client_secret.html).
 
 ---
 
@@ -120,16 +121,80 @@ When authenticating using Managed Service Identity, the following fields can be 
 
 * `use_msi` - (Optional) Should Managed Service Identity be used for Authentication? This can also be sourced from the `ARM_USE_MSI` Environment Variable. Defaults to `false`.
 
-More information on [how to configure a Service Principal using Managed Service Identity can be found in this guide](auth/managed_service_identity.html).
+More information on [how to configure a Service Principal using Managed Service Identity can be found in this guide](guides/managed_service_identity.html).
 
 ---
 
 For some advanced scenarios, such as where more granular permissions are necessary - the following properties can be set:
 
+* `disable_terraform_partner_id` - (Optional) Disable sending the Terraform Partner ID if a custom `partner_id` isn't specified, which allows Microsoft to better understand the usage of Terraform. The Partner ID does not give HashiCorp any direct access to usage information. This can also be sourced from the `ARM_DISABLE_TERRAFORM_PARTNER_ID` environment variable. Defaults to `false`.
+
+* `metadata_host` - (Optional) The Hostname of the Azure Metadata Service (for example `management.azure.com`), used to obtain the Cloud Environment when using a Custom Azure Environment. This can also be sourced from the `ARM_METADATA_HOST` Environment Variable.
+
+~> **Note:** `environment` must be set to the requested environment name in the list of available environments held in the `metadata_host`.
+
 * `partner_id` - (Optional) A GUID/UUID that is [registered](https://docs.microsoft.com/azure/marketplace/azure-partner-customer-usage-attribution#register-guids-and-offers) with Microsoft to facilitate partner resource usage attribution. This can also be sourced from the `ARM_PARTNER_ID` Environment Variable.
 
 * `skip_credentials_validation` - (Optional) Should the AzureRM Provider skip verifying the credentials being used are valid? This can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` Environment Variable. Defaults to `false`.
 
-* `skip_provider_registration` - (Optional) Should the AzureRM Provider skip registering any required Resource Providers? This can also be sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` Environment Variable. Defaults to `false`.
+~> **Note:** if `skip_credentials_validation` is false, AzureRM Provider will send request to list all available providers.
+
+* `skip_provider_registration` - (Optional) Should the AzureRM Provider skip registering the Resource Providers it supports? This can also be sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` Environment Variable. Defaults to `false`.
+
+-> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
+
+* `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue API's, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`.
+
+~> **Note:** This requires that the User/Service Principal being used has the associated `Storage` roles - which are added to new Contributor/Owner role-assignments, but **have not** been backported by Azure to existing role-assignments.
+
+~> **Note:** The Files & Table Storage API's do not support authenticating via AzureAD and will continue to use a SharedKey to access the API's.
 
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
+
+## Features
+
+It's possible to configure the behaviour of certain resources using the `features` block - more details can be found below.
+
+## Features
+
+The `features` block supports the following:
+
+* `key_vault` - (Optional) A `key_vault` block as defined below.
+
+* `template_deployment` - (Optional) A `template_deployment` block as defined below.
+
+* `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
+
+* `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
+
+---
+
+The `key_vault` block supports the following:
+
+* `recover_soft_deleted_key_vaults` - (Optional) Should the `azurerm_key_vault` resource recover a Key Vault which has previously been Soft Deleted? Defaults to `true`. 
+
+* `purge_soft_delete_on_destroy` - (Optional) Should the `azurerm_key_vault` resource be permanently deleted (e.g. purged) when destroyed? Defaults to `true`. 
+
+~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period(90 days) has passed.
+
+~> **Note:** When recovering soft deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
+
+---
+
+The `template_deployment` block supports the following:
+
+* `delete_nested_items_during_deletion` - (Optional) Should the `azurerm_resource_group_template_deployment` resource attempt to delete resources that have been provisioned by the ARM Template, when the Resource Group Template Deployment is deleted? Defaults to `true`.
+
+---
+
+The `virtual_machine` block supports the following:
+
+* `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
+
+~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
+
+---
+
+The `virtual_machine_scale_set` block supports the following:
+
+* `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.

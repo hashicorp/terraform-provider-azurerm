@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_firewall_application_rule_collection"
-sidebar_current: "docs-azurerm-resource-network-firewall-application-rule-collection"
 description: |-
   Manages an Application Rule Collection within an Azure Firewall.
 
@@ -14,49 +14,49 @@ Manages an Application Rule Collection within an Azure Firewall.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "North Europe"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "testvnet"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "AzureFirewallSubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.1.0/24"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "example" {
   name                = "testpip"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
-resource "azurerm_firewall" "test" {
+resource "azurerm_firewall" "example" {
   name                = "testfirewall"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
-    name                          = "configuration"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.example.id
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 }
 
-resource "azurerm_firewall_application_rule_collection" "test" {
+resource "azurerm_firewall_application_rule_collection" "example" {
   name                = "testcollection"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.example.name
+  resource_group_name = azurerm_resource_group.example.name
   priority            = 100
   action              = "Allow"
 
@@ -72,8 +72,8 @@ resource "azurerm_firewall_application_rule_collection" "test" {
     ]
 
     protocol {
-        port = "443"
-        type = "Https"
+      port = "443"
+      type = "Https"
     }
   }
 }
@@ -103,9 +103,13 @@ A `rule` block supports the following:
 
 * `description` - (Optional) Specifies a description for the rule.
 
-* `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
+* `source_addresses` - (Optional) A list of source IP addresses and/or IP ranges.
 
-* `fqdn_tags` - (Optional) A list of FQDN tags. Possible values are `AppServiceEnvironment`, `AzureBackup`, `MicrosoftActiveProtectionService`, `WindowsDiagnostics` and `WindowsUpdate`
+* `source_ip_groups` - (Optional) A list of source IP Group IDs for the rule.
+
+-> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
+
+* `fqdn_tags` - (Optional) A list of FQDN tags. Possible values are `AppServiceEnvironment`, `AzureBackup`, `AzureKubernetesService`, `HDInsight`, `MicrosoftActiveProtectionService`, `WindowsDiagnostics`, `WindowsUpdate` and `WindowsVirtualDesktop`.
 
 * `target_fqdns` - (Optional) A list of FQDNs.
 
@@ -117,12 +121,23 @@ A `protocol` block supports the following:
 
 * `port` - (Optional) Specify a port for the connection.
 
-* `type` - (Required) Specifies the type of conection. Possible values are `Http` or `Https`.
+* `type` - (Required) Specifies the type of connection. Possible values are `Http`, `Https` and `Mssql`.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Firewall Application Rule Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Firewall Application Rule Collection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Application Rule Collection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Firewall Application Rule Collection.
 
 ## Import
 
-Azure Firewall Application Rule Collections can be imported using the `resource id`, e.g.
+Firewall Application Rule Collections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_firewall_application_rule_collection.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/applicationRuleCollections/mycollection
+terraform import azurerm_firewall_application_rule_collection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/applicationRuleCollections/mycollection
 ```

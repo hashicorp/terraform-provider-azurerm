@@ -8,7 +8,15 @@ import (
 )
 
 func ResponseWasNotFound(resp autorest.Response) bool {
-	return responseWasStatusCode(resp, http.StatusNotFound)
+	return ResponseWasStatusCode(resp, http.StatusNotFound)
+}
+
+func ResponseWasForbidden(resp autorest.Response) bool {
+	return ResponseWasStatusCode(resp, http.StatusForbidden)
+}
+
+func ResponseWasConflict(resp autorest.Response) bool {
+	return ResponseWasStatusCode(resp, http.StatusConflict)
 }
 
 func ResponseErrorIsRetryable(err error) bool {
@@ -16,6 +24,7 @@ func ResponseErrorIsRetryable(err error) bool {
 		err = arerr.Original
 	}
 
+	// nolint gocritic
 	switch e := err.(type) {
 	case net.Error:
 		if e.Temporary() || e.Timeout() {
@@ -26,7 +35,7 @@ func ResponseErrorIsRetryable(err error) bool {
 	return false
 }
 
-func responseWasStatusCode(resp autorest.Response, statusCode int) bool { // nolint: unparam
+func ResponseWasStatusCode(resp autorest.Response, statusCode int) bool { // nolint: unparam
 	if r := resp.Response; r != nil {
 		if r.StatusCode == statusCode {
 			return true

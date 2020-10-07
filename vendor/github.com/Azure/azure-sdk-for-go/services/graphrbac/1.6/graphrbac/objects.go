@@ -36,7 +36,8 @@ func NewObjectsClient(tenantID string) ObjectsClient {
 	return NewObjectsClientWithBaseURI(DefaultBaseURI, tenantID)
 }
 
-// NewObjectsClientWithBaseURI creates an instance of the ObjectsClient client.
+// NewObjectsClientWithBaseURI creates an instance of the ObjectsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewObjectsClientWithBaseURI(baseURI string, tenantID string) ObjectsClient {
 	return ObjectsClient{NewWithBaseURI(baseURI, tenantID)}
 }
@@ -79,6 +80,9 @@ func (client ObjectsClient) GetObjectsByObjectIds(ctx context.Context, parameter
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.ObjectsClient", "GetObjectsByObjectIds", resp, "Failure responding to request")
 	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -107,8 +111,7 @@ func (client ObjectsClient) GetObjectsByObjectIdsPreparer(ctx context.Context, p
 // GetObjectsByObjectIdsSender sends the GetObjectsByObjectIds request. The method will close the
 // http.Response Body if it receives an error.
 func (client ObjectsClient) GetObjectsByObjectIdsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetObjectsByObjectIdsResponder handles the response to the GetObjectsByObjectIds request. The method always
@@ -116,7 +119,6 @@ func (client ObjectsClient) GetObjectsByObjectIdsSender(req *http.Request) (*htt
 func (client ObjectsClient) GetObjectsByObjectIdsResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,8 +200,7 @@ func (client ObjectsClient) GetObjectsByObjectIdsNextPreparer(ctx context.Contex
 // GetObjectsByObjectIdsNextSender sends the GetObjectsByObjectIdsNext request. The method will close the
 // http.Response Body if it receives an error.
 func (client ObjectsClient) GetObjectsByObjectIdsNextSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetObjectsByObjectIdsNextResponder handles the response to the GetObjectsByObjectIdsNext request. The method always
@@ -207,7 +208,6 @@ func (client ObjectsClient) GetObjectsByObjectIdsNextSender(req *http.Request) (
 func (client ObjectsClient) GetObjectsByObjectIdsNextResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

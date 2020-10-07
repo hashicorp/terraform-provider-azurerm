@@ -1,7 +1,7 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_openid_connect_provider"
-sidebar_current: "docs-azurerm-resource-api-management-openid-connect-provider"
 description: |-
   Manages an OpenID Connect Provider within a API Management Service.
 ---
@@ -13,28 +13,25 @@ Manages an OpenID Connect Provider within a API Management Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_api_management" "test" {
+resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
-resource "azurerm_api_management_openid_connect_provider" "test" {
+resource "azurerm_api_management_openid_connect_provider" "example" {
   name                = "example-provider"
-  api_management_name = "${azurerm_api_management.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = azurerm_api_management.example.name
+  resource_group_name = azurerm_resource_group.example.name
   client_id           = "00001111-2222-3333-4444-555566667777"
   display_name        = "Example Provider"
   metadata_endpoint   = "https://example.com/example"
@@ -69,10 +66,19 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management OpenID Connect Provider.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management OpenID Connect Provider.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management OpenID Connect Provider.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management OpenID Connect Provider.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management OpenID Connect Provider.
+
 ## Import
 
 API Management OpenID Connect Providers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_openid_connect_provider.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/openidConnectProviders/provider1
+terraform import azurerm_api_management_openid_connect_provider.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/openidConnectProviders/provider1
 ```

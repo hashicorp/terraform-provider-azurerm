@@ -35,7 +35,9 @@ func NewProviderOperationsClient(subscriptionID string) ProviderOperationsClient
 	return NewProviderOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProviderOperationsClientWithBaseURI creates an instance of the ProviderOperationsClient client.
+// NewProviderOperationsClientWithBaseURI creates an instance of the ProviderOperationsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewProviderOperationsClientWithBaseURI(baseURI string, subscriptionID string) ProviderOperationsClient {
 	return ProviderOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -70,6 +72,9 @@ func (client ProviderOperationsClient) List(ctx context.Context) (result Provide
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ProviderOperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.por.hasNextLink() && result.por.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -92,8 +97,7 @@ func (client ProviderOperationsClient) ListPreparer(ctx context.Context) (*http.
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProviderOperationsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -101,7 +105,6 @@ func (client ProviderOperationsClient) ListSender(req *http.Request) (*http.Resp
 func (client ProviderOperationsClient) ListResponder(resp *http.Response) (result ProviderOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

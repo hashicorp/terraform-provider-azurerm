@@ -35,7 +35,9 @@ func NewUserAssignedIdentitiesClient(subscriptionID string) UserAssignedIdentiti
 	return NewUserAssignedIdentitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewUserAssignedIdentitiesClientWithBaseURI creates an instance of the UserAssignedIdentitiesClient client.
+// NewUserAssignedIdentitiesClientWithBaseURI creates an instance of the UserAssignedIdentitiesClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewUserAssignedIdentitiesClientWithBaseURI(baseURI string, subscriptionID string) UserAssignedIdentitiesClient {
 	return UserAssignedIdentitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -90,9 +92,7 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdatePreparer(ctx context.Co
 		"api-version": APIVersion,
 	}
 
-	parameters.ID = nil
-	parameters.Name = nil
-	parameters.Type = ""
+	parameters.IdentityProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -106,8 +106,7 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdatePreparer(ctx context.Co
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -115,7 +114,6 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdateSender(req *http.Reques
 func (client UserAssignedIdentitiesClient) CreateOrUpdateResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -183,8 +181,7 @@ func (client UserAssignedIdentitiesClient) DeletePreparer(ctx context.Context, r
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -192,7 +189,6 @@ func (client UserAssignedIdentitiesClient) DeleteSender(req *http.Request) (*htt
 func (client UserAssignedIdentitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -259,8 +255,7 @@ func (client UserAssignedIdentitiesClient) GetPreparer(ctx context.Context, reso
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -268,7 +263,6 @@ func (client UserAssignedIdentitiesClient) GetSender(req *http.Request) (*http.R
 func (client UserAssignedIdentitiesClient) GetResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -308,6 +302,9 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroup(ctx context.Conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -335,8 +332,7 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroupPreparer(ctx conte
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -344,7 +340,6 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroupSender(req *http.R
 func (client UserAssignedIdentitiesClient) ListByResourceGroupResponder(resp *http.Response) (result UserAssignedIdentitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -419,6 +414,9 @@ func (client UserAssignedIdentitiesClient) ListBySubscription(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "msi.UserAssignedIdentitiesClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.uailr.hasNextLink() && result.uailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -445,8 +443,7 @@ func (client UserAssignedIdentitiesClient) ListBySubscriptionPreparer(ctx contex
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -454,7 +451,6 @@ func (client UserAssignedIdentitiesClient) ListBySubscriptionSender(req *http.Re
 func (client UserAssignedIdentitiesClient) ListBySubscriptionResponder(resp *http.Response) (result UserAssignedIdentitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -549,9 +545,7 @@ func (client UserAssignedIdentitiesClient) UpdatePreparer(ctx context.Context, r
 		"api-version": APIVersion,
 	}
 
-	parameters.ID = nil
-	parameters.Name = nil
-	parameters.Type = ""
+	parameters.IdentityProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
@@ -565,8 +559,7 @@ func (client UserAssignedIdentitiesClient) UpdatePreparer(ctx context.Context, r
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -574,7 +567,6 @@ func (client UserAssignedIdentitiesClient) UpdateSender(req *http.Request) (*htt
 func (client UserAssignedIdentitiesClient) UpdateResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -1,7 +1,7 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
-sidebar_current: "docs-azurerm-datasource-servicebus-namespace"
 description: |-
   Gets information about an existing ServiceBus Namespace.
 ---
@@ -13,21 +13,21 @@ Use this data source to access information about an existing ServiceBus Namespac
 ## Example Usage
 
 ```hcl
-data "azurerm_servicebus_namespace" "test" {
+data "azurerm_servicebus_namespace" "example" {
   name                = "examplenamespace"
   resource_group_name = "example-resources"
 }
 
 output "location" {
-  value = "${data.azurerm_servicebus_namespace.test.location}"
+  value = data.azurerm_servicebus_namespace.example.location
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the ServiceBus Namespace.
+* `name` - Specifies the name of the ServiceBus Namespace.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the ServiceBus Namespace exists.
 
 ## Attributes Reference
 
@@ -36,6 +36,8 @@ output "location" {
 * `sku` - The Tier used for the ServiceBus Namespace.
 
 * `capacity` - The capacity of the ServiceBus Namespace.
+
+* `zone_redundant` - Whether or not this ServiceBus Namespace is zone redundant.
 
 * `tags` - A mapping of tags assigned to the resource.
 
@@ -51,3 +53,9 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace.

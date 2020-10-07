@@ -29,173 +29,43 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 
-// KeyName enumerates the values for key name.
-type KeyName string
-
-const (
-	// Key1 ...
-	Key1 KeyName = "Key1"
-	// Key2 ...
-	Key2 KeyName = "Key2"
-)
-
-// PossibleKeyNameValues returns an array of possible values for the KeyName const type.
-func PossibleKeyNameValues() []KeyName {
-	return []KeyName{Key1, Key2}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Moving ...
-	Moving ProvisioningState = "Moving"
-	// ResolvingDNS ...
-	ResolvingDNS ProvisioningState = "ResolvingDNS"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Creating, Deleting, Failed, Moving, ResolvingDNS, Succeeded}
-}
-
-// QuotaUsageStatus enumerates the values for quota usage status.
-type QuotaUsageStatus string
-
-const (
-	// Blocked ...
-	Blocked QuotaUsageStatus = "Blocked"
-	// Included ...
-	Included QuotaUsageStatus = "Included"
-	// InOverage ...
-	InOverage QuotaUsageStatus = "InOverage"
-	// Unknown ...
-	Unknown QuotaUsageStatus = "Unknown"
-)
-
-// PossibleQuotaUsageStatusValues returns an array of possible values for the QuotaUsageStatus const type.
-func PossibleQuotaUsageStatusValues() []QuotaUsageStatus {
-	return []QuotaUsageStatus{Blocked, Included, InOverage, Unknown}
-}
-
-// ResourceSkuRestrictionsReasonCode enumerates the values for resource sku restrictions reason code.
-type ResourceSkuRestrictionsReasonCode string
-
-const (
-	// NotAvailableForSubscription ...
-	NotAvailableForSubscription ResourceSkuRestrictionsReasonCode = "NotAvailableForSubscription"
-	// QuotaID ...
-	QuotaID ResourceSkuRestrictionsReasonCode = "QuotaId"
-)
-
-// PossibleResourceSkuRestrictionsReasonCodeValues returns an array of possible values for the ResourceSkuRestrictionsReasonCode const type.
-func PossibleResourceSkuRestrictionsReasonCodeValues() []ResourceSkuRestrictionsReasonCode {
-	return []ResourceSkuRestrictionsReasonCode{NotAvailableForSubscription, QuotaID}
-}
-
-// ResourceSkuRestrictionsType enumerates the values for resource sku restrictions type.
-type ResourceSkuRestrictionsType string
-
-const (
-	// Location ...
-	Location ResourceSkuRestrictionsType = "Location"
-	// Zone ...
-	Zone ResourceSkuRestrictionsType = "Zone"
-)
-
-// PossibleResourceSkuRestrictionsTypeValues returns an array of possible values for the ResourceSkuRestrictionsType const type.
-func PossibleResourceSkuRestrictionsTypeValues() []ResourceSkuRestrictionsType {
-	return []ResourceSkuRestrictionsType{Location, Zone}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// Free ...
-	Free SkuTier = "Free"
-	// Premium ...
-	Premium SkuTier = "Premium"
-	// Standard ...
-	Standard SkuTier = "Standard"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{Free, Premium, Standard}
-}
-
-// UnitType enumerates the values for unit type.
-type UnitType string
-
-const (
-	// Bytes ...
-	Bytes UnitType = "Bytes"
-	// BytesPerSecond ...
-	BytesPerSecond UnitType = "BytesPerSecond"
-	// Count ...
-	Count UnitType = "Count"
-	// CountPerSecond ...
-	CountPerSecond UnitType = "CountPerSecond"
-	// Milliseconds ...
-	Milliseconds UnitType = "Milliseconds"
-	// Percent ...
-	Percent UnitType = "Percent"
-	// Seconds ...
-	Seconds UnitType = "Seconds"
-)
-
-// PossibleUnitTypeValues returns an array of possible values for the UnitType const type.
-func PossibleUnitTypeValues() []UnitType {
-	return []UnitType{Bytes, BytesPerSecond, Count, CountPerSecond, Milliseconds, Percent, Seconds}
-}
-
 // Account cognitive Services Account is an Azure resource representing the provisioned account, its type,
 // location and SKU.
 type Account struct {
 	autorest.Response `json:"-"`
-	// Etag - Entity Tag
+	// Etag - READ-ONLY; Entity Tag
 	Etag *string `json:"etag,omitempty"`
 	// ID - READ-ONLY; The id of the created account
 	ID *string `json:"id,omitempty"`
-	// Kind - Type of cognitive service account.
+	// Kind - The Kind of the resource.
 	Kind *string `json:"kind,omitempty"`
 	// Location - The location of the resource
 	Location *string `json:"location,omitempty"`
 	// Name - READ-ONLY; The name of the created account
 	Name *string `json:"name,omitempty"`
-	// AccountProperties - Properties of Cognitive Services account.
-	*AccountProperties `json:"properties,omitempty"`
+	// Properties - Properties of Cognitive Services account.
+	Properties *AccountProperties `json:"properties,omitempty"`
 	// Sku - The SKU of Cognitive Services account.
 	Sku *Sku `json:"sku,omitempty"`
 	// Tags - Gets or sets a list of key value pairs that describe the resource. These tags can be used in viewing and grouping this resource (across resource groups). A maximum of 15 tags can be provided for a resource. Each tag must have a key no greater than 128 characters and value no greater than 256 characters.
 	Tags map[string]*string `json:"tags"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
+	// Identity - The identity of Cognitive Services account.
+	Identity *Identity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Account.
 func (a Account) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if a.Etag != nil {
-		objectMap["etag"] = a.Etag
-	}
 	if a.Kind != nil {
 		objectMap["kind"] = a.Kind
 	}
 	if a.Location != nil {
 		objectMap["location"] = a.Location
 	}
-	if a.AccountProperties != nil {
-		objectMap["properties"] = a.AccountProperties
+	if a.Properties != nil {
+		objectMap["properties"] = a.Properties
 	}
 	if a.Sku != nil {
 		objectMap["sku"] = a.Sku
@@ -203,138 +73,22 @@ func (a Account) MarshalJSON() ([]byte, error) {
 	if a.Tags != nil {
 		objectMap["tags"] = a.Tags
 	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for Account struct.
-func (a *Account) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "etag":
-			if v != nil {
-				var etag string
-				err = json.Unmarshal(*v, &etag)
-				if err != nil {
-					return err
-				}
-				a.Etag = &etag
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				a.ID = &ID
-			}
-		case "kind":
-			if v != nil {
-				var kind string
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				a.Kind = &kind
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				a.Location = &location
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				a.Name = &name
-			}
-		case "properties":
-			if v != nil {
-				var accountProperties AccountProperties
-				err = json.Unmarshal(*v, &accountProperties)
-				if err != nil {
-					return err
-				}
-				a.AccountProperties = &accountProperties
-			}
-		case "sku":
-			if v != nil {
-				var sku Sku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				a.Sku = &sku
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				a.Tags = tags
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				a.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// AccountCreateParameters the parameters to provide for the account.
-type AccountCreateParameters struct {
-	// Sku - Required. Gets or sets the SKU of the resource.
-	Sku *Sku `json:"sku,omitempty"`
-	// Kind - Required. Gets or sets the Kind of the resource.
-	Kind *string `json:"kind,omitempty"`
-	// Location - Required. Gets or sets the location of the resource. This will be one of the supported and registered Azure Geo Regions (e.g. West US, East US, Southeast Asia, etc.). The geo region of a resource cannot be changed once it is created, but if an identical geo region is specified on update the request will succeed.
-	Location *string `json:"location,omitempty"`
-	// Tags - Gets or sets a list of key value pairs that describe the resource. These tags can be used in viewing and grouping this resource (across resource groups). A maximum of 15 tags can be provided for a resource. Each tag must have a key no greater than 128 characters and value no greater than 256 characters.
-	Tags map[string]*string `json:"tags"`
-	// Properties - Must exist in the request. Must be an empty object. Must not be null.
-	Properties interface{} `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AccountCreateParameters.
-func (acp AccountCreateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if acp.Sku != nil {
-		objectMap["sku"] = acp.Sku
-	}
-	if acp.Kind != nil {
-		objectMap["kind"] = acp.Kind
-	}
-	if acp.Location != nil {
-		objectMap["location"] = acp.Location
-	}
-	if acp.Tags != nil {
-		objectMap["tags"] = acp.Tags
-	}
-	if acp.Properties != nil {
-		objectMap["properties"] = acp.Properties
+	if a.Identity != nil {
+		objectMap["identity"] = a.Identity
 	}
 	return json.Marshal(objectMap)
+}
+
+// AccountAPIProperties the api properties for special APIs.
+type AccountAPIProperties struct {
+	// QnaRuntimeEndpoint - (QnAMaker Only) The runtime endpoint of QnAMaker.
+	QnaRuntimeEndpoint *string `json:"qnaRuntimeEndpoint,omitempty"`
+	// StatisticsEnabled - (Bing Search Only) The flag to enable statistics of Bing Search.
+	StatisticsEnabled *bool `json:"statisticsEnabled,omitempty"`
+	// EventHubConnectionString - (Personalization Only) The flag to enable statistics of Bing Search.
+	EventHubConnectionString *string `json:"eventHubConnectionString,omitempty"`
+	// StorageAccountConnectionString - (Personalization Only) The storage account connection string.
+	StorageAccountConnectionString *string `json:"storageAccountConnectionString,omitempty"`
 }
 
 // AccountEnumerateSkusResult the list of cognitive services accounts operation response.
@@ -360,6 +114,15 @@ type AccountListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 	// Value - READ-ONLY; Gets the list of Cognitive Services accounts and their properties.
 	Value *[]Account `json:"value,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AccountListResult.
+func (alr AccountListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if alr.NextLink != nil {
+		objectMap["nextLink"] = alr.NextLink
+	}
+	return json.Marshal(objectMap)
 }
 
 // AccountListResultIterator provides access to a complete listing of Account values.
@@ -430,10 +193,15 @@ func (alr AccountListResult) IsEmpty() bool {
 	return alr.Value == nil || len(*alr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (alr AccountListResult) hasNextLink() bool {
+	return alr.NextLink != nil && len(*alr.NextLink) != 0
+}
+
 // accountListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (alr AccountListResult) accountListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+	if !alr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -461,11 +229,16 @@ func (page *AccountListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.alr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.alr)
+		if err != nil {
+			return err
+		}
+		page.alr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.alr = next
 	return nil
 }
 
@@ -503,37 +276,86 @@ func NewAccountListResultPage(getNextPage func(context.Context, AccountListResul
 type AccountProperties struct {
 	// ProvisioningState - READ-ONLY; Gets the status of the cognitive services account at the time the operation was called. Possible values include: 'Creating', 'ResolvingDNS', 'Moving', 'Deleting', 'Succeeded', 'Failed'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// Endpoint - Endpoint of the created account.
+	// Endpoint - READ-ONLY; Endpoint of the created account.
 	Endpoint *string `json:"endpoint,omitempty"`
-	// InternalID - The internal identifier.
+	// InternalID - READ-ONLY; The internal identifier.
 	InternalID *string `json:"internalId,omitempty"`
+	// Capabilities - READ-ONLY; Gets the capabilities of the cognitive services account. Each item indicates the capability of a specific feature. The values are read-only and for reference only.
+	Capabilities *[]SkuCapability `json:"capabilities,omitempty"`
 	// CustomSubDomainName - Optional subdomain name used for token-based authentication.
 	CustomSubDomainName *string `json:"customSubDomainName,omitempty"`
+	// NetworkAcls - A collection of rules governing the accessibility from specific network locations.
+	NetworkAcls *NetworkRuleSet `json:"networkAcls,omitempty"`
+	// Encryption - The encryption properties for this resource.
+	Encryption *Encryption `json:"encryption,omitempty"`
+	// UserOwnedStorage - The storage accounts for this resource.
+	UserOwnedStorage *[]UserOwnedStorage `json:"userOwnedStorage,omitempty"`
+	// PrivateEndpointConnections - The private endpoint connection associated with the Cognitive Services account.
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this account. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// APIProperties - The api properties for special APIs.
+	APIProperties *AccountAPIProperties `json:"apiProperties,omitempty"`
 }
 
-// AccountUpdateParameters the parameters to provide for the account.
-type AccountUpdateParameters struct {
-	// Sku - Gets or sets the SKU of the resource.
-	Sku *Sku `json:"sku,omitempty"`
-	// Tags - Gets or sets a list of key value pairs that describe the resource. These tags can be used in viewing and grouping this resource (across resource groups). A maximum of 15 tags can be provided for a resource. Each tag must have a key no greater than 128 characters and value no greater than 256 characters.
-	Tags map[string]*string `json:"tags"`
-	// Properties - Additional properties for Account. Only provided fields will be updated.
-	Properties interface{} `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for AccountUpdateParameters.
-func (aup AccountUpdateParameters) MarshalJSON() ([]byte, error) {
+// MarshalJSON is the custom marshaler for AccountProperties.
+func (ap AccountProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if aup.Sku != nil {
-		objectMap["sku"] = aup.Sku
+	if ap.CustomSubDomainName != nil {
+		objectMap["customSubDomainName"] = ap.CustomSubDomainName
 	}
-	if aup.Tags != nil {
-		objectMap["tags"] = aup.Tags
+	if ap.NetworkAcls != nil {
+		objectMap["networkAcls"] = ap.NetworkAcls
 	}
-	if aup.Properties != nil {
-		objectMap["properties"] = aup.Properties
+	if ap.Encryption != nil {
+		objectMap["encryption"] = ap.Encryption
+	}
+	if ap.UserOwnedStorage != nil {
+		objectMap["userOwnedStorage"] = ap.UserOwnedStorage
+	}
+	if ap.PrivateEndpointConnections != nil {
+		objectMap["privateEndpointConnections"] = ap.PrivateEndpointConnections
+	}
+	if ap.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = ap.PublicNetworkAccess
+	}
+	if ap.APIProperties != nil {
+		objectMap["apiProperties"] = ap.APIProperties
 	}
 	return json.Marshal(objectMap)
+}
+
+// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// CheckDomainAvailabilityParameter check Domain availability parameter.
+type CheckDomainAvailabilityParameter struct {
+	// SubdomainName - The subdomain name to use.
+	SubdomainName *string `json:"subdomainName,omitempty"`
+	// Type - The Type of the resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// CheckDomainAvailabilityResult check Domain availability result.
+type CheckDomainAvailabilityResult struct {
+	autorest.Response `json:"-"`
+	// IsSubdomainAvailable - Indicates the given SKU is available or not.
+	IsSubdomainAvailable *bool `json:"isSubdomainAvailable,omitempty"`
+	// Reason - Reason why the SKU is not available.
+	Reason *string `json:"reason,omitempty"`
+	// SubdomainName - The subdomain name to use.
+	SubdomainName *string `json:"subdomainName,omitempty"`
+	// Type - The Type of the resource.
+	Type *string `json:"type,omitempty"`
 }
 
 // CheckSkuAvailabilityParameter check SKU availability parameter.
@@ -569,6 +391,14 @@ type CheckSkuAvailabilityResultList struct {
 	Value *[]CheckSkuAvailabilityResult `json:"value,omitempty"`
 }
 
+// Encryption properties to configure Encryption
+type Encryption struct {
+	// KeyVaultProperties - Properties of KeyVault
+	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+	// KeySource - Enumerates the possible value of keySource for Encryption. Possible values include: 'MicrosoftCognitiveServices', 'MicrosoftKeyVault'
+	KeySource KeySource `json:"keySource,omitempty"`
+}
+
 // Error cognitive Services error object.
 type Error struct {
 	// Error - The error body.
@@ -583,12 +413,62 @@ type ErrorBody struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// Identity managed service identity.
+type Identity struct {
+	// Type - Type of managed service identity. Possible values include: 'None', 'SystemAssigned', 'UserAssigned'
+	Type IdentityType `json:"type,omitempty"`
+	// TenantID - READ-ONLY; Tenant of managed service identity.
+	TenantID *string `json:"tenantId,omitempty"`
+	// PrincipalID - READ-ONLY; Principal Id of managed service identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// UserAssignedIdentities - The list of user assigned identities associated with the resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
+	UserAssignedIdentities map[string]*UserAssignedIdentity `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	if i.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = i.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
+// IPRule a rule governing the accessibility from a specific ip address or ip range.
+type IPRule struct {
+	// Value - An IPv4 address range in CIDR notation, such as '124.56.78.91' (simple IP address) or '124.56.78.0/24' (all addresses that start with 124.56.78).
+	Value *string `json:"value,omitempty"`
+}
+
+// KeyVaultProperties properties to configure keyVault Properties
+type KeyVaultProperties struct {
+	// KeyName - Name of the Key from KeyVault
+	KeyName *string `json:"keyName,omitempty"`
+	// KeyVersion - Version of the Key from KeyVault
+	KeyVersion *string `json:"keyVersion,omitempty"`
+	// KeyVaultURI - Uri of KeyVault
+	KeyVaultURI *string `json:"keyVaultUri,omitempty"`
+}
+
 // MetricName a metric name.
 type MetricName struct {
 	// Value - READ-ONLY; The name of the metric.
 	Value *string `json:"value,omitempty"`
 	// LocalizedValue - READ-ONLY; The friendly name of the metric.
 	LocalizedValue *string `json:"localizedValue,omitempty"`
+}
+
+// NetworkRuleSet a set of rules governing the network accessibility.
+type NetworkRuleSet struct {
+	// DefaultAction - The default action when no rule from ipRules and from virtualNetworkRules match. This is only used after the bypass property has been evaluated. Possible values include: 'Allow', 'Deny'
+	DefaultAction NetworkRuleAction `json:"defaultAction,omitempty"`
+	// IPRules - The list of IP address rules.
+	IPRules *[]IPRule `json:"ipRules,omitempty"`
+	// VirtualNetworkRules - The list of virtual network rules.
+	VirtualNetworkRules *[]VirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
 }
 
 // OperationDisplayInfo the operation supported by Cognitive Services.
@@ -692,10 +572,15 @@ func (oelr OperationEntityListResult) IsEmpty() bool {
 	return oelr.Value == nil || len(*oelr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (oelr OperationEntityListResult) hasNextLink() bool {
+	return oelr.NextLink != nil && len(*oelr.NextLink) != 0
+}
+
 // operationEntityListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (oelr OperationEntityListResult) operationEntityListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if oelr.NextLink == nil || len(to.String(oelr.NextLink)) < 1 {
+	if !oelr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -723,11 +608,16 @@ func (page *OperationEntityListResultPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.oelr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.oelr)
+		if err != nil {
+			return err
+		}
+		page.oelr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.oelr = next
 	return nil
 }
 
@@ -761,10 +651,129 @@ func NewOperationEntityListResultPage(getNextPage func(context.Context, Operatio
 	return OperationEntityListResultPage{fn: getNextPage}
 }
 
+// PrivateEndpoint the Private Endpoint resource.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The ARM identifier for Private Endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection the Private Endpoint Connection resource.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// Properties - Resource properties.
+	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.Properties != nil {
+		objectMap["properties"] = pec.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The resource of private end point.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// GroupIds - The private link resource group ids.
+	GroupIds *[]string `json:"groupIds,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	// Properties - Resource properties.
+	Properties *PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.Properties != nil {
+		objectMap["properties"] = plr.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// DisplayName - READ-ONLY; The private link resource display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResourceProperties.
+func (plrp PrivateLinkResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plrp.RequiredZoneNames != nil {
+		objectMap["requiredZoneNames"] = plrp.RequiredZoneNames
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkServiceConnectionState a collection of information about the state of the connection between
+// service consumer and provider.
+type PrivateLinkServiceConnectionState struct {
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The reason for approval/rejection of the connection.
+	Description *string `json:"description,omitempty"`
+	// ActionRequired - A message indicating if changes on the service provider require any updates on the consumer.
+	ActionRequired *string `json:"actionRequired,omitempty"`
+}
+
+// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
+// required location and tags
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
 // RegenerateKeyParameters regenerate key parameters.
 type RegenerateKeyParameters struct {
 	// KeyName - key name to generate (Key1|Key2). Possible values include: 'Key1', 'Key2'
 	KeyName KeyName `json:"keyName,omitempty"`
+}
+
+// Resource ...
+type Resource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // ResourceAndSku cognitive Services resource type and SKU.
@@ -888,10 +897,15 @@ func (rsr ResourceSkusResult) IsEmpty() bool {
 	return rsr.Value == nil || len(*rsr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rsr ResourceSkusResult) hasNextLink() bool {
+	return rsr.NextLink != nil && len(*rsr.NextLink) != 0
+}
+
 // resourceSkusResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rsr ResourceSkusResult) resourceSkusResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rsr.NextLink == nil || len(to.String(rsr.NextLink)) < 1 {
+	if !rsr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -919,11 +933,16 @@ func (page *ResourceSkusResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rsr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rsr)
+		if err != nil {
+			return err
+		}
+		page.rsr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rsr = next
 	return nil
 }
 
@@ -965,6 +984,49 @@ type Sku struct {
 	Tier SkuTier `json:"tier,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Sku.
+func (s Sku) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if s.Name != nil {
+		objectMap["name"] = s.Name
+	}
+	return json.Marshal(objectMap)
+}
+
+// SkuCapability skuCapability indicates the capability of a certain feature.
+type SkuCapability struct {
+	// Name - The name of the SkuCapability.
+	Name *string `json:"name,omitempty"`
+	// Value - The value of the SkuCapability.
+	Value *string `json:"value,omitempty"`
+}
+
+// TrackedResource the resource model definition for a ARM tracked top level resource
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	return json.Marshal(objectMap)
+}
+
 // Usage the usage data for a usage request.
 type Usage struct {
 	// Unit - The unit of the metric. Possible values include: 'Count', 'Bytes', 'Seconds', 'Percent', 'CountPerSecond', 'BytesPerSecond', 'Milliseconds'
@@ -983,9 +1045,45 @@ type Usage struct {
 	Status QuotaUsageStatus `json:"status,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Usage.
+func (u Usage) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if u.Unit != "" {
+		objectMap["unit"] = u.Unit
+	}
+	if u.Status != "" {
+		objectMap["status"] = u.Status
+	}
+	return json.Marshal(objectMap)
+}
+
 // UsagesResult the response to a list usage request.
 type UsagesResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of usages for Cognitive Service account.
 	Value *[]Usage `json:"value,omitempty"`
+}
+
+// UserAssignedIdentity user-assigned managed identity.
+type UserAssignedIdentity struct {
+	// PrincipalID - Azure Active Directory principal ID associated with this Identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - Client App Id associated with this identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// UserOwnedStorage the user owned storage for Cognitive Services account.
+type UserOwnedStorage struct {
+	// ResourceID - Full resource id of a Microsoft.Storage resource.
+	ResourceID *string `json:"resourceId,omitempty"`
+}
+
+// VirtualNetworkRule a rule governing the accessibility from a specific virtual network.
+type VirtualNetworkRule struct {
+	// ID - Full resource id of a vnet subnet, such as '/subscriptions/subid/resourceGroups/rg1/providers/Microsoft.Network/virtualNetworks/test-vnet/subnets/subnet1'.
+	ID *string `json:"id,omitempty"`
+	// State - Gets the state of virtual network rule.
+	State *string `json:"state,omitempty"`
+	// IgnoreMissingVnetServiceEndpoint - Ignore missing vnet service endpoint or not.
+	IgnoreMissingVnetServiceEndpoint *bool `json:"ignoreMissingVnetServiceEndpoint,omitempty"`
 }

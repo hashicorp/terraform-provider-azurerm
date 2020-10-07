@@ -1,7 +1,7 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_product_group"
-sidebar_current: "docs-azurerm-resource-api-management-product-group"
 description: |-
   Manages an API Management Product Assignment to a Group.
 ---
@@ -20,21 +20,21 @@ data "azurerm_api_management" "example" {
 
 data "azurerm_api_management_product" "example" {
   product_id          = "my-product"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 
 data "azurerm_api_management_group" "example" {
   name                = "my-group"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 
 resource "azurerm_api_management_product_group" "example" {
-  product_id          = "${data.azurerm_api_management_user.example.id}"
-  group_name          = "${data.azurerm_api_management_group.example.name}"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  product_id          = data.azurerm_api_management_product.example.product_id
+  group_name          = data.azurerm_api_management_group.example.name
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 ```
 
@@ -55,6 +55,15 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Product Group.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Product Group.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Product Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Product Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Product Group.
 
 ## Import
 

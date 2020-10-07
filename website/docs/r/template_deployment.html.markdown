@@ -1,32 +1,32 @@
 ---
+subcategory: "Template"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_template_deployment"
-sidebar_current: "docs-azurerm-resource-template-deployment"
 description: |-
   Manages a template deployment of resources.
 ---
 
 # azurerm_template_deployment
 
-Manage a template deployment of resources
+Manages a template deployment of resources
 
-~> **Note on ARM Template Deployments:** Due to the way the underlying Azure API is designed, Terraform can only manage the deployment of the ARM Template - and not any resources which are created by it.
-This means that when deleting the `azurerm_template_deployment` resource, Terraform will only remove the reference to the deployment, whilst leaving any resources created by that ARM Template Deployment.
-One workaround for this is to use a unique Resource Group for each ARM Template Deployment, which means deleting the Resource Group would contain any resources created within it - however this isn't ideal. [More information](https://docs.microsoft.com/en-us/rest/api/resources/deployments#Deployments_Delete).
+~> **Note:** The `azurerm_template_deployment` resource has been superseded by the [`azurerm_resource_group_template_deployment`](resource_group_template_deployment.html) resource. The existing `azurerm_template_deployment` resource will be deprecated (but still available) in version 3.0 of the AzureRM Terraform Provider - we recommend using the `azurerm_resource_group_template_deployment` resource for new deployments.
+
+-> **Note:** This resource will not clean up nested resources deployed by the ARM Template Deployment. We recommend using the [`azurerm_resource_group_template_deployment`](resource_group_template_deployment.html) resource for new deployments, which can do this.
 
 ## Example Usage
 
 ~> **Note:** This example uses [Storage Accounts](storage_account.html) and [Public IP's](public_ip.html) which are natively supported by Terraform - we'd highly recommend using the Native Resources where possible instead rather than an ARM Template, for the reasons outlined above.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-01"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_template_deployment" "test" {
+resource "azurerm_template_deployment" "example" {
   name                = "acctesttemplate-01"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
   template_body = <<DEPLOY
 {
@@ -86,6 +86,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
+
   # these key-value pairs are passed into the ARM Template's `parameters` block
   parameters = {
     "storageAccountType" = "Standard_GRS"
@@ -95,7 +96,7 @@ DEPLOY
 }
 
 output "storageAccountName" {
-  value = "${lookup(azurerm_template_deployment.test.outputs, "storageAccountName")}"
+  value = azurerm_template_deployment.example.outputs["storageAccountName"]
 }
 ```
 
@@ -120,6 +121,8 @@ The following arguments are supported:
 
 ~> **Note:** There's a [`file` function available](https://www.terraform.io/docs/configuration/functions/file.html) which allows you to read this from an external file, which helps makes this more resource more readable.
 
+~> **Also Note:** This is NOT an Azure deployment parameters file, as defined in the [`Microsoft schema's`](https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#). It is effectively the object supplied to the "parameters" attribute in that schema. If you are providing, or generating via [`template_file`](https://www.terraform.io/docs/providers/template/d/file.html), this argument, do not provide a full deployment parameters JSON file with "$schema" and "contentVersion" attributes, just provide the object for the "parameters" attribute of that schema.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -131,3 +134,12 @@ The following attributes are exported:
 ## Note
 
 Terraform does not know about the individual resources created by Azure using a deployment template and therefore cannot delete these resources during a destroy. Destroying a template deployment removes the associated deployment operations, but will not delete the Azure resources created by the deployment. In order to delete these resources, the containing resource group must also be destroyed. [More information](https://docs.microsoft.com/en-us/rest/api/resources/deployments#Deployments_Delete).
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 3 hours) Used when creating the Template Deployment.
+* `update` - (Defaults to 3 hours) Used when updating the Template Deployment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Template Deployment.
+* `delete` - (Defaults to 3 hours) Used when deleting the Template Deployment.

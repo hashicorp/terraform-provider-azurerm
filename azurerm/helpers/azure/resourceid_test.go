@@ -30,8 +30,13 @@ func TestParseAzureResourceID(t *testing.T) {
 		},
 		{
 			"/subscriptions/6d74bdd2-9f84-11e5-9bd9-7831c1c4c038",
-			nil,
-			true,
+			&ResourceID{
+				SubscriptionID: "6d74bdd2-9f84-11e5-9bd9-7831c1c4c038",
+				ResourceGroup:  "",
+				Provider:       "",
+				Path:           map[string]string{},
+			},
+			false,
 		},
 		{
 			"subscriptions/6d74bdd2-9f84-11e5-9bd9-7831c1c4c038",
@@ -140,9 +145,23 @@ func TestParseAzureResourceID(t *testing.T) {
 			},
 			false,
 		},
+		{
+			// missing resource group
+			"/subscriptions/11111111-1111-1111-1111-111111111111/providers/Microsoft.ApiManagement/service/service1/subscriptions/22222222-2222-2222-2222-222222222222",
+			&ResourceID{
+				SubscriptionID: "11111111-1111-1111-1111-111111111111",
+				Provider:       "Microsoft.ApiManagement",
+				Path: map[string]string{
+					"service":       "service1",
+					"subscriptions": "22222222-2222-2222-2222-222222222222",
+				},
+			},
+			false,
+		},
 	}
 
 	for _, test := range testCases {
+		t.Logf("[DEBUG] Testing %q", test.id)
 		parsed, err := ParseAzureResourceID(test.id)
 		if test.expectError && err != nil {
 			continue

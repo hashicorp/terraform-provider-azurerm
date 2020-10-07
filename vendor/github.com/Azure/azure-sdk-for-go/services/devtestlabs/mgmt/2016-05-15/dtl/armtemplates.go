@@ -35,7 +35,8 @@ func NewArmTemplatesClient(subscriptionID string) ArmTemplatesClient {
 	return NewArmTemplatesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewArmTemplatesClientWithBaseURI creates an instance of the ArmTemplatesClient client.
+// NewArmTemplatesClientWithBaseURI creates an instance of the ArmTemplatesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewArmTemplatesClientWithBaseURI(baseURI string, subscriptionID string) ArmTemplatesClient {
 	return ArmTemplatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -108,8 +109,7 @@ func (client ArmTemplatesClient) GetPreparer(ctx context.Context, resourceGroupN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ArmTemplatesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -117,7 +117,6 @@ func (client ArmTemplatesClient) GetSender(req *http.Request) (*http.Response, e
 func (client ArmTemplatesClient) GetResponder(resp *http.Response) (result ArmTemplate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -163,6 +162,9 @@ func (client ArmTemplatesClient) List(ctx context.Context, resourceGroupName str
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ArmTemplatesClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcat.hasNextLink() && result.rwcat.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -204,8 +206,7 @@ func (client ArmTemplatesClient) ListPreparer(ctx context.Context, resourceGroup
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ArmTemplatesClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -213,7 +214,6 @@ func (client ArmTemplatesClient) ListSender(req *http.Request) (*http.Response, 
 func (client ArmTemplatesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationArmTemplate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

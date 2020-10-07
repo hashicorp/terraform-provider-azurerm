@@ -1,7 +1,7 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_registry"
-sidebar_current: "docs-azurerm-datasource-container-registry"
 description: |-
   Get information about an existing Container Registry
 
@@ -14,20 +14,20 @@ Use this data source to access information about an existing Container Registry.
 ## Example Usage
 
 ```hcl
-data "azurerm_container_registry" "test" {
+data "azurerm_container_registry" "example" {
   name                = "testacr"
   resource_group_name = "test"
 }
 
 output "login_server" {
-  value = "${data.azurerm_container_registry.test.login_server}"
+  value = data.azurerm_container_registry.example.login_server
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Container Registry.
-* `resource_group_name` - (Required) The Name of the Resource Group where this Container Registry exists.
+* `name` - The name of the Container Registry.
+* `resource_group_name` - The Name of the Resource Group where this Container Registry exists.
 
 ## Attributes Reference
 
@@ -50,3 +50,9 @@ The following attributes are exported:
 * `storage_account_id` - The ID of the Storage Account used for this Container Registry. This is only returned for `Classic` SKU's.
 
 * `tags` - A map of tags assigned to the Container Registry.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.

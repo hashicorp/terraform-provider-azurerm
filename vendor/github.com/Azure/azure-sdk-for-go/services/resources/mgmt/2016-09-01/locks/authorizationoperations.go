@@ -36,7 +36,9 @@ func NewAuthorizationOperationsClient(subscriptionID string) AuthorizationOperat
 	return NewAuthorizationOperationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAuthorizationOperationsClientWithBaseURI creates an instance of the AuthorizationOperationsClient client.
+// NewAuthorizationOperationsClientWithBaseURI creates an instance of the AuthorizationOperationsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewAuthorizationOperationsClientWithBaseURI(baseURI string, subscriptionID string) AuthorizationOperationsClient {
 	return AuthorizationOperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -71,6 +73,9 @@ func (client AuthorizationOperationsClient) List(ctx context.Context) (result Op
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "locks.AuthorizationOperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.olr.hasNextLink() && result.olr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -93,8 +98,7 @@ func (client AuthorizationOperationsClient) ListPreparer(ctx context.Context) (*
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AuthorizationOperationsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -102,7 +106,6 @@ func (client AuthorizationOperationsClient) ListSender(req *http.Request) (*http
 func (client AuthorizationOperationsClient) ListResponder(resp *http.Response) (result OperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

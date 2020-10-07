@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -34,7 +35,9 @@ func NewApplicationTypesClient(subscriptionID string) ApplicationTypesClient {
 	return NewApplicationTypesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewApplicationTypesClientWithBaseURI creates an instance of the ApplicationTypesClient client.
+// NewApplicationTypesClientWithBaseURI creates an instance of the ApplicationTypesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewApplicationTypesClientWithBaseURI(baseURI string, subscriptionID string) ApplicationTypesClient {
 	return ApplicationTypesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -46,6 +49,16 @@ func NewApplicationTypesClientWithBaseURI(baseURI string, subscriptionID string)
 // applicationTypeName - the name of the application type name resource.
 // parameters - the application type name resource.
 func (client ApplicationTypesClient) Create(ctx context.Context, resourceGroupName string, clusterName string, applicationTypeName string, parameters ApplicationTypeResource) (result ApplicationTypeResource, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationTypesClient.Create")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreatePreparer(ctx, resourceGroupName, clusterName, applicationTypeName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Create", nil, "Failure preparing request")
@@ -94,8 +107,7 @@ func (client ApplicationTypesClient) CreatePreparer(ctx context.Context, resourc
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationTypesClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -103,7 +115,6 @@ func (client ApplicationTypesClient) CreateSender(req *http.Request) (*http.Resp
 func (client ApplicationTypesClient) CreateResponder(resp *http.Response) (result ApplicationTypeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -117,6 +128,16 @@ func (client ApplicationTypesClient) CreateResponder(resp *http.Response) (resul
 // clusterName - the name of the cluster resource.
 // applicationTypeName - the name of the application type name resource.
 func (client ApplicationTypesClient) Delete(ctx context.Context, resourceGroupName string, clusterName string, applicationTypeName string) (result ApplicationTypesDeleteFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationTypesClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, clusterName, applicationTypeName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Delete", nil, "Failure preparing request")
@@ -158,12 +179,7 @@ func (client ApplicationTypesClient) DeletePreparer(ctx context.Context, resourc
 // http.Response Body if it receives an error.
 func (client ApplicationTypesClient) DeleteSender(req *http.Request) (future ApplicationTypesDeleteFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -176,7 +192,6 @@ func (client ApplicationTypesClient) DeleteSender(req *http.Request) (future App
 func (client ApplicationTypesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -190,6 +205,16 @@ func (client ApplicationTypesClient) DeleteResponder(resp *http.Response) (resul
 // clusterName - the name of the cluster resource.
 // applicationTypeName - the name of the application type name resource.
 func (client ApplicationTypesClient) Get(ctx context.Context, resourceGroupName string, clusterName string, applicationTypeName string) (result ApplicationTypeResource, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationTypesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, clusterName, applicationTypeName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "Get", nil, "Failure preparing request")
@@ -236,8 +261,7 @@ func (client ApplicationTypesClient) GetPreparer(ctx context.Context, resourceGr
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationTypesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -245,7 +269,6 @@ func (client ApplicationTypesClient) GetSender(req *http.Request) (*http.Respons
 func (client ApplicationTypesClient) GetResponder(resp *http.Response) (result ApplicationTypeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -259,6 +282,16 @@ func (client ApplicationTypesClient) GetResponder(resp *http.Response) (result A
 // resourceGroupName - the name of the resource group.
 // clusterName - the name of the cluster resource.
 func (client ApplicationTypesClient) List(ctx context.Context, resourceGroupName string, clusterName string) (result ApplicationTypeResourceList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationTypesClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPreparer(ctx, resourceGroupName, clusterName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicefabric.ApplicationTypesClient", "List", nil, "Failure preparing request")
@@ -304,8 +337,7 @@ func (client ApplicationTypesClient) ListPreparer(ctx context.Context, resourceG
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationTypesClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -313,7 +345,6 @@ func (client ApplicationTypesClient) ListSender(req *http.Request) (*http.Respon
 func (client ApplicationTypesClient) ListResponder(resp *http.Response) (result ApplicationTypeResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

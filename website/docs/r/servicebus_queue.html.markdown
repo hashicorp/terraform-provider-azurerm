@@ -1,14 +1,14 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-queue-x"
 description: |-
   Manages a ServiceBus Queue.
 ---
 
 # azurerm_servicebus_queue
 
-Manage a ServiceBus Queue.
+Manages a ServiceBus Queue.
 
 ## Example Usage
 
@@ -19,9 +19,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = "tfex-servicebus-namespace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -31,8 +31,8 @@ resource "azurerm_servicebus_namespace" "example" {
 
 resource "azurerm_servicebus_queue" "example" {
   name                = "tfex_servicebus_queue"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_servicebus_namespace.example.name
 
   enable_partitioning = true
 }
@@ -42,59 +42,45 @@ resource "azurerm_servicebus_queue" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the ServiceBus Queue resource. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the ServiceBus Queue resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) The name of the ServiceBus Namespace to create
-    this queue in. Changing this forces a new resource to be created.
+* `namespace_name` - (Required) The name of the ServiceBus Namespace to create this queue in. Changing this forces a new resource to be created.
 
-* `location` - (Optional / **Deprecated**) Specifies the supported Azure location where the resource exists.
-    Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the namespace. Changing this forces a new resource to be created.
+* `lock_duration` - (Optional) The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. Maximum value is 5 minutes. Defaults to 1 minute (`PT1M`).
 
-* `auto_delete_on_idle` - (Optional) The ISO 8601 timespan duration of the idle interval after which the
-    Queue is automatically deleted, minimum of 5 minutes.
+* `max_size_in_megabytes` - (Optional) Integer value which controls the size of memory allocated for the queue. For supported values see the "Queue or topic size" section of [Service Bus Quotas](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas). Defaults to `1024`.
 
-* `default_message_ttl` - (Optional) The ISO 8601 timespan duration of the TTL of messages sent to this
-    queue. This is the default value used when TTL is not set on message itself.
+* `requires_duplicate_detection` - (Optional) Boolean flag which controls whether the Queue requires duplicate detection. Changing this forces a new resource to be created. Defaults to `false`.
 
-* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which
-    duplicates can be detected. Default value is 10 minutes. (`PT10M`)
+* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions. This will allow ordered handling of unbounded sequences of related messages. With sessions enabled a queue can guarantee first-in-first-out delivery of messages. Changing this forces a new resource to be created. Defaults to `false`.
 
-* `enable_express` - (Optional) Boolean flag which controls whether Express Entities
-    are enabled. An express queue holds a message in memory temporarily before writing
-    it to persistent storage. Defaults to `false` for Basic and Standard. For Premium, it MUST
-    be set to `false`.
-
-~> **NOTE:** Service Bus Premium namespaces do not support Express Entities, so `enable_express` MUST be set to `false`.
-
-* `enable_partitioning` - (Optional) Boolean flag which controls whether to enable
-    the queue to be partitioned across multiple message brokers. Changing this forces
-    a new resource to be created. Defaults to `false` for Basic and Standard. For Premium, it MUST
-    be set to `true`.
-
--> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-partitioning) for more information.
-
-* `lock_duration` - (Optional) The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. Maximum value is 5 minutes. Defaults to 1 minute. (`PT1M`)
-
-* `max_size_in_megabytes` - (Optional) Integer value which controls the size of
-    memory allocated for the queue. For supported values see the "Queue/topic size"
-    section of [this document](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas).
-
-* `requires_duplicate_detection` - (Optional) Boolean flag which controls whether
-    the Queue requires duplicate detection. Changing this forces
-    a new resource to be created. Defaults to `false`.
-
-* `requires_session` - (Optional) Boolean flag which controls whether the Queue requires sessions.
-    This will allow ordered handling of unbounded sequences of related messages. With sessions enabled
-    a queue can guarantee first-in-first-out delivery of messages.
-    Changing this forces a new resource to be created. Defaults to `false`.
+* `default_message_ttl` - (Optional) The ISO 8601 timespan duration of the TTL of messages sent to this queue. This is the default value used when TTL is not set on message itself.
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
 
-* `max_delivery_count` - (Optional) Integer value which controls when a message is automatically deadlettered. Defaults to `10`.
+* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which duplicates can be detected. Defaults to 10 minutes (`PT10M`).
+
+* `max_delivery_count` - (Optional) Integer value which controls when a message is automatically dead lettered. Defaults to `10`.
+
+* `status` - (Optional) The status of the Queue. Possible values are `Active`, `Creating`, `Deleting`, `Disabled`, `ReceiveDisabled`, `Renaming`, `SendDisabled`, `Unknown`. Note that `Restoring` is not accepted. Defaults to `Active`.
+
+* `enable_batched_operations` - (Optional) Boolean flag which controls whether server-side batched operations are enabled. Defaults to `true`.
+
+* `auto_delete_on_idle` - (Optional) The ISO 8601 timespan duration of the idle interval after which the Queue is automatically deleted, minimum of 5 minutes.
+
+* `enable_partitioning` - (Optional) Boolean flag which controls whether to enable the queue to be partitioned across multiple message brokers. Changing this forces a new resource to be created. Defaults to `false` for Basic and Standard. For Premium, it MUST be set to `true`.
+
+-> **NOTE:** Partitioning is available at entity creation for all queues and topics in Basic or Standard SKUs. It is not available for the Premium messaging SKU, but any previously existing partitioned entities in Premium namespaces continue to work as expected. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-partitioning) for more information.
+
+* `enable_express` - (Optional) Boolean flag which controls whether Express Entities are enabled. An express queue holds a message in memory temporarily before writing it to persistent storage. Defaults to `false` for Basic and Standard. For Premium, it MUST be set to `false`.
+
+~> **NOTE:** Service Bus Premium namespaces do not support Express Entities, so `enable_express` MUST be set to `false`.
+
+* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.
+
+* `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward dead lettered messages to.
 
 ## Attributes Reference
 
@@ -102,10 +88,19 @@ The following attributes are exported:
 
 * `id` - The ServiceBus Queue ID.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Queue.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Queue.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Queue.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Queue.
+
 ## Import
 
 Service Bus Queue can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_queue.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/queues/snqueue1
+terraform import azurerm_servicebus_queue.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/queues/snqueue1
 ```

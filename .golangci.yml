@@ -1,5 +1,5 @@
 run:
-  deadline: 7m7s
+  deadline: 10m10s
   modules-download-mode: vendor
 
 issues:
@@ -11,7 +11,9 @@ linters:
   enable:
     - deadcode
     - errcheck
+    - gocritic
     - gofmt
+    - goimports
     - gosimple
     - govet
     - ineffassign
@@ -23,10 +25,16 @@ linters:
     - typecheck
     - unused
     - unconvert
+    - unparam
     - varcheck
     - vet
     - vetshadow
+    - whitespace
 
 linters-settings:
   errcheck:
-    ignore: github.com/hashicorp/terraform/helper/schema:ForceNew|Set,fmt:.*,io:Close
+    ignore: github.com/hashicorp/terraform-plugin-sdk/helper/schema:ForceNew|Set,fmt:.*,io:Close
+  misspell:
+    ignore-words:
+      - hdinsight
+      - exportfs

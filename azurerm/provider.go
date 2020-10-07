@@ -1,22 +1,12 @@
 package azurerm
 
 import (
-	"crypto/sha1"
-	"encoding/base64"
-	"encoding/hex"
-	"fmt"
-	"strings"
-
-	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/helper/mutexkv"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
-// Provider returns a terraform.ResourceProvider.
 func Provider() terraform.ResourceProvider {
+<<<<<<< HEAD
 	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
@@ -566,4 +556,7 @@ func base64Encode(data string) string {
 func isBase64Encoded(data string) bool {
 	_, err := base64.StdEncoding.DecodeString(data)
 	return err == nil
+=======
+	return provider.AzureProvider()
+>>>>>>> master
 }

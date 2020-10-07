@@ -36,7 +36,8 @@ func NewComputePoliciesClient(subscriptionID string) ComputePoliciesClient {
 	return NewComputePoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewComputePoliciesClientWithBaseURI creates an instance of the ComputePoliciesClient client.
+// NewComputePoliciesClientWithBaseURI creates an instance of the ComputePoliciesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewComputePoliciesClientWithBaseURI(baseURI string, subscriptionID string) ComputePoliciesClient {
 	return ComputePoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -65,9 +66,9 @@ func (client ComputePoliciesClient) CreateOrUpdate(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.ObjectID", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.CreateOrUpdateComputePolicyProperties.MaxDegreeOfParallelismPerJob", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.MaxDegreeOfParallelismPerJob", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+						Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.MaxDegreeOfParallelismPerJob", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 					{Target: "parameters.CreateOrUpdateComputePolicyProperties.MinPriorityPerJob", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.MinPriorityPerJob", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
+						Chain: []validation.Constraint{{Target: "parameters.CreateOrUpdateComputePolicyProperties.MinPriorityPerJob", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 				}}}}}); err != nil {
 		return result, validation.NewError("account.ComputePoliciesClient", "CreateOrUpdate", err.Error())
 	}
@@ -120,8 +121,7 @@ func (client ComputePoliciesClient) CreateOrUpdatePreparer(ctx context.Context, 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ComputePoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -129,7 +129,6 @@ func (client ComputePoliciesClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client ComputePoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,8 +198,7 @@ func (client ComputePoliciesClient) DeletePreparer(ctx context.Context, resource
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ComputePoliciesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -208,7 +206,6 @@ func (client ComputePoliciesClient) DeleteSender(req *http.Request) (*http.Respo
 func (client ComputePoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,8 +274,7 @@ func (client ComputePoliciesClient) GetPreparer(ctx context.Context, resourceGro
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ComputePoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -286,7 +282,6 @@ func (client ComputePoliciesClient) GetSender(req *http.Request) (*http.Response
 func (client ComputePoliciesClient) GetResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -328,6 +323,9 @@ func (client ComputePoliciesClient) ListByAccount(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.cplr.hasNextLink() && result.cplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -356,8 +354,7 @@ func (client ComputePoliciesClient) ListByAccountPreparer(ctx context.Context, r
 // ListByAccountSender sends the ListByAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client ComputePoliciesClient) ListByAccountSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByAccountResponder handles the response to the ListByAccount request. The method always
@@ -365,7 +362,6 @@ func (client ComputePoliciesClient) ListByAccountSender(req *http.Request) (*htt
 func (client ComputePoliciesClient) ListByAccountResponder(resp *http.Response) (result ComputePolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -478,8 +474,7 @@ func (client ComputePoliciesClient) UpdatePreparer(ctx context.Context, resource
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ComputePoliciesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -487,7 +482,6 @@ func (client ComputePoliciesClient) UpdateSender(req *http.Request) (*http.Respo
 func (client ComputePoliciesClient) UpdateResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

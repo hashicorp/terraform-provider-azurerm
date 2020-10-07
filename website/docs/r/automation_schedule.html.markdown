@@ -1,7 +1,7 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_schedule"
-sidebar_current: "docs-azurerm-resource-automation-schedule"
 description: |-
   Manages a Automation Schedule.
 ---
@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_automation_account" "example" {
   name                = "tfex-automation-account"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "Basic"
@@ -30,17 +30,14 @@ resource "azurerm_automation_account" "example" {
 
 resource "azurerm_automation_schedule" "example" {
   name                    = "tfex-automation-schedule"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
   frequency               = "Week"
   interval                = 1
-  timezone                = "Central Europe Standard Time"
+  timezone                = "Australia/Perth"
   start_time              = "2014-04-15T18:00:15+02:00"
   description             = "This is an example schedule"
-
-  advanced_schedule {
-    week_days = ["Friday"]
-  }
+  week_days               = ["Friday"]
 }
 ```
 
@@ -64,7 +61,7 @@ The following arguments are supported:
 
 * `expiry_time` -  (Optional) The end time of the schedule.
 
-* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://msdn.microsoft.com/en-us/library/ms912391(v=winembedded.11).aspx
+* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://s2.automation.ext.azure.com/api/Orchestrator/TimeZones?_=1594792230258
 
 * `week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
 
@@ -85,6 +82,15 @@ The `monthly_occurrence` block supports:
 The following attributes are exported:
 
 * `id` - The Automation Schedule ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation Schedule.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Schedule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Schedule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation Schedule.
 
 ## Import
 

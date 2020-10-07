@@ -35,7 +35,9 @@ func NewScriptExecutionHistoryClient(subscriptionID string) ScriptExecutionHisto
 	return NewScriptExecutionHistoryClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewScriptExecutionHistoryClientWithBaseURI creates an instance of the ScriptExecutionHistoryClient client.
+// NewScriptExecutionHistoryClientWithBaseURI creates an instance of the ScriptExecutionHistoryClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewScriptExecutionHistoryClientWithBaseURI(baseURI string, subscriptionID string) ScriptExecutionHistoryClient {
 	return ScriptExecutionHistoryClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -73,6 +75,9 @@ func (client ScriptExecutionHistoryClient) ListByCluster(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ScriptExecutionHistoryClient", "ListByCluster", resp, "Failure responding to request")
 	}
+	if result.saehl.hasNextLink() && result.saehl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -101,8 +106,7 @@ func (client ScriptExecutionHistoryClient) ListByClusterPreparer(ctx context.Con
 // ListByClusterSender sends the ListByCluster request. The method will close the
 // http.Response Body if it receives an error.
 func (client ScriptExecutionHistoryClient) ListByClusterSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByClusterResponder handles the response to the ListByCluster request. The method always
@@ -110,7 +114,6 @@ func (client ScriptExecutionHistoryClient) ListByClusterSender(req *http.Request
 func (client ScriptExecutionHistoryClient) ListByClusterResponder(resp *http.Response) (result ScriptActionExecutionHistoryList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -217,8 +220,7 @@ func (client ScriptExecutionHistoryClient) PromotePreparer(ctx context.Context, 
 // PromoteSender sends the Promote request. The method will close the
 // http.Response Body if it receives an error.
 func (client ScriptExecutionHistoryClient) PromoteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // PromoteResponder handles the response to the Promote request. The method always
@@ -226,7 +228,6 @@ func (client ScriptExecutionHistoryClient) PromoteSender(req *http.Request) (*ht
 func (client ScriptExecutionHistoryClient) PromoteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

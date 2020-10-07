@@ -1,7 +1,7 @@
 ---
+subcategory: "Security Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_security_center_workspace"
-sidebar_current: "docs-azurerm-security-center-workspace"
 description: |-
     Manages the subscription's Security Center Workspace.
 ---
@@ -24,14 +24,14 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_log_analytics_workspace" "example" {
   name                = "tfex-security-workspace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_security_center_workspace" "example" {
   scope        = "/subscriptions/00000000-0000-0000-0000-000000000000"
-  workspace_id = "${azurerm_log_analytics_workspace.example.id}"
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 ```
 
@@ -48,6 +48,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Security Center Workspace ID.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Security Center Workspace.
+* `update` - (Defaults to 60 minutes) Used when updating the Security Center Workspace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Workspace.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Security Center Workspace.
 
 ## Import
 

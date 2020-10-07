@@ -36,7 +36,8 @@ func NewLiveEventsClient(subscriptionID string) LiveEventsClient {
 	return NewLiveEventsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLiveEventsClientWithBaseURI creates an instance of the LiveEventsClient client.
+// NewLiveEventsClientWithBaseURI creates an instance of the LiveEventsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLiveEventsClientWithBaseURI(baseURI string, subscriptionID string) LiveEventsClient {
 	return LiveEventsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -116,8 +117,7 @@ func (client LiveEventsClient) CreatePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) CreateSender(req *http.Request) (future LiveEventsCreateFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -130,7 +130,6 @@ func (client LiveEventsClient) CreateSender(req *http.Request) (future LiveEvent
 func (client LiveEventsClient) CreateResponder(resp *http.Response) (result LiveEvent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,8 +202,7 @@ func (client LiveEventsClient) DeletePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) DeleteSender(req *http.Request) (future LiveEventsDeleteFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -217,7 +215,6 @@ func (client LiveEventsClient) DeleteSender(req *http.Request) (future LiveEvent
 func (client LiveEventsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -294,8 +291,7 @@ func (client LiveEventsClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -303,7 +299,6 @@ func (client LiveEventsClient) GetSender(req *http.Request) (*http.Response, err
 func (client LiveEventsClient) GetResponder(resp *http.Response) (result LiveEvent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -344,6 +339,9 @@ func (client LiveEventsClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "List", resp, "Failure responding to request")
 	}
+	if result.lelr.hasNextLink() && result.lelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -372,8 +370,7 @@ func (client LiveEventsClient) ListPreparer(ctx context.Context, resourceGroupNa
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -381,7 +378,6 @@ func (client LiveEventsClient) ListSender(req *http.Request) (*http.Response, er
 func (client LiveEventsClient) ListResponder(resp *http.Response) (result LiveEventListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -491,8 +487,7 @@ func (client LiveEventsClient) ResetPreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) ResetSender(req *http.Request) (future LiveEventsResetFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -505,7 +500,6 @@ func (client LiveEventsClient) ResetSender(req *http.Request) (future LiveEvents
 func (client LiveEventsClient) ResetResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -577,8 +571,7 @@ func (client LiveEventsClient) StartPreparer(ctx context.Context, resourceGroupN
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) StartSender(req *http.Request) (future LiveEventsStartFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -591,7 +584,6 @@ func (client LiveEventsClient) StartSender(req *http.Request) (future LiveEvents
 func (client LiveEventsClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -666,8 +658,7 @@ func (client LiveEventsClient) StopPreparer(ctx context.Context, resourceGroupNa
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) StopSender(req *http.Request) (future LiveEventsStopFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -680,7 +671,6 @@ func (client LiveEventsClient) StopSender(req *http.Request) (future LiveEventsS
 func (client LiveEventsClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -755,8 +745,7 @@ func (client LiveEventsClient) UpdatePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client LiveEventsClient) UpdateSender(req *http.Request) (future LiveEventsUpdateFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -769,7 +758,6 @@ func (client LiveEventsClient) UpdateSender(req *http.Request) (future LiveEvent
 func (client LiveEventsClient) UpdateResponder(resp *http.Response) (result LiveEvent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

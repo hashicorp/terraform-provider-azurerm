@@ -36,7 +36,9 @@ func NewStreamingLocatorsClient(subscriptionID string) StreamingLocatorsClient {
 	return NewStreamingLocatorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStreamingLocatorsClientWithBaseURI creates an instance of the StreamingLocatorsClient client.
+// NewStreamingLocatorsClientWithBaseURI creates an instance of the StreamingLocatorsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewStreamingLocatorsClientWithBaseURI(baseURI string, subscriptionID string) StreamingLocatorsClient {
 	return StreamingLocatorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -115,8 +117,7 @@ func (client StreamingLocatorsClient) CreatePreparer(ctx context.Context, resour
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -124,7 +125,6 @@ func (client StreamingLocatorsClient) CreateSender(req *http.Request) (*http.Res
 func (client StreamingLocatorsClient) CreateResponder(resp *http.Response) (result StreamingLocator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,8 +194,7 @@ func (client StreamingLocatorsClient) DeletePreparer(ctx context.Context, resour
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -203,7 +202,6 @@ func (client StreamingLocatorsClient) DeleteSender(req *http.Request) (*http.Res
 func (client StreamingLocatorsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,8 +270,7 @@ func (client StreamingLocatorsClient) GetPreparer(ctx context.Context, resourceG
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -281,7 +278,6 @@ func (client StreamingLocatorsClient) GetSender(req *http.Request) (*http.Respon
 func (client StreamingLocatorsClient) GetResponder(resp *http.Response) (result StreamingLocator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -326,6 +322,9 @@ func (client StreamingLocatorsClient) List(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingLocatorsClient", "List", resp, "Failure responding to request")
 	}
+	if result.slc.hasNextLink() && result.slc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -363,8 +362,7 @@ func (client StreamingLocatorsClient) ListPreparer(ctx context.Context, resource
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -372,7 +370,6 @@ func (client StreamingLocatorsClient) ListSender(req *http.Request) (*http.Respo
 func (client StreamingLocatorsClient) ListResponder(resp *http.Response) (result StreamingLocatorCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -479,8 +476,7 @@ func (client StreamingLocatorsClient) ListContentKeysPreparer(ctx context.Contex
 // ListContentKeysSender sends the ListContentKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) ListContentKeysSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListContentKeysResponder handles the response to the ListContentKeys request. The method always
@@ -488,7 +484,6 @@ func (client StreamingLocatorsClient) ListContentKeysSender(req *http.Request) (
 func (client StreamingLocatorsClient) ListContentKeysResponder(resp *http.Response) (result ListContentKeysResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -558,8 +553,7 @@ func (client StreamingLocatorsClient) ListPathsPreparer(ctx context.Context, res
 // ListPathsSender sends the ListPaths request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) ListPathsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListPathsResponder handles the response to the ListPaths request. The method always
@@ -567,7 +561,6 @@ func (client StreamingLocatorsClient) ListPathsSender(req *http.Request) (*http.
 func (client StreamingLocatorsClient) ListPathsResponder(resp *http.Response) (result ListPathsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -35,7 +35,8 @@ func NewLocationsClient(subscriptionID string) LocationsClient {
 	return NewLocationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLocationsClientWithBaseURI creates an instance of the LocationsClient client.
+// NewLocationsClientWithBaseURI creates an instance of the LocationsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLocationsClientWithBaseURI(baseURI string, subscriptionID string) LocationsClient {
 	return LocationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -98,8 +99,7 @@ func (client LocationsClient) GetCapabilityPreparer(ctx context.Context, locatio
 // GetCapabilitySender sends the GetCapability request. The method will close the
 // http.Response Body if it receives an error.
 func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetCapabilityResponder handles the response to the GetCapability request. The method always
@@ -107,7 +107,6 @@ func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Resp
 func (client LocationsClient) GetCapabilityResponder(resp *http.Response) (result CapabilityInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

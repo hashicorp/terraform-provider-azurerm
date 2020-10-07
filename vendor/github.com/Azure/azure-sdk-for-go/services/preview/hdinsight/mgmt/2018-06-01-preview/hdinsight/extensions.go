@@ -35,7 +35,8 @@ func NewExtensionsClient(subscriptionID string) ExtensionsClient {
 	return NewExtensionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExtensionsClientWithBaseURI creates an instance of the ExtensionsClient client.
+// NewExtensionsClientWithBaseURI creates an instance of the ExtensionsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExtensionsClientWithBaseURI(baseURI string, subscriptionID string) ExtensionsClient {
 	return ExtensionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -100,8 +101,7 @@ func (client ExtensionsClient) CreatePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) CreateSender(req *http.Request) (future ExtensionsCreateFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -114,7 +114,6 @@ func (client ExtensionsClient) CreateSender(req *http.Request) (future Extension
 func (client ExtensionsClient) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -178,8 +177,7 @@ func (client ExtensionsClient) DeletePreparer(ctx context.Context, resourceGroup
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) DeleteSender(req *http.Request) (future ExtensionsDeleteFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -192,7 +190,6 @@ func (client ExtensionsClient) DeleteSender(req *http.Request) (future Extension
 func (client ExtensionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -254,8 +251,7 @@ func (client ExtensionsClient) DisableMonitoringPreparer(ctx context.Context, re
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) DisableMonitoringSender(req *http.Request) (future ExtensionsDisableMonitoringFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -268,7 +264,6 @@ func (client ExtensionsClient) DisableMonitoringSender(req *http.Request) (futur
 func (client ExtensionsClient) DisableMonitoringResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -333,8 +328,7 @@ func (client ExtensionsClient) EnableMonitoringPreparer(ctx context.Context, res
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) EnableMonitoringSender(req *http.Request) (future ExtensionsEnableMonitoringFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -347,7 +341,6 @@ func (client ExtensionsClient) EnableMonitoringSender(req *http.Request) (future
 func (client ExtensionsClient) EnableMonitoringResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -416,8 +409,7 @@ func (client ExtensionsClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -425,7 +417,6 @@ func (client ExtensionsClient) GetSender(req *http.Request) (*http.Response, err
 func (client ExtensionsClient) GetResponder(resp *http.Response) (result Extension, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -493,8 +484,7 @@ func (client ExtensionsClient) GetMonitoringStatusPreparer(ctx context.Context, 
 // GetMonitoringStatusSender sends the GetMonitoringStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) GetMonitoringStatusSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetMonitoringStatusResponder handles the response to the GetMonitoringStatus request. The method always
@@ -502,7 +492,6 @@ func (client ExtensionsClient) GetMonitoringStatusSender(req *http.Request) (*ht
 func (client ExtensionsClient) GetMonitoringStatusResponder(resp *http.Response) (result ClusterMonitoringResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

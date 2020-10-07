@@ -1,14 +1,14 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_group"
-sidebar_current: "docs-azurerm-resource-container-group"
 description: |-
   Create as an Azure Container Group instance.
 ---
 
 # azurerm_container_group
 
-Manage as an Azure Container Group instance.
+Manages as an Azure Container Group instance.
 
 ## Example Usage
 
@@ -22,8 +22,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_container_group" "example" {
   name                = "example-continst"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   ip_address_type     = "public"
   dns_name_label      = "aci-label"
   os_type             = "Linux"
@@ -65,19 +65,28 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
+~> **Note:** managed identities are not supported for containers in virtual networks.
 
-~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
+* `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
 
+~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported. Windows containers are not supported in virtual networks.
+
 ---
+* `dns_config` - (Optional) A `dns_config` block as documented below.
 
 * `diagnostics` - (Optional) A `diagnostics` block as documented below.
 
 * `dns_name_label` - (Optional) The DNS label/name for the container groups IP. Changing this forces a new resource to be created.
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
+~> **Note:** DNS label/name is not supported when deploying to virtual networks.
+
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` or `Private`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
+
+~> **Note:** `dns_name_label`, `identity` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
+
+* `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
 
 * `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
@@ -121,10 +130,6 @@ A `container` block supports:
 
 * `liveness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `liveness_probe` block below. Changing this forces a new resource to be created.
 
-* `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
-
-~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
-
 * `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
 
 * `volume` - (Optional) The definition of a volume mount for this container as documented in the `volume` block below. Changing this forces a new resource to be created.
@@ -149,7 +154,7 @@ A `image_registry_credential` block supports:
 
 A `log_analytics` block supports:
 
-* `log_type` - (Required) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`. Changing this forces a new resource to be created.
+* `log_type` - (Optional) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`. Changing this forces a new resource to be created.
 
 * `workspace_id` - (Required) The Workspace ID of the Log Analytics Workspace. Changing this forces a new resource to be created.
 
@@ -195,7 +200,7 @@ The `readiness_probe` block supports:
 
 * `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
 
-* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+* `http_get` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
@@ -213,7 +218,7 @@ The `liveness_probe` block supports:
 
 * `exec` - (Optional) Commands to be run to validate container readiness. Changing this forces a new resource to be created.
 
-* `httpget` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
+* `http_get` - (Optional) The definition of the httpget for this container as documented in the `httpget` block below. Changing this forces a new resource to be created.
 
 * `initial_delay_seconds` - (Optional) Number of seconds after the container has started before liveness or readiness probes are initiated. Changing this forces a new resource to be created.
 
@@ -227,7 +232,7 @@ The `liveness_probe` block supports:
 
 ---
 
-The `httpget` block supports:
+The `http_get` block supports:
 
 * `path` - (Optional) Path to access on the HTTP server. Changing this forces a new resource to be created.
 
@@ -235,15 +240,32 @@ The `httpget` block supports:
 
 * `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
 
+---
+
+The `dns_config` block supports:
+
+* `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
+* `search_domains` - (Required) A list of search domains that DNS requests will search along.
+* `options` - (Required) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
+
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The container group ID.
+* `id` - The ID of the Container Group.
 
 * `ip_address` - The IP address allocated to the container group.
 
 * `fqdn` - The FQDN of the container group derived from `dns_name_label`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Container Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container Group.
 
 ## Import
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -46,6 +46,17 @@ func SchemaApiManagementChildName() *schema.Schema {
 		Required:     true,
 		ForceNew:     true,
 		ValidateFunc: validate.ApiManagementChildName,
+	}
+}
+
+// SchemaApiManagementChildName returns the Schema for the identifier
+// used by resources within nested under the API Management Service resource
+func SchemaApiManagementApiName() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.ApiManagementApiName,
 	}
 }
 
@@ -141,6 +152,7 @@ func ExpandApiManagementOperationRepresentation(input []interface{}) (*[]apimana
 
 		// Representation schemaId can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
 		// Representation typeName can only be specified for non form data content types (multipart/form-data, application/x-www-form-urlencoded).
+		// nolint gocritic
 		if !contentTypeIsFormData {
 			output.SchemaID = utils.String(schemaId)
 			output.TypeName = utils.String(typeName)
@@ -253,7 +265,7 @@ func ExpandApiManagementOperationParameterContract(input []interface{}) *[]apima
 			Type:         utils.String(paramType),
 			Required:     utils.Bool(required),
 			DefaultValue: utils.String(defaultValue),
-			Values:       utils.ExpandStringArray(valuesRaw),
+			Values:       utils.ExpandStringSlice(valuesRaw),
 		}
 		outputs = append(outputs, output)
 	}
@@ -290,7 +302,7 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 			output["default_value"] = *v.DefaultValue
 		}
 
-		output["values"] = schema.NewSet(schema.HashString, utils.FlattenStringArray(v.Values))
+		output["values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(v.Values))
 
 		outputs = append(outputs, output)
 	}

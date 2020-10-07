@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_local_network_gateway"
-sidebar_current: "docs-azurerm-resource-network-local-network-gateway"
 description: |-
   Manages a local network gateway connection over which specific connections can be configured.
 ---
@@ -13,15 +13,15 @@ Manages a local network gateway connection over which specific connections can b
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "localNetworkGWTest"
   location = "West US"
 }
 
 resource "azurerm_local_network_gateway" "home" {
   name                = "backHome"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   gateway_address     = "12.13.14.15"
   address_space       = ["10.0.0.0/16"]
 }
@@ -67,7 +67,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The local network gateway unique ID within Azure.
+* `id` - The ID of the Local Network Gateway.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Local Network Gateway.
+* `update` - (Defaults to 30 minutes) Used when updating the Local Network Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Local Network Gateway.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Local Network Gateway.
 
 ## Import
 

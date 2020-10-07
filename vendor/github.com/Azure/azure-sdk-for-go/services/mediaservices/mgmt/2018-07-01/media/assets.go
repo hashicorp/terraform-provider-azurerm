@@ -35,7 +35,8 @@ func NewAssetsClient(subscriptionID string) AssetsClient {
 	return NewAssetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAssetsClientWithBaseURI creates an instance of the AssetsClient client.
+// NewAssetsClientWithBaseURI creates an instance of the AssetsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAssetsClientWithBaseURI(baseURI string, subscriptionID string) AssetsClient {
 	return AssetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -105,8 +106,7 @@ func (client AssetsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssetsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -114,7 +114,6 @@ func (client AssetsClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client AssetsClient) CreateOrUpdateResponder(resp *http.Response) (result Asset, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -184,8 +183,7 @@ func (client AssetsClient) DeletePreparer(ctx context.Context, resourceGroupName
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssetsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -193,7 +191,6 @@ func (client AssetsClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client AssetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -262,8 +259,7 @@ func (client AssetsClient) GetPreparer(ctx context.Context, resourceGroupName st
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssetsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -271,7 +267,6 @@ func (client AssetsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client AssetsClient) GetResponder(resp *http.Response) (result Asset, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -342,8 +337,7 @@ func (client AssetsClient) GetEncryptionKeyPreparer(ctx context.Context, resourc
 // GetEncryptionKeySender sends the GetEncryptionKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssetsClient) GetEncryptionKeySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetEncryptionKeyResponder handles the response to the GetEncryptionKey request. The method always
@@ -351,7 +345,6 @@ func (client AssetsClient) GetEncryptionKeySender(req *http.Request) (*http.Resp
 func (client AssetsClient) GetEncryptionKeyResponder(resp *http.Response) (result StorageEncryptedAssetDecryptionData, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -366,7 +359,7 @@ func (client AssetsClient) GetEncryptionKeyResponder(resp *http.Response) (resul
 // filter - restricts the set of items returned.
 // top - specifies a non-negative integer n that limits the number of items returned from a collection. The
 // service returns the number of available items up to but not greater than the specified value n.
-// orderby - specifies the the key by which the result collection should be ordered.
+// orderby - specifies the key by which the result collection should be ordered.
 func (client AssetsClient) List(ctx context.Context, resourceGroupName string, accountName string, filter string, top *int32, orderby string) (result AssetCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssetsClient.List")
@@ -395,6 +388,9 @@ func (client AssetsClient) List(ctx context.Context, resourceGroupName string, a
 	result.ac, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.AssetsClient", "List", resp, "Failure responding to request")
+	}
+	if result.ac.hasNextLink() && result.ac.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -433,8 +429,7 @@ func (client AssetsClient) ListPreparer(ctx context.Context, resourceGroupName s
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssetsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -442,7 +437,6 @@ func (client AssetsClient) ListSender(req *http.Request) (*http.Response, error)
 func (client AssetsClient) ListResponder(resp *http.Response) (result AssetCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -553,8 +547,7 @@ func (client AssetsClient) ListContainerSasPreparer(ctx context.Context, resourc
 // ListContainerSasSender sends the ListContainerSas request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssetsClient) ListContainerSasSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListContainerSasResponder handles the response to the ListContainerSas request. The method always
@@ -562,7 +555,6 @@ func (client AssetsClient) ListContainerSasSender(req *http.Request) (*http.Resp
 func (client AssetsClient) ListContainerSasResponder(resp *http.Response) (result AssetContainerSas, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -632,8 +624,7 @@ func (client AssetsClient) ListStreamingLocatorsPreparer(ctx context.Context, re
 // ListStreamingLocatorsSender sends the ListStreamingLocators request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssetsClient) ListStreamingLocatorsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListStreamingLocatorsResponder handles the response to the ListStreamingLocators request. The method always
@@ -641,7 +632,6 @@ func (client AssetsClient) ListStreamingLocatorsSender(req *http.Request) (*http
 func (client AssetsClient) ListStreamingLocatorsResponder(resp *http.Response) (result ListStreamingLocatorsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -714,8 +704,7 @@ func (client AssetsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client AssetsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -723,7 +712,6 @@ func (client AssetsClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client AssetsClient) UpdateResponder(resp *http.Response) (result Asset, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

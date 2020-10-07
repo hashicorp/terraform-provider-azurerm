@@ -1,7 +1,7 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_lab"
-sidebar_current: "docs-azurerm-datasource-dev-test-lab"
 description: |-
   Gets information about an existing Dev Test Lab.
 ---
@@ -13,21 +13,21 @@ Use this data source to access information about an existing Dev Test Lab.
 ## Example Usage
 
 ```hcl
-data "azurerm_dev_test_lab" "test" {
+data "azurerm_dev_test_lab" "example" {
   name                = "example-lab"
   resource_group_name = "example-resources"
 }
 
 output "unique_identifier" {
-  value = "${data.azurerm_dev_test_lab.test.unique_identifier}"
+  value = data.azurerm_dev_test_lab.example.unique_identifier
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Dev Test Lab.
+* `name` - The name of the Dev Test Lab.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the Dev Test Lab exists.
+* `resource_group_name` - The Name of the Resource Group where the Dev Test Lab exists.
 
 ## Attributes Reference
 
@@ -50,3 +50,9 @@ output "unique_identifier" {
 * `tags` - A mapping of tags to assign to the resource.
 
 * `unique_identifier` - The unique immutable identifier of the Dev Test Lab.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Test Lab.

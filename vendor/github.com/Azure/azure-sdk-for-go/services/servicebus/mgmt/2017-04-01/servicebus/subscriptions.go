@@ -36,7 +36,8 @@ func NewSubscriptionsClient(subscriptionID string) SubscriptionsClient {
 	return NewSubscriptionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSubscriptionsClientWithBaseURI creates an instance of the SubscriptionsClient client.
+// NewSubscriptionsClientWithBaseURI creates an instance of the SubscriptionsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSubscriptionsClientWithBaseURI(baseURI string, subscriptionID string) SubscriptionsClient {
 	return SubscriptionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -123,8 +124,7 @@ func (client SubscriptionsClient) CreateOrUpdatePreparer(ctx context.Context, re
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client SubscriptionsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -132,7 +132,6 @@ func (client SubscriptionsClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client SubscriptionsClient) CreateOrUpdateResponder(resp *http.Response) (result SBSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -219,8 +218,7 @@ func (client SubscriptionsClient) DeletePreparer(ctx context.Context, resourceGr
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SubscriptionsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -228,7 +226,6 @@ func (client SubscriptionsClient) DeleteSender(req *http.Request) (*http.Respons
 func (client SubscriptionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -314,8 +311,7 @@ func (client SubscriptionsClient) GetPreparer(ctx context.Context, resourceGroup
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SubscriptionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -323,7 +319,6 @@ func (client SubscriptionsClient) GetSender(req *http.Request) (*http.Response, 
 func (client SubscriptionsClient) GetResponder(resp *http.Response) (result SBSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -363,12 +358,12 @@ func (client SubscriptionsClient) ListByTopic(ctx context.Context, resourceGroup
 		{TargetValue: skip,
 			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
-					{Target: "skip", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil},
+					{Target: "skip", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
 				}}}},
 		{TargetValue: top,
 			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
-					{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 				}}}}}); err != nil {
 		return result, validation.NewError("servicebus.SubscriptionsClient", "ListByTopic", err.Error())
 	}
@@ -390,6 +385,9 @@ func (client SubscriptionsClient) ListByTopic(ctx context.Context, resourceGroup
 	result.sslr, err = client.ListByTopicResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.SubscriptionsClient", "ListByTopic", resp, "Failure responding to request")
+	}
+	if result.sslr.hasNextLink() && result.sslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -426,8 +424,7 @@ func (client SubscriptionsClient) ListByTopicPreparer(ctx context.Context, resou
 // ListByTopicSender sends the ListByTopic request. The method will close the
 // http.Response Body if it receives an error.
 func (client SubscriptionsClient) ListByTopicSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByTopicResponder handles the response to the ListByTopic request. The method always
@@ -435,7 +432,6 @@ func (client SubscriptionsClient) ListByTopicSender(req *http.Request) (*http.Re
 func (client SubscriptionsClient) ListByTopicResponder(resp *http.Response) (result SBSubscriptionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

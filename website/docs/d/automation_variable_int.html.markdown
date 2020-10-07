@@ -1,7 +1,7 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_variable_int"
-sidebar_current: "docs-azurerm-datasource-automation-variable-int"
 description: |-
   Gets information about an existing Automation Int Variable
 ---
@@ -21,7 +21,7 @@ data "azurerm_automation_variable_int" "example" {
 }
 
 output "variable_id" {
-  value = "${data.azurerm_automation_variable_int.example.id}"
+  value = data.azurerm_automation_variable_int.example.id
 }
 ```
 
@@ -30,11 +30,11 @@ output "variable_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Automation Variable.
+* `name` - The name of the Automation Variable.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the automation account exists.
+* `resource_group_name` - The Name of the Resource Group where the automation account exists.
 
-* `automation_account_name` - (Required) The name of the automation account in which the Automation Variable exists.
+* `automation_account_name` - The name of the automation account in which the Automation Variable exists.
 
 
 ## Attributes Reference
@@ -48,3 +48,9 @@ The following attributes are exported:
 * `encrypted` - Specifies if the Automation Variable is encrypted. Defaults to `false`.
 
 * `value` - The value of the Automation Variable as a `integer`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Int Variable.

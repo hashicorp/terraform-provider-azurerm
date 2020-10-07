@@ -1,49 +1,23 @@
-AzureRM Terraform Provider
-==================
+# Terraform Provider for Azure (Resource Manager)
 
-- Website: https://www.terraform.io
-- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
-- Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
-- Slack workspace: [Terraform on Azure](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LTJkZTJhNTg3NTE5ZTdjZjFhMThmMTVmOTg5YWJkMDU1YTMzN2YyOWJmZGM3MGI4OTQ0ODQxNTEyNjdjMDAxMjM))
+Version 2.0 of the AzureRM Provider requires Terraform 0.12.x and later.
 
-General Requirements
-------------
+* [Terraform Website](https://www.terraform.io)
+* [AzureRM Provider Documentation](https://www.terraform.io/docs/providers/azurerm/index.html)
+* [AzureRM Provider Usage Examples](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples)
+* [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LWNiY2ZhNThhNDgzNmY0MTM0N2MwZjE4ZGU0MjcxYjUyMzRmN2E5NjZhZmQ0ZTA1OTExMGNjYzA4ZDkwZDYxNDE))
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
--	[Go](https://golang.org/doc/install) 1.11.x (to build the provider plugin)
-
-Windows Specific Requirements
------------------------------
-- [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
-- [Git Bash for Windows](https://git-scm.com/download/win)
-
-For *GNU32 Make*, make sure its bin path is added to PATH environment variable.*
-
-For *Git Bash for Windows*, at the step of "Adjusting your PATH environment", please choose "Use Git and optional Unix tools from Windows Command Prompt".*
-
-Building The Provider
----------------------
-
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm`
-
-```sh
-$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-azurerm
-```
-
-Enter the provider directory and build the provider
-
-```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm
-$ make build
-```
-
-Using the provider
-----------------------
+## Usage Example
 
 ```
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
+  # We recommend pinning to the specific version of the Azure Provider you're using
+  # since new versions are released frequently
+  version = "=2.20.0"
+
+  features {}
+
   # More information on the authentication methods supported by
   # the AzureRM Provider can be found here:
   # http://terraform.io/docs/providers/azurerm/index.html
@@ -71,12 +45,44 @@ resource "azurerm_virtual_network" "test" {
 
 Further [usage documentation is available on the Terraform website](https://www.terraform.io/docs/providers/azurerm/index.html).
 
-Developing the Provider
----------------------------
+## Developer Requirements
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+* [Terraform](https://www.terraform.io/downloads.html) version 0.12.x +
+* [Go](https://golang.org/doc/install) version 1.14.x (to build the provider plugin)
 
-To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+### On Windows 
+
+If you're on Windows you'll also need:
+* [Git Bash for Windows](https://git-scm.com/download/win)
+* [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
+
+For *GNU32 Make*, make sure its bin path is added to PATH environment variable.*
+
+For *Git Bash for Windows*, at the step of "Adjusting your PATH environment", please choose "Use Git and optional Unix tools from Windows Command Prompt".*
+
+Or install via [Chocolatey](https://chocolatey.org/install) (`Git Bash for Windows` must be installed per steps above)
+```powershell
+choco install make golang terraform -y
+refreshenv
+```
+
+You must run  `Developing the Provider` commands in `bash` because `sh` scrips are invoked as part of these.
+
+## Developing the Provider
+
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.13+ is **required**). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+
+First clone the repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm`
+
+```sh
+$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
+$ git clone git@github.com:terraform-providers/terraform-provider-azurerm
+$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm
+```
+
+Once inside the provider directory, you can run `make tools` to install the dependent tooling required to compile the provider.
+
+At this point you can compile the provider by running `make build`, which will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 ```sh
 $ make build
@@ -85,16 +91,22 @@ $ $GOPATH/bin/terraform-provider-azurerm
 ...
 ```
 
-In order to run the unit tests for the provider, you can run:
+You can also cross-compile if necessary:
+
+```sh
+GOOS=windows GOARCH=amd64 make build
+```
+
+In order to run the `Unit Tests` for the provider, you can run:
 
 ```sh
 $ make test
 ```
 
-The majority of tests in the provider are Acceptance Tests - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
+The majority of tests in the provider are `Acceptance Tests` - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
 
-```
-make testacc TESTARGS='-run=TestAccAzureRMResourceGroup'
+```sh
+make acctests SERVICE='resource' TESTARGS='-run=TestAccAzureRMResourceGroup' TESTTIMEOUT='60m'
 ```
 
 The following Environment Variables must be set in your shell prior to running acceptance tests:
@@ -104,13 +116,25 @@ The following Environment Variables must be set in your shell prior to running a
 - `ARM_SUBSCRIPTION_ID`
 - `ARM_TENANT_ID`
 - `ARM_ENVIRONMENT`
+- `ARM_METADATA_HOST`
 - `ARM_TEST_LOCATION`
 - `ARM_TEST_LOCATION_ALT`
+- `ARM_TEST_LOCATION_ALT2`
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
 
-Crosscompiling
---------------
+---
+
+## Developer: Scaffolding the Website Documentation
+
+You can scaffold the documentation for a Data Source by running:
+
 ```sh
-GOOS=windows GOARCH=amd64 make build
+$ make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="data"
+```
+
+You can scaffold the documentation for a Resource by running:
+
+```sh
+$ make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="resource" RESOURCE_ID="/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
 ```

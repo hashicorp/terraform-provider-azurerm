@@ -38,7 +38,8 @@ func NewIntegrationRuntimeObjectMetadataClient(subscriptionID string) Integratio
 }
 
 // NewIntegrationRuntimeObjectMetadataClientWithBaseURI creates an instance of the
-// IntegrationRuntimeObjectMetadataClient client.
+// IntegrationRuntimeObjectMetadataClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewIntegrationRuntimeObjectMetadataClientWithBaseURI(baseURI string, subscriptionID string) IntegrationRuntimeObjectMetadataClient {
 	return IntegrationRuntimeObjectMetadataClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -127,8 +128,7 @@ func (client IntegrationRuntimeObjectMetadataClient) GetPreparer(ctx context.Con
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimeObjectMetadataClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -136,7 +136,6 @@ func (client IntegrationRuntimeObjectMetadataClient) GetSender(req *http.Request
 func (client IntegrationRuntimeObjectMetadataClient) GetResponder(resp *http.Response) (result SsisObjectMetadataListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -217,8 +216,7 @@ func (client IntegrationRuntimeObjectMetadataClient) RefreshPreparer(ctx context
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimeObjectMetadataClient) RefreshSender(req *http.Request) (future IntegrationRuntimeObjectMetadataRefreshFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -231,7 +229,6 @@ func (client IntegrationRuntimeObjectMetadataClient) RefreshSender(req *http.Req
 func (client IntegrationRuntimeObjectMetadataClient) RefreshResponder(resp *http.Response) (result SsisObjectMetadataStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

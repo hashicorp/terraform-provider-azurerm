@@ -136,8 +136,7 @@ func (client Client) AppendPreparer(ctx context.Context, accountName string, pat
 // AppendSender sends the Append request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) AppendSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // AppendResponder handles the response to the Append request. The method always
@@ -145,7 +144,6 @@ func (client Client) AppendSender(req *http.Request) (*http.Response, error) {
 func (client Client) AppendResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -219,8 +217,7 @@ func (client Client) CheckAccessPreparer(ctx context.Context, accountName string
 // CheckAccessSender sends the CheckAccess request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) CheckAccessSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CheckAccessResponder handles the response to the CheckAccess request. The method always
@@ -228,7 +225,6 @@ func (client Client) CheckAccessSender(req *http.Request) (*http.Response, error
 func (client Client) CheckAccessResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -309,8 +305,7 @@ func (client Client) ConcatPreparer(ctx context.Context, accountName string, pat
 // ConcatSender sends the Concat request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) ConcatSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ConcatResponder handles the response to the Concat request. The method always
@@ -318,7 +313,6 @@ func (client Client) ConcatSender(req *http.Request) (*http.Response, error) {
 func (client Client) ConcatResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -415,8 +409,7 @@ func (client Client) ConcurrentAppendPreparer(ctx context.Context, accountName s
 // ConcurrentAppendSender sends the ConcurrentAppend request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) ConcurrentAppendSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ConcurrentAppendResponder handles the response to the ConcurrentAppend request. The method always
@@ -424,7 +417,6 @@ func (client Client) ConcurrentAppendSender(req *http.Request) (*http.Response, 
 func (client Client) ConcurrentAppendResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -530,8 +522,7 @@ func (client Client) CreatePreparer(ctx context.Context, accountName string, pat
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -539,7 +530,6 @@ func (client Client) CreateSender(req *http.Request) (*http.Response, error) {
 func (client Client) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByClosing())
 	result.Response = resp
@@ -614,8 +604,7 @@ func (client Client) DeletePreparer(ctx context.Context, accountName string, pat
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -623,7 +612,6 @@ func (client Client) DeleteSender(req *http.Request) (*http.Response, error) {
 func (client Client) DeleteResponder(resp *http.Response) (result FileOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -701,8 +689,7 @@ func (client Client) GetACLStatusPreparer(ctx context.Context, accountName strin
 // GetACLStatusSender sends the GetACLStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) GetACLStatusSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetACLStatusResponder handles the response to the GetACLStatus request. The method always
@@ -710,7 +697,6 @@ func (client Client) GetACLStatusSender(req *http.Request) (*http.Response, erro
 func (client Client) GetACLStatusResponder(resp *http.Response) (result ACLStatusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -782,8 +768,7 @@ func (client Client) GetContentSummaryPreparer(ctx context.Context, accountName 
 // GetContentSummarySender sends the GetContentSummary request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) GetContentSummarySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetContentSummaryResponder handles the response to the GetContentSummary request. The method always
@@ -791,7 +776,6 @@ func (client Client) GetContentSummarySender(req *http.Request) (*http.Response,
 func (client Client) GetContentSummaryResponder(resp *http.Response) (result ContentSummaryResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -869,8 +853,7 @@ func (client Client) GetFileStatusPreparer(ctx context.Context, accountName stri
 // GetFileStatusSender sends the GetFileStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) GetFileStatusSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetFileStatusResponder handles the response to the GetFileStatus request. The method always
@@ -878,7 +861,6 @@ func (client Client) GetFileStatusSender(req *http.Request) (*http.Response, err
 func (client Client) GetFileStatusResponder(resp *http.Response) (result FileStatusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -971,8 +953,7 @@ func (client Client) ListFileStatusPreparer(ctx context.Context, accountName str
 // ListFileStatusSender sends the ListFileStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) ListFileStatusSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListFileStatusResponder handles the response to the ListFileStatus request. The method always
@@ -980,7 +961,6 @@ func (client Client) ListFileStatusSender(req *http.Request) (*http.Response, er
 func (client Client) ListFileStatusResponder(resp *http.Response) (result FileStatusesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1056,8 +1036,7 @@ func (client Client) MkdirsPreparer(ctx context.Context, accountName string, pat
 // MkdirsSender sends the Mkdirs request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) MkdirsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // MkdirsResponder handles the response to the Mkdirs request. The method always
@@ -1065,7 +1044,6 @@ func (client Client) MkdirsSender(req *http.Request) (*http.Response, error) {
 func (client Client) MkdirsResponder(resp *http.Response) (result FileOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1141,8 +1119,7 @@ func (client Client) ModifyACLEntriesPreparer(ctx context.Context, accountName s
 // ModifyACLEntriesSender sends the ModifyACLEntries request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) ModifyACLEntriesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ModifyACLEntriesResponder handles the response to the ModifyACLEntries request. The method always
@@ -1150,7 +1127,6 @@ func (client Client) ModifyACLEntriesSender(req *http.Request) (*http.Response, 
 func (client Client) ModifyACLEntriesResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1236,8 +1212,7 @@ func (client Client) MsConcatPreparer(ctx context.Context, accountName string, p
 // MsConcatSender sends the MsConcat request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) MsConcatSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // MsConcatResponder handles the response to the MsConcat request. The method always
@@ -1245,7 +1220,6 @@ func (client Client) MsConcatSender(req *http.Request) (*http.Response, error) {
 func (client Client) MsConcatResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1330,8 +1304,7 @@ func (client Client) OpenPreparer(ctx context.Context, accountName string, pathP
 // OpenSender sends the Open request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) OpenSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // OpenResponder handles the response to the Open request. The method always
@@ -1340,7 +1313,6 @@ func (client Client) OpenResponder(resp *http.Response) (result ReadCloser, err 
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -1411,8 +1383,7 @@ func (client Client) RemoveACLPreparer(ctx context.Context, accountName string, 
 // RemoveACLSender sends the RemoveACL request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) RemoveACLSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // RemoveACLResponder handles the response to the RemoveACL request. The method always
@@ -1420,7 +1391,6 @@ func (client Client) RemoveACLSender(req *http.Request) (*http.Response, error) 
 func (client Client) RemoveACLResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1494,8 +1464,7 @@ func (client Client) RemoveACLEntriesPreparer(ctx context.Context, accountName s
 // RemoveACLEntriesSender sends the RemoveACLEntries request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) RemoveACLEntriesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // RemoveACLEntriesResponder handles the response to the RemoveACLEntries request. The method always
@@ -1503,7 +1472,6 @@ func (client Client) RemoveACLEntriesSender(req *http.Request) (*http.Response, 
 func (client Client) RemoveACLEntriesResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1575,8 +1543,7 @@ func (client Client) RemoveDefaultACLPreparer(ctx context.Context, accountName s
 // RemoveDefaultACLSender sends the RemoveDefaultACL request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) RemoveDefaultACLSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // RemoveDefaultACLResponder handles the response to the RemoveDefaultACL request. The method always
@@ -1584,7 +1551,6 @@ func (client Client) RemoveDefaultACLSender(req *http.Request) (*http.Response, 
 func (client Client) RemoveDefaultACLResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1657,8 +1623,7 @@ func (client Client) RenamePreparer(ctx context.Context, accountName string, pat
 // RenameSender sends the Rename request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) RenameSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // RenameResponder handles the response to the Rename request. The method always
@@ -1666,7 +1631,6 @@ func (client Client) RenameSender(req *http.Request) (*http.Response, error) {
 func (client Client) RenameResponder(resp *http.Response) (result FileOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1742,8 +1706,7 @@ func (client Client) SetACLPreparer(ctx context.Context, accountName string, pat
 // SetACLSender sends the SetACL request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) SetACLSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // SetACLResponder handles the response to the SetACL request. The method always
@@ -1751,7 +1714,6 @@ func (client Client) SetACLSender(req *http.Request) (*http.Response, error) {
 func (client Client) SetACLResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1834,8 +1796,7 @@ func (client Client) SetFileExpiryPreparer(ctx context.Context, accountName stri
 // SetFileExpirySender sends the SetFileExpiry request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) SetFileExpirySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // SetFileExpiryResponder handles the response to the SetFileExpiry request. The method always
@@ -1843,7 +1804,6 @@ func (client Client) SetFileExpirySender(req *http.Request) (*http.Response, err
 func (client Client) SetFileExpiryResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1925,8 +1885,7 @@ func (client Client) SetOwnerPreparer(ctx context.Context, accountName string, p
 // SetOwnerSender sends the SetOwner request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) SetOwnerSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // SetOwnerResponder handles the response to the SetOwner request. The method always
@@ -1934,7 +1893,6 @@ func (client Client) SetOwnerSender(req *http.Request) (*http.Response, error) {
 func (client Client) SetOwnerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -2011,8 +1969,7 @@ func (client Client) SetPermissionPreparer(ctx context.Context, accountName stri
 // SetPermissionSender sends the SetPermission request. The method will close the
 // http.Response Body if it receives an error.
 func (client Client) SetPermissionSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // SetPermissionResponder handles the response to the SetPermission request. The method always
@@ -2020,7 +1977,6 @@ func (client Client) SetPermissionSender(req *http.Request) (*http.Response, err
 func (client Client) SetPermissionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

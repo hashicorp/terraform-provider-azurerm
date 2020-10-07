@@ -1,7 +1,7 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
-sidebar_current: "docs-azurerm-resource-api-management-x"
 description: |-
   Manages an API Management Service.
 ---
@@ -13,21 +13,30 @@ Manages an API Management Service.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_api_management" "test" {
+resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
+  sku_name = "Developer_1"
+
+  policy {
+    xml_content = <<XML
+    <policies>
+      <inbound />
+      <backend />
+      <outbound />
+      <on-error />
+    </policies>
+XML
+
   }
 }
 ```
@@ -46,7 +55,7 @@ The following arguments are supported:
 
 * `publisher_email` - (Required) The email of publisher/company.
 
-* `sku` - (Required) A `sku` block as documented below.
+* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
 ---
 
@@ -62,11 +71,17 @@ The following arguments are supported:
 
 * `policy` - (Optional) A `policy` block as defined below.
 
+* `protocols` - (Optional) A `protocols` block as defined below.
+
 * `security` - (Optional) A `security` block as defined below.
 
 * `sign_in` - (Optional) A `sign_in` block as defined below.
 
 * `sign_up` - (Optional) A `sign_up` block as defined below.
+
+* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
+
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
@@ -75,6 +90,8 @@ The following arguments are supported:
 A `additional_location` block supports the following:
 
 * `location` - (Required) The name of the Azure Region in which the API Management Service should be expanded to.
+
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
 
 ---
 
@@ -95,6 +112,8 @@ A `hostname_configuration` block supports the following:
 
 * `portal` - (Optional) One or more `portal` blocks as documented below.
 
+* `developer_portal` - (Optional) One or more `developer_portal` blocks as documented below.
+
 * `proxy` - (Optional) One or more `proxy` blocks as documented below.
 
 * `scm` - (Optional) One or more `scm` blocks as documented below.
@@ -103,11 +122,17 @@ A `hostname_configuration` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. At this time the only supported value is`SystemAssigned`.
+~> **Note:** User Assigned Managed Identities are in Preview
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
-A `management`, `portal` and `scm` block supports the following:
+A `management`, `portal`, `developer_portal` and `scm` block supports the following:
 
 * `host_name` - (Required) The Hostname to use for the Management API.
 
@@ -153,43 +178,69 @@ A `proxy` block supports the following:
 
 ---
 
-A `security` block supports the following:
+A `protocols` block supports the following:
 
-* `disable_backend_ssl30` - (Optional) Should SSL 3.0 be disabled on the backend of the gateway? Defaults to `false`.
-
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30` field
-
-* `disable_backend_tls10` - (Optional) Should TLS 1.0 be disabled on the backend of the gateway? Defaults to `false`.
-
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` field
-
-* `disable_backend_tls11` - (Optional) Should TLS 1.1 be disabled on the backend of the gateway? Defaults to `false`.
-
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` field
-
-* `disable_frontend_ssl30` - (Optional) Should SSL 3.0 be disabled on the frontend of the gateway? Defaults to `false`.
-
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30` field
-
-* `disable_frontend_tls10` - (Optional) Should TLS 1.0 be disabled on the frontend of the gateway? Defaults to `false`.
-
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` field
-
-* `disable_frontend_tls11` - (Optional) Should TLS 1.1 be disabled on the frontend of the gateway? Defaults to `false`.
-
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
-
-* `disable_triple_des_chipers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be disabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
-
--> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
+* `enable_http2` - (Optional) Should HTTP/2 be supported by the API Management Service? Defaults to `false`.
 
 ---
 
-A `sku` block supports the following:
+A `security` block supports the following:
 
-* `name` - (Required) Specifies the Pricing Tier for the API Management Service. Possible values include: `Developer`, `Basic`, `Standard` and `Premium`.
+* `enable_backend_ssl30` - (Optional) Should SSL 3.0 be enabled on the backend of the gateway? Defaults to `false`.
 
-* `capacity` - (Required) Specifies the Pricing Capacity for the API Management Service.
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30` field
+
+* `enable_backend_tls10` - (Optional) Should TLS 1.0 be enabled on the backend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10` field
+
+* `enable_backend_tls11` - (Optional) Should TLS 1.1 be enabled on the backend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11` field
+
+* `enable_frontend_ssl30` - (Optional) Should SSL 3.0 be enabled on the frontend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30` field
+
+* `enable_frontend_tls10` - (Optional) Should TLS 1.0 be enabled on the frontend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10` field
+
+* `enable_frontend_tls11` - (Optional) Should TLS 1.1 be enabled on the frontend of the gateway? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
+
+* `enable_triple_des_ciphers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
+
+-> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
+
+* `disable_backend_ssl30` - (Optional) Should SSL 3.0 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
+
+-> **Note:** This property has been deprecated in favour of the `enable_backend_ssl30` property and will be removed in version 2.0 of the provider.
+
+* `disable_backend_tls10` - (Optional) Should TLS 1.0 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
+
+-> **Note:** This property has been deprecated in favour of the `enable_backend_tls10` property and will be removed in version 2.0 of the provider.
+
+* `disable_backend_tls11` - (Optional) Should TLS 1.1 be disabled on the backend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
+
+-> **Note:** This property has been deprecated in favour of the `enable_backend_tls11` property and will be removed in version 2.0 of the provider.
+
+* `disable_frontend_ssl30` - (Optional) Should SSL 3.0 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
+
+-> **Note:** This property has been deprecated in favour of the `enable_frontend_ssl30` property and will be removed in version 2.0 of the provider.
+
+* `disable_frontend_tls10` - (Optional) Should TLS 1.0 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
+
+-> **Note:** This property has been deprecated in favour of the `enable_frontend_tls10` property and will be removed in version 2.0 of the provider.
+
+* `disable_frontend_tls11` - (Optional) Should TLS 1.1 be disabled on the frontend of the gateway? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
+
+-> **Note:** This property has been deprecated in favour of the `enable_frontend_tls11` property and will be removed in version 2.0 of the provider.
+
+* `disable_triple_des_ciphers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be disabled for alL TLS versions (1.0, 1.1 and 1.2)? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
+
+-> **Note:** This property has been deprecated in favour of the `enable_triple_des_ciphers` property and will be removed in version 2.0 of the provider.
 
 ---
 
@@ -203,7 +254,13 @@ A `sign_up` block supports the following:
 
 * `enabled` - (Required) Can users sign up on the development portal?
 
-* `terms_of_service` - (Optional) A `terms_of_service` block as defined below.
+* `terms_of_service` - (Required) A `terms_of_service` block as defined below.
+
+---
+
+A `virtual_network_configuration` block supports the following:
+
+* `subnet_id` - (Required) The id of the subnet that will be used for the API Management.
 
 ---
 
@@ -222,7 +279,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Service.
 
-* `additional_location` - One or more `additional_location` blocks as documented below.
+* `additional_location` - Zero or more `additional_location` blocks as documented below.
 
 * `gateway_url` - The URL of the Gateway for the API Management Service.
 
@@ -234,7 +291,11 @@ In addition to all arguments above, the following attributes are exported:
 
 * `portal_url` - The URL for the Publisher Portal associated with this API Management service.
 
+* `developer_portal_url` - The URL for the Developer Portal associated with this API Management service.
+
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
+
+* `private_ip_addresses` - The Private IP addresses of the API Management Service.
 
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
@@ -246,6 +307,8 @@ An `additional_location` block exports the following:
 
 * `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
 
+* `private_ip_addresses` - The Private IP addresses of the API Management Service.  Available only when the API Manager instance is using Virtual Network mode.
+
 ---
 
 An `identity` block exports the following:
@@ -254,10 +317,19 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the API Management Service.
+* `update` - (Defaults to 60 minutes) Used when updating the API Management Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
+* `delete` - (Defaults to 60 minutes) Used when deleting the API Management Service.
+
 ## Import
 
 API Management Services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1
+terraform import azurerm_api_management.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1
 ```

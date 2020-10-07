@@ -35,7 +35,8 @@ func NewTransformationsClient(subscriptionID string) TransformationsClient {
 	return NewTransformationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTransformationsClientWithBaseURI creates an instance of the TransformationsClient client.
+// NewTransformationsClientWithBaseURI creates an instance of the TransformationsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTransformationsClientWithBaseURI(baseURI string, subscriptionID string) TransformationsClient {
 	return TransformationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -120,8 +121,7 @@ func (client TransformationsClient) CreateOrReplacePreparer(ctx context.Context,
 // CreateOrReplaceSender sends the CreateOrReplace request. The method will close the
 // http.Response Body if it receives an error.
 func (client TransformationsClient) CreateOrReplaceSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrReplaceResponder handles the response to the CreateOrReplace request. The method always
@@ -129,7 +129,6 @@ func (client TransformationsClient) CreateOrReplaceSender(req *http.Request) (*h
 func (client TransformationsClient) CreateOrReplaceResponder(resp *http.Response) (result Transformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,8 +199,7 @@ func (client TransformationsClient) GetPreparer(ctx context.Context, resourceGro
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TransformationsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -209,7 +207,6 @@ func (client TransformationsClient) GetSender(req *http.Request) (*http.Response
 func (client TransformationsClient) GetResponder(resp *http.Response) (result Transformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -293,8 +290,7 @@ func (client TransformationsClient) UpdatePreparer(ctx context.Context, transfor
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client TransformationsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -302,7 +298,6 @@ func (client TransformationsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client TransformationsClient) UpdateResponder(resp *http.Response) (result Transformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -35,7 +35,8 @@ func NewMediaservicesClient(subscriptionID string) MediaservicesClient {
 	return NewMediaservicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewMediaservicesClientWithBaseURI creates an instance of the MediaservicesClient client.
+// NewMediaservicesClientWithBaseURI creates an instance of the MediaservicesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewMediaservicesClientWithBaseURI(baseURI string, subscriptionID string) MediaservicesClient {
 	return MediaservicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,8 +104,7 @@ func (client MediaservicesClient) CreateOrUpdatePreparer(ctx context.Context, re
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -112,7 +112,6 @@ func (client MediaservicesClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client MediaservicesClient) CreateOrUpdateResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -180,8 +179,7 @@ func (client MediaservicesClient) DeletePreparer(ctx context.Context, resourceGr
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -189,7 +187,6 @@ func (client MediaservicesClient) DeleteSender(req *http.Request) (*http.Respons
 func (client MediaservicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -256,8 +253,7 @@ func (client MediaservicesClient) GetPreparer(ctx context.Context, resourceGroup
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -265,7 +261,6 @@ func (client MediaservicesClient) GetSender(req *http.Request) (*http.Response, 
 func (client MediaservicesClient) GetResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -331,8 +326,7 @@ func (client MediaservicesClient) GetBySubscriptionPreparer(ctx context.Context,
 // GetBySubscriptionSender sends the GetBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) GetBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetBySubscriptionResponder handles the response to the GetBySubscription request. The method always
@@ -340,7 +334,6 @@ func (client MediaservicesClient) GetBySubscriptionSender(req *http.Request) (*h
 func (client MediaservicesClient) GetBySubscriptionResponder(resp *http.Response) (result SubscriptionMediaService, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -380,6 +373,9 @@ func (client MediaservicesClient) List(ctx context.Context, resourceGroupName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "List", resp, "Failure responding to request")
 	}
+	if result.sc.hasNextLink() && result.sc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -407,8 +403,7 @@ func (client MediaservicesClient) ListPreparer(ctx context.Context, resourceGrou
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -416,7 +411,6 @@ func (client MediaservicesClient) ListSender(req *http.Request) (*http.Response,
 func (client MediaservicesClient) ListResponder(resp *http.Response) (result ServiceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -491,6 +485,9 @@ func (client MediaservicesClient) ListBySubscription(ctx context.Context) (resul
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListBySubscription", resp, "Failure responding to request")
 	}
+	if result.smsc.hasNextLink() && result.smsc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -517,8 +514,7 @@ func (client MediaservicesClient) ListBySubscriptionPreparer(ctx context.Context
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -526,7 +522,6 @@ func (client MediaservicesClient) ListBySubscriptionSender(req *http.Request) (*
 func (client MediaservicesClient) ListBySubscriptionResponder(resp *http.Response) (result SubscriptionMediaServiceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -568,6 +563,84 @@ func (client MediaservicesClient) ListBySubscriptionComplete(ctx context.Context
 		}()
 	}
 	result.page, err = client.ListBySubscription(ctx)
+	return
+}
+
+// ListEdgePolicies list the media edge policies associated with the Media Services account.
+// Parameters:
+// resourceGroupName - the name of the resource group within the Azure subscription.
+// accountName - the Media Services account name.
+// parameters - the request parameters
+func (client MediaservicesClient) ListEdgePolicies(ctx context.Context, resourceGroupName string, accountName string, parameters ListEdgePoliciesInput) (result EdgePolicies, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/MediaservicesClient.ListEdgePolicies")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListEdgePoliciesPreparer(ctx, resourceGroupName, accountName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListEdgePolicies", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListEdgePoliciesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListEdgePolicies", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListEdgePoliciesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListEdgePolicies", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListEdgePoliciesPreparer prepares the ListEdgePolicies request.
+func (client MediaservicesClient) ListEdgePoliciesPreparer(ctx context.Context, resourceGroupName string, accountName string, parameters ListEdgePoliciesInput) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Media/mediaservices/{accountName}/listEdgePolicies", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListEdgePoliciesSender sends the ListEdgePolicies request. The method will close the
+// http.Response Body if it receives an error.
+func (client MediaservicesClient) ListEdgePoliciesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListEdgePoliciesResponder handles the response to the ListEdgePolicies request. The method always
+// closes the http.Response Body.
+func (client MediaservicesClient) ListEdgePoliciesResponder(resp *http.Response) (result EdgePolicies, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -634,8 +707,7 @@ func (client MediaservicesClient) SyncStorageKeysPreparer(ctx context.Context, r
 // SyncStorageKeysSender sends the SyncStorageKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) SyncStorageKeysSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SyncStorageKeysResponder handles the response to the SyncStorageKeys request. The method always
@@ -643,7 +715,6 @@ func (client MediaservicesClient) SyncStorageKeysSender(req *http.Request) (*htt
 func (client MediaservicesClient) SyncStorageKeysResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -713,8 +784,7 @@ func (client MediaservicesClient) UpdatePreparer(ctx context.Context, resourceGr
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client MediaservicesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -722,7 +792,6 @@ func (client MediaservicesClient) UpdateSender(req *http.Request) (*http.Respons
 func (client MediaservicesClient) UpdateResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

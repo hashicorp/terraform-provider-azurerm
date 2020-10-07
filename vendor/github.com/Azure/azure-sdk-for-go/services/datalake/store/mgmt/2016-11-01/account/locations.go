@@ -35,7 +35,8 @@ func NewLocationsClient(subscriptionID string) LocationsClient {
 	return NewLocationsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewLocationsClientWithBaseURI creates an instance of the LocationsClient client.
+// NewLocationsClientWithBaseURI creates an instance of the LocationsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewLocationsClientWithBaseURI(baseURI string, subscriptionID string) LocationsClient {
 	return LocationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -98,8 +99,7 @@ func (client LocationsClient) GetCapabilityPreparer(ctx context.Context, locatio
 // GetCapabilitySender sends the GetCapability request. The method will close the
 // http.Response Body if it receives an error.
 func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetCapabilityResponder handles the response to the GetCapability request. The method always
@@ -107,8 +107,80 @@ func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Resp
 func (client LocationsClient) GetCapabilityResponder(resp *http.Response) (result CapabilityInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetUsage gets the current usage count and the limit for the resources of the location under the subscription.
+// Parameters:
+// location - the resource location without whitespace.
+func (client LocationsClient) GetUsage(ctx context.Context, location string) (result UsageListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/LocationsClient.GetUsage")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetUsagePreparer(ctx, location)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetUsage", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetUsageSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetUsage", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetUsageResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "account.LocationsClient", "GetUsage", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetUsagePreparer prepares the GetUsage request.
+func (client LocationsClient) GetUsagePreparer(ctx context.Context, location string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2016-11-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.DataLakeStore/locations/{location}/usages", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetUsageSender sends the GetUsage request. The method will close the
+// http.Response Body if it receives an error.
+func (client LocationsClient) GetUsageSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetUsageResponder handles the response to the GetUsage request. The method always
+// closes the http.Response Body.
+func (client LocationsClient) GetUsageResponder(resp *http.Response) (result UsageListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

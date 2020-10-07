@@ -1,7 +1,7 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_lab"
-sidebar_current: "docs-azurerm-resource-dev-test-lab"
 description: |-
   Manages a Dev Test Lab.
 ---
@@ -13,15 +13,15 @@ Manages a Dev Test Lab.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_dev_test_lab" "test" {
+resource "azurerm_dev_test_lab" "example" {
   name                = "example-devtestlab"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   tags = {
     "Sydney" = "Australia"
@@ -60,6 +60,17 @@ The following attributes are exported:
 * `premium_data_disk_storage_account_id` - The ID of the Storage Account used for Storage of Premium Data Disk.
 
 * `unique_identifier` - The unique immutable identifier of the Dev Test Lab.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DevTest Lab.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Lab.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Lab.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Lab.
 
 ## Import
 

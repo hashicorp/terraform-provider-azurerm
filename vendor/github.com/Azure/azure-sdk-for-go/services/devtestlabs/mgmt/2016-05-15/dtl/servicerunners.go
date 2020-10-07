@@ -35,7 +35,8 @@ func NewServiceRunnersClient(subscriptionID string) ServiceRunnersClient {
 	return NewServiceRunnersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServiceRunnersClientWithBaseURI creates an instance of the ServiceRunnersClient client.
+// NewServiceRunnersClientWithBaseURI creates an instance of the ServiceRunnersClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewServiceRunnersClientWithBaseURI(baseURI string, subscriptionID string) ServiceRunnersClient {
 	return ServiceRunnersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -105,8 +106,7 @@ func (client ServiceRunnersClient) CreateOrUpdatePreparer(ctx context.Context, r
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceRunnersClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -114,7 +114,6 @@ func (client ServiceRunnersClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client ServiceRunnersClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceRunner, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -184,8 +183,7 @@ func (client ServiceRunnersClient) DeletePreparer(ctx context.Context, resourceG
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceRunnersClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -193,7 +191,6 @@ func (client ServiceRunnersClient) DeleteSender(req *http.Request) (*http.Respon
 func (client ServiceRunnersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -262,8 +259,7 @@ func (client ServiceRunnersClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceRunnersClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -271,7 +267,6 @@ func (client ServiceRunnersClient) GetSender(req *http.Request) (*http.Response,
 func (client ServiceRunnersClient) GetResponder(resp *http.Response) (result ServiceRunner, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,6 +310,9 @@ func (client ServiceRunnersClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ServiceRunnersClient", "List", resp, "Failure responding to request")
 	}
+	if result.rwcsr.hasNextLink() && result.rwcsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -352,8 +350,7 @@ func (client ServiceRunnersClient) ListPreparer(ctx context.Context, resourceGro
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceRunnersClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -361,7 +358,6 @@ func (client ServiceRunnersClient) ListSender(req *http.Request) (*http.Response
 func (client ServiceRunnersClient) ListResponder(resp *http.Response) (result ResponseWithContinuationServiceRunner, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

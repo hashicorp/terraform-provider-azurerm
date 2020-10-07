@@ -1,7 +1,7 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_database"
-sidebar_current: "docs-azurerm-resource-database-mysql-database"
 description: |-
   Manages a MySQL Database within a MySQL Server.
 ---
@@ -13,39 +13,40 @@ Manages a MySQL Database within a MySQL Server
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_mysql_server" "test" {
-  name                = "mysql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    name     = "B_Gen5_2"
-    capacity = 2
-    tier     = "Basic"
-    family   = "Gen4"
-  }
-
-  storage_profile {
-    storage_mb            = 5120
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+resource "azurerm_mysql_server" "example" {
+  name                = "example-mysqlserver"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   administrator_login          = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.7"
-  ssl_enforcement              = "Enabled"
+
+  sku_name   = "B_Gen5_2"
+  storage_mb = 5120
+  version    = "5.7"
+
+  auto_grow_enabled                 = true
+  backup_retention_days             = 7
+  geo_redundant_backup_enabled      = true
+  infrastructure_encryption_enabled = true
+  public_network_access_enabled     = false
+  ssl_enforcement_enabled           = true
+  ssl_minimal_tls_version_enforced  = "TLS1_2"
 }
 
-resource "azurerm_mysql_database" "test" {
+resource "azurerm_mysql_database" "example" {
   name                = "exampledb"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mysql_server.example.name
   charset             = "utf8"
   collation           = "utf8_unicode_ci"
 }
@@ -70,6 +71,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the MySQL Database.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the MySQL Database.
+* `update` - (Defaults to 60 minutes) Used when updating the MySQL Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Database.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MySQL Database.
 
 ## Import
 

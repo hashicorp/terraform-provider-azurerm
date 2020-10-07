@@ -1,7 +1,7 @@
 ---
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
-sidebar_current: "docs-azurerm-datasource-data-lake-store"
 description: |-
   Gets information about an existing Data Lake Store
 
@@ -14,21 +14,21 @@ Use this data source to access information about an existing Data Lake Store.
 ## Example Usage
 
 ```hcl
-data "azurerm_data_lake_store" "test" {
+data "azurerm_data_lake_store" "example" {
   name                = "testdatalake"
   resource_group_name = "testdatalake"
 }
 
 output "data_lake_store_id" {
-  value = "${data.azurerm_data_lake_store.test.id}"
+  value = data.azurerm_data_lake_store.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Data Lake Store.
+* `name` - The name of the Data Lake Store.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the Data Lake Store exists.
+* `resource_group_name` - The Name of the Resource Group where the Data Lake Store exists.
 
 ## Attributes Reference
 
@@ -45,3 +45,9 @@ output "data_lake_store_id" {
 * `tier` - Current monthly commitment tier for the account.
 
 * `tags` - A mapping of tags to assign to the Data Lake Store.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Lake Store.

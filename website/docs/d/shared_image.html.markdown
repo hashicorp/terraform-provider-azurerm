@@ -1,7 +1,7 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image"
-sidebar_current: "docs-azurerm-datasource-shared-image-x"
 description: |-
   Gets information about an existing Shared Image a Shared Image Gallery.
 
@@ -11,12 +11,10 @@ description: |-
 
 Use this data source to access information about an existing Shared Image within a Shared Image Gallery.
 
--> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
-
 ## Example Usage
 
 ```hcl
-data "azurerm_shared_image" "test" {
+data "azurerm_shared_image" "example" {
   name                = "my-image"
   gallery_name        = "my-image-gallery"
   resource_group_name = "example-resources"
@@ -27,17 +25,17 @@ data "azurerm_shared_image" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Shared Image.
+* `name` - The name of the Shared Image.
 
-* `gallery_name` - (Required) The name of the Shared Image Gallery in which the Shared Image exists.
+* `gallery_name` - The name of the Shared Image Gallery in which the Shared Image exists.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Shared Image Gallery exists.
+* `resource_group_name` - The name of the Resource Group in which the Shared Image Gallery exists.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Shared Image.
+* `id` - The ID of the Shared Image.
 
 * `description` - The description of this Shared Image.
 
@@ -45,9 +43,13 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the Shared Image Gallery exists.
 
+* `specialized` - Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run).
+
 * `identifier` - An `identifier` block as defined below.
 
 * `os_type` - The type of Operating System present in this Shared Image.
+
+* `hyper_v_generation` - The generation of HyperV that the Virtual Machine used to create the Shared Image is based on.
 
 * `privacy_statement_uri` - The URI containing the Privacy Statement for this Shared Image.
 
@@ -64,3 +66,9 @@ A `identifier` block exports the following:
 * `publisher` - The Publisher Name for this Gallery Image.
 
 * `sku` - The Name of the SKU for this Gallery Image.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image a Shared Image Gallery.

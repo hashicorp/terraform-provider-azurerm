@@ -1,27 +1,27 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory"
-sidebar_current: "docs-azurerm-resource-data-factory-x"
 description: |-
-  Manage an Azure Data Factory (Version 2).
+  Manages an Azure Data Factory (Version 2).
 ---
 
 # azurerm_data_factory
 
-Manage an Azure Data Factory (Version 2).
+Manages an Azure Data Factory (Version 2).
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example"
+  name     = "example-resources"
   location = "northeurope"
 }
 
 resource "azurerm_data_factory" "example" {
   name                = "example"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
@@ -35,19 +35,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below.
-
 * `github_configuration` - (Optional) A `github_configuration` block as defined below.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `vsts_configuration` - (Optional) A `vsts_configuration` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-A `identity` block supports the following:
-
-* `type` - (Required) Specifies the identity type of the Data Factory. At this time the only allowed value is `SystemAssigned`.
 
 ---
 
@@ -64,6 +58,12 @@ A `github_configuration` block supports the following:
 * `root_folder` - (Required) Specifies the root folder within the repository. Set to `/` for the top level.
 
 -> **Note:** You must log in to the Data Factory management UI to complete the authentication to the GitHub repository.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the Data Factory. At this time the only allowed value is `SystemAssigned`.
 
 ---
 
@@ -85,7 +85,27 @@ A `vsts_configuration` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Data Factory ID.
+* `id` - The ID of the Data Factory.
+
+* `identity` - An `identity` block as defined below.
+
+---
+
+The `identity` block exports the following:
+
+* `principal_id` - The ID of the Principal (Client) in Azure Active Directory
+
+* `tenant_id` - The ID of the Azure Active Directory Tenant.
+
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Factory.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory.
 
 ## Import
 

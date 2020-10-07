@@ -1,28 +1,46 @@
-dist: trusty
+dist: xenial
 sudo: required
 services:
 - docker
 language: go
 go:
-- "1.11.x"
-
-install:
-# This script is used by the Travis build to install a cookie for
-# go.googlesource.com so rate limits are higher when using `go get` to fetch
-# packages that live there.
-# See: https://github.com/golang/go/issues/12933
-- bash scripts/gogetcookie.sh
-- make tools
-
-script:
-- make test
-- make lint
-- make website-test
+- "1.14.x"
 
 branches:
   only:
-  - master
+    - master
+
+env:
+  global:
+    GOFLAGS=-mod=vendor
+
+install:
+  # This script is used by the Travis build to install a cookie for
+  # go.googlesource.com so rate limits are higher when using `go get` to fetch
+  # packages that live there.
+  # See: https://github.com/golang/go/issues/12933
+  - bash scripts/gogetcookie.sh
+  - make tools
+
 matrix:
   fast_finish: true
   allow_failures:
-  - go: tip
+    - go: tip
+  include:
+    - name: "make lintrest"
+      script:
+      - TRAVIS=ci GOGC=5 make lintrest
+      # results in a OOM error
+      #- name: "make lintunused"
+      #  script: GOGC=5 make lintunused
+    - name: "make tflint"
+      script: TRAVIS=ci make tflint
+    - name: "make test"
+      script: TRAVIS=ci make test
+    - name: "make depscheck"
+      script: make depscheck
+    - name: "make website-lint"
+      script: make website-lint
+    - name: "make website-test"
+      script: make website-test
+

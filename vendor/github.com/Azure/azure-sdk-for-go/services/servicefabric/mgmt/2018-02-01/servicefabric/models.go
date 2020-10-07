@@ -20,435 +20,19 @@ package servicefabric
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/go-autorest/tracing"
+	"net/http"
 )
 
-// ClusterState enumerates the values for cluster state.
-type ClusterState string
+// The package's fully qualified name.
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
 
-const (
-	// AutoScale ...
-	AutoScale ClusterState = "AutoScale"
-	// BaselineUpgrade ...
-	BaselineUpgrade ClusterState = "BaselineUpgrade"
-	// Deploying ...
-	Deploying ClusterState = "Deploying"
-	// EnforcingClusterVersion ...
-	EnforcingClusterVersion ClusterState = "EnforcingClusterVersion"
-	// Ready ...
-	Ready ClusterState = "Ready"
-	// UpdatingInfrastructure ...
-	UpdatingInfrastructure ClusterState = "UpdatingInfrastructure"
-	// UpdatingUserCertificate ...
-	UpdatingUserCertificate ClusterState = "UpdatingUserCertificate"
-	// UpdatingUserConfiguration ...
-	UpdatingUserConfiguration ClusterState = "UpdatingUserConfiguration"
-	// UpgradeServiceUnreachable ...
-	UpgradeServiceUnreachable ClusterState = "UpgradeServiceUnreachable"
-	// WaitingForNodes ...
-	WaitingForNodes ClusterState = "WaitingForNodes"
-)
-
-// PossibleClusterStateValues returns an array of possible values for the ClusterState const type.
-func PossibleClusterStateValues() []ClusterState {
-	return []ClusterState{AutoScale, BaselineUpgrade, Deploying, EnforcingClusterVersion, Ready, UpdatingInfrastructure, UpdatingUserCertificate, UpdatingUserConfiguration, UpgradeServiceUnreachable, WaitingForNodes}
-}
-
-// DurabilityLevel enumerates the values for durability level.
-type DurabilityLevel string
-
-const (
-	// Bronze ...
-	Bronze DurabilityLevel = "Bronze"
-	// Gold ...
-	Gold DurabilityLevel = "Gold"
-	// Silver ...
-	Silver DurabilityLevel = "Silver"
-)
-
-// PossibleDurabilityLevelValues returns an array of possible values for the DurabilityLevel const type.
-func PossibleDurabilityLevelValues() []DurabilityLevel {
-	return []DurabilityLevel{Bronze, Gold, Silver}
-}
-
-// Environment enumerates the values for environment.
-type Environment string
-
-const (
-	// Linux ...
-	Linux Environment = "Linux"
-	// Windows ...
-	Windows Environment = "Windows"
-)
-
-// PossibleEnvironmentValues returns an array of possible values for the Environment const type.
-func PossibleEnvironmentValues() []Environment {
-	return []Environment{Linux, Windows}
-}
-
-// MoveCost enumerates the values for move cost.
-type MoveCost string
-
-const (
-	// High Specifies the move cost of the service as High. The value is 3.
-	High MoveCost = "High"
-	// Low Specifies the move cost of the service as Low. The value is 1.
-	Low MoveCost = "Low"
-	// Medium Specifies the move cost of the service as Medium. The value is 2.
-	Medium MoveCost = "Medium"
-	// Zero Zero move cost. This value is zero.
-	Zero MoveCost = "Zero"
-)
-
-// PossibleMoveCostValues returns an array of possible values for the MoveCost const type.
-func PossibleMoveCostValues() []MoveCost {
-	return []MoveCost{High, Low, Medium, Zero}
-}
-
-// PartitionScheme enumerates the values for partition scheme.
-type PartitionScheme string
-
-const (
-	// Invalid Indicates the partition kind is invalid. All Service Fabric enumerations have the invalid type.
-	// The value is zero.
-	Invalid PartitionScheme = "Invalid"
-	// Named Indicates that the partition is based on string names, and is a NamedPartitionSchemeDescription
-	// object. The value is 3
-	Named PartitionScheme = "Named"
-	// Singleton Indicates that the partition is based on string names, and is a
-	// SingletonPartitionSchemeDescription object, The value is 1.
-	Singleton PartitionScheme = "Singleton"
-	// UniformInt64Range Indicates that the partition is based on Int64 key ranges, and is a
-	// UniformInt64RangePartitionSchemeDescription object. The value is 2.
-	UniformInt64Range PartitionScheme = "UniformInt64Range"
-)
-
-// PossiblePartitionSchemeValues returns an array of possible values for the PartitionScheme const type.
-func PossiblePartitionSchemeValues() []PartitionScheme {
-	return []PartitionScheme{Invalid, Named, Singleton, UniformInt64Range}
-}
-
-// PartitionSchemeBasicPartitionSchemeDescription enumerates the values for partition scheme basic partition
-// scheme description.
-type PartitionSchemeBasicPartitionSchemeDescription string
-
-const (
-	// PartitionSchemeNamed ...
-	PartitionSchemeNamed PartitionSchemeBasicPartitionSchemeDescription = "Named"
-	// PartitionSchemePartitionSchemeDescription ...
-	PartitionSchemePartitionSchemeDescription PartitionSchemeBasicPartitionSchemeDescription = "PartitionSchemeDescription"
-	// PartitionSchemeSingleton ...
-	PartitionSchemeSingleton PartitionSchemeBasicPartitionSchemeDescription = "Singleton"
-	// PartitionSchemeUniformInt64Range ...
-	PartitionSchemeUniformInt64Range PartitionSchemeBasicPartitionSchemeDescription = "UniformInt64Range"
-)
-
-// PossiblePartitionSchemeBasicPartitionSchemeDescriptionValues returns an array of possible values for the PartitionSchemeBasicPartitionSchemeDescription const type.
-func PossiblePartitionSchemeBasicPartitionSchemeDescriptionValues() []PartitionSchemeBasicPartitionSchemeDescription {
-	return []PartitionSchemeBasicPartitionSchemeDescription{PartitionSchemeNamed, PartitionSchemePartitionSchemeDescription, PartitionSchemeSingleton, PartitionSchemeUniformInt64Range}
-}
-
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Failed, Succeeded, Updating}
-}
-
-// ReliabilityLevel enumerates the values for reliability level.
-type ReliabilityLevel string
-
-const (
-	// ReliabilityLevelBronze ...
-	ReliabilityLevelBronze ReliabilityLevel = "Bronze"
-	// ReliabilityLevelGold ...
-	ReliabilityLevelGold ReliabilityLevel = "Gold"
-	// ReliabilityLevelNone ...
-	ReliabilityLevelNone ReliabilityLevel = "None"
-	// ReliabilityLevelPlatinum ...
-	ReliabilityLevelPlatinum ReliabilityLevel = "Platinum"
-	// ReliabilityLevelSilver ...
-	ReliabilityLevelSilver ReliabilityLevel = "Silver"
-)
-
-// PossibleReliabilityLevelValues returns an array of possible values for the ReliabilityLevel const type.
-func PossibleReliabilityLevelValues() []ReliabilityLevel {
-	return []ReliabilityLevel{ReliabilityLevelBronze, ReliabilityLevelGold, ReliabilityLevelNone, ReliabilityLevelPlatinum, ReliabilityLevelSilver}
-}
-
-// ReliabilityLevel1 enumerates the values for reliability level 1.
-type ReliabilityLevel1 string
-
-const (
-	// ReliabilityLevel1Bronze ...
-	ReliabilityLevel1Bronze ReliabilityLevel1 = "Bronze"
-	// ReliabilityLevel1Gold ...
-	ReliabilityLevel1Gold ReliabilityLevel1 = "Gold"
-	// ReliabilityLevel1None ...
-	ReliabilityLevel1None ReliabilityLevel1 = "None"
-	// ReliabilityLevel1Platinum ...
-	ReliabilityLevel1Platinum ReliabilityLevel1 = "Platinum"
-	// ReliabilityLevel1Silver ...
-	ReliabilityLevel1Silver ReliabilityLevel1 = "Silver"
-)
-
-// PossibleReliabilityLevel1Values returns an array of possible values for the ReliabilityLevel1 const type.
-func PossibleReliabilityLevel1Values() []ReliabilityLevel1 {
-	return []ReliabilityLevel1{ReliabilityLevel1Bronze, ReliabilityLevel1Gold, ReliabilityLevel1None, ReliabilityLevel1Platinum, ReliabilityLevel1Silver}
-}
-
-// ServiceCorrelationScheme enumerates the values for service correlation scheme.
-type ServiceCorrelationScheme string
-
-const (
-	// ServiceCorrelationSchemeAffinity Indicates that this service has an affinity relationship with another
-	// service. Provided for backwards compatibility, consider preferring the Aligned or NonAlignedAffinity
-	// options. The value is 1.
-	ServiceCorrelationSchemeAffinity ServiceCorrelationScheme = "Affinity"
-	// ServiceCorrelationSchemeAlignedAffinity Aligned affinity ensures that the primaries of the partitions of
-	// the affinitized services are collocated on the same nodes. This is the default and is the same as
-	// selecting the Affinity scheme. The value is 2.
-	ServiceCorrelationSchemeAlignedAffinity ServiceCorrelationScheme = "AlignedAffinity"
-	// ServiceCorrelationSchemeInvalid An invalid correlation scheme. Cannot be used. The value is zero.
-	ServiceCorrelationSchemeInvalid ServiceCorrelationScheme = "Invalid"
-	// ServiceCorrelationSchemeNonAlignedAffinity Non-Aligned affinity guarantees that all replicas of each
-	// service will be placed on the same nodes. Unlike Aligned Affinity, this does not guarantee that replicas
-	// of particular role will be collocated. The value is 3.
-	ServiceCorrelationSchemeNonAlignedAffinity ServiceCorrelationScheme = "NonAlignedAffinity"
-)
-
-// PossibleServiceCorrelationSchemeValues returns an array of possible values for the ServiceCorrelationScheme const type.
-func PossibleServiceCorrelationSchemeValues() []ServiceCorrelationScheme {
-	return []ServiceCorrelationScheme{ServiceCorrelationSchemeAffinity, ServiceCorrelationSchemeAlignedAffinity, ServiceCorrelationSchemeInvalid, ServiceCorrelationSchemeNonAlignedAffinity}
-}
-
-// ServiceKind enumerates the values for service kind.
-type ServiceKind string
-
-const (
-	// ServiceKindInvalid Indicates the service kind is invalid. All Service Fabric enumerations have the
-	// invalid type. The value is zero.
-	ServiceKindInvalid ServiceKind = "Invalid"
-	// ServiceKindStateful Uses Service Fabric to make its state or part of its state highly available and
-	// reliable. The value is 2.
-	ServiceKindStateful ServiceKind = "Stateful"
-	// ServiceKindStateless Does not use Service Fabric to make its state highly available or reliable. The
-	// value is 1.
-	ServiceKindStateless ServiceKind = "Stateless"
-)
-
-// PossibleServiceKindValues returns an array of possible values for the ServiceKind const type.
-func PossibleServiceKindValues() []ServiceKind {
-	return []ServiceKind{ServiceKindInvalid, ServiceKindStateful, ServiceKindStateless}
-}
-
-// ServiceKindBasicServiceResourceProperties enumerates the values for service kind basic service resource
-// properties.
-type ServiceKindBasicServiceResourceProperties string
-
-const (
-	// ServiceKindServiceResourceProperties ...
-	ServiceKindServiceResourceProperties ServiceKindBasicServiceResourceProperties = "ServiceResourceProperties"
-	// ServiceKindStateful1 ...
-	ServiceKindStateful1 ServiceKindBasicServiceResourceProperties = "Stateful"
-	// ServiceKindStateless1 ...
-	ServiceKindStateless1 ServiceKindBasicServiceResourceProperties = "Stateless"
-)
-
-// PossibleServiceKindBasicServiceResourcePropertiesValues returns an array of possible values for the ServiceKindBasicServiceResourceProperties const type.
-func PossibleServiceKindBasicServiceResourcePropertiesValues() []ServiceKindBasicServiceResourceProperties {
-	return []ServiceKindBasicServiceResourceProperties{ServiceKindServiceResourceProperties, ServiceKindStateful1, ServiceKindStateless1}
-}
-
-// ServiceKindBasicServiceResourceUpdateProperties enumerates the values for service kind basic service
-// resource update properties.
-type ServiceKindBasicServiceResourceUpdateProperties string
-
-const (
-	// ServiceKindBasicServiceResourceUpdatePropertiesServiceKindServiceResourceUpdateProperties ...
-	ServiceKindBasicServiceResourceUpdatePropertiesServiceKindServiceResourceUpdateProperties ServiceKindBasicServiceResourceUpdateProperties = "ServiceResourceUpdateProperties"
-	// ServiceKindBasicServiceResourceUpdatePropertiesServiceKindStateful ...
-	ServiceKindBasicServiceResourceUpdatePropertiesServiceKindStateful ServiceKindBasicServiceResourceUpdateProperties = "Stateful"
-	// ServiceKindBasicServiceResourceUpdatePropertiesServiceKindStateless ...
-	ServiceKindBasicServiceResourceUpdatePropertiesServiceKindStateless ServiceKindBasicServiceResourceUpdateProperties = "Stateless"
-)
-
-// PossibleServiceKindBasicServiceResourceUpdatePropertiesValues returns an array of possible values for the ServiceKindBasicServiceResourceUpdateProperties const type.
-func PossibleServiceKindBasicServiceResourceUpdatePropertiesValues() []ServiceKindBasicServiceResourceUpdateProperties {
-	return []ServiceKindBasicServiceResourceUpdateProperties{ServiceKindBasicServiceResourceUpdatePropertiesServiceKindServiceResourceUpdateProperties, ServiceKindBasicServiceResourceUpdatePropertiesServiceKindStateful, ServiceKindBasicServiceResourceUpdatePropertiesServiceKindStateless}
-}
-
-// ServiceLoadMetricWeight enumerates the values for service load metric weight.
-type ServiceLoadMetricWeight string
-
-const (
-	// ServiceLoadMetricWeightHigh Specifies the metric weight of the service load as High. The value is 3.
-	ServiceLoadMetricWeightHigh ServiceLoadMetricWeight = "High"
-	// ServiceLoadMetricWeightLow Specifies the metric weight of the service load as Low. The value is 1.
-	ServiceLoadMetricWeightLow ServiceLoadMetricWeight = "Low"
-	// ServiceLoadMetricWeightMedium Specifies the metric weight of the service load as Medium. The value is 2.
-	ServiceLoadMetricWeightMedium ServiceLoadMetricWeight = "Medium"
-	// ServiceLoadMetricWeightZero Disables resource balancing for this metric. This value is zero.
-	ServiceLoadMetricWeightZero ServiceLoadMetricWeight = "Zero"
-)
-
-// PossibleServiceLoadMetricWeightValues returns an array of possible values for the ServiceLoadMetricWeight const type.
-func PossibleServiceLoadMetricWeightValues() []ServiceLoadMetricWeight {
-	return []ServiceLoadMetricWeight{ServiceLoadMetricWeightHigh, ServiceLoadMetricWeightLow, ServiceLoadMetricWeightMedium, ServiceLoadMetricWeightZero}
-}
-
-// ServicePlacementPolicyType enumerates the values for service placement policy type.
-type ServicePlacementPolicyType string
-
-const (
-	// ServicePlacementPolicyTypeInvalid Indicates the type of the placement policy is invalid. All Service
-	// Fabric enumerations have the invalid type. The value is zero.
-	ServicePlacementPolicyTypeInvalid ServicePlacementPolicyType = "Invalid"
-	// ServicePlacementPolicyTypeInvalidDomain Indicates that the ServicePlacementPolicyDescription is of type
-	// ServicePlacementInvalidDomainPolicyDescription, which indicates that a particular fault or upgrade
-	// domain cannot be used for placement of this service. The value is 1.
-	ServicePlacementPolicyTypeInvalidDomain ServicePlacementPolicyType = "InvalidDomain"
-	// ServicePlacementPolicyTypeNonPartiallyPlaceService Indicates that the ServicePlacementPolicyDescription
-	// is of type ServicePlacementNonPartiallyPlaceServicePolicyDescription, which indicates that if possible
-	// all replicas of a particular partition of the service should be placed atomically. The value is 5.
-	ServicePlacementPolicyTypeNonPartiallyPlaceService ServicePlacementPolicyType = "NonPartiallyPlaceService"
-	// ServicePlacementPolicyTypePreferredPrimaryDomain Indicates that the ServicePlacementPolicyDescription is
-	// of type ServicePlacementPreferPrimaryDomainPolicyDescription, which indicates that if possible the
-	// Primary replica for the partitions of the service should be located in a particular domain as an
-	// optimization. The value is 3.
-	ServicePlacementPolicyTypePreferredPrimaryDomain ServicePlacementPolicyType = "PreferredPrimaryDomain"
-	// ServicePlacementPolicyTypeRequiredDomain Indicates that the ServicePlacementPolicyDescription is of type
-	// ServicePlacementRequireDomainDistributionPolicyDescription indicating that the replicas of the service
-	// must be placed in a specific domain. The value is 2.
-	ServicePlacementPolicyTypeRequiredDomain ServicePlacementPolicyType = "RequiredDomain"
-	// ServicePlacementPolicyTypeRequiredDomainDistribution Indicates that the
-	// ServicePlacementPolicyDescription is of type ServicePlacementRequireDomainDistributionPolicyDescription,
-	// indicating that the system will disallow placement of any two replicas from the same partition in the
-	// same domain at any time. The value is 4.
-	ServicePlacementPolicyTypeRequiredDomainDistribution ServicePlacementPolicyType = "RequiredDomainDistribution"
-)
-
-// PossibleServicePlacementPolicyTypeValues returns an array of possible values for the ServicePlacementPolicyType const type.
-func PossibleServicePlacementPolicyTypeValues() []ServicePlacementPolicyType {
-	return []ServicePlacementPolicyType{ServicePlacementPolicyTypeInvalid, ServicePlacementPolicyTypeInvalidDomain, ServicePlacementPolicyTypeNonPartiallyPlaceService, ServicePlacementPolicyTypePreferredPrimaryDomain, ServicePlacementPolicyTypeRequiredDomain, ServicePlacementPolicyTypeRequiredDomainDistribution}
-}
-
-// Type enumerates the values for type.
-type Type string
-
-const (
-	// TypeServicePlacementPolicyDescription ...
-	TypeServicePlacementPolicyDescription Type = "ServicePlacementPolicyDescription"
-)
-
-// PossibleTypeValues returns an array of possible values for the Type const type.
-func PossibleTypeValues() []Type {
-	return []Type{TypeServicePlacementPolicyDescription}
-}
-
-// UpgradeMode enumerates the values for upgrade mode.
-type UpgradeMode string
-
-const (
-	// Automatic ...
-	Automatic UpgradeMode = "Automatic"
-	// Manual ...
-	Manual UpgradeMode = "Manual"
-)
-
-// PossibleUpgradeModeValues returns an array of possible values for the UpgradeMode const type.
-func PossibleUpgradeModeValues() []UpgradeMode {
-	return []UpgradeMode{Automatic, Manual}
-}
-
-// UpgradeMode1 enumerates the values for upgrade mode 1.
-type UpgradeMode1 string
-
-const (
-	// UpgradeMode1Automatic ...
-	UpgradeMode1Automatic UpgradeMode1 = "Automatic"
-	// UpgradeMode1Manual ...
-	UpgradeMode1Manual UpgradeMode1 = "Manual"
-)
-
-// PossibleUpgradeMode1Values returns an array of possible values for the UpgradeMode1 const type.
-func PossibleUpgradeMode1Values() []UpgradeMode1 {
-	return []UpgradeMode1{UpgradeMode1Automatic, UpgradeMode1Manual}
-}
-
-// X509StoreName enumerates the values for x509 store name.
-type X509StoreName string
-
-const (
-	// AddressBook ...
-	AddressBook X509StoreName = "AddressBook"
-	// AuthRoot ...
-	AuthRoot X509StoreName = "AuthRoot"
-	// CertificateAuthority ...
-	CertificateAuthority X509StoreName = "CertificateAuthority"
-	// Disallowed ...
-	Disallowed X509StoreName = "Disallowed"
-	// My ...
-	My X509StoreName = "My"
-	// Root ...
-	Root X509StoreName = "Root"
-	// TrustedPeople ...
-	TrustedPeople X509StoreName = "TrustedPeople"
-	// TrustedPublisher ...
-	TrustedPublisher X509StoreName = "TrustedPublisher"
-)
-
-// PossibleX509StoreNameValues returns an array of possible values for the X509StoreName const type.
-func PossibleX509StoreNameValues() []X509StoreName {
-	return []X509StoreName{AddressBook, AuthRoot, CertificateAuthority, Disallowed, My, Root, TrustedPeople, TrustedPublisher}
-}
-
-// X509StoreName1 enumerates the values for x509 store name 1.
-type X509StoreName1 string
-
-const (
-	// X509StoreName1AddressBook ...
-	X509StoreName1AddressBook X509StoreName1 = "AddressBook"
-	// X509StoreName1AuthRoot ...
-	X509StoreName1AuthRoot X509StoreName1 = "AuthRoot"
-	// X509StoreName1CertificateAuthority ...
-	X509StoreName1CertificateAuthority X509StoreName1 = "CertificateAuthority"
-	// X509StoreName1Disallowed ...
-	X509StoreName1Disallowed X509StoreName1 = "Disallowed"
-	// X509StoreName1My ...
-	X509StoreName1My X509StoreName1 = "My"
-	// X509StoreName1Root ...
-	X509StoreName1Root X509StoreName1 = "Root"
-	// X509StoreName1TrustedPeople ...
-	X509StoreName1TrustedPeople X509StoreName1 = "TrustedPeople"
-	// X509StoreName1TrustedPublisher ...
-	X509StoreName1TrustedPublisher X509StoreName1 = "TrustedPublisher"
-)
-
-// PossibleX509StoreName1Values returns an array of possible values for the X509StoreName1 const type.
-func PossibleX509StoreName1Values() []X509StoreName1 {
-	return []X509StoreName1{X509StoreName1AddressBook, X509StoreName1AuthRoot, X509StoreName1CertificateAuthority, X509StoreName1Disallowed, X509StoreName1My, X509StoreName1Root, X509StoreName1TrustedPeople, X509StoreName1TrustedPublisher}
-}
-
-// ApplicationDeltaHealthPolicy defines a delta health policy used to evaluate the health of an application or one
-// of its child entities when upgrading the cluster.
+// ApplicationDeltaHealthPolicy defines a delta health policy used to evaluate the health of an application or
+// one of its child entities when upgrading the cluster.
 type ApplicationDeltaHealthPolicy struct {
 	// DefaultServiceTypeDeltaHealthPolicy - The delta health policy used by default to evaluate the health of a service type when upgrading the cluster.
 	DefaultServiceTypeDeltaHealthPolicy *ServiceTypeDeltaHealthPolicy `json:"defaultServiceTypeDeltaHealthPolicy,omitempty"`
@@ -475,17 +59,6 @@ type ApplicationHealthPolicy struct {
 	DefaultServiceTypeHealthPolicy *ServiceTypeHealthPolicy `json:"defaultServiceTypeHealthPolicy,omitempty"`
 	// ServiceTypeHealthPolicies - The map with service type health policy per service type name. The map is empty by default.
 	ServiceTypeHealthPolicies map[string]*ServiceTypeHealthPolicy `json:"serviceTypeHealthPolicies"`
-	// ConsiderWarningAsError - Indicates whether warnings are treated with the same severity as errors.
-	ConsiderWarningAsError *bool `json:"ConsiderWarningAsError,omitempty"`
-	// MaxPercentUnhealthyDeployedApplications - The maximum allowed percentage of unhealthy deployed applications. Allowed values are Byte values from zero to 100.
-	// The percentage represents the maximum tolerated percentage of deployed applications that can be unhealthy before the application is considered in error.
-	// This is calculated by dividing the number of unhealthy deployed applications over the number of nodes where the application is currently deployed on in the cluster.
-	// The computation rounds up to tolerate one failure on small numbers of nodes. Default percentage is zero.
-	MaxPercentUnhealthyDeployedApplications *int32 `json:"MaxPercentUnhealthyDeployedApplications,omitempty"`
-	// DefaultServiceTypeHealthPolicy1 - The health policy used by default to evaluate the health of a service type.
-	DefaultServiceTypeHealthPolicy1 *ServiceTypeHealthPolicy `json:"DefaultServiceTypeHealthPolicy,omitempty"`
-	// ServiceTypeHealthPolicyMap - The map with service type health policy per service type name. The map is empty by default.
-	ServiceTypeHealthPolicyMap map[string]*ServiceTypeHealthPolicy `json:"ServiceTypeHealthPolicyMap"`
 }
 
 // MarshalJSON is the custom marshaler for ApplicationHealthPolicy.
@@ -497,23 +70,11 @@ func (ahp ApplicationHealthPolicy) MarshalJSON() ([]byte, error) {
 	if ahp.ServiceTypeHealthPolicies != nil {
 		objectMap["serviceTypeHealthPolicies"] = ahp.ServiceTypeHealthPolicies
 	}
-	if ahp.ConsiderWarningAsError != nil {
-		objectMap["ConsiderWarningAsError"] = ahp.ConsiderWarningAsError
-	}
-	if ahp.MaxPercentUnhealthyDeployedApplications != nil {
-		objectMap["MaxPercentUnhealthyDeployedApplications"] = ahp.MaxPercentUnhealthyDeployedApplications
-	}
-	if ahp.DefaultServiceTypeHealthPolicy1 != nil {
-		objectMap["DefaultServiceTypeHealthPolicy"] = ahp.DefaultServiceTypeHealthPolicy1
-	}
-	if ahp.ServiceTypeHealthPolicyMap != nil {
-		objectMap["ServiceTypeHealthPolicyMap"] = ahp.ServiceTypeHealthPolicyMap
-	}
 	return json.Marshal(objectMap)
 }
 
-// ApplicationMetricDescription describes capacity information for a custom resource balancing metric. This can be
-// used to limit the total consumption of this metric by the services of this application.
+// ApplicationMetricDescription describes capacity information for a custom resource balancing metric. This can
+// be used to limit the total consumption of this metric by the services of this application.
 type ApplicationMetricDescription struct {
 	// Name - The name of the metric.
 	Name *string `json:"Name,omitempty"`
@@ -540,11 +101,11 @@ type ApplicationResource struct {
 	autorest.Response `json:"-"`
 	// ApplicationResourceProperties - The application resource properties.
 	*ApplicationResourceProperties `json:"properties,omitempty"`
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
@@ -555,15 +116,6 @@ func (ar ApplicationResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ar.ApplicationResourceProperties != nil {
 		objectMap["properties"] = ar.ApplicationResourceProperties
-	}
-	if ar.ID != nil {
-		objectMap["id"] = ar.ID
-	}
-	if ar.Name != nil {
-		objectMap["name"] = ar.Name
-	}
-	if ar.Type != nil {
-		objectMap["type"] = ar.Type
 	}
 	if ar.Location != nil {
 		objectMap["location"] = ar.Location
@@ -639,7 +191,7 @@ type ApplicationResourceList struct {
 
 // ApplicationResourceProperties the application resource properties.
 type ApplicationResourceProperties struct {
-	// ProvisioningState - The current deployment or provisioning state, which only appears in the response
+	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// TypeName - The application type name as defined in the application manifest.
 	TypeName *string `json:"typeName,omitempty"`
@@ -662,9 +214,6 @@ type ApplicationResourceProperties struct {
 // MarshalJSON is the custom marshaler for ApplicationResourceProperties.
 func (arp ApplicationResourceProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if arp.ProvisioningState != nil {
-		objectMap["provisioningState"] = arp.ProvisioningState
-	}
 	if arp.TypeName != nil {
 		objectMap["typeName"] = arp.TypeName
 	}
@@ -694,14 +243,13 @@ func (arp ApplicationResourceProperties) MarshalJSON() ([]byte, error) {
 
 // ApplicationResourceUpdate the application resource for patch operations.
 type ApplicationResourceUpdate struct {
-	autorest.Response `json:"-"`
 	// ApplicationResourceUpdateProperties - The application resource properties for patch operations.
 	*ApplicationResourceUpdateProperties `json:"properties,omitempty"`
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
@@ -712,15 +260,6 @@ func (aru ApplicationResourceUpdate) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if aru.ApplicationResourceUpdateProperties != nil {
 		objectMap["properties"] = aru.ApplicationResourceUpdateProperties
-	}
-	if aru.ID != nil {
-		objectMap["id"] = aru.ID
-	}
-	if aru.Name != nil {
-		objectMap["name"] = aru.Name
-	}
-	if aru.Type != nil {
-		objectMap["type"] = aru.Type
 	}
 	if aru.Location != nil {
 		objectMap["location"] = aru.Location
@@ -833,7 +372,8 @@ func (arup ApplicationResourceUpdateProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ApplicationsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ApplicationsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ApplicationsCreateFuture struct {
 	azure.Future
 }
@@ -861,7 +401,8 @@ func (future *ApplicationsCreateFuture) Result(client ApplicationsClient) (ar Ap
 	return
 }
 
-// ApplicationsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ApplicationsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ApplicationsDeleteFuture struct {
 	azure.Future
 }
@@ -883,14 +424,15 @@ func (future *ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar au
 	return
 }
 
-// ApplicationsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// ApplicationsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type ApplicationsUpdateFuture struct {
 	azure.Future
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *ApplicationsUpdateFuture) Result(client ApplicationsClient) (aru ApplicationResourceUpdate, err error) {
+func (future *ApplicationsUpdateFuture) Result(client ApplicationsClient) (ar ApplicationResource, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
@@ -902,10 +444,10 @@ func (future *ApplicationsUpdateFuture) Result(client ApplicationsClient) (aru A
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if aru.Response.Response, err = future.GetResult(sender); err == nil && aru.Response.Response.StatusCode != http.StatusNoContent {
-		aru, err = client.UpdateResponder(aru.Response.Response)
+	if ar.Response.Response, err = future.GetResult(sender); err == nil && ar.Response.Response.StatusCode != http.StatusNoContent {
+		ar, err = client.UpdateResponder(ar.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsUpdateFuture", "Result", aru.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "servicefabric.ApplicationsUpdateFuture", "Result", ar.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -916,11 +458,11 @@ type ApplicationTypeResource struct {
 	autorest.Response `json:"-"`
 	// ApplicationTypeResourceProperties - The application type name properties
 	*ApplicationTypeResourceProperties `json:"properties,omitempty"`
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
@@ -931,15 +473,6 @@ func (atr ApplicationTypeResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if atr.ApplicationTypeResourceProperties != nil {
 		objectMap["properties"] = atr.ApplicationTypeResourceProperties
-	}
-	if atr.ID != nil {
-		objectMap["id"] = atr.ID
-	}
-	if atr.Name != nil {
-		objectMap["name"] = atr.Name
-	}
-	if atr.Type != nil {
-		objectMap["type"] = atr.Type
 	}
 	if atr.Location != nil {
 		objectMap["location"] = atr.Location
@@ -1015,7 +548,7 @@ type ApplicationTypeResourceList struct {
 
 // ApplicationTypeResourceProperties the application type name properties
 type ApplicationTypeResourceProperties struct {
-	// ProvisioningState - The current deployment or provisioning state, which only appears in the response.
+	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
 
@@ -1048,11 +581,11 @@ type ApplicationTypeVersionResource struct {
 	autorest.Response `json:"-"`
 	// ApplicationTypeVersionResourceProperties - The properties of the application type version resource.
 	*ApplicationTypeVersionResourceProperties `json:"properties,omitempty"`
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
@@ -1063,15 +596,6 @@ func (atvr ApplicationTypeVersionResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if atvr.ApplicationTypeVersionResourceProperties != nil {
 		objectMap["properties"] = atvr.ApplicationTypeVersionResourceProperties
-	}
-	if atvr.ID != nil {
-		objectMap["id"] = atvr.ID
-	}
-	if atvr.Name != nil {
-		objectMap["name"] = atvr.Name
-	}
-	if atvr.Type != nil {
-		objectMap["type"] = atvr.Type
 	}
 	if atvr.Location != nil {
 		objectMap["location"] = atvr.Location
@@ -1139,8 +663,8 @@ func (atvr *ApplicationTypeVersionResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ApplicationTypeVersionResourceList the list of application type version resources for the specified application
-// type name resource.
+// ApplicationTypeVersionResourceList the list of application type version resources for the specified
+// application type name resource.
 type ApplicationTypeVersionResourceList struct {
 	autorest.Response `json:"-"`
 	Value             *[]ApplicationTypeVersionResource `json:"value,omitempty"`
@@ -1148,31 +672,25 @@ type ApplicationTypeVersionResourceList struct {
 
 // ApplicationTypeVersionResourceProperties the properties of the application type version resource.
 type ApplicationTypeVersionResourceProperties struct {
-	// ProvisioningState - The current deployment or provisioning state, which only appears in the response
+	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// AppPackageURL - The URL to the application package
 	AppPackageURL *string `json:"appPackageUrl,omitempty"`
-	// DefaultParameterList - List of application type parameters that can be overridden when creating or updating the application.
+	// DefaultParameterList - READ-ONLY; List of application type parameters that can be overridden when creating or updating the application.
 	DefaultParameterList map[string]*string `json:"defaultParameterList"`
 }
 
 // MarshalJSON is the custom marshaler for ApplicationTypeVersionResourceProperties.
 func (atvrp ApplicationTypeVersionResourceProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if atvrp.ProvisioningState != nil {
-		objectMap["provisioningState"] = atvrp.ProvisioningState
-	}
 	if atvrp.AppPackageURL != nil {
 		objectMap["appPackageUrl"] = atvrp.AppPackageURL
-	}
-	if atvrp.DefaultParameterList != nil {
-		objectMap["defaultParameterList"] = atvrp.DefaultParameterList
 	}
 	return json.Marshal(objectMap)
 }
 
-// ApplicationTypeVersionsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ApplicationTypeVersionsCreateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ApplicationTypeVersionsCreateFuture struct {
 	azure.Future
 }
@@ -1200,8 +718,8 @@ func (future *ApplicationTypeVersionsCreateFuture) Result(client ApplicationType
 	return
 }
 
-// ApplicationTypeVersionsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// ApplicationTypeVersionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
 type ApplicationTypeVersionsDeleteFuture struct {
 	azure.Future
 }
@@ -1226,13 +744,74 @@ func (future *ApplicationTypeVersionsDeleteFuture) Result(client ApplicationType
 // ApplicationUpgradePolicy describes the policy for a monitored application upgrade.
 type ApplicationUpgradePolicy struct {
 	// UpgradeReplicaSetCheckTimeout - The maximum amount of time to block processing of an upgrade domain and prevent loss of availability when there are unexpected issues. When this timeout expires, processing of the upgrade domain will proceed regardless of availability loss issues. The timeout is reset at the start of each upgrade domain. Valid values are between 0 and 42949672925 inclusive. (unsigned 32-bit integer).
-	UpgradeReplicaSetCheckTimeout *int64 `json:"upgradeReplicaSetCheckTimeout,omitempty"`
+	UpgradeReplicaSetCheckTimeout *string `json:"upgradeReplicaSetCheckTimeout,omitempty"`
 	// ForceRestart - If true, then processes are forcefully restarted during upgrade even when the code version has not changed (the upgrade only changes configuration or data).
 	ForceRestart *bool `json:"forceRestart,omitempty"`
 	// RollingUpgradeMonitoringPolicy - The policy used for monitoring the application upgrade
-	RollingUpgradeMonitoringPolicy *RollingUpgradeMonitoringPolicy `json:"rollingUpgradeMonitoringPolicy,omitempty"`
+	RollingUpgradeMonitoringPolicy *ArmRollingUpgradeMonitoringPolicy `json:"rollingUpgradeMonitoringPolicy,omitempty"`
 	// ApplicationHealthPolicy - Defines a health policy used to evaluate the health of an application or one of its children entities.
-	ApplicationHealthPolicy *ApplicationHealthPolicy `json:"applicationHealthPolicy,omitempty"`
+	ApplicationHealthPolicy *ArmApplicationHealthPolicy `json:"applicationHealthPolicy,omitempty"`
+}
+
+// ArmApplicationHealthPolicy defines a health policy used to evaluate the health of an application or one of
+// its children entities.
+type ArmApplicationHealthPolicy struct {
+	// ConsiderWarningAsError - Indicates whether warnings are treated with the same severity as errors.
+	ConsiderWarningAsError *bool `json:"ConsiderWarningAsError,omitempty"`
+	// MaxPercentUnhealthyDeployedApplications - The maximum allowed percentage of unhealthy deployed applications. Allowed values are Byte values from zero to 100.
+	// The percentage represents the maximum tolerated percentage of deployed applications that can be unhealthy before the application is considered in error.
+	// This is calculated by dividing the number of unhealthy deployed applications over the number of nodes where the application is currently deployed on in the cluster.
+	// The computation rounds up to tolerate one failure on small numbers of nodes. Default percentage is zero.
+	MaxPercentUnhealthyDeployedApplications *int32 `json:"MaxPercentUnhealthyDeployedApplications,omitempty"`
+	// DefaultServiceTypeHealthPolicy - The health policy used by default to evaluate the health of a service type.
+	DefaultServiceTypeHealthPolicy *ArmServiceTypeHealthPolicy `json:"DefaultServiceTypeHealthPolicy,omitempty"`
+	// ServiceTypeHealthPolicyMap - The map with service type health policy per service type name. The map is empty by default.
+	ServiceTypeHealthPolicyMap map[string]*ArmServiceTypeHealthPolicy `json:"ServiceTypeHealthPolicyMap"`
+}
+
+// MarshalJSON is the custom marshaler for ArmApplicationHealthPolicy.
+func (aahp ArmApplicationHealthPolicy) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if aahp.ConsiderWarningAsError != nil {
+		objectMap["ConsiderWarningAsError"] = aahp.ConsiderWarningAsError
+	}
+	if aahp.MaxPercentUnhealthyDeployedApplications != nil {
+		objectMap["MaxPercentUnhealthyDeployedApplications"] = aahp.MaxPercentUnhealthyDeployedApplications
+	}
+	if aahp.DefaultServiceTypeHealthPolicy != nil {
+		objectMap["DefaultServiceTypeHealthPolicy"] = aahp.DefaultServiceTypeHealthPolicy
+	}
+	if aahp.ServiceTypeHealthPolicyMap != nil {
+		objectMap["ServiceTypeHealthPolicyMap"] = aahp.ServiceTypeHealthPolicyMap
+	}
+	return json.Marshal(objectMap)
+}
+
+// ArmRollingUpgradeMonitoringPolicy the policy used for monitoring the application upgrade
+type ArmRollingUpgradeMonitoringPolicy struct {
+	// FailureAction - The activation Mode of the service package. Possible values include: 'Rollback', 'Manual'
+	FailureAction ArmUpgradeFailureAction `json:"failureAction,omitempty"`
+	// HealthCheckWaitDuration - The amount of time to wait after completing an upgrade domain before applying health policies. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
+	HealthCheckWaitDuration *string `json:"healthCheckWaitDuration,omitempty"`
+	// HealthCheckStableDuration - The amount of time that the application or cluster must remain healthy before the upgrade proceeds to the next upgrade domain. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
+	HealthCheckStableDuration *string `json:"healthCheckStableDuration,omitempty"`
+	// HealthCheckRetryTimeout - The amount of time to retry health evaluation when the application or cluster is unhealthy before FailureAction is executed. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
+	HealthCheckRetryTimeout *string `json:"healthCheckRetryTimeout,omitempty"`
+	// UpgradeTimeout - The amount of time the overall upgrade has to complete before FailureAction is executed. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
+	UpgradeTimeout *string `json:"upgradeTimeout,omitempty"`
+	// UpgradeDomainTimeout - The amount of time each upgrade domain has to complete before FailureAction is executed. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
+	UpgradeDomainTimeout *string `json:"upgradeDomainTimeout,omitempty"`
+}
+
+// ArmServiceTypeHealthPolicy represents the health policy used to evaluate the health of services belonging to
+// a service type.
+type ArmServiceTypeHealthPolicy struct {
+	// MaxPercentUnhealthyServices - The maximum percentage of services allowed to be unhealthy before your application is considered in error.
+	MaxPercentUnhealthyServices *int32 `json:"maxPercentUnhealthyServices,omitempty"`
+	// MaxPercentUnhealthyPartitionsPerService - The maximum percentage of partitions per service allowed to be unhealthy before your application is considered in error.
+	MaxPercentUnhealthyPartitionsPerService *int32 `json:"maxPercentUnhealthyPartitionsPerService,omitempty"`
+	// MaxPercentUnhealthyReplicasPerPartition - The maximum percentage of replicas per partition allowed to be unhealthy before your application is considered in error.
+	MaxPercentUnhealthyReplicasPerPartition *int32 `json:"maxPercentUnhealthyReplicasPerPartition,omitempty"`
 }
 
 // AvailableOperationDisplay operation supported by Service Fabric resource provider
@@ -1290,11 +869,11 @@ type Cluster struct {
 	autorest.Response `json:"-"`
 	// ClusterProperties - The cluster resource properties
 	*ClusterProperties `json:"properties,omitempty"`
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
@@ -1307,15 +886,6 @@ func (c Cluster) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if c.ClusterProperties != nil {
 		objectMap["properties"] = c.ClusterProperties
-	}
-	if c.ID != nil {
-		objectMap["id"] = c.ID
-	}
-	if c.Name != nil {
-		objectMap["name"] = c.Name
-	}
-	if c.Type != nil {
-		objectMap["type"] = c.Type
 	}
 	if c.Location != nil {
 		objectMap["location"] = c.Location
@@ -1530,7 +1100,7 @@ type ClusterListResult struct {
 type ClusterProperties struct {
 	// AddOnFeatures - The list of add-on features to enable in the cluster.
 	AddOnFeatures *[]string `json:"addOnFeatures,omitempty"`
-	// AvailableClusterVersions - The Service Fabric runtime versions available for this cluster.
+	// AvailableClusterVersions - READ-ONLY; The Service Fabric runtime versions available for this cluster.
 	AvailableClusterVersions *[]ClusterVersionDetails `json:"availableClusterVersions,omitempty"`
 	// AzureActiveDirectory - The AAD authentication settings of the cluster.
 	AzureActiveDirectory *AzureActiveDirectory `json:"azureActiveDirectory,omitempty"`
@@ -1544,11 +1114,11 @@ type ClusterProperties struct {
 	ClientCertificateThumbprints *[]ClientCertificateThumbprint `json:"clientCertificateThumbprints,omitempty"`
 	// ClusterCodeVersion - The Service Fabric runtime version of the cluster. This property can only by set the user when **upgradeMode** is set to 'Manual'. To get list of available Service Fabric versions for new clusters use [ClusterVersion API](./ClusterVersion.md). To get the list of available version for existing clusters use **availableClusterVersions**.
 	ClusterCodeVersion *string `json:"clusterCodeVersion,omitempty"`
-	// ClusterEndpoint - The Azure Resource Provider endpoint. A system service in the cluster connects to this  endpoint.
+	// ClusterEndpoint - READ-ONLY; The Azure Resource Provider endpoint. A system service in the cluster connects to this  endpoint.
 	ClusterEndpoint *string `json:"clusterEndpoint,omitempty"`
-	// ClusterID - A service generated unique identifier for the cluster resource.
+	// ClusterID - READ-ONLY; A service generated unique identifier for the cluster resource.
 	ClusterID *string `json:"clusterId,omitempty"`
-	// ClusterState - The current state of the cluster.
+	// ClusterState - READ-ONLY; The current state of the cluster.
 	//   - WaitingForNodes - Indicates that the cluster resource is created and the resource provider is waiting for Service Fabric VM extension to boot up and report to it.
 	//   - Deploying - Indicates that the Service Fabric runtime is being installed on the VMs. Cluster resource will be in this state until the cluster boots up and system services are up.
 	//   - BaselineUpgrade - Indicates that the cluster is upgrading to establishes the cluster version. This upgrade is automatically initiated when the cluster boots up for the first time.
@@ -1569,9 +1139,9 @@ type ClusterProperties struct {
 	ManagementEndpoint *string `json:"managementEndpoint,omitempty"`
 	// NodeTypes - The list of node types in the cluster.
 	NodeTypes *[]NodeTypeDescription `json:"nodeTypes,omitempty"`
-	// ProvisioningState - The provisioning state of the cluster resource. Possible values include: 'Updating', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provisioning state of the cluster resource. Possible values include: 'Updating', 'Succeeded', 'Failed', 'Canceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// ReliabilityLevel - The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-cluster-capacity).
+	// ReliabilityLevel - The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/azure/service-fabric/service-fabric-cluster-capacity).
 	//   - None - Run the System services with a target replica set count of 1. This should only be used for test clusters.
 	//   - Bronze - Run the System services with a target replica set count of 3. This should only be used for test clusters.
 	//   - Silver - Run the System services with a target replica set count of 5.
@@ -1588,10 +1158,67 @@ type ClusterProperties struct {
 	// UpgradeMode - The upgrade mode of the cluster when new Service Fabric runtime version is available.
 	//   - Automatic - The cluster will be automatically upgraded to the latest Service Fabric runtime version as soon as it is available.
 	//   - Manual - The cluster will not be automatically upgraded to the latest Service Fabric runtime version. The cluster is upgraded by setting the **clusterCodeVersion** property in the cluster resource.
-	// . Possible values include: 'Automatic', 'Manual'
+	// . Possible values include: 'UpgradeModeAutomatic', 'UpgradeModeManual'
 	UpgradeMode UpgradeMode `json:"upgradeMode,omitempty"`
 	// VMImage - The VM image VMSS has been configured with. Generic names such as Windows or Linux can be used.
 	VMImage *string `json:"vmImage,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterProperties.
+func (cp ClusterProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.AddOnFeatures != nil {
+		objectMap["addOnFeatures"] = cp.AddOnFeatures
+	}
+	if cp.AzureActiveDirectory != nil {
+		objectMap["azureActiveDirectory"] = cp.AzureActiveDirectory
+	}
+	if cp.Certificate != nil {
+		objectMap["certificate"] = cp.Certificate
+	}
+	if cp.CertificateCommonNames != nil {
+		objectMap["certificateCommonNames"] = cp.CertificateCommonNames
+	}
+	if cp.ClientCertificateCommonNames != nil {
+		objectMap["clientCertificateCommonNames"] = cp.ClientCertificateCommonNames
+	}
+	if cp.ClientCertificateThumbprints != nil {
+		objectMap["clientCertificateThumbprints"] = cp.ClientCertificateThumbprints
+	}
+	if cp.ClusterCodeVersion != nil {
+		objectMap["clusterCodeVersion"] = cp.ClusterCodeVersion
+	}
+	if cp.DiagnosticsStorageAccountConfig != nil {
+		objectMap["diagnosticsStorageAccountConfig"] = cp.DiagnosticsStorageAccountConfig
+	}
+	if cp.FabricSettings != nil {
+		objectMap["fabricSettings"] = cp.FabricSettings
+	}
+	if cp.ManagementEndpoint != nil {
+		objectMap["managementEndpoint"] = cp.ManagementEndpoint
+	}
+	if cp.NodeTypes != nil {
+		objectMap["nodeTypes"] = cp.NodeTypes
+	}
+	if cp.ReliabilityLevel != "" {
+		objectMap["reliabilityLevel"] = cp.ReliabilityLevel
+	}
+	if cp.ReverseProxyCertificate != nil {
+		objectMap["reverseProxyCertificate"] = cp.ReverseProxyCertificate
+	}
+	if cp.ReverseProxyCertificateCommonNames != nil {
+		objectMap["reverseProxyCertificateCommonNames"] = cp.ReverseProxyCertificateCommonNames
+	}
+	if cp.UpgradeDescription != nil {
+		objectMap["upgradeDescription"] = cp.UpgradeDescription
+	}
+	if cp.UpgradeMode != "" {
+		objectMap["upgradeMode"] = cp.UpgradeMode
+	}
+	if cp.VMImage != nil {
+		objectMap["vmImage"] = cp.VMImage
+	}
+	return json.Marshal(objectMap)
 }
 
 // ClusterPropertiesUpdateParameters describes the cluster resource properties that can be updated during PATCH
@@ -1613,7 +1240,7 @@ type ClusterPropertiesUpdateParameters struct {
 	FabricSettings *[]SettingsSectionDescription `json:"fabricSettings,omitempty"`
 	// NodeTypes - The list of node types in the cluster. This will overwrite the existing list.
 	NodeTypes *[]NodeTypeDescription `json:"nodeTypes,omitempty"`
-	// ReliabilityLevel - The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-cluster-capacity).
+	// ReliabilityLevel - The reliability level sets the replica set size of system services. Learn about [ReliabilityLevel](https://docs.microsoft.com/azure/service-fabric/service-fabric-cluster-capacity).
 	//   - None - Run the System services with a target replica set count of 1. This should only be used for test clusters.
 	//   - Bronze - Run the System services with a target replica set count of 3. This should only be used for test clusters.
 	//   - Silver - Run the System services with a target replica set count of 5.
@@ -1781,7 +1408,7 @@ func (cudhp ClusterUpgradeDeltaHealthPolicy) MarshalJSON() ([]byte, error) {
 type ClusterUpgradePolicy struct {
 	// ForceRestart - If true, then processes are forcefully restarted during upgrade even when the code version has not changed (the upgrade only changes configuration or data).
 	ForceRestart *bool `json:"forceRestart,omitempty"`
-	// UpgradeReplicaSetCheckTimeout - The maximum amount of time to block processing of an upgrade domain and revent loss of availability when there are unexpected issues. When this timeout expires, processing of the upgrade domain will proceed regardless of availability loss issues. The timeout is reset at the start of each upgrade domain. The timeout can be in either hh:mm:ss or in d.hh:mm:ss.ms format.
+	// UpgradeReplicaSetCheckTimeout - The maximum amount of time to block processing of an upgrade domain and prevent loss of availability when there are unexpected issues. When this timeout expires, processing of the upgrade domain will proceed regardless of availability loss issues. The timeout is reset at the start of each upgrade domain. The timeout can be in either hh:mm:ss or in d.hh:mm:ss.ms format.
 	UpgradeReplicaSetCheckTimeout *string `json:"upgradeReplicaSetCheckTimeout,omitempty"`
 	// HealthCheckWaitDuration - The length of time to wait after completing an upgrade domain before performing health checks. The duration can be in either hh:mm:ss or in d.hh:mm:ss.ms format.
 	HealthCheckWaitDuration *string `json:"healthCheckWaitDuration,omitempty"`
@@ -1909,15 +1536,15 @@ type NodeTypeDescription struct {
 	ClientConnectionEndpointPort *int32 `json:"clientConnectionEndpointPort,omitempty"`
 	// HTTPGatewayEndpointPort - The HTTP cluster management endpoint port.
 	HTTPGatewayEndpointPort *int32 `json:"httpGatewayEndpointPort,omitempty"`
-	// DurabilityLevel - The durability level of the node type. Learn about [DurabilityLevel](https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-cluster-capacity).
+	// DurabilityLevel - The durability level of the node type. Learn about [DurabilityLevel](https://docs.microsoft.com/azure/service-fabric/service-fabric-cluster-capacity).
 	//   - Bronze - No privileges. This is the default.
 	//   - Silver - The infrastructure jobs can be paused for a duration of 10 minutes per UD.
-	//   - Gold - The infrastructure jobs can be paused for a duration of 2 hours per UD. Gold durability can be enabled only on full node VM skus like D15_V2, G5 etc.
+	//   - Gold - The infrastructure jobs can be paused for a duration of 2 hours per UD. Gold durability can be enabled only on full node VM SKUs like D15_V2, G5 etc.
 	// . Possible values include: 'Bronze', 'Silver', 'Gold'
 	DurabilityLevel DurabilityLevel `json:"durabilityLevel,omitempty"`
 	// ApplicationPorts - The range of ports from which cluster assigned port to Service Fabric applications.
 	ApplicationPorts *EndpointRangeDescription `json:"applicationPorts,omitempty"`
-	// EphemeralPorts - The range of empheral ports that nodes in this node type should be configured with.
+	// EphemeralPorts - The range of ephemeral ports that nodes in this node type should be configured with.
 	EphemeralPorts *EndpointRangeDescription `json:"ephemeralPorts,omitempty"`
 	// IsPrimary - The node type on which system services will run. Only one node type should be marked as primary. Primary node type cannot be deleted or changed for existing clusters.
 	IsPrimary *bool `json:"isPrimary,omitempty"`
@@ -1971,8 +1598,17 @@ type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of Service Fabric operations supported by the Microsoft.ServiceFabric resource provider.
 	Value *[]OperationResult `json:"value,omitempty"`
-	// NextLink - URL to get the next set of operation list results if there are any.
+	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if olr.Value != nil {
+		objectMap["value"] = olr.Value
+	}
+	return json.Marshal(objectMap)
 }
 
 // OperationListResultIterator provides access to a complete listing of OperationResult values.
@@ -1981,20 +1617,37 @@ type OperationListResultIterator struct {
 	page OperationListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *OperationListResultIterator) Next() error {
+func (iter *OperationListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *OperationListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -2016,18 +1669,28 @@ func (iter OperationListResultIterator) Value() OperationResult {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the OperationListResultIterator type.
+func NewOperationListResultIterator(page OperationListResultPage) OperationListResultIterator {
+	return OperationListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (olr OperationListResult) operationListResultPreparer() (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(olr.NextLink)))
@@ -2035,19 +1698,41 @@ func (olr OperationListResult) operationListResultPreparer() (*http.Request, err
 
 // OperationListResultPage contains a page of OperationResult values.
 type OperationListResultPage struct {
-	fn  func(OperationListResult) (OperationListResult, error)
+	fn  func(context.Context, OperationListResult) (OperationListResult, error)
 	olr OperationListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
 }
 
 // Next advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
 func (page *OperationListResultPage) Next() error {
-	next, err := page.fn(page.olr)
-	if err != nil {
-		return err
-	}
-	page.olr = next
-	return nil
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -2066,6 +1751,11 @@ func (page OperationListResultPage) Values() []OperationResult {
 		return nil
 	}
 	return *page.olr.Value
+}
+
+// Creates a new instance of the OperationListResultPage type.
+func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{fn: getNextPage}
 }
 
 // OperationResult available operation list result
@@ -2176,23 +1866,32 @@ func (psd PartitionSchemeDescription) AsBasicPartitionSchemeDescription() (Basic
 
 // ProxyResource the resource model definition for proxy-only resource.
 type ProxyResource struct {
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pr.Location != nil {
+		objectMap["location"] = pr.Location
+	}
+	return json.Marshal(objectMap)
+}
+
 // Resource the resource model definition.
 type Resource struct {
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
@@ -2203,15 +1902,6 @@ type Resource struct {
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
@@ -2219,20 +1909,6 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = r.Tags
 	}
 	return json.Marshal(objectMap)
-}
-
-// RollingUpgradeMonitoringPolicy the policy used for monitoring the application upgrade
-type RollingUpgradeMonitoringPolicy struct {
-	// HealthCheckWaitDuration - The amount of time to wait after completing an upgrade domain before applying health policies. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
-	HealthCheckWaitDuration *string `json:"healthCheckWaitDuration,omitempty"`
-	// HealthCheckStableDuration - The amount of time that the application or cluster must remain healthy before the upgrade proceeds to the next upgrade domain. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
-	HealthCheckStableDuration *string `json:"healthCheckStableDuration,omitempty"`
-	// HealthCheckRetryTimeout - The amount of time to retry health evaluation when the application or cluster is unhealthy before FailureAction is executed. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
-	HealthCheckRetryTimeout *string `json:"healthCheckRetryTimeout,omitempty"`
-	// UpgradeTimeout - The amount of time the overall upgrade has to complete before FailureAction is executed. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
-	UpgradeTimeout *string `json:"upgradeTimeout,omitempty"`
-	// UpgradeDomainTimeout - The amount of time each upgrade domain has to complete before FailureAction is executed. It is first interpreted as a string representing an ISO 8601 duration. If that fails, then it is interpreted as a number representing the total number of milliseconds.
-	UpgradeDomainTimeout *string `json:"upgradeDomainTimeout,omitempty"`
 }
 
 // ServerCertificateCommonName describes the server certificate details using common name.
@@ -2243,8 +1919,8 @@ type ServerCertificateCommonName struct {
 	CertificateIssuerThumbprint *string `json:"certificateIssuerThumbprint,omitempty"`
 }
 
-// ServerCertificateCommonNames describes a list of server certificates referenced by common name that are used to
-// secure the cluster.
+// ServerCertificateCommonNames describes a list of server certificates referenced by common name that are used
+// to secure the cluster.
 type ServerCertificateCommonNames struct {
 	// CommonNames - The list of server certificates referenced by common name that are used to secure the cluster.
 	CommonNames *[]ServerCertificateCommonName `json:"commonNames,omitempty"`
@@ -2343,11 +2019,11 @@ type ServiceResource struct {
 	autorest.Response `json:"-"`
 	// BasicServiceResourceProperties - The service resource properties.
 	BasicServiceResourceProperties `json:"properties,omitempty"`
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
@@ -2357,15 +2033,6 @@ type ServiceResource struct {
 func (sr ServiceResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	objectMap["properties"] = sr.BasicServiceResourceProperties
-	if sr.ID != nil {
-		objectMap["id"] = sr.ID
-	}
-	if sr.Name != nil {
-		objectMap["name"] = sr.Name
-	}
-	if sr.Type != nil {
-		objectMap["type"] = sr.Type
-	}
 	if sr.Location != nil {
 		objectMap["location"] = sr.Location
 	}
@@ -2446,7 +2113,7 @@ type BasicServiceResourceProperties interface {
 
 // ServiceResourceProperties the service resource properties.
 type ServiceResourceProperties struct {
-	// ProvisioningState - The current deployment or provisioning state, which only appears in the response
+	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// ServiceTypeName - The name of the service type
 	ServiceTypeName *string `json:"serviceTypeName,omitempty"`
@@ -2511,9 +2178,6 @@ func unmarshalBasicServiceResourcePropertiesArray(body []byte) ([]BasicServiceRe
 func (srp ServiceResourceProperties) MarshalJSON() ([]byte, error) {
 	srp.ServiceKind = ServiceKindServiceResourceProperties
 	objectMap := make(map[string]interface{})
-	if srp.ProvisioningState != nil {
-		objectMap["provisioningState"] = srp.ProvisioningState
-	}
 	if srp.ServiceTypeName != nil {
 		objectMap["serviceTypeName"] = srp.ServiceTypeName
 	}
@@ -2728,14 +2392,13 @@ func (srpb *ServiceResourcePropertiesBase) UnmarshalJSON(body []byte) error {
 
 // ServiceResourceUpdate the service resource for patch operations.
 type ServiceResourceUpdate struct {
-	autorest.Response `json:"-"`
 	// BasicServiceResourceUpdateProperties - The service resource properties for patch operations.
 	BasicServiceResourceUpdateProperties `json:"properties,omitempty"`
-	// ID - Azure resource identifier.
+	// ID - READ-ONLY; Azure resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - Azure resource name.
+	// Name - READ-ONLY; Azure resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Azure resource type.
+	// Type - READ-ONLY; Azure resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - Azure resource location.
 	Location *string `json:"location,omitempty"`
@@ -2745,15 +2408,6 @@ type ServiceResourceUpdate struct {
 func (sru ServiceResourceUpdate) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	objectMap["properties"] = sru.BasicServiceResourceUpdateProperties
-	if sru.ID != nil {
-		objectMap["id"] = sru.ID
-	}
-	if sru.Name != nil {
-		objectMap["name"] = sru.Name
-	}
-	if sru.Type != nil {
-		objectMap["type"] = sru.Type
-	}
 	if sru.Location != nil {
 		objectMap["location"] = sru.Location
 	}
@@ -3053,7 +2707,7 @@ type ServicesUpdateFuture struct {
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *ServicesUpdateFuture) Result(client ServicesClient) (sru ServiceResourceUpdate, err error) {
+func (future *ServicesUpdateFuture) Result(client ServicesClient) (sr ServiceResource, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
@@ -3065,10 +2719,10 @@ func (future *ServicesUpdateFuture) Result(client ServicesClient) (sru ServiceRe
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if sru.Response.Response, err = future.GetResult(sender); err == nil && sru.Response.Response.StatusCode != http.StatusNoContent {
-		sru, err = client.UpdateResponder(sru.Response.Response)
+	if sr.Response.Response, err = future.GetResult(sender); err == nil && sr.Response.Response.StatusCode != http.StatusNoContent {
+		sr, err = client.UpdateResponder(sr.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "servicefabric.ServicesUpdateFuture", "Result", sru.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "servicefabric.ServicesUpdateFuture", "Result", sr.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -3162,7 +2816,7 @@ type StatefulServiceProperties struct {
 	QuorumLossWaitDuration *date.Time `json:"quorumLossWaitDuration,omitempty"`
 	// StandByReplicaKeepDuration - The definition on how long StandBy replicas should be maintained before being removed, represented in ISO 8601 format (hh:mm:ss.s).
 	StandByReplicaKeepDuration *date.Time `json:"standByReplicaKeepDuration,omitempty"`
-	// ProvisioningState - The current deployment or provisioning state, which only appears in the response
+	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// ServiceTypeName - The name of the service type
 	ServiceTypeName *string `json:"serviceTypeName,omitempty"`
@@ -3203,9 +2857,6 @@ func (ssp StatefulServiceProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ssp.StandByReplicaKeepDuration != nil {
 		objectMap["standByReplicaKeepDuration"] = ssp.StandByReplicaKeepDuration
-	}
-	if ssp.ProvisioningState != nil {
-		objectMap["provisioningState"] = ssp.ProvisioningState
 	}
 	if ssp.ServiceTypeName != nil {
 		objectMap["serviceTypeName"] = ssp.ServiceTypeName
@@ -3603,7 +3254,7 @@ func (ssup *StatefulServiceUpdateProperties) UnmarshalJSON(body []byte) error {
 type StatelessServiceProperties struct {
 	// InstanceCount - The instance count.
 	InstanceCount *int32 `json:"instanceCount,omitempty"`
-	// ProvisioningState - The current deployment or provisioning state, which only appears in the response
+	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// ServiceTypeName - The name of the service type
 	ServiceTypeName *string `json:"serviceTypeName,omitempty"`
@@ -3629,9 +3280,6 @@ func (ssp StatelessServiceProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ssp.InstanceCount != nil {
 		objectMap["instanceCount"] = ssp.InstanceCount
-	}
-	if ssp.ProvisioningState != nil {
-		objectMap["provisioningState"] = ssp.ProvisioningState
 	}
 	if ssp.ServiceTypeName != nil {
 		objectMap["serviceTypeName"] = ssp.ServiceTypeName
@@ -3924,8 +3572,8 @@ func (ssup *StatelessServiceUpdateProperties) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// UniformInt64RangePartitionSchemeDescription describes a partitioning scheme where an integer range is allocated
-// evenly across a number of partitions.
+// UniformInt64RangePartitionSchemeDescription describes a partitioning scheme where an integer range is
+// allocated evenly across a number of partitions.
 type UniformInt64RangePartitionSchemeDescription struct {
 	// Count - The number of partitions.
 	Count *int32 `json:"Count,omitempty"`

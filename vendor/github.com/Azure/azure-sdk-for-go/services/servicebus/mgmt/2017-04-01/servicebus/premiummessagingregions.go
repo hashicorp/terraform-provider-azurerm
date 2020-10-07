@@ -35,7 +35,9 @@ func NewPremiumMessagingRegionsClient(subscriptionID string) PremiumMessagingReg
 	return NewPremiumMessagingRegionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewPremiumMessagingRegionsClientWithBaseURI creates an instance of the PremiumMessagingRegionsClient client.
+// NewPremiumMessagingRegionsClientWithBaseURI creates an instance of the PremiumMessagingRegionsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewPremiumMessagingRegionsClientWithBaseURI(baseURI string, subscriptionID string) PremiumMessagingRegionsClient {
 	return PremiumMessagingRegionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -70,6 +72,9 @@ func (client PremiumMessagingRegionsClient) List(ctx context.Context) (result Pr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.PremiumMessagingRegionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.pmrlr.hasNextLink() && result.pmrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -96,8 +101,7 @@ func (client PremiumMessagingRegionsClient) ListPreparer(ctx context.Context) (*
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client PremiumMessagingRegionsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -105,7 +109,6 @@ func (client PremiumMessagingRegionsClient) ListSender(req *http.Request) (*http
 func (client PremiumMessagingRegionsClient) ListResponder(resp *http.Response) (result PremiumMessagingRegionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

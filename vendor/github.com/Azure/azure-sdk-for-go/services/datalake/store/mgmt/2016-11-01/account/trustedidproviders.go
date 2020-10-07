@@ -36,7 +36,9 @@ func NewTrustedIDProvidersClient(subscriptionID string) TrustedIDProvidersClient
 	return NewTrustedIDProvidersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTrustedIDProvidersClientWithBaseURI creates an instance of the TrustedIDProvidersClient client.
+// NewTrustedIDProvidersClientWithBaseURI creates an instance of the TrustedIDProvidersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewTrustedIDProvidersClientWithBaseURI(baseURI string, subscriptionID string) TrustedIDProvidersClient {
 	return TrustedIDProvidersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -115,8 +117,7 @@ func (client TrustedIDProvidersClient) CreateOrUpdatePreparer(ctx context.Contex
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -124,7 +125,6 @@ func (client TrustedIDProvidersClient) CreateOrUpdateSender(req *http.Request) (
 func (client TrustedIDProvidersClient) CreateOrUpdateResponder(resp *http.Response) (result TrustedIDProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,8 +194,7 @@ func (client TrustedIDProvidersClient) DeletePreparer(ctx context.Context, resou
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -203,7 +202,6 @@ func (client TrustedIDProvidersClient) DeleteSender(req *http.Request) (*http.Re
 func (client TrustedIDProvidersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,8 +270,7 @@ func (client TrustedIDProvidersClient) GetPreparer(ctx context.Context, resource
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -281,7 +278,6 @@ func (client TrustedIDProvidersClient) GetSender(req *http.Request) (*http.Respo
 func (client TrustedIDProvidersClient) GetResponder(resp *http.Response) (result TrustedIDProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -322,6 +318,9 @@ func (client TrustedIDProvidersClient) ListByAccount(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.tiplr.hasNextLink() && result.tiplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -350,8 +349,7 @@ func (client TrustedIDProvidersClient) ListByAccountPreparer(ctx context.Context
 // ListByAccountSender sends the ListByAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) ListByAccountSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByAccountResponder handles the response to the ListByAccount request. The method always
@@ -359,7 +357,6 @@ func (client TrustedIDProvidersClient) ListByAccountSender(req *http.Request) (*
 func (client TrustedIDProvidersClient) ListByAccountResponder(resp *http.Response) (result TrustedIDProviderListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,8 +470,7 @@ func (client TrustedIDProvidersClient) UpdatePreparer(ctx context.Context, resou
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -482,7 +478,6 @@ func (client TrustedIDProvidersClient) UpdateSender(req *http.Request) (*http.Re
 func (client TrustedIDProvidersClient) UpdateResponder(resp *http.Response) (result TrustedIDProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

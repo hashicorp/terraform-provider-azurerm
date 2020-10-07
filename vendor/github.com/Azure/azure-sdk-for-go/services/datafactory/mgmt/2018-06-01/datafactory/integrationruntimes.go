@@ -37,7 +37,9 @@ func NewIntegrationRuntimesClient(subscriptionID string) IntegrationRuntimesClie
 	return NewIntegrationRuntimesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewIntegrationRuntimesClientWithBaseURI creates an instance of the IntegrationRuntimesClient client.
+// NewIntegrationRuntimesClientWithBaseURI creates an instance of the IntegrationRuntimesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewIntegrationRuntimesClientWithBaseURI(baseURI string, subscriptionID string) IntegrationRuntimesClient {
 	return IntegrationRuntimesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -123,8 +125,7 @@ func (client IntegrationRuntimesClient) CreateLinkedIntegrationRuntimePreparer(c
 // CreateLinkedIntegrationRuntimeSender sends the CreateLinkedIntegrationRuntime request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) CreateLinkedIntegrationRuntimeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateLinkedIntegrationRuntimeResponder handles the response to the CreateLinkedIntegrationRuntime request. The method always
@@ -132,7 +133,6 @@ func (client IntegrationRuntimesClient) CreateLinkedIntegrationRuntimeSender(req
 func (client IntegrationRuntimesClient) CreateLinkedIntegrationRuntimeResponder(resp *http.Response) (result IntegrationRuntimeStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -229,8 +229,7 @@ func (client IntegrationRuntimesClient) CreateOrUpdatePreparer(ctx context.Conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -238,7 +237,6 @@ func (client IntegrationRuntimesClient) CreateOrUpdateSender(req *http.Request) 
 func (client IntegrationRuntimesClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationRuntimeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -324,8 +322,7 @@ func (client IntegrationRuntimesClient) DeletePreparer(ctx context.Context, reso
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -333,7 +330,6 @@ func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (*http.R
 func (client IntegrationRuntimesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -424,8 +420,7 @@ func (client IntegrationRuntimesClient) GetPreparer(ctx context.Context, resourc
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -433,7 +428,6 @@ func (client IntegrationRuntimesClient) GetSender(req *http.Request) (*http.Resp
 func (client IntegrationRuntimesClient) GetResponder(resp *http.Response) (result IntegrationRuntimeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -520,8 +514,7 @@ func (client IntegrationRuntimesClient) GetConnectionInfoPreparer(ctx context.Co
 // GetConnectionInfoSender sends the GetConnectionInfo request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) GetConnectionInfoSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetConnectionInfoResponder handles the response to the GetConnectionInfo request. The method always
@@ -529,7 +522,6 @@ func (client IntegrationRuntimesClient) GetConnectionInfoSender(req *http.Reques
 func (client IntegrationRuntimesClient) GetConnectionInfoResponder(resp *http.Response) (result IntegrationRuntimeConnectionInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -616,8 +608,7 @@ func (client IntegrationRuntimesClient) GetMonitoringDataPreparer(ctx context.Co
 // GetMonitoringDataSender sends the GetMonitoringData request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) GetMonitoringDataSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetMonitoringDataResponder handles the response to the GetMonitoringData request. The method always
@@ -625,7 +616,6 @@ func (client IntegrationRuntimesClient) GetMonitoringDataSender(req *http.Reques
 func (client IntegrationRuntimesClient) GetMonitoringDataResponder(resp *http.Response) (result IntegrationRuntimeMonitoringData, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -711,8 +701,7 @@ func (client IntegrationRuntimesClient) GetStatusPreparer(ctx context.Context, r
 // GetStatusSender sends the GetStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetStatusResponder handles the response to the GetStatus request. The method always
@@ -720,7 +709,6 @@ func (client IntegrationRuntimesClient) GetStatusSender(req *http.Request) (*htt
 func (client IntegrationRuntimesClient) GetStatusResponder(resp *http.Response) (result IntegrationRuntimeStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -806,8 +794,7 @@ func (client IntegrationRuntimesClient) ListAuthKeysPreparer(ctx context.Context
 // ListAuthKeysSender sends the ListAuthKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) ListAuthKeysSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListAuthKeysResponder handles the response to the ListAuthKeys request. The method always
@@ -815,7 +802,6 @@ func (client IntegrationRuntimesClient) ListAuthKeysSender(req *http.Request) (*
 func (client IntegrationRuntimesClient) ListAuthKeysResponder(resp *http.Response) (result IntegrationRuntimeAuthKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -868,6 +854,9 @@ func (client IntegrationRuntimesClient) ListByFactory(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.IntegrationRuntimesClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.irlr.hasNextLink() && result.irlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -896,8 +885,7 @@ func (client IntegrationRuntimesClient) ListByFactoryPreparer(ctx context.Contex
 // ListByFactorySender sends the ListByFactory request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) ListByFactorySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByFactoryResponder handles the response to the ListByFactory request. The method always
@@ -905,7 +893,6 @@ func (client IntegrationRuntimesClient) ListByFactorySender(req *http.Request) (
 func (client IntegrationRuntimesClient) ListByFactoryResponder(resp *http.Response) (result IntegrationRuntimeListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1031,8 +1018,7 @@ func (client IntegrationRuntimesClient) RegenerateAuthKeyPreparer(ctx context.Co
 // RegenerateAuthKeySender sends the RegenerateAuthKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) RegenerateAuthKeySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegenerateAuthKeyResponder handles the response to the RegenerateAuthKey request. The method always
@@ -1040,7 +1026,6 @@ func (client IntegrationRuntimesClient) RegenerateAuthKeySender(req *http.Reques
 func (client IntegrationRuntimesClient) RegenerateAuthKeyResponder(resp *http.Response) (result IntegrationRuntimeAuthKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1131,8 +1116,7 @@ func (client IntegrationRuntimesClient) RemoveLinksPreparer(ctx context.Context,
 // RemoveLinksSender sends the RemoveLinks request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) RemoveLinksSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RemoveLinksResponder handles the response to the RemoveLinks request. The method always
@@ -1140,7 +1124,6 @@ func (client IntegrationRuntimesClient) RemoveLinksSender(req *http.Request) (*h
 func (client IntegrationRuntimesClient) RemoveLinksResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1220,8 +1203,7 @@ func (client IntegrationRuntimesClient) StartPreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) StartSender(req *http.Request) (future IntegrationRuntimesStartFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1234,7 +1216,6 @@ func (client IntegrationRuntimesClient) StartSender(req *http.Request) (future I
 func (client IntegrationRuntimesClient) StartResponder(resp *http.Response) (result IntegrationRuntimeStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1315,8 +1296,7 @@ func (client IntegrationRuntimesClient) StopPreparer(ctx context.Context, resour
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) StopSender(req *http.Request) (future IntegrationRuntimesStopFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1329,7 +1309,6 @@ func (client IntegrationRuntimesClient) StopSender(req *http.Request) (future In
 func (client IntegrationRuntimesClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1417,8 +1396,7 @@ func (client IntegrationRuntimesClient) SyncCredentialsPreparer(ctx context.Cont
 // SyncCredentialsSender sends the SyncCredentials request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) SyncCredentialsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SyncCredentialsResponder handles the response to the SyncCredentials request. The method always
@@ -1426,7 +1404,6 @@ func (client IntegrationRuntimesClient) SyncCredentialsSender(req *http.Request)
 func (client IntegrationRuntimesClient) SyncCredentialsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1514,8 +1491,7 @@ func (client IntegrationRuntimesClient) UpdatePreparer(ctx context.Context, reso
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -1523,7 +1499,6 @@ func (client IntegrationRuntimesClient) UpdateSender(req *http.Request) (*http.R
 func (client IntegrationRuntimesClient) UpdateResponder(resp *http.Response) (result IntegrationRuntimeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1609,8 +1584,7 @@ func (client IntegrationRuntimesClient) UpgradePreparer(ctx context.Context, res
 // UpgradeSender sends the Upgrade request. The method will close the
 // http.Response Body if it receives an error.
 func (client IntegrationRuntimesClient) UpgradeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpgradeResponder handles the response to the Upgrade request. The method always
@@ -1618,7 +1592,6 @@ func (client IntegrationRuntimesClient) UpgradeSender(req *http.Request) (*http.
 func (client IntegrationRuntimesClient) UpgradeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

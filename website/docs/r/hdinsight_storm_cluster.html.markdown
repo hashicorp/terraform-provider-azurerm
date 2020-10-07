@@ -1,7 +1,7 @@
 ---
+subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_storm_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-storm-cluster"
 description: |-
   Manages a HDInsight Storm Cluster.
 ---
@@ -9,6 +9,9 @@ description: |-
 # azurerm_hdinsight_storm_cluster
 
 Manages a HDInsight Storm Cluster.
+
+!> **Note:** [HDInsight 3.6 is deprecated and will be retired on 2020-12-31 - HDInsight 4.0 no longer supports Storm Clusters](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions) - as such this Terraform resource is deprecated and will be removed in the next major version of the AzureRM Terraform Provider.
+
 
 ## Example Usage
 
@@ -20,23 +23,22 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "hdinsightstor"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "hdinsight"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_hdinsight_storm_cluster" "example" {
   name                = "example-hdicluster"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_version     = "3.6"
   tier                = "Standard"
 
@@ -51,8 +53,8 @@ resource "azurerm_hdinsight_storm_cluster" "example" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.example.id}"
-    storage_account_key  = "${azurerm_storage_account.example.primary_access_key}"
+    storage_container_id = azurerm_storage_container.example.id
+    storage_account_key  = azurerm_storage_account.example.primary_access_key
     is_default           = true
   }
 
@@ -101,9 +103,17 @@ The following arguments are supported:
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Storm Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
+* `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
+
+~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
+
 ---
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight Storm Cluster.
+
+* `metastores` - (Optional) A `metastores` block as defined below.
+
+* `monitor` - (Optional) A `monitor` block as defined below.
 
 ---
 
@@ -115,9 +125,9 @@ A `component_version` block supports the following:
 
 A `gateway` block supports the following:
 
-* `enabled` - (Required) Is the Ambari portal enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
-* `password` - (Required) The password used for the Ambari Portal. Changing this forces a new resource to be created.
+* `password` - (Required) The password used for the Ambari Portal.
 
 -> **NOTE:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
 
@@ -179,7 +189,7 @@ A `worker_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
 
-* `min_instance_count` - (Optional) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
+* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -215,6 +225,61 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+--- 
+
+A `metastores` block supports the following:
+
+* `hive` - (Optional) A `hive` block as defined below.
+
+* `oozie` - (Optional) An `oozie` block as defined below.
+
+* `ambari` - (Optional) An `ambari` block as defined below.
+
+---
+
+A `hive` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+
+---
+
+An `oozie` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Oozie metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Oozie metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Oozie metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+---
+
+An `ambari` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Ambari metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Ambari metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+---
+
+A `monitor` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
+
+* `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -225,10 +290,19 @@ The following attributes are exported:
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight Storm Cluster.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Storm HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the Storm HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storm HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Storm HDInsight Cluster.
+
 ## Import
 
 HDInsight Storm Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_storm_cluster.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_storm_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
 ```
