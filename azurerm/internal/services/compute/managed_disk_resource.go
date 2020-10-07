@@ -143,6 +143,12 @@ func resourceArmManagedDisk() *schema.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
+			"max_shares": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(2, 10),
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -178,6 +184,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	t := d.Get("tags").(map[string]interface{})
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	skuName := compute.DiskStorageAccountTypes(storageAccountType)
+	maxShares := utils.Int32(int32(d.Get("max_shares").(int)))
 
 	props := &compute.DiskProperties{
 		CreationData: &compute.CreationData{
@@ -187,6 +194,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		Encryption: &compute.Encryption{
 			Type: compute.EncryptionAtRestWithPlatformKey,
 		},
+		MaxShares: maxShares,
 	}
 
 	if v := d.Get("disk_size_gb"); v != 0 {
@@ -544,6 +552,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 		d.Set("os_type", props.OsType)
+		d.Set("max_shares", props.MaxShares)
 
 		diskEncryptionSetId := ""
 		if props.Encryption != nil && props.Encryption.DiskEncryptionSetID != nil {
