@@ -42,7 +42,7 @@ The following attributes are exported:
 
 * `kind` - The kind of this Cognitive Services Account
 
-* `sku` - The sku of this Cognitive Services Account as defined below.
+* `sku_name` - The sku name of this Cognitive Services Account
 
 * `endpoint` - The endpoint of this Cognitive Services Account
 
@@ -51,11 +51,3 @@ The following attributes are exported:
 * `secondary_access_key` - The secondary access key of this Cognitive Services Account
 
 * `tags` - A mapping of tags to assigned to the resource.
-
----
-
-* `sku` supports the following:
-
-* `name` - The Sku Name used for this Cognitive Services Account.
-
-* `tier` - The Sku Tier used for this Cognitive Services Account.
