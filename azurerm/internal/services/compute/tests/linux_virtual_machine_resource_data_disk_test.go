@@ -402,66 +402,6 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, template, deleteDataDisks, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_dataDiskChangeManagedDiskID(data acceptance.TestData, deleteDataDisks bool) string {
-	template := testLinuxVirtualMachine_template(data)
-	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {
-    virtual_machine {
-      delete_data_disks_on_deletion = %t
-    }
-  }
-}
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  data_disk {
-    name                 = "testdatadisk"
-    lun                  = 1
-    caching              = "None"
-    storage_account_type = "Standard_LRS"
-    disk_size_gb         = 10
-  }
-
-  data_disk {
-    name                 = "testdatadisk2"
-    lun                  = 2
-    caching              = "None"
-    storage_account_type = "Standard_LRS"
-    disk_size_gb         = 2
-    managed_disk_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/disks/manageddisk1"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-`, template, deleteDataDisks, data.RandomInteger)
-}
-
 func testLinuxVirtualMachine_dataDiskRemoveFirst(data acceptance.TestData, deleteDateDisks bool) string {
 	template := testLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
