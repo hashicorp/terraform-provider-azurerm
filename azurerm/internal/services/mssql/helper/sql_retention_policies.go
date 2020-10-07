@@ -41,7 +41,7 @@ func LongTermRetentionPolicySchema() *schema.Schema {
 				"week_of_year": {
 					Type:         schema.TypeInt,
 					Optional:     true,
-					Default:      0,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 52),
 				},
 			},
@@ -68,7 +68,7 @@ func ShortTermRetentionPolicySchema() *schema.Schema {
 }
 
 func ExpandLongTermRetentionPolicy(input []interface{}) *sql.LongTermRetentionPolicyProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
@@ -136,7 +136,7 @@ func FlattenLongTermRetentionPolicy(longTermRetentionPolicy *sql.BackupLongTermR
 }
 
 func ExpandShortTermRetentionPolicy(input []interface{}) *sql.BackupShortTermRetentionPolicyProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 

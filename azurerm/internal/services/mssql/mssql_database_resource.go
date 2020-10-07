@@ -538,7 +538,9 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		} else if props.ReadScale == sql.DatabaseReadScaleDisabled {
 			d.Set("read_scale", false)
 		}
-		skuName = *props.CurrentServiceObjectiveName
+		if props.CurrentServiceObjectiveName != nil {
+			skuName = *props.CurrentServiceObjectiveName
+		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("zone_redundant", props.ZoneRedundant)
 	}

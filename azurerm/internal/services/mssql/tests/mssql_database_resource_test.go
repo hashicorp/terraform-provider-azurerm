@@ -474,7 +474,7 @@ func TestAccAzureRMMsSqlDatabase_minCapacity0(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
+func TestAccAzureRMMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -507,7 +507,7 @@ func TestAccAzureRMSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_withShortTermRetentionPolicy(t *testing.T) {
+func TestAccAzureRMMsSqlDatabase_withShortTermRetentionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
