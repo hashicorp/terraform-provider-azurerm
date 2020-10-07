@@ -113,7 +113,7 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 
@@ -134,13 +134,13 @@ The following attributes are exported:
 
 * `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
-* `primary_master_key` - The Primary master key for the CosmosDB Account.
+* `primary_key` - The Primary master key for the CosmosDB Account.
 
-* `secondary_master_key` - The Secondary master key for the CosmosDB Account.
+* `secondary_key` - The Secondary master key for the CosmosDB Account.
 
-* `primary_readonly_master_key` - The Primary read-only master Key for the CosmosDB Account.
+* `primary_readonly_key` - The Primary read-only master Key for the CosmosDB Account.
 
-* `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
+* `secondary_readonly_key` - The Secondary read-only master key for the CosmosDB Account.
 
 * `connection_strings` - A list of connection strings available for this CosmosDB account.
 

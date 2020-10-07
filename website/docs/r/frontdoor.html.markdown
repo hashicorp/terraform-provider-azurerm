@@ -113,7 +113,7 @@ The `backend_pool` block supports the following:
 
 * `load_balancing_name` - (Required) Specifies the name of the `backend_pool_load_balancing` block within this resource to use for this `Backend Pool`.
 
-* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block whithin this resource to use for this `Backend Pool`.
+* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block within this resource to use for this `Backend Pool`.
 
 ---
 
@@ -189,7 +189,7 @@ The `routing_rule` block supports the following:
 
 * `name` - (Required) Specifies the name of the Routing Rule.
 
-* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks whithin this resource to associate with this `routing_rule`.
+* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
 * `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
 

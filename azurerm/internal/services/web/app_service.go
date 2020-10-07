@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -809,7 +808,7 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 				"ip_address": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.CIDR,
+					ValidateFunc: validation.IsCIDR,
 				},
 
 				"subnet_id": {

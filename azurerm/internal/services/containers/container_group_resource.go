@@ -423,11 +423,11 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"nameservers": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
@@ -487,7 +487,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	restartPolicy := d.Get("restart_policy").(string)
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
-	dnsConfig := d.Get("dns_config").(*schema.Set).List()
+	dnsConfig := d.Get("dns_config").([]interface{})
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
@@ -1449,7 +1449,7 @@ func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DNSConf
 		config := dnsConfigRaw[0].(map[string]interface{})
 
 		nameservers := []string{}
-		for _, v := range config["nameservers"].(*schema.Set).List() {
+		for _, v := range config["nameservers"].([]interface{}) {
 			nameservers = append(nameservers, v.(string))
 		}
 		options := []string{}

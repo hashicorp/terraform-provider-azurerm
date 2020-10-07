@@ -987,9 +987,9 @@ func checkAccAzureRMCosmosDBAccount_basic(data acceptance.TestData, consistency 
 		resource.TestCheckResourceAttr(data.ResourceName, "geo_location.#", strconv.Itoa(locationCount)),
 		resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
 		resource.TestCheckResourceAttr(data.ResourceName, "read_endpoints.#", strconv.Itoa(locationCount)),
-		resource.TestCheckResourceAttrSet(data.ResourceName, "primary_master_key"),
-		resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_master_key"),
-		resource.TestCheckResourceAttrSet(data.ResourceName, "primary_readonly_master_key"),
-		resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_readonly_master_key"),
+		resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
+		resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
+		resource.TestCheckResourceAttrSet(data.ResourceName, "primary_readonly_key"),
+		resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_readonly_key"),
 	)
 }

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -408,6 +408,11 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -511,6 +516,15 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			EnableFileUploadNotifications: &enableFileUploadNotifications,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	// nolint staticcheck
+	if v, ok := d.GetOkExists("public_network_access_enabled"); ok {
+		enabled := devices.Disabled
+		if v.(bool) {
+			enabled = devices.Enabled
+		}
+		props.Properties.PublicNetworkAccess = enabled
 	}
 
 	retention, retentionOk := d.GetOk("event_hub_retention_in_days")
@@ -623,6 +637,10 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		fileUpload := flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)
 		if err := d.Set("file_upload", fileUpload); err != nil {
 			return fmt.Errorf("setting `file_upload` in IoTHub %q: %+v", id.Name, err)
+		}
+
+		if enabled := properties.PublicNetworkAccess; enabled != "" {
+			d.Set("public_network_access_enabled", enabled == devices.Enabled)
 		}
 	}
 

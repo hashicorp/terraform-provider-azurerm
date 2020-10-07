@@ -31,7 +31,7 @@ resource "azurerm_subnet" "internal" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.7.29.0/29"
+  address_prefixes     = ["10.7.29.0/29"]
   service_endpoints    = ["Microsoft.Sql"]
 }
 
@@ -40,7 +40,7 @@ resource "azurerm_postgresql_server" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  sku_name = "B_Gen5_2"
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 5120

@@ -164,28 +164,56 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 				},
 			},
 
-			"primary_master_key": {
+			"primary_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"secondary_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_master_key": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"secondary_master_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"primary_readonly_master_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"secondary_readonly_master_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 		},
 	}
@@ -285,6 +313,8 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		log.Printf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
 	} else {
+		d.Set("primary_key", keys.PrimaryMasterKey)
+		d.Set("secondary_key", keys.SecondaryMasterKey)
 		d.Set("primary_master_key", keys.PrimaryMasterKey)
 		d.Set("secondary_master_key", keys.SecondaryMasterKey)
 	}
@@ -293,6 +323,8 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		log.Printf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
 	} else {
+		d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
+		d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
 		d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
 		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	}

@@ -65,7 +65,7 @@ resource "azurerm_role_assignment" "example" {
 
 ## Configuring Terraform to use a managed identity
 
-At this point we assume that managed idenity is configured on the resource (e.g. virtual machine) being used - and that permissions have been assigned via Azure's Identity and Access Management system.
+At this point we assume that managed identity is configured on the resource (e.g. virtual machine) being used - and that permissions have been assigned via Azure's Identity and Access Management system.
 
 Terraform can be configured to use managed identity for authentication in one of two ways: using environment variables, or by defining the fields within the provider block.
 
