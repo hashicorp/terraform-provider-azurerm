@@ -70,6 +70,8 @@ The following attributes are exported:
 
 * `instrumentation_key` - The Instrumentation Key for this Application Insights component.
 
+* `connection_string` - The Connection String for this Application Insights component. (Sensitive)
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

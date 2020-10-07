@@ -487,6 +487,27 @@ func (asu *AvailabilitySetUpdate) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// AvailablePatchSummary describes the properties of an virtual machine instance view for available patch
+// summary.
+type AvailablePatchSummary struct {
+	// Status - READ-ONLY; The overall success or failure status of the operation. It remains "InProgress" until the operation completes. At that point it will become "Failed", "Succeeded", or "CompletedWithWarnings.". Possible values include: 'PatchOperationStatusInProgress', 'PatchOperationStatusFailed', 'PatchOperationStatusSucceeded', 'PatchOperationStatusCompletedWithWarnings'
+	Status PatchOperationStatus `json:"status,omitempty"`
+	// AssessmentActivityID - READ-ONLY; The activity ID of the operation that produced this result. It is used to correlate across CRP and extension logs.
+	AssessmentActivityID *string `json:"assessmentActivityId,omitempty"`
+	// RebootPending - READ-ONLY; The overall reboot status of the VM. It will be true when partially installed patches require a reboot to complete installation but the reboot has not yet occurred.
+	RebootPending *bool `json:"rebootPending,omitempty"`
+	// CriticalAndSecurityPatchCount - READ-ONLY; The number of critical or security patches that have been detected as available and not yet installed.
+	CriticalAndSecurityPatchCount *int32 `json:"criticalAndSecurityPatchCount,omitempty"`
+	// OtherPatchCount - READ-ONLY; The number of all available patches excluding critical and security.
+	OtherPatchCount *int32 `json:"otherPatchCount,omitempty"`
+	// StartTime - READ-ONLY; The UTC timestamp when the operation began.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// LastModifiedTime - READ-ONLY; The UTC timestamp when the operation began.
+	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
+	// Error - READ-ONLY; The errors that were encountered during execution of the operation. The details array contains the list of them.
+	Error *APIError `json:"error,omitempty"`
+}
+
 // BillingProfile specifies the billing related details of a Azure Spot VM or VMSS. <br><br>Minimum
 // api-version: 2019-03-01.
 type BillingProfile struct {
@@ -6637,6 +6658,36 @@ type KeyVaultSecretReference struct {
 	SourceVault *SubResource `json:"sourceVault,omitempty"`
 }
 
+// LastPatchInstallationSummary describes the properties of the last installed patch summary.
+type LastPatchInstallationSummary struct {
+	// Status - READ-ONLY; The overall success or failure status of the operation. It remains "InProgress" until the operation completes. At that point it will become "Failed", "Succeeded", or "CompletedWithWarnings.". Possible values include: 'PatchOperationStatusInProgress', 'PatchOperationStatusFailed', 'PatchOperationStatusSucceeded', 'PatchOperationStatusCompletedWithWarnings'
+	Status PatchOperationStatus `json:"status,omitempty"`
+	// InstallationActivityID - READ-ONLY; The activity ID of the operation that produced this result. It is used to correlate across CRP and extension logs.
+	InstallationActivityID *string `json:"installationActivityId,omitempty"`
+	// MaintenanceWindowExceeded - READ-ONLY; Describes whether the operation ran out of time before it completed all its intended actions
+	MaintenanceWindowExceeded *bool `json:"maintenanceWindowExceeded,omitempty"`
+	// RebootStatus - READ-ONLY; The reboot status of the machine after the patch operation. It will be in "NotNeeded" status if reboot is not needed after the patch operation. "Required" will be the status once the patch is applied and machine is required to reboot. "Started" will be the reboot status when the machine has started to reboot. "Failed" will be the status if the machine is failed to reboot. "Completed" will be the status once the machine is rebooted successfully. Possible values include: 'RebootStatusNotNeeded', 'RebootStatusRequired', 'RebootStatusStarted', 'RebootStatusFailed', 'RebootStatusCompleted'
+	RebootStatus RebootStatus `json:"rebootStatus,omitempty"`
+	// NotSelectedPatchCount - READ-ONLY; The number of all available patches but not going to be installed because it didn't match a classification or inclusion list entry.
+	NotSelectedPatchCount *int32 `json:"notSelectedPatchCount,omitempty"`
+	// ExcludedPatchCount - READ-ONLY; The number of all available patches but excluded explicitly by a customer-specified exclusion list match.
+	ExcludedPatchCount *int32 `json:"excludedPatchCount,omitempty"`
+	// PendingPatchCount - READ-ONLY; The number of all available patches expected to be installed over the course of the patch installation operation.
+	PendingPatchCount *int32 `json:"pendingPatchCount,omitempty"`
+	// InstalledPatchCount - READ-ONLY; The count of patches that successfully installed.
+	InstalledPatchCount *int32 `json:"installedPatchCount,omitempty"`
+	// FailedPatchCount - READ-ONLY; The count of patches that failed installation.
+	FailedPatchCount *int32 `json:"failedPatchCount,omitempty"`
+	// StartTime - READ-ONLY; The UTC timestamp when the operation began.
+	StartTime *date.Time `json:"startTime,omitempty"`
+	// LastModifiedTime - READ-ONLY; The UTC timestamp when the operation began.
+	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
+	// StartedBy - READ-ONLY; The person or system account that started the operation
+	StartedBy *string `json:"startedBy,omitempty"`
+	// Error - READ-ONLY; The errors that were encountered during execution of the operation. The details array contains the list of them.
+	Error *APIError `json:"error,omitempty"`
+}
+
 // LinuxConfiguration specifies the Linux operating system settings on the virtual machine. <br><br>For a list
 // of supported Linux distributions, see [Linux on Azure-Endorsed
 // Distributions](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-linux-endorsed-distros?toc=%2fazure%2fvirtual-machines%2flinux%2ftoc.json)
@@ -7164,7 +7215,7 @@ type OSProfile struct {
 
 // PatchSettings ...
 type PatchSettings struct {
-	// PatchMode - Specifies the mode of in-guest patching to IaaS virtual machine.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of patches to a virtual machine. You do this by applying patches manually inside the VM. In this mode, automatic updates are disabled; the property WindowsConfiguration.enableAutomaticUpdates must be false<br /><br /> **AutomaticByOS** - The virtual machine will automatically be updated by the OS. The property WindowsConfiguration.enableAutomaticUpdates must be true. <br /><br /> ** AutomaticByPlatform** - the virtual machine will automatically updated by the OS. The properties provisionVMAgent and WindowsConfiguration.enableAutomaticUpdates must be true. Possible values include: 'Manual', 'AutomaticByOS', 'AutomaticByPlatform'
+	// PatchMode - Specifies the mode of in-guest patching to IaaS virtual machine.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of patches to a virtual machine. You do this by applying patches manually inside the VM. In this mode, automatic updates are disabled; the property WindowsConfiguration.enableAutomaticUpdates must be false<br /><br /> **AutomaticByOS** - The virtual machine will automatically be updated by the OS. The property WindowsConfiguration.enableAutomaticUpdates must be true. <br /><br /> ** AutomaticByPlatform** - the virtual machine will automatically updated by the platform. The properties provisionVMAgent and WindowsConfiguration.enableAutomaticUpdates must be true. Possible values include: 'Manual', 'AutomaticByOS', 'AutomaticByPlatform'
 	PatchMode InGuestPatchMode `json:"patchMode,omitempty"`
 }
 
@@ -10461,6 +10512,8 @@ type VirtualMachineInstanceView struct {
 	AssignedHost *string `json:"assignedHost,omitempty"`
 	// Statuses - The resource status information.
 	Statuses *[]InstanceViewStatus `json:"statuses,omitempty"`
+	// PatchStatus - The status of virtual machine patch operations.
+	PatchStatus *VirtualMachinePatchStatus `json:"patchStatus,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for VirtualMachineInstanceView.
@@ -10504,6 +10557,9 @@ func (vmiv VirtualMachineInstanceView) MarshalJSON() ([]byte, error) {
 	}
 	if vmiv.Statuses != nil {
 		objectMap["statuses"] = vmiv.Statuses
+	}
+	if vmiv.PatchStatus != nil {
+		objectMap["patchStatus"] = vmiv.PatchStatus
 	}
 	return json.Marshal(objectMap)
 }
@@ -10662,6 +10718,14 @@ func (page VirtualMachineListResultPage) Values() []VirtualMachine {
 // Creates a new instance of the VirtualMachineListResultPage type.
 func NewVirtualMachineListResultPage(getNextPage func(context.Context, VirtualMachineListResult) (VirtualMachineListResult, error)) VirtualMachineListResultPage {
 	return VirtualMachineListResultPage{fn: getNextPage}
+}
+
+// VirtualMachinePatchStatus the status of virtual machine patch operations.
+type VirtualMachinePatchStatus struct {
+	// AvailablePatchSummary - The available patch summary of the latest assessment operation for the virtual machine.
+	AvailablePatchSummary *AvailablePatchSummary `json:"availablePatchSummary,omitempty"`
+	// LastPatchInstallationSummary - The installation summary of the latest installation operation for the virtual machine.
+	LastPatchInstallationSummary *LastPatchInstallationSummary `json:"lastPatchInstallationSummary,omitempty"`
 }
 
 // VirtualMachineProperties describes the properties of a Virtual Machine.

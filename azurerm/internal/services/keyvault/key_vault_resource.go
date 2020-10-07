@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -123,6 +123,11 @@ func resourceArmKeyVault() *schema.Resource {
 			},
 
 			"enabled_for_template_deployment": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"enable_rbac_authorization": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -244,6 +249,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
+	enableRbacAuthorization := d.Get("enable_rbac_authorization").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
@@ -269,6 +275,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
+			EnableRbacAuthorization:      &enableRbacAuthorization,
 			NetworkAcls:                  networkAcls,
 		},
 		Tags: tags.Expand(t),
@@ -302,7 +309,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+		if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 		}
 	}
@@ -413,6 +420,14 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		update.Properties.EnabledForTemplateDeployment = utils.Bool(d.Get("enabled_for_template_deployment").(bool))
 	}
 
+	if d.HasChange("enable_rbac_authorization") {
+		if update.Properties == nil {
+			update.Properties = &keyvault.VaultPatchProperties{}
+		}
+
+		update.Properties.EnableRbacAuthorization = utils.Bool(d.Get("enable_rbac_authorization").(bool))
+	}
+
 	if d.HasChange("network_acls") {
 		if update.Properties == nil {
 			update.Properties = &keyvault.VaultPatchProperties{}
@@ -430,7 +445,7 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			virtualNetworkName := id.Path["virtualNetworks"]
-			if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+			if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 				virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 			}
 		}
@@ -572,6 +587,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 		d.Set("soft_delete_enabled", props.EnableSoftDelete)
 		d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
@@ -654,7 +670,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 					}
 
 					virtualNetworkName := id.Path["virtualNetworks"]
-					if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+					if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 					}
 				}
