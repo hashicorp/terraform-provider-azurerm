@@ -52,7 +52,7 @@ data "azurerm_cognitive_account" "test" {
   virtual_network_name = azurerm_cognitive_account.test.virtual_network_name
   resource_group_name  = azurerm_cognitive_account.test.resource_group_name
 }
-`, template)
+`, template, data.RandomInteger)
 }
 
 func testAccDataCognitiveAccount_template(data acceptance.TestData) string {
