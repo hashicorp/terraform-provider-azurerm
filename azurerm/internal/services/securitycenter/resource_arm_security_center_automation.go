@@ -183,7 +183,7 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 	}
 
 	enabled := d.Get("enabled").(bool)
-	description := fmt.Sprintf("Created by Terraform")
+	description := "Created by Terraform"
 
 	// Build automation struct
 	automation := security.Automation{
