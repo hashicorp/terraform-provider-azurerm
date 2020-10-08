@@ -2,7 +2,7 @@
 
 BUG FIXES:
 
-* `azurerm_storage_account`- add Computed to `large_file_share_enabled` ([#8807](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8807))
+* `azurerm_storage_account`-`large_file_share_enabled` marked as computed to prevent existing storage shares from attempting to disable the default ([#8807](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8807))
 
 ## 2.31.0 (October 08, 2020)
 
