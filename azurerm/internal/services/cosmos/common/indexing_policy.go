@@ -45,7 +45,6 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]do
 }
 
 func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(d []*schema.ResourceData) *[][]documentdb.CompositePath {
-
 	indexes := make([][]documentdb.CompositePath, 0)
 
 	for _, i := range d {
