@@ -671,7 +671,7 @@ resource "azurerm_policy_definition" "test" {
     "if": {
       "not": {
         "field": "location",
-        "equals": "eastus"
+        "equals": "%s"
       }
     },
     "then": {
@@ -680,7 +680,7 @@ resource "azurerm_policy_definition" "test" {
   }
 POLICY_RULE
 }
-`, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.TestCheckFunc {
