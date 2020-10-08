@@ -45,25 +45,24 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]do
 }
 
 func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(d []*schema.ResourceData) *[][]documentdb.CompositePath {
-	if len(d) == 0 {
-		return nil
-	}
 
-	var compositeIndexes [][]documentdb.CompositePath
-	var compositeIndexPath []documentdb.CompositePath
+	indexes := make([][]documentdb.CompositePath, 0)
 
-	for _, v := range d {
-		i := v.Get("index").([]interface{})
-		for _, index := range i {
-			block := index.(map[string]interface{})
-			compositeIndexPath = append(compositeIndexPath, documentdb.CompositePath{
-				Path:  utils.String(block["path"].(string)),
-				Order: documentdb.CompositePathSortOrder(block["order"].(string)),
-			})
+	for _, i := range d {
+		indexPairs := make([]documentdb.CompositePath, 0)
+		for _, idxPair := range i.Get("index").([]interface{}) {
+			data := idxPair.(map[string]interface{})
+
+			index := documentdb.CompositePath {
+				Path: utils.String(data["path"].(string)),
+				Order: documentdb.CompositePathSortOrder(data["order"].(string)),
+			}
+			indexPairs = append(indexPairs, index)
 		}
-		compositeIndexes = append(compositeIndexes, compositeIndexPath)
+		indexes = append(indexes, indexPairs)
 	}
-	return &compositeIndexes
+
+	return &indexes
 }
 
 func ExpandAzureRmCosmosDbIndexingPolicy(d *schema.ResourceData) *documentdb.IndexingPolicy {
@@ -110,7 +109,7 @@ func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]documentdb.ExcludedPath
 	return excludedPaths
 }
 
-func flattenAzureRmCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePath) []interface{} {
+func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePath) []interface{} {
 	if input == nil {
 		return nil
 	}
@@ -126,19 +125,20 @@ func flattenAzureRmCosmosDBIndexingPolicyCompositeIndex(input []documentdb.Compo
 	return indexPairs
 }
 
-func flattenAzureRmCosmosDBIndexingPolicyCompositeIndexes(input *[][]documentdb.CompositePath) []interface{} {
+func flattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]documentdb.CompositePath) []interface{} {
 	if input == nil {
 		return nil
 	}
 
-	compositePaths := make([]interface{}, 0)
+	indexes := make([]interface{}, 0)
+
 	for _, v := range *input {
 		block := make(map[string][]interface{})
-		block["index"] = flattenAzureRmCosmosDBIndexingPolicyCompositeIndex(v)
-		compositePaths = append(compositePaths, block)
+		block["index"] = flattenCosmosDBIndexingPolicyCompositeIndex(v)
+		indexes = append(indexes, block)
 	}
 
-	return compositePaths
+	return indexes
 }
 
 func flattenCosmosDBIndexingPolicyIncludedPaths(input *[]documentdb.IncludedPath) []interface{} {
@@ -167,7 +167,7 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPol
 	result["indexing_mode"] = string(indexingPolicy.IndexingMode)
 	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(indexingPolicy.IncludedPaths)
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
-	result["composite_index"] = flattenAzureRmCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
+	result["composite_index"] = flattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
 
 	results = append(results, result)
 	return results
