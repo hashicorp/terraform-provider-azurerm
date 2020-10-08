@@ -21,17 +21,15 @@ IMPROVEMENTS:
 * `azurerm_backup_policy_vm` - validate daily backups is > `7` [GH-7898]
 * `azurerm_dedicated_host` - add support for the `DSv4-Type1` and `sku_name` properties [GH-8718]
 * `azurerm_iothub` - Support for the `public_network_access_enabled` property [GH-8586]
-* `azurerm_key_vault_certificate_issuer` - the `org_id` is now optional [GH-8687]
-* `azurerm_kubernetes_cluster_node_pool` - `max_node` can now be set to `0` [GH-8300]
-* `azurerm_kubernetes_cluster_node_pool` - `min_node` can now be set to `0` [GH-8300]
-* `azurerm_kubernetes_cluster_node_pool` - `node_count` can now be set to `0` [GH-8300]
+* `azurerm_key_vault_certificate_issuer` - the `org_id` property is now optional [GH-8687]
+* `azurerm_kubernetes_cluster_node_pool` - the `max_node`, `min_node`, and `node_count` properties can now be set to `0` [GH-8300]
 * `azurerm_mssql_database` - the `min_capacity` property can now be set to `0` [GH-8308]
-* `azurerm_mssql_database` - support for `long_term_retention_policy` and `short_term_retention_policy` [GH-8765] 
+* `azurerm_mssql_database` - support for `long_term_retention_policy` and `short_term_retention_policy` blocks [GH-8765] 
 * `azurerm_mssql_server` - support the `minimum_tls_version` property [GH-8361]
 * `azurerm_mssql_virtual_machine` - support for `storage_configuration_settings` [GH-8623]
 * `azurerm_security_center_subscription_pricing` - now supports per `resource_type` pricing [GH-8549]
-* `azurerm_storage_account` - support for `large_file_share_enabled` [GH-8789]
-* `azurerm_storage_share` - support for large quotas (up to 102400GB) [GH-8666]
+* `azurerm_storage_account` - support for the `large_file_share_enabled` property [GH-8789]
+* `azurerm_storage_share` - support for large quotas (up to `102400` GB) [GH-8666]
 
 BUG FIXES:
 
