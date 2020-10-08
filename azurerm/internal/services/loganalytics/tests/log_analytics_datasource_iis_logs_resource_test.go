@@ -24,7 +24,7 @@ func TestAccAzureRMLogAnalyticsDataSourceIISLogs_Enable(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsDataSourceIISLogs_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceIISLogsExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "on_premise_enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "on_premise_enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -44,7 +44,7 @@ func TestAccAzureRMLogAnalyticsDataSourceIISLogs_Disable(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsDataSourceIISLogs_Disable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceIISLogsExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "on_premise_enabled", false),
+					resource.TestCheckResourceAttr(data.ResourceName, "on_premise_enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -64,7 +64,7 @@ func TestAccAzureRMLogAnalyticsDataSourceIISLogs_update(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsDataSourceIISLogs_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceIISLogsExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "on_premise_enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "on_premise_enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -72,7 +72,7 @@ func TestAccAzureRMLogAnalyticsDataSourceIISLogs_update(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsDataSourceIISLogs_Disable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceIISLogsExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", false),
+					resource.TestCheckResourceAttr(data.ResourceName, "state", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -80,7 +80,7 @@ func TestAccAzureRMLogAnalyticsDataSourceIISLogs_update(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsDataSourceIISLogs_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceIISLogsExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "on_premise_enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "on_premise_enabled", "true"),
 				),
 			},
 			data.ImportStep(),

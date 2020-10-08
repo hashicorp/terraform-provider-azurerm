@@ -24,7 +24,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Enable(t *te
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxPerformanceCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -44,7 +44,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Disable(t *t
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Disable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxPerformanceCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", false),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -64,7 +64,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_update(t *te
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxPerformanceCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -72,7 +72,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_update(t *te
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Disable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxPerformanceCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", false),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -80,7 +80,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_update(t *te
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxPerformanceCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxPerformanceCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 			data.ImportStep(),

@@ -24,7 +24,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(t *testing
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -44,7 +44,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Disable(t *testin
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Disable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", false),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -64,7 +64,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_update(t *testing
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -72,7 +72,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_update(t *testing
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Disable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", false),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -80,7 +80,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_update(t *testing
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
 				),
 			},
 			data.ImportStep(),
