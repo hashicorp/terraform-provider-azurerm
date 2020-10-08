@@ -712,6 +712,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	// nolint staticcheck
 	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
 		parameters.LargeFileSharesState = storage.LargeFileSharesStateDisabled
 		if v.(bool) {
