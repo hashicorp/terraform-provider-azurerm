@@ -34,6 +34,8 @@ BUG FIXES:
 * `azurerm_function_app` - mark the `app_settings` block as computed [GH-8682]
 * `azurerm_function_app_slot` - mark the `app_settings` block as computed [GH-8682]
 * `azurerm_policy_set_definition` - corrects issue with empty `parameter_values` attribute [GH-8668]
+* `azurerm_policy_definition` - `mode` property now enforces correct case [GH-8795]
+
 ---
 
 For information on changes between the v2.30.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v2.md).
