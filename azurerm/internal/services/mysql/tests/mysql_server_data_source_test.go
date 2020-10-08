@@ -191,7 +191,7 @@ data "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version, data.RandomInteger)
 }
 
-func testAccAzureRMMySQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
+func testAccDataSourceAzureRMMySQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

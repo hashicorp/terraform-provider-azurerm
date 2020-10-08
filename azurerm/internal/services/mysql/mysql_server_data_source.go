@@ -244,7 +244,7 @@ func dataSourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		accountKey := ""
-		
+
 		if secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey != nil {
 			accountKey = *secResp.SecurityAlertPolicyProperties.StorageAccountAccessKey
 		}
