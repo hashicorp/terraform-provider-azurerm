@@ -164,7 +164,7 @@ The following arguments are supported:
 
 * `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `true`.
 
-* `plan` - (Optional) A plan block as documented below.
+* `plan` - (Optional) A `plan` block as documented below.
 
 -> **NOTE:** When using an image from Azure Marketplace a `plan` must be specified.
 
@@ -410,13 +410,13 @@ A `os_disk` block supports the following:
 
 ---
 
-`plan` supports the following:
+A `plan` block supports the following:
 
-* `name` - (Required) Specifies the name of the image from the marketplace.
+* `name` - (Required) Specifies the name of the image from the marketplace. Changing this forces a new resource to be created.
 
-* `publisher` - (Required) Specifies the publisher of the image.
+* `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
 
-* `product` - (Required) Specifies the product of the image from the marketplace.
+* `product` - (Required) Specifies the product of the image from the marketplace. Changing this forces a new resource to be created.
 
 ---
 
