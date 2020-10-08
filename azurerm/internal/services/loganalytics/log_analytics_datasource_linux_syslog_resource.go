@@ -59,8 +59,8 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslog() *schema.Resource {
 			},
 
 			"syslog_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
 				StateFunc:        state.IgnoreCase,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
