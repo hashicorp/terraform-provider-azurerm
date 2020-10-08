@@ -157,7 +157,7 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *documentdb.IndexingPol
 	result["indexing_mode"] = string(indexingPolicy.IndexingMode)
 	result["included_path"] = flattenCosmosDBIndexingPolicyIncludedPaths(indexingPolicy.IncludedPaths)
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
-	result["composite_indexes"] = flattenAzureRmCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
+	result["composite_index"] = flattenAzureRmCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
 
 	results = append(results, result)
 	return results
