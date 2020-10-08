@@ -583,7 +583,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			if d.HasChange("large_file_share_enabled") {
 				lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
 				if lfsEnabled.(bool) && !changedEnabled.(bool) {
-					return fmt.Errorf("`large_file_share` cannot be disabled once it's been enabled")
+					return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
 				}
 			}
 
