@@ -1,4 +1,9 @@
-## 2.32.0 (Unreleased)
+## 2.31.1 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_storage_account`- add Computed to `large_file_share_enabled` [GH-8807]
+
 ## 2.31.0 (October 08, 2020)
 
 UPGRADE NOTES
