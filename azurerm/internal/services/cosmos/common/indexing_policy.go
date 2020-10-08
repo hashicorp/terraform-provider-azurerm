@@ -81,7 +81,7 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *schema.ResourceData) *documentdb.Ind
 	if v, ok := input["excluded_path"].([]interface{}); ok {
 		policy.ExcludedPaths = expandAzureRmCosmosDBIndexingPolicyExcludedPaths(v)
 	}
-	if v, ok := input["composite_indexes"].([][]interface{}); ok {
+	if v, ok := input["composite_index"].([][]interface{}); ok {
 		policy.CompositeIndexes = expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
 

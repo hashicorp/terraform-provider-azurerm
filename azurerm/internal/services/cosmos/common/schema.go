@@ -41,28 +41,6 @@ func MongoCollectionAutoscaleSettingsSchema() *schema.Schema {
 	return autoscaleSettingsDatabaseSchema
 }
 
-func CosmosDbIndexingPolicyCompositeIndexSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"path": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-				"order": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.StringInSlice([]string{"ascending", "descending"}, true),
-				},
-			},
-		},
-	}
-}
-
 func CosmosDbIndexingPolicySchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -111,11 +89,35 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 						},
 					},
 				},
-				"composite_indexes": {
+				"composite_index": {
 					Type:     schema.TypeList,
 					Optional: true,
-					Computed: true,
-					Elem:     CosmosDbIndexingPolicyCompositeIndexSchema(),
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"index": {
+								Type:     schema.TypeList,
+								Optional: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"path": {
+											Type:         schema.TypeString,
+											Required:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+										"order": {
+											Type:     schema.TypeString,
+											Required: true,
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													"ascending",
+													"descending",
+												}, true),
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
