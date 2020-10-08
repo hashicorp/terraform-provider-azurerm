@@ -53,8 +53,8 @@ func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(d []*schema.ResourceDat
 		for _, idxPair := range i.Get("index").([]interface{}) {
 			data := idxPair.(map[string]interface{})
 
-			index := documentdb.CompositePath {
-				Path: utils.String(data["path"].(string)),
+			index := documentdb.CompositePath{
+				Path:  utils.String(data["path"].(string)),
 				Order: documentdb.CompositePathSortOrder(data["order"].(string)),
 			}
 			indexPairs = append(indexPairs, index)
