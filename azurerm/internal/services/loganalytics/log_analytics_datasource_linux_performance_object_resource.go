@@ -137,7 +137,7 @@ func resourceArmLogAnalyticsDataSourceLinuxPerformanceObjectCreateUpdate(d *sche
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read ID for Log Analytics DataSource Linux performance object %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("Unable to read ID for Log Analytics DataSource Linux performance object %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

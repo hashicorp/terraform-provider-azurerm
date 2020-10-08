@@ -24,7 +24,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(t *testing
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
 				),
 			},
 			data.ImportStep(),
@@ -44,7 +44,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Disable(t *testin
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Disable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "Disabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", false),
 				),
 			},
 			data.ImportStep(),
@@ -64,7 +64,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_update(t *testing
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
 				),
 			},
 			data.ImportStep(),
@@ -72,7 +72,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_update(t *testing
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Disable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "Disabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", false),
 				),
 			},
 			data.ImportStep(),
@@ -80,7 +80,7 @@ func TestAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_update(t *testing
 				Config: testAccAzureRMLogAnalyticsDataSourceLinuxSyslogCollection_Enable(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsDataSourceLinuxSyslogCollectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enabled", true),
 				),
 			},
 			data.ImportStep(),
@@ -166,7 +166,7 @@ resource "azurerm_log_analytics_datasource_linux_syslog_collection" "test" {
   name                = "acctestLADS-WE-%d"
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
-  state               = "Enabled"
+  enabled               = true
 }
 `, template, data.RandomInteger)
 }
@@ -179,7 +179,7 @@ resource "azurerm_log_analytics_datasource_linux_syslog_collection" "test" {
   name                = "acctestLADS-WE-%d"
   resource_group_name = azurerm_resource_group.test.name
   workspace_name      = azurerm_log_analytics_workspace.test.name
-  state         = "Disabled"
+  enabled         = false
 }
 `, template, data.RandomInteger)
 }
@@ -192,7 +192,7 @@ resource "azurerm_log_analytics_datasource_linux_syslog_collection" "import" {
   name                = azurerm_log_analytics_datasource_linux_syslog_collection.test.name
   resource_group_name = azurerm_log_analytics_datasource_linux_syslog_collection.test.resource_group_name
   workspace_name      = azurerm_log_analytics_datasource_linux_syslog_collection.test.workspace_name
-  state      = azurerm_log_analytics_datasource_linux_syslog_collection.test.state
+  enabled      = azurerm_log_analytics_datasource_linux_syslog_collection.test.enabled
 }
 `, template)
 }

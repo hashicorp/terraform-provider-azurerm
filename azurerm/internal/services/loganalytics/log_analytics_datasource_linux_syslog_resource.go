@@ -142,7 +142,7 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCreateUpdate(d *schema.Resource
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read ID for Log Analytics DataSource Linux Syslog %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("Unable to read ID for Log Analytics DataSource Linux Syslog %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -211,6 +211,9 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogDelete(d *schema.ResourceData, 
 
 func expandLogAnalyticsDataSourceLinuxSyslogSeverity(input []interface{}) []dataSourceLinuxSysLogSeverity {
 	output := []dataSourceLinuxSysLogSeverity{}
+	if input == nil {
+		return output
+	}
 	for _, severity := range input {
 		output = append(output, dataSourceLinuxSysLogSeverity{severity.(string)})
 	}
@@ -219,6 +222,9 @@ func expandLogAnalyticsDataSourceLinuxSyslogSeverity(input []interface{}) []data
 
 func flattenLogAnalyticsDataSourceLinuxSyslogSeverity(severities []dataSourceLinuxSysLogSeverity) []interface{} {
 	output := make([]interface{}, 0)
+	if severities == nil {
+		return output
+	}
 	for _, e := range severities {
 		output = append(output, e.Severity)
 	}

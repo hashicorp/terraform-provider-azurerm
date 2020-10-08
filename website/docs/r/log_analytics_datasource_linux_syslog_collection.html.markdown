@@ -33,7 +33,7 @@ resource "azurerm_log_analytics_datasource_linux_syslog_collection" "example" {
   name                = "example-lad-wpc"
   resource_group_name = azurerm_resource_group.example.name
   workspace_name      = azurerm_log_analytics_workspace.example.name
-  state               = "Enabled"
+  enabled               = true
 }
 ```
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `workspace_name` - (Required) The name of the Log Analytics Workspace where the Log Analytics Linux Syslog Collection DataSource should exist. Changing this forces a new Log Analytics Linux Syslog Collection DataSource to be created.
 
-* `state` - (Required) Specifies the start/stop state for collection of syslog data from connected linux computers. Possible values include `Enabled` and `Disabled`.
+* `enabled` - (Required) Boolean value Specifying the start/stop state for collection of syslog data from connected linux computers.
 
 
 ## Attributes Reference

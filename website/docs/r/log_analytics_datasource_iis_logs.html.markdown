@@ -33,7 +33,7 @@ resource "azurerm_log_analytics_datasource_iis_logs" "example" {
   name                = "example-lad-wpc"
   resource_group_name = azurerm_resource_group.example.name
   workspace_name      = azurerm_log_analytics_workspace.example.name
-  state               = "OnPremiseEnabled"
+  on_premise_enabled  = true
 }
 ```
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `workspace_name` - (Required) The name of the Log Analytics Workspace where the Log Analytics IIS Logs DataSource should exist. Changing this forces a new Log Analytics IIS Logs DataSource to be created.
 
-* `state` - (Required) Specifies the start/stop state for collection of performance data from connected IIS servers. Possible values include `OnPremiseEnabled` and `OnPremiseDisabled`.
+* `on_premise_enabled` - (Required) Specifies the start/stop state for collection of performance data from connected IIS servers.
 
 
 ## Attributes Reference

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
@@ -57,13 +58,9 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollection() *schema.Resource {
 				ValidateFunc:     ValidateAzureRmLogAnalyticsWorkspaceName,
 			},
 
-			"state": {
-				Type:     schema.TypeString,
+			"enabled": {
+				Type:     schema.TypeBool,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Enabled",
-					"Disabled",
-				}, true),
 			},
 		},
 	}
@@ -81,6 +78,13 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollectionCreateUpdate(d *schem
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	workspaceName := d.Get("workspace_name").(string)
+	syslogCollectionState := "Disabled"
+
+	if v, ok := d.GetOk("enabled"); ok {
+		if enabled := v.(bool); enabled {
+			syslogCollectionState = "Enabled"
+		}
+	}
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
@@ -98,7 +102,7 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollectionCreateUpdate(d *schem
 	params := operationalinsights.DataSource{
 		Kind: operationalinsights.LinuxSyslogCollection,
 		Properties: &dataSourceLinuxSysLogCollectionProperty{
-			State: d.Get("state").(string),
+			State: syslogCollectionState,
 		},
 	}
 
@@ -112,7 +116,7 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollectionCreateUpdate(d *schem
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Cannot read ID for Log Analytics DataSource Linux Syslog collection %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("Unable to read ID for Log Analytics DataSource Linux Syslog collection %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -155,7 +159,11 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslogCollectionRead(d *schema.Resour
 			return fmt.Errorf("failed to decode properties json for Log Analytics DataSource Linux syslog collection %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
 
-		d.Set("state", prop.State)
+		if strings.EqualFold(prop.State, "Enabled") {
+			d.Set("enabled", true)
+		} else if strings.EqualFold(prop.State, "Disabled") {
+			d.Set("enabled", false)
+		}
 	}
 
 	return nil
