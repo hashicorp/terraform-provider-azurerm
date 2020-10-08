@@ -53,9 +53,9 @@ func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input [][]interface{}) 
 	var compositePathsBlock []documentdb.CompositePath
 
 	for _, v := range input {
-		for index, elem := range v {
+		for _, elem := range v {
 			block := elem.(map[string]interface{})
-			compositePathsBlock = append(compositePaths[index], documentdb.CompositePath{
+			compositePathsBlock = append(compositePathsBlock, documentdb.CompositePath{
 				Path:  utils.String(block["path"].(string)),
 				Order: documentdb.CompositePathSortOrder(block["order"].(string)),
 			})
