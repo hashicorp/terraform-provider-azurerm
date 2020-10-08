@@ -45,16 +45,16 @@ resource "azurerm_data_factory_linked_service_odata" "basic" {
 }
 
 resource "azurerm_data_factory_linked_service_odata" "aad_sp_key" {
-  name                                  = "example"
-  resource_group_name                   = azurerm_resource_group.example.name
-  data_factory_name                     = azurerm_data_factory.example.name
-  authentication_type                   = "AadServicePrincipal"
-  url                                   = "https://services.odata.org/v4/TripPinServiceRW/People"
-  service_principal_id                  = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  aad_service_principal_credential_type = "ServicePrincipalKey"
-  tenant                                = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  aad_resource_id                       = "xxx"
-  service_principal_key                 = "xxx"
+  name                                      = "example"
+  resource_group_name                       = azurerm_resource_group.example.name
+  data_factory_name                         = azurerm_data_factory.example.name
+  authentication_type                       = "AadServicePrincipal"
+  url                                       = "https://services.odata.org/v4/TripPinServiceRW/People"
+  service_principal_id                      = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  azuread_service_principal_credential_type = "ServicePrincipalKey"
+  tenant                                    = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  azuread_resource_id                       = "xxx"
+  service_principal_key                     = "xxx"
 }
 ```
 
@@ -90,7 +90,7 @@ The following supported arguments are specific to OData Linked Service:
 
 * `service_principal_id` - (Optional) The Azure Active Directory Service Principal ID.
 
-* `aad_service_principal_credential_type` - (Optional) Specify the credential type to use for service principal authentication. Allowed values are: `ServicePrincipalKey` or `ServicePrincipalCert`.
+* `azuread_service_principal_credential_type` - (Optional) Specify the credential type to use for service principal authentication. Allowed values are: `ServicePrincipalKey` or `ServicePrincipalCert`.
 
 * `service_principal_key` - (Optional) The service principal key associated to the `service_principal_id` used for the authentication.
 
@@ -100,7 +100,7 @@ The following supported arguments are specific to OData Linked Service:
 
 * `tenant` - (Optional) The tenant ID in which to authenticate against the Azure Data Factory Linked Service account.
 
-* `aad_resource_id` - (Optional) The AAD resource ID concerning the authorization request.
+* `azuread_resource_id` - (Optional) The AAD resource ID concerning the authorization request.
 
 ## Attributes Reference
 

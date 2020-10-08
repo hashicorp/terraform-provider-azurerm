@@ -82,7 +82,7 @@ func resourceArmDataFactoryLinkedServiceOData() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"aad_resource_id": {
+			"azuread_resource_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -100,7 +100,7 @@ func resourceArmDataFactoryLinkedServiceOData() *schema.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"aad_service_principal_credential_type": {
+			"azuread_service_principal_credential_type": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -184,9 +184,9 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 
 	if authenticationType == string(datafactory.ODataAuthenticationTypeAadServicePrincipal) {
 		servicePrincipalId := d.Get("service_principal_id").(string)
-		aadServicePrincipalCredentialType := d.Get("aad_service_principal_credential_type").(string)
+		aadServicePrincipalCredentialType := d.Get("azuread_service_principal_credential_type").(string)
 		tenant := d.Get("tenant").(string)
-		aadResourceID := d.Get("aad_resource_id").(string)
+		aadResourceID := d.Get("azuread_resource_id").(string)
 
 		if aadServicePrincipalCredentialType == string(datafactory.ServicePrincipalCert) {
 			servicePrincipalEmbeddedCertSecureString := datafactory.SecureString{
@@ -329,10 +329,10 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 		d.Set("password", props.Password)
 	}
 	if props.AuthenticationType == datafactory.ODataAuthenticationTypeAadServicePrincipal {
-		d.Set("aad_resource_id", props.AadResourceID)
+		d.Set("azuread_resource_id", props.AadResourceID)
 		d.Set("tenant", props.Tenant)
 		d.Set("service_principal_id", props.ServicePrincipalID)
-		d.Set("aad_service_principal_credential_type", props.AadServicePrincipalCredentialType)
+		d.Set("azuread_service_principal_credential_type", props.AadServicePrincipalCredentialType)
 		switch props.AadServicePrincipalCredentialType {
 		case datafactory.ServicePrincipalCert:
 			d.Set("service_principal_embedded_cert", props.ServicePrincipalEmbeddedCert)
@@ -340,7 +340,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 		case datafactory.ServicePrincipalKey:
 			d.Set("service_principal_key", props.ServicePrincipalKey)
 		default:
-			return fmt.Errorf("Unsupported `aad_service_principal_credential_type`: %+v", props.AadServicePrincipalCredentialType)
+			return fmt.Errorf("Unsupported `azuread_service_principal_credential_type`: %+v", props.AadServicePrincipalCredentialType)
 		}
 	}
 
