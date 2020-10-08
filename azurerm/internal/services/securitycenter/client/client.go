@@ -10,6 +10,7 @@ type Client struct {
 	PricingClient                  *security.PricingsClient
 	WorkspaceClient                *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
+	JitNetworkAccessPoliciesClient *CustomJitNetworkAccessPoliciesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -27,10 +28,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	AdvancedThreatProtectionClient := security.NewAdvancedThreatProtectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AdvancedThreatProtectionClient.Client, o.ResourceManagerAuthorizer)
 
+	JitNetworkAccessPoliciesClient := NewCustomJitNetworkAccessPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&JitNetworkAccessPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ContactsClient:                 &ContactsClient,
 		PricingClient:                  &PricingClient,
 		WorkspaceClient:                &WorkspaceClient,
 		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,
+		JitNetworkAccessPoliciesClient: &JitNetworkAccessPoliciesClient,
 	}
 }
