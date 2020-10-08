@@ -428,6 +428,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   }
 
   maintenance_window {
+    enabled      = true
     day_of_week  = 0
     start_hour   = 8
     start_minute = 0
@@ -465,6 +466,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   }
 
   maintenance_window {
+    enabled      = true
     day_of_week  = 0
     start_hour   = 8
     start_minute = 0
@@ -538,6 +540,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   }
 
   maintenance_window {
+    enabled      = true
     day_of_week  = 0
     start_hour   = 8
     start_minute = 0
