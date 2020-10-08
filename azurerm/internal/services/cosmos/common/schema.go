@@ -97,6 +97,7 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 							"index": {
 								Type:     schema.TypeList,
 								MinItems: 1,
+								Required: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"path": {
