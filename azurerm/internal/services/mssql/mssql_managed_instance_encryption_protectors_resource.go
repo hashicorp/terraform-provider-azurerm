@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -36,6 +37,7 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -43,6 +45,7 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -119,7 +122,7 @@ func resourceArmMSSQLManagedInstanceEncryptionProtectorCreateUpdate(d *schema.Re
 	}
 
 	if err = encryptionFuture.WaitForCompletionRef(ctx, encryptionClient.Client); err != nil {
-		return fmt.Errorf("Error while waiting for creation of Managed SQL Instance %q AAD encryption details (Resource Group %q): %+v", managedInstanceName, resGroup, err)
+		return fmt.Errorf("Error while waiting for creation of Managed SQL Instance %q encryption details (Resource Group %q): %+v", managedInstanceName, resGroup, err)
 	}
 
 	result, err := encryptionClient.Get(ctx, resGroup, managedInstanceName)

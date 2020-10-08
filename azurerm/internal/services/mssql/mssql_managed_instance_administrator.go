@@ -39,6 +39,7 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -46,12 +47,13 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"object_id": {
 				Type:             schema.TypeString,
-				Optional:         true,
+				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validation.IsUUID,

@@ -146,11 +146,13 @@ func testAccAzureRMMsSqlManagedInstanceKey_basic(data acceptance.TestData) strin
 %s
 
 resource "azurerm_mssql_managed_instance_key" "test" {
-	key_name                          = "${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
+	key_name                          = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
 	managed_instance_id           = azurerm_mssql_managed_instance.test.id
 	uri 					 = azurerm_key_vault_key.test.id
+	depends_on = [azurerm_key_vault_key.test, azurerm_key_vault_key.test1]
   }
-`, template)
+
+  `, template)
 }
 
 func testAccAzureRMMsSqlManagedInstanceKey_update(data acceptance.TestData) string {
@@ -160,10 +162,12 @@ func testAccAzureRMMsSqlManagedInstanceKey_update(data acceptance.TestData) stri
 %s
 
 resource "azurerm_mssql_managed_instance_key" "test" {
-	key_name                          = "${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.version}"
+	key_name                          = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.version}"
 	managed_instance_id           = azurerm_mssql_managed_instance.test.id
 	uri 					 = azurerm_key_vault_key.test1.id
+	depends_on = [azurerm_key_vault_key.test, azurerm_key_vault_key.test1]
   }
+
 `, template)
 }
 
@@ -173,10 +177,11 @@ func testAccAzureRMMssqlManagedInstanceKey_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_mssql_managed_instance_key" "import" {
-	key_name                    = "${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
+	key_name                    = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
 	managed_instance_id         = azurerm_mssql_managed_instance.test.id
 	uri 					 	= azurerm_key_vault_key.test.id
   }
+
 `, template)
 }
 
@@ -252,17 +257,11 @@ func testAccAzureRMMsSqlManagedInstanceKey_prepareDependencies(data acceptance.T
 	  identity {
 		type = "SystemAssigned"
 	  }
-	  sku {
-		capacity = 8
-		family   = "Gen5"
-		name     = "GP_Gen5"
-		tier     = "GeneralPurpose"
-	  }
 	  depends_on = [
 		azurerm_subnet_network_security_group_association.test,
-		azurerm_subnet_route_table_association.test,
+		azurerm_subnet_route_table_association.test
 	  ]
-	},
+	}
 
 	resource "azurerm_key_vault" "test" {
 		name                        = "%[3]s"
@@ -282,19 +281,49 @@ func testAccAzureRMMsSqlManagedInstanceKey_prepareDependencies(data acceptance.T
 	  
 		  key_permissions = [
 			"get",
+			 "wrapKey",
+			  "unwrapKey",
 			"create",
-			"list"
+			"list",
+			"delete",
 		  ]
 	  
 		  secret_permissions = [
 			"get",
+			"delete",
 		  ]
 	  
 		  storage_permissions = [
 			"get",
+			"delete",
 		  ]
 		}
-	  },
+
+		access_policy {
+			tenant_id = azurerm_mssql_managed_instance.test.identity[0].tenant_id
+			object_id = azurerm_mssql_managed_instance.test.identity[0].principal_id
+		
+			key_permissions = [
+			  "get",
+			   "wrapKey",
+				"unwrapKey",
+			  "create",
+			  "list",
+			  "delete",
+			]
+		
+			secret_permissions = [
+			  "get",
+				  "delete",
+			]
+		
+			storage_permissions = [
+			  "get",
+				  "delete",
+			]
+		  }
+
+	  }
 
 	  resource "azurerm_key_vault_key" "test" {
 		name         = "acc-test1"
@@ -308,7 +337,7 @@ func testAccAzureRMMsSqlManagedInstanceKey_prepareDependencies(data acceptance.T
 		  "sign",
 		  "unwrapKey",
 		  "verify",
-		  "wrapKey",
+		  "wrapKey"
 		]
 	  }
 
@@ -324,7 +353,7 @@ func testAccAzureRMMsSqlManagedInstanceKey_prepareDependencies(data acceptance.T
 		  "sign",
 		  "unwrapKey",
 		  "verify",
-		  "wrapKey",
+		  "wrapKey"
 		]
 	  }
 
