@@ -2,13 +2,14 @@ package tests
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 )
 
 func TestAccAzureRMpostgresqlflexibleServer_basic(t *testing.T) {
@@ -56,6 +57,14 @@ func TestAccAzureRMpostgresqlflexibleServer_complete(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				// You must do the complete in two steps because the maintenance_window is not allowed in the create call only the update
+				Config: testAccAzureRMpostgresqlflexibleServer_completeUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 				),
@@ -251,7 +260,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-postgresql-%d"
+  name     = "acctestRG-postgresql-%d"
   location = "%s"
 }
 
@@ -324,29 +333,67 @@ resource "azurerm_postgresql_flexible_server" "test" {
   display_name                 = "fsTerraform"
   version                      = "12"
   ha_enabled                   = false
-
-  delegated_subnet_argument {
-    subnet_arm_resource_id = azurerm_subnet.test.id
-  }
+  backup_retention_days        = 7
+  storage_mb                   = 32768
+  delegated_subnet_resource_id = azurerm_subnet.test.id
 
   identity {
     type = "SystemAssigned"
-  }
-
-  maintenance_window {
-    day_of_week  = 0
-    start_hour   = 8
-    start_minute = 0
   }
 
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
   }
+	
+  properties_tags = {
+    Property = "Tag"
+  }
 
-  storage_profile {
-    backup_retention_days = 7
-    storage_mb            = 32768
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMpostgresqlflexibleServer_completeUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMpostgresqlflexibleServer_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_login_password = "QAZwsx123"
+  availability_zone            = "1"
+  display_name                 = "fsTerraform"
+  version                      = "12"
+  ha_enabled                   = false
+  backup_retention_days        = 7
+  storage_mb                   = 32768
+  delegated_subnet_resource_id = azurerm_subnet.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  maintenance_window {
+    enabled       = false
+    day_of_week   = 0
+    start_hour    = 8
+    start_minute  = 0
+  }
+
+  sku {
+    name = "Standard_D2s_v3"
+    tier = "GeneralPurpose"
+  }
+	
+  properties_tags = {
+    BLOCK = "Properties"
   }
 
   tags = {

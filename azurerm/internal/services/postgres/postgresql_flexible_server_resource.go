@@ -184,7 +184,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"custom_window": {
+						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
@@ -192,18 +192,21 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 						"day_of_week": {
 							Type:         schema.TypeInt,
 							Optional:     true,
+							Default:      0,
 							ValidateFunc: validation.IntBetween(0, 6),
 						},
 
 						"start_hour": {
 							Type:         schema.TypeInt,
 							Optional:     true,
+							Default:      0,
 							ValidateFunc: validation.IntBetween(0, 23),
 						},
 
 						"start_minute": {
 							Type:         schema.TypeInt,
 							Optional:     true,
+							Default:      0,
 							ValidateFunc: validation.IntBetween(0, 59),
 						},
 					},
@@ -211,14 +214,16 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			},
 
 			"backup_retention_days": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  7,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      7,
+				ValidateFunc: validation.IntBetween(7, 35),
 			},
 
 			"storage_mb": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Default:      32768,
 				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432}),
 			},
 
@@ -374,7 +379,7 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		d.Set("administrator_login_password", adminPassword)
 		d.Set("availability_zone", props.AvailabilityZone)
 
-		// Default comes back as an empty string
+		// CreateMode currently isn't returned by the API
 		if props.CreateMode == "" {
 			d.Set("create_mode", string(postgresqlflexibleservers.Default))
 		} else {
@@ -542,7 +547,7 @@ func expandArmServerMaintenanceWindow(input []interface{}) *postgresqlflexiblese
 	}
 
 	maintenanceWindow.CustomWindow = utils.String(string(postgresqlflexibleservers.Disabled))
-	if v["custom_window"].(bool) {
+	if v["enabled"].(bool) {
 		maintenanceWindow.CustomWindow = utils.String(string(postgresqlflexibleservers.Enabled))
 	}
 
@@ -617,8 +622,13 @@ func flattenArmServerServerPropertiesDelegatedSubnetArguments(input *postgresqlf
 }
 
 func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.MaintenanceWindow) []interface{} {
-	if input == nil || input.CustomWindow == nil || *input.CustomWindow == "Disabled" {
+	if input == nil {
 		return make([]interface{}, 0)
+	}
+
+	var enabled bool
+	if input.CustomWindow != nil {
+		enabled = (*input.CustomWindow == string(postgresqlflexibleservers.Enabled))
 	}
 
 	var dayOfWeek int32
@@ -635,6 +645,7 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 	}
 	return []interface{}{
 		map[string]interface{}{
+			"enabled":      enabled,
 			"day_of_week":  dayOfWeek,
 			"start_hour":   startHour,
 			"start_minute": startMinute,
