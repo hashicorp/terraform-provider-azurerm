@@ -2,8 +2,8 @@ package tests
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
-	"net/http"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+
 	"regexp"
 	"testing"
 
@@ -641,7 +641,6 @@ func TestAccAzureRMApplicationGateway_sslCertificate_keyvault_versioned(t *testi
 	})
 }
 
-
 func TestAccAzureRMApplicationGateway_sslCertificate_EmptyPassword(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
@@ -677,16 +676,16 @@ func TestAccAzureRMApplicationGateway_manualSslCertificateChangeIgnoreChanges(t 
 				Config: testAccAzureRMApplicationGateway_manualSslCertificateChangeIgnoreChangesConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_certificate.name", "acctestcertificate1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ssl_certificate.0.name", "acctestcertificate1"),
 					testCheckAzureRMApplicationGatewayChangeCert(data.ResourceName, "acctestcertificate2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_certificate.name", "acctestcertificate2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ssl_certificate.0.name", "acctestcertificate2"),
 				),
 			},
 			{
 				Config: testAccAzureRMApplicationGateway_manualSslCertificateChangeIgnoreChangesUpdatedConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_certificate.name", "acctestcertificate2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "ssl_certificate.0.name", "acctestcertificate2"),
 				),
 			},
 		},
@@ -4042,9 +4041,9 @@ resource "azurerm_application_gateway" "test" {
 `, template, data.RandomInteger)
 }
 
-func testCheckAzureRMApplicationGatewayChangeCert(resourceName string, certName string) resource.TestCheckFunc {
+func testCheckAzureRMApplicationGatewayChangeCert(resourceName, certName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.ApplicationGatewaysClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -4053,28 +4052,37 @@ func testCheckAzureRMApplicationGatewayChangeCert(resourceName string, certName 
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		certName := rs.Primary.Attributes["ssl_certificate.name"]
 		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(ctx, resourceGroup, gatewayName)
-
-
-		// Set new name of AGW certificate
-
+		agw, err := client.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
+			return fmt.Errorf("Bad: Get on ApplicationGatewaysClient: %+v", err)
+		}
 
-			return err
+		newSslCertificates := make([]network.ApplicationGatewaySslCertificate, 1)
+
+		newSslCertificates[0] = network.ApplicationGatewaySslCertificate{
+			Name: &certName,
+			Etag: (*agw.SslCertificates)[0].Etag,
+			Type: (*agw.SslCertificates)[0].Type,
+			ID:   (*agw.SslCertificates)[0].ID,
+		}
+
+		agw.SslCertificates = &newSslCertificates
+
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, gatewayName, agw)
+		if err != nil {
+			return fmt.Errorf("Bad: updating AGW: %+v", err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Bad: waiting for update of AGW: %+v", err)
 		}
 
 		return nil
-
 	}
 }
-
 
 func testAccAzureRMApplicationGateway_manualSslCertificateChangeIgnoreChangesConfig(data acceptance.TestData) string {
 	template := testAccAzureRMApplicationGateway_template(data)
@@ -4229,6 +4237,12 @@ resource "azurerm_application_gateway" "test" {
     name     = local.ssl_certificate_name
     data     = filebase64("testdata/application_gateway_test.pfx")
     password = "terraform"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      ssl_certificate,
+    ]
   }
 }
 `, template)
