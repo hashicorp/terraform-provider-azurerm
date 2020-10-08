@@ -104,6 +104,11 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1",
+					"2",
+					"3",
+				}, false),
 			},
 
 			"create_mode": {
