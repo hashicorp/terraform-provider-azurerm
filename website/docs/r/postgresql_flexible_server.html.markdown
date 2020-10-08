@@ -49,6 +49,8 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of PostgreSQL Flexible Server to use. Valid values are `11` or `12`. Changing this forces a new resource to be created.
 
+* `availability_zone` - (Optional) Specifies the availability Zone of the PostgreSQL Flexible Server. Supported values are  `1`, `2`, or `3`.
+
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
 * `create_mode` - (Optional) The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default` or `PointInTimeRestore`. Defaults to `Default`. Changing this forces a new resource to be created.
@@ -119,7 +121,7 @@ The following attributes are exported:
 
 * `public_network_access` - Is public network access enabled?
 
-* `standby_availability_zone` - The availability Zone information of the server.
+* `standby_availability_zone` - The standby availability Zone information of the server.
 
 * `fqdn` - The FQDN of the PostgreSQL Flexible Server.
 

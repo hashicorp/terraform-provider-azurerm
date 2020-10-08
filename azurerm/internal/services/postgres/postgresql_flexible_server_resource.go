@@ -102,7 +102,6 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			"availability_zone": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"1",
@@ -300,7 +299,6 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		Identity: expandArmServerIdentity(d.Get("identity").([]interface{})),
 		ServerProperties: &postgresqlflexibleservers.ServerProperties{
 			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
-			AvailabilityZone:           utils.String(d.Get("availability_zone").(string)),
 			CreateMode:                 postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
 			DelegatedSubnetArguments:   expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_resource_id").(string)),
 			DisplayName:                utils.String(d.Get("display_name").(string)),
@@ -314,6 +312,10 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		},
 		Sku:  expandArmServerSku(d.Get("sku").([]interface{})),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("availability_zone"); ok && v.(string) != "" {
+		parameters.ServerProperties.AvailabilityZone = utils.String(v.(string))
 	}
 
 	pointInTimeUTC := d.Get("point_in_time_utc").(string)
@@ -382,7 +384,10 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		// sensitive prop not returned by API, pull it from config and write to state.
 		adminPassword := d.Get("administrator_login_password").(string)
 		d.Set("administrator_login_password", adminPassword)
-		d.Set("availability_zone", props.AvailabilityZone)
+
+		if props.AvailabilityZone != nil && *props.AvailabilityZone != "" {
+			d.Set("availability_zone", props.AvailabilityZone)
+		}
 
 		// CreateMode currently isn't returned by the API
 		if props.CreateMode == "" {
