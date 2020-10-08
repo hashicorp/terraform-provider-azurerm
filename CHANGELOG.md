@@ -29,6 +29,7 @@ IMPROVEMENTS:
 * `azurerm_mssql_virtual_machine` - Add support for `storage_configuration_settings` [GH-8623]
 * `azurerm_security_center_subscription_pricing` - now supports per `resource_type` pricing [GH-8549]
 * `azurerm_storage_account` - add support for `large_file_share_enabled` [GH-8789]
+* `azurerm_storage_share` allow large quotas to be specified.  [GH-8666]
 
 BUG FIXES:
 
