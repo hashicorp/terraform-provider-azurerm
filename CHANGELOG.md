@@ -28,6 +28,7 @@ IMPROVEMENTS:
 * `azurerm_mssql_server` - support the `minimum_tls_version` property [GH-8361]
 * `azurerm_mssql_virtual_machine` - Add support for `storage_configuration_settings` [GH-8623]
 * `azurerm_security_center_subscription_pricing` - now supports per `resource_type` pricing [GH-8549]
+* `azurerm_storage_account` - add support for `large_file_share_enabled` [GH-8789]
 
 BUG FIXES:
 
