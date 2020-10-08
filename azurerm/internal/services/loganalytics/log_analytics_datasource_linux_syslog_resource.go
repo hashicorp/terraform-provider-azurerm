@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -62,6 +61,8 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslog() *schema.Resource {
 			"syslog_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				StateFunc:        state.IgnoreCase,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"auth",
 					"authpriv",
@@ -83,14 +84,13 @@ func resourceArmLogAnalyticsDataSourceLinuxSyslog() *schema.Resource {
 					"syslog",
 					"user",
 					"uucp",
-				}, false),
+				}, true),
 			},
 
 			"syslog_severities": {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
-				Set:      set.HashStringIgnoreCase,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					// API backend accepts event_types case-insensitively
