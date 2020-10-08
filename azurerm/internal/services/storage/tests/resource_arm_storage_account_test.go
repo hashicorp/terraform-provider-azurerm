@@ -813,7 +813,7 @@ func TestAccAzureRMStorageAccount_largeFileShare(t *testing.T) {
 			data.ImportStep(),
 			{
 				Config:      testAccAzureRMStorageAccount_largeFileShareDisabled(data),
-				ExpectError: regexp.MustCompile("`large_file_share` cannot be disabled once it's been enabled"),
+				ExpectError: regexp.MustCompile("`large_file_share_enabled` cannot be disabled once it's been enabled"),
 			},
 		},
 	})
