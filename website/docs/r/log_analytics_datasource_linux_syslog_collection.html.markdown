@@ -33,7 +33,7 @@ resource "azurerm_log_analytics_datasource_linux_syslog_collection" "example" {
   name                = "example-lad-wpc"
   resource_group_name = azurerm_resource_group.example.name
   workspace_name      = azurerm_log_analytics_workspace.example.name
-  enabled               = true
+  enabled             = true
 }
 ```
 

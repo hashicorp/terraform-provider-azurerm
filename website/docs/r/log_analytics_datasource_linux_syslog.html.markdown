@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `workspace_name` - (Required) The name of the Log Analytics Workspace where the Log Analytics Linux Syslog DataSource should exist. Changing this forces a new Log Analytics Linux Syslog DataSource to be created.
 
-* `syslog_name` - (Required) Specifies the name of the Linux Syslog facility to log. Possible values include `auth`, `authpriv`, `cron`, `auth`, `daemon`, `ftp`, `kern`, `mail`, `syslog`, `user` and `uucp`.
+* `syslog_name` - (Required) Specifies the name of the Linux Syslog facility to log. Possible values include `auth`, `authpriv`, `cron`,  `daemon`, `ftp`, `kern`, `lpr`, `local0`, `local1`, `local2`, `local3`, `local4`, `local5`, `local6`, `local7`, `mail`, `news`, `syslog`, `user` and `uucp`.
 
 * `syslog_severities` - (Required) Specifies an array of sys log severities applied to the specified facility log. Possible values include `emerg`, `alert`, `crit`, `err`, `warning`, `notice`, `info` and `debug`.
 
