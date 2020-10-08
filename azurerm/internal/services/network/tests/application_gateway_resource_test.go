@@ -1,9 +1,11 @@
 package tests
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-
+	"io/ioutil"
+	"log"
 	"regexp"
 	"testing"
 
@@ -678,7 +680,6 @@ func TestAccAzureRMApplicationGateway_manualSslCertificateChangeIgnoreChanges(t 
 					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "ssl_certificate.0.name", "acctestcertificate1"),
 					testCheckAzureRMApplicationGatewayChangeCert(data.ResourceName, "acctestcertificate2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_certificate.0.name", "acctestcertificate2"),
 				),
 			},
 			{
@@ -4060,13 +4061,21 @@ func testCheckAzureRMApplicationGatewayChangeCert(resourceName, certName string)
 			return fmt.Errorf("Bad: Get on ApplicationGatewaysClient: %+v", err)
 		}
 
-		newSslCertificates := make([]network.ApplicationGatewaySslCertificate, 1)
+		certPfx, err := ioutil.ReadFile("testdata/application_gateway_test.pfx")
+		if err != nil {
+			log.Fatal(err)
+		}
+		certB64 := base64.StdEncoding.EncodeToString(certPfx)
 
+		newSslCertificates := make([]network.ApplicationGatewaySslCertificate, 1)
 		newSslCertificates[0] = network.ApplicationGatewaySslCertificate{
-			Name: &certName,
-			Etag: (*agw.SslCertificates)[0].Etag,
-			Type: (*agw.SslCertificates)[0].Type,
-			ID:   (*agw.SslCertificates)[0].ID,
+			Name: utils.String(certName),
+			Etag: utils.String("*"),
+
+			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
+				Data:     utils.String(certB64),
+				Password: utils.String("terraform"),
+			},
 		}
 
 		agw.SslCertificates = &newSslCertificates
@@ -4118,7 +4127,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_port {
     name = local.frontend_port_name
-    port = 443
+    port = 80
   }
 
   frontend_ip_configuration {
@@ -4142,8 +4151,7 @@ resource "azurerm_application_gateway" "test" {
     name                           = local.listener_name
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name
-    protocol                       = "Https"
-    ssl_certificate_name           = local.ssl_certificate_name
+    protocol                       = "Http"
   }
 
   request_routing_rule {
@@ -4158,6 +4166,12 @@ resource "azurerm_application_gateway" "test" {
     name     = local.ssl_certificate_name
     data     = filebase64("testdata/application_gateway_test.pfx")
     password = "terraform"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      ssl_certificate,
+    ]
   }
 }
 `, template)
@@ -4197,7 +4211,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_port {
     name = local.frontend_port_name
-    port = 443
+    port = 80
   }
 
   frontend_ip_configuration {
@@ -4221,8 +4235,7 @@ resource "azurerm_application_gateway" "test" {
     name                           = local.listener_name
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name
-    protocol                       = "Https"
-    ssl_certificate_name           = local.ssl_certificate_name
+    protocol                       = "Http"
   }
 
   request_routing_rule {
