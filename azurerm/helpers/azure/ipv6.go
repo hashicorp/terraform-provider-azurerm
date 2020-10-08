@@ -1,24 +1,16 @@
 package azure
 
 import (
-	"net"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// NormalizeIPv6Address returns the normalized notation of an IPv6
+// Deprecated: moved to utils and will be removed in 3.0
 func NormalizeIPv6Address(ipv6 interface{}) string {
-	if ipv6 == nil || ipv6.(string) == "" {
-		return ""
-	}
-	r := net.ParseIP(ipv6.(string))
-	if r == nil {
-		return ""
-	}
-	return r.String()
+	return utils.NormalizeIPv6Address(ipv6)
 }
 
-// HashIPv6Address normalizes an IPv6 address and returns a hash for it
+// Deprecated: moved to internal and will be removed in 3.0
 func HashIPv6Address(ipv6 interface{}) int {
-	return hashcode.String(NormalizeIPv6Address(ipv6))
+	return set.HashIPv6Address(ipv6)
 }
