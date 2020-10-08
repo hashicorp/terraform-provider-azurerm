@@ -14,10 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-const (
-	mySQLServerDataSourceName = "azurerm_mysql_server"
-)
-
 func dataSourceArmMySqlServer() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmMySqlServerRead,
