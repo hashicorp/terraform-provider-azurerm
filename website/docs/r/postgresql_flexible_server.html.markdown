@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
-~> **NOTE:** A `maintenance_window` block **cannot** be included in the configuration file during the intial creation of the PostgreSQL Flexible Server. If you do include the `maintenance_window` block during the intial creation of the PostgreSQL Flexible Server it will cause an unclear `Resource Not Found` error messages.
+~> **NOTE:** A `maintenance_window` block **cannot** be included in the configuration file during the initial creation of the PostgreSQL Flexible Server. If you do include the `maintenance_window` block during the initial creation of the PostgreSQL Flexible Server it will cause an unclear `Resource Not Found` error messages.
 
 * `backup_retention_days` - (Optional) Number of days to retain Backups for the server. Possible values are between `7` and `35` inclusive. Defaults to `7`.
 
