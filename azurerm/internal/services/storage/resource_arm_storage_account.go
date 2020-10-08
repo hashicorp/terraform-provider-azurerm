@@ -391,6 +391,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			"large_file_share_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 
 			"primary_location": {
