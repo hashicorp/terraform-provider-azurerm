@@ -327,6 +327,21 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		diskUpdate.Tags = tags.Expand(t)
 	}
 
+	if d.HasChange("max_shares") {
+		v := d.Get("max_shares")
+		maxShares := int32(v.(int))
+		diskUpdate.MaxShares = &maxShares
+		var skuName compute.DiskStorageAccountTypes
+		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
+			if strings.EqualFold(storageAccountType, string(v)) {
+				skuName = v
+			}
+		}
+		diskUpdate.Sku = &compute.DiskSku{
+			Name: skuName,
+		}
+	}
+
 	if d.HasChange("storage_account_type") {
 		shouldShutDown = true
 		var skuName compute.DiskStorageAccountTypes
