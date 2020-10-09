@@ -129,9 +129,19 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 							ValidateFunc: validate.PolicyDefinitionID,
 						},
 
-						"parameters": {
-							Type:     schema.TypeMap,
-							Optional: true,
+						"parameters": { // TODO -- remove this attribute after the deprecation
+							Type:       schema.TypeMap,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "Deprecated in favour of `parameter_values`",
+						},
+
+						"parameter_values": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true, // TODO -- remove Computed after the deprecation
+							ValidateFunc:     validation.StringIsJSON,
+							DiffSuppressFunc: structure.SuppressJsonDiff,
 						},
 
 						"reference_id": {
@@ -253,11 +263,14 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		properties.PolicyDefinitions = &policyDefinitions
 	}
 	if v, ok := d.GetOk("policy_definition_reference"); ok {
-		properties.PolicyDefinitions = expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}))
+		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
+		}
+		properties.PolicyDefinitions = definitions
 	}
 
 	definition := policy.SetDefinition{
-		Name:                    utils.String(name),
 		SetDefinitionProperties: &properties,
 	}
 
@@ -367,7 +380,11 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 
 			d.Set("policy_definitions", string(policyDefinitionsRes))
 		}
-		if err := d.Set("policy_definition_reference", flattenAzureRMPolicySetDefinitionPolicyDefinitions(props.PolicyDefinitions)); err != nil {
+		references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitions(props.PolicyDefinitions)
+		if err != nil {
+			return fmt.Errorf("flattening `policy_definition_reference`: %+v", err)
+		}
+		if err := d.Set("policy_definition_reference", references); err != nil {
 			return fmt.Errorf("setting `policy_definition_reference`: %+v", err)
 		}
 	}
@@ -420,16 +437,27 @@ func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefin
 	}
 }
 
-func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) *[]policy.DefinitionReference {
+func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]policy.DefinitionReference, error) {
 	result := make([]policy.DefinitionReference, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
 		parameters := make(map[string]*policy.ParameterValuesValue)
-		for k, value := range v["parameters"].(map[string]interface{}) {
-			parameters[k] = &policy.ParameterValuesValue{
-				Value: value.(string),
+		if p, ok := v["parameter_values"].(string); ok && p != "" {
+			if err := json.Unmarshal([]byte(p), &parameters); err != nil {
+				return nil, fmt.Errorf("unmarshalling `parameter_values`: %+v", err)
+			}
+		}
+		if p, ok := v["parameters"]; ok {
+			m := p.(map[string]interface{})
+			if len(parameters) > 0 && len(m) > 0 {
+				return nil, fmt.Errorf("cannot set both `parameters` and `parameter_values`")
+			}
+			for k, value := range p.(map[string]interface{}) {
+				parameters[k] = &policy.ParameterValuesValue{
+					Value: value,
+				}
 			}
 		}
 
@@ -440,13 +468,13 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) *[]p
 		})
 	}
 
-	return &result
+	return &result, nil
 }
 
-func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.DefinitionReference) []interface{} {
+func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.DefinitionReference) ([]interface{}, error) {
 	result := make([]interface{}, 0)
 	if input == nil {
-		return result
+		return result, nil
 	}
 
 	for _, definition := range *input {
@@ -460,7 +488,12 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.Definiti
 			if v == nil {
 				continue
 			}
-			parametersMap[k] = v.Value
+			parametersMap[k] = fmt.Sprintf("%v", v.Value) // map in terraform only accepts string as its values, therefore we have to convert the value to string
+		}
+
+		parameterValues, err := flattenParameterValuesValueToString(definition.Parameters)
+		if err != nil {
+			return nil, fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
 		}
 
 		policyDefinitionReference := ""
@@ -471,8 +504,9 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.Definiti
 		result = append(result, map[string]interface{}{
 			"policy_definition_id": policyDefinitionID,
 			"parameters":           parametersMap,
+			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
 		})
 	}
-	return result
+	return result, nil
 }

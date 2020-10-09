@@ -33,7 +33,7 @@ resource "azurerm_subnet" "example" {
   name                 = "examplesubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_hpc_cache" "example" {
@@ -61,6 +61,12 @@ The following arguments are supported:
 * `subnet_id` - (Required) The ID of the Subnet for the HPC Cache. Changing this forces a new resource to be created.
 
 * `sku_name` - (Required) The SKU of HPC Cache to use. Possible values are `Standard_2G`, `Standard_4G` and `Standard_8G`. Changing this forces a new resource to be created.
+
+---
+
+* `mtu` - (Optional) The IPv4 maximum transmission unit configured for the subnet of the HPC Cache. Possible values range from 576 - 1500. Defaults to 1500.
+
+* `root_squash_enabled` - (Optional) Whether root squash property is enabled for this HPC Cache.
 
 ## Attributes Reference
 

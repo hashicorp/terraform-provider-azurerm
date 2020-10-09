@@ -8,12 +8,12 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -84,13 +84,25 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 						},
 						"source_addresses": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+						"source_ip_groups": {
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
 						"destination_addresses": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+						"destination_ip_groups": {
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
@@ -135,20 +147,23 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("retrieving Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
 
 	if firewall.AzureFirewallPropertiesFormat == nil {
-		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties` was nil.", firewallName, resourceGroup)
+		return fmt.Errorf("expanding Firewall %q (Resource Group %q): `properties` was nil.", firewallName, resourceGroup)
 	}
 	props := *firewall.AzureFirewallPropertiesFormat
 
 	if props.NetworkRuleCollections == nil {
-		return fmt.Errorf("Error expanding Firewall %q (Resource Group %q): `properties.NetworkRuleCollections` was nil.", firewallName, resourceGroup)
+		return fmt.Errorf("expanding Firewall %q (Resource Group %q): `properties.NetworkRuleCollections` was nil.", firewallName, resourceGroup)
 	}
 	ruleCollections := *props.NetworkRuleCollections
 
-	networkRules := expandArmFirewallNetworkRules(d.Get("rule").(*schema.Set))
+	networkRules, err := expandArmFirewallNetworkRules(d.Get("rule").(*schema.Set))
+	if err != nil {
+		return fmt.Errorf("expanding Firewall Network Rules: %+v", err)
+	}
 	priority := d.Get("priority").(int)
 	newRuleCollection := network.AzureFirewallNetworkRuleCollection{
 		Name: utils.String(name),
@@ -157,7 +172,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 				Type: network.AzureFirewallRCActionType(d.Get("action").(string)),
 			},
 			Priority: utils.Int32(int32(priority)),
-			Rules:    &networkRules,
+			Rules:    networkRules,
 		},
 	}
 
@@ -178,12 +193,12 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 
 	if !d.IsNewResource() {
 		if index == -1 {
-			return fmt.Errorf("Error locating Network Rule Collection %q (Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
+			return fmt.Errorf("locating Network Rule Collection %q (Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
 		}
 
 		ruleCollections[index] = newRuleCollection
 	} else {
-		if features.ShouldResourcesBeImported() && d.IsNewResource() && index != -1 {
+		if d.IsNewResource() && index != -1 {
 			return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
 		}
 
@@ -195,16 +210,16 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Network Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Network Rule Collection %q in Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of Network Rule Collection %q of Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of Network Rule Collection %q of Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("retrieving Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
 
 	var collectionID string
@@ -252,16 +267,16 @@ func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta i
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.AzureFirewallPropertiesFormat == nil {
-		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", name, firewallName, resourceGroup)
+		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", name, firewallName, resourceGroup)
 	}
 	props := *read.AzureFirewallPropertiesFormat
 
 	if props.NetworkRuleCollections == nil {
-		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
+		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
 	}
 
 	var rule *network.AzureFirewallNetworkRuleCollection
@@ -297,7 +312,7 @@ func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta i
 
 		flattenedRules := flattenFirewallNetworkRuleCollectionRules(props.Rules)
 		if err := d.Set("rule", flattenedRules); err != nil {
-			return fmt.Errorf("Error setting `rule`: %+v", err)
+			return fmt.Errorf("setting `rule`: %+v", err)
 		}
 	}
 
@@ -328,15 +343,15 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure Firewall %q (Resource Group %q): %+v", firewallName, resourceGroup, err)
 	}
 
 	props := firewall.AzureFirewallPropertiesFormat
 	if props == nil {
-		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", name, firewallName, resourceGroup)
+		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props` was nil", name, firewallName, resourceGroup)
 	}
 	if props.NetworkRuleCollections == nil {
-		return fmt.Errorf("Error retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
+		return fmt.Errorf("retrieving Network Rule Collection %q (Firewall %q / Resource Group %q): `props.NetworkRuleCollections` was nil", name, firewallName, resourceGroup)
 	}
 
 	networkRules := make([]network.AzureFirewallNetworkRuleCollection, 0)
@@ -353,17 +368,17 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, firewallName, firewall)
 	if err != nil {
-		return fmt.Errorf("Error deleting Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("deleting Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Network Rule Collection %q from Firewall %q (Resource Group %q): %+v", name, firewallName, resourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandArmFirewallNetworkRules(input *schema.Set) []network.AzureFirewallNetworkRule {
+func expandArmFirewallNetworkRules(input *schema.Set) (*[]network.AzureFirewallNetworkRule, error) {
 	nwRules := input.List()
 	rules := make([]network.AzureFirewallNetworkRule, 0)
 
@@ -378,9 +393,27 @@ func expandArmFirewallNetworkRules(input *schema.Set) []network.AzureFirewallNet
 			sourceAddresses = append(sourceAddresses, v.(string))
 		}
 
+		sourceIpGroups := make([]string, 0)
+		for _, v := range rule["source_ip_groups"].(*schema.Set).List() {
+			sourceIpGroups = append(sourceIpGroups, v.(string))
+		}
+
+		if len(sourceAddresses) == 0 && len(sourceIpGroups) == 0 {
+			return nil, fmt.Errorf("at least one of %q and %q must be specified for each rule", "source_addresses", "source_ip_groups")
+		}
+
 		destinationAddresses := make([]string, 0)
 		for _, v := range rule["destination_addresses"].(*schema.Set).List() {
 			destinationAddresses = append(destinationAddresses, v.(string))
+		}
+
+		destinationIpGroups := make([]string, 0)
+		for _, v := range rule["destination_ip_groups"].(*schema.Set).List() {
+			destinationIpGroups = append(destinationIpGroups, v.(string))
+		}
+
+		if len(destinationAddresses) == 0 && len(destinationIpGroups) == 0 {
+			return nil, fmt.Errorf("at least one of %q and %q must be specified for each rule", "destination_addresses", "destination_ip_groups")
 		}
 
 		destinationPorts := make([]string, 0)
@@ -392,7 +425,9 @@ func expandArmFirewallNetworkRules(input *schema.Set) []network.AzureFirewallNet
 			Name:                 utils.String(name),
 			Description:          utils.String(description),
 			SourceAddresses:      &sourceAddresses,
+			SourceIPGroups:       &sourceIpGroups,
 			DestinationAddresses: &destinationAddresses,
+			DestinationIPGroups:  &destinationIpGroups,
 			DestinationPorts:     &destinationPorts,
 		}
 
@@ -406,7 +441,7 @@ func expandArmFirewallNetworkRules(input *schema.Set) []network.AzureFirewallNet
 		rules = append(rules, ruleToAdd)
 	}
 
-	return rules
+	return &rules, nil
 }
 
 func flattenFirewallNetworkRuleCollectionRules(rules *[]network.AzureFirewallNetworkRule) []map[string]interface{} {
@@ -426,8 +461,14 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]network.AzureFirewallNet
 		if rule.SourceAddresses != nil {
 			output["source_addresses"] = set.FromStringSlice(*rule.SourceAddresses)
 		}
+		if rule.SourceIPGroups != nil {
+			output["source_ip_groups"] = set.FromStringSlice(*rule.SourceIPGroups)
+		}
 		if rule.DestinationAddresses != nil {
 			output["destination_addresses"] = set.FromStringSlice(*rule.DestinationAddresses)
+		}
+		if rule.DestinationIPGroups != nil {
+			output["destination_ip_groups"] = set.FromStringSlice(*rule.DestinationIPGroups)
 		}
 		if rule.DestinationPorts != nil {
 			output["destination_ports"] = set.FromStringSlice(*rule.DestinationPorts)

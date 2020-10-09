@@ -7,7 +7,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -85,6 +85,7 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resour
 	}
 }
 
+// this should not have been merged, needs to be fixed once https://github.com/Azure/azure-rest-api-specs/issues/9072 has been addressed
 type dataSourceWindowsPerformanceCounterProperty struct {
 	CounterName     string `json:"counterName"`
 	InstanceName    string `json:"instanceName"`

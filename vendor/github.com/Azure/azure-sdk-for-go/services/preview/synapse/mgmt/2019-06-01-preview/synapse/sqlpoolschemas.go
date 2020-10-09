@@ -87,6 +87,9 @@ func (client SQLPoolSchemasClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolSchemasClient", "List", resp, "Failure responding to request")
 	}
+	if result.spslr.hasNextLink() && result.spslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -9,6 +9,53 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	features := map[string]*schema.Schema{
+		"key_vault": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"recover_soft_deleted_key_vaults": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+
+					"purge_soft_delete_on_destroy": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+				},
+			},
+		},
+
+		"network": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"relaxed_locking": {
+						Type:     schema.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+
+		"template_deployment": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"delete_nested_items_during_deletion": {
+						Type:     schema.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+
 		"virtual_machine": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -32,25 +79,6 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 					"roll_instances_when_required": {
 						Type:     schema.TypeBool,
 						Required: true,
-					},
-				},
-			},
-		},
-
-		"key_vault": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"recover_soft_deleted_key_vaults": {
-						Type:     schema.TypeBool,
-						Optional: true,
-					},
-
-					"purge_soft_delete_on_destroy": {
-						Type:     schema.TypeBool,
-						Optional: true,
 					},
 				},
 			},
@@ -84,15 +112,21 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	// these are the defaults if omitted from the config
 	features := features.UserFeatures{
 		// NOTE: ensure all nested objects are fully populated
+		KeyVault: features.KeyVaultFeatures{
+			PurgeSoftDeleteOnDestroy:    true,
+			RecoverSoftDeletedKeyVaults: true,
+		},
+		Network: features.NetworkFeatures{
+			RelaxedLocking: false,
+		},
+		TemplateDeployment: features.TemplateDeploymentFeatures{
+			DeleteNestedItemsDuringDeletion: true,
+		},
 		VirtualMachine: features.VirtualMachineFeatures{
 			DeleteOSDiskOnDeletion: true,
 		},
 		VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 			RollInstancesWhenRequired: true,
-		},
-		KeyVault: features.KeyVaultFeatures{
-			PurgeSoftDeleteOnDestroy:    true,
-			RecoverSoftDeletedKeyVaults: true,
 		},
 	}
 
@@ -111,6 +145,26 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_key_vaults"]; ok {
 				features.KeyVault.RecoverSoftDeletedKeyVaults = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["network"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			networkRaw := items[0].(map[string]interface{})
+			if v, ok := networkRaw["relaxed_locking"]; ok {
+				features.Network.RelaxedLocking = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["template_deployment"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			networkRaw := items[0].(map[string]interface{})
+			if v, ok := networkRaw["delete_nested_items_during_deletion"]; ok {
+				features.TemplateDeployment.DeleteNestedItemsDuringDeletion = v.(bool)
 			}
 		}
 	}

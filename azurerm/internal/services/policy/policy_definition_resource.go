@@ -63,7 +63,20 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			"mode": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"All",
+						"Indexed",
+						"Microsoft.ContainerService.Data",
+						"Microsoft.CustomerLockbox.Data",
+						"Microsoft.DataCatalog.Data",
+						"Microsoft.KeyVault.Data",
+						"Microsoft.Kubernetes.Data",
+						"Microsoft.MachineLearningServices.Data",
+						"Microsoft.Network.Data",
+						"Microsoft.Synapse.Data",
+					}, false,
+				),
 			},
 
 			"management_group_id": {

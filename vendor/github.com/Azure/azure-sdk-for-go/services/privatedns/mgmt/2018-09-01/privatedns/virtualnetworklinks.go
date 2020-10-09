@@ -331,6 +331,9 @@ func (client VirtualNetworkLinksClient) List(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.VirtualNetworkLinksClient", "List", resp, "Failure responding to request")
 	}
+	if result.vnllr.hasNextLink() && result.vnllr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

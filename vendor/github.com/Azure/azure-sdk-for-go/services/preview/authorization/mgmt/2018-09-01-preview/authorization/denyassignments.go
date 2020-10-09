@@ -230,6 +230,9 @@ func (client DenyAssignmentsClient) List(ctx context.Context, filter string) (re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -355,6 +358,9 @@ func (client DenyAssignmentsClient) ListForResource(ctx context.Context, resourc
 	result.dalr, err = client.ListForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForResource", resp, "Failure responding to request")
+	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -483,6 +489,9 @@ func (client DenyAssignmentsClient) ListForResourceGroup(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForResourceGroup", resp, "Failure responding to request")
 	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -605,6 +614,9 @@ func (client DenyAssignmentsClient) ListForScope(ctx context.Context, scope stri
 	result.dalr, err = client.ListForScopeResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.DenyAssignmentsClient", "ListForScope", resp, "Failure responding to request")
+	}
+	if result.dalr.hasNextLink() && result.dalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

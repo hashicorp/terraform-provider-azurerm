@@ -239,7 +239,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
   name                       = "network-watcher"
-  virtual_machine_id         = azurerm_virtual_machine.src.id
+  virtual_machine_id         = azurerm_virtual_machine.test.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"

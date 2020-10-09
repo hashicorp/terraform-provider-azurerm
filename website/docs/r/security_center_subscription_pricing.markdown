@@ -18,7 +18,8 @@ Manages the Pricing Tier for Azure Security Center in the current subscription.
 
 ```hcl
 resource "azurerm_security_center_subscription_pricing" "example" {
-  tier = "Standard"
+  tier          = "Standard"
+  resource_type = "VirtualMachines"
 }
 ```
 
@@ -27,8 +28,9 @@ resource "azurerm_security_center_subscription_pricing" "example" {
 The following arguments are supported:
 
 * `tier` - (Required) The pricing tier to use. Possible values are `Free` and `Standard`.
+* `resource_type` - (Required) The resource type this setting affects. Possible values are `AppServices`, `ContainerRegistry`, `KeyVaults`, `KubernetesService`, `SqlServers`, `SqlServerVirtualMachines`, `StorageAccounts`, and `VirtualMachines`. 
 
-~> **NOTE:** Changing the pricing tier to `Standard` affects all resources in the subscription and could be quite costly.
+~> **NOTE:** Changing the pricing tier to `Standard` affects all resources of the given type in the subscription and could be quite costly.
 
 ## Attributes Reference
 
@@ -50,5 +52,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 The pricing tier can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_security_center_subscription_pricing.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/pricings/default
+terraform import azurerm_security_center_subscription_pricing.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/pricings/<resource_type>
 ```

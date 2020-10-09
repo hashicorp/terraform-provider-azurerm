@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -244,6 +244,10 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	}
 
 	if props := resp.WebTestProperties; props != nil {
+		// It is possible that the root level `kind` in response is empty in some cases (see PR #8372 for more info)
+		if resp.Kind == "" {
+			d.Set("kind", props.WebTestKind)
+		}
 		d.Set("synthetic_monitor_id", props.SyntheticMonitorID)
 		d.Set("description", props.Description)
 		d.Set("enabled", props.Enabled)

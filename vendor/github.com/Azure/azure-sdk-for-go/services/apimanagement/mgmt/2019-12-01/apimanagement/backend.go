@@ -464,6 +464,9 @@ func (client BackendClient) ListByService(ctx context.Context, resourceGroupName
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.BackendClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.bc.hasNextLink() && result.bc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -436,11 +435,13 @@ func resourceArmBatchPool() *schema.Resource {
 										}, false),
 									},
 									"backend_port": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validate.IntBetweenAndNotInRange(1, 65535, 29876, 29877),
-										// 1 and 65535 except for 29876, 29877 as these are reserved.
+										Type:     schema.TypeInt,
+										Required: true,
+										ForceNew: true,
+										ValidateFunc: validation.All(
+											validation.IsPortNumber,
+											validation.IntNotInSlice([]int{29876, 29877}),
+										),
 									},
 									"frontend_port_range": {
 										Type:         schema.TypeString,
@@ -705,12 +706,6 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 
 		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
-	}
-
-	networkConfiguration := d.Get("network_configuration").([]interface{})
-	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
-	if err != nil {
-		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
 	}
 
 	result, err := client.Update(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters, "")

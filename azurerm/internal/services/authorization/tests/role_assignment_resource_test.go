@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -173,7 +172,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	roleDefinitionId := uuid.New().String()
 	roleAssignmentId := uuid.New().String()
-	rInt := tf.AccRandTimeInt()
+	rInt := acceptance.RandTimeInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -200,7 +199,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 
 func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	ri := tf.AccRandTimeInt()
+	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -220,7 +219,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T
 }
 
 func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipalWithType(t *testing.T) {
-	ri := tf.AccRandTimeInt()
+	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -239,7 +238,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipalWithType(t *t
 }
 
 func testAccAzureRMActiveDirectoryServicePrincipal_group(t *testing.T) {
-	ri := tf.AccRandTimeInt()
+	ri := acceptance.RandTimeInt()
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -459,7 +458,7 @@ resource "azurerm_role_definition" "test" {
 resource "azurerm_role_assignment" "test" {
   name               = "%s"
   scope              = data.azurerm_subscription.primary.id
-  role_definition_id = azurerm_role_definition.test.id
+  role_definition_id = azurerm_role_definition.test.role_definition_resource_id
   principal_id       = data.azurerm_client_config.test.object_id
 }
 `, roleDefinitionId, rInt, roleAssignmentId)

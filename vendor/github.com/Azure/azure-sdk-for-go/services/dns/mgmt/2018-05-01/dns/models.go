@@ -30,52 +30,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 
-// RecordType enumerates the values for record type.
-type RecordType string
-
-const (
-	// A ...
-	A RecordType = "A"
-	// AAAA ...
-	AAAA RecordType = "AAAA"
-	// CAA ...
-	CAA RecordType = "CAA"
-	// CNAME ...
-	CNAME RecordType = "CNAME"
-	// MX ...
-	MX RecordType = "MX"
-	// NS ...
-	NS RecordType = "NS"
-	// PTR ...
-	PTR RecordType = "PTR"
-	// SOA ...
-	SOA RecordType = "SOA"
-	// SRV ...
-	SRV RecordType = "SRV"
-	// TXT ...
-	TXT RecordType = "TXT"
-)
-
-// PossibleRecordTypeValues returns an array of possible values for the RecordType const type.
-func PossibleRecordTypeValues() []RecordType {
-	return []RecordType{A, AAAA, CAA, CNAME, MX, NS, PTR, SOA, SRV, TXT}
-}
-
-// ZoneType enumerates the values for zone type.
-type ZoneType string
-
-const (
-	// Private ...
-	Private ZoneType = "Private"
-	// Public ...
-	Public ZoneType = "Public"
-)
-
-// PossibleZoneTypeValues returns an array of possible values for the ZoneType const type.
-func PossibleZoneTypeValues() []ZoneType {
-	return []ZoneType{Private, Public}
-}
-
 // AaaaRecord an AAAA record.
 type AaaaRecord struct {
 	// Ipv6Address - The IPv6 address of this AAAA record.
@@ -238,6 +192,15 @@ type RecordSetListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for RecordSetListResult.
+func (rslr RecordSetListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rslr.Value != nil {
+		objectMap["value"] = rslr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // RecordSetListResultIterator provides access to a complete listing of RecordSet values.
 type RecordSetListResultIterator struct {
 	i    int
@@ -306,10 +269,15 @@ func (rslr RecordSetListResult) IsEmpty() bool {
 	return rslr.Value == nil || len(*rslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rslr RecordSetListResult) hasNextLink() bool {
+	return rslr.NextLink != nil && len(*rslr.NextLink) != 0
+}
+
 // recordSetListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rslr RecordSetListResult) recordSetListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rslr.NextLink == nil || len(to.String(rslr.NextLink)) < 1 {
+	if !rslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -337,11 +305,16 @@ func (page *RecordSetListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rslr)
+		if err != nil {
+			return err
+		}
+		page.rslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rslr = next
 	return nil
 }
 
@@ -752,6 +725,15 @@ type ZoneListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ZoneListResult.
+func (zlr ZoneListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if zlr.Value != nil {
+		objectMap["value"] = zlr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // ZoneListResultIterator provides access to a complete listing of Zone values.
 type ZoneListResultIterator struct {
 	i    int
@@ -820,10 +802,15 @@ func (zlr ZoneListResult) IsEmpty() bool {
 	return zlr.Value == nil || len(*zlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (zlr ZoneListResult) hasNextLink() bool {
+	return zlr.NextLink != nil && len(*zlr.NextLink) != 0
+}
+
 // zoneListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (zlr ZoneListResult) zoneListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if zlr.NextLink == nil || len(to.String(zlr.NextLink)) < 1 {
+	if !zlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -851,11 +838,16 @@ func (page *ZoneListResultPage) NextWithContext(ctx context.Context) (err error)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.zlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.zlr)
+		if err != nil {
+			return err
+		}
+		page.zlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.zlr = next
 	return nil
 }
 
@@ -903,6 +895,21 @@ type ZoneProperties struct {
 	RegistrationVirtualNetworks *[]SubResource `json:"registrationVirtualNetworks,omitempty"`
 	// ResolutionVirtualNetworks - A list of references to virtual networks that resolve records in this DNS zone. This is a only when ZoneType is Private.
 	ResolutionVirtualNetworks *[]SubResource `json:"resolutionVirtualNetworks,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ZoneProperties.
+func (zp ZoneProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if zp.ZoneType != "" {
+		objectMap["zoneType"] = zp.ZoneType
+	}
+	if zp.RegistrationVirtualNetworks != nil {
+		objectMap["registrationVirtualNetworks"] = zp.RegistrationVirtualNetworks
+	}
+	if zp.ResolutionVirtualNetworks != nil {
+		objectMap["resolutionVirtualNetworks"] = zp.ResolutionVirtualNetworks
+	}
+	return json.Marshal(objectMap)
 }
 
 // ZonesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.

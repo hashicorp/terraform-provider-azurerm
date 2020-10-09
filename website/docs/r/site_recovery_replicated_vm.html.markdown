@@ -128,7 +128,7 @@ resource "azurerm_subnet" "primary" {
   name                 = "network1-subnet"
   resource_group_name  = azurerm_resource_group.primary.name
   virtual_network_name = azurerm_virtual_network.primary.name
-  address_prefix       = "192.168.1.0/24"
+  address_prefixes     = ["192.168.1.0/24"]
 }
 
 resource "azurerm_network_interface" "vm" {
@@ -192,6 +192,10 @@ The following arguments are supported:
 
 * `managed_disk` - (Required) One or more `managed_disk` block.
 
+* `target_network_id` - (Optional) Network to use when a failover is done (recommended to set if any network_interface is configured for failover). 
+
+* `network_interface` - (Optional) One or more `network_interface` block.
+
 ---
 
 A `managed_disk` block supports the following:
@@ -206,6 +210,16 @@ A `managed_disk` block supports the following:
 
 * `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data.
 
+---
+
+A `network_interface` block supports the following:
+
+* `source_network_interface_id` - (Required if the network_interface block is specified) Id source network interface.
+
+* `target_static_ip` - (Optional) Static IP to assign when a failover is done.
+
+* `target_subnet_name` - (Optional) Name of the subnet to to use when a failover is done.
+
 ## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
@@ -216,7 +230,7 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 80 minutes) Used when creating the Site Recovery Replicated VM.
+* `create` - (Defaults to 120 minutes) Used when creating the Site Recovery Replicated VM.
 * `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replicated VM.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Site Recovery Replicated VM.

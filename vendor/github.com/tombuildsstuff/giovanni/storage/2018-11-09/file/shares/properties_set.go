@@ -22,8 +22,8 @@ func (client Client) SetProperties(ctx context.Context, accountName, shareName s
 	if strings.ToLower(shareName) != shareName {
 		return result, validation.NewError("shares.Client", "SetProperties", "`shareName` must be a lower-cased string.")
 	}
-	if newQuotaGB <= 0 || newQuotaGB > 5120 {
-		return result, validation.NewError("shares.Client", "SetProperties", "`newQuotaGB` must be greater than 0, and less than/equal to 5TB (5120 GB)")
+	if newQuotaGB <= 0 || newQuotaGB > 102400 {
+		return result, validation.NewError("shares.Client", "SetProperties", "`newQuotaGB` must be greater than 0, and less than/equal to 100TB (102400 GB)")
 	}
 
 	req, err := client.SetPropertiesPreparer(ctx, accountName, shareName, newQuotaGB)

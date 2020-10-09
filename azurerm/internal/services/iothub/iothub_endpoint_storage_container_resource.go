@@ -6,15 +6,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -41,7 +41,7 @@ func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IoTHubEndpointName,
+				ValidateFunc: iothubValidate.IoTHubEndpointName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -50,7 +50,7 @@ func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.IoTHubName,
+				ValidateFunc: iothubValidate.IoTHubName,
 			},
 
 			"container_name": {
@@ -168,7 +168,7 @@ func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceDat
 	for _, existingEndpoint := range *routing.Endpoints.StorageContainers {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, endpointName) {
-				if d.IsNewResource() && features.ShouldResourcesBeImported() {
+				if d.IsNewResource() {
 					return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", resourceId)
 				}
 				endpoints = append(endpoints, storageContainerEndpoint)

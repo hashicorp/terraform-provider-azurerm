@@ -125,6 +125,15 @@ func dataSourceArmBatchPool() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"container_image_names": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
 						"container_registries": {
 							Type:     schema.TypeList,
 							Computed: true,

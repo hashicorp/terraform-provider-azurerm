@@ -495,7 +495,7 @@ func TestAccAzureRMAppService_storageAccounts(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
+func TestAccAzureRMAppService_oneIpv4Restriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -503,10 +503,30 @@ func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppService_oneIpRestriction(data),
+				Config: testAccAzureRMAppService_oneIpv4Restriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMAppService_oneIpv6Restriction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_oneIpv6Restriction(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "2400:cb00::/32"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
 				),
 			},
@@ -547,7 +567,7 @@ func TestAccAzureRMAppService_completeIpRestriction(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.name", "test-restriction-2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.priority", "1234"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.action", "Deny"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.30.0/24"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "2400:cb00::/32"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.name", "test-restriction-3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.priority", "65000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.action", "Deny"),
@@ -597,7 +617,7 @@ func TestAccAzureRMAppService_zeroedIpRestriction(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// This configuration includes a single explicit ip_restriction
-				Config: testAccAzureRMAppService_oneIpRestriction(data),
+				Config: testAccAzureRMAppService_oneIpv4Restriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "1"),
@@ -1379,6 +1399,49 @@ func TestAccAzureRMAppService_scmType(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_withSourceControl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_withSourceControl(data, "main"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMAppService_withSourceControlUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_withSourceControl(data, "main"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMAppService_withSourceControl(data, "development"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1417,8 +1480,7 @@ func TestAccAzureRMAppService_healthCheckPath(t *testing.T) {
 	})
 }
 
-// todo - linuxFxVersion seems to reject all supplied values - needs more detailed investigation.
-// error message simply reads: Original Error: Code="BadRequest" Message="The parameter LinuxFxVersion has an invalid value."
+// Note: to specify `linux_fx_version` the App Service Plan must be of `kind = "Linux"`, and `reserved = true`
 func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1430,11 +1492,9 @@ func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 				Config: testAccAzureRMAppService_linuxFxVersion(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.WEBSITES_ENABLE_APP_SERVICE_STORAGE", "false"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -2780,7 +2840,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_oneIpRestriction(data acceptance.TestData) string {
+func testAccAzureRMAppService_oneIpv4Restriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2811,6 +2871,44 @@ resource "azurerm_app_service" "test" {
   site_config {
     ip_restriction {
       ip_address = "10.10.10.10/32"
+      action     = "Allow"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMAppService_oneIpv6Restriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  site_config {
+    ip_restriction {
+      ip_address = "2400:cb00::/32"
       action     = "Allow"
     }
   }
@@ -2902,7 +3000,7 @@ resource "azurerm_app_service" "test" {
     }
 
     ip_restriction {
-      ip_address = "30.30.30.0/24"
+      ip_address = "2400:cb00::/32"
       name       = "test-restriction-3"
       action     = "Deny"
     }
@@ -3488,6 +3586,7 @@ resource "azurerm_app_service" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMAppService_applicationBlobStorageLogsWithAppSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3531,6 +3630,7 @@ resource "azurerm_app_service" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMAppService_httpFileSystemLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3570,6 +3670,7 @@ resource "azurerm_app_service" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMAppService_httpBlobStorageLogs(data acceptance.TestData) string {
 	template := testAccAzureRMAppService_backupTemplate(data)
 	return fmt.Sprintf(`
@@ -3981,6 +4082,44 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
+func testAccAzureRMAppService_withSourceControl(data acceptance.TestData, branch string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-web-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+
+  source_control {
+    repo_url           = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
+    branch             = "%[5]s"
+    manual_integration = true
+    rollback_enabled   = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, branch)
+}
+
 func testAccAzureRMAppService_ftpsState(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4066,6 +4205,8 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
@@ -4081,7 +4222,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     always_on        = true
-    linux_fx_version = "DOCKER|(golang:latest)"
+    linux_fx_version = "DOCKER|golang:latest"
   }
 
   app_settings = {
