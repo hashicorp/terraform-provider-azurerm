@@ -90,7 +90,7 @@ func resourceArmLogAnalyticsDataSourceIISLogsCreateUpdate(d *schema.ResourceData
 		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("failed to check for existing Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+				return fmt.Errorf("checking for existing Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
 			}
 		}
 
@@ -107,12 +107,12 @@ func resourceArmLogAnalyticsDataSourceIISLogsCreateUpdate(d *schema.ResourceData
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspaceName, name, params); err != nil {
-		return fmt.Errorf("failed to create Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
+		return fmt.Errorf("while creating Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", name, resourceGroup, workspaceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve Log Analytics DataSource IIS logs %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("while retrieving Log Analytics DataSource IIS logs %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
@@ -142,7 +142,7 @@ func resourceArmLogAnalyticsDataSourceIISLogsRead(d *schema.ResourceData, meta i
 			return nil
 		}
 
-		return fmt.Errorf("failed to retrieve Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+		return fmt.Errorf("while retrieving Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -151,12 +151,12 @@ func resourceArmLogAnalyticsDataSourceIISLogsRead(d *schema.ResourceData, meta i
 	if props := resp.Properties; props != nil {
 		propStr, err := structure.FlattenJsonToString(props.(map[string]interface{}))
 		if err != nil {
-			return fmt.Errorf("failed to flatten properties map to json for Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+			return fmt.Errorf("while flattening properties map to json for Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
 
 		prop := &dataSourceIISLogsProperty{}
 		if err := json.Unmarshal([]byte(propStr), &prop); err != nil {
-			return fmt.Errorf("failed to decode properties json for Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+			return fmt.Errorf("while decoding properties json for Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}
 
 		if strings.EqualFold(prop.State, "OnPremiseEnabled") {
@@ -180,7 +180,7 @@ func resourceArmLogAnalyticsDataSourceIISLogsDelete(d *schema.ResourceData, meta
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
-		return fmt.Errorf("failed to delete Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
+		return fmt.Errorf("while deleting Log Analytics DataSource IIS logs %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 	}
 
 	return nil
