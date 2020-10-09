@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `event_hub_auth_rule_id` - (Optional) The event hub authorization rule id to use for sending logs.
 
-* `logs` - (Required) One or more `ipv4_firewall_rule` block(s) as defined below.
+* `logs` - (Required) One or more `logs` block(s) as defined below.
 
 ---
 
