@@ -217,17 +217,15 @@ A `container_configuration` block within a `start_task` block supports the follo
 
 * `container_run_settings` - (Optional) Run settings for the container
 
-
 ---
 
-A `registry` block supports the followin:
+A `registry` block supports the following:
 
 * `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
 
 * `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
-
 
 ---
 

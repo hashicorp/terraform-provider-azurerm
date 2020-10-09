@@ -283,6 +283,47 @@ func dataSourceArmBatchPool() *schema.Resource {
 								},
 							},
 						},
+
+						"container_configuration": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"container_run_settings": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"image_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"working_directory": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"registry": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"registry_server": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"user_name": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"password": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},

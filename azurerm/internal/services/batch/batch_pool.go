@@ -133,16 +133,16 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		if startTask.ContainerSettings.ContainerRunOptions != nil {
 			containerSettings["container_run_settings"] = *startTask.ContainerSettings.ContainerRunOptions
 		}
-	
+
 		if startTask.ContainerSettings.ImageName != nil {
 			containerSettings["image_name"] = *startTask.ContainerSettings.ImageName
 		}
-	
+
 		containerSettings["working_directory"] = string(startTask.ContainerSettings.WorkingDirectory)
-	
+
 		if startTask.ContainerSettings.Registry != nil {
 			registry := make(map[string]interface{})
-	
+
 			if startTask.ContainerSettings.Registry.UserName != nil {
 				registry["user_name"] = startTask.ContainerSettings.Registry.UserName
 			}
@@ -513,8 +513,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 			}
 		}
 	}
-
-
 
 	resourceFileList := startTaskValue["resource_file"].([]interface{})
 	resourceFiles := make([]batch.ResourceFile, 0)

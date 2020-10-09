@@ -83,6 +83,32 @@ A `start_task` block exports the following:
 
 * `resource_file` - One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
 
+* `container_configuration` - A `container_configuration` block that describes the container settings for the start task.
+
+---
+
+A `container_configuration` block within a `start_task` block supports the following:
+
+* `image_name` - The image name of the container. Changing this forces a new resource to be created.
+
+* `registry` - A `registry` block for the container registry. Changing this forces a new resource to be created.
+
+* `working_directory` - The working directory for the container.  Can be set to `ContainerImageDefault` or `TaskWorkingDirectory`. 
+
+~> **Please Note:** If `working_directory` is set to `ContainerImageDefault`, this directory will not contain the resource files downloaded by Batch.
+
+* `container_run_settings` - Run settings for the container
+
+---
+
+A `registry` block supports the following:
+
+* `registry_server` - The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
+
+* `user_name` - The user name to log into the registry server. Changing this forces a new resource to be created.
+
+* `password` - The password to log into the registry server. Changing this forces a new resource to be created.
+
 ---
 
 A `user_identity` block exports the following:

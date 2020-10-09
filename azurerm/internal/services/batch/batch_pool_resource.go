@@ -389,29 +389,29 @@ func resourceArmBatchPool() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"container_run_settings": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ForceNew:   true,
+										Type:     schema.TypeString,
+										Optional: true,
+										ForceNew: true,
 									},
 									"image_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ForceNew:   true,
+										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"working_directory": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:   true,
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(batch.ContainerWorkingDirectory.ContainerImageDefault),
 											string(batch.ContainerWorkingDirectory.ContainerWorkingDirectory),
 										}),
 									},
 									"registry": {
-										Type:       schema.TypeList,
-										Required:   true,
-										ForceNew:   true,
+										Type:     schema.TypeList,
+										Required: true,
+										ForceNew: true,
 										MinItems: 1,
 										MaxItems: 1,
 										Elem: &schema.Resource{
