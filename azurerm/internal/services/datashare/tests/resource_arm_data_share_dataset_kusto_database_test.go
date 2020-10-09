@@ -55,12 +55,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-datashare-%[1]d"
+  name     = "acctestRG-datashare-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_data_share_account" "test" {
-  name                = "acctest-dsa-%[1]d"
+  name                = "acctest-DSA-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   identity {
@@ -69,7 +69,7 @@ resource "azurerm_data_share_account" "test" {
 }
 
 resource "azurerm_data_share" "test" {
-  name       = "acctest_ds_%[1]d"
+  name       = "acctest_DS_%[1]d"
   account_id = azurerm_data_share_account.test.id
   kind       = "InPlace"
 }
@@ -86,7 +86,7 @@ resource "azurerm_kusto_cluster" "test" {
 }
 
 resource "azurerm_kusto_database" "test" {
-  name                = "acctestkd-%[1]d"
+  name                = "acctestKD-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   cluster_name        = azurerm_kusto_cluster.test.name
