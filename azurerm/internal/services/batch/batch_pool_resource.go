@@ -388,10 +388,11 @@ func resourceArmBatchPool() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"container_run_settings": {
+									"container_run_options": {
 										Type:     schema.TypeString,
 										Optional: true,
 										ForceNew: true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"image_name": {
 										Type:         schema.TypeString,

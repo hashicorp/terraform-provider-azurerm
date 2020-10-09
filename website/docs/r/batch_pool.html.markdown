@@ -215,7 +215,7 @@ A `container_configuration` block within a `start_task` block supports the follo
 
 ~> **Please Note:** If `working_directory` is set to `ContainerImageDefault`, this directory will not contain the resource files downloaded by Batch.
 
-* `container_run_settings` - (Optional) Run settings for the container
+* `container_run_options` - (Optional) Run options for the container
 
 ---
 

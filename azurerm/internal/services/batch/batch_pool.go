@@ -131,7 +131,7 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		containerSettings := make(map[string]interface{})
 
 		if startTask.ContainerSettings.ContainerRunOptions != nil {
-			containerSettings["container_run_settings"] = *startTask.ContainerSettings.ContainerRunOptions
+			containerSettings["container_run_options"] = *startTask.ContainerSettings.ContainerRunOptions
 		}
 
 		if startTask.ContainerSettings.ImageName != nil {
@@ -479,8 +479,11 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		}
 	}
 
-	if v, ok := containerConfigurationValue["container_run_settings"]; ok {
-		containerConfiguration.ContainerRunOptions = utils.String(v.(string))
+	if v, ok := containerConfigurationValue["container_run_options"]; ok {
+		containerRunOptions := v.(string)
+		if containerRunOptions != "" {
+			containerConfiguration.ContainerRunOptions = utils.String(containerRunOptions)
+		}
 	}
 
 	if v, ok := containerConfigurationValue["working_directory"]; ok {

@@ -289,7 +289,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"container_run_settings": {
+									"container_run_options": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
