@@ -49,6 +49,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"availability_zones": {
 					Type:     schema.TypeList,
 					Optional: true,
+					ForceNew: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
 					},
