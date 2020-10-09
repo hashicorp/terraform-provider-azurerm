@@ -67,6 +67,17 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"storage_replication_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "GRS",
+				ValidateFunc: validation.StringInSlice([]string{
+					"LocallyRedundant",
+					"GeoRedundant",
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
 		},
 	}
 }
@@ -74,6 +85,7 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
+	storageCfgsClient := meta.(*clients.Client).RecoveryServices.StorageConfigsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -111,6 +123,13 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error creating/updating Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	softDeleteEnabled := d.HasChange("soft_delete_enabled")
+	fmt.Printf("Has change soft_delete_enabled:")
+	fmt.Printf("%t", softDeleteEnabled)
+	storageReplicationType := d.HasChange("storage_replication_type")
+	fmt.Printf("Has change storage_replication_type:")
+	fmt.Printf("%t", storageReplicationType)
+
 	cfg := backup.ResourceVaultConfigResource{
 		Properties: &backup.ResourceVaultConfig{
 			EnhancedSecurityState: backup.EnhancedSecurityStateEnabled, // always enabled
@@ -140,6 +159,35 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
+	if d.HasChange("storage_replication_type") {
+		storageCfg := backup.ResourceConfigResource{
+			Properties: &backup.ResourceConfig{},
+		}
+
+		if d.Get("storage_replication_type").(string) == string("LocallyRedundant") {
+			storageCfg.Properties.StorageModelType = backup.StorageTypeLocallyRedundant
+		} else {
+			storageCfg.Properties.StorageModelType = backup.StorageTypeGeoRedundant
+		}
+
+		stateConf = &resource.StateChangeConf{
+			Pending:    []string{"syncing"},
+			Target:     []string{"success"},
+			MinTimeout: 30 * time.Second,
+			Refresh: func() (interface{}, string, error) {
+				resp, err := storageCfgsClient.Update(ctx, name, resourceGroup, storageCfg)
+				if err != nil {
+					if strings.Contains(err.Error(), "ResourceNotYetSynced") {
+						return resp, "syncing", nil
+					}
+					return resp, "error", fmt.Errorf("Error updating Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+				}
+
+				return resp, "success", nil
+			},
+		}
+	}
+
 	if d.IsNewResource() {
 		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
@@ -166,6 +214,7 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
+	storageCfgsClient := meta.(*clients.Client).RecoveryServices.StorageConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -206,6 +255,15 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 
 	if props := cfg.Properties; props != nil {
 		d.Set("soft_delete_enabled", props.SoftDeleteFeatureState == backup.SoftDeleteFeatureStateEnabled)
+	}
+
+	storageCfg, err := storageCfgsClient.Get(ctx, name, resourceGroup)
+	if err != nil {
+		return fmt.Errorf("Error reading Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if props := storageCfg.Properties; props != nil {
+		d.Set("storage_replication_type", props.StorageModelType)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

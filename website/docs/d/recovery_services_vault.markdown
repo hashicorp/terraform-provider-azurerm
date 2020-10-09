@@ -39,6 +39,10 @@ The following attributes are exported:
 
 * `sku` - The vault's current SKU.
 
+* `soft_delete_enabled` - (Optional) Is soft delete enabled for this Vault? Defaults to true.
+
+* `storage_replication_type` - (Optional) Storage replication type backup configuration for this vault. Possible values: GeoRedundant or LocallyRedundant. Defaults to GeoRedundant. Cannot be changed 
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

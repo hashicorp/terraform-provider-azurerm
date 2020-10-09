@@ -175,12 +175,13 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-Vault-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
+  name                		= "acctest-Vault-%d"
+  location            		= azurerm_resource_group.test.location
+  resource_group_name 		= azurerm_resource_group.test.name
+  sku                 		= "Standard"
 
-  soft_delete_enabled = false
+  soft_delete_enabled 		= false
+  storage_replication_type	= "LocallyRedundant"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -203,6 +204,7 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   soft_delete_enabled = false
+  storage_replication_type	= "LocallyRedundant"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -14,6 +14,7 @@ type Client struct {
 	BackupOperationStatusesClient    *backup.OperationStatusesClient
 	VaultsClient                     *recoveryservices.VaultsClient
 	VaultsConfigsClient              *backup.ResourceVaultConfigsClient // Not sure why this is in backup, but https://github.com/Azure/azure-sdk-for-go/issues/7279
+	StorageConfigsClient             *backup.ResourceStorageConfigsClient
 	FabricClient                     func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
 	ProtectionContainerClient        func(resourceGroupName string, vaultName string) siterecovery.ReplicationProtectionContainersClient
 	ReplicationPoliciesClient        func(resourceGroupName string, vaultName string) siterecovery.ReplicationPoliciesClient
@@ -23,6 +24,9 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	storageConfigsClient := backup.NewResourceStorageConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&storageConfigsClient.Client, o.ResourceManagerAuthorizer)
+
 	vaultConfigsClient := backup.NewResourceVaultConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vaultConfigsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -84,6 +88,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		BackupOperationStatusesClient:    &backupOperationStatusesClient,
 		VaultsClient:                     &vaultsClient,
 		VaultsConfigsClient:              &vaultConfigsClient,
+		StorageConfigsClient:             &storageConfigsClient,
 		FabricClient:                     fabricClient,
 		ProtectionContainerClient:        protectionContainerClient,
 		ReplicationPoliciesClient:        replicationPoliciesClient,
