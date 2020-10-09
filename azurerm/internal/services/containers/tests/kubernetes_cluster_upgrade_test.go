@@ -33,14 +33,14 @@ func testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data, 3, 8),
+				Config: testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 3, 8),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data, 4, 8),
+				Config: testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 4, 8),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
@@ -359,7 +359,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template, customNodePoolVersion)
 }
 
-func testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data acceptance.TestData, minCount int, maxCount int) string {
+func testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data acceptance.TestData, controlPlaneVersion string, minCount int, maxCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -375,6 +375,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
 
   default_node_pool {
     name                = "default"
@@ -388,5 +389,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, minCount, maxCount)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, minCount, maxCount)
 }
