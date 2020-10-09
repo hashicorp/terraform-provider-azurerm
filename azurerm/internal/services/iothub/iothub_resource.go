@@ -246,8 +246,6 @@ func resourceArmIotHub() *schema.Resource {
 							Sensitive: true,
 						},
 
-						"endpoint_resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -293,6 +291,12 @@ func resourceArmIotHub() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validateIoTHubFileNameFormat,
+						},
+
+						"resource_group_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: iothubValidate.IotHubEndpointResourceGroupName,
 						},
 					},
 				},
@@ -800,7 +804,7 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) *devic
 		t := endpoint["type"]
 		connectionStr := endpoint["connection_string"].(string)
 		name := endpoint["name"].(string)
-		resourceGroup := endpoint["endpoint_resource_group_name"].(string)
+		resourceGroup := endpoint["resource_group_name"].(string)
 		subscriptionID := subscriptionId
 
 		switch t {
@@ -993,7 +997,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["max_chunk_size_in_bytes"] = *chunkSize
 				}
 				if resourceGroup := container.ResourceGroup; resourceGroup != nil {
-					output["endpoint_resource_group_name"] = *resourceGroup
+					output["resource_group_name"] = *resourceGroup
 				}
 
 				output["encoding"] = string(container.Encoding)
@@ -1014,7 +1018,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 				if resourceGroup := queue.ResourceGroup; resourceGroup != nil {
-					output["endpoint_resource_group_name"] = *resourceGroup
+					output["resource_group_name"] = *resourceGroup
 				}
 
 				output["type"] = "AzureIotHub.ServiceBusQueue"
@@ -1034,7 +1038,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 				if resourceGroup := topic.ResourceGroup; resourceGroup != nil {
-					output["endpoint_resource_group_name"] = *resourceGroup
+					output["resource_group_name"] = *resourceGroup
 				}
 
 				output["type"] = "AzureIotHub.ServiceBusTopic"
@@ -1054,7 +1058,7 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 					output["name"] = *name
 				}
 				if resourceGroup := eventHub.ResourceGroup; resourceGroup != nil {
-					output["endpoint_resource_group_name"] = *resourceGroup
+					output["resource_group_name"] = *resourceGroup
 				}
 
 				output["type"] = "AzureIotHub.EventHub"

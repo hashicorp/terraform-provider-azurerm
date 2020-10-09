@@ -468,22 +468,22 @@ resource "azurerm_iothub" "test" {
   event_hub_partition_count   = 77
 
   endpoint {
-    type                         = "AzureIotHub.StorageContainer"
-    connection_string            = azurerm_storage_account.test.primary_blob_connection_string
-    name                         = "export"
-    batch_frequency_in_seconds   = 60
-    max_chunk_size_in_bytes      = 10485760
-    container_name               = azurerm_storage_container.test.name
-    encoding                     = "Avro"
-    file_name_format             = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
-    endpoint_resource_group_name = azurerm_resource_group.test.name
+    type                       = "AzureIotHub.StorageContainer"
+    connection_string          = azurerm_storage_account.test.primary_blob_connection_string
+    name                       = "export"
+    batch_frequency_in_seconds = 60
+    max_chunk_size_in_bytes    = 10485760
+    container_name             = azurerm_storage_container.test.name
+    encoding                   = "Avro"
+    file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+    resource_group_name        = azurerm_resource_group.test.name
   }
 
   endpoint {
-    type                         = "AzureIotHub.EventHub"
-    connection_string            = azurerm_eventhub_authorization_rule.test.primary_connection_string
-    name                         = "export2"
-    endpoint_resource_group_name = azurerm_resource_group.test.name
+    type                = "AzureIotHub.EventHub"
+    connection_string   = azurerm_eventhub_authorization_rule.test.primary_connection_string
+    name                = "export2"
+    resource_group_name = azurerm_resource_group.test.name
   }
 
   route {
@@ -730,7 +730,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-iothub-%d"
   location = "%s"
 }
 
@@ -790,22 +790,22 @@ resource "azurerm_iothub" "test" {
   event_hub_partition_count   = 77
 
   endpoint {
-    type                         = "AzureIotHub.StorageContainer"
-    connection_string            = azurerm_storage_account.test.primary_blob_connection_string
-    name                         = "export"
-    batch_frequency_in_seconds   = 60
-    max_chunk_size_in_bytes      = 10485760
-    container_name               = azurerm_storage_container.test.name
-    encoding                     = "Avro"
-    file_name_format             = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
-    endpoint_resource_group_name = azurerm_resource_group.test.name
+    type                       = "AzureIotHub.StorageContainer"
+    connection_string          = azurerm_storage_account.test.primary_blob_connection_string
+    name                       = "export"
+    batch_frequency_in_seconds = 60
+    max_chunk_size_in_bytes    = 10485760
+    container_name             = azurerm_storage_container.test.name
+    encoding                   = "Avro"
+    file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+    resource_group_name        = azurerm_resource_group.test.name
   }
 
   endpoint {
-    type                         = "AzureIotHub.EventHub"
-    connection_string            = azurerm_eventhub_authorization_rule.test.primary_connection_string
-    name                         = "export2"
-    endpoint_resource_group_name = azurerm_resource_group.test2.name
+    type                = "AzureIotHub.EventHub"
+    connection_string   = azurerm_eventhub_authorization_rule.test.primary_connection_string
+    name                = "export2"
+    resource_group_name = azurerm_resource_group.test2.name
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)

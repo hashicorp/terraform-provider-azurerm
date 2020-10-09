@@ -159,8 +159,6 @@ An `endpoint` block supports the following:
 
 * `connection_string` - (Required) The connection string for the endpoint.
 
-* `endpoint_resource_group_name` - (Required) The name of the resource group of the endpoint.
-
 * `name` - (Required) The name of the endpoint. The name must be unique across endpoint types. The following names are reserved:  `events`, `operationsMonitoringEvents`, `fileNotifications` and `$default`.
 
 * `batch_frequency_in_seconds` - (Optional) Time interval at which blobs are written to storage. Value should be between 60 and 720 seconds. Default value is 300 seconds. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
@@ -172,6 +170,8 @@ An `endpoint` block supports the following:
 * `encoding` - (Optional) Encoding that is used to serialize messages to blobs. Supported values are 'avro' and 'avrodeflate'. Default value is 'avro'. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
 
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
+
+* `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
 
 ---
 
