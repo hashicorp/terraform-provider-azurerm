@@ -44,12 +44,13 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]do
 	return &paths
 }
 
-func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(d []*schema.ResourceData) *[][]documentdb.CompositePath {
+func expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[][]documentdb.CompositePath {
 	indexes := make([][]documentdb.CompositePath, 0)
 
-	for _, i := range d {
+	for _, i := range input {
 		indexPairs := make([]documentdb.CompositePath, 0)
-		for _, idxPair := range i.Get("index").([]interface{}) {
+		indexPair := i.(map[string]interface{})
+		for _, idxPair := range indexPair["index"].([]interface{}) {
 			data := idxPair.(map[string]interface{})
 
 			index := documentdb.CompositePath{
@@ -80,7 +81,7 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *schema.ResourceData) *documentdb.Ind
 		policy.ExcludedPaths = expandAzureRmCosmosDBIndexingPolicyExcludedPaths(v)
 	}
 
-	if v, ok := input["composite_index"].([]*schema.ResourceData); ok {
+	if v, ok := input["composite_index"].([]interface{}); ok {
 		policy.CompositeIndexes = expandAzureRmCosmosDBIndexingPolicyCompositeIndexes(v)
 	}
 	return policy
@@ -115,8 +116,14 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 
 	indexPairs := make([]interface{}, 0)
 	for _, v := range input {
+
+		path := ""
+		if v.Path != nil {
+			path = *v.Path
+		}
+
 		block := make(map[string]interface{})
-		block["path"] = v.Path
+		block["path"] = path
 		block["order"] = v.Order
 		indexPairs = append(indexPairs, block)
 	}
