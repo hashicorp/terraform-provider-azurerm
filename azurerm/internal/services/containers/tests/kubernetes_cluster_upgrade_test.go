@@ -383,7 +383,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count           = %d
     max_count           = %d
   }
-  
+
   identity {
     type = "SystemAssigned"
   }
