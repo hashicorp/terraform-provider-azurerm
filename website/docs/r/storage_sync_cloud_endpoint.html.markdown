@@ -40,10 +40,11 @@ resource "azurerm_storage_account" "example" {
 resource "azurerm_storage_share" "example" {
   name                 = "example-share"
   storage_account_name = azurerm_storage_account.example.name
-  lifecycle {
-    ignore_changes = [
-      acl, metadata
-    ]
+  acl {
+    id = "GhostedRecall"
+    access_policy {
+      permissions = "r"
+    }
   }
 }
 

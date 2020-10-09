@@ -105,12 +105,12 @@ func testCheckAzureRMStorageSyncCloudEndpointDestroy(s *terraform.State) error {
 func testAccAzureRMCloudEndpoint_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-StorageSync-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_storage_sync" "test" {
-  name                = "acctest-storagesync-%[1]d"
+  name                = "acctest-StorageSync-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
@@ -132,15 +132,16 @@ resource "azurerm_storage_share" "test" {
   name                 = "acctest-share-%[1]d"
   storage_account_name = azurerm_storage_account.test.name
 
-  lifecycle {
-    ignore_changes = [
-      acl, metadata
-    ]
+  acl {
+    id = "GhostedRecall"
+    access_policy {
+      permissions = "r"
+    }
   }
 }
 
 resource "azurerm_storage_sync_cloud_endpoint" "test" {
-  name                      = "acctest-cep-%[1]d"
+  name                      = "acctest-CEP-%[1]d"
   storage_sync_group_id     = azurerm_storage_sync_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
   storage_account_tenant_id = "%[4]s"
