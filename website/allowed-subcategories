@@ -26,6 +26,7 @@ Data Share
 Database
 Database Migration
 Databricks
+Desktop Virtualization
 Dev Test
 DevSpace
 HDInsight
@@ -59,6 +60,7 @@ Search
 Security Center
 Sentinel
 Service Fabric
+Service Fabric Mesh
 Spring Cloud
 Storage
 Stream Analytics

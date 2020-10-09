@@ -321,6 +321,9 @@ func (client PrivateZonesClient) List(ctx context.Context, top *int32) (result P
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "List", resp, "Failure responding to request")
 	}
+	if result.pzlr.hasNextLink() && result.pzlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -434,6 +437,9 @@ func (client PrivateZonesClient) ListByResourceGroup(ctx context.Context, resour
 	result.pzlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "privatedns.PrivateZonesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.pzlr.hasNextLink() && result.pzlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

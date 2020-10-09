@@ -179,6 +179,9 @@ func (client RecommendedActionsClient) ListByServer(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.RecommendedActionsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.rarl.hasNextLink() && result.rarl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

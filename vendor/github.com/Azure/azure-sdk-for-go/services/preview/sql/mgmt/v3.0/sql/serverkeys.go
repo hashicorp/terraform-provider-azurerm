@@ -317,6 +317,9 @@ func (client ServerKeysClient) ListByServer(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerKeysClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.sklr.hasNextLink() && result.sklr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

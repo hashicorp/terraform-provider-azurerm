@@ -335,6 +335,9 @@ func (client FrontDoorsClient) List(ctx context.Context) (result ListResultPage,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontDoorsClient", "List", resp, "Failure responding to request")
 	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -452,6 +455,9 @@ func (client FrontDoorsClient) ListByResourceGroup(ctx context.Context, resource
 	result.lr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.FrontDoorsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

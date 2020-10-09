@@ -132,7 +132,6 @@ func (client BookmarkClient) ExpandSender(req *http.Request) (*http.Response, er
 func (client BookmarkClient) ExpandResponder(resp *http.Response) (result BookmarkExpandResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

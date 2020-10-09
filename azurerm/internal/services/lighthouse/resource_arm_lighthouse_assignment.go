@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -16,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/validate"
+	resourceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	subscriptionValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -56,7 +56,7 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: subscriptionValidate.SubscriptionID,
+				ValidateFunc: validation.Any(subscriptionValidate.SubscriptionID, resourceValidate.ValidateResourceGroupID),
 			},
 		},
 	}

@@ -300,6 +300,9 @@ func (client VaultsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.vl.hasNextLink() && result.vl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -408,6 +411,9 @@ func (client VaultsClient) ListBySubscriptionID(ctx context.Context) (result Vau
 	result.vl, err = client.ListBySubscriptionIDResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultsClient", "ListBySubscriptionID", resp, "Failure responding to request")
+	}
+	if result.vl.hasNextLink() && result.vl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

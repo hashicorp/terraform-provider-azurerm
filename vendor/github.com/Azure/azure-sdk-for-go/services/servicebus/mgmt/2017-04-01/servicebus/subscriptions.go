@@ -386,6 +386,9 @@ func (client SubscriptionsClient) ListByTopic(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.SubscriptionsClient", "ListByTopic", resp, "Failure responding to request")
 	}
+	if result.sslr.hasNextLink() && result.sslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

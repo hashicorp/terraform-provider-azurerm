@@ -349,6 +349,9 @@ func (client DscCompilationJobClient) ListByAutomationAccount(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.DscCompilationJobClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.dcjlr.hasNextLink() && result.dcjlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

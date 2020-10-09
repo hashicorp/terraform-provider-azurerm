@@ -7,11 +7,14 @@ import (
 )
 
 type Client struct {
+	BackupLongTermRetentionPoliciesClient              *sql.BackupLongTermRetentionPoliciesClient
+	BackupShortTermRetentionPoliciesClient             *sql.BackupShortTermRetentionPoliciesClient
 	DatabasesClient                                    *sql.DatabasesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
+	RestorableDroppedDatabasesClient                   *sql.RestorableDroppedDatabasesClient
 	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
 	ServersClient                                      *sql.ServersClient
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
@@ -22,6 +25,12 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	BackupLongTermRetentionPoliciesClient := sql.NewBackupLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BackupLongTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	BackupShortTermRetentionPoliciesClient := sql.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BackupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	databasesClient := sql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databasesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -36,6 +45,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	elasticPoolsClient := sql.NewElasticPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&elasticPoolsClient.Client, o.ResourceManagerAuthorizer)
+
+	restorableDroppedDatabasesClient := sql.NewRestorableDroppedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&restorableDroppedDatabasesClient.Client, o.ResourceManagerAuthorizer)
 
 	serverSecurityAlertPoliciesClient := sql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
@@ -59,11 +71,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&sqlVirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DatabasesClient: &databasesClient,
+		BackupLongTermRetentionPoliciesClient:              &BackupLongTermRetentionPoliciesClient,
+		BackupShortTermRetentionPoliciesClient:             &BackupShortTermRetentionPoliciesClient,
+		DatabasesClient:                                    &databasesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseThreatDetectionPoliciesClient:              &databaseThreatDetectionPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
 		ElasticPoolsClient:                                 &elasticPoolsClient,
+		RestorableDroppedDatabasesClient:                   &restorableDroppedDatabasesClient,
 		ServerAzureADAdministratorsClient:                  &serverAzureADAdministratorsClient,
 		ServersClient:                                      &serversClient,
 		ServerExtendedBlobAuditingPoliciesClient:           &serverExtendedBlobAuditingPoliciesClient,

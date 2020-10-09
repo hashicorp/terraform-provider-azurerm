@@ -32,7 +32,7 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 			data.ImportStep(),
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
@@ -60,7 +60,7 @@ func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
 			},
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
@@ -92,7 +92,7 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 			data.ImportStep(),
 			{
 				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
+				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free", "VirtualMachines"),
 			},
 		},
 	})
@@ -149,7 +149,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_security_center_subscription_pricing" "test" {
-  tier = "Standard"
+  tier          = "Standard"
+  resource_type = "VirtualMachines"
 }
 
 resource "azurerm_resource_group" "test" {

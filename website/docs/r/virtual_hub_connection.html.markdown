@@ -58,13 +58,7 @@ The following arguments are supported:
 
 ---
 
-* `hub_to_vitual_network_traffic_allowed` - (Optional) Is the Virtual Hub traffic allowed to transit via the Remote Virtual Network? Changing this forces a new resource to be created.
-
-* `vitual_network_to_hub_gateways_traffic_allowed` - (Optional) Is Remote Virtual Network traffic allowed to transit the Hub's Virtual Network Gateway's? Changing this forces a new resource to be created.
-
--> **NOTE** Please ensure that you deploy either a [Site-to-Site](https://www.terraform.io/docs/providers/azurerm/r/vpn_gateway.html)/[Point-to-Site](https://www.terraform.io/docs/providers/azurerm/r/point_to_site_vpn_gateway.html) VPN gateway or an [ExpressRoute gateway](https://www.terraform.io/docs/providers/azurerm/r/express_route_gateway.html) in the Virtual Hub before enabling this field.
-
-* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
 
 ## Attributes Reference
 

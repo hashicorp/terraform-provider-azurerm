@@ -398,6 +398,9 @@ func (client SystemTopicEventSubscriptionsClient) ListBySystemTopic(ctx context.
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.SystemTopicEventSubscriptionsClient", "ListBySystemTopic", resp, "Failure responding to request")
 	}
+	if result.eslr.hasNextLink() && result.eslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

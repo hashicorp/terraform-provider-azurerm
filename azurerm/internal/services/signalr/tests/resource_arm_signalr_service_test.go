@@ -487,6 +487,16 @@ resource "azurerm_signalr_service" "test" {
     flag  = "ServiceMode"
     value = "%s"
   }
+
+  features {
+    flag  = "EnableConnectivityLogs"
+    value = "False"
+  }
+
+  features {
+    flag  = "EnableMessagingLogs"
+    value = "False"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, serviceMode)
 }

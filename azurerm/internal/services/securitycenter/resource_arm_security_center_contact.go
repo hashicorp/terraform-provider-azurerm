@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -75,7 +75,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Security Center Contact: %+v", err)
+				return fmt.Errorf("Checking for presence of existing Security Center Contact: %+v", err)
 			}
 		}
 
@@ -105,12 +105,12 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 
 	if d.IsNewResource() {
 		if _, err := client.Create(ctx, name, contact); err != nil {
-			return fmt.Errorf("Error creating Security Center Contact: %+v", err)
+			return fmt.Errorf("Creating Security Center Contact: %+v", err)
 		}
 
 		resp, err := client.Get(ctx, name)
 		if err != nil {
-			return fmt.Errorf("Error reading Security Center Contact: %+v", err)
+			return fmt.Errorf("Reading Security Center Contact: %+v", err)
 		}
 		if resp.ID == nil {
 			return fmt.Errorf("Security Center Contact ID is nil")
@@ -118,7 +118,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 
 		d.SetId(*resp.ID)
 	} else if _, err := client.Update(ctx, name, contact); err != nil {
-		return fmt.Errorf("Error updating Security Center Contact: %+v", err)
+		return fmt.Errorf("Updating Security Center Contact: %+v", err)
 	}
 
 	return resourceArmSecurityCenterContactRead(d, meta)
@@ -139,7 +139,7 @@ func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Security Center Contact: %+v", err)
+		return fmt.Errorf("Reading Security Center Contact: %+v", err)
 	}
 
 	if properties := resp.ContactProperties; properties != nil {
@@ -166,7 +166,7 @@ func resourceArmSecurityCenterContactDelete(d *schema.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Security Center Contact: %+v", err)
+		return fmt.Errorf("Deleting Security Center Contact: %+v", err)
 	}
 
 	return nil

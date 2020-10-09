@@ -64,9 +64,7 @@ func (client DedicatedHostGroupsClient) CreateOrUpdate(ctx context.Context, reso
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.DedicatedHostGroupProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.DedicatedHostGroupProperties.PlatformFaultDomainCount", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "parameters.DedicatedHostGroupProperties.PlatformFaultDomainCount", Name: validation.InclusiveMaximum, Rule: int64(3), Chain: nil},
-						{Target: "parameters.DedicatedHostGroupProperties.PlatformFaultDomainCount", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
-					}},
+					Chain: []validation.Constraint{{Target: "parameters.DedicatedHostGroupProperties.PlatformFaultDomainCount", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil}}},
 				}}}}}); err != nil {
 		return result, validation.NewError("compute.DedicatedHostGroupsClient", "CreateOrUpdate", err.Error())
 	}
@@ -320,6 +318,9 @@ func (client DedicatedHostGroupsClient) ListByResourceGroup(ctx context.Context,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DedicatedHostGroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.dhglr.hasNextLink() && result.dhglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -429,6 +430,9 @@ func (client DedicatedHostGroupsClient) ListBySubscription(ctx context.Context) 
 	result.dhglr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DedicatedHostGroupsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.dhglr.hasNextLink() && result.dhglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

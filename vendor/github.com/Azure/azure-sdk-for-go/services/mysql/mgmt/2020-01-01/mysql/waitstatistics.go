@@ -181,6 +181,9 @@ func (client WaitStatisticsClient) ListByServer(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.WaitStatisticsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.wsrl.hasNextLink() && result.wsrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
