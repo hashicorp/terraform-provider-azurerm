@@ -406,7 +406,7 @@ func resourceArmBatchPool() *schema.Resource {
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(batch.ContainerImageDefault),
-											string(batch.ContainerWorkingDirectory),
+											string(batch.TaskWorkingDirectory),
 										}, false),
 									},
 									"registry": {
