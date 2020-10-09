@@ -320,8 +320,6 @@ func TestAccAzureRMSignalRService_serviceMode(t *testing.T) {
 				Config: testAccAzureRMSignalRService_withServiceMode(data, "Serverless"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "features.0.flag", "ServiceMode"),
-					resource.TestCheckResourceAttr(data.ResourceName, "features.0.value", "Serverless"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_port"),

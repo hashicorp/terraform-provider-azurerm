@@ -75,7 +75,7 @@ func resourceArmSignalRService() *schema.Resource {
 			},
 
 			"features": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -186,7 +186,7 @@ func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) e
 
 	sku := d.Get("sku").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
-	featureFlags := d.Get("features").([]interface{})
+	featureFlags := d.Get("features").(*schema.Set).List()
 	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
 
@@ -302,7 +302,7 @@ func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if d.HasChange("features") {
-			featuresRaw := d.Get("features").([]interface{})
+			featuresRaw := d.Get("features").(*schema.Set).List()
 			parameters.Properties.Features = expandSignalRFeatures(featuresRaw)
 		}
 	}
