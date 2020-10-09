@@ -245,7 +245,6 @@ func diagnosticsSettingsDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func expandDiagnosticLogSettings(logs []interface{}) (*[]aad.LogSettings, error) {
-
 	result := make([]aad.LogSettings, 0, len(logs))
 
 	for _, raw := range logs {
@@ -277,6 +276,7 @@ func expandDiagnosticLogSettings(logs []interface{}) (*[]aad.LogSettings, error)
 			},
 		)
 	}
+
 	return &result, nil
 }
 
@@ -300,7 +300,6 @@ func flattenDiagnosticSettingLogs(in *[]aad.LogSettings) []map[string]interface{
 			}
 			result = append(result, resource)
 		}
-
 	}
 
 	return result
