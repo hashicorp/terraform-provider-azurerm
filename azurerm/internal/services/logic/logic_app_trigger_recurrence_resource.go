@@ -67,10 +67,10 @@ func resourceArmLogicAppTriggerRecurrence() *schema.Resource {
 			},
 
 			"time_zone": {
-				Type: schema.TypeString,
-				Optional: true,
-				ValidateFunc: validateLogicAppTriggerRecurrenceTimeZone()
-			}
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateLogicAppTriggerRecurrenceTimeZone(),
+			},
 		},
 	}
 }
