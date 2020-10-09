@@ -1,12 +1,12 @@
 ---
 subcategory: "AAD Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_aad_diagnostic_settings"
+page_title: "Azure Resource Manager: azurerm_aad_diagnostic_setting"
 description: |-
   Manages Azure Active Directory diagnostic settings.
 ---
 
-# azurerm_aad_diagnostic_settings
+# azurerm_aad_diagnostic_setting
 
 Manages Azure Active Directory diagnostic settings.
 
@@ -54,7 +54,7 @@ resource "azurerm_eventhub" "example" {
 }
 
 
-resource "azurerm_aad_diagnostic_settings" "example" {
+resource "azurerm_aad_diagnostic_setting" "example" {
   name                   = "aad-diag-test"
   storage_account_id     = azurerm_storage_account.example.id
   workspace_id           = azurerm_log_analytics_workspace.example.id
@@ -96,7 +96,7 @@ The following arguments are supported:
 
 A `logs` block supports the following:
 
-* `category` - (Required) The log category to monitor. Possible values include 'SignInLogs' and 'AuditLogs'.
+* `category` - (Required) The log category to monitor. Possible values include 'SignInLogs', 'AuditLogs' 'ManagedIdentitySignInLogs', 'NonInteractiveUserSignInLogs', 'ProvisioningLogs' and 'ServicePrincipalSignInLogs'.
 
 * `enabled` - (Optional) Whether to enable monitoring of the Log category. Defaults to true.
 
@@ -115,15 +115,15 @@ A `retention_policy` block supports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the AAD diagnostic settings resource.
+* `create` - (Defaults to 15 minutes) Used when creating the AAD diagnostic settings resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AAD diagnostic settings resource.
-* `update` - (Defaults to 30 minutes) Used when updating the AAD diagnostic settings resource.
-* `delete` - (Defaults to 30 minutes) Used when deleting the AAD diagnostic settings resource.
+* `update` - (Defaults to 15 minutes) Used when updating the AAD diagnostic settings resource.
+* `delete` - (Defaults to 5 minutes) Used when deleting the AAD diagnostic settings resource.
 
 ## Import
 
 Azure AD Diagnostic settings resources can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_aad_diagnostic_settings.example /providers/microsoft.aadiam/diagnosticSettings/aad-diag-test
+terraform import azurerm_aad_diagnostic_setting.example /providers/microsoft.aadiam/diagnosticSettings/aad-diag-test
 ```
