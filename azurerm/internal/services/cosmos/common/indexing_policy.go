@@ -116,7 +116,6 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 
 	indexPairs := make([]interface{}, 0)
 	for _, v := range input {
-
 		path := ""
 		if v.Path != nil {
 			path = *v.Path
