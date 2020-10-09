@@ -160,8 +160,8 @@ resource "azurerm_batch_pool" "test" {
 
     container_configuration {
       container_run_options = "--workdir /app"
-      image_name             = "testimage"
-      working_directory      = "ContainerImageDefault"
+      image_name            = "testimage"
+      working_directory     = "ContainerImageDefault"
       registry {
         registry_server = "myContainerRegistry.azurecr.io"
         user_name       = "myUserName"

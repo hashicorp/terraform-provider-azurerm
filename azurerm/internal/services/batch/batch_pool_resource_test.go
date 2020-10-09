@@ -1510,8 +1510,8 @@ resource "azurerm_batch_pool" "test" {
 
     container_configuration {
       container_run_options = "--workdir /app"
-      image_name             = "centos7"
-      working_directory      = "TaskWorkingDirectory"
+      image_name            = "centos7"
+      working_directory     = "TaskWorkingDirectory"
       registry {
         registry_server = "myContainerRegistry.azurecr.io"
         user_name       = "myUserName"
