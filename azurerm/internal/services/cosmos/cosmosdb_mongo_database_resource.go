@@ -242,6 +242,7 @@ func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface
 				serverless = true
 			}
 		}
+
 		if !serverless {
 			throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Name)
 			if err != nil {
