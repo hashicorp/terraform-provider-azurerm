@@ -58,7 +58,7 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 			"instant_restore_retention_range": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(1),
+				ValidateFunc: validation.IntBetween(1, 5),
 			},
 
 			"recovery_vault_name": {
