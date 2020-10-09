@@ -88,12 +88,12 @@ func resourceArmStorageShare() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"start": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"expiry": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"permissions": {
