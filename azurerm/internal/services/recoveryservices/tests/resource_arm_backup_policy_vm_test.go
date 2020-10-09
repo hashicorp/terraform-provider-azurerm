@@ -33,6 +33,29 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentionRange(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentionRange(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Daily"),
+					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_daily.0.count", "10"),
+					resource.TestCheckResourceAttr(data.ResourceName, "instant_restore_retention_range", "5"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
@@ -531,6 +554,28 @@ resource "azurerm_backup_policy_vm" "test" {
     weekdays = ["Sunday"]
     weeks    = ["Last"]
     months   = ["January"]
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentionRange(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyVM_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                            = "acctest-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  recovery_vault_name             = azurerm_recovery_services_vault.test.name
+  instant_restore_retention_range = 5
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
   }
 }
 `, template, data.RandomInteger)

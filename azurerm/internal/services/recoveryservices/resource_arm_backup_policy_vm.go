@@ -55,6 +55,11 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"instant_restore_retention_range": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
 			"recovery_vault_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -322,9 +327,10 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 	policy := backup.ProtectionPolicyResource{
 		Tags: tags.Expand(t),
 		Properties: &backup.AzureIaaSVMProtectionPolicy{
-			TimeZone:             utils.String(d.Get("timezone").(string)),
-			BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
-			SchedulePolicy:       expandArmBackupProtectionPolicyVMSchedule(d, times),
+			TimeZone:                      utils.String(d.Get("timezone").(string)),
+			BackupManagementType:          backup.BackupManagementTypeAzureIaasVM,
+			SchedulePolicy:                expandArmBackupProtectionPolicyVMSchedule(d, times),
+			InstantRpRetentionRangeInDays: utils.Int32(d.Get("instant_restore_retention_range").(int32)),
 			RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
 				DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
@@ -381,6 +387,7 @@ func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interf
 
 	if properties, ok := resp.Properties.AsAzureIaaSVMProtectionPolicy(); ok && properties != nil {
 		d.Set("timezone", properties.TimeZone)
+		d.Set("instant_restore_retention_range", properties.InstantRpRetentionRangeInDays)
 
 		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
 			if err := d.Set("backup", flattenArmBackupProtectionPolicyVMSchedule(schedule)); err != nil {
