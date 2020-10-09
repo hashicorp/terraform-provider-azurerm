@@ -69,7 +69,7 @@ func resourceArmStorageShare() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 102400),
 			},
 
-			"metadata": MetaDataSchema(),
+			"metadata": MetaDataComputedSchema(),
 
 			"acl": {
 				Type:     schema.TypeSet,

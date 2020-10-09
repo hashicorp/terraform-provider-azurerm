@@ -12,7 +12,6 @@ func MetaDataSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeMap,
 		Optional:     true,
-		Computed:     true,
 		ValidateFunc: ValidateMetaDataKeys,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
