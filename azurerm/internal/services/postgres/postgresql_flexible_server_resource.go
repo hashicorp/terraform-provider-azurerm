@@ -256,8 +256,6 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"properties_tags": tags.Schema(),
-
 			"tags": tags.Schema(),
 		},
 	}
@@ -308,7 +306,6 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 			HaEnabled:                  haEnabled,
 			MaintenanceWindow:          expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{})),
 			StorageProfile:             expandArmServerStorageProfile(d),
-			Tags:                       tags.Expand(d.Get("properties_tags").(map[string]interface{})),
 		},
 		Sku:  expandArmServerSku(d.Get("sku").([]interface{})),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -390,6 +387,7 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		}
 
 		// CreateMode currently isn't returned by the API
+		// Create only error out if exists already, one time only point in time
 		if props.CreateMode == "" {
 			d.Set("create_mode", string(postgresqlflexibleservers.Default))
 		} else {
@@ -440,12 +438,6 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 
 	if err := d.Set("sku", flattenArmServerSku(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku`: %+v", err)
-	}
-
-	if resp.ServerProperties.Tags != nil && len(resp.ServerProperties.Tags) > 0 {
-		if err := parse.FlattenAndSetPropertyTags(d, resp.ServerProperties.Tags); err != nil {
-			return fmt.Errorf("setting `properties_tags`: %+v", err)
-		}
 	}
 
 	if resp.Tags != nil && len(resp.Tags) > 0 {

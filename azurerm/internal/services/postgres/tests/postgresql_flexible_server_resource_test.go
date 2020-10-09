@@ -435,7 +435,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   }
 
   sku {
-    name = "Standard_D2s_v3"
+    name = "Standard_D4s_v3"
     tier = "GeneralPurpose"
   }
 
