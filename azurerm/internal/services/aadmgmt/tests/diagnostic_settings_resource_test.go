@@ -13,7 +13,7 @@ import (
 
 func TestAccAzureADDiagnosticSettings_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_aad_diagnostic_setting", "test")
-	diagSettingName := "acctest-diagstng" + data.RandomString
+	diagSettingName := "acctest-diagstng" + data.RandomInteger
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAADDiagnosticsSettingsDestroy,
@@ -31,7 +31,7 @@ func TestAccAzureADDiagnosticSettings_basic(t *testing.T) {
 
 func TestAccAzureADDiagnosticSettings_Complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_aad_diagnostic_setting", "test")
-	diagSettingName := "acctest-diagstng" + data.RandomString
+	diagSettingName := "acctest-diagstng" + data.RandomInteger
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAADDiagnosticsSettingsDestroy,
@@ -85,7 +85,7 @@ func TestAccAzureADDiagnosticSettings_eventHub(t *testing.T) {
 
 func TestAccAzureADDiagnosticSettings_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_aad_diagnostic_setting", "test")
-	diagSettingName := "acctest-diagstng" + data.RandomString
+	diagSettingName := "acctest-diagstng" + data.RandomInteger
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testAADDiagnosticsSettingsDestroy,
