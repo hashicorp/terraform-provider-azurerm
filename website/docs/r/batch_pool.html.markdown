@@ -201,6 +201,34 @@ A `start_task` block supports the following:
 
 * `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
 
+* `container_configuration` - (Optional) A `container_configuration` block that describes the container settings for the start task.
+
+---
+
+A `container_configuration` block within a `start_task` block supports the following:
+
+* `image_name` - (Required) The image name of the container. Changing this forces a new resource to be created.
+
+* `registry` - (Required) A `registry` block for the container registry. Changing this forces a new resource to be created.
+
+* `working_directory` - (Required) The working directory for the container.  Can be set to `ContainerImageDefault` or `TaskWorkingDirectory`. 
+
+~> **Please Note:** If `working_directory` is set to `ContainerImageDefault`, this directory will not contain the resource files downloaded by Batch.
+
+* `container_run_settings` - (Optional) Run settings for the container
+
+
+---
+
+A `registry` block supports the followin:
+
+* `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
+
+* `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
+
+* `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
+
+
 ---
 
 A `user_identity` block supports the following:

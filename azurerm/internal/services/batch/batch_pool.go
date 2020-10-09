@@ -127,6 +127,36 @@ func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		result["user_identity"] = []interface{}{userIdentity}
 	}
 
+	if startTask.ContainerSettings != nil {
+		containerSettings := make(map[string]interface{})
+
+		if startTask.ContainerSettings.ContainerRunOptions != nil {
+			containerSettings["container_run_settings"] = *startTask.ContainerSettings.ContainerRunOptions
+		}
+	
+		if startTask.ContainerSettings.ImageName != nil {
+			containerSettings["image_name"] = *startTask.ContainerSettings.ImageName
+		}
+	
+		containerSettings["working_directory"] = string(startTask.ContainerSettings.WorkingDirectory)
+	
+		if startTask.ContainerSettings.Registry != nil {
+			registry := make(map[string]interface{})
+	
+			if startTask.ContainerSettings.Registry.UserName != nil {
+				registry["user_name"] = startTask.ContainerSettings.Registry.UserName
+			}
+			if startTask.ContainerSettings.Registry.Password != nil {
+				registry["password"] = startTask.ContainerSettings.Registry.Password
+			}
+			if startTask.ContainerSettings.Registry.RegistryServer != nil {
+				registry["registry_server"] = startTask.ContainerSettings.Registry.RegistryServer
+			}
+			containerSettings["registry"] = registry
+		}
+		result["container_settings"] = containerSettings
+	}
+
 	resourceFiles := make([]interface{}, 0)
 	if startTask.ResourceFiles != nil {
 		for _, armResourceFile := range *startTask.ResourceFiles {
@@ -438,6 +468,54 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		return nil, fmt.Errorf("Error: either auto_user or user_name should be speicfied for Batch pool start task")
 	}
 
+	containerConfigurationList := startTaskValue["container_configuration"].([]interface{})
+	containerConfigurationValue := containerConfigurationList[0].(map[string]interface{})
+	containerConfiguration := batch.TaskContainerSettings{}
+
+	if v, ok := containerConfigurationValue["image_name"]; ok {
+		imageName := v.(string)
+		if imageName != "" {
+			containerConfiguration.ImageName = utils.String(imageName)
+		}
+	}
+
+	if v, ok := containerConfigurationValue["container_run_settings"]; ok {
+		containerConfiguration.ContainerRunOptions = utils.String(v.(string))
+	}
+
+	if v, ok := containerConfigurationValue["working_directory"]; ok {
+		containerConfiguration.WorkingDirectory = batch.ContainerWorkingDirectory(v.(string))
+	}
+
+	if v, ok := containerConfigurationValue["registry"]; ok {
+		registryList := containerConfigurationValue["registry"].([]interface{})
+		registryValue := registryList[0].(map[string]interface{})
+		registry := batch.ContainerRegistry{}
+
+		if v, ok := registryValue["password"]; ok {
+			password := v.(string)
+			if password != "" {
+				registry.Password = utils.String(password)
+			}
+		}
+
+		if v, ok := registryValue["user_name"]; ok {
+			userName := v.(string)
+			if userName != "" {
+				registry.UserName = utils.String(userName)
+			}
+		}
+
+		if v, ok := registryValue["registry_server"]; ok {
+			registryServer := v.(string)
+			if registryServer != "" {
+				registry.RegistryServer = utils.String(registryServer)
+			}
+		}
+	}
+
+
+
 	resourceFileList := startTaskValue["resource_file"].([]interface{})
 	resourceFiles := make([]batch.ResourceFile, 0)
 	for _, resourceFileValueTemp := range resourceFileList {
@@ -488,6 +566,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		WaitForSuccess:    &waitForSuccess,
 		UserIdentity:      &userIdentity,
 		ResourceFiles:     &resourceFiles,
+		ContainerSettings: &containerSettings,
 	}
 
 	// populate environment settings, if defined
