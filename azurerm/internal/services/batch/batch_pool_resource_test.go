@@ -264,7 +264,7 @@ func TestAccBatchPoolStartTask_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.working_directory", "TaskWorkingDirectory"),
-					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.container_run_settings", "--testflag"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.container_run_settings", "--workdir /app"),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.image_name", "centos7"),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.0.registry_server", "myContainerRegistry.azurecr.io"),
@@ -1509,7 +1509,7 @@ resource "azurerm_batch_pool" "test" {
     }
 
     container_configuration {
-      container_run_settings = "--testflag"
+      container_run_settings = "--workdir /app"
       image_name             = "centos7"
       working_directory      = "TaskWorkingDirectory"
       registry {
