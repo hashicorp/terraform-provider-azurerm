@@ -3,11 +3,12 @@ package tests
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"io/ioutil"
 	"log"
 	"regexp"
 	"testing"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
