@@ -229,6 +229,54 @@ func TestAccBatchPoolStartTask_basic(t *testing.T) {
 	})
 }
 
+func TestAccBatchPoolStartTask_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccBatchPoolStartTask_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckBatchPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.publisher", "Canonical"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.sku", "16.04.0-LTS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "storage_image_reference.0.offer", "UbuntuServer"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_scale.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fixed_scale.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fixed_scale.0.target_dedicated_nodes", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fixed_scale.0.resize_timeout", "PT15M"),
+					resource.TestCheckResourceAttr(data.ResourceName, "fixed_scale.0.target_low_priority_nodes", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.max_task_retry_count", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.environment.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.environment.env", "TEST"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.environment.bu", "Research&Dev"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.0.auto_user.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.working_directory", "TaskWorkingDirectory"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.container_run_settings", "--testflag"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.image_name", "centos7"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.0.registry_server", "myContainerRegistry.azurecr.io"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.0.username", "myUserName"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.0.password", "myPassword"),
+				),
+			},
+			data.ImportStep("stop_pending_resize_operation"),
+		},
+	})
+}
+
 func TestAccBatchPool_certificates(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
@@ -1401,4 +1449,76 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccBatchPoolStartTask_basicWithContainerConfiguration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-%d-batchpool"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04.0-LTS"
+    version   = "latest"
+  }
+
+  start_task {
+    command_line         = "echo 'Hello World from $env'"
+    max_task_retry_count = 1
+    wait_for_success     = true
+
+    environment = {
+      env = "TEST"
+      bu  = "Research&Dev"
+    }
+
+    user_identity {
+      auto_user {
+        elevation_level = "NonAdmin"
+        scope           = "Task"
+      }
+    }
+
+    resource_file {
+      http_url  = "https://raw.githubusercontent.com/terraform-providers/terraform-provider-azurerm/master/README.md"
+      file_path = "README.md"
+    }
+
+    container_configuration {
+      container_run_settings = "--testflag"
+      image_name             = "centos7"
+      working_directory      = "TaskWorkingDirectory"
+      registry {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
+      }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

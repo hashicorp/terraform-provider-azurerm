@@ -40,6 +40,13 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.0.auto_user.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.0.auto_user.0.scope", "Task"),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.container_run_settings", "--testflag"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.image_name", "testimage"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.working_directory", "ContainerImageDefault"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.0.registry_server", "myContainerRegistry"),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.container_configuration.0.registry.0.user_name", "myUserName"),
 					resource.TestCheckResourceAttr(data.ResourceName, "certificate.#", "1"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate.0.id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "certificate.0.store_location", "CurrentUser"),
@@ -148,6 +155,17 @@ resource "azurerm_batch_pool" "test" {
       auto_user {
         elevation_level = "NonAdmin"
         scope           = "Task"
+      }
+    }
+
+    container_configuration {
+      container_run_settings = "--testflag"
+      image_name             = "testimage"
+      working_directory      = "ContainerImageDefault"
+      registry {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
       }
     }
   }
