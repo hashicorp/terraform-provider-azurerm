@@ -77,8 +77,6 @@ The following arguments are supported:
 
 * `storage_mb` - (Optional) Max storage allowed for a server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216`, and `33554432`. Defaults to `32768`.
 
-* `properties_tags` - (Optional) A mapping of tags to assign to the resources Server Properties element.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -106,6 +104,8 @@ A `maintenance_window` block supports the following:
 * `start_hour` - (Optional) start hour for maintenance window. Defaults to `0`.
 
 * `start_minute` - (Optional) start minute for maintenance window. Defaults to `0`.
+
+~> **NOTE:** When you define a `maintenance_window` block you are setting the begin time and day for the 1 hour `maintenance_window`.
 
 ---
 
