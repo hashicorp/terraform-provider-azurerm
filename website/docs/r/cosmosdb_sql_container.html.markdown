@@ -105,7 +105,7 @@ A `composite_index` block supports the following:
 An `index` block supports the following:
 
 * `path` - Path for which the indexing behavior applies to.
-* `order` - Order of the index. Can be either `Ascending` or `Descending`.
+* `order` - Order of the index. Can be either `ascending` or `descending`.
 
 ## Attributes Reference
 
