@@ -296,7 +296,7 @@ func resourceArmIotHub() *schema.Resource {
 						"resource_group_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: iothubValidate.IotHubEndpointResourceGroupName,
+							ValidateFunc: azure.ValidateResourceGroupName,
 						},
 					},
 				},

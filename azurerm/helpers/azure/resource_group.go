@@ -14,7 +14,7 @@ func SchemaResourceGroupName() *schema.Schema {
 		Type:         schema.TypeString,
 		Required:     true,
 		ForceNew:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
@@ -22,7 +22,7 @@ func SchemaResourceGroupNameDeprecated() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Optional:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 		Deprecated:   "This field is no longer used and will be removed in the next major version of the Azure Provider",
 	}
 }
@@ -33,7 +33,7 @@ func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 		Required:         true,
 		ForceNew:         true,
 		DiffSuppressFunc: suppress.CaseDifference,
-		ValidateFunc:     validateResourceGroupName,
+		ValidateFunc:     ValidateResourceGroupName,
 	}
 }
 
@@ -41,7 +41,7 @@ func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Required:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
@@ -51,7 +51,7 @@ func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
 		ForceNew:     true,
 		Optional:     true,
 		Computed:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
@@ -61,12 +61,12 @@ func SchemaResourceGroupNameSetOptional() *schema.Schema {
 		Optional: true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
-			ValidateFunc: validateResourceGroupName,
+			ValidateFunc: ValidateResourceGroupName,
 		},
 	}
 }
 
-func validateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) > 90 {
