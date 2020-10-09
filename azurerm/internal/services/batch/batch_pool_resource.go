@@ -389,9 +389,9 @@ func resourceArmBatchPool() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"container_run_options": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"image_name": {
@@ -405,8 +405,8 @@ func resourceArmBatchPool() *schema.Resource {
 										Required: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(batch.ContainerWorkingDirectory.ContainerImageDefault),
-											string(batch.ContainerWorkingDirectory.ContainerWorkingDirectory),
+											string(batch.ContainerImageDefault),
+											string(batch.ContainerWorkingDirectory),
 										}, false),
 									},
 									"registry": {

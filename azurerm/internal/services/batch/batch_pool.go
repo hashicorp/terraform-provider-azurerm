@@ -567,7 +567,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		WaitForSuccess:    &waitForSuccess,
 		UserIdentity:      &userIdentity,
 		ResourceFiles:     &resourceFiles,
-		ContainerSettings: &containerSettings,
+		ContainerSettings: &containerConfiguration,
 	}
 
 	// populate environment settings, if defined
