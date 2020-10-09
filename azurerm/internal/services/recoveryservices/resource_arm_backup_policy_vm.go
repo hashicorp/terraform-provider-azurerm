@@ -56,8 +56,9 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"instant_restore_retention_range": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"recovery_vault_name": {
