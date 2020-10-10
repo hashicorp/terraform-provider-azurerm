@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Backend Address Pool.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
-* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the resource.
+* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
