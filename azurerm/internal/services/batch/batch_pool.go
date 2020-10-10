@@ -490,7 +490,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		containerConfiguration.WorkingDirectory = batch.ContainerWorkingDirectory(v.(string))
 	}
 
-	if v, ok := containerConfigurationValue["registry"]; ok {
+	if _, ok := containerConfigurationValue["registry"]; ok {
 		registryList := containerConfigurationValue["registry"].([]interface{})
 		registryValue := registryList[0].(map[string]interface{})
 		registry := batch.ContainerRegistry{}
