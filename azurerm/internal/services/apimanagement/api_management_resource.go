@@ -930,7 +930,6 @@ func mapAzureRmApiManagementHostNameType(t apimanagement.HostnameType) string {
 	default:
 		return strings.ToLower(string(t))
 	}
-
 }
 
 func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanagement.CertificateConfiguration {
