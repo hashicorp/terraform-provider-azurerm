@@ -25,7 +25,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_mssql_elasticpool":      dataSourceArmMsSqlElasticpool(),
 		"azurerm_mssql_managed_instance": dataSourceArmMSSQLManagedInstance(),
 		"azurerm_mssql_managed_database": dataSourceArmMSSQLManagedDatabase(),
-		"azurerm_mssql_server":      dataSourceMsSqlServer(),
+		"azurerm_mssql_server":           dataSourceMsSqlServer(),
 	}
 }
 
@@ -42,9 +42,9 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mssql_server_vulnerability_assessment":                 resourceArmMssqlServerVulnerabilityAssessment(),
 		"azurerm_mssql_virtual_machine":                                 resourceArmMsSqlVirtualMachine(),
 		"azurerm_mssql_managed_instance":                                resourceArmMSSQLManagedInstance(),
-		"azurerm_mssql_managed_instance_admin": 						 resourceArmMSSQLManagedInstanceAdmin(),
-		"azurerm_mssql_managed_instance_key": 						     resourceArmMSSQLManagedInstanceKeys(),
-		"azurerm_mssql_managed_instance_encryption_protector": 		     resourceArmMSSQLManagedInstanceEncryptionProtector(),
+		"azurerm_mssql_managed_instance_admin":                          resourceArmMSSQLManagedInstanceAdmin(),
+		"azurerm_mssql_managed_instance_key":                            resourceArmMSSQLManagedInstanceKeys(),
+		"azurerm_mssql_managed_instance_encryption_protector":           resourceArmMSSQLManagedInstanceEncryptionProtector(),
 		"azurerm_mssql_managed_database":                                resourceArmMSSQLManagedDatabase(),
 	}
 }

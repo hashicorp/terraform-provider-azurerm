@@ -23,8 +23,8 @@ type Client struct {
 	ManagedInstancesClient                             *sql.ManagedInstancesClient
 	ManagedInstanceAdministratorsClient                *sql.ManagedInstanceAdministratorsClient
 	ManagedDatabasesClient                             *sql.ManagedDatabasesClient
-	ManagedInstanceKeysClient 						   *sql.ManagedInstanceKeysClient 
-	ManagedInstanceEncryptionProtectorsClient          *sql.ManagedInstanceEncryptionProtectorsClient 
+	ManagedInstanceKeysClient                          *sql.ManagedInstanceKeysClient
+	ManagedInstanceEncryptionProtectorsClient          *sql.ManagedInstanceEncryptionProtectorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -76,10 +76,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedDatabaseClient := sql.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedDatabaseClient.Client, o.ResourceManagerAuthorizer)
 
-	managedInstanceKeysClient  := sql.NewManagedInstanceKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	managedInstanceKeysClient := sql.NewManagedInstanceKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceKeysClient.Client, o.ResourceManagerAuthorizer)
 
-	managedInstanceEncryptionProtectorsClient  := sql.NewManagedInstanceEncryptionProtectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	managedInstanceEncryptionProtectorsClient := sql.NewManagedInstanceEncryptionProtectorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceEncryptionProtectorsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
@@ -99,7 +99,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ManagedInstancesClient:                             &managedInstancesClient,
 		ManagedInstanceAdministratorsClient:                &managedInstanceAdministratorsClient,
 		ManagedDatabasesClient:                             &managedDatabaseClient,
-		ManagedInstanceKeysClient:							&managedInstanceKeysClient,
+		ManagedInstanceKeysClient:                          &managedInstanceKeysClient,
 		ManagedInstanceEncryptionProtectorsClient:          &managedInstanceEncryptionProtectorsClient,
 	}
 }

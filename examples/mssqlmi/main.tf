@@ -61,7 +61,7 @@ resource "azurerm_mssql_managed_instance" "dns" {
   resource_group_name = data.azurerm_resource_group.example.name
   location            = data.azurerm_resource_group.example.location
   administrator_login = "demoReadUser"
-  administrator_login_password = "ReadUserDemoLaLa@12345"
+  administrator_login_password = "ReadUserDemo@12345"
   subnet_id = "${azurerm_subnet.example.id}"
   identity {
     type = "SystemAssigned"
@@ -88,7 +88,7 @@ resource "azurerm_mssql_managed_instance" "example" {
   resource_group_name = data.azurerm_resource_group.example.name
   location            = data.azurerm_resource_group.example.location
   administrator_login = "demoReadUser"
-  administrator_login_password = "ReadUserDemoLaLa@123456"
+  administrator_login_password = "ReadUserDemo@123456"
   subnet_id = "${azurerm_subnet.example.id}"
   identity {
     type = "SystemAssigned"
