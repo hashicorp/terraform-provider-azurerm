@@ -24,7 +24,7 @@ data "azurerm_data_share_account" "example" {
 
 data "azurerm_data_share" "example" {
   name       = "existing"
-  account_id = data.azurerm_data_share_account.exmaple.id
+  account_id = data.azurerm_data_share_account.example.id
 }
 
 output "id" {

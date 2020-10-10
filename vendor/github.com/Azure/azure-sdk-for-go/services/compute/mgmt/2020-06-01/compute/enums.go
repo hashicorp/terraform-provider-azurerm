@@ -843,6 +843,27 @@ func PossibleProximityPlacementGroupTypeValues() []ProximityPlacementGroupType {
 	return []ProximityPlacementGroupType{Standard, Ultra}
 }
 
+// RebootStatus enumerates the values for reboot status.
+type RebootStatus string
+
+const (
+	// RebootStatusCompleted ...
+	RebootStatusCompleted RebootStatus = "Completed"
+	// RebootStatusFailed ...
+	RebootStatusFailed RebootStatus = "Failed"
+	// RebootStatusNotNeeded ...
+	RebootStatusNotNeeded RebootStatus = "NotNeeded"
+	// RebootStatusRequired ...
+	RebootStatusRequired RebootStatus = "Required"
+	// RebootStatusStarted ...
+	RebootStatusStarted RebootStatus = "Started"
+)
+
+// PossibleRebootStatusValues returns an array of possible values for the RebootStatus const type.
+func PossibleRebootStatusValues() []RebootStatus {
+	return []RebootStatus{RebootStatusCompleted, RebootStatusFailed, RebootStatusNotNeeded, RebootStatusRequired, RebootStatusStarted}
+}
+
 // ReplicationState enumerates the values for replication state.
 type ReplicationState string
 

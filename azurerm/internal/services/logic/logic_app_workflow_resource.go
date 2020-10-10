@@ -47,6 +47,13 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"integration_service_environment_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IntegrationServiceEnvironmentID,
+			},
+
 			"logic_app_integration_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -149,6 +156,12 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 			Parameters: parameters,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
+		properties.WorkflowProperties.IntegrationServiceEnvironment = &logic.ResourceReference{
+			ID: utils.String(iseID.(string)),
+		}
 	}
 
 	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
@@ -290,9 +303,21 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 
+		integrationServiceEnvironmentId := ""
+		if props.IntegrationServiceEnvironment != nil && props.IntegrationServiceEnvironment.ID != nil {
+			integrationServiceEnvironmentId = *props.IntegrationServiceEnvironment.ID
+		}
+		d.Set("integration_service_environment_id", integrationServiceEnvironmentId)
+
 		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
 			d.Set("logic_app_integration_account_id", props.IntegrationAccount.ID)
 		}
+
+		integrationAccountId := ""
+		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
+			integrationAccountId = *props.IntegrationAccount.ID
+		}
+		d.Set("logic_app_integration_account_id", integrationAccountId)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

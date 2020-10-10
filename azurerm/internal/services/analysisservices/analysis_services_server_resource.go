@@ -67,6 +67,8 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 					"S4",
 					"S8",
 					"S9",
+					"S8v2",
+					"S9v2",
 				}, false),
 			},
 

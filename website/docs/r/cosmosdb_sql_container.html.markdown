@@ -47,9 +47,9 @@ resource "azurerm_cosmosdb_sql_container" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Cosmos DB SQL Database. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Cosmos DB SQL Container. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB SQL Database is created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB SQL Container is created. Changing this forces a new resource to be created.
 
 * `account_name` - (Required) The name of the Cosmos DB Account to create the container within. Changing this forces a new resource to be created.
 

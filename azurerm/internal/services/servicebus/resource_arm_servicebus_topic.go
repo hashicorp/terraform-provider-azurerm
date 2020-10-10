@@ -102,9 +102,10 @@ func resourceArmServiceBusTopic() *schema.Resource {
 			},
 
 			"max_size_in_megabytes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.ServiceBusMaxSizeInMegabytes(),
 			},
 
 			"requires_duplicate_detection": {

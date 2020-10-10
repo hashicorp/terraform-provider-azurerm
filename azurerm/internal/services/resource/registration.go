@@ -34,5 +34,8 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_management_lock":     resourceArmManagementLock(),
 		"azurerm_resource_group":      resourceArmResourceGroup(),
 		"azurerm_template_deployment": resourceArmTemplateDeployment(),
+
+		"azurerm_resource_group_template_deployment": resourceGroupTemplateDeploymentResource(),
+		"azurerm_subscription_template_deployment":   subscriptionTemplateDeploymentResource(),
 	}
 }
