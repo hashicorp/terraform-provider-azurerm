@@ -24,9 +24,9 @@ func TestAccAzureRMEventGridSystemTopic_basic(t *testing.T) {
 				Config: testAccAzureRMEventGridSystemTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridSystemTopicExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "source_resource_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "source_arm_resource_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_resource_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_arm_resource_id"),
 				),
 			},
 			data.ImportStep(),
@@ -70,9 +70,9 @@ func TestAccAzureRMEventGridSystemTopic_complete(t *testing.T) {
 					testCheckAzureRMEventGridSystemTopicExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Foo", "Bar"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "source_resource_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "source_arm_resource_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "topic_type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_resource_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_arm_resource_id"),
 				),
 			},
 			data.ImportStep(),
@@ -102,7 +102,7 @@ func testCheckAzureRMEventGridSystemTopicDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventGrid System Topic still exists:\n%#v", resp)
+			return fmt.Errorf("Event Grid System Topic still exists:\n%#v", resp)
 		}
 	}
 
@@ -123,13 +123,13 @@ func testCheckAzureRMEventGridSystemTopicExists(resourceName string) resource.Te
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for EventGrid System Topic: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for Event Grid System Topic: %s", name)
 		}
 
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: EventGrid System Topic %q (resource group: %s) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Event Grid System Topic %q (resource group: %s) does not exist", name, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on EventGridSystemTopicsClient: %s", err)
@@ -159,11 +159,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                = "acctestEGST%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  source_resource_id  = azurerm_storage_account.test.id
-  topic_type          = "Microsoft.Storage.StorageAccounts"
+  name                   = "acctestEGST%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_storage_account.test.id
+  topic_type             = "Microsoft.Storage.StorageAccounts"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12), data.RandomIntOfLength(10))
 }
@@ -174,11 +174,11 @@ func testAccAzureRMEventGridSystemTopic_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_eventgrid_system_topic" "import" {
-  name                = azurerm_eventgrid_system_topic.test.name
-  location            = azurerm_eventgrid_system_topic.test.location
-  resource_group_name = azurerm_eventgrid_system_topic.test.resource_group_name
-  source_resource_id  = azurerm_eventgrid_system_topic.test.source_resource_id
-  topic_type          = azurerm_eventgrid_system_topic.test.topic_type
+  name                   = azurerm_eventgrid_system_topic.test.name
+  location               = azurerm_eventgrid_system_topic.test.location
+  resource_group_name    = azurerm_eventgrid_system_topic.test.resource_group_name
+  source_arm_resource_id = azurerm_eventgrid_system_topic.test.source_arm_resource_id
+  topic_type             = azurerm_eventgrid_system_topic.test.topic_type
 }
 `, template)
 }
@@ -203,11 +203,11 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                = "acctestEGST%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  source_resource_id  = azurerm_storage_account.test.id
-  topic_type          = "Microsoft.Storage.StorageAccounts"
+  name                   = "acctestEGST%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_storage_account.test.id
+  topic_type             = "Microsoft.Storage.StorageAccounts"
 
   tags = {
     "Foo" = "Bar"

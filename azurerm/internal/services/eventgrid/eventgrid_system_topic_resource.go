@@ -50,7 +50,7 @@ func resourceArmEventGridSystemTopic() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"source_resource_id": {
+			"source_arm_resource_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -83,7 +83,7 @@ func resourceArmEventGridSystemTopic() *schema.Resource {
 				}, false),
 			},
 
-			"metric_resource_id": {
+			"metric_arm_resource_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -100,14 +100,14 @@ func resourceArmEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	source := d.Get("source_resource_id").(string)
+	source := d.Get("source_arm_resource_id").(string)
 	topicType := d.Get("topic_type").(string)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing EventGrid System Topic %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Event Grid System Topic %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -128,7 +128,7 @@ func resourceArmEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta in
 		Tags: tags.Expand(t),
 	}
 
-	log.Printf("[INFO] preparing arguments for AzureRM EventGrid System Topic creation with Properties: %+v.", systemTopic)
+	log.Printf("[INFO] preparing arguments for AzureRM Event Grid System Topic creation with Properties: %+v.", systemTopic)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, systemTopic)
 	if err != nil {
@@ -144,7 +144,7 @@ func resourceArmEventGridSystemTopicCreateUpdate(d *schema.ResourceData, meta in
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventGrid System Topic %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read Event Grid System Topic %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -165,12 +165,12 @@ func resourceArmEventGridSystemTopicRead(d *schema.ResourceData, meta interface{
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid System Topic '%s' was not found (resource group '%s')", id.Name, id.ResourceGroup)
+			log.Printf("[WARN] Event Grid System Topic '%s' was not found (resource group '%s')", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid System Topic '%s': %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on Event Grid System Topic '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -180,9 +180,9 @@ func resourceArmEventGridSystemTopicRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.SystemTopicProperties; props != nil {
-		d.Set("source_resource_id", props.Source)
+		d.Set("source_arm_resource_id", props.Source)
 		d.Set("topic_type", props.TopicType)
-		d.Set("metric_resource_id", props.MetricResourceID)
+		d.Set("metric_arm_resource_id", props.MetricResourceID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -203,14 +203,14 @@ func resourceArmEventGridSystemTopicDelete(d *schema.ResourceData, meta interfac
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting EventGrid System Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting Event Grid System Topic %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting EventGrid System Topic %q: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting Event Grid System Topic %q: %+v", id.Name, err)
 	}
 
 	return nil
