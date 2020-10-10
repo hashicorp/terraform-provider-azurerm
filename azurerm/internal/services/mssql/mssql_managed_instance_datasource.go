@@ -64,11 +64,6 @@ func dataSourceArmMSSQLManagedInstance() *schema.Resource {
 				Computed: true,
 			},
 
-			"dns_zone_partner": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"instance_pool_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -78,15 +73,12 @@ func dataSourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"maintenance_configuration_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"create_mode": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 
 			"minimal_tls_version": {
 				Type:     schema.TypeString,
@@ -100,16 +92,6 @@ func dataSourceArmMSSQLManagedInstance() *schema.Resource {
 
 			"public_data_endpoint_enabled": {
 				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"restore_point_in_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"source_managed_instance_id": {
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -168,7 +150,7 @@ func dataSourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interfac
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error reading managed SQL instance %s: %v", name, err)
+		return fmt.Errorf("while reading managed SQL instance %s: %v", name, err)
 	}
 
 	d.Set("name", name)
@@ -181,14 +163,12 @@ func dataSourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interfac
 	}
 
 	if err := d.Set("identity", flattenMIIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("while setting `identity`: %+v", err)
 	}
 
 	if props := resp.ManagedInstanceProperties; props != nil {
-		d.Set("create_mode", string(props.ManagedInstanceCreateMode))
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("administrator_login", props.AdministratorLogin)
-
 		d.Set("subnet_id", props.SubnetID)
 		d.Set("state", props.State)
 		d.Set("license_type", props.LicenseType)
@@ -196,11 +176,7 @@ func dataSourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interfac
 		d.Set("storage_size_gb", props.StorageSizeInGB)
 		d.Set("collation", props.Collation)
 		d.Set("dns_zone", props.DNSZone)
-		d.Set("dns_zone_partner", props.DNSZonePartner)
 		d.Set("public_data_endpoint_enabled", props.PublicDataEndpointEnabled)
-		d.Set("source_managed_instance_id", props.SourceManagedInstanceID)
-		d.Set("restore_point_in_time", props.RestorePointInTime)
-
 		d.Set("proxy_override", props.ProxyOverride)
 		d.Set("timezone_id", props.TimezoneID)
 		d.Set("instance_pool_id", props.InstancePoolID)

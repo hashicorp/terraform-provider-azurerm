@@ -29,28 +29,8 @@ func TestAccDataSourceAzureRMMsSqlManagedInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "vcores", "16"),
 					resource.TestCheckResourceAttr(data.ResourceName, "minimal_tls_version", "1.1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "data_endpoint_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "timezone_id", "UTC"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccDataSourceAzureRMMsSqlManagedInstance_licenseType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_mssql_managed_instance", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlManagedInstanceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMMsSqlManagedInstance_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlManagedInstanceExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
+          resource.TestCheckResourceAttr(data.ResourceName, "timezone_id", "UTC"),
+          resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
 				),
 			},
 		},
@@ -141,5 +121,11 @@ resource "azurerm_mssql_managed_instance" "test" {
   timezone_id           = "UTC"
   minimal_tls_version   = "1.1"
 }
+
+data "azurerm_mssql_managed_instance" "example" {
+  name                         = azurerm_mssql_managed_instance.test.name
+  resource_group_name =  azurerm_mssql_managed_instance.test.resource_group_name
+ 
+ }
 `, data.RandomInteger, data.Locations.Primary)
 }

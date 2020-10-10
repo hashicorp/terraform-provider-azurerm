@@ -26,9 +26,9 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(15 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(15 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
@@ -38,7 +38,7 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"server_key_name": {

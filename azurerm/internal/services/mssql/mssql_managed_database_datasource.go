@@ -2,12 +2,13 @@ package mssql
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"time"
 )
 
 func dataSourceArmMSSQLManagedDatabase() *schema.Resource {
@@ -90,7 +91,7 @@ func dataSourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interfac
 
 	resp, err := client.Get(ctx, resourceGroup, managedInstanceName, name)
 	if err != nil {
-		return fmt.Errorf("Error reading managed SQL Database %s: %v", name, err)
+		return fmt.Errorf("while reading managed SQL Database %s: %v", name, err)
 	}
 
 	if id := resp.ID; id != nil {

@@ -2,6 +2,8 @@ package mssql
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -13,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"time"
+	
 )
 
 func resourceArmMSSQLManagedDatabase() *schema.Resource {
@@ -47,6 +49,7 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"collation": {
@@ -90,6 +93,8 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 			"storage_container_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
+				RequiredWith: []string{"storage_container_uri", "storage_container_sas_token", "last_backup_name"},
 			},
 
 			"source_database_id": {
@@ -97,6 +102,7 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
 				ForceNew:         true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"restorable_dropped_database_id": {
@@ -104,12 +110,14 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
 				ForceNew:         true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"storage_container_sas_token": {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
+				RequiredWith: []string{"storage_container_uri", "storage_container_sas_token", "last_backup_name"},
 			},
 
 			"recoverable_database_id": {
@@ -118,16 +126,21 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"last_backup_name": {
 				Type:      schema.TypeString,
 				Optional:  true,
+				ForceNew:         true,
+				RequiredWith: []string{"storage_container_uri", "storage_container_sas_token", "last_backup_name"},
 			},
 
 			"longterm_retention_backup_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew:         true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"auto_complete_restore": {
@@ -298,6 +311,9 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if v, exists := d.GetOk("last_backup_name"); exists {
+		if createMode != string(sql.ManagedDatabaseCreateModeRestoreExternalBackup) {
+			return fmt.Errorf("'last_backup_name' is supported only for create_mode %s", string(sql.ManagedDatabaseCreateModeRestoreExternalBackup))
+		}
 		parameters.ManagedDatabaseProperties.LastBackupName = utils.String(v.(string))
 	}
 
@@ -331,21 +347,21 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, managedInstanceName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
+		return fmt.Errorf("while making create/update request for Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on create/update request for Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
+		return fmt.Errorf("while waiting on create/update request for Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
 	}
 
 	time.Sleep(20 * time.Second)
 	result, err := client.Get(ctx, resourceGroup, managedInstanceName, name)
 	if err != nil {
-		return fmt.Errorf("Error making get request for Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
+		return fmt.Errorf("while making get request for Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
 	}
 
 	if result.ID == nil {
-		return fmt.Errorf("Error getting ID from Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
+		return fmt.Errorf("while getting ID from Managed Database %q (Managed instance %q, Resource group: %q): %+v", name, managedInstanceName, resourceGroup, err)
 	}
 
 	d.SetId(*result.ID)

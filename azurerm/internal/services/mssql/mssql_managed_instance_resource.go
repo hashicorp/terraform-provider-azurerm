@@ -33,7 +33,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 			Create: schema.DefaultTimeout(600 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(1200 * time.Minute),
-			Delete: schema.DefaultTimeout(5 * time.Minute),
+			Delete: schema.DefaultTimeout(600 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -91,7 +91,6 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
-				Computed:         true,
 				ForceNew:         true,
 			},
 
@@ -99,7 +98,6 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 			},
 
 			"instance_pool_id": {
@@ -117,17 +115,18 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 					string(sql.BasePrice),
 				}, false),
 			},
+
 			"maintenance_configuration_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.ManagedServerCreateModeDefault),
 					string(sql.ManagedServerCreateModePointInTimeRestore),
@@ -163,29 +162,30 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 			"restore_point_in_time": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
+				RequiredWith: []string{"restore_point_in_time", "source_managed_instance_id"},
 			},
 
 			"source_managed_instance_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
+				ValidateFunc: azure.ValidateResourceID,
+				RequiredWith: []string{"restore_point_in_time", "source_managed_instance_id"},
 			},
 
 			"storage_size_gb": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(32, 8192),
-				Computed:     true,
 			},
 
 			"subnet_id": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"timezone_id": {
@@ -228,7 +228,12 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								"GP_Gen4",
+								"GP_Gen5",
+								"BC_Gen4",
+								"BC_Gen5",
+							}, false),
 						},
 
 						"size": {

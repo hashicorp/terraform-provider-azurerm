@@ -28,9 +28,9 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(15 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(15 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
@@ -40,7 +40,7 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"login_username": {
@@ -101,14 +101,14 @@ func resourceArmMSSQLManagedInstanceAdminCreateUpdate(d *schema.ResourceData, me
 	name := id.Path["managedInstances"]
 
 	if _, err := managedInstanceClient.Get(ctx, resGroup, name); err != nil {
-		return fmt.Errorf("Error reading managed SQL instance %s: %v", name, err)
+		return fmt.Errorf("while reading managed SQL instance %s: %v", name, err)
 	}
 
 	if d.IsNewResource() {
 		existing, err := adminClient.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing managed sql instance aad admin details %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("while checking for presence of existing managed sql instance aad admin details %q (Resource Group %q): %+v", name, resGroup, err)
 			}
 		}
 
@@ -136,20 +136,20 @@ func resourceArmMSSQLManagedInstanceAdminCreateUpdate(d *schema.ResourceData, me
 
 	adminFuture, err := adminClient.CreateOrUpdate(ctx, resGroup, name, managedInstanceAdmin)
 	if err != nil {
-		return fmt.Errorf("Error while creating Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("while creating Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-		return fmt.Errorf("Error while waiting for creation of Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("while waiting for creation of Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	result, err := adminClient.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making get request for managed SQL instance AAD Admin details %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("while making get request for managed SQL instance AAD Admin details %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if result.ID == nil {
-		return fmt.Errorf("Error getting ID from managed SQL instance %q AAD Admin details (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("while getting ID from managed SQL instance %q AAD Admin details (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*result.ID)
@@ -173,7 +173,7 @@ func resourceArmMSSQLManagedInstanceAdminRead(d *schema.ResourceData, meta inter
 
 	adminResp, err := adminClient.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error reading managed instance %s AAD admin: %v", name, err)
+		return fmt.Errorf("while reading managed instance %s AAD admin: %v", name, err)
 	}
 
 	managedInstanceId, _ := azure.GetSQLResourceParentId(d.Id())
@@ -208,7 +208,7 @@ func resourceArmMSSQLManagedInstanceAdminDelete(d *schema.ResourceData, meta int
 
 	future, err := adminClient.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting managed SQL instance %s admin details: %+v", name, err)
+		return fmt.Errorf("while deleting managed SQL instance %s admin details: %+v", name, err)
 	}
 
 	return future.WaitForCompletionRef(ctx, adminClient.Client)
