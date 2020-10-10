@@ -229,7 +229,7 @@ func TestAccBatchPoolStartTask_basic(t *testing.T) {
 	})
 }
 
-func TestAccBatchPoolStartTask_basic(t *testing.T) {
+func TestAccBatchPoolStartTask_withContainerConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -238,7 +238,7 @@ func TestAccBatchPoolStartTask_basic(t *testing.T) {
 		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBatchPoolStartTask_basic(data),
+				Config: testAccBatchPoolStartTask_basicWithContainerConfiguration(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
