@@ -47,5 +47,5 @@ func testAccDataSourceAzureRMMsSqlManagedDatabaseBasic_template(data acceptance.
 		managed_instance_name = azurerm_mssql_managed_instance.test.name
 		resource_group_name =  azurerm_mssql_managed_instance.test.resource_group_name
 	   
-	   }`, template, data.RandomInteger )
+	   }`, template, data.RandomInteger)
 }

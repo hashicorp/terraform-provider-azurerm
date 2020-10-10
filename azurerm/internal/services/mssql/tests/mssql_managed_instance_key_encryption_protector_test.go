@@ -95,7 +95,6 @@ func TestAccAzureRMMsSqlManagedInstanceEncryption_update(t *testing.T) {
 					testCheckAzureRMMsSqlManagedInstanceEncryptionExists(data.ResourceName),
 				),
 			},
-
 		},
 	})
 }
@@ -143,7 +142,7 @@ func testCheckAzureRMMsSqlManagedInstanceEncryptionDestroy(s *terraform.State) e
 		resourceGroup := id.ResourceGroup
 
 		if resp, err := client.Get(ctx, resourceGroup, managedInstanceName); err != nil {
-			
+
 			if string(resp.ManagedInstanceEncryptionProtectorProperties.ServerKeyType) != "ServiceManaged" {
 				return fmt.Errorf("Get on managed instance key Client: %+v", err)
 			}
@@ -154,12 +153,10 @@ func testCheckAzureRMMsSqlManagedInstanceEncryptionDestroy(s *terraform.State) e
 	return nil
 }
 
-
 func testAccAzureRMMsSqlManagedInstanceEncryption_basic(data acceptance.TestData) string {
 	keyvaultName := "acctst-kv-" + data.RandomString
 	template := testAccAzureRMMsSqlManagedInstanceEncryption_prepareDependencies(data, keyvaultName)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_instance_key" "test" {
 	key_name                          = "${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
@@ -178,8 +175,7 @@ resource "azurerm_mssql_managed_instance_key" "test" {
 func testAccAzureRMMsSqlManagedInstanceEncryption_ServiceManaged(data acceptance.TestData) string {
 	keyvaultName := "acctst-kv-" + data.RandomString
 	template := testAccAzureRMMsSqlManagedInstanceEncryption_prepareDependencies(data, keyvaultName)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
   resource "azurerm_mssql_managed_instance_encryption_protector" "test" {
 	server_key_name                          = "ServiceManaged"
@@ -192,8 +188,7 @@ func testAccAzureRMMsSqlManagedInstanceEncryption_ServiceManaged(data acceptance
 func testAccAzureRMMsSqlManagedInstanceEncryption_update(data acceptance.TestData) string {
 	keyvaultName := "acctst-kv-" + data.RandomString
 	template := testAccAzureRMMsSqlManagedInstanceEncryption_prepareDependencies(data, keyvaultName)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_instance_key" "test" {
 	key_name                          = "${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.version}"
@@ -212,8 +207,7 @@ resource "azurerm_mssql_managed_instance_key" "test" {
 
 func testAccAzureRMMssqlManagedInstanceEncryption_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlManagedInstanceEncryption_basic(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_instance_encryption_protector" "import" {
 	server_key_name                    = "${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
@@ -223,10 +217,8 @@ resource "azurerm_mssql_managed_instance_encryption_protector" "import" {
 `, template)
 }
 
-
 func testAccAzureRMMsSqlManagedInstanceEncryption_prepareDependencies(data acceptance.TestData, keyvaultName string) string {
-	return fmt.Sprintf(`
-	provider "azurerm" {
+	return fmt.Sprintf(`provider "azurerm" {
 	  features {}
 	}
 

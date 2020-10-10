@@ -34,24 +34,24 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"managed_instance_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 
 			"server_key_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"server_key_type": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.ServiceManaged),
 					string(sql.AzureKeyVault),
@@ -177,7 +177,7 @@ func resourceArmMSSQLManagedInstanceEncryptionProtectorRead(d *schema.ResourceDa
 	return nil
 }
 
-// Managed Instance Does not support encryption protector deletion. 
+// Managed Instance Does not support encryption protector deletion.
 // Therefore the destroy can default back to ServiceManaged Key encryption rather than to any BYOK TDE protector
 func resourceArmMSSQLManagedInstanceEncryptionProtectorResetToDefault(d *schema.ResourceData, meta interface{}) error {
 	encryptionClient := meta.(*clients.Client).MSSQL.ManagedInstanceEncryptionProtectorsClient

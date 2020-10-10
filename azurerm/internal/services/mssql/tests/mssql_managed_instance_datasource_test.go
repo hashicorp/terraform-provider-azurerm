@@ -29,8 +29,8 @@ func TestAccDataSourceAzureRMMsSqlManagedInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "vcores", "16"),
 					resource.TestCheckResourceAttr(data.ResourceName, "minimal_tls_version", "1.1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "data_endpoint_enabled", "true"),
-          resource.TestCheckResourceAttr(data.ResourceName, "timezone_id", "UTC"),
-          resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
+					resource.TestCheckResourceAttr(data.ResourceName, "timezone_id", "UTC"),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
 				),
 			},
 		},
@@ -123,9 +123,9 @@ resource "azurerm_mssql_managed_instance" "test" {
 }
 
 data "azurerm_mssql_managed_instance" "example" {
-  name                         = azurerm_mssql_managed_instance.test.name
-  resource_group_name =  azurerm_mssql_managed_instance.test.resource_group_name
- 
- }
+  name                = azurerm_mssql_managed_instance.test.name
+  resource_group_name = azurerm_mssql_managed_instance.test.resource_group_name
+
+}
 `, data.RandomInteger, data.Locations.Primary)
 }

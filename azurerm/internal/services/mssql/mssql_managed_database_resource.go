@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	
 )
 
 func resourceArmMSSQLManagedDatabase() *schema.Resource {
@@ -46,9 +45,9 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 			},
 
 			"managed_instance_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -91,9 +90,9 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 			},
 
 			"storage_container_uri": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
 				RequiredWith: []string{"storage_container_uri", "storage_container_sas_token", "last_backup_name"},
 			},
 
@@ -102,7 +101,7 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
 				ForceNew:         true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 
 			"restorable_dropped_database_id": {
@@ -110,13 +109,13 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
 				ForceNew:         true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 
 			"storage_container_sas_token": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
 				RequiredWith: []string{"storage_container_uri", "storage_container_sas_token", "last_backup_name"},
 			},
 
@@ -126,20 +125,20 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 
 			"last_backup_name": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				ForceNew:         true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
 				RequiredWith: []string{"storage_container_uri", "storage_container_sas_token", "last_backup_name"},
 			},
 
 			"longterm_retention_backup_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew:         true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -234,7 +233,7 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 			_, sourceDatabaseExists := d.GetOk("source_database_id")
 			_, recoverableDroppedDatabaseExists := d.GetOk("restorable_dropped_database_id")
 			_, restorePointExists := d.GetOk("restore_point_in_time")
-			if (!sourceDatabaseExists && !recoverableDroppedDatabaseExists) || !restorePointExists  {
+			if (!sourceDatabaseExists && !recoverableDroppedDatabaseExists) || !restorePointExists {
 				return fmt.Errorf("could not create managed database %q in managed instance %q (Resource Group %q) in restore in point create mode. Restore point in time and either of source database id or restorable dropped database id values should be supplied.", name, managedInstanceName, resourceGroup)
 			}
 		}

@@ -78,7 +78,6 @@ func TestAccAzureRMMsSqlManagedInstanceKey_update(t *testing.T) {
 					testCheckAzureRMMsSqlManagedInstanceKeyExists(data.ResourceName),
 				),
 			},
-
 		},
 	})
 }
@@ -138,12 +137,10 @@ func testCheckAzureRMMsSqlManagedInstanceKeyDestroy(s *terraform.State) error {
 	return nil
 }
 
-
 func testAccAzureRMMsSqlManagedInstanceKey_basic(data acceptance.TestData) string {
 	keyvaultName := "acctst-kv-" + data.RandomString
 	template := testAccAzureRMMsSqlManagedInstanceKey_prepareDependencies(data, keyvaultName)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_instance_key" "test" {
 	key_name                          = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
@@ -158,8 +155,7 @@ resource "azurerm_mssql_managed_instance_key" "test" {
 func testAccAzureRMMsSqlManagedInstanceKey_update(data acceptance.TestData) string {
 	keyvaultName := "acctst-kv-" + data.RandomString
 	template := testAccAzureRMMsSqlManagedInstanceKey_prepareDependencies(data, keyvaultName)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_instance_key" "test" {
 	key_name                          = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.version}"
@@ -173,8 +169,7 @@ resource "azurerm_mssql_managed_instance_key" "test" {
 
 func testAccAzureRMMssqlManagedInstanceKey_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlManagedInstanceKey_basic(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_instance_key" "import" {
 	key_name                    = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
@@ -185,177 +180,175 @@ resource "azurerm_mssql_managed_instance_key" "import" {
 `, template)
 }
 
-
 func testAccAzureRMMsSqlManagedInstanceKey_prepareDependencies(data acceptance.TestData, keyvaultName string) string {
-	return fmt.Sprintf(`
-	provider "azurerm" {
-	  features {}
-	}
+	return fmt.Sprintf(`provider "azurerm" {
+  features {}
+}
 
-	data "azurerm_client_config" "current" {}
-	
-	resource "azurerm_resource_group" "test" {
-	  name     = "acctestRG-%[1]d"
-	  location = "%[2]s"
-	}
-	
-	resource "azurerm_network_security_group" "test" {
-	  name                = "accTestNetworkSecurityGroup-%[1]d"
-	  location            = "%[2]s"
-	  resource_group_name = azurerm_resource_group.test.name
-	}
-	
-	resource "azurerm_virtual_network" "test" {
-	  name                = "acctest-%[1]d-network"
-	  resource_group_name = azurerm_resource_group.test.name
-	  location            = "%[2]s"
-	  address_space       = ["10.0.0.0/16"]
-	}
-	
-	resource "azurerm_subnet" "test" {
-	  name                 = "internal"
-	  virtual_network_name = azurerm_virtual_network.test.name
-	  resource_group_name  = azurerm_resource_group.test.name
-	  address_prefixes     = ["10.0.1.0/24"]
-	  delegation {
-		name = "miDelegation"
-		service_delegation {
-		  name = "Microsoft.Sql/managedInstances"
-		}
-	  }
-	}
-	
-	resource "azurerm_subnet_network_security_group_association" "test" {
-	  subnet_id                 = azurerm_subnet.test.id
-	  network_security_group_id = azurerm_network_security_group.test.id
-	}
-	
-	resource "azurerm_route_table" "test" {
-	  name                = "test-routetable-%[1]d"
-	  location            = azurerm_resource_group.test.location
-	  resource_group_name = azurerm_resource_group.test.name
-	  route {
-		name                   = "test"
-		address_prefix         = "10.100.0.0/14"
-		next_hop_type          = "VirtualAppliance"
-		next_hop_in_ip_address = "10.10.1.1"
-	  }
-	}
-	
-	resource "azurerm_subnet_route_table_association" "test" {
-	  subnet_id      = azurerm_subnet.test.id
-	  route_table_id = azurerm_route_table.test.id
-	}
-	
-	resource "azurerm_mssql_managed_instance" "test" {
-	  name                         = "acctest-mi-%[1]d"
-	  resource_group_name          = azurerm_resource_group.test.name
-	  location                     = azurerm_resource_group.test.location
-	  administrator_login          = "AcceptanceTestUser"
-	  administrator_login_password = "LengthyPassword@1234"
-	  subnet_id                    = azurerm_subnet.test.id
-	  identity {
-		type = "SystemAssigned"
-	  }
-	  depends_on = [
-		azurerm_subnet_network_security_group_association.test,
-		azurerm_subnet_route_table_association.test
-	  ]
-	}
+data "azurerm_client_config" "current" {}
 
-	resource "azurerm_key_vault" "test" {
-		name                        = "%[3]s"
-		location                    = azurerm_resource_group.test.location
-		resource_group_name         = azurerm_resource_group.test.name
-		enabled_for_disk_encryption = true
-		tenant_id                   = data.azurerm_client_config.current.tenant_id
-		soft_delete_enabled         = true
-		soft_delete_retention_days  = 7
-		purge_protection_enabled    = false
-	  
-		sku_name = "standard"
-	  
-		access_policy {
-		  tenant_id = data.azurerm_client_config.current.tenant_id
-		  object_id = data.azurerm_client_config.current.object_id
-	  
-		  key_permissions = [
-			"get",
-			 "wrapKey",
-			  "unwrapKey",
-			"create",
-			"list",
-			"delete",
-		  ]
-	  
-		  secret_permissions = [
-			"get",
-			"delete",
-		  ]
-	  
-		  storage_permissions = [
-			"get",
-			"delete",
-		  ]
-		}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
 
-		access_policy {
-			tenant_id = azurerm_mssql_managed_instance.test.identity[0].tenant_id
-			object_id = azurerm_mssql_managed_instance.test.identity[0].principal_id
-		
-			key_permissions = [
-			  "get",
-			   "wrapKey",
-				"unwrapKey",
-			  "create",
-			  "list",
-			  "delete",
-			]
-		
-			secret_permissions = [
-			  "get",
-				  "delete",
-			]
-		
-			storage_permissions = [
-			  "get",
-				  "delete",
-			]
-		  }
+resource "azurerm_network_security_group" "test" {
+  name                = "accTestNetworkSecurityGroup-%[1]d"
+  location            = "%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
+}
 
-	  }
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-%[1]d-network"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[2]s"
+  address_space       = ["10.0.0.0/16"]
+}
 
-	  resource "azurerm_key_vault_key" "test" {
-		name         = "acc-test1"
-		key_vault_id = azurerm_key_vault.test.id
-		key_type     = "RSA"
-		key_size     = 2048
-	  
-		key_opts = [
-		  "decrypt",
-		  "encrypt",
-		  "sign",
-		  "unwrapKey",
-		  "verify",
-		  "wrapKey"
-		]
-	  }
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "miDelegation"
+    service_delegation {
+      name = "Microsoft.Sql/managedInstances"
+    }
+  }
+}
 
-	  resource "azurerm_key_vault_key" "test1" {
-		name         = "acc-test2"
-		key_vault_id = azurerm_key_vault.test.id
-		key_type     = "RSA"
-		key_size     = 2048
-	  
-		key_opts = [
-		  "decrypt",
-		  "encrypt",
-		  "sign",
-		  "unwrapKey",
-		  "verify",
-		  "wrapKey"
-		]
-	  }
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "test-routetable-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  route {
+    name                   = "test"
+    address_prefix         = "10.100.0.0/14"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "10.10.1.1"
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "test" {
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
+}
+
+resource "azurerm_mssql_managed_instance" "test" {
+  name                         = "acctest-mi-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "AcceptanceTestUser"
+  administrator_login_password = "LengthyPassword@1234"
+  subnet_id                    = azurerm_subnet.test.id
+  identity {
+    type = "SystemAssigned"
+  }
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test
+  ]
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "%[3]s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_enabled         = true
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "get",
+      "wrapKey",
+      "unwrapKey",
+      "create",
+      "list",
+      "delete",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+    ]
+
+    storage_permissions = [
+      "get",
+      "delete",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_mssql_managed_instance.test.identity[0].tenant_id
+    object_id = azurerm_mssql_managed_instance.test.identity[0].principal_id
+
+    key_permissions = [
+      "get",
+      "wrapKey",
+      "unwrapKey",
+      "create",
+      "list",
+      "delete",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+    ]
+
+    storage_permissions = [
+      "get",
+      "delete",
+    ]
+  }
+
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acc-test1"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey"
+  ]
+}
+
+resource "azurerm_key_vault_key" "test1" {
+  name         = "acc-test2"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey"
+  ]
+}
 
 	`, data.RandomInteger, data.Locations.Primary, keyvaultName)
 }

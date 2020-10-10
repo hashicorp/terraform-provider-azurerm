@@ -117,9 +117,9 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 			},
 
 			"maintenance_configuration_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -165,13 +165,13 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
-				RequiredWith: []string{"restore_point_in_time", "source_managed_instance_id"},
+				RequiredWith:     []string{"restore_point_in_time", "source_managed_instance_id"},
 			},
 
 			"source_managed_instance_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 				RequiredWith: []string{"restore_point_in_time", "source_managed_instance_id"},
 			},
@@ -183,8 +183,8 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 			},
 
 			"subnet_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
@@ -226,8 +226,8 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"name": {
-							Type:             schema.TypeString,
-							Required:         true,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"GP_Gen4",
 								"GP_Gen5",

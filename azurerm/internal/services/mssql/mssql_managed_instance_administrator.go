@@ -36,19 +36,19 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"managed_instance_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 
 			"login_username": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"object_id": {

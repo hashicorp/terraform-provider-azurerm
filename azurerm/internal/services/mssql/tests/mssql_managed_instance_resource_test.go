@@ -369,8 +369,7 @@ func testAccAzureRMMsSqlManagedInstance_updateTlsVersion(data acceptance.TestDat
 }
 
 func testAccAzureRMMsSqlManagedInstance_basic(data acceptance.TestData, adminLogin string, adminPassword string, skuCapacity int, skuFamily string, skuName string, skuTier string, licenseType string, collation string, proxyOverride string, storageSize int, vcores int, timeZoneId string, minTlsVersion string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
+	return fmt.Sprintf(`provider "azurerm" {
   features {}
 }
 
@@ -461,8 +460,7 @@ resource "azurerm_mssql_managed_instance" "test" {
 
 func testAccAzureRMMsSqlManagedInstance_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlManagedInstance_basicTemplate(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_instance" "import" {
   name                         = "acctest-mi-%[2]d"
@@ -494,8 +492,7 @@ resource "azurerm_mssql_managed_instance" "import" {
 
 func testAccAzureRMMsSqlManagedInstance_DnsZonePartner(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlManagedInstance_basicTemplate(data)
-	return fmt.Sprintf(`
-%s
+	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_instance" "dnspartner" {
   name                         = "acctest-mi-dns-%[2]d"

@@ -79,7 +79,6 @@ func dataSourceArmMSSQLManagedInstance() *schema.Resource {
 				Computed: true,
 			},
 
-
 			"minimal_tls_version": {
 				Type:     schema.TypeString,
 				Computed: true,
