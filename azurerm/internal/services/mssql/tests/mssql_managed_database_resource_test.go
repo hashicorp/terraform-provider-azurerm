@@ -2,15 +2,15 @@ package tests
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func TestAccAzureRMMsSqlManagedDatabase_basic(t *testing.T) {
@@ -137,15 +137,15 @@ func TestAccAzureRMMsSqlManagedDatabase_createPITRMode(t *testing.T) {
 }
 
 func testAccAzureRMMsSqlManagedDatabase_basicTemplate(data acceptance.TestData) string {
-	return testAccAzureRMMsSqlManagedDatabase_basic(data, "SQL_Latin1_General_CP1_CI_AS", "Default", "SQL_Latin1_General_CP1_CI_AS")
+	return testAccAzureRMMsSqlManagedDatabase_basic(data, "SQL_Latin1_General_CP1_CI_AS", "SQL_Latin1_General_CP1_CI_AS")
 }
 
 func testAccAzureRMMsSqlManagedDatabase_UpdateCollation(data acceptance.TestData) string {
-	return testAccAzureRMMsSqlManagedDatabase_basic(data, "Estonian_100_CS_AS_SC_UTF8", "Default", "SQL_Latin1_General_CP1_CI_AS")
+	return testAccAzureRMMsSqlManagedDatabase_basic(data, "Estonian_100_CS_AS_SC_UTF8", "SQL_Latin1_General_CP1_CI_AS")
 }
 
 func testAccAzureRMMsSqlManagedDatabase_UpdateCatalogCollation(data acceptance.TestData) string {
-	return testAccAzureRMMsSqlManagedDatabase_basic(data, "SQL_Latin1_General_CP1_CI_AS", "Default", "DATABASE_DEFAULT")
+	return testAccAzureRMMsSqlManagedDatabase_basic(data, "SQL_Latin1_General_CP1_CI_AS", "DATABASE_DEFAULT")
 }
 
 func testCheckAzureRMMsSqlManagedDatabaseExists(resourceName string) resource.TestCheckFunc {
@@ -160,7 +160,12 @@ func testCheckAzureRMMsSqlManagedDatabaseExists(resourceName string) resource.Te
 
 		name := rs.Primary.Attributes["name"]
 		managedInstanceId := rs.Primary.Attributes["managed_instance_id"]
+
 		id, err := azure.ParseAzureResourceID(managedInstanceId)
+		if err != nil {
+			return err
+		}
+
 		managedInstanceName := id.Path["managedInstances"]
 		resourceGroup := id.ResourceGroup
 
@@ -169,7 +174,7 @@ func testCheckAzureRMMsSqlManagedDatabaseExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: Get on ManagedDatabase: %+v", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Bad: Managed database %q  (Managed Sql Instance %q, resource group: %q) does not exist", name, managedInstanceName, resourceGroup)
 		}
 
@@ -206,7 +211,7 @@ func testCheckAzureRMMsSqlManagedDatabaseDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMMsSqlManagedDatabase_basic(data acceptance.TestData, collation string, createMode string, catalogCollation string) string {
+func testAccAzureRMMsSqlManagedDatabase_basic(data acceptance.TestData, collation string, catalogCollation string) string {
 	template := testAccAzureRMMsSqlManagedDatabase_prepareDependencies(data)
 	return fmt.Sprintf(`%s
 
@@ -214,10 +219,9 @@ resource "azurerm_mssql_managed_database" "test" {
 	name                         = "acctest-db-%[2]d"
 	managed_instance_id          = azurerm_mssql_managed_instance.test.id
 	collation					 = "%[3]s"
-	create_mode 				= "%[4]s"
-	catalog_collation           =  "%[5]s"
+	catalog_collation           =  "%[4]s"
   }
-`, template, data.RandomInteger, collation, createMode, catalogCollation)
+`, template, data.RandomInteger, collation, catalogCollation)
 }
 
 func testAccAzureRMMsSqlManagedDatabase_createPITRMode(data acceptance.TestData) string {
@@ -235,7 +239,7 @@ resource "azurerm_mssql_managed_database" "pitr" {
 }
 
 func testAccAzureRMMssqlManagedDatabase_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMsSqlManagedDatabase_basic(data, "SQL_Latin1_General_CP1_CI_AS", "Default", "SQL_Latin1_General_CP1_CI_AS")
+	template := testAccAzureRMMsSqlManagedDatabase_basic(data, "SQL_Latin1_General_CP1_CI_AS", "SQL_Latin1_General_CP1_CI_AS")
 	return fmt.Sprintf(`%s
 
 resource "azurerm_mssql_managed_database" "import" {

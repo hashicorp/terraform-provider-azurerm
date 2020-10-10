@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -345,7 +345,6 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 		}
 
 		parameters.ManagedInstanceProperties.StorageSizeInGB = utils.Int32(int32(storageSize))
-
 	}
 
 	if v, exists := d.GetOk("vcores"); exists {
@@ -442,7 +441,6 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 	d.SetId(*result.ID)
 
 	return resourceArmMSSQLManagedInstanceRead(d, meta)
-
 }
 
 func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{}) error {

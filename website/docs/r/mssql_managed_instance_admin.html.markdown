@@ -44,7 +44,7 @@ resource "azurerm_subnet" "example" {
     name = "miDelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -73,35 +73,35 @@ resource "azurerm_subnet_route_table_association" "example" {
 }
 
 resource "azurerm_mssql_managed_instance" "example" {
-  name                 = "sql-mi"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  administrator_login = "demoReadUser"
+  name                         = "sql-mi"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  administrator_login          = "demoReadUser"
   administrator_login_password = "ReadUser@123456"
-  subnet_id = azurerm_subnet.example.id
+  subnet_id                    = azurerm_subnet.example.id
   identity {
     type = "SystemAssigned"
   }
-   sku {
-        capacity = 8
-        family = "Gen5"
-        name = "GP_Gen5"
-        tier = "GeneralPurpose"
-      }
-      license_type = "LicenseIncluded"
-      collation =  "SQL_Latin1_General_CP1_CI_AS"
-      proxy_override = "Redirect"
-      storage_size_gb = 64
-      vcores = 8
-      public_data_endpoint_enabled = false
-      timezone_id = "Central America Standard Time"
-      minimal_tls_version = "1.2"
+  sku {
+    capacity = 8
+    family   = "Gen5"
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+  }
+  license_type                 = "LicenseIncluded"
+  collation                    = "SQL_Latin1_General_CP1_CI_AS"
+  proxy_override               = "Redirect"
+  storage_size_gb              = 64
+  vcores                       = 8
+  public_data_endpoint_enabled = false
+  timezone_id                  = "Central America Standard Time"
+  minimal_tls_version          = "1.2"
 }
 
 resource "azurerm_mssql_managed_instance_admin" "example" {
-    managed_instance_id = azurerm_mssql_managed_instance.example.id
-    login_username = "user@example.com"
-    object_id = "00000000-0000-0000-0000-000000000000"
+  managed_instance_id = azurerm_mssql_managed_instance.example.id
+  login_username      = "user@example.com"
+  object_id           = "00000000-0000-0000-0000-000000000000"
 }
 
 ```

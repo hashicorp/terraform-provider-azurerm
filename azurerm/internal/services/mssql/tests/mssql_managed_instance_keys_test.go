@@ -2,14 +2,14 @@ package tests
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"net/http"
-	"testing"
 )
 
 func TestAccAzureRMMsSqlManagedInstanceKey_basic(t *testing.T) {
@@ -103,7 +103,7 @@ func testCheckAzureRMMsSqlManagedInstanceKeyExists(resourceName string) resource
 			return fmt.Errorf("Bad: Get on ManagedInstanceKey: %+v", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Bad: Managed InstanceKey %q  (Managed Sql Instance %q, resource group: %q) does not exist", name, managedInstanceName, resourceGroup)
 		}
 

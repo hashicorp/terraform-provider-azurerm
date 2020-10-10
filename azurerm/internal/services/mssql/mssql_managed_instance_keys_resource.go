@@ -152,7 +152,6 @@ func resourceArmMSSQLManagedInstanceKeysCreateUpdate(d *schema.ResourceData, met
 	d.SetId(*result.ID)
 
 	return resourceArmMSSQLManagedInstanceKeysRead(d, meta)
-
 }
 
 func resourceArmMSSQLManagedInstanceKeysRead(d *schema.ResourceData, meta interface{}) error {

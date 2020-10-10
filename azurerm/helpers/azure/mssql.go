@@ -232,21 +232,19 @@ func GetSQLResourceParentId(id string) (*string, error) {
 		key := components[current]
 		value := components[current+1]
 
-		// Check key/value for empty strings.
-		if key == "" || value == "" {
-			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
-		}
-
-		if key == "subscriptions" {
+		switch key {
+		case "subscriptions":
 			subscriptionID = value
-		} else if key == "resourceGroups" {
+		case "resourceGroups":
 			resourceGroup = value
-		} else if key == "providers" && value == "Microsoft.Sql" {
+		case "providers":
 			providers = value
-		} else if key == "managedInstances" {
+		case "managedInstances":
 			managedInstance = value
-		} else if key == "servers" {
+		case "servers":
 			server = value
+		default:
+			return nil, fmt.Errorf("Key/Value cannot be empty strings. Key: '%s', Value: '%s'", key, value)
 		}
 	}
 

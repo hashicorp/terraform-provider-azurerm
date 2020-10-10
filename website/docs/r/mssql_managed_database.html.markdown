@@ -44,7 +44,7 @@ resource "azurerm_subnet" "example" {
     name = "miDelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -73,87 +73,87 @@ resource "azurerm_subnet_route_table_association" "example" {
 }
 
 resource "azurerm_mssql_managed_instance" "example" {
-  name                 = "sql-mi"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  administrator_login = "demoReadUser"
+  name                         = "sql-mi"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  administrator_login          = "demoReadUser"
   administrator_login_password = "ReadUser@123456"
-  subnet_id = azurerm_subnet.example.id
+  subnet_id                    = azurerm_subnet.example.id
   identity {
     type = "SystemAssigned"
   }
-   sku {
-        capacity = 8
-        family = "Gen5"
-        name = "GP_Gen5"
-        tier = "GeneralPurpose"
-      }
-      license_type = "LicenseIncluded"
-      collation =  "SQL_Latin1_General_CP1_CI_AS"
-      proxy_override = "Redirect"
-      storage_size_gb = 64
-      vcores = 8
-      public_data_endpoint_enabled = false
-      timezone_id = "Central America Standard Time"
-      minimal_tls_version = "1.2"
+  sku {
+    capacity = 8
+    family   = "Gen5"
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+  }
+  license_type                 = "LicenseIncluded"
+  collation                    = "SQL_Latin1_General_CP1_CI_AS"
+  proxy_override               = "Redirect"
+  storage_size_gb              = 64
+  vcores                       = 8
+  public_data_endpoint_enabled = false
+  timezone_id                  = "Central America Standard Time"
+  minimal_tls_version          = "1.2"
 }
 
 # Default create mode
 resource "azurerm_sql_managed_database" "example" {
-  name                 = "sql-managed-db"
+  name                = "sql-managed-db"
   managed_instance_id = azurerm_mssql_managed_instance.example.id
-  collation            = "SQL_Latin1_General_CP1_CI_AS"
-  catalog_collation = "SQL_Latin1_General_CP1_CI_AS"
+  collation           = "SQL_Latin1_General_CP1_CI_AS"
+  catalog_collation   = "SQL_Latin1_General_CP1_CI_AS"
 }
 
 /* Point in time create mode. This block creates a managed database which is replica of an existing managed database to a specified point in time.
 */
 resource "azurerm_sql_managed_database" "example" {
-  name                 = "sql-managed-db"
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  collation            = "SQL_Latin1_General_CP1_CI_AS"
-  catalog_collation = "SQL_Latin1_General_CP1_CI_AS"
-  create_mode = "PointInTimeRestore"
-  source_database_id = "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/Default-SQL-SouthEastAsia/providers/Microsoft.Sql/managedInstances/testmi/databases/testdb"
+  name                  = "sql-managed-db"
+  managed_instance_id   = azurerm_mssql_managed_instance.example.id
+  collation             = "SQL_Latin1_General_CP1_CI_AS"
+  catalog_collation     = "SQL_Latin1_General_CP1_CI_AS"
+  create_mode           = "PointInTimeRestore"
+  source_database_id    = "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/Default-SQL-SouthEastAsia/providers/Microsoft.Sql/managedInstances/testmi/databases/testdb"
   restore_point_in_time = "2017-07-14T05:35:31.503Z"
 }
 
 # Point in time create mode. This block creates a new db which is replica of a deleted managed database to a specified point in time.
 resource "azurerm_sql_managed_database" "example" {
-  name                 = "sql-managed-db"
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  create_mode = "PointInTimeRestore"
+  name                           = "sql-managed-db"
+  managed_instance_id            = azurerm_mssql_managed_instance.example.id
+  create_mode                    = "PointInTimeRestore"
   restorable_dropped_database_id = "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/Default-SQL-SouthEastAsia/providers/Microsoft.Sql/managedInstances/testmi/restorableDroppedDatabases/testdb"
-  restore_point_in_time = "2017-07-14T05:35:31.503Z"
+  restore_point_in_time          = "2017-07-14T05:35:31.503Z"
 }
 
 # Recovery create mode. This block creates a new db from a geo-replicated backup. 
 resource "azurerm_sql_managed_database" "example" {
-  name                 = "sql-managed-db"
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  create_mode = "Recovery"
+  name                    = "sql-managed-db"
+  managed_instance_id     = azurerm_mssql_managed_instance.example.id
+  create_mode             = "Recovery"
   recoverable_database_id = "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/Default-SQL-SouthEastAsia/providers/Microsoft.Sql/managedInstances/testmi/recoverableDatabases/testdb"
 }
 
 /* RestoreLongTermRetentionBackup create mode. This block creates a new db from long term retention backup(LTR backup policies should be applied first on the managed instance and there should be a LTR backup available).
 */
 resource "azurerm_sql_managed_database" "example" {
-  name                 = "sql-managed-db"
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  create_mode = "RestoreLongTermRetentionBackup"
+  name                         = "sql-managed-db"
+  managed_instance_id          = azurerm_mssql_managed_instance.example.id
+  create_mode                  = "RestoreLongTermRetentionBackup"
   longterm_retention_backup_id = "/subscriptions/00000000-1111-2222-3333-444444444444/providers/Microsoft.Sql/locations/japaneast/longTermRetentionManagedInstances/testInstance/longTermRetentionDatabases/testDatabase/longTermRetentionManagedInstanceBackups/55555555-6666-7777-8888-999999999999;131637960820000000"
 }
 
 /* RestoreExternalBackup create mode. This block creates a new db from a .bak file located in a storage account. The storage account SAS token should have Read and List permissions to access the .bak file and the .bak file should have checksum enabled.
 */
 resource "azurerm_sql_managed_database" "example" {
-  name                 = "sql-managed-db"
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  create_mode = "RestoreExternalBackup"
-  collation = "SQL_Latin1_General_CP1_CI_AS"
-  storage_container_uri = "https://myaccountname.blob.core.windows.net/backups"
+  name                        = "sql-managed-db"
+  managed_instance_id         = azurerm_mssql_managed_instance.example.id
+  create_mode                 = "RestoreExternalBackup"
+  collation                   = "SQL_Latin1_General_CP1_CI_AS"
+  storage_container_uri       = "https://myaccountname.blob.core.windows.net/backups"
   storage_container_sas_token = "sv=2015-12-11&sr=c&sp=rl&sig=1234"
-  last_backup_name = "mydb.bak"
+  last_backup_name            = "mydb.bak"
 }
 
 ```

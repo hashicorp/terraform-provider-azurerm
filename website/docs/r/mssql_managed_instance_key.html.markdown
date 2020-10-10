@@ -44,7 +44,7 @@ resource "azurerm_subnet" "example" {
     name = "miDelegation"
 
     service_delegation {
-      name    = "Microsoft.Sql/managedInstances"
+      name = "Microsoft.Sql/managedInstances"
     }
   }
 }
@@ -73,115 +73,115 @@ resource "azurerm_subnet_route_table_association" "example" {
 }
 
 resource "azurerm_mssql_managed_instance" "example" {
-  name                 = "sql-mi"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  administrator_login = "demoReadUser"
+  name                         = "sql-mi"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  administrator_login          = "demoReadUser"
   administrator_login_password = "ReadUser@123456"
-  subnet_id = "${azurerm_subnet.example.id}"
+  subnet_id                    = "${azurerm_subnet.example.id}"
   identity {
     type = "SystemAssigned"
   }
-   sku {
-        capacity = 8
-        family = "Gen5"
-        name = "GP_Gen5"
-        tier = "GeneralPurpose"
-      }
-      license_type = "LicenseIncluded"
-      collation =  "SQL_Latin1_General_CP1_CI_AS"
-      proxy_override = "Redirect"
-      storage_size_gb = 64
-      vcores = 8
-      public_data_endpoint_enabled = false
-      timezone_id = "Central America Standard Time"
-      minimal_tls_version = "1.2"
+  sku {
+    capacity = 8
+    family   = "Gen5"
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+  }
+  license_type                 = "LicenseIncluded"
+  collation                    = "SQL_Latin1_General_CP1_CI_AS"
+  proxy_override               = "Redirect"
+  storage_size_gb              = 64
+  vcores                       = 8
+  public_data_endpoint_enabled = false
+  timezone_id                  = "Central America Standard Time"
+  minimal_tls_version          = "1.2"
 }
 
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "example" {
-		name                        = "test-encrypt2"
-		location                    = "westus2"
-		resource_group_name         = azurerm_resource_group.test.name
-		enabled_for_disk_encryption = true
-		tenant_id                   = data.azurerm_client_config.current.tenant_id
-		soft_delete_enabled         = true
-		soft_delete_retention_days  = 7
-		purge_protection_enabled    = false
-	  
-		sku_name = "standard"
-	  
-		access_policy {
-		  tenant_id = data.azurerm_client_config.current.tenant_id
-		  object_id = data.azurerm_client_config.current.object_id
-	  
-		  key_permissions = [
-			"get",
-			 "wrapKey",
-			  "unwrapKey",
-			"create",
-			"list",
-			"delete",
-		  ]
-	  
-		  secret_permissions = [
-			"get",
-				"delete",
-		  ]
-	  
-		  storage_permissions = [
-			"get",
-				"delete",
-		  ]
-		}
+  name                        = "test-encrypt2"
+  location                    = "westus2"
+  resource_group_name         = azurerm_resource_group.test.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_enabled         = true
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
 
-		access_policy {
-		  tenant_id = azurerm_mssql_managed_instance.example.identity[0].tenant_id
-		  object_id = azurerm_mssql_managed_instance.example.identity[0].principal_id
-	  
-		  key_permissions = [
-			"get",
-			 "wrapKey",
-			  "unwrapKey",
-			"create",
-			"list",
-			"delete",
-		  ]
-	  
-		  secret_permissions = [
-			"get",
-				"delete",
-		  ]
-	  
-		  storage_permissions = [
-			"get",
-				"delete",
-		  ]
-		}
-	  }
+  sku_name = "standard"
 
-      resource "azurerm_key_vault_key" "example" {
-		name         = "example-key1"
-		key_vault_id = azurerm_key_vault.test.id
-		key_type     = "RSA"
-		key_size     = 2048
-	  
-		key_opts = [
-		  "decrypt",
-		  "encrypt",
-		  "sign",
-		  "unwrapKey",
-		  "verify",
-		  "wrapKey",
-		]
-	  }
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
-       resource "azurerm_mssql_managed_instance_key" "test" {
-	key_name                          = "${azurerm_key_vault.example.name}_${azurerm_key_vault_key.example.name}_${azurerm_key_vault_key.example.version}"
-	managed_instance_id = azurerm_mssql_managed_instance.example.id
-	uri 					 = azurerm_key_vault_key.example.id
+    key_permissions = [
+      "get",
+      "wrapKey",
+      "unwrapKey",
+      "create",
+      "list",
+      "delete",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+    ]
+
+    storage_permissions = [
+      "get",
+      "delete",
+    ]
   }
+
+  access_policy {
+    tenant_id = azurerm_mssql_managed_instance.example.identity[0].tenant_id
+    object_id = azurerm_mssql_managed_instance.example.identity[0].principal_id
+
+    key_permissions = [
+      "get",
+      "wrapKey",
+      "unwrapKey",
+      "create",
+      "list",
+      "delete",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+    ]
+
+    storage_permissions = [
+      "get",
+      "delete",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "example-key1"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_mssql_managed_instance_key" "test" {
+  key_name            = "${azurerm_key_vault.example.name}_${azurerm_key_vault_key.example.name}_${azurerm_key_vault_key.example.version}"
+  managed_instance_id = azurerm_mssql_managed_instance.example.id
+  uri                 = azurerm_key_vault_key.example.id
+}
 
 ```
 

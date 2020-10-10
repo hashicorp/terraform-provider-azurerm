@@ -14,8 +14,8 @@ Use this data source to access information about an existing managed database.
 
 ```hcl
 data "azurerm_mssql_managed_database" "example" {
-  name                = "managed databas ename"
-  resource_group_name = "example-resources"
+  name                  = "managed databas ename"
+  resource_group_name   = "example-resources"
   managed_instance_name = "managed instance name"
 }
 

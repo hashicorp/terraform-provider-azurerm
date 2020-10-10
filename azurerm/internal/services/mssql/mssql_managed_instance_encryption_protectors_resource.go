@@ -137,7 +137,6 @@ func resourceArmMSSQLManagedInstanceEncryptionProtectorCreateUpdate(d *schema.Re
 	d.SetId(*result.ID)
 
 	return resourceArmMSSQLManagedInstanceEncryptionProtectorRead(d, meta)
-
 }
 
 func resourceArmMSSQLManagedInstanceEncryptionProtectorRead(d *schema.ResourceData, meta interface{}) error {

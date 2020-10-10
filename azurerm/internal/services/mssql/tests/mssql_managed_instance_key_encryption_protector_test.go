@@ -2,12 +2,13 @@ package tests
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"testing"
 )
 
 func TestAccAzureRMMsSqlManagedInstanceEncryption_keyEncryption(t *testing.T) {
@@ -38,7 +39,7 @@ func TestAccAzureRMMsSqlManagedInstanceEncryption_ServiceManagedEncryption(t *te
 		CheckDestroy: testCheckAzureRMMsSqlManagedInstanceEncryptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMsSqlManagedInstanceEncryption_basic(data),
+				Config: testAccAzureRMMsSqlManagedInstanceEncryption_ServiceManaged(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlManagedInstanceEncryptionExists(data.ResourceName),
 				),
@@ -142,7 +143,6 @@ func testCheckAzureRMMsSqlManagedInstanceEncryptionDestroy(s *terraform.State) e
 		resourceGroup := id.ResourceGroup
 
 		if resp, err := client.Get(ctx, resourceGroup, managedInstanceName); err != nil {
-
 			if string(resp.ManagedInstanceEncryptionProtectorProperties.ServerKeyType) != "ServiceManaged" {
 				return fmt.Errorf("Get on managed instance key Client: %+v", err)
 			}

@@ -9,16 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMSSQLManagedDatabase() *schema.Resource {
-
 	return &schema.Resource{
 		Create: resourceArmMSSQLManagedDatabaseCreateUpdate,
 		Read:   resourceArmMSSQLManagedDatabaseRead,
@@ -192,6 +191,9 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 
 	managedInstanceId := d.Get("managed_instance_id").(string)
 	id, err := azure.ParseAzureResourceID(managedInstanceId)
+	if err != nil {
+		return err
+	}
 	managedInstanceName := id.Path["managedInstances"]
 	resourceGroup := id.ResourceGroup
 

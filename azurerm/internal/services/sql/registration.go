@@ -21,8 +21,8 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_sql_server":           dataSourceSqlServer(),
-		"azurerm_sql_database":         dataSourceSqlDatabase(),
+		"azurerm_sql_server":   dataSourceSqlServer(),
+		"azurerm_sql_database": dataSourceSqlDatabase(),
 	}
 }
 

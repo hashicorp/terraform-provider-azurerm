@@ -155,7 +155,6 @@ func resourceArmMSSQLManagedInstanceAdminCreateUpdate(d *schema.ResourceData, me
 	d.SetId(*result.ID)
 
 	return resourceArmMSSQLManagedInstanceAdminRead(d, meta)
-
 }
 
 func resourceArmMSSQLManagedInstanceAdminRead(d *schema.ResourceData, meta interface{}) error {
