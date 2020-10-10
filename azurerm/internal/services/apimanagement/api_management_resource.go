@@ -665,7 +665,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity, d)
+	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
@@ -1062,15 +1062,7 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 	return &managedServiceIdentity, nil
 }
 
-func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity, d *schema.ResourceData) []interface{} {
-	// service api will not return identity when type = `None`
-	//if v, ok := d.GetOk("identity.0.type"); ok && v.(string) == string(apimanagement.None) && identity == nil {
-	//	return []interface{}{
-	//		map[string]interface{}{
-	//			"type": v.(string),
-	//		},
-	//	}
-	//}
+func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
 	if identity == nil || identity.Type == apimanagement.None {
 		return make([]interface{}, 0)
 	}
