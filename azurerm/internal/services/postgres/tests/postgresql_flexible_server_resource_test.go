@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -140,6 +141,33 @@ func TestAccAzureRMpostgresqlflexibleServer_updateSku(t *testing.T) {
 			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
+func TestAccAzureRMpostgresqlflexibleServer_pitr(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMpostgresqlflexibleServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+			{
+				PreConfig: func() { time.Sleep(7 * time.Minute) },
+				Config:    testAccAzureRMpostgresqlflexibleServer_pitr(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 				),
@@ -414,4 +442,20 @@ resource "azurerm_postgresql_flexible_server" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMpostgresqlflexibleServer_pitr(data acceptance.TestData) string {
+	template := testAccAzureRMpostgresqlflexibleServer_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "pitr" {
+  name                = "acctest-fs-pitr-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  create_mode         = "PointInTimeRestore"
+  source_server_name  = azurerm_postgresql_flexible_server.test.name
+  point_in_time_utc   = "%s"
+}
+`, template, data.RandomInteger, time.Now().Add(time.Duration(7)*time.Minute).UTC().Format(time.RFC3339))
 }
