@@ -59,6 +59,8 @@ func TestAccAzureRMpostgresqlflexibleServer_complete(t *testing.T) {
 				Config: testAccAzureRMpostgresqlflexibleServer_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
 			data.ImportStep("administrator_login_password"),
@@ -67,6 +69,8 @@ func TestAccAzureRMpostgresqlflexibleServer_complete(t *testing.T) {
 				Config: testAccAzureRMpostgresqlflexibleServer_completeUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
 			data.ImportStep("administrator_login_password"),
