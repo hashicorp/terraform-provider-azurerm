@@ -162,9 +162,6 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 	})
 }
 
-// Here we could not update the APIM service out of VNET. The destroy will fail because the subnet is still in use.
-// If we move the service out of VNET, it doesn't remove the link to subnet immediately. It'll be removed within 3 hours.
-// But if we destroy the APIM service, the subnet could be destroyed
 func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
@@ -173,13 +170,6 @@ func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagement_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagement_virtualNetworkInternal(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -215,6 +205,10 @@ func TestAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(t *tes
 	})
 }
 
+// Api Management doesn't support hostname keyvault using UserAssigned Identity
+// There will be a inevitable dependency cycle here when using SystemAssigned Identity
+// 1. create SystemAssigned Identity, grant the identity certificate access
+// 2. Update the hostname configuration of the keyvault certificate
 func TestAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
@@ -223,13 +217,6 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurati
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultId(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -256,13 +243,6 @@ func TestAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurati
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionlessKeyVaultId(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -902,8 +882,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -983,45 +963,126 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test1" {
-  name     = "acctestRG1-%d"
-  location = "%s"
+  name     = "acctestRG1-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%d"
-  location = "%s"
+  name     = "acctestRG2-%[1]d"
+  location = "%[3]s"
 }
 
+// subnet1 from the first location
 resource "azurerm_virtual_network" "test1" {
-  name                = "acctestVNET1-%d"
+  name                = "acctestVNET1-%[1]d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "acctestSNET1-%d"
+  name                 = "acctestSNET1-%[1]d"
   resource_group_name  = azurerm_resource_group.test1.name
   virtual_network_name = azurerm_virtual_network.test1.name
   address_prefix       = "10.0.1.0/24"
 }
 
+resource "azurerm_network_security_group" "test1" {
+  name                = "acctest-NSG1-%[1]d"
+  location            = azurerm_resource_group.test1.location
+  resource_group_name = azurerm_resource_group.test1.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "test1" {
+  subnet_id                 = azurerm_subnet.test1.id
+  network_security_group_id = azurerm_network_security_group.test1.id
+}
+
+resource "azurerm_network_security_rule" "port_3443" {
+  name                        = "Port_3443"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3443"
+  source_address_prefix       = "ApiManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test1.name
+  network_security_group_name = azurerm_network_security_group.test1.name
+}
+
+resource "azurerm_network_security_rule" "port_443_1433" {
+  name                        = "Port_443_1433"
+  priority                    = 100
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = ["443", "1433"]
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test1.name
+  network_security_group_name = azurerm_network_security_group.test1.name
+}
+
+// subnet2 from the second location
 resource "azurerm_virtual_network" "test2" {
-  name                = "acctestVNET2-%d"
+  name                = "acctestVNET2-%[1]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctestSNET2-%d"
+  name                 = "acctestSNET2-%[1]d"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefix       = "10.1.1.0/24"
 }
 
+resource "azurerm_network_security_group" "test2" {
+  name                = "acctest-NSG2-%[1]d"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "test2" {
+  subnet_id                 = azurerm_subnet.test2.id
+  network_security_group_id = azurerm_network_security_group.test2.id
+}
+
+resource "azurerm_network_security_rule" "port_3443_2" {
+  name                        = "Port_3443"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3443"
+  source_address_prefix       = "ApiManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test2.name
+  network_security_group_name = azurerm_network_security_group.test2.name
+}
+
+resource "azurerm_network_security_rule" "port_443_1433_2" {
+  name                        = "Port_443_1433"
+  priority                    = 100
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = ["443", "1433"]
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test2.name
+  network_security_group_name = azurerm_network_security_group.test2.name
+}
+
+
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
   publisher_name      = "pub1"
@@ -1041,7 +1102,7 @@ resource "azurerm_api_management" "test" {
     subnet_id = azurerm_subnet.test1.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {
@@ -1078,7 +1139,7 @@ resource "azurerm_api_management" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_identitySystemAssigned(data acceptance.TestData) string {
@@ -1087,11 +1148,11 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%[3]d"
+  name                = "acctestAM-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -1101,7 +1162,7 @@ resource "azurerm_api_management" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data acceptance.TestData) string {
@@ -1137,7 +1198,30 @@ resource "azurerm_api_management" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_identityNone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionlessKeyVaultId(data acceptance.TestData) string {
@@ -1151,7 +1235,7 @@ resource "azurerm_resource_group" "test" {
 }
 data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]d"
+  name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -1234,16 +1318,12 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
-
-sku_name = "Developer_1"
- 
+  sku_name            = "Developer_1"
   identity {
     type = "SystemAssigned"
   }
-
-  
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func testAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionlessKeyVaultIdUpdateCD(data acceptance.TestData) string {
@@ -1287,7 +1367,6 @@ resource "azurerm_key_vault_access_policy" "test" {
     "List",
     "Purge",
   ]
-  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
@@ -1297,7 +1376,6 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Get",
     "List",
   ]
-  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_certificate" "test" {
   depends_on   = [azurerm_key_vault_access_policy.test]
@@ -1399,20 +1477,18 @@ resource "azurerm_key_vault_access_policy" "test" {
     "List",
     "Purge",
   ]
-  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_api_management.test.identity[0].tenant_id
-  object_id    = azurerm_api_management.test.identity[0].principal_id
+  tenant_id    = azurerm_api_management.test.identity.0.tenant_id
+  object_id    = azurerm_api_management.test.identity.0.principal_id
   secret_permissions = [
     "Get",
     "List",
   ]
-  depends_on = [azurerm_key_vault.test]
 }
 resource "azurerm_key_vault_certificate" "test" {
-  depends_on   = [azurerm_key_vault_access_policy.test, azurerm_key_vault.test]
+  depends_on   = [azurerm_key_vault_access_policy.test]
   name         = "acctestKVCert-%[3]d"
   key_vault_id = azurerm_key_vault.test.id
   certificate_policy {
@@ -1459,7 +1535,7 @@ resource "azurerm_api_management" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func testAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultIdUpdateCD(data acceptance.TestData) string {
@@ -1473,7 +1549,7 @@ resource "azurerm_resource_group" "test" {
 }
 data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "test" {
-  name                = "acctestKV-%[3]d"
+  name                = "acctestKV-%[4]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
