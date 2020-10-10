@@ -25,7 +25,7 @@ func TestAccAzureRMpostgresqlflexibleServer_basic(t *testing.T) {
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -61,7 +61,7 @@ func TestAccAzureRMpostgresqlflexibleServer_complete(t *testing.T) {
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password"),
 			{
 				// You must do the complete in two steps because the maintenance_window is not allowed in the create call only the update
 				Config: testAccAzureRMpostgresqlflexibleServer_completeUpdate(data),
@@ -69,39 +69,7 @@ func TestAccAzureRMpostgresqlflexibleServer_complete(t *testing.T) {
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMpostgresqlflexibleServer_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMpostgresqlflexibleServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMpostgresqlflexibleServer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMpostgresqlflexibleServer_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMpostgresqlflexibleServer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -158,53 +126,21 @@ func TestAccAzureRMpostgresqlflexibleServer_updateSku(t *testing.T) {
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_updateSku(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMpostgresqlflexibleServer_updateStorageProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMpostgresqlflexibleServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMpostgresqlflexibleServer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMpostgresqlflexibleServer_updateStorageProfile(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMpostgresqlflexibleServer_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -263,21 +199,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-postgresql-%d"
   location = "%s"
 }
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vn-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctest-s-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMpostgresqlflexibleServer_basic(data acceptance.TestData) string {
@@ -286,11 +208,12 @@ func testAccAzureRMpostgresqlflexibleServer_basic(data acceptance.TestData) stri
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-fs-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  administrator_login = "adminTerraform"
-  version             = "12"
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_login_password = "QAZwsx123"
+  version                      = "12"
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
@@ -305,11 +228,12 @@ func testAccAzureRMpostgresqlflexibleServer_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_postgresql_flexible_server" "import" {
-  name                = azurerm_postgresql_flexible_server.test.name
-  resource_group_name = azurerm_postgresql_flexible_server.test.resource_group_name
-  location            = azurerm_postgresql_flexible_server.test.location
-  administrator_login = azurerm_postgresql_flexible_server.test.administrator_login
-  version             = azurerm_postgresql_flexible_server.test.version
+  name                         = azurerm_postgresql_flexible_server.test.name
+  resource_group_name          = azurerm_postgresql_flexible_server.test.resource_group_name
+  location                     = azurerm_postgresql_flexible_server.test.location
+  administrator_login          = azurerm_postgresql_flexible_server.test.administrator_login
+  administrator_login_password = azurerm_postgresql_flexible_server.test.administrator_login_password
+  version                      = azurerm_postgresql_flexible_server.test.version
   sku {
     name = azurerm_postgresql_flexible_server.test.sku.0.name
     tier = azurerm_postgresql_flexible_server.test.sku.0.tier
@@ -321,10 +245,24 @@ resource "azurerm_postgresql_flexible_server" "import" {
 func testAccAzureRMpostgresqlflexibleServer_complete(data acceptance.TestData) string {
 	template := testAccAzureRMpostgresqlflexibleServer_template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vn-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-sn-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%d"
+  name                         = "acctest-fs-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
@@ -344,10 +282,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
-  }
-	
-  properties_tags = {
-    Property = "Tag"
   }
 
   tags = {
@@ -360,56 +294,24 @@ resource "azurerm_postgresql_flexible_server" "test" {
 func testAccAzureRMpostgresqlflexibleServer_completeUpdate(data acceptance.TestData) string {
 	template := testAccAzureRMpostgresqlflexibleServer_template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  administrator_login          = "adminTerraform"
-  administrator_login_password = "QAZwsx123"
-  availability_zone            = "1"
-  display_name                 = "fsTerraform"
-  version                      = "12"
-  ha_enabled                   = false
-  backup_retention_days        = 7
-  storage_mb                   = 32768
-  delegated_subnet_resource_id = azurerm_subnet.test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  maintenance_window {
-    enabled       = false
-    day_of_week   = 0
-    start_hour    = 8
-    start_minute  = 0
-  }
-
-  sku {
-    name = "Standard_D2s_v3"
-    tier = "GeneralPurpose"
-  }
-	
-  properties_tags = {
-    BLOCK = "Properties"
-  }
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, template, data.RandomInteger)
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-vn-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
 }
 
-func testAccAzureRMpostgresqlflexibleServer_update(data acceptance.TestData) string {
-	template := testAccAzureRMpostgresqlflexibleServer_template(data)
-	return fmt.Sprintf(`
-%s
+resource "azurerm_subnet" "test" {
+  name                 = "acctest-sn-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                         = "acctest-fs-%d"
+  name                         = "acctest-fs-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
@@ -418,30 +320,17 @@ resource "azurerm_postgresql_flexible_server" "test" {
   display_name                 = "fsTerraform"
   version                      = "12"
   ha_enabled                   = true
-
-  delegated_subnet_argument {
-    subnet_arm_resource_id = azurerm_subnet.test.id
-  }
+  backup_retention_days        = 3
+  storage_mb                   = 65536
+  delegated_subnet_resource_id = azurerm_subnet.test.id
 
   identity {
     type = "SystemAssigned"
   }
 
-  maintenance_window {
-    enabled      = true
-    day_of_week  = 0
-    start_hour   = 8
-    start_minute = 0
-  }
-
   sku {
-    name = "Standard_D4s_v3"
+    name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
-  }
-
-  storage_profile {
-    backup_retention_days = 7
-    storage_mb            = 32768
   }
 
   tags = {
@@ -457,16 +346,18 @@ func testAccAzureRMpostgresqlflexibleServer_updateMaintenanceWindow(data accepta
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-fs-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_login_password = "QAZwsx123"
+  version                      = "12"
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
   }
 
   maintenance_window {
-    enabled      = true
     day_of_week  = 0
     start_hour   = 8
     start_minute = 0
@@ -481,9 +372,12 @@ func testAccAzureRMpostgresqlflexibleServer_updateMaintenanceWindowUpdated(data 
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-fs-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_login_password = "QAZwsx123"
+  version                      = "12"
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
@@ -504,60 +398,15 @@ func testAccAzureRMpostgresqlflexibleServer_updateSku(data acceptance.TestData) 
 %s
 
 resource "azurerm_postgresql_flexible_server" "test" {
-  name                = "acctest-fs-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku {
-    name = "Standard_E2s_v3"
-    tier = "MemoryOptimized"
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMpostgresqlflexibleServer_updateStorageProfile(data acceptance.TestData) string {
-	template := testAccAzureRMpostgresqlflexibleServer_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_postgresql_flexible_server" "test" {
   name                         = "acctest-fs-%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_login_password = "QAZwsx123"
-  availability_zone            = "1"
-  display_name                 = "fsTerraform"
   version                      = "12"
-  ha_enabled                   = false
-
-  delegated_subnet_argument {
-    subnet_arm_resource_id = azurerm_subnet.test.id
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  maintenance_window {
-    enabled      = true
-    day_of_week  = 0
-    start_hour   = 8
-    start_minute = 0
-  }
-
   sku {
-    name = "Standard_D2s_v3"
-    tier = "GeneralPurpose"
-  }
-
-  storage_profile {
-    backup_retention_days = 3
-    storage_mb            = 65536
-  }
-
-  tags = {
-    ENV = "Test"
+    name = "Standard_E2s_v3"
+    tier = "MemoryOptimized"
   }
 }
 `, template, data.RandomInteger)

@@ -53,15 +53,17 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"administrator_login": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"administrator_login_password": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"sku": {
@@ -102,8 +104,10 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			"availability_zone": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"none",
 					"1",
 					"2",
 					"3",
@@ -129,9 +133,10 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			},
 
 			"display_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"identity": {
@@ -182,40 +187,35 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Default:  false,
 			},
 
-			"maintenance_window": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-
-						"day_of_week": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      0,
-							ValidateFunc: validation.IntBetween(0, 6),
-						},
-
-						"start_hour": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      0,
-							ValidateFunc: validation.IntBetween(0, 23),
-						},
-
-						"start_minute": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      0,
-							ValidateFunc: validation.IntBetween(0, 59),
-						},
-					},
-				},
-			},
+			//"maintenance_window": {
+			//	Type:     schema.TypeList,
+			//	Optional: true,
+			//	MaxItems: 1,
+			//	Elem: &schema.Resource{
+			//		Schema: map[string]*schema.Schema{
+			//			"day_of_week": {
+			//				Type:         schema.TypeInt,
+			//				Optional:     true,
+			//				Default:      0,
+			//				ValidateFunc: validation.IntBetween(0, 6),
+			//			},
+			//
+			//			"start_hour": {
+			//				Type:         schema.TypeInt,
+			//				Optional:     true,
+			//				Default:      0,
+			//				ValidateFunc: validation.IntBetween(0, 23),
+			//			},
+			//
+			//			"start_minute": {
+			//				Type:         schema.TypeInt,
+			//				Optional:     true,
+			//				Default:      0,
+			//				ValidateFunc: validation.IntBetween(0, 59),
+			//			},
+			//		},
+			//	},
+			//},
 
 			"backup_retention_days": {
 				Type:         schema.TypeInt,
@@ -304,8 +304,8 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 			Version:                    postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			HaEnabled:                  haEnabled,
-			MaintenanceWindow:          expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{})),
-			StorageProfile:             expandArmServerStorageProfile(d),
+			//MaintenanceWindow:          expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{})),
+			StorageProfile: expandArmServerStorageProfile(d),
 		},
 		Sku:  expandArmServerSku(d.Get("sku").([]interface{})),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -378,10 +378,6 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 	if props := resp.ServerProperties; props != nil {
 		d.Set("administrator_login", props.AdministratorLogin)
 
-		// sensitive prop not returned by API, pull it from config and write to state.
-		adminPassword := d.Get("administrator_login_password").(string)
-		d.Set("administrator_login_password", adminPassword)
-
 		if props.AvailabilityZone != nil && *props.AvailabilityZone != "" {
 			d.Set("availability_zone", props.AvailabilityZone)
 		}
@@ -401,9 +397,9 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		d.Set("display_name", props.DisplayName)
 		d.Set("ha_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
 
-		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
-			return fmt.Errorf("setting `maintenance_window`: %+v", err)
-		}
+		//if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
+		//	return fmt.Errorf("setting `maintenance_window`: %+v", err)
+		//}
 
 		if props.PointInTimeUTC != nil {
 			d.Set("point_in_time_utc", props.PointInTimeUTC.Format(time.RFC3339))
@@ -474,9 +470,9 @@ func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta inte
 		}
 		parameters.ServerPropertiesForUpdate.HaEnabled = haEnabled
 	}
-	if d.HasChange("maintenance_window") {
-		parameters.ServerPropertiesForUpdate.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{}))
-	}
+	//if d.HasChange("maintenance_window") {
+	//	parameters.ServerPropertiesForUpdate.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{}))
+	//}
 	if d.HasChange("sku") {
 		parameters.Sku = expandArmServerSku(d.Get("sku").([]interface{}))
 	}
@@ -538,19 +534,17 @@ func expandArmServerServerPropertiesDelegatedSubnetArguments(input string) *post
 
 func expandArmServerMaintenanceWindow(input []interface{}) *postgresqlflexibleservers.MaintenanceWindow {
 	if len(input) == 0 {
-		return nil
+		return &postgresqlflexibleservers.MaintenanceWindow{
+			CustomWindow: utils.String(string(postgresqlflexibleservers.Disabled)),
+		}
 	}
 	v := input[0].(map[string]interface{})
 
 	maintenanceWindow := postgresqlflexibleservers.MaintenanceWindow{
-		StartHour:   utils.Int32(int32(v["start_hour"].(int))),
-		StartMinute: utils.Int32(int32(v["start_minute"].(int))),
-		DayOfWeek:   utils.Int32(int32(v["day_of_week"].(int))),
-	}
-
-	maintenanceWindow.CustomWindow = utils.String(string(postgresqlflexibleservers.Disabled))
-	if v["enabled"].(bool) {
-		maintenanceWindow.CustomWindow = utils.String(string(postgresqlflexibleservers.Enabled))
+		CustomWindow: utils.String(string(postgresqlflexibleservers.Enabled)),
+		StartHour:    utils.Int32(int32(v["start_hour"].(int))),
+		StartMinute:  utils.Int32(int32(v["start_minute"].(int))),
+		DayOfWeek:    utils.Int32(int32(v["day_of_week"].(int))),
 	}
 
 	return &maintenanceWindow
@@ -607,30 +601,9 @@ func flattenArmServerIdentity(input *postgresqlflexibleservers.Identity) []inter
 	}
 }
 
-func flattenArmServerServerPropertiesDelegatedSubnetArguments(input *postgresqlflexibleservers.ServerPropertiesDelegatedSubnetArguments) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var subnetArmResourceId string
-	if input.SubnetArmResourceID != nil {
-		subnetArmResourceId = *input.SubnetArmResourceID
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"subnet_arm_resource_id": subnetArmResourceId,
-		},
-	}
-}
-
 func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.MaintenanceWindow) []interface{} {
-	if input == nil {
+	if input == nil || input.CustomWindow == nil || *input.CustomWindow == string(postgresqlflexibleservers.Disabled) {
 		return make([]interface{}, 0)
-	}
-
-	var enabled bool
-	if input.CustomWindow != nil {
-		enabled = (*input.CustomWindow == string(postgresqlflexibleservers.Enabled))
 	}
 
 	var dayOfWeek int32
@@ -647,7 +620,6 @@ func flattenArmServerMaintenanceWindow(input *postgresqlflexibleservers.Maintena
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":      enabled,
 			"day_of_week":  dayOfWeek,
 			"start_hour":   startHour,
 			"start_minute": startMinute,
