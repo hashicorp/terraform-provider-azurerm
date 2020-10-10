@@ -632,7 +632,7 @@ func getBasicFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, 
 	storageConnection := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
 
 	functionVersion := d.Get("version").(string)
-	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
+	contentShare := fmt.Sprintf("%s-%s", strings.ToLower(d.Get("function_app_name").(string)), strings.ToLower(d.Get("name").(string)))
 
 	basicSettings := []web.NameValuePair{
 		{Name: &storagePropName, Value: &storageConnection},
@@ -682,12 +682,8 @@ func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string,
 }
 
 func expandFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
-	output := expandAppServiceAppSettings(d)
-
-	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return nil, err
-	}
+	output := utils.ExpandMapStringPtrString(d.Get("app_settings").(map[string]interface{}))
+	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}

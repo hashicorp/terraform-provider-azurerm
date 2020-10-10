@@ -48,7 +48,7 @@ resource "azurerm_function_app" "example" {
 }
 
 resource "azurerm_function_app_slot" "example" {
-  name                       = "test-azure-functions_slot"
+  name                       = "test-azure-functions-slot"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   app_service_plan_id        = azurerm_app_service_plan.example.id
