@@ -56,7 +56,6 @@ resource "azurerm_lb_nat_rule" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the NAT Rule.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the NAT Rule.
 * `frontend_ip_configuration_name` - (Required) The name of the frontend IP configuration exposing this rule.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp`, `Tcp` or `All`.
@@ -65,6 +64,7 @@ The following arguments are supported:
 * `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `30` minutes. Defaults to `4` minutes.
 * `enable_floating_ip` - (Optional) Are the Floating IPs enabled for this Load Balncer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
 * `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? Defaults to `false`.
+* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the resource.
 
 ## Attributes Reference
 

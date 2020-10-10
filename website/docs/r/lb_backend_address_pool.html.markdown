@@ -50,8 +50,8 @@ resource "azurerm_lb_backend_address_pool" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Backend Address Pool.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
+* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the resource.
 
 ## Attributes Reference
 

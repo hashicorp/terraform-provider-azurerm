@@ -53,7 +53,8 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				ValidateFunc: ValidateArmLoadBalancerRuleName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO: remove in 3.0
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"loadbalancer_id": {
 				Type:         schema.TypeString,
