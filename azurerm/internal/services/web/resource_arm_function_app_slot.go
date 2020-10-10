@@ -397,10 +397,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
 
-	appSettings, err := expandFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return err
-	}
+	appSettings := expandFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -681,14 +678,14 @@ func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string,
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanID)
 }
 
-func expandFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
+func expandFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) map[string]*string {
 	output := utils.ExpandMapStringPtrString(d.Get("app_settings").(map[string]interface{}))
 	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
 
-	return output, nil
+	return output
 }
 
 func expandFunctionAppSlotConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
