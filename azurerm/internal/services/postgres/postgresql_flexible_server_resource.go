@@ -54,21 +54,21 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 
 			"administrator_login": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"administrator_login_password": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"sku": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -93,7 +93,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 
 			"version": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresqlflexibleservers.OneOne),
@@ -278,12 +278,29 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		return tf.ImportAsExistsError("azurerm_postgresql_flexible_server", *existing.ID)
 	}
 
-	if v, ok := d.GetOk("create_mode"); ok && postgresqlflexibleservers.CreateMode(v.(string)) == postgresqlflexibleservers.PointInTimeRestore {
+	createMode := d.Get("create_mode").(string)
+
+	if postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.PointInTimeRestore {
 		if _, ok := d.GetOk("source_server_name"); !ok {
 			return fmt.Errorf("`source_server_name` is required when `create_mode` is `PointInTimeRestore`")
 		}
 		if _, ok := d.GetOk("point_in_time_utc"); !ok {
 			return fmt.Errorf("`point_in_time_utc` is required when `create_mode` is `PointInTimeRestore`")
+		}
+	}
+
+	if postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.Default {
+		if _, ok := d.GetOk("administrator_login"); !ok {
+			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
+		}
+		if _, ok := d.GetOk("administrator_login_password"); !ok {
+			return fmt.Errorf("`administrator_login_password` is required when `create_mode` is `Default`")
+		}
+		if _, ok := d.GetOk("sku"); !ok {
+			return fmt.Errorf("`sku` is required when `create_mode` is `Default`")
+		}
+		if _, ok := d.GetOk("version"); !ok {
+			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
 		}
 	}
 
