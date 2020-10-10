@@ -72,6 +72,12 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				}, false),
 			},
 
+			"gateway_resource_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"admin_users": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -241,6 +247,10 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
 			d.Set("backup_blob_container_uri", containerUri)
 		}
+
+		if gatewayDetails := serverProps.GatewayDetails; gatewayDetails != nil {
+			d.Set("gateway_resource_id", gatewayDetails.GatewayResourceID)
+		}
 	}
 
 	return tags.FlattenAndSet(d, server.Tags)
@@ -363,6 +373,12 @@ func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisser
 
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
 		serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(querypoolConnectionMode.(string))
+	}
+
+	if gatewayResourceID, ok := d.GetOk("gateway_resource_id"); ok {
+		serverProperties.GatewayDetails = &analysisservices.GatewayDetails{
+			GatewayResourceID: utils.String(gatewayResourceID.(string)),
+		}
 	}
 
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {

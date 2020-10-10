@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
 
+* `gateway_resource_id` - (Optional) The resource ID of the on-premise gateway.
+
 ---
 
 A `ipv4_firewall_rule` block supports the following:
