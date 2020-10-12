@@ -25,7 +25,7 @@ var serviceTestConfigurationOverrides = mapOf(
         // Data Lake has a low quota
         "datalake" to testConfiguration(2, defaultStartHour),
 
-        //HSM has low quote and potentially slow recycle time
+        //HSM has low quota and potentially slow recycle time
         "hsm" to testConfiguration(1, defaultStartHour),
 
         // servicebus quotas are limited and we experience failures if tests
