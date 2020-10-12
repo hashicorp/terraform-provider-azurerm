@@ -267,6 +267,91 @@ func resourceStorageAccount() *schema.Resource {
 								},
 							},
 						},
+						"logging": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"delete": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"read": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"write": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+						"hour_metrics": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"include_apis": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+						"minute_metrics": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"include_apis": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -619,6 +704,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
+	accountsClient := meta.(*clients.Client).Storage.BlobServicePropertiesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -748,11 +834,9 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 	if val, ok := d.GetOk("blob_properties"); ok {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
-			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-
 			blobProperties := expandBlobProperties(val.([]interface{}))
 
-			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+			if _, err = accountsClient.SetServiceProperties(ctx, storageAccountName, blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
 		} else {
@@ -818,6 +902,7 @@ func resourceStorageAccountCreate(d *schema.ResourceData, meta interface{}) erro
 func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
+	accountsClient := meta.(*clients.Client).Storage.BlobServicePropertiesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -1007,10 +1092,9 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
-			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 
-			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+			if _, err = accountsClient.SetServiceProperties(ctx, storageAccountName, blobProperties); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
 		} else {
@@ -1075,6 +1159,7 @@ func resourceStorageAccountUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
+	accountsClient := meta.(*clients.Client).Storage.BlobServicePropertiesClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1243,7 +1328,12 @@ func resourceStorageAccountRead(d *schema.ResourceData, meta interface{}) error 
 			}
 		}
 
-		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
+		blobServiceProps, err := accountsClient.GetServiceProperties(ctx, name)
+		if err != nil {
+			return fmt.Errorf("Error reading blob service properties for AzureRM Storage Account %q: %+v", name, err)
+		}
+
+		if err := d.Set("blob_properties", flattenBlobProperties(blobServiceProps)); err != nil {
 			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
 		}
 	}
@@ -1464,15 +1554,17 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
-	props := storage.BlobServiceProperties{
-		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
-			Cors: &storage.CorsRules{
-				CorsRules: &[]storage.CorsRule{},
-			},
-			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
-				Enabled: utils.Bool(false),
-			},
+func expandBlobProperties(input []interface{}) accounts.StorageServiceProperties {
+	props := accounts.StorageServiceProperties{
+		Cors: &accounts.CorsRules{
+			CorsRules: []accounts.CorsRule{},
+		},
+		DeleteRetentionPolicy: &accounts.DeleteRetentionPolicy{},
+		HourMetrics: &accounts.MetricsConfig{
+			Enabled: false,
+		},
+		MinuteMetrics: &accounts.MetricsConfig{
+			Enabled: false,
 		},
 	}
 
@@ -1483,42 +1575,48 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 	v := input[0].(map[string]interface{})
 
 	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
-	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
+	props.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
 
 	corsRaw := v["cors_rule"].([]interface{})
-	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
+	props.Cors = expandBlobPropertiesCors(corsRaw)
+
+	loggingRaw := v["logging"].([]interface{})
+	props.Logging = expandBlobPropertiesLogging(loggingRaw)
+
+	hourMetricsRaw := v["hour_metrics"].([]interface{})
+	props.HourMetrics = expandBlobPropertiesMetrics(hourMetricsRaw)
+
+	minuteMetricsRaw := v["minute_metrics"].([]interface{})
+	props.MinuteMetrics = expandBlobPropertiesMetrics(minuteMetricsRaw)
 
 	return props
 }
 
-func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
-	deleteRetentionPolicy := storage.DeleteRetentionPolicy{
-		Enabled: utils.Bool(false),
-	}
-
+func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *accounts.DeleteRetentionPolicy {
 	if len(input) == 0 {
-		return &deleteRetentionPolicy
+		return nil
 	}
 
 	policy := input[0].(map[string]interface{})
 	days := policy["days"].(int)
-	deleteRetentionPolicy.Enabled = utils.Bool(true)
-	deleteRetentionPolicy.Days = utils.Int32(int32(days))
 
-	return &deleteRetentionPolicy
+	return &accounts.DeleteRetentionPolicy{
+		Enabled: true,
+		Days:    int32(days),
+	}
 }
 
-func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
-	blobCorsRules := storage.CorsRules{}
-
+func expandBlobPropertiesCors(input []interface{}) *accounts.CorsRules {
 	if len(input) == 0 {
-		return &blobCorsRules
+		return nil
 	}
 
-	corsRules := make([]storage.CorsRule, 0)
+	blobCorsRules := &accounts.CorsRules{}
+
+	corsRules := make([]accounts.CorsRule, 0)
 	for _, attr := range input {
 		corsRuleAttr := attr.(map[string]interface{})
-		corsRule := storage.CorsRule{}
+		corsRule := accounts.CorsRule{}
 
 		allowedOrigins := *utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{}))
 		allowedHeaders := *utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{}))
@@ -1526,18 +1624,59 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 		exposedHeaders := *utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{}))
 		maxAgeInSeconds := int32(corsRuleAttr["max_age_in_seconds"].(int))
 
-		corsRule.AllowedOrigins = &allowedOrigins
-		corsRule.AllowedHeaders = &allowedHeaders
-		corsRule.AllowedMethods = &allowedMethods
-		corsRule.ExposedHeaders = &exposedHeaders
-		corsRule.MaxAgeInSeconds = &maxAgeInSeconds
+		corsRule.AllowedOrigins = allowedOrigins
+		corsRule.AllowedHeaders = allowedHeaders
+		corsRule.AllowedMethods = allowedMethods
+		corsRule.ExposedHeaders = exposedHeaders
+		corsRule.MaxAgeInSeconds = maxAgeInSeconds
 
 		corsRules = append(corsRules, corsRule)
 	}
 
-	blobCorsRules.CorsRules = &corsRules
+	blobCorsRules.CorsRules = corsRules
 
-	return &blobCorsRules
+	return blobCorsRules
+}
+
+func expandBlobPropertiesLogging(input []interface{}) *accounts.Logging {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	logging := &accounts.Logging{
+		Version: v["version"].(string),
+		Delete:  v["delete"].(bool),
+		Read:    v["read"].(bool),
+		Write:   v["write"].(bool),
+	}
+	if days, set := v["retention_policy_days"].(int); set {
+		logging.RetentionPolicy = accounts.DeleteRetentionPolicy{
+			Enabled: true,
+			Days:    int32(days),
+		}
+	}
+	return logging
+}
+
+func expandBlobPropertiesMetrics(input []interface{}) *accounts.MetricsConfig {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	metrics := &accounts.MetricsConfig{
+		Enabled:     true,
+		Version:     v["version"].(string),
+		IncludeAPIs: v["include_apis"].(bool),
+	}
+	if days, set := v["retention_policy_days"].(int); set {
+		metrics.RetentionPolicy = accounts.DeleteRetentionPolicy{
+			Enabled: true,
+			Days:    int32(days),
+		}
+	}
+	return metrics
 }
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
@@ -1736,22 +1875,41 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	return virtualNetworks
 }
 
-func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
-	if input.BlobServicePropertiesProperties == nil {
+func flattenBlobProperties(input accounts.GetServicePropertiesResult) []interface{} {
+	if input.StorageServiceProperties == nil {
 		return []interface{}{}
 	}
 
 	flattenedCorsRules := make([]interface{}, 0)
-	if corsRules := input.BlobServicePropertiesProperties.Cors; corsRules != nil {
+	if corsRules := input.StorageServiceProperties.Cors; corsRules != nil {
 		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
 	}
 
 	flattenedDeletePolicy := make([]interface{}, 0)
-	if deletePolicy := input.BlobServicePropertiesProperties.DeleteRetentionPolicy; deletePolicy != nil {
+	if deletePolicy := input.StorageServiceProperties.DeleteRetentionPolicy; deletePolicy != nil {
 		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 {
+	flattenedLogging := make([]interface{}, 0)
+	if logging := input.StorageServiceProperties.Logging; logging != nil {
+		flattenedLogging = flattenBlobPropertiesLogging(logging)
+	}
+
+	flattenedHourMetrics := make([]interface{}, 0)
+	if hourMetrics := input.StorageServiceProperties.HourMetrics; hourMetrics != nil {
+		if hourMetrics.Version != "" {
+			flattenedHourMetrics = flattenBlobPropertiesMetrics(*hourMetrics)
+		}
+	}
+
+	flattenedMinuteMetrics := make([]interface{}, 0)
+	if minuteMetrics := input.StorageServiceProperties.MinuteMetrics; minuteMetrics != nil {
+		if minuteMetrics.Version != "" {
+			flattenedMinuteMetrics = flattenBlobPropertiesMetrics(*minuteMetrics)
+		}
+	}
+
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedLogging) == 0 && len(flattenedHourMetrics) == 0 && len(flattenedMinuteMetrics) == 0 {
 		return []interface{}{}
 	}
 
@@ -1759,42 +1917,42 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		map[string]interface{}{
 			"cors_rule":               flattenedCorsRules,
 			"delete_retention_policy": flattenedDeletePolicy,
+			"logging":                 flattenedLogging,
+			"hour_metrics":            flattenedHourMetrics,
+			"minute_metrics":          flattenedMinuteMetrics,
 		},
 	}
 }
 
-func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
+func flattenBlobPropertiesCorsRule(input *accounts.CorsRules) []interface{} {
 	corsRules := make([]interface{}, 0)
 
 	if input == nil || input.CorsRules == nil {
 		return corsRules
 	}
 
-	for _, corsRule := range *input.CorsRules {
+	for _, corsRule := range input.CorsRules {
 		allowedOrigins := make([]string, 0)
 		if corsRule.AllowedOrigins != nil {
-			allowedOrigins = *corsRule.AllowedOrigins
+			allowedOrigins = corsRule.AllowedOrigins
 		}
 
 		allowedMethods := make([]string, 0)
 		if corsRule.AllowedMethods != nil {
-			allowedMethods = *corsRule.AllowedMethods
+			allowedMethods = corsRule.AllowedMethods
 		}
 
 		allowedHeaders := make([]string, 0)
 		if corsRule.AllowedHeaders != nil {
-			allowedHeaders = *corsRule.AllowedHeaders
+			allowedHeaders = corsRule.AllowedHeaders
 		}
 
 		exposedHeaders := make([]string, 0)
 		if corsRule.ExposedHeaders != nil {
-			exposedHeaders = *corsRule.ExposedHeaders
+			exposedHeaders = corsRule.ExposedHeaders
 		}
 
-		maxAgeInSeconds := 0
-		if corsRule.MaxAgeInSeconds != nil {
-			maxAgeInSeconds = int(*corsRule.MaxAgeInSeconds)
-		}
+		maxAgeInSeconds := int(corsRule.MaxAgeInSeconds)
 
 		corsRules = append(corsRules, map[string]interface{}{
 			"allowed_headers":    allowedHeaders,
@@ -1808,25 +1966,54 @@ func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
 	return corsRules
 }
 
-func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPolicy) []interface{} {
+func flattenBlobPropertiesDeleteRetentionPolicy(input *accounts.DeleteRetentionPolicy) []interface{} {
 	deleteRetentionPolicy := make([]interface{}, 0)
 
 	if input == nil {
 		return deleteRetentionPolicy
 	}
 
-	if enabled := input.Enabled; enabled != nil && *enabled {
-		days := 0
-		if input.Days != nil {
-			days = int(*input.Days)
-		}
-
+	if input.Enabled {
 		deleteRetentionPolicy = append(deleteRetentionPolicy, map[string]interface{}{
-			"days": days,
+			"days": input.Days,
 		})
 	}
 
 	return deleteRetentionPolicy
+}
+func flattenBlobPropertiesLogging(input *accounts.Logging) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input == nil {
+		return results
+	}
+
+	logging := map[string]interface{}{
+		"version": input.Version,
+		"delete":  input.Delete,
+		"read":    input.Read,
+		"write":   input.Write,
+	}
+
+	if input.RetentionPolicy.Enabled {
+		logging["retention_policy_days"] = input.RetentionPolicy.Days
+	}
+
+	results = append(results, logging)
+	return results
+}
+
+func flattenBlobPropertiesMetrics(input accounts.MetricsConfig) []interface{} {
+	metrics := make(map[string]interface{})
+
+	metrics["version"] = input.Version
+	metrics["enabled"] = input.Enabled
+	metrics["include_apis"] = input.IncludeAPIs
+	if input.RetentionPolicy.Enabled {
+		metrics["retention_policy_days"] = input.RetentionPolicy.Days
+	}
+
+	return []interface{}{metrics}
 }
 
 func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {
