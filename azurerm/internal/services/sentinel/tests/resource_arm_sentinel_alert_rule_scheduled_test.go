@@ -189,12 +189,12 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   enabled                    = false
   incident_configuration {
     create_incident = true
-    grouping_configuration {
-      enabled                = true
-      lookback_duration      = "P7D"
-      reopen_closed_incident = true
-      entity_matching_method = "Custom"
-      group_by_entities      = ["Account", "Host"]
+    grouping {
+      enabled                 = true
+      lookback_duration       = "P7D"
+      reopen_closed_incidents = true
+      entity_matching_method  = "Custom"
+      group_by                = ["Account", "Host"]
     }
   }
   query                = <<QUERY

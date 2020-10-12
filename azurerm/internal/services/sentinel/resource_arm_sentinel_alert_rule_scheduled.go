@@ -100,7 +100,7 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 							Required: true,
 							Type:     schema.TypeBool,
 						},
-						"grouping_configuration": {
+						"grouping": {
 							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
@@ -109,7 +109,8 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"enabled": {
 										Type:     schema.TypeBool,
-										Required: true,
+										Optional: true,
+										Default:  true,
 									},
 									"lookback_duration": {
 										Type:         schema.TypeString,
@@ -117,7 +118,7 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 										ValidateFunc: validate.ISO8601Duration,
 										Default:      "PT5M",
 									},
-									"reopen_closed_incident": {
+									"reopen_closed_incidents": {
 										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  false,
@@ -132,7 +133,7 @@ func resourceArmSentinelAlertRuleScheduled() *schema.Resource {
 											string(securityinsight.None),
 										}, false),
 									},
-									"group_by_entities": {
+									"group_by": {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
@@ -434,7 +435,7 @@ func expandAlertRuleScheduledIncidentConfiguration(input []interface{}) *securit
 
 	output := &securityinsight.IncidentConfiguration{
 		CreateIncident:        utils.Bool(raw["create_incident"].(bool)),
-		GroupingConfiguration: expandAlertRuleScheduledGroupingConfiguration(raw["grouping_configuration"].([]interface{})),
+		GroupingConfiguration: expandAlertRuleScheduledGrouping(raw["grouping"].([]interface{})),
 	}
 
 	return output
@@ -452,13 +453,13 @@ func flattenAlertRuleScheduledIncidentConfiguration(input *securityinsight.Incid
 
 	return []interface{}{
 		map[string]interface{}{
-			"create_incident":        createIncident,
-			"grouping_configuration": flattenAlertRuleScheduledGroupingConfiguration(input.GroupingConfiguration),
+			"create_incident": createIncident,
+			"grouping":        flattenAlertRuleScheduledGrouping(input.GroupingConfiguration),
 		},
 	}
 }
 
-func expandAlertRuleScheduledGroupingConfiguration(input []interface{}) *securityinsight.GroupingConfiguration {
+func expandAlertRuleScheduledGrouping(input []interface{}) *securityinsight.GroupingConfiguration {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -467,12 +468,12 @@ func expandAlertRuleScheduledGroupingConfiguration(input []interface{}) *securit
 
 	output := &securityinsight.GroupingConfiguration{
 		Enabled:                utils.Bool(raw["enabled"].(bool)),
-		ReopenClosedIncident:   utils.Bool(raw["reopen_closed_incident"].(bool)),
+		ReopenClosedIncident:   utils.Bool(raw["reopen_closed_incidents"].(bool)),
 		LookbackDuration:       utils.String(raw["lookback_duration"].(string)),
 		EntitiesMatchingMethod: securityinsight.EntitiesMatchingMethod(raw["entity_matching_method"].(string)),
 	}
 
-	groupByEntitiesSet := raw["group_by_entities"].(*schema.Set).List()
+	groupByEntitiesSet := raw["group_by"].(*schema.Set).List()
 	groupByEntities := make([]securityinsight.GroupingEntityType, len(groupByEntitiesSet))
 	for idx, t := range groupByEntitiesSet {
 		groupByEntities[idx] = securityinsight.GroupingEntityType(t.(string))
@@ -482,7 +483,7 @@ func expandAlertRuleScheduledGroupingConfiguration(input []interface{}) *securit
 	return output
 }
 
-func flattenAlertRuleScheduledGroupingConfiguration(input *securityinsight.GroupingConfiguration) []interface{} {
+func flattenAlertRuleScheduledGrouping(input *securityinsight.GroupingConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -497,9 +498,9 @@ func flattenAlertRuleScheduledGroupingConfiguration(input *securityinsight.Group
 		lookbackDuration = *input.LookbackDuration
 	}
 
-	reopenClosedIncident := false
+	reopenClosedIncidents := false
 	if input.ReopenClosedIncident != nil {
-		reopenClosedIncident = *input.ReopenClosedIncident
+		reopenClosedIncidents = *input.ReopenClosedIncident
 	}
 
 	var groupByEntities []interface{}
@@ -511,11 +512,11 @@ func flattenAlertRuleScheduledGroupingConfiguration(input *securityinsight.Group
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":                enabled,
-			"lookback_duration":      lookbackDuration,
-			"reopen_closed_incident": reopenClosedIncident,
-			"entity_matching_method": string(input.EntitiesMatchingMethod),
-			"group_by_entities":      groupByEntities,
+			"enabled":                 enabled,
+			"lookback_duration":       lookbackDuration,
+			"reopen_closed_incidents": reopenClosedIncidents,
+			"entity_matching_method":  string(input.EntitiesMatchingMethod),
+			"group_by":                groupByEntities,
 		},
 	}
 }

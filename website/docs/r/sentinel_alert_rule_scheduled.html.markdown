@@ -85,17 +85,17 @@ The following arguments are supported:
 
 ---
 
-A `grouping_configuration` block supports the following:
+A `grouping` block supports the following:
 
-* `enabled` - (Required) Whether this grouping configuration enabled for the incidents created from alerts triggered by this Sentinel Scheduled Alert Rule?
+* `enabled` - (Optional) Enable grouping incidents created from alerts triggered by this Sentinel Scheduled Alert Rule. Defaults to `true`.
 
-* `lookback_duration` - (Optional) ISO8601 lookback duration within which the group is to be created. Defaults to `PT5M`.
+* `lookback_duration` - (Optional) Limit the group to alerts created within the lookback duration (in ISO 8601 duration format). Defaults to `PT5M`.
 
-* `reopen_closed_incident` - (Optional) Whether to re-open closed matching incidents? Defaults to `false`.
+* `reopen_closed_incidents` - (Optional) Whether to re-open closed matching incidents? Defaults to `false`.
 
-* `entity_matching_method` - (Optional) Grouping matching method. Possible values are `All`, `Custom` and `None`. Defaults to `None`.
+* `entity_matching_method` - (Optional) The method used to group incidents. Possible values are `All`, `Custom` and `None`. Defaults to `None`.
 
-* `group_by_entities` - (Optional) A list of entity types to group by (**only when `entity_matching_method` is `Custom`**). Possible values are `Account`, `Host`, `Url`, `Ip`.
+* `group_by` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Custom`. Possible values are `Account`, `Host`, `Url`, `Ip`.
 
 ---
 
@@ -103,7 +103,7 @@ A `incident_configuration` block supports the following:
 
 * `create_incident` - (Required) Whether to create an incident from alerts triggered by this Sentinel Scheduled Alert Rule?
 
-* `grouping_configuration` - (Optional) A `grouping_configuration` block as defined above.
+* `grouping` - (Optional) A `grouping` block as defined above.
 
 ## Attributes Reference
 
