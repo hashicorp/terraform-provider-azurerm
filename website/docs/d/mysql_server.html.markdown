@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `storage_mb` -  Max storage allowed for this MySQL Server.
 
-* `threat_detection_policy` - Threat detection policy configuration, known in the API as Server Security Alerts Policy. The `threat_detection_policy` block supports fields documented below.
+* `threat_detection_policy` - Threat detection policy configuration, known in the API as Server Security Alerts Policy. The `threat_detection_policy` block exports fields documented below.
 
 * `tags` - A mapping of tags to assign to the resource.
 ---
