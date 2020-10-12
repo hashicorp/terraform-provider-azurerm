@@ -190,7 +190,7 @@ func dataSourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: MySQL server %q in Resource Group %q was not found", name, resourceGroup)
+			return fmt.Errorf("MySQL server %q in Resource Group %q was not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on AzureRM MySQL server %q: %+v", name, err)
 	}
