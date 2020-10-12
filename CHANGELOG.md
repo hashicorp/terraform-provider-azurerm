@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_cognitive_account` - `kind` now supports `Personalizer` [GH-8860]
 * `azurerm_storage_share` - set `metadata` to `Computed` and set `acl` `start` and `expiry` to `Optional` [GH-8811]
 
 BUG FIXES:
