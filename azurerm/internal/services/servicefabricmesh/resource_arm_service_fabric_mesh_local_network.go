@@ -110,6 +110,10 @@ func resourceArmServiceFabricMeshLocalNetworkCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("retrieving Service Fabric Mesh Local Network %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if resp.ID == nil {
+		return fmt.Errorf("client returned a nil ID for Service Fabric Mesh Local Network %q", name)
+	}
+
 	d.SetId(*resp.ID)
 
 	return resourceArmServiceFabricMeshLocalNetworkRead(d, meta)
