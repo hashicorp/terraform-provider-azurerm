@@ -1,12 +1,14 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -223,13 +225,21 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		SubnetPropertiesFormat: &properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, vnetName, name, subnet)
+	_, err = client.CreateOrUpdate(ctx, resGroup, vnetName, name, subnet)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Updating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    subnetStateRefreshFunc(ctx, client, resGroup, vnetName, name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Subnet (%s) to become available: %s", d.Get("name"), err)
 	}
 
 	read, err := client.Get(ctx, resGroup, vnetName, name, "")
@@ -309,13 +319,21 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		SubnetPropertiesFormat: &props,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkName, name, subnet)
+	_, err = client.CreateOrUpdate(ctx, resourceGroup, networkName, name, subnet)
 	if err != nil {
 		return fmt.Errorf("Error updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Updating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    subnetStateRefreshFunc(ctx, client, resourceGroup, networkName, name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Subnet (%s) to become available: %s", d.Get("name"), err)
 	}
 
 	return resourceArmSubnetRead(d, meta)
@@ -527,4 +545,15 @@ func flattenSubnetPrivateLinkNetworkPolicy(input *string) bool {
 	}
 
 	return strings.EqualFold(*input, "Disabled")
+}
+
+func subnetStateRefreshFunc(ctx context.Context, client *network.SubnetsClient, resourceGroupName string, virtualNetworkName string, subnetName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
+		if err != nil {
+			return nil, "", fmt.Errorf("issuing read request in subnetStateRefreshFunc to Azure ARM for Subnet '%s' (RG: '%s'): %s", subnetName, resourceGroupName, err)
+		}
+
+		return res, string(res.SubnetPropertiesFormat.ProvisioningState), nil
+	}
 }
