@@ -162,33 +162,13 @@ func TestAccDataSourceAzureRMMySQLServer_complete(t *testing.T) {
 
 func testAccDataSourceAzureRMMySQLServer_basic(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mysql_server" "test" {
-  name                             = "acctestmysqlsvr-%d"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  sku_name                         = "GP_Gen5_2"
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!"
-  ssl_enforcement_enabled          = true
-  ssl_minimal_tls_version_enforced = "TLS1_1"
-  storage_mb                       = 51200
-  version                          = "%s"
-}
+%s
 
 data "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version, data.RandomInteger)
+`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger)
 }
 
 func testAccDataSourceAzureRMMySQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
