@@ -1,5 +1,9 @@
 ## 2.31.1 (October 08, 2020)
 
+IMPROVEMENTS:
+
+* `azurerm_storage_share` - set `metadata` to `Computed` and set `acl` `start` and `expiry` to `Optional` [GH-8811]
+
 BUG FIXES:
 
 * `azurerm_storage_account`-`large_file_share_enabled` marked as computed to prevent existing storage shares from attempting to disable the default ([#8807](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8807))
