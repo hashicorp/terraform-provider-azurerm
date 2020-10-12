@@ -101,9 +101,9 @@ A `application_rule_collection` block supports the following:
 
 * `name` - (Required) The name which should be used for this application rule collection.
 
-* `action` - (Required) The action type of the application rule collection. Possible values are `Allow` and `Deny`.
+* `action` - (Required) The action to take for the application rules in this collection. Possible values are `Allow` and `Deny`.
 
-* `priority` - (Required) The priority of the application rule collection. The range is 100-65000.
+* `priority` - (Required) The priority of the application rule collection. The range is `100` - `65000`.
 
 * `rule` - (Required) One or more `rule` (application rule) blocks as defined below.
 
@@ -113,9 +113,9 @@ A `network_rule_collection` block supports the following:
 
 * `name` - (Required) The name which should be used for this network rule collection.
 
-* `action` - (Required) The action type of the network rule collection. Possible values are `Allow` and `Deny`.
+* `action` - (Required) The action to take for the network rules in this collection. Possible values are `Allow` and `Deny`.
 
-* `priority` - (Required) The priority of the network rule collection. The range is 100-65000.
+* `priority` - (Required) The priority of the network rule collection. The range is `100` - `65000`.
 
 * `rule` - (Required) One or more `rule` (network rule) blocks as defined above.
 
@@ -125,9 +125,9 @@ A `nat_rule_collection` block supports the following:
 
 * `name` - (Required) The name which should be used for this nat rule collection.
 
-* `action` - (Required) The action type of the nat rule collection. Currently, the only possible value is `Dnat`.
+* `action` - (Required) The action to take for the nat rules in this collection. Currently, the only possible value is `Dnat`.
 
-* `priority` - (Required) The priority of the nat rule collection. The range is 100-65000.
+* `priority` - (Required) The priority of the nat rule collection. The range is `100` - `65000`.
 
 * `rule` - (Required) A `rule` (nat rule) block as defined above.
 
@@ -139,9 +139,9 @@ A `rule` (application rule) block supports the following:
 
 * `protocols` - (Required) One or more `protocols` blocks as defined below.
 
-* `source_addresses` - (Optional) Specifies a list of source ip addresses.
+* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
 
-* `source_ip_groups` - (Optional) Specifies a list of source ip groups.
+* `source_ip_groups` - (Optional) Specifies a list of source IP groups.
 
 * `destination_fqdns` - (Optional) Specifies a list of destination FQDNs.
 
@@ -153,17 +153,17 @@ A `rule` (network rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
-* `protocols` - (Required) Specifies a list of network protocols. Possible values are `Any`, `TCP`, `UDP`, `ICMP`.
+* `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `Any`, `TCP`, `UDP`, `ICMP`.
 
-* `source_addresses` - (Optional) Specifies a list of source ip addresses.
+* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
 
-* `source_ip_groups` - (Optional) Specifies a list of source ip groups.
+* `source_ip_groups` - (Optional) Specifies a list of source IP groups.
 
-* `destination_addresses` - (Optional) Specifies a list of destination ip addresses or Service Tags.
+* `destination_addresses` - (Optional) Specifies a list of destination IP addresses (including CIDR and `*`) or Service Tags.
 
 * `destination_ports` - (Optional) Specifies a list of destination ports.
 
-* `destination_ip_groups` - (Optional) Specifies a list of destination ip groups.
+* `destination_ip_groups` - (Optional) Specifies a list of destination IP groups.
 
 ---
 
@@ -171,13 +171,13 @@ A `rule` (nat rule) block supports the following:
 
 * `name` - (Required) The name which should be used for this rule.
 
-* `protocols` - (Required) Specifies a list of network protocols. Possible values are `TCP`, `UDP`.
+* `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `TCP`, `UDP`.
 
-* `source_addresses` - (Optional) Specifies a list of source ip addresses.
+* `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
 
-* `source_ip_groups` - (Optional) Specifies a list of source ip groups.
+* `source_ip_groups` - (Optional) Specifies a list of source IP groups.
 
-* `destination_addresses` - (Optional) Specifies a list of destination ip addresses or Service Tags.
+* `destination_address` - (Optional) The destination IP address (including CIDR).
 
 * `destination_ports` - (Optional) Specifies a list of destination ports.
 

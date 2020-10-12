@@ -121,6 +121,11 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsIPAddress,
+												validation.IsCIDR,
+												validation.StringInSlice([]string{`*`}, false),
+											),
 										},
 									},
 									"source_ip_groups": {
@@ -128,6 +133,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"destination_fqdns": {
@@ -135,6 +141,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"destination_fqdn_tags": {
@@ -142,6 +149,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 								},
@@ -204,6 +212,11 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsIPAddress,
+												validation.IsCIDR,
+												validation.StringInSlice([]string{`*`}, false),
+											),
 										},
 									},
 									"source_ip_groups": {
@@ -211,6 +224,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"destination_addresses": {
@@ -218,6 +232,8 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											// Can be IP address, CIDR, "*", or service tag
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"destination_ip_groups": {
@@ -225,6 +241,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"destination_ports": {
@@ -296,6 +313,11 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.Any(
+												validation.IsIPAddress,
+												validation.IsCIDR,
+												validation.StringInSlice([]string{`*`}, false),
+											),
 										},
 									},
 									"source_ip_groups": {
@@ -303,12 +325,16 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"destination_address": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validation.IsIPAddress,
+										ValidateFunc: validation.Any(
+											validation.IsIPAddress,
+											validation.IsCIDR,
+										),
 									},
 									"destination_ports": {
 										Type:     schema.TypeSet,
@@ -321,7 +347,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 									"translated_address": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validation.IsIPv4Address,
+										ValidateFunc: validation.IsIPAddress,
 									},
 									"translated_port": {
 										Type:         schema.TypeInt,
