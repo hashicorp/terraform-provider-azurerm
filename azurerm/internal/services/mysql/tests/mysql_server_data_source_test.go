@@ -173,111 +173,33 @@ data "azurerm_mysql_server" "test" {
 
 func testAccDataSourceAzureRMMySQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mysql_server" "test" {
-  name                             = "acctestmysqlsvr-%d"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  sku_name                         = "GP_Gen5_2"
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!"
-  ssl_enforcement_enabled          = true
-  ssl_minimal_tls_version_enforced = "TLS1_1"
-  storage_mb                       = 51200
-  version                          = "%s"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
+%s
 
 data "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version, data.RandomInteger)
+`, testAccAzureRMMySQLServer_basicWithIdentity(data, version), data.RandomInteger)
 }
 
 func testAccDataSourceAzureRMMySQLServer_autogrow(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "GP_Gen5_2"
-  version             = "%s"
-
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!"
-  auto_grow_enabled            = true
-  backup_retention_days        = 7
-  geo_redundant_backup_enabled = false
-  ssl_enforcement_enabled      = true
-  storage_mb                   = 51200
-}
+%s
 
 data "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version, data.RandomInteger)
+`, testAccAzureRMMySQLServer_autogrow(data, version), data.RandomInteger)
 }
 
 func testAccDataSourceAzureRMMySQLServer_complete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_mysql_server" "test" {
-  name                             = "acctestmysqlsvr-%[1]d"
-  location                         = azurerm_resource_group.test.location
-  resource_group_name              = azurerm_resource_group.test.name
-  sku_name                         = "GP_Gen5_2"
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!"
-  auto_grow_enabled                = true
-  backup_retention_days            = 7
-  create_mode                      = "Default"
-  geo_redundant_backup_enabled     = false
-  ssl_enforcement_enabled          = true
-  ssl_minimal_tls_version_enforced = "TLS1_2"
-  storage_mb                       = 51200
-  version                          = "%[3]s"
-  threat_detection_policy {
-    enabled              = true
-    disabled_alerts      = ["Sql_Injection", "Data_Exfiltration"]
-    email_account_admins = true
-    email_addresses      = ["pearcec@example.com", "admin@example.com"]
-    retention_days       = 7
-  }
-}
+%s
 
 data "azurerm_mysql_server" "test" {
   name                = "acctestmysqlsvr-%d"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, version, data.RandomInteger)
+`, testAccAzureRMMySQLServer_complete(data, version), data.RandomInteger)
 }
