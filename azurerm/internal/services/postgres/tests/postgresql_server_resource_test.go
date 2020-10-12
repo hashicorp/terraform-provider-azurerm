@@ -354,6 +354,24 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_threatDetection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_threatDetection(data, "9.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLServer_createReplica(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -783,6 +801,35 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
+}
+
+func testAccAzureRMPostgreSQLServer_threatDetection(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                         = "acctest-psql-server-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+  sku_name                     = "GP_Gen5_4"
+  version                      = "%[3]s"
+  storage_mb                   = 640000
+  ssl_enforcement_enabled      = true
+
+  threat_detection_policy {
+    enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, version)
 }
 
 func testAccAzureRMPostgreSQLServer_createReplica(data acceptance.TestData, version string) string {

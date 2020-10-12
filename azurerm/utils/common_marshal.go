@@ -49,6 +49,18 @@ func FlattenStringSlice(input *[]string) []interface{} {
 	return result
 }
 
+func FlattenStringSliceRemoveEmptyString(input *[]string) []interface{} {
+	result := make([]interface{}, 0)
+	if input != nil {
+		for _, item := range *input {
+			if item != "" {
+				result = append(result, item)
+			}
+		}
+	}
+	return result
+}
+
 func FlattenFloatSlice(input *[]float64) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
