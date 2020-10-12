@@ -69,7 +69,7 @@ The following arguments are supported:
 * `tags` - A mapping of tags to assign to the resource.
 ---
 
-A `identity` block supports the following:
+An `identity` block exports the following:
    
 * `type` -  The Type of Identity used for this MySQL Server.
 
