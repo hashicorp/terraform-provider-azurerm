@@ -78,7 +78,7 @@ An `identity` block exports the following:
 * `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 ---
 
-a `threat_detection_policy` block supports the following:
+A `threat_detection_policy` block exports the following:
 
 * `enabled` -  Is the policy enabled?
 
