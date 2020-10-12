@@ -183,6 +183,25 @@ func TestAccAzureRMRoleDefinition_assignToSmallerScope(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoleDefinition_noAssignableScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleDefinition_noAssignableScope(uuid.New().String(), data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
@@ -447,4 +466,26 @@ resource "azurerm_role_definition" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, id, data.RandomInteger)
+}
+
+func testAccAzureRMRoleDefinition_noAssignableScope(id string, data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "primary" {
+}
+
+resource "azurerm_role_definition" "test" {
+  role_definition_id = "%s"
+  name               = "acctestrd-%d"
+  scope              = data.azurerm_subscription.primary.id
+
+  permissions {
+    actions     = ["*"]
+    not_actions = []
+  }
+}
+`, id, data.RandomInteger)
 }

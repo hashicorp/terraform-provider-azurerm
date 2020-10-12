@@ -110,7 +110,8 @@ func resourceArmRoleDefinition() *schema.Resource {
 
 			"assignable_scopes": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -291,8 +292,14 @@ func expandRoleDefinitionPermissions(d *schema.ResourceData) []authorization.Per
 func expandRoleDefinitionAssignableScopes(d *schema.ResourceData) []string {
 	scopes := make([]string, 0)
 
-	for _, scope := range d.Get("assignable_scopes").([]interface{}) {
-		scopes = append(scopes, scope.(string))
+	assignableScopes := d.Get("assignable_scopes").([]interface{})
+	if len(assignableScopes) == 0 {
+		assignedScope := d.Get("scope").(string)
+		scopes = append(scopes, assignedScope)
+	} else {
+		for _, scope := range assignableScopes {
+			scopes = append(scopes, scope.(string))
+		}
 	}
 
 	return scopes
