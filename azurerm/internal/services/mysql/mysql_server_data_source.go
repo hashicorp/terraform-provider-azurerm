@@ -234,7 +234,7 @@ func dataSourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) erro
 	if tier == mysql.GeneralPurpose || tier == mysql.MemoryOptimized {
 		secResp, err := securityClient.Get(ctx, resourceGroup, name)
 		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-			return fmt.Errorf("error making read request to mysql server security alert policy: %+v", err)
+			return fmt.Errorf("making read request to MySQL server security alert policy (server: %q, resource group: %q): %+v", name, resourceGroup, err)
 		}
 
 		accountKey := ""
