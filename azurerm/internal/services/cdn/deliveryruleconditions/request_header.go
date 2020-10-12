@@ -42,7 +42,7 @@ func RequestHeader() *schema.Resource {
 
 			"match_values": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
