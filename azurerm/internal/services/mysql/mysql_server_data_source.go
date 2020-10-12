@@ -168,7 +168,7 @@ func dataSourceArmMySqlServer() *schema.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": tags.SchemaDataSource(),
 
 			"version": {
 				Type:     schema.TypeString,
