@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New data source:** `azurerm_mysql_server` [GH-8787]
 * **New resource:** `azurerm_security_center_setting` [GH-8783]
 
 ## 2.31.1 (October 08, 2020)
