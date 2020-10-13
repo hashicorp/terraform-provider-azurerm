@@ -60,8 +60,8 @@ data "azurerm_log_analytics_workspace" "test" {
 `, config)
 }
 
-func testAccDataSourceAzureRMLogAnalyticsWorkspace_volumeCapWithDataSource(data acceptance.TestData) string {
-	config := testAccAzureRMLogAnalyticsWorkspace_withVolumeCap(data)
+func testAccDataSourceAzureRMLogAnalyticsWorkspace_volumeCapWithDataSource(data acceptance.TestData, volumeCapGb float64) string {
+	config := testAccAzureRMLogAnalyticsWorkspace_withVolumeCap(data, volumeCapGb)
 	return fmt.Sprintf(`
 %s
 
