@@ -28,9 +28,9 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the MySQL Server. Changing this forces a new resource to be created. This needs to be globally unique within Azure.
+* `name` - (Required) Specifies the name of the MySQL Server.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the MySQL Server. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group for the MySQL Server.
 
 ## Attributes Reference
 

@@ -123,7 +123,6 @@ func TestAccDataSourceAzureRMMySQLServer_autogrowOnly(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_grow_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ssl_minimal_tls_version_enforced", "TLS1_1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_mb", "51200"),
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "5.7"),
 				),
@@ -165,10 +164,10 @@ func testAccDataSourceAzureRMMySQLServer_basic(data acceptance.TestData, version
 %s
 
 data "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = azurerm_mysql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger)
+`, testAccAzureRMMySQLServer_basic(data, version))
 }
 
 func testAccDataSourceAzureRMMySQLServer_basicWithIdentity(data acceptance.TestData, version string) string {
@@ -176,10 +175,10 @@ func testAccDataSourceAzureRMMySQLServer_basicWithIdentity(data acceptance.TestD
 %s
 
 data "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = azurerm_mysql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMMySQLServer_basicWithIdentity(data, version), data.RandomInteger)
+`, testAccAzureRMMySQLServer_basic(data, version))
 }
 
 func testAccDataSourceAzureRMMySQLServer_autogrow(data acceptance.TestData, version string) string {
@@ -187,10 +186,10 @@ func testAccDataSourceAzureRMMySQLServer_autogrow(data acceptance.TestData, vers
 %s
 
 data "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = azurerm_mysql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMMySQLServer_autogrow(data, version), data.RandomInteger)
+`, testAccAzureRMMySQLServer_basic(data, version))
 }
 
 func testAccDataSourceAzureRMMySQLServer_complete(data acceptance.TestData, version string) string {
@@ -198,8 +197,8 @@ func testAccDataSourceAzureRMMySQLServer_complete(data acceptance.TestData, vers
 %s
 
 data "azurerm_mysql_server" "test" {
-  name                = "acctestmysqlsvr-%d"
+  name                = azurerm_mysql_server.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, testAccAzureRMMySQLServer_complete(data, version), data.RandomInteger)
+`, testAccAzureRMMySQLServer_basic(data, version))
 }
