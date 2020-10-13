@@ -552,6 +552,9 @@ func (client BaseClient) GetRoleDefinitions(ctx context.Context) (result RolesLi
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "accesscontrol.BaseClient", "GetRoleDefinitions", resp, "Failure responding to request")
 	}
+	if result.rlr.hasNextLink() && result.rlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

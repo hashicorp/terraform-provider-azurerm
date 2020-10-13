@@ -52,8 +52,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	}
 }
 
-func (client Client) AccessControlClient(workspaceName, SynapseEndpointSuffix string) *accesscontrol.BaseClient {
-	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, SynapseEndpointSuffix)
+func (client Client) AccessControlClient(workspaceName, synapseEndpointSuffix string) *accesscontrol.BaseClient {
+	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
 	accessControlClient := accesscontrol.New(endpoint)
 	accessControlClient.Client.Authorizer = client.synapseAuthorizer
 	return &accessControlClient
