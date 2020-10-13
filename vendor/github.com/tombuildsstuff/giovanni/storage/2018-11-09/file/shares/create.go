@@ -32,8 +32,8 @@ func (client Client) Create(ctx context.Context, accountName, shareName string, 
 	if strings.ToLower(shareName) != shareName {
 		return result, validation.NewError("shares.Client", "Create", "`shareName` must be a lower-cased string.")
 	}
-	if input.QuotaInGB <= 0 || input.QuotaInGB > 5120 {
-		return result, validation.NewError("shares.Client", "Create", "`input.QuotaInGB` must be greater than 0, and less than/equal to 5TB (5120 GB)")
+	if input.QuotaInGB <= 0 || input.QuotaInGB > 102400 {
+		return result, validation.NewError("shares.Client", "Create", "`input.QuotaInGB` must be greater than 0, and less than/equal to 100TB (102400 GB)")
 	}
 	if err := metadata.Validate(input.MetaData); err != nil {
 		return result, validation.NewError("shares.Client", "Create", fmt.Sprintf("`input.MetaData` is not valid: %s.", err))

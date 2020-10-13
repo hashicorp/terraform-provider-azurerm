@@ -1,25 +1,21 @@
 package set
 
 import (
-	"strconv"
-	"strings"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 )
 
+// Deprecated: moved to internal and will be removed in 3.0
 func HashInt(v interface{}) int {
-	return hashcode.String(strconv.Itoa(v.(int)))
+	return set.HashInt(v)
 }
 
+// Deprecated: moved to internal and will be removed in 3.0
 func HashStringIgnoreCase(v interface{}) int {
-	return hashcode.String(strings.ToLower(v.(string)))
+	return set.HashStringIgnoreCase(v)
 }
 
+// Deprecated: moved to internal and will be removed in 3.0
 func FromStringSlice(slice []string) *schema.Set {
-	set := &schema.Set{F: schema.HashString}
-	for _, v := range slice {
-		set.Add(v)
-	}
-	return set
+	return set.FromStringSlice(slice)
 }

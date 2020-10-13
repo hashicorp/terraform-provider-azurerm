@@ -444,8 +444,8 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]
 		v := item.(map[string]interface{})
 
 		parameters := make(map[string]*policy.ParameterValuesValue)
-		if p, ok := v["parameter_values"]; ok {
-			if err := json.Unmarshal([]byte(p.(string)), &parameters); err != nil {
+		if p, ok := v["parameter_values"].(string); ok && p != "" {
+			if err := json.Unmarshal([]byte(p), &parameters); err != nil {
 				return nil, fmt.Errorf("unmarshalling `parameter_values`: %+v", err)
 			}
 		}
