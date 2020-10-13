@@ -152,6 +152,25 @@ func TestAccAzureRMStorageShare_acl(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShare_aclGhostedRecall(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_aclGhostedRecall(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
@@ -173,6 +192,32 @@ func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "quota", "5"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageShare_largeQuota(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_largeQuota(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageShare_largeQuotaUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -350,6 +395,25 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
+func testAccAzureRMStorageShare_aclGhostedRecall(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+
+  acl {
+    id = "GhostedRecall"
+    access_policy {
+      permissions = "r"
+    }
+  }
+}
+`, template, data.RandomString)
+}
+
 func testAccAzureRMStorageShare_aclUpdated(data acceptance.TestData) string {
 	template := testAccAzureRMStorageShare_template(data)
 	return fmt.Sprintf(`
@@ -403,6 +467,70 @@ resource "azurerm_storage_share" "test" {
   quota                = 5
 }
 `, template, data.RandomString)
+}
+
+func testAccAzureRMStorageShare_largeQuota(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storageshare-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestshare%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  account_kind             = "FileStorage"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 6000
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMStorageShare_largeQuotaUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storageshare-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestshare%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+  account_kind             = "FileStorage"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+  quota                = 10000
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func testAccAzureRMStorageShare_template(data acceptance.TestData) string {
