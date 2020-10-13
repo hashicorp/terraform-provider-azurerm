@@ -332,7 +332,7 @@ func testAccAzureRMLogAnalyticsWorkspace_withVolumeCap(data acceptance.TestData,
 provider "azurerm" {
   features {}
 }
-	
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
