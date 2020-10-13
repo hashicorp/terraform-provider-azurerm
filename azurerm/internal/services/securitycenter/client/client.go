@@ -10,6 +10,7 @@ type Client struct {
 	PricingClient                  *security.PricingsClient
 	WorkspaceClient                *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
+	SettingClient                  *security.SettingsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -27,10 +28,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	AdvancedThreatProtectionClient := security.NewAdvancedThreatProtectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AdvancedThreatProtectionClient.Client, o.ResourceManagerAuthorizer)
 
+	SettingClient := security.NewSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&SettingClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ContactsClient:                 &ContactsClient,
 		PricingClient:                  &PricingClient,
 		WorkspaceClient:                &WorkspaceClient,
 		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,
+		SettingClient:                  &SettingClient,
 	}
 }
