@@ -18,6 +18,11 @@ func TestAccDataSourceAzureRMpostgresqlflexibleServer_basic(t *testing.T) {
 				Config: testAccDataSourcepostgresqlflexibleServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "version"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "administrator_login"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sku.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sku.0.tier"),
 				),
 			},
 		},

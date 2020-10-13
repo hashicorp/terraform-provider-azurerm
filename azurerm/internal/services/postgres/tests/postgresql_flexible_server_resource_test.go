@@ -24,9 +24,14 @@ func TestAccAzureRMpostgresqlflexibleServer_basic(t *testing.T) {
 				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -62,19 +67,51 @@ func TestAccAzureRMpostgresqlflexibleServer_complete(t *testing.T) {
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "display_name", "create_mode"),
+		},
+	})
+}
+
+func TestAccAzureRMpostgresqlflexibleServer_completeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMpostgresqlflexibleServerDestroy,
+		Steps: []resource.TestStep{
 			{
-				// You must do the complete in two steps because the maintenance_window is not allowed in the create call only the update
+				Config: testAccAzureRMpostgresqlflexibleServer_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
+				),
+			},
+			data.ImportStep("administrator_login_password", "display_name", "create_mode"),
+			{
 				Config: testAccAzureRMpostgresqlflexibleServer_completeUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "standby_availability_zone"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "display_name", "create_mode"),
 		},
 	})
 }
@@ -90,30 +127,50 @@ func TestAccAzureRMpostgresqlflexibleServer_updateMaintenanceWindow(t *testing.T
 				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_updateMaintenanceWindow(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_updateMaintenanceWindowUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -129,23 +186,38 @@ func TestAccAzureRMpostgresqlflexibleServer_updateSku(t *testing.T) {
 				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_updateSku(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -162,17 +234,27 @@ func TestAccAzureRMpostgresqlflexibleServer_pitr(t *testing.T) {
 				Config: testAccAzureRMpostgresqlflexibleServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
-				PreConfig: func() { time.Sleep(7 * time.Minute) },
+				PreConfig: func() { time.Sleep(10 * time.Minute) },
 				Config:    testAccAzureRMpostgresqlflexibleServer_pitr(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMpostgresqlflexibleServerExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "availability_zone"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "byok_enforcement"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ha_state"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -245,7 +327,9 @@ resource "azurerm_postgresql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_login_password = "QAZwsx123"
+  storage_mb                   = 32768
   version                      = "12"
+
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
@@ -266,6 +350,7 @@ resource "azurerm_postgresql_flexible_server" "import" {
   administrator_login          = azurerm_postgresql_flexible_server.test.administrator_login
   administrator_login_password = azurerm_postgresql_flexible_server.test.administrator_login_password
   version                      = azurerm_postgresql_flexible_server.test.version
+  storage_mb                   = azurerm_postgresql_flexible_server.test.storage_mb
   sku {
     name = azurerm_postgresql_flexible_server.test.sku.0.name
     tier = azurerm_postgresql_flexible_server.test.sku.0.tier
@@ -291,6 +376,15 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -305,7 +399,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   ha_enabled                   = false
   backup_retention_days        = 7
   storage_mb                   = 32768
-  delegated_subnet_resource_id = azurerm_subnet.test.id
+  delegated_subnet_id          = azurerm_subnet.test.id
 
   identity {
     type = "SystemAssigned"
@@ -314,6 +408,12 @@ resource "azurerm_postgresql_flexible_server" "test" {
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
+  }
+
+  maintenance_window {
+    day_of_week  = 0
+    start_hour   = 8
+    start_minute = 0
   }
 
   tags = {
@@ -340,6 +440,15 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -352,9 +461,9 @@ resource "azurerm_postgresql_flexible_server" "test" {
   display_name                 = "fsTerraform"
   version                      = "12"
   ha_enabled                   = true
-  backup_retention_days        = 3
+  backup_retention_days        = 10
   storage_mb                   = 65536
-  delegated_subnet_resource_id = azurerm_subnet.test.id
+  delegated_subnet_id          = azurerm_subnet.test.id
 
   identity {
     type = "SystemAssigned"
@@ -363,6 +472,12 @@ resource "azurerm_postgresql_flexible_server" "test" {
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
+  }
+
+  maintenance_window {
+    day_of_week  = 0
+    start_hour   = 8
+    start_minute = 0
   }
 
   tags = {
@@ -384,6 +499,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_login_password = "QAZwsx123"
   version                      = "12"
+  storage_mb                   = 32768
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
@@ -410,6 +526,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_login_password = "QAZwsx123"
   version                      = "12"
+  storage_mb                   = 32768
   sku {
     name = "Standard_D2s_v3"
     tier = "GeneralPurpose"
@@ -436,6 +553,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_login_password = "QAZwsx123"
   version                      = "12"
+  storage_mb                   = 32768
   sku {
     name = "Standard_E2s_v3"
     tier = "MemoryOptimized"
@@ -457,5 +575,5 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   source_server_name  = azurerm_postgresql_flexible_server.test.name
   point_in_time_utc   = "%s"
 }
-`, template, data.RandomInteger, time.Now().Add(time.Duration(7)*time.Minute).UTC().Format(time.RFC3339))
+`, template, data.RandomInteger, time.Now().Add(time.Duration(20)*time.Minute).UTC().Format(time.RFC3339))
 }

@@ -13,12 +13,44 @@ Manages a PostgreSQL Flexible Server.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vn"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "example" {
+  name                 = "example-sn"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
 resource "azurerm_postgresql_flexible_server" "example" {
   name                         = "example-psqlflexibleserver"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   version                      = "12"
-
+  delegated_subnet_id          = azurerm_subnet.example.id
   administrator_login          = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
 
@@ -41,41 +73,39 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `administrator_login` - (Required) The Administrator Login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
+* `administrator_login` - (Optional) The Administrator Login for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
 
-* `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server.
+* `administrator_login_password` - (Optional) The Password associated with the `administrator_login` for the PostgreSQL Flexible Server. Required when `create_mode` is `Default`.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `sku` - (Optional) A `sku` block as defined below. Required when `create_mode` is `Default`.
 
-* `version` - (Required) Specifies the version of PostgreSQL Flexible Server to use. Valid values are `11` or `12`. Changing this forces a new resource to be created.
+* `version` - (Optional) Specifies the version of PostgreSQL Flexible Server to use. Valid values are `11` or `12`. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
 
-* `availability_zone` - (Optional) Specifies the availability Zone of the PostgreSQL Flexible Server. Supported values are  `1`, `2`, or `3`.
+* `availability_zone` - (Optional) Specifies the availability Zone of the PostgreSQL Flexible Server. Supported values are  `none`, `1`, `2`, or `3`. Changing this forces a new resource to be created.
 
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
-* `create_mode` - (Optional) The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default` or `PointInTimeRestore`. Defaults to `Default`. Changing this forces a new resource to be created.
+* `create_mode` - (Optional) The creation mode. Can be used to restore or replicate existing servers. Possible values are `Default` or `PointInTimeRestore`. Changing this forces a new resource to be created.
 
 * `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore` this designates the point in time to restore from `creation_source_server_id`. 
 
-* `delegated_subnet_resource_id` - (Optional) Create a PostgreSQL Flexible Server using an already existing virtual network subnet. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new resource to be created.
+* `delegated_subnet_id` - (Optional) Create a PostgreSQL Flexible Server using an already existing virtual network subnet. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new resource to be created.
 
 * `display_name` - (Optional) The display name of a server. Changing this forces a new resource to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. . Changing this forces a new resource to be created.
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
 
 * `point_in_time_utc` - (Optional) Restore point creation time (ISO8601 format), specifying the time to restore from. Changing this forces a new resource to be created.
 
-* `source_server_name` - (Optional) The source PostgreSQL Flexible Server name to restore from. Changing this forces a new resource to be created.
+* `source_server_name` - (Optional) The source PostgreSQL Flexible Server name to restore from. Required when `create_mode` is `PointInTimeRestore`. Changing this forces a new resource to be created.
 
 * `ha_enabled` - (Optional) Enable High availability for the PostgreSQL Flexible Server. If enalbed the server will provisions a physically separate primary and standby PostgreSQL Flexible Server in different zones. Possible values include `true` or `false`. Defaults to `false`.
 
 * `maintenance_window` - (Optional) A `maintenance_window` block as defined below.
 
-~> **NOTE:** A `maintenance_window` block **cannot** be included in the configuration file during the initial creation of the PostgreSQL Flexible Server. If you do include the `maintenance_window` block during the initial creation of the PostgreSQL Flexible Server it will cause an unclear `Resource Not Found` error messages.
+* `backup_retention_days` - (Optional) Number of days to retain Backups for the server. Possible values are between `7` and `35` inclusive.
 
-* `backup_retention_days` - (Optional) Number of days to retain Backups for the server. Possible values are between `7` and `35` inclusive. Defaults to `7`.
-
-* `storage_mb` - (Optional) Max storage allowed for a server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216`, and `33554432`. Defaults to `32768`.
+* `storage_mb` - (Optional) Max storage allowed for a server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4194304`, `8388608`, `16777216`, and `33554432`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -96,8 +126,6 @@ A `sku` block supports the following:
 ---
 
 A `maintenance_window` block supports the following:
-
-* `enabled` - (Optional) indicates whether the maintenance window is `enabled` or `disabled`. Defaults to `false`.
 
 * `day_of_week` - (Optional) day of week for maintenance window. Defaults to `0`.
 

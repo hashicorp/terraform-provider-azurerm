@@ -30,10 +30,19 @@ func dataSourcePostgresqlflexibleServer() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
+			"administrator_login": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"identity": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"principal_id": {
@@ -52,6 +61,29 @@ func dataSourcePostgresqlflexibleServer() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"sku": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tier": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"version": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -82,6 +114,14 @@ func dataSourceArmPostgresqlflexibleServerRead(d *schema.ResourceData, meta inte
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	if props := resp.ServerProperties; props != nil {
+		d.Set("fqdn", props.FullyQualifiedDomainName)
+		d.Set("version", props.Version)
+		d.Set("administrator_login", props.AdministratorLogin)
+	}
+	if err := d.Set("sku", flattenArmServerSku(resp.Sku)); err != nil {
+		return fmt.Errorf("setting `sku`: %+v", err)
+	}
 	if err := d.Set("identity", flattenArmServerIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}

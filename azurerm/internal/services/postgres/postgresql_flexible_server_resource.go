@@ -29,10 +29,10 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 		Delete: resourceArmPostgresqlFlexibleServerDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(3 * time.Hour),
+			Create: schema.DefaultTimeout(1 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(3 * time.Hour),
-			Delete: schema.DefaultTimeout(3 * time.Hour),
+			Update: schema.DefaultTimeout(1 * time.Hour),
+			Delete: schema.DefaultTimeout(1 * time.Hour),
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -55,6 +55,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			"administrator_login": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -69,6 +70,7 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			"sku": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -91,9 +93,17 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				},
 			},
 
+			"storage_mb": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432}),
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresqlflexibleservers.OneOne),
@@ -118,14 +128,13 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(postgresqlflexibleservers.Default),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresqlflexibleservers.Default),
 					string(postgresqlflexibleservers.PointInTimeRestore),
 				}, false),
 			},
 
-			"delegated_subnet_resource_id": {
+			"delegated_subnet_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -176,9 +185,10 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 			},
 
 			"source_server_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.FlexibleServerName(),
 			},
 
 			"ha_enabled": {
@@ -187,48 +197,41 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				Default:  false,
 			},
 
-			//"maintenance_window": {
-			//	Type:     schema.TypeList,
-			//	Optional: true,
-			//	MaxItems: 1,
-			//	Elem: &schema.Resource{
-			//		Schema: map[string]*schema.Schema{
-			//			"day_of_week": {
-			//				Type:         schema.TypeInt,
-			//				Optional:     true,
-			//				Default:      0,
-			//				ValidateFunc: validation.IntBetween(0, 6),
-			//			},
-			//
-			//			"start_hour": {
-			//				Type:         schema.TypeInt,
-			//				Optional:     true,
-			//				Default:      0,
-			//				ValidateFunc: validation.IntBetween(0, 23),
-			//			},
-			//
-			//			"start_minute": {
-			//				Type:         schema.TypeInt,
-			//				Optional:     true,
-			//				Default:      0,
-			//				ValidateFunc: validation.IntBetween(0, 59),
-			//			},
-			//		},
-			//	},
-			//},
+			"maintenance_window": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"day_of_week": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 6),
+						},
+
+						"start_hour": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 23),
+						},
+
+						"start_minute": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: validation.IntBetween(0, 59),
+						},
+					},
+				},
+			},
 
 			"backup_retention_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      7,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(7, 35),
-			},
-
-			"storage_mb": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      32768,
-				ValidateFunc: validation.IntInSlice([]int{32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432}),
 			},
 
 			"byok_enforcement": {
@@ -289,7 +292,7 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	if postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.Default {
+	if createMode == "" || postgresqlflexibleservers.CreateMode(createMode) == postgresqlflexibleservers.Default {
 		if _, ok := d.GetOk("administrator_login"); !ok {
 			return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default`")
 		}
@@ -301,6 +304,9 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		}
 		if _, ok := d.GetOk("version"); !ok {
 			return fmt.Errorf("`version` is required when `create_mode` is `Default`")
+		}
+		if _, ok := d.GetOk("storage_mb"); !ok {
+			return fmt.Errorf("`storage_mb` is required when `create_mode` is `Default`")
 		}
 	}
 
@@ -315,14 +321,13 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		ServerProperties: &postgresqlflexibleservers.ServerProperties{
 			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
 			CreateMode:                 postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
-			DelegatedSubnetArguments:   expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_resource_id").(string)),
+			DelegatedSubnetArguments:   expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
 			DisplayName:                utils.String(d.Get("display_name").(string)),
 			SourceServerName:           utils.String(d.Get("source_server_name").(string)),
 			Version:                    postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			HaEnabled:                  haEnabled,
-			//MaintenanceWindow:          expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{})),
-			StorageProfile: expandArmServerStorageProfile(d),
+			StorageProfile:             expandArmServerStorageProfile(d),
 		},
 		Sku:  expandArmServerSku(d.Get("sku").([]interface{})),
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -348,6 +353,23 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on creating future for Postgresqlflexibleservers Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	// `maintenance_window` could only be updated with, could not be created with
+	if v, ok := d.GetOk("maintenance_window"); ok {
+		mwParams := postgresqlflexibleservers.ServerForUpdate{
+			ServerPropertiesForUpdate: &postgresqlflexibleservers.ServerPropertiesForUpdate{
+				MaintenanceWindow: expandArmServerMaintenanceWindow(v.([]interface{})),
+			},
+		}
+		mwFuture, err := client.Update(ctx, resourceGroup, name, mwParams)
+		if err != nil {
+			return fmt.Errorf("updating Postgresqlflexibleservers Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err := mwFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting on updating future for Postgresqlflexibleservers Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -399,24 +421,15 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 			d.Set("availability_zone", props.AvailabilityZone)
 		}
 
-		// CreateMode currently isn't returned by the API
-		// Create only error out if exists already, one time only point in time
-		if props.CreateMode == "" {
-			d.Set("create_mode", string(postgresqlflexibleservers.Default))
-		} else {
-			d.Set("create_mode", props.CreateMode)
-		}
-
 		if props.DelegatedSubnetArguments != nil && props.DelegatedSubnetArguments.SubnetArmResourceID != nil {
-			d.Set("delegated_subnet_resource_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
+			d.Set("delegated_subnet_id", props.DelegatedSubnetArguments.SubnetArmResourceID)
 		}
 
-		d.Set("display_name", props.DisplayName)
 		d.Set("ha_enabled", props.HaEnabled == postgresqlflexibleservers.Enabled)
 
-		//if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
-		//	return fmt.Errorf("setting `maintenance_window`: %+v", err)
-		//}
+		if err := d.Set("maintenance_window", flattenArmServerMaintenanceWindow(props.MaintenanceWindow)); err != nil {
+			return fmt.Errorf("setting `maintenance_window`: %+v", err)
+		}
 
 		if props.PointInTimeUTC != nil {
 			d.Set("point_in_time_utc", props.PointInTimeUTC.Format(time.RFC3339))
@@ -439,13 +452,13 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		d.Set("version", props.Version)
 
 		// computed
-		d.Set("byok_enforcement", string(*props.ByokEnforcement))
-		d.Set("fqdn", string(*props.FullyQualifiedDomainName))
-		d.Set("public_network_access", string(props.PublicNetworkAccess))
+		d.Set("byok_enforcement", *props.ByokEnforcement)
+		d.Set("fqdn", *props.FullyQualifiedDomainName)
+		d.Set("public_network_access", props.PublicNetworkAccess == postgresqlflexibleservers.ServerPublicNetworkAccessStateEnabled)
 		d.Set("ha_state", string(props.HaState))
 
 		if props.StandbyAvailabilityZone != nil {
-			d.Set("standby_availability_zone", string(*props.StandbyAvailabilityZone))
+			d.Set("standby_availability_zone", *props.StandbyAvailabilityZone)
 		}
 	}
 
@@ -453,11 +466,7 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("setting `sku`: %+v", err)
 	}
 
-	if resp.Tags != nil && len(resp.Tags) > 0 {
-		tags.FlattenAndSet(d, resp.Tags)
-	}
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -474,12 +483,15 @@ func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta inte
 		Location:                  utils.String(location.Normalize(d.Get("location").(string))),
 		ServerPropertiesForUpdate: &postgresqlflexibleservers.ServerPropertiesForUpdate{},
 	}
+
 	if d.HasChange("administrator_login_password") {
 		parameters.ServerPropertiesForUpdate.AdministratorLoginPassword = utils.String(d.Get("administrator_login_password").(string))
 	}
+
 	if d.HasChange("backup_retention_days") || d.HasChange("storage_mb") {
 		parameters.ServerPropertiesForUpdate.StorageProfile = expandArmServerStorageProfile(d)
 	}
+
 	if d.HasChange("ha_enabled") {
 		haEnabled := postgresqlflexibleservers.Disabled
 		if d.Get("ha_enabled").(bool) {
@@ -487,12 +499,15 @@ func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta inte
 		}
 		parameters.ServerPropertiesForUpdate.HaEnabled = haEnabled
 	}
-	//if d.HasChange("maintenance_window") {
-	//	parameters.ServerPropertiesForUpdate.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{}))
-	//}
+
+	if d.HasChange("maintenance_window") {
+		parameters.ServerPropertiesForUpdate.MaintenanceWindow = expandArmServerMaintenanceWindow(d.Get("maintenance_window").([]interface{}))
+	}
+
 	if d.HasChange("sku") {
 		parameters.Sku = expandArmServerSku(d.Get("sku").([]interface{}))
 	}
+
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
