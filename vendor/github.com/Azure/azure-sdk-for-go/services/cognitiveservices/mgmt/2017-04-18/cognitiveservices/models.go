@@ -89,6 +89,14 @@ type AccountAPIProperties struct {
 	EventHubConnectionString *string `json:"eventHubConnectionString,omitempty"`
 	// StorageAccountConnectionString - (Personalization Only) The storage account connection string.
 	StorageAccountConnectionString *string `json:"storageAccountConnectionString,omitempty"`
+	// AadClientID - (Metrics Advisor Only) The Azure AD Client Id (Application Id).
+	AadClientID *string `json:"aadClientId,omitempty"`
+	// AadTenantID - (Metrics Advisor Only) The Azure AD Tenant Id.
+	AadTenantID *string `json:"aadTenantId,omitempty"`
+	// SuperUser - (Metrics Advisor Only) The super user of Metrics Advisor.
+	SuperUser *string `json:"superUser,omitempty"`
+	// WebsiteName - (Metrics Advisor Only) The website name of Metrics Advisor.
+	WebsiteName *string `json:"websiteName,omitempty"`
 }
 
 // AccountEnumerateSkusResult the list of cognitive services accounts operation response.
@@ -677,6 +685,13 @@ func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
 		objectMap["properties"] = pec.Properties
 	}
 	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionListResult a list of private endpoint connections
+type PrivateEndpointConnectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private endpoint connections
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
 }
 
 // PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.

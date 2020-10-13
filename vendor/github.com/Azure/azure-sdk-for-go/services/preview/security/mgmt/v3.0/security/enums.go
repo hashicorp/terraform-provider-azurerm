@@ -147,6 +147,23 @@ func PossibleAlertSeverityValues() []AlertSeverity {
 	return []AlertSeverity{High, Informational, Low, Medium}
 }
 
+// AlertStatus enumerates the values for alert status.
+type AlertStatus string
+
+const (
+	// Active An alert which doesn't specify a value is assigned the status 'Active'
+	Active AlertStatus = "Active"
+	// Dismissed Alert dismissed as false positive
+	Dismissed AlertStatus = "Dismissed"
+	// Resolved Alert closed after handling
+	Resolved AlertStatus = "Resolved"
+)
+
+// PossibleAlertStatusValues returns an array of possible values for the AlertStatus const type.
+func PossibleAlertStatusValues() []AlertStatus {
+	return []AlertStatus{Active, Dismissed, Resolved}
+}
+
 // AlertsToAdmins enumerates the values for alerts to admins.
 type AlertsToAdmins string
 
@@ -456,11 +473,13 @@ const (
 	Alerts EventSource = "Alerts"
 	// Assessments ...
 	Assessments EventSource = "Assessments"
+	// SubAssessments ...
+	SubAssessments EventSource = "SubAssessments"
 )
 
 // PossibleEventSourceValues returns an array of possible values for the EventSource const type.
 func PossibleEventSourceValues() []EventSource {
-	return []EventSource{Alerts, Assessments}
+	return []EventSource{Alerts, Assessments, SubAssessments}
 }
 
 // Exe enumerates the values for exe.
@@ -629,6 +648,70 @@ const (
 // PossibleImplementationEffortValues returns an array of possible values for the ImplementationEffort const type.
 func PossibleImplementationEffortValues() []ImplementationEffort {
 	return []ImplementationEffort{ImplementationEffortHigh, ImplementationEffortLow, ImplementationEffortModerate}
+}
+
+// Intent enumerates the values for intent.
+type Intent string
+
+const (
+	// IntentCollection Collection consists of techniques used to identify and gather information, such as
+	// sensitive files, from a target network prior to exfiltration.
+	IntentCollection Intent = "Collection"
+	// IntentCommandAndControl The command and control tactic represents how adversaries communicate with
+	// systems under their control within a target network.
+	IntentCommandAndControl Intent = "CommandAndControl"
+	// IntentCredentialAccess Credential access represents techniques resulting in access to or control over
+	// system, domain, or service credentials that are used within an enterprise environment.
+	IntentCredentialAccess Intent = "CredentialAccess"
+	// IntentDefenseEvasion Defense evasion consists of techniques an adversary may use to evade detection or
+	// avoid other defenses.
+	IntentDefenseEvasion Intent = "DefenseEvasion"
+	// IntentDiscovery Discovery consists of techniques that allow the adversary to gain knowledge about the
+	// system and internal network.
+	IntentDiscovery Intent = "Discovery"
+	// IntentExecution The execution tactic represents techniques that result in execution of
+	// adversary-controlled code on a local or remote system.
+	IntentExecution Intent = "Execution"
+	// IntentExfiltration Exfiltration refers to techniques and attributes that result or aid in the adversary
+	// removing files and information from a target network.
+	IntentExfiltration Intent = "Exfiltration"
+	// IntentExploitation Exploitation is the stage where an attacker manages to get a foothold on the attacked
+	// resource. This stage is relevant for compute hosts and resources such as user accounts, certificates
+	// etc.
+	IntentExploitation Intent = "Exploitation"
+	// IntentImpact Impact events primarily try to directly reduce the availability or integrity of a system,
+	// service, or network; including manipulation of data to impact a business or operational process.
+	IntentImpact Intent = "Impact"
+	// IntentInitialAccess InitialAccess is the stage where an attacker manages to get foothold on the attacked
+	// resource.
+	IntentInitialAccess Intent = "InitialAccess"
+	// IntentLateralMovement Lateral movement consists of techniques that enable an adversary to access and
+	// control remote systems on a network and could, but does not necessarily, include execution of tools on
+	// remote systems.
+	IntentLateralMovement Intent = "LateralMovement"
+	// IntentPersistence Persistence is any access, action, or configuration change to a system that gives a
+	// threat actor a persistent presence on that system.
+	IntentPersistence Intent = "Persistence"
+	// IntentPreAttack PreAttack could be either an attempt to access a certain resource regardless of a
+	// malicious intent, or a failed attempt to gain access to a target system to gather information prior to
+	// exploitation. This step is usually detected as an attempt, originating from outside the network, to scan
+	// the target system and find a way in.  Further details on the PreAttack stage can be read in [MITRE
+	// Pre-Att&ck matrix](https://attack.mitre.org/matrices/pre/).
+	IntentPreAttack Intent = "PreAttack"
+	// IntentPrivilegeEscalation Privilege escalation is the result of actions that allow an adversary to
+	// obtain a higher level of permissions on a system or network.
+	IntentPrivilegeEscalation Intent = "PrivilegeEscalation"
+	// IntentProbing Probing could be either an attempt to access a certain resource regardless of a malicious
+	// intent, or a failed attempt to gain access to a target system to gather information prior to
+	// exploitation.
+	IntentProbing Intent = "Probing"
+	// IntentUnknown Unknown
+	IntentUnknown Intent = "Unknown"
+)
+
+// PossibleIntentValues returns an array of possible values for the Intent const type.
+func PossibleIntentValues() []Intent {
+	return []Intent{IntentCollection, IntentCommandAndControl, IntentCredentialAccess, IntentDefenseEvasion, IntentDiscovery, IntentExecution, IntentExfiltration, IntentExploitation, IntentImpact, IntentInitialAccess, IntentLateralMovement, IntentPersistence, IntentPreAttack, IntentPrivilegeEscalation, IntentProbing, IntentUnknown}
 }
 
 // Issue enumerates the values for issue.
@@ -1353,6 +1436,23 @@ func PossibleTypeValues() []Type {
 	return []Type{BinarySignature, File, FileHash, ProductSignature, PublisherSignature, VersionAndAboveSignature}
 }
 
+// TypeBasicResourceIdentifier enumerates the values for type basic resource identifier.
+type TypeBasicResourceIdentifier string
+
+const (
+	// TypeAzureResource ...
+	TypeAzureResource TypeBasicResourceIdentifier = "AzureResource"
+	// TypeLogAnalytics ...
+	TypeLogAnalytics TypeBasicResourceIdentifier = "LogAnalytics"
+	// TypeResourceIdentifier ...
+	TypeResourceIdentifier TypeBasicResourceIdentifier = "ResourceIdentifier"
+)
+
+// PossibleTypeBasicResourceIdentifierValues returns an array of possible values for the TypeBasicResourceIdentifier const type.
+func PossibleTypeBasicResourceIdentifierValues() []TypeBasicResourceIdentifier {
+	return []TypeBasicResourceIdentifier{TypeAzureResource, TypeLogAnalytics, TypeResourceIdentifier}
+}
+
 // UnmaskedIPLoggingStatus enumerates the values for unmasked ip logging status.
 type UnmaskedIPLoggingStatus string
 
@@ -1398,4 +1498,21 @@ const (
 // PossibleValueTypeValues returns an array of possible values for the ValueType const type.
 func PossibleValueTypeValues() []ValueType {
 	return []ValueType{ValueTypeIPCidr, ValueTypeString}
+}
+
+// VersionKind enumerates the values for version kind.
+type VersionKind string
+
+const (
+	// Latest ...
+	Latest VersionKind = "Latest"
+	// Preview ...
+	Preview VersionKind = "Preview"
+	// Previous ...
+	Previous VersionKind = "Previous"
+)
+
+// PossibleVersionKindValues returns an array of possible values for the VersionKind const type.
+func PossibleVersionKindValues() []VersionKind {
+	return []VersionKind{Latest, Preview, Previous}
 }
