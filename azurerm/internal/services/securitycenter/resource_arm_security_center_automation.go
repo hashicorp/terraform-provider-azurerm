@@ -3,7 +3,6 @@ package securitycenter
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -297,12 +296,6 @@ func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta inte
 }
 
 func expandSources(sourcesRaw []interface{}) *[]security.AutomationSource {
-	f, err := os.OpenFile("provider_debug5.log", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-
 	if len(sourcesRaw) == 0 {
 		return &[]security.AutomationSource{}
 	}
