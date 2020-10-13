@@ -70,8 +70,7 @@ The following arguments are supported:
 * `policy_type` - (Required) The policy type. Possible values are `BuiltIn`, `Custom` and `NotSpecified`. Changing this forces a new resource to be created.
 
 * `mode` - (Required) The policy mode that allows you to specify which resource
-    types will be evaluated.  The value can be "All", "Indexed" or
-    "NotSpecified".
+    types will be evaluated. Possible values are `All`, `Indexed`, `Microsoft.ContainerService.Data`, `Microsoft.CustomerLockbox.Data`, `Microsoft.DataCatalog.Data`, `Microsoft.KeyVault.Data`, `Microsoft.Kubernetes.Data`, `Microsoft.MachineLearningServices.Data`, `Microsoft.Network.Data` and `Microsoft.Synapse.Data`.
 
 * `display_name` - (Required) The display name of the policy definition.
 

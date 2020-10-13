@@ -75,7 +75,7 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 			"activities_json": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				StateFunc:        azure.NormalizeJson,
+				StateFunc:        utils.NormalizeJson,
 				DiffSuppressFunc: suppressJsonOrderingDifference,
 			},
 

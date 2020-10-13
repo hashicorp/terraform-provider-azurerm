@@ -62,16 +62,6 @@ func resourceArmDedicatedHardwareSecurityModule() *schema.Resource {
 				}, false),
 			},
 
-			"stamp_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"stamp1",
-					"stamp2",
-				}, false),
-			},
-
 			"network_profile": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -96,6 +86,16 @@ func resourceArmDedicatedHardwareSecurityModule() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"stamp_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"stamp1",
+					"stamp2",
+				}, false),
 			},
 
 			"zones": azure.SchemaZones(),
@@ -127,13 +127,19 @@ func resourceArmDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, me
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		DedicatedHsmProperties: &hardwaresecuritymodules.DedicatedHsmProperties{
 			NetworkProfile: expandArmDedicatedHsmNetworkProfile(d.Get("network_profile").([]interface{})),
-			StampID:        utils.String(d.Get("stamp_id").(string)),
 		},
 		Sku: &hardwaresecuritymodules.Sku{
 			Name: hardwaresecuritymodules.Name(d.Get("sku_name").(string)),
 		},
-		Zones: azure.ExpandZones(d.Get("zones").([]interface{})),
-		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("stamp_id"); ok {
+		parameters.DedicatedHsmProperties.StampID = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("zones"); ok {
+		parameters.Zones = azure.ExpandZones(v.([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)

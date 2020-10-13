@@ -100,7 +100,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 
 	info := parseFieldsFromNetworkInterface(*props)
 	resourceId := fmt.Sprintf("%s|%s", networkInterfaceId, applicationSecurityGroupId)
-	if azure.SliceContainsValue(info.applicationSecurityGroupIDs, applicationSecurityGroupId) {
+	if utils.SliceContainsValue(info.applicationSecurityGroupIDs, applicationSecurityGroupId) {
 		return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", resourceId)
 	}
 

@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -221,6 +222,33 @@ func TestAccAzureRMMsSqlServer_blobAuditingPolicies_withFirewall(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlServer_customDiff(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlServer_basicWithMinimumTLSVersion(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+			{
+				Config: testAccAzureRMMsSqlServer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlServerExists(data.ResourceName),
+				),
+				ExpectError: regexp.MustCompile("`minimum_tls_version` cannot be removed once set, please set a valid value for this property"),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
 func testCheckAzureRMMsSqlServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Sql.ServersClient
@@ -319,6 +347,29 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlServer_basicWithMinimumTLSVersion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%d"
+  location = "%s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+  minimum_tls_version          = "1.2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -478,6 +529,7 @@ resource "azurerm_mssql_server" "test" {
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
+  minimum_tls_version          = "1.0"
 
   public_network_access_enabled = false
 

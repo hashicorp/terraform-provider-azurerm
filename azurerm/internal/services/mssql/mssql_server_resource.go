@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -170,6 +169,7 @@ func resourceArmMsSqlServer() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+		CustomizeDiff: mssqlMinimumTLSVersionDiff,
 	}
 }
 
@@ -492,4 +492,12 @@ func flattenAzureRmSqlServerRestorableDatabases(resp sql.RestorableDroppedDataba
 		res = append(res, id)
 	}
 	return res
+}
+
+func mssqlMinimumTLSVersionDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+	old, new := d.GetChange("minimum_tls_version")
+	if old != "" && new == "" {
+		err = fmt.Errorf("`minimum_tls_version` cannot be removed once set, please set a valid value for this property")
+	}
+	return
 }
