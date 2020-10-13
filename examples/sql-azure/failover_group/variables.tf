@@ -7,5 +7,5 @@ variable "location_alt" {
 }
 
 variable "prefix" {
-  description = "The prefix used for all resources used by this NetApp Account"
+  description = "The prefix used for all resources created as a part of this example"
 }
