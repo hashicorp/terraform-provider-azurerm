@@ -146,7 +146,6 @@ func TestAccAzureRMLogAnalyticsWorkspace_withDefaultSku(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsWorkspace_withDefaultSku(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_quota_gb", "-1"),
 				),
 			},
 			data.ImportStep(),
@@ -166,7 +165,6 @@ func TestAccAzureRMLogAnalyticsWorkspace_withVolumeCap(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsWorkspace_withVolumeCap(data, 4.5),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "daily_quota_gb", "4.5"),
 				),
 			},
 			data.ImportStep(),
@@ -346,7 +344,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
-  daily_quota_gb    = %d
+  daily_quota_gb      = %d
 
   tags = {
     Environment = "Test"

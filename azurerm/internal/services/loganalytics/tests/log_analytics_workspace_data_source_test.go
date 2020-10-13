@@ -28,7 +28,7 @@ func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
+func TestAccDataSourceAzureRMLogAnalyticsWorkspace_volumeCapWithDataSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -46,7 +46,7 @@ The following attributes are exported:
 
 * `retention_in_days` - The workspace data retention in days.
 
-* `daily_quota_gb` - The workspace of the volume cap in gb.  Defaults to -1 (unlimited).
+* `daily_quota_gb` - The workspace daily quota for ingestion in GB.
 
 * `tags` - A mapping of tags assigned to the resource.
 
