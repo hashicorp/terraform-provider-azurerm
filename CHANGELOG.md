@@ -8,6 +8,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_dedicated_hardware_security_module` - `stamp_id` now optional to allow use in Locations which use `zones` [GH-8826]
 * `azurerm_storage_account`-`large_file_share_enabled` marked as computed to prevent existing storage shares from attempting to disable the default ([#8807](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8807))
 
 ## 2.31.0 (October 08, 2020)
