@@ -50,6 +50,31 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			// the API changed and now returns the rg in lowercase
 			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -199,6 +224,11 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		appConfigIdentity := expandAppConfigurationIdentity(d)
+		parameters.Identity = appConfigIdentity
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -237,6 +267,11 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 			Name: utils.String(d.Get("sku").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		appConfigIdentity := expandAppConfigurationIdentity(d)
+		parameters.Identity = appConfigIdentity
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -307,6 +342,10 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("primary_write_key", accessKeys.primaryWriteKey)
 	d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 	d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
+
+	if err := d.Set("identity", flattenAppConfigurationIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error flattening `identity`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -407,4 +446,31 @@ func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface
 			"secret":            secret,
 		},
 	}
+}
+
+func expandAppConfigurationIdentity(d *schema.ResourceData) *appconfiguration.ResourceIdentity {
+	identities := d.Get("identity").([]interface{})
+	if len(identities) == 0 {
+		return &appconfiguration.ResourceIdentity{}
+	}
+	identity := identities[0].(map[string]interface{})
+	identityType := appconfiguration.IdentityType(identity["type"].(string))
+	return &appconfiguration.ResourceIdentity{
+		Type: identityType,
+	}
+}
+func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity) []interface{} {
+	if identity == nil {
+		return []interface{}{}
+	}
+	result := make(map[string]interface{})
+	result["type"] = identity.Type
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }
