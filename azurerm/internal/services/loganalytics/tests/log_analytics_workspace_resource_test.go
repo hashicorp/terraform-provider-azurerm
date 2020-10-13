@@ -344,7 +344,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
-  daily_quota_gb      = %d
+  daily_quota_gb      = %f
 
   tags = {
     Environment = "Test"

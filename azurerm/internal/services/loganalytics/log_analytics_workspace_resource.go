@@ -137,7 +137,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	retentionInDays := int32(d.Get("retention_in_days").(int))
-	dailyQuotaGb := float64(d.Get("daily_quota_gb").(float64))
+	dailyQuotaGb := d.Get("daily_quota_gb").(float64)
 
 	t := d.Get("tags").(map[string]interface{})
 
