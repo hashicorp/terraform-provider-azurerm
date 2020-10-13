@@ -41,6 +41,11 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 				Computed: true,
 			},
 
+			"daily_quota_gb": {
+				Type:     schema.TypeFloat,
+				Computed: true,
+			},
+
 			"workspace_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -100,6 +105,12 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
+
+	if workspaceCapping := resp.WorkspaceCapping; workspaceCapping != nil {
+		d.Set("daily_quota_gb", resp.WorkspaceCapping.DailyQuotaGb)
+	} else {
+		d.Set("daily_quota_gb", utils.Float(-1))
+	}
 
 	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, resGroup, name)
 	if err != nil {
