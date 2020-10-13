@@ -1,3 +1,9 @@
+## 2.32.0 (Unreleased)
+
+FEATURES:
+
+* **New resource:** `azurerm_security_center_setting` [GH-8783]
+
 ## 2.31.1 (October 08, 2020)
 
 IMPROVEMENTS:
