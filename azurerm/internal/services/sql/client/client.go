@@ -12,6 +12,7 @@ type Client struct {
 	ElasticPoolsClient                    *sql.ElasticPoolsClient
 	FirewallRulesClient                   *sql.FirewallRulesClient
 	FailoverGroupsClient                  *sql.FailoverGroupsClient
+	InstancePoolsClient                   *msi.InstancePoolsClient
 	ManagedInstancesClient                *msi.ManagedInstancesClient
 	ServersClient                         *sql.ServersClient
 	ServerAzureADAdministratorsClient     *sql.ServerAzureADAdministratorsClient
@@ -35,6 +36,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	FirewallRulesClient := sql.NewFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FirewallRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	InstancePoolsClient := msi.NewInstancePoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&InstancePoolsClient.Client, o.ResourceManagerAuthorizer)
+
 	ManagedInstancesClient := msi.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ManagedInstancesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -53,6 +57,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ElasticPoolsClient:                    &ElasticPoolsClient,
 		FailoverGroupsClient:                  &FailoverGroupsClient,
 		FirewallRulesClient:                   &FirewallRulesClient,
+		InstancePoolsClient:                   &InstancePoolsClient,
 		ManagedInstancesClient:                &ManagedInstancesClient,
 		ServersClient:                         &ServersClient,
 		ServerAzureADAdministratorsClient:     &ServerAzureADAdministratorsClient,

@@ -3,7 +3,6 @@ package sql
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql"
@@ -18,16 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlMiServer() *schema.Resource {
+func resourceArmSqlInstancePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlMiServerCreateUpdate,
-		Read:   resourceArmSqlMiServerRead,
-		Update: resourceArmSqlMiServerCreateUpdate,
-		Delete: resourceArmSqlMiServerDelete,
-
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Create: resourceArmSqlInstancePoolCreateUpdate,
+		Read:   resourceArmSqlInstancePoolRead,
+		Update: resourceArmSqlInstancePoolCreateUpdate,
+		Delete: resourceArmSqlInstancePoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(24 * time.Hour),
@@ -59,20 +54,6 @@ func resourceArmSqlMiServer() *schema.Resource {
 				}, false),
 			},
 
-			"administrator_login": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
-			"administrator_login_password": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
 			"vcores": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -88,12 +69,6 @@ func resourceArmSqlMiServer() *schema.Resource {
 				}),
 			},
 
-			"storage_size_in_gb": {
-				Type:         schema.TypeInt,
-				Required:     true,
-				ValidateFunc: validate.IntBetweenAndDivisibleBy(32, 8192, 32),
-			},
-
 			"license_type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -101,12 +76,6 @@ func resourceArmSqlMiServer() *schema.Resource {
 					"LicenseIncluded",
 					"BasePrice",
 				}, true),
-			},
-
-			"instance_pool_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"subnet_id": {
@@ -120,16 +89,14 @@ func resourceArmSqlMiServer() *schema.Resource {
 	}
 }
 
-func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+func resourceArmSqlInstancePoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Sql.InstancePoolsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	adminUsername := d.Get("administrator_login").(string)
-	licenseType := d.Get("license_type").(string)
 	subnetId := d.Get("subnet_id").(string)
 	metadata := tags.Expand(d.Get("tags").(map[string]interface{}))
 
@@ -138,23 +105,15 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("error expanding sku_name for SQL Managed Instance Server %q (Resource Group %q): %v", name, resGroup, err)
 	}
 
-	parameters := sql.ManagedInstance{
+	parameters := sql.InstancePool{
 		Sku:      sku,
 		Location: utils.String(location),
 		Tags:     metadata,
-		ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-			LicenseType:        sql.ManagedInstanceLicenseType(licenseType),
-			AdministratorLogin: utils.String(adminUsername),
-			SubnetID:           utils.String(subnetId),
-			StorageSizeInGB:    utils.Int32(int32(d.Get("storage_size_in_gb").(int))),
-			VCores:             utils.Int32(int32(d.Get("vcores").(int))),
-			InstancePoolID:     utils.String(d.Get("instance_pool_id").(string)),
+		InstancePoolProperties: &sql.InstancePoolProperties{
+			SubnetID:    utils.String(subnetId),
+			VCores:      utils.Int32(8),
+			LicenseType: sql.BasePrice,
 		},
-	}
-
-	if d.HasChange("administrator_login_password") {
-		adminPassword := d.Get("administrator_login_password").(string)
-		parameters.ManagedInstanceProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -177,11 +136,11 @@ func resourceArmSqlMiServerCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSqlMiServerRead(d, meta)
+	return resourceArmSqlInstancePoolRead(d, meta)
 }
 
-func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+func resourceArmSqlInstancePoolRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Sql.InstancePoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -191,7 +150,7 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["managedInstances"]
+	name := id.Path["instancePools"]
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
@@ -204,26 +163,23 @@ func resourceArmSqlMiServerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error reading SQL Server %s: %v", name, err)
 	}
 
-	d.Set("name", name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if miServerProperties := resp.ManagedInstanceProperties; miServerProperties != nil {
+	if miServerProperties := resp.InstancePoolProperties; miServerProperties != nil {
 		d.Set("license_type", miServerProperties.LicenseType)
-		d.Set("administrator_login", miServerProperties.AdministratorLogin)
 		d.Set("subnet_id", miServerProperties.SubnetID)
-		d.Set("storage_size_in_gb", miServerProperties.StorageSizeInGB)
 		d.Set("vcores", miServerProperties.VCores)
-		d.Set("instance_pool_id", miServerProperties.InstancePoolID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSqlMiServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+func resourceArmSqlInstancePoolDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Sql.InstancePoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -233,7 +189,7 @@ func resourceArmSqlMiServerDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["managedInstances"]
+	name := id.Path["instancePools"]
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
@@ -241,27 +197,4 @@ func resourceArmSqlMiServerDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)
-}
-
-func expandManagedInstanceSkuName(skuName string) (*sql.Sku, error) {
-	parts := strings.Split(skuName, "_")
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("sku_name (%s) has the wrong number of parts (%d) after splitting on _", skuName, len(parts))
-	}
-
-	var tier string
-	switch parts[0] {
-	case "GP":
-		tier = "GeneralPurpose"
-	case "BC":
-		tier = "BusinessCritical"
-	default:
-		return nil, fmt.Errorf("sku_name %s has unknown sku tier %s", skuName, parts[0])
-	}
-
-	return &sql.Sku{
-		Name:   utils.String(skuName),
-		Tier:   utils.String(tier),
-		Family: utils.String(parts[1]),
-	}, nil
 }

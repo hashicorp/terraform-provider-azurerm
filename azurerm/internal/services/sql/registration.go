@@ -34,6 +34,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_sql_elasticpool":                    resourceArmSqlElasticPool(),
 		"azurerm_sql_failover_group":                 resourceArmSqlFailoverGroup(),
 		"azurerm_sql_firewall_rule":                  resourceArmSqlFirewallRule(),
+		"azurerm_sql_instance_pool":                  resourceArmSqlInstancePool(),
 		"azurerm_sql_managed_instance":               resourceArmSqlMiServer(),
 		"azurerm_sql_server":                         resourceArmSqlServer(),
 		"azurerm_sql_virtual_network_rule":           resourceArmSqlVirtualNetworkRule(),
