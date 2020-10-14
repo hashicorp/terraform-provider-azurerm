@@ -111,7 +111,8 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 											ValidateFunc: validation.StringInSlice(
 												[]string{
 													"ascending",
-													"descending",
+													string(documentdb.Ascending),
+													string(documentdb.Descending),
 												}, true),
 										},
 									},
