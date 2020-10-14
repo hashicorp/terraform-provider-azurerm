@@ -373,6 +373,9 @@ func resourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interface{
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	resourceGroup := id.ResourceGroup
 	name := id.Path["databases"]
@@ -410,7 +413,6 @@ func resourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interface{
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-
 }
 
 func resourceArmMSSQLManagedDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
