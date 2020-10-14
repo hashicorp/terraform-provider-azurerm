@@ -60,6 +60,38 @@ The following arguments are supported:
 
 * `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
 
+* `routing_configuration` - (Optional)  A `routing_configuration` block as defined below.
+
+---
+
+An `routing_configuration` block exports the following:
+
+* `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
+
+* `vnet_route` - (Optional)  A `vnet_route` block as defined below.
+
+---
+
+An `propagated_route_table` block exports the following:
+
+* `labels` - (Optional) The list of labels.
+
+---
+
+An `vnet_route` block exports the following:
+
+* `static_route` - (Optional)  A `static_route` block as defined below.
+
+---
+
+An `static_route` block exports the following:
+
+* `name` - (Optional) The name which should be used for this static_route.
+
+* `address_prefixes` - (Optional) List of all address prefixes.
+
+* `next_hop_ip_address` - (Optional) The ip address of the next hop.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -72,6 +104,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub Connection.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Hub Connection.
 * `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Hub Connection.
 
 ## Import
