@@ -113,7 +113,7 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 													"ascending",
 													string(documentdb.Ascending),
 													string(documentdb.Descending),
-												}, true),
+												}, false),
 										},
 									},
 								},
