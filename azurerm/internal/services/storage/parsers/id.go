@@ -21,6 +21,12 @@ type StorageSyncGroupId struct {
 	ResourceGroup   string
 }
 
+type StorageEncryptionScopeId struct {
+	Name           string
+	StorageAccName string
+	ResourceGroup  string
+}
+
 func ParseAccountID(input string) (*AccountID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -87,4 +93,29 @@ func StorageSyncGroupID(input string) (*StorageSyncGroupId, error) {
 	}
 
 	return &storageSyncGroup, nil
+}
+
+func StorageEncryptionScopeID(input string) (*StorageEncryptionScopeId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	es := StorageEncryptionScopeId{
+		ResourceGroup: id.ResourceGroup,
+	}
+
+	if es.StorageAccName, err = id.PopSegment("storageAccounts"); err != nil {
+		return nil, err
+	}
+
+	if es.Name, err = id.PopSegment("encryptionScopes"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &es, nil
 }
