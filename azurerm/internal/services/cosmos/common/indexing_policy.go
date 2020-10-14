@@ -132,7 +132,7 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 
 func flattenCosmosDBIndexingPolicyCompositeIndexes(input *[][]documentdb.CompositePath) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	indexes := make([]interface{}, 0)
