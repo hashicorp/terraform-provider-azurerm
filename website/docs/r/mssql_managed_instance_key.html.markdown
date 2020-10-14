@@ -190,7 +190,9 @@ resource "azurerm_mssql_managed_instance_key" "test" {
 
 The following arguments are supported:
 
-* `managed_instance_id` - (Required) The resource id of the MS SQL Managed Instance. Changing this forces a new resource to be created.
+* `managed_instance_name` - (Required) The resource id of the MS SQL Managed Instance. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The resource group of the managed instance. Changing this forces a new resource to be created.
 
 * `key_name` - (Required) The managed instance encryption key name. The format for this should alwaye be keyvaultname_keyname_keyversion. Changing this forces a new resource to be created.
 

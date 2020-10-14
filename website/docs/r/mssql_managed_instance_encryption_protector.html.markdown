@@ -197,7 +197,9 @@ resource "azurerm_mssql_managed_instance_encryption_protector" "example" {
 
 The following arguments are supported:
 
-* `managed_instance_id` - (Required) The resource id of the MS SQL Managed Instance. Changing this forces a new resource to be created.
+* `managed_instance_name` - (Required) The resource id of the MS SQL Managed Instance. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The resource group of the managed instance. Changing this forces a new resource to be created.
 
 * `server_key_name` - (Required) The managed instance encryption key name to be used for transport data encryption. Changing this forces a new resource to be created.
 

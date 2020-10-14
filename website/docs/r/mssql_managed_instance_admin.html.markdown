@@ -111,7 +111,9 @@ resource "azurerm_mssql_managed_instance_admin" "example" {
 
 The following arguments are supported:
 
-* `managed_instance_id` - (Required) The resource id of the MS SQL Managed Instance. Changing this forces a new resource to be created.
+* `managed_instance_name` - (Required) The resource id of the MS SQL Managed Instance. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The resource group of the managed instance. Changing this forces a new resource to be created.
 
 * `login_username` - (Required) The Active Directory User name. Changing this forces a new resource to be created.
 

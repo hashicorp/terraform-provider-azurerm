@@ -170,7 +170,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the MS SQL Managed database. Changing this forces a new resource to be created.
 
-* `managed_instance_id` - (Required) The Managed instance id to which the database belongs to. Changing this forces a new resource to be created.
+* `managed_instance_name` - (Required) The resource id of the MS SQL Managed Instance. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The resource group of the managed instance. Changing this forces a new resource to be created.
 
 * `collation` - (Optional) The collation of the Managed database. Changing this forces a new resource to be created. Defaults to `SQL_Latin1_General_CP1_CI_AS`.
 
