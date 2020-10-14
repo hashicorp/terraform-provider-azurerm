@@ -123,7 +123,7 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 
 		block := make(map[string]interface{})
 		block["path"] = path
-		block["order"] = v.Order
+		block["order"] = string(v.Order)
 		indexPairs = append(indexPairs, block)
 	}
 
