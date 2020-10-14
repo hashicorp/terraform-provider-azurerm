@@ -26,7 +26,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_express_route_circuit":                     dataSourceArmExpressRouteCircuit(),
 		"azurerm_firewall":                                  dataSourceArmFirewall(),
 		"azurerm_firewall_policy":                           dataSourceArmFirewallPolicy(),
-		"azurerm_firewall_policy_rule_collection_group":     dataSourceArmFirewallPolicyRuleCollectionGroup(),
 		"azurerm_ip_group":                                  dataSourceArmIpGroup(),
 		"azurerm_lb":                                        dataSourceArmLoadBalancer(),
 		"azurerm_lb_backend_address_pool":                   dataSourceArmLoadBalancerBackendAddressPool(),
