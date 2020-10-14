@@ -160,13 +160,15 @@ func testAccAzureRMMsSqlManagedInstanceEncryption_basic(data acceptance.TestData
 
 resource "azurerm_mssql_managed_instance_key" "test" {
 	key_name                          = "${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
-	managed_instance_id           = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	uri 					 = azurerm_key_vault_key.test.id
   }
 
   resource "azurerm_mssql_managed_instance_encryption_protector" "test" {
 	server_key_name                          = "${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
-	managed_instance_id           = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	server_key_type = "AzureKeyVault"
   }
 `, template)
@@ -179,7 +181,8 @@ func testAccAzureRMMsSqlManagedInstanceEncryption_ServiceManaged(data acceptance
 
   resource "azurerm_mssql_managed_instance_encryption_protector" "test" {
 	server_key_name                          = "ServiceManaged"
-	managed_instance_id           = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	server_key_type = "ServiceManaged"
   }
 `, template)
@@ -192,13 +195,15 @@ func testAccAzureRMMsSqlManagedInstanceEncryption_update(data acceptance.TestDat
 
 resource "azurerm_mssql_managed_instance_key" "test" {
 	key_name                          = "${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.version}"
-	managed_instance_id           = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	uri 					 = azurerm_key_vault_key.test1.id
   }
 
   resource "azurerm_mssql_managed_instance_encryption_protector" "test" {
 	server_key_name                          = "${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
-	managed_instance_id           = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	server_key_type = "AzureKeyVault"
   }
 
@@ -211,7 +216,8 @@ func testAccAzureRMMssqlManagedInstanceEncryption_requiresImport(data acceptance
 
 resource "azurerm_mssql_managed_instance_encryption_protector" "import" {
 	server_key_name                    = "${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
-	managed_instance_id         = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	server_key_type = "AzureKeyVault"
   }
 `, template)

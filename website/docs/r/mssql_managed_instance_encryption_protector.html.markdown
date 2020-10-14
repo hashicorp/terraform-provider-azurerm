@@ -178,15 +178,17 @@ resource "azurerm_key_vault_key" "example" {
 }
 
 resource "azurerm_mssql_managed_instance_key" "example" {
-  key_name            = "${azurerm_key_vault.example.name}_${azurerm_key_vault_key.example.name}_${azurerm_key_vault_key.example.version}"
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  uri                 = azurerm_key_vault_key.example.id
+  key_name              = "${azurerm_key_vault.example.name}_${azurerm_key_vault_key.example.name}_${azurerm_key_vault_key.example.version}"
+  managed_instance_name = azurerm_mssql_managed_instance.example.name
+  resource_group_name   = azurerm_mssql_managed_instance.example.resource_group_name
+  uri                   = azurerm_key_vault_key.example.id
 }
 
 resource "azurerm_mssql_managed_instance_encryption_protector" "example" {
-  server_key_name     = azurerm_mssql_managed_instance_key.example.key_name
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  server_key_type     = "AzureKeyVault"
+  server_key_name       = azurerm_mssql_managed_instance_key.example.key_name
+  managed_instance_name = azurerm_mssql_managed_instance.example.name
+  resource_group_name   = azurerm_mssql_managed_instance.example.resource_group_name
+  server_key_type       = "AzureKeyVault"
 }
 
 ```

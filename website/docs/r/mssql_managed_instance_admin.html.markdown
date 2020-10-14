@@ -99,9 +99,10 @@ resource "azurerm_mssql_managed_instance" "example" {
 }
 
 resource "azurerm_mssql_managed_instance_admin" "example" {
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  login_username      = "user@example.com"
-  object_id           = "00000000-0000-0000-0000-000000000000"
+  managed_instance_name = azurerm_mssql_managed_instance.example.name
+  resource_group_name   = azurerm_mssql_managed_instance.example.resource_group_name
+  login_username        = "user@example.com"
+  object_id             = "00000000-0000-0000-0000-000000000000"
 }
 
 ```

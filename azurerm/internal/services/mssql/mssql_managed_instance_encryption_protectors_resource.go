@@ -33,13 +33,15 @@ func resourceArmMSSQLManagedInstanceEncryptionProtector() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"managed_instance_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+
+			"managed_instance_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_key_name": {
 				Type:             schema.TypeString,
@@ -92,15 +94,8 @@ func resourceArmMSSQLManagedInstanceEncryptionProtectorCreateUpdate(d *schema.Re
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	managedInstanceId := d.Get("managed_instance_id").(string)
-
-	id, err := azure.ParseAzureResourceID(managedInstanceId)
-	if err != nil {
-		return err
-	}
-
-	resGroup := id.ResourceGroup
-	managedInstanceName := id.Path["managedInstances"]
+	managedInstanceName := d.Get("managed_instance_name").(string)
+	resGroup := d.Get("resource_group_name").(string)
 
 	if _, err := managedInstanceClient.Get(ctx, resGroup, managedInstanceName); err != nil {
 		return fmt.Errorf("Error reading managed SQL instance %s: %v", managedInstanceName, err)
@@ -157,12 +152,8 @@ func resourceArmMSSQLManagedInstanceEncryptionProtectorRead(d *schema.ResourceDa
 		return fmt.Errorf("Error reading managed instance %s encryption details (Resource Group %q): %+v", managedInstanceName, resGroup, err)
 	}
 
-	managedInstanceId, _ := azure.GetSQLResourceParentId(d.Id())
-	if err != nil {
-		return err
-	}
-
-	d.Set("managed_instance_id", managedInstanceId)
+	d.Set("managed_instance_name", managedInstanceName)
+	d.Set("resource_group_name", resGroup)
 	d.Set("name", resp.Name)
 	d.Set("type", resp.Type)
 	d.Set("kind", resp.Kind)

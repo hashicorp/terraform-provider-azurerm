@@ -144,9 +144,9 @@ func testAccAzureRMMsSqlManagedInstanceKey_basic(data acceptance.TestData) strin
 
 resource "azurerm_mssql_managed_instance_key" "test" {
 	key_name                          = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
-	managed_instance_id           = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	uri 					 = azurerm_key_vault_key.test.id
-	depends_on = [azurerm_key_vault_key.test, azurerm_key_vault_key.test1]
   }
 
   `, template)
@@ -159,9 +159,9 @@ func testAccAzureRMMsSqlManagedInstanceKey_update(data acceptance.TestData) stri
 
 resource "azurerm_mssql_managed_instance_key" "test" {
 	key_name                          = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test1.name}_${azurerm_key_vault_key.test1.version}"
-	managed_instance_id           = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	uri 					 = azurerm_key_vault_key.test1.id
-	depends_on = [azurerm_key_vault_key.test, azurerm_key_vault_key.test1]
   }
 
 `, template)
@@ -173,7 +173,8 @@ func testAccAzureRMMssqlManagedInstanceKey_requiresImport(data acceptance.TestDa
 
 resource "azurerm_mssql_managed_instance_key" "import" {
 	key_name                    = "${azurerm_key_vault.test.name}_${azurerm_key_vault_key.test.name}_${azurerm_key_vault_key.test.version}"
-	managed_instance_id         = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	uri 					 	= azurerm_key_vault_key.test.id
   }
 

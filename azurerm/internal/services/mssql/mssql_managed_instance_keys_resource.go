@@ -2,9 +2,11 @@ package mssql
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -32,6 +34,15 @@ func resourceArmMSSQLManagedInstanceKeys() *schema.Resource {
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
+		CustomizeDiff: customdiff.Sequence(
+			// This is to prevent this error:
+			// All fields are ForceNew or Computed w/out Optional, Update is superfluous
+			// If the Uri was changed, force a new resource
+			customdiff.ForceNewIfChange("uri", func(old, new, meta interface{}) bool {
+				return !strings.EqualFold(new.(string), old.(string))
+			}),
+		),
+
 		Schema: map[string]*schema.Schema{
 
 			"key_name": {
@@ -41,12 +52,14 @@ func resourceArmMSSQLManagedInstanceKeys() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"managed_instance_id": {
+			"managed_instance_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"uri": {
 				Type:         schema.TypeString,
@@ -93,16 +106,10 @@ func resourceArmMSSQLManagedInstanceKeysCreateUpdate(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	managedInstanceId := d.Get("managed_instance_id").(string)
+	managedInstanceName := d.Get("managed_instance_name").(string)
 	keyName := d.Get("key_name").(string)
 
-	id, err := azure.ParseAzureResourceID(managedInstanceId)
-	if err != nil {
-		return err
-	}
-
-	resGroup := id.ResourceGroup
-	managedInstanceName := id.Path["managedInstances"]
+	resGroup := d.Get("resource_group_name").(string)
 
 	if _, err := managedInstanceClient.Get(ctx, resGroup, managedInstanceName); err != nil {
 		return fmt.Errorf("Error reading managed SQL instance %s: %v", managedInstanceName, err)
@@ -173,11 +180,9 @@ func resourceArmMSSQLManagedInstanceKeysRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error while fetching managed SQL instance encryption key %q details (Managed instance %q, Resource Group %q): %+v", keyName, managedInstanceName, resGroup, err)
 	}
 
-	managedInstanceId, _ := azure.GetSQLResourceParentId(d.Id())
-	if err != nil {
-		return err
-	}
-	d.Set("managed_instance_id", managedInstanceId)
+	d.Set("managed_instance_name", managedInstanceName)
+	d.Set("resource_group_name", resGroup)
+
 	d.Set("key_name", result.Name)
 	d.Set("kind", result.Kind)
 	d.Set("type", result.Type)

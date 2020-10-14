@@ -217,7 +217,8 @@ func testAccAzureRMMsSqlManagedDatabase_basic(data acceptance.TestData, collatio
 
 resource "azurerm_mssql_managed_database" "test" {
 	name                         = "acctest-db-%[2]d"
-	managed_instance_id          = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	collation					 = "%[3]s"
 	catalog_collation           =  "%[4]s"
   }
@@ -230,7 +231,8 @@ func testAccAzureRMMsSqlManagedDatabase_createPITRMode(data acceptance.TestData)
 
 resource "azurerm_mssql_managed_database" "pitr" {
 	name                         = "acctest-dbp-%d"
-	managed_instance_id          = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	create_mode 				= "PointInTimeRestore"
   	restore_point_in_time       = "%s"
   	source_database_id          =  azurerm_mssql_managed_database.test.id
@@ -244,7 +246,8 @@ func testAccAzureRMMssqlManagedDatabase_requiresImport(data acceptance.TestData)
 
 resource "azurerm_mssql_managed_database" "import" {
 	name                         = "acctest-db-%[2]d"
-	managed_instance_id          = azurerm_mssql_managed_instance.test.id
+	managed_instance_name          = azurerm_mssql_managed_instance.test.name
+	resource_group_name				= azurerm_mssql_managed_instance.test.resource_group_name
 	collation					 = "%[3]s"
   }
 `, template, data.RandomInteger, "SQL_Latin1_General_CP1_CI_AS", "Default", "SQL_Latin1_General_CP1_CI_AS")

@@ -43,12 +43,14 @@ func resourceArmMSSQLManagedDatabase() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlDatabaseName,
 			},
 
-			"managed_instance_id": {
+			"managed_instance_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"collation": {
 				Type:     schema.TypeString,
@@ -189,13 +191,8 @@ func resourceArmMSSQLManagedDatabaseCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 
-	managedInstanceId := d.Get("managed_instance_id").(string)
-	id, err := azure.ParseAzureResourceID(managedInstanceId)
-	if err != nil {
-		return err
-	}
-	managedInstanceName := id.Path["managedInstances"]
-	resourceGroup := id.ResourceGroup
+	managedInstanceName := d.Get("managed_instance_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	instanceResponse, err := managedInstanceClient.Get(ctx, resourceGroup, managedInstanceName)
 	if err != nil {
@@ -376,10 +373,6 @@ func resourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interface{
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
-	managedInstanceId, _ := azure.GetSQLResourceParentId(d.Id())
-	if err != nil {
-		return err
-	}
 
 	resourceGroup := id.ResourceGroup
 	name := id.Path["databases"]
@@ -393,7 +386,7 @@ func resourceArmMSSQLManagedDatabaseRead(d *schema.ResourceData, meta interface{
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("type", resp.Type)
-	d.Set("managed_instance_id", managedInstanceId)
+	d.Set("managed_instance_name", managedInstanceName)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

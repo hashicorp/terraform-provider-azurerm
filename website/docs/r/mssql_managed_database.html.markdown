@@ -100,17 +100,19 @@ resource "azurerm_mssql_managed_instance" "example" {
 
 # Default create mode
 resource "azurerm_sql_managed_database" "example" {
-  name                = "sql-managed-db"
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  collation           = "SQL_Latin1_General_CP1_CI_AS"
-  catalog_collation   = "SQL_Latin1_General_CP1_CI_AS"
+  name                  = "sql-managed-db"
+  managed_instance_name = azurerm_mssql_managed_instance.example.name
+  resource_group_name   = azurerm_mssql_managed_instance.example.resource_group_name
+  collation             = "SQL_Latin1_General_CP1_CI_AS"
+  catalog_collation     = "SQL_Latin1_General_CP1_CI_AS"
 }
 
 /* Point in time create mode. This block creates a managed database which is replica of an existing managed database to a specified point in time.
 */
 resource "azurerm_sql_managed_database" "example" {
   name                  = "sql-managed-db"
-  managed_instance_id   = azurerm_mssql_managed_instance.example.id
+  managed_instance_name = azurerm_mssql_managed_instance.example.name
+  resource_group_name   = azurerm_mssql_managed_instance.example.resource_group_name
   collation             = "SQL_Latin1_General_CP1_CI_AS"
   catalog_collation     = "SQL_Latin1_General_CP1_CI_AS"
   create_mode           = "PointInTimeRestore"
@@ -121,7 +123,8 @@ resource "azurerm_sql_managed_database" "example" {
 # Point in time create mode. This block creates a new db which is replica of a deleted managed database to a specified point in time.
 resource "azurerm_sql_managed_database" "example" {
   name                           = "sql-managed-db"
-  managed_instance_id            = azurerm_mssql_managed_instance.example.id
+  managed_instance_name          = azurerm_mssql_managed_instance.example.name
+  resource_group_name            = azurerm_mssql_managed_instance.example.resource_group_name
   create_mode                    = "PointInTimeRestore"
   restorable_dropped_database_id = "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/Default-SQL-SouthEastAsia/providers/Microsoft.Sql/managedInstances/testmi/restorableDroppedDatabases/testdb"
   restore_point_in_time          = "2017-07-14T05:35:31.503Z"
@@ -130,7 +133,8 @@ resource "azurerm_sql_managed_database" "example" {
 # Recovery create mode. This block creates a new db from a geo-replicated backup. 
 resource "azurerm_sql_managed_database" "example" {
   name                    = "sql-managed-db"
-  managed_instance_id     = azurerm_mssql_managed_instance.example.id
+  managed_instance_name   = azurerm_mssql_managed_instance.example.name
+  resource_group_name     = azurerm_mssql_managed_instance.example.resource_group_name
   create_mode             = "Recovery"
   recoverable_database_id = "/subscriptions/00000000-1111-2222-3333-444444444444/resourceGroups/Default-SQL-SouthEastAsia/providers/Microsoft.Sql/managedInstances/testmi/recoverableDatabases/testdb"
 }
@@ -139,7 +143,8 @@ resource "azurerm_sql_managed_database" "example" {
 */
 resource "azurerm_sql_managed_database" "example" {
   name                         = "sql-managed-db"
-  managed_instance_id          = azurerm_mssql_managed_instance.example.id
+  managed_instance_name        = azurerm_mssql_managed_instance.example.name
+  resource_group_name          = azurerm_mssql_managed_instance.example.resource_group_name
   create_mode                  = "RestoreLongTermRetentionBackup"
   longterm_retention_backup_id = "/subscriptions/00000000-1111-2222-3333-444444444444/providers/Microsoft.Sql/locations/japaneast/longTermRetentionManagedInstances/testInstance/longTermRetentionDatabases/testDatabase/longTermRetentionManagedInstanceBackups/55555555-6666-7777-8888-999999999999;131637960820000000"
 }
@@ -148,7 +153,8 @@ resource "azurerm_sql_managed_database" "example" {
 */
 resource "azurerm_sql_managed_database" "example" {
   name                        = "sql-managed-db"
-  managed_instance_id         = azurerm_mssql_managed_instance.example.id
+  managed_instance_name       = azurerm_mssql_managed_instance.example.name
+  resource_group_name         = azurerm_mssql_managed_instance.example.resource_group_name
   create_mode                 = "RestoreExternalBackup"
   collation                   = "SQL_Latin1_General_CP1_CI_AS"
   storage_container_uri       = "https://myaccountname.blob.core.windows.net/backups"

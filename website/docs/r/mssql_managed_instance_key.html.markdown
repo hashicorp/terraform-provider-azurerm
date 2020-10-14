@@ -178,9 +178,10 @@ resource "azurerm_key_vault_key" "example" {
 }
 
 resource "azurerm_mssql_managed_instance_key" "test" {
-  key_name            = "${azurerm_key_vault.example.name}_${azurerm_key_vault_key.example.name}_${azurerm_key_vault_key.example.version}"
-  managed_instance_id = azurerm_mssql_managed_instance.example.id
-  uri                 = azurerm_key_vault_key.example.id
+  key_name              = "${azurerm_key_vault.example.name}_${azurerm_key_vault_key.example.name}_${azurerm_key_vault_key.example.version}"
+  managed_instance_name = azurerm_mssql_managed_instance.example.name
+  resource_group_name   = azurerm_mssql_managed_instance.example.resource_group_name
+  uri                   = azurerm_key_vault_key.example.id
 }
 
 ```

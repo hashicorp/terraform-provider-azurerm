@@ -2,9 +2,11 @@ package mssql
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
@@ -34,14 +36,29 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
+		CustomizeDiff: customdiff.Sequence(
+			// This is to prevent this error:
+			// All fields are ForceNew or Computed w/out Optional, Update is superfluous
+
+			customdiff.ForceNewIfChange("tenant_id", func(old, new, meta interface{}) bool {
+				// If the tenant id is null or empty (As it is optional), do not force new
+				if new == nil || new.(string) == "" {
+					return false
+				}
+				// If the tenant id was changed from the computed value, force a new resource
+				return !strings.EqualFold(new.(string), old.(string))
+			}),
+		),
+
 		Schema: map[string]*schema.Schema{
-			"managed_instance_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+			"managed_instance_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"login_username": {
 				Type:             schema.TypeString,
@@ -90,25 +107,18 @@ func resourceArmMSSQLManagedInstanceAdminCreateUpdate(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	managedInstanceId := d.Get("managed_instance_id").(string)
+	managedInstanceName := d.Get("managed_instance_name").(string)
+	resGroup := d.Get("resource_group_name").(string)
 
-	id, err := azure.ParseAzureResourceID(managedInstanceId)
-	if err != nil {
-		return err
-	}
-
-	resGroup := id.ResourceGroup
-	name := id.Path["managedInstances"]
-
-	if _, err := managedInstanceClient.Get(ctx, resGroup, name); err != nil {
-		return fmt.Errorf("while reading managed SQL instance %s: %v", name, err)
+	if _, err := managedInstanceClient.Get(ctx, resGroup, managedInstanceName); err != nil {
+		return fmt.Errorf("while reading managed SQL instance %s: %v", managedInstanceName, err)
 	}
 
 	if d.IsNewResource() {
-		existing, err := adminClient.Get(ctx, resGroup, name)
+		existing, err := adminClient.Get(ctx, resGroup, managedInstanceName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("while checking for presence of existing managed sql instance aad admin details %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("while checking for presence of existing managed sql instance aad admin details %q (Resource Group %q): %+v", managedInstanceName, resGroup, err)
 			}
 		}
 
@@ -134,22 +144,22 @@ func resourceArmMSSQLManagedInstanceAdminCreateUpdate(d *schema.ResourceData, me
 		managedInstanceAdmin.ManagedInstanceAdministratorProperties.TenantID = &tid
 	}
 
-	adminFuture, err := adminClient.CreateOrUpdate(ctx, resGroup, name, managedInstanceAdmin)
+	adminFuture, err := adminClient.CreateOrUpdate(ctx, resGroup, managedInstanceName, managedInstanceAdmin)
 	if err != nil {
-		return fmt.Errorf("while creating Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("while creating Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", managedInstanceName, resGroup, err)
 	}
 
 	if err = adminFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-		return fmt.Errorf("while waiting for creation of Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("while waiting for creation of Managed SQL Instance %q AAD admin details (Resource Group %q): %+v", managedInstanceName, resGroup, err)
 	}
 
-	result, err := adminClient.Get(ctx, resGroup, name)
+	result, err := adminClient.Get(ctx, resGroup, managedInstanceName)
 	if err != nil {
-		return fmt.Errorf("while making get request for managed SQL instance AAD Admin details %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("while making get request for managed SQL instance AAD Admin details %q (Resource Group %q): %+v", managedInstanceName, resGroup, err)
 	}
 
 	if result.ID == nil {
-		return fmt.Errorf("while getting ID from managed SQL instance %q AAD Admin details (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("while getting ID from managed SQL instance %q AAD Admin details (Resource Group %q): %+v", managedInstanceName, resGroup, err)
 	}
 
 	d.SetId(*result.ID)
@@ -168,18 +178,15 @@ func resourceArmMSSQLManagedInstanceAdminRead(d *schema.ResourceData, meta inter
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["managedInstances"]
+	managedInstanceName := id.Path["managedInstances"]
 
-	adminResp, err := adminClient.Get(ctx, resGroup, name)
+	adminResp, err := adminClient.Get(ctx, resGroup, managedInstanceName)
 	if err != nil {
-		return fmt.Errorf("while reading managed instance %s AAD admin: %v", name, err)
+		return fmt.Errorf("while reading managed instance %s AAD admin: %v", managedInstanceName, err)
 	}
 
-	managedInstanceId, _ := azure.GetSQLResourceParentId(d.Id())
-	if err != nil {
-		return err
-	}
-	d.Set("managed_instance_id", managedInstanceId)
+	d.Set("managed_instance_name", managedInstanceName)
+	d.Set("resource_group_name", resGroup)
 	d.Set("name", adminResp.Name)
 	d.Set("type", adminResp.Type)
 
@@ -203,11 +210,11 @@ func resourceArmMSSQLManagedInstanceAdminDelete(d *schema.ResourceData, meta int
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["managedInstances"]
+	managedInstanceName := id.Path["managedInstances"]
 
-	future, err := adminClient.Delete(ctx, resGroup, name)
+	future, err := adminClient.Delete(ctx, resGroup, managedInstanceName)
 	if err != nil {
-		return fmt.Errorf("while deleting managed SQL instance %s admin details: %+v", name, err)
+		return fmt.Errorf("while deleting managed SQL instance %s admin details: %+v", managedInstanceName, err)
 	}
 
 	return future.WaitForCompletionRef(ctx, adminClient.Client)
