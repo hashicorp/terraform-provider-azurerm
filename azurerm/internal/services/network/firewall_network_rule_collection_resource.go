@@ -112,6 +112,12 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+						"destination_fqdns": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
 						"protocols": {
 							Type:     schema.TypeSet,
 							Required: true,
@@ -412,8 +418,13 @@ func expandArmFirewallNetworkRules(input *schema.Set) (*[]network.AzureFirewallN
 			destinationIpGroups = append(destinationIpGroups, v.(string))
 		}
 
-		if len(destinationAddresses) == 0 && len(destinationIpGroups) == 0 {
-			return nil, fmt.Errorf("at least one of %q and %q must be specified for each rule", "destination_addresses", "destination_ip_groups")
+		destinationFqdns := make([]string, 0)
+		for _, v := range rule["destination_fqdns"].(*schema.Set).List() {
+			destinationFqdns = append(destinationFqdns, v.(string))
+		}
+
+		if len(destinationAddresses) == 0 && len(destinationIpGroups) == 0 && len(destinationFqdns) == 0 {
+			return nil, fmt.Errorf("at least one of %q, %q and %q must be specified for each rule", "destination_addresses", "destination_ip_groups", "destination_fqdns")
 		}
 
 		destinationPorts := make([]string, 0)
@@ -429,6 +440,7 @@ func expandArmFirewallNetworkRules(input *schema.Set) (*[]network.AzureFirewallN
 			DestinationAddresses: &destinationAddresses,
 			DestinationIPGroups:  &destinationIpGroups,
 			DestinationPorts:     &destinationPorts,
+			DestinationFqdns:     &destinationFqdns,
 		}
 
 		nrProtocols := make([]network.AzureFirewallNetworkRuleProtocol, 0)
@@ -472,6 +484,9 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]network.AzureFirewallNet
 		}
 		if rule.DestinationPorts != nil {
 			output["destination_ports"] = set.FromStringSlice(*rule.DestinationPorts)
+		}
+		if rule.DestinationFqdns != nil {
+			output["destination_fqdns"] = set.FromStringSlice(*rule.DestinationFqdns)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {

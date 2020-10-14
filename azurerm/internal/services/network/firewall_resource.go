@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -121,6 +122,29 @@ func resourceArmFirewall() *schema.Resource {
 				}, false),
 			},
 
+			"dns_setting": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"servers": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.IsIPAddress,
+							},
+						},
+					},
+				},
+			},
+
 			"zones": azure.SchemaZones(),
 
 			"tags": tags.Schema(),
@@ -168,8 +192,9 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(t),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
-			IPConfigurations: ipConfigs,
-			ThreatIntelMode:  network.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string)),
+			IPConfigurations:     ipConfigs,
+			ThreatIntelMode:      network.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string)),
+			AdditionalProperties: expandArmFirewallDNSSetting(d.Get("dns_setting").([]interface{})),
 		},
 		Zones: zones,
 	}
@@ -283,7 +308,12 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("management_ip_configuration", managementIPConfigs); err != nil {
 			return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
 		}
+
 		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
+
+		if err := d.Set("dns_setting", flattenArmFirewallDNSSetting(props.AdditionalProperties)); err != nil {
+			return fmt.Errorf("Error setting `dns_setting`: %+v", err)
+		}
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
@@ -465,6 +495,47 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 	}
 
 	return result
+}
+
+func expandArmFirewallDNSSetting(input []interface{}) map[string]*string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	var servers []string
+	for _, server := range v["servers"].([]interface{}) {
+		servers = append(servers, server.(string))
+	}
+
+	return map[string]*string{
+		"Network.DNS.EnableProxy": utils.String(fmt.Sprintf("%t", v["enabled"].(bool))),
+		"Network.DNS.Servers":     utils.String(strings.Join(servers, ",")),
+	}
+}
+
+func flattenArmFirewallDNSSetting(input map[string]*string) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	enabled := false
+	if enabledPtr := input["Network.DNS.EnableProxy"]; enabledPtr != nil {
+		enabled = *enabledPtr == "true"
+	}
+
+	servers := []string{}
+	if serversPtr := input["Network.DNS.Servers"]; serversPtr != nil {
+		servers = strings.Split(*serversPtr, ",")
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
+			"servers": utils.FlattenStringSlice(&servers),
+		},
+	}
 }
 
 func ValidateAzureFirewallName(v interface{}, k string) (warnings []string, errors []error) {
