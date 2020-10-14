@@ -156,6 +156,55 @@ func testCheckAzureRMStorageEncryptionScopeDestroy(s *terraform.State) error {
 func testAccAzureRMStorageEncryptionScope_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageEncryptionScope_basic(data acceptance.TestData) string {
+	template := testAccAzureRMStorageEncryptionScope_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "enscope%s"
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, template, data.RandomString)
+}
+
+func testAccAzureRMStorageEncryptionScope_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageEncryptionScope_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_encryption_scope" "import" {
+  name               = azurerm_storage_encryption_scope.test.name
+  storage_account_id = azurerm_storage_encryption_scope.test.storage_account_id
+}
+`, template)
+}
+
+func testAccAzureRMStorageEncryptionScope_complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
   features {
     key_vault {
       purge_soft_delete_on_destroy = false
@@ -166,12 +215,12 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acctestkv%s"
+  name                     = "acctestkv%[3]s"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -210,7 +259,7 @@ resource "azurerm_key_vault_key" "first" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
+  name                     = "acctestsa%[3]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -220,48 +269,12 @@ resource "azurerm_storage_account" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
-}
-
-func testAccAzureRMStorageEncryptionScope_basic(data acceptance.TestData) string {
-	template := testAccAzureRMStorageEncryptionScope_template(data)
-	return fmt.Sprintf(`
-%s
 
 resource "azurerm_storage_encryption_scope" "test" {
-  name               = "enscope%s"
+  name               = "enscope%[3]s"
   storage_account_id = azurerm_storage_account.test.id
+  source             = "Microsoft.KeyVault"
+  key_vault_key_id   = azurerm_key_vault_key.first.id
 }
-`, template, data.RandomString)
-}
-
-func testAccAzureRMStorageEncryptionScope_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMStorageEncryptionScope_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_encryption_scope" "import" {
-  name               = azurerm_storage_encryption_scope.test.name
-  storage_account_id = azurerm_storage_encryption_scope.test.storage_account_id
-}
-`, template)
-}
-
-func testAccAzureRMStorageEncryptionScope_complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_encryption_scope" "test" {
-  name                    = "acctest-SS-%d"
-  resource_group_name     = azurerm_resource_group.test.name
-  location                = azurerm_resource_group.test.location
-  incoming_traffic_policy = "AllowVirtualNetworksOnly"
-  tags = {
-    ENV = "Staging"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
