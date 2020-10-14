@@ -111,7 +111,7 @@ func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]documentdb.ExcludedPath
 
 func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePath) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	indexPairs := make([]interface{}, 0)
