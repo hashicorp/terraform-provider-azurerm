@@ -987,7 +987,7 @@ resource "azurerm_firewall" "test" {
   }
 
   firewall_policy_id = azurerm_firewall_policy.test.id
-  threat_intel_mode = ""
+  threat_intel_mode  = ""
 }
 `, data.RandomInteger, data.Locations.Primary, pipCount)
 }
