@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/hashicorp/go-uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
 )
 
@@ -33,5 +34,18 @@ func ManagementGroupID(i interface{}, k string) (warnings []string, errors []err
 		return
 	}
 
+	return
+}
+
+func SubscriptionGUID(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if _, err := uuid.ParseUUID(v); err != nil {
+		errors = append(errors, fmt.Errorf("expected subscription_guid value to be a valid UUID, got %v", v))
+	}
 	return
 }
