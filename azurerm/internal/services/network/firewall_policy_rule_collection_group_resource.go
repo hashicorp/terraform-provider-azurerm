@@ -132,7 +132,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -140,7 +140,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -148,7 +148,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -223,7 +223,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -240,7 +240,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
@@ -324,13 +324,13 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
 									"destination_address": {
-										Type:         schema.TypeString,
-										Optional:     true,
+										Type:     schema.TypeString,
+										Optional: true,
 										ValidateFunc: validation.Any(
 											validation.IsIPAddress,
 											validation.IsCIDR,
