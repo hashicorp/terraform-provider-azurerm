@@ -38,6 +38,7 @@ type Client struct {
 	ServiceTagsClient                    *network.ServiceTagsClient
 	SubnetsClient                        *network.SubnetsClient
 	NatGatewayClient                     *network.NatGatewaysClient
+	VirtualHubBgpConnectionClient        *network.VirtualHubBgpConnectionClient
 	VnetGatewayConnectionsClient         *network.VirtualNetworkGatewayConnectionsClient
 	VnetGatewayClient                    *network.VirtualNetworkGatewaysClient
 	VnetClient                           *network.VirtualNetworksClient
@@ -160,6 +161,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
 
+	VirtualHubBgpConnectionClient := network.NewVirtualHubBgpConnectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualHubBgpConnectionClient.Client, o.ResourceManagerAuthorizer)
+
 	VnetGatewayClient := network.NewVirtualNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayClient.Client, o.ResourceManagerAuthorizer)
 
@@ -222,6 +226,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServiceTagsClient:                    &ServiceTagsClient,
 		SubnetsClient:                        &SubnetsClient,
 		NatGatewayClient:                     &NatGatewayClient,
+		VirtualHubBgpConnectionClient:        &VirtualHubBgpConnectionClient,
 		VnetGatewayConnectionsClient:         &VnetGatewayConnectionsClient,
 		VnetGatewayClient:                    &VnetGatewayClient,
 		VnetClient:                           &VnetClient,
