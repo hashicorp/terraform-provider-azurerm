@@ -126,7 +126,10 @@ func TestAccAppConfigurationResource_identityUpdated(t *testing.T) {
 			{
 				Config: testAppConfigurationResource_identity(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
 			data.ImportStep(),
