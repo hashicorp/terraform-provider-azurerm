@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -104,7 +105,9 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-		if _, err := client.Create(ctx, name, contact); err != nil {
+		// TODO: switch back when the Swagger/API bug has been fixed:
+		// https://github.com/Azure/azure-rest-api-specs/issues/10717 (an undefined 201)
+		if _, err := azuresdkhacks.CreateSecurityCenterContact(client, ctx, name, contact); err != nil {
 			return fmt.Errorf("Creating Security Center Contact: %+v", err)
 		}
 
