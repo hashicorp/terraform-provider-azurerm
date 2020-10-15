@@ -259,7 +259,7 @@ provider "azurerm" {
 }
 
 data "azurerm_policy_set_definition" "test" {
-  display_name = "Audit Windows VMs with a pending reboot"
+  display_name = "[Deprecated]: Audit Windows VMs with a pending reboot"
 }
 
 resource "azurerm_resource_group" "test" {

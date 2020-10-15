@@ -17,10 +17,10 @@ func TestAccDataSourceAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMPolicySetDefinition_builtIn("Audit Windows VMs with a pending reboot"),
+				Config: testAccDataSourceAzureRMPolicySetDefinition_builtIn("[Deprecated]: Audit Windows VMs with a pending reboot"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "c96b2a9c-6fab-4ac2-ae21-502143491cd4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Audit Windows VMs with a pending reboot"),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "[Deprecated]: Audit Windows VMs with a pending reboot"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_type", "BuiltIn"),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "policy_definitions"),
