@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2020-03-01-preview/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -101,6 +101,7 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -112,13 +113,13 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 
 	// we marked `display_name` and `name` as `ExactlyOneOf`, therefore there will only be one of display_name and name that have non-empty value here
 	if displayName != "" {
-		setDefinition, err = getPolicySetDefinitionByDisplayName(ctx, client, displayName, managementGroupID)
+		setDefinition, err = getPolicySetDefinitionByDisplayName(ctx, client, displayName, subscriptionId, managementGroupID)
 		if err != nil {
 			return fmt.Errorf("reading Policy Set Definition (Display Name %q): %+v", displayName, err)
 		}
 	}
 	if name != "" {
-		setDefinition, err = getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
+		setDefinition, err = getPolicySetDefinitionByName(ctx, client, name, subscriptionId, managementGroupID)
 		if err != nil {
 			return fmt.Errorf("reading Policy Set Definition %q: %+v", name, err)
 		}
@@ -134,7 +135,7 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	d.Set("policy_type", setDefinition.PolicyType)
 	d.Set("metadata", flattenJSON(setDefinition.Metadata))
 
-	if paramsStr, err := flattenParameterDefintionsValueToString(setDefinition.Parameters); err != nil {
+	if paramsStr, err := flattenParameterDefinitionsValueToString(setDefinition.Parameters); err != nil {
 		return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
 	} else {
 		d.Set("parameters", paramsStr)

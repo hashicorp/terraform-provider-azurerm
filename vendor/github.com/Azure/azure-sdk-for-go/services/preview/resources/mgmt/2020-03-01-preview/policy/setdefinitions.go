@@ -26,21 +26,20 @@ import (
 	"net/http"
 )
 
-// SetDefinitionsClient is the to manage and control access to your resources, you can define customized policies and
-// assign them at a scope.
+// SetDefinitionsClient is the client for the SetDefinitions methods of the Policy service.
 type SetDefinitionsClient struct {
 	BaseClient
 }
 
 // NewSetDefinitionsClient creates an instance of the SetDefinitionsClient client.
-func NewSetDefinitionsClient(subscriptionID string) SetDefinitionsClient {
-	return NewSetDefinitionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewSetDefinitionsClient() SetDefinitionsClient {
+	return NewSetDefinitionsClientWithBaseURI(DefaultBaseURI)
 }
 
 // NewSetDefinitionsClientWithBaseURI creates an instance of the SetDefinitionsClient client using a custom endpoint.
 // Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewSetDefinitionsClientWithBaseURI(baseURI string, subscriptionID string) SetDefinitionsClient {
-	return SetDefinitionsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewSetDefinitionsClientWithBaseURI(baseURI string) SetDefinitionsClient {
+	return SetDefinitionsClient{NewWithBaseURI(baseURI)}
 }
 
 // CreateOrUpdate this operation creates or updates a policy set definition in the given subscription with the given
@@ -48,7 +47,8 @@ func NewSetDefinitionsClientWithBaseURI(baseURI string, subscriptionID string) S
 // Parameters:
 // policySetDefinitionName - the name of the policy set definition to create.
 // parameters - the policy set definition properties.
-func (client SetDefinitionsClient) CreateOrUpdate(ctx context.Context, policySetDefinitionName string, parameters SetDefinition) (result SetDefinition, err error) {
+// subscriptionID - the ID of the target subscription.
+func (client SetDefinitionsClient) CreateOrUpdate(ctx context.Context, policySetDefinitionName string, parameters SetDefinition, subscriptionID string) (result SetDefinition, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.CreateOrUpdate")
 		defer func() {
@@ -66,7 +66,7 @@ func (client SetDefinitionsClient) CreateOrUpdate(ctx context.Context, policySet
 		return result, validation.NewError("policy.SetDefinitionsClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, policySetDefinitionName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, policySetDefinitionName, parameters, subscriptionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -88,13 +88,13 @@ func (client SetDefinitionsClient) CreateOrUpdate(ctx context.Context, policySet
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client SetDefinitionsClient) CreateOrUpdatePreparer(ctx context.Context, policySetDefinitionName string, parameters SetDefinition) (*http.Request, error) {
+func (client SetDefinitionsClient) CreateOrUpdatePreparer(ctx context.Context, policySetDefinitionName string, parameters SetDefinition, subscriptionID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"policySetDefinitionName": autorest.Encode("path", policySetDefinitionName),
-		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
+		"subscriptionId":          autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -182,7 +182,7 @@ func (client SetDefinitionsClient) CreateOrUpdateAtManagementGroupPreparer(ctx c
 		"policySetDefinitionName": autorest.Encode("path", policySetDefinitionName),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -194,7 +194,7 @@ func (client SetDefinitionsClient) CreateOrUpdateAtManagementGroupPreparer(ctx c
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.Management/managementgroups/{managementGroupId}/providers/Microsoft.Authorization/policySetDefinitions/{policySetDefinitionName}", pathParameters),
+		autorest.WithPathParameters("/providers/Microsoft.Management/managementGroups/{managementGroupId}/providers/Microsoft.Authorization/policySetDefinitions/{policySetDefinitionName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -221,7 +221,8 @@ func (client SetDefinitionsClient) CreateOrUpdateAtManagementGroupResponder(resp
 // Delete this operation deletes the policy set definition in the given subscription with the given name.
 // Parameters:
 // policySetDefinitionName - the name of the policy set definition to delete.
-func (client SetDefinitionsClient) Delete(ctx context.Context, policySetDefinitionName string) (result autorest.Response, err error) {
+// subscriptionID - the ID of the target subscription.
+func (client SetDefinitionsClient) Delete(ctx context.Context, policySetDefinitionName string, subscriptionID string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.Delete")
 		defer func() {
@@ -232,7 +233,7 @@ func (client SetDefinitionsClient) Delete(ctx context.Context, policySetDefiniti
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, policySetDefinitionName)
+	req, err := client.DeletePreparer(ctx, policySetDefinitionName, subscriptionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "Delete", nil, "Failure preparing request")
 		return
@@ -254,13 +255,13 @@ func (client SetDefinitionsClient) Delete(ctx context.Context, policySetDefiniti
 }
 
 // DeletePreparer prepares the Delete request.
-func (client SetDefinitionsClient) DeletePreparer(ctx context.Context, policySetDefinitionName string) (*http.Request, error) {
+func (client SetDefinitionsClient) DeletePreparer(ctx context.Context, policySetDefinitionName string, subscriptionID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"policySetDefinitionName": autorest.Encode("path", policySetDefinitionName),
-		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
+		"subscriptionId":          autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -334,7 +335,7 @@ func (client SetDefinitionsClient) DeleteAtManagementGroupPreparer(ctx context.C
 		"policySetDefinitionName": autorest.Encode("path", policySetDefinitionName),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -342,7 +343,7 @@ func (client SetDefinitionsClient) DeleteAtManagementGroupPreparer(ctx context.C
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.Management/managementgroups/{managementGroupId}/providers/Microsoft.Authorization/policySetDefinitions/{policySetDefinitionName}", pathParameters),
+		autorest.WithPathParameters("/providers/Microsoft.Management/managementGroups/{managementGroupId}/providers/Microsoft.Authorization/policySetDefinitions/{policySetDefinitionName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -367,7 +368,8 @@ func (client SetDefinitionsClient) DeleteAtManagementGroupResponder(resp *http.R
 // Get this operation retrieves the policy set definition in the given subscription with the given name.
 // Parameters:
 // policySetDefinitionName - the name of the policy set definition to get.
-func (client SetDefinitionsClient) Get(ctx context.Context, policySetDefinitionName string) (result SetDefinition, err error) {
+// subscriptionID - the ID of the target subscription.
+func (client SetDefinitionsClient) Get(ctx context.Context, policySetDefinitionName string, subscriptionID string) (result SetDefinition, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.Get")
 		defer func() {
@@ -378,7 +380,7 @@ func (client SetDefinitionsClient) Get(ctx context.Context, policySetDefinitionN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, policySetDefinitionName)
+	req, err := client.GetPreparer(ctx, policySetDefinitionName, subscriptionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "Get", nil, "Failure preparing request")
 		return
@@ -400,13 +402,13 @@ func (client SetDefinitionsClient) Get(ctx context.Context, policySetDefinitionN
 }
 
 // GetPreparer prepares the Get request.
-func (client SetDefinitionsClient) GetPreparer(ctx context.Context, policySetDefinitionName string) (*http.Request, error) {
+func (client SetDefinitionsClient) GetPreparer(ctx context.Context, policySetDefinitionName string, subscriptionID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"policySetDefinitionName": autorest.Encode("path", policySetDefinitionName),
-		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
+		"subscriptionId":          autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -481,7 +483,7 @@ func (client SetDefinitionsClient) GetAtManagementGroupPreparer(ctx context.Cont
 		"policySetDefinitionName": autorest.Encode("path", policySetDefinitionName),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -489,7 +491,7 @@ func (client SetDefinitionsClient) GetAtManagementGroupPreparer(ctx context.Cont
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.Management/managementgroups/{managementGroupId}/providers/Microsoft.Authorization/policySetDefinitions/{policySetDefinitionName}", pathParameters),
+		autorest.WithPathParameters("/providers/Microsoft.Management/managementGroups/{managementGroupId}/providers/Microsoft.Authorization/policySetDefinitions/{policySetDefinitionName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -553,7 +555,7 @@ func (client SetDefinitionsClient) GetBuiltInPreparer(ctx context.Context, polic
 		"policySetDefinitionName": autorest.Encode("path", policySetDefinitionName),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -584,8 +586,26 @@ func (client SetDefinitionsClient) GetBuiltInResponder(resp *http.Response) (res
 	return
 }
 
-// List this operation retrieves a list of all the policy set definitions in the given subscription.
-func (client SetDefinitionsClient) List(ctx context.Context) (result SetDefinitionListResultPage, err error) {
+// List this operation retrieves a list of all the policy set definitions in a given subscription that match the
+// optional given $filter. Valid values for $filter are: 'atExactScope()', 'policyType -eq {value}' or 'category eq
+// '{value}''. If $filter is not provided, the unfiltered list includes all policy set definitions associated with the
+// subscription, including those that apply directly or from management groups that contain the given subscription. If
+// $filter=atExactScope() is provided, the returned list only includes all policy set definitions that at the given
+// subscription. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy set
+// definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn and Custom. If
+// $filter='category -eq {value}' is provided, the returned list only includes all policy set definitions whose
+// category match the {value}.
+// Parameters:
+// subscriptionID - the ID of the target subscription.
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
+// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// $filter=atExactScope() is provided, the returned list only includes all policy set definitions that at the
+// given scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy set
+// definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and
+// Static. If $filter='category -eq {value}' is provided, the returned list only includes all policy set
+// definitions whose category match the {value}.
+// top - maximum number of records to return. When the $top filter is not provided, it will return 500 records.
+func (client SetDefinitionsClient) List(ctx context.Context, subscriptionID string, filter string, top *int32) (result SetDefinitionListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.List")
 		defer func() {
@@ -596,8 +616,17 @@ func (client SetDefinitionsClient) List(ctx context.Context) (result SetDefiniti
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("policy.SetDefinitionsClient", "List", err.Error())
+	}
+
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx)
+	req, err := client.ListPreparer(ctx, subscriptionID, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "List", nil, "Failure preparing request")
 		return
@@ -622,14 +651,20 @@ func (client SetDefinitionsClient) List(ctx context.Context) (result SetDefiniti
 }
 
 // ListPreparer prepares the List request.
-func (client SetDefinitionsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+func (client SetDefinitionsClient) ListPreparer(ctx context.Context, subscriptionID string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+		"subscriptionId": autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = filter
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -680,7 +715,7 @@ func (client SetDefinitionsClient) listNextResults(ctx context.Context, lastResu
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SetDefinitionsClient) ListComplete(ctx context.Context) (result SetDefinitionListResultIterator, err error) {
+func (client SetDefinitionsClient) ListComplete(ctx context.Context, subscriptionID string, filter string, top *int32) (result SetDefinitionListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.List")
 		defer func() {
@@ -691,12 +726,23 @@ func (client SetDefinitionsClient) ListComplete(ctx context.Context) (result Set
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx)
+	result.page, err = client.List(ctx, subscriptionID, filter, top)
 	return
 }
 
-// ListBuiltIn this operation retrieves a list of all the built-in policy set definitions.
-func (client SetDefinitionsClient) ListBuiltIn(ctx context.Context) (result SetDefinitionListResultPage, err error) {
+// ListBuiltIn this operation retrieves a list of all the built-in policy set definitions that match the optional given
+// $filter. If $filter='category -eq {value}' is provided, the returned list only includes all built-in policy set
+// definitions whose category match the {value}.
+// Parameters:
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
+// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// $filter=atExactScope() is provided, the returned list only includes all policy set definitions that at the
+// given scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy set
+// definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and
+// Static. If $filter='category -eq {value}' is provided, the returned list only includes all policy set
+// definitions whose category match the {value}.
+// top - maximum number of records to return. When the $top filter is not provided, it will return 500 records.
+func (client SetDefinitionsClient) ListBuiltIn(ctx context.Context, filter string, top *int32) (result SetDefinitionListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.ListBuiltIn")
 		defer func() {
@@ -707,8 +753,17 @@ func (client SetDefinitionsClient) ListBuiltIn(ctx context.Context) (result SetD
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("policy.SetDefinitionsClient", "ListBuiltIn", err.Error())
+	}
+
 	result.fn = client.listBuiltInNextResults
-	req, err := client.ListBuiltInPreparer(ctx)
+	req, err := client.ListBuiltInPreparer(ctx, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "ListBuiltIn", nil, "Failure preparing request")
 		return
@@ -733,10 +788,16 @@ func (client SetDefinitionsClient) ListBuiltIn(ctx context.Context) (result SetD
 }
 
 // ListBuiltInPreparer prepares the ListBuiltIn request.
-func (client SetDefinitionsClient) ListBuiltInPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2019-09-01"
+func (client SetDefinitionsClient) ListBuiltInPreparer(ctx context.Context, filter string, top *int32) (*http.Request, error) {
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = filter
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -787,7 +848,7 @@ func (client SetDefinitionsClient) listBuiltInNextResults(ctx context.Context, l
 }
 
 // ListBuiltInComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SetDefinitionsClient) ListBuiltInComplete(ctx context.Context) (result SetDefinitionListResultIterator, err error) {
+func (client SetDefinitionsClient) ListBuiltInComplete(ctx context.Context, filter string, top *int32) (result SetDefinitionListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.ListBuiltIn")
 		defer func() {
@@ -798,15 +859,30 @@ func (client SetDefinitionsClient) ListBuiltInComplete(ctx context.Context) (res
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListBuiltIn(ctx)
+	result.page, err = client.ListBuiltIn(ctx, filter, top)
 	return
 }
 
-// ListByManagementGroup this operation retrieves a list of all the a policy set definition in the given management
-// group.
+// ListByManagementGroup this operation retrieves a list of all the policy set definitions in a given management group
+// that match the optional given $filter. Valid values for $filter are: 'atExactScope()', 'policyType -eq {value}' or
+// 'category eq '{value}''. If $filter is not provided, the unfiltered list includes all policy set definitions
+// associated with the management group, including those that apply directly or from management groups that contain the
+// given management group. If $filter=atExactScope() is provided, the returned list only includes all policy set
+// definitions that at the given management group. If $filter='policyType -eq {value}' is provided, the returned list
+// only includes all policy set definitions whose type match the {value}. Possible policyType values are NotSpecified,
+// BuiltIn and Custom. If $filter='category -eq {value}' is provided, the returned list only includes all policy set
+// definitions whose category match the {value}.
 // Parameters:
 // managementGroupID - the ID of the management group.
-func (client SetDefinitionsClient) ListByManagementGroup(ctx context.Context, managementGroupID string) (result SetDefinitionListResultPage, err error) {
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atExactScope()', 'policyType
+// -eq {value}' or 'category eq '{value}''. If $filter is not provided, no filtering is performed. If
+// $filter=atExactScope() is provided, the returned list only includes all policy set definitions that at the
+// given scope. If $filter='policyType -eq {value}' is provided, the returned list only includes all policy set
+// definitions whose type match the {value}. Possible policyType values are NotSpecified, BuiltIn, Custom, and
+// Static. If $filter='category -eq {value}' is provided, the returned list only includes all policy set
+// definitions whose category match the {value}.
+// top - maximum number of records to return. When the $top filter is not provided, it will return 500 records.
+func (client SetDefinitionsClient) ListByManagementGroup(ctx context.Context, managementGroupID string, filter string, top *int32) (result SetDefinitionListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.ListByManagementGroup")
 		defer func() {
@@ -817,8 +893,17 @@ func (client SetDefinitionsClient) ListByManagementGroup(ctx context.Context, ma
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("policy.SetDefinitionsClient", "ListByManagementGroup", err.Error())
+	}
+
 	result.fn = client.listByManagementGroupNextResults
-	req, err := client.ListByManagementGroupPreparer(ctx, managementGroupID)
+	req, err := client.ListByManagementGroupPreparer(ctx, managementGroupID, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.SetDefinitionsClient", "ListByManagementGroup", nil, "Failure preparing request")
 		return
@@ -843,20 +928,26 @@ func (client SetDefinitionsClient) ListByManagementGroup(ctx context.Context, ma
 }
 
 // ListByManagementGroupPreparer prepares the ListByManagementGroup request.
-func (client SetDefinitionsClient) ListByManagementGroupPreparer(ctx context.Context, managementGroupID string) (*http.Request, error) {
+func (client SetDefinitionsClient) ListByManagementGroupPreparer(ctx context.Context, managementGroupID string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"managementGroupId": autorest.Encode("path", managementGroupID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = filter
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.Management/managementgroups/{managementGroupId}/providers/Microsoft.Authorization/policySetDefinitions", pathParameters),
+		autorest.WithPathParameters("/providers/Microsoft.Management/managementGroups/{managementGroupId}/providers/Microsoft.Authorization/policySetDefinitions", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -901,7 +992,7 @@ func (client SetDefinitionsClient) listByManagementGroupNextResults(ctx context.
 }
 
 // ListByManagementGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client SetDefinitionsClient) ListByManagementGroupComplete(ctx context.Context, managementGroupID string) (result SetDefinitionListResultIterator, err error) {
+func (client SetDefinitionsClient) ListByManagementGroupComplete(ctx context.Context, managementGroupID string, filter string, top *int32) (result SetDefinitionListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/SetDefinitionsClient.ListByManagementGroup")
 		defer func() {
@@ -912,6 +1003,6 @@ func (client SetDefinitionsClient) ListByManagementGroupComplete(ctx context.Con
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListByManagementGroup(ctx, managementGroupID)
+	result.page, err = client.ListByManagementGroup(ctx, managementGroupID, filter, top)
 	return
 }

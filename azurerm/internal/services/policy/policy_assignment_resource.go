@@ -10,7 +10,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2020-03-01-preview/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"

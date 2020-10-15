@@ -21,13 +21,14 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2020-03-01-preview/policy"
 
 // Assignment the policy assignment.
 type Assignment struct {
@@ -350,9 +351,36 @@ func (ap AssignmentProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// CloudError an error response from a policy operation.
+// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// CloudError the resource management error response.
 type CloudError struct {
-	Error *ErrorResponse `json:"error,omitempty"`
+	// Error - The error object.
+	Error *CloudErrorError `json:"error,omitempty"`
+}
+
+// CloudErrorError the error object.
+type CloudErrorError struct {
+	// Code - READ-ONLY; The error code.
+	Code *string `json:"code,omitempty"`
+	// Message - READ-ONLY; The error message.
+	Message *string `json:"message,omitempty"`
+	// Target - READ-ONLY; The error target.
+	Target *string `json:"target,omitempty"`
+	// Details - READ-ONLY; The error details.
+	Details *[]CloudError `json:"details,omitempty"`
+	// AdditionalInfo - READ-ONLY; The error additional info.
+	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
 }
 
 // Definition the policy definition.
@@ -681,18 +709,271 @@ type ErrorAdditionalInfo struct {
 	Info interface{} `json:"info,omitempty"`
 }
 
-// ErrorResponse the resource management error response.
-type ErrorResponse struct {
-	// Code - READ-ONLY; The error code.
-	Code *string `json:"code,omitempty"`
-	// Message - READ-ONLY; The error message.
-	Message *string `json:"message,omitempty"`
-	// Target - READ-ONLY; The error target.
-	Target *string `json:"target,omitempty"`
-	// Details - READ-ONLY; The error details.
-	Details *[]ErrorResponse `json:"details,omitempty"`
-	// AdditionalInfo - READ-ONLY; The error additional info.
-	AdditionalInfo *[]ErrorAdditionalInfo `json:"additionalInfo,omitempty"`
+// Exemption the policy exemption.
+type Exemption struct {
+	autorest.Response `json:"-"`
+	// ExemptionProperties - Properties for the policy exemption.
+	*ExemptionProperties `json:"properties,omitempty"`
+	// SystemData - READ-ONLY; Azure Resource Manager metadata containing createdBy and modifiedBy information.
+	SystemData *SystemData `json:"systemData,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Exemption.
+func (e Exemption) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if e.ExemptionProperties != nil {
+		objectMap["properties"] = e.ExemptionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Exemption struct.
+func (e *Exemption) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var exemptionProperties ExemptionProperties
+				err = json.Unmarshal(*v, &exemptionProperties)
+				if err != nil {
+					return err
+				}
+				e.ExemptionProperties = &exemptionProperties
+			}
+		case "systemData":
+			if v != nil {
+				var systemData SystemData
+				err = json.Unmarshal(*v, &systemData)
+				if err != nil {
+					return err
+				}
+				e.SystemData = &systemData
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				e.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				e.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				e.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ExemptionListResult list of policy exemptions.
+type ExemptionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - An array of policy exemptions.
+	Value *[]Exemption `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ExemptionListResult.
+func (elr ExemptionListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if elr.Value != nil {
+		objectMap["value"] = elr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
+// ExemptionListResultIterator provides access to a complete listing of Exemption values.
+type ExemptionListResultIterator struct {
+	i    int
+	page ExemptionListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ExemptionListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExemptionListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ExemptionListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ExemptionListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ExemptionListResultIterator) Response() ExemptionListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ExemptionListResultIterator) Value() Exemption {
+	if !iter.page.NotDone() {
+		return Exemption{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ExemptionListResultIterator type.
+func NewExemptionListResultIterator(page ExemptionListResultPage) ExemptionListResultIterator {
+	return ExemptionListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (elr ExemptionListResult) IsEmpty() bool {
+	return elr.Value == nil || len(*elr.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (elr ExemptionListResult) hasNextLink() bool {
+	return elr.NextLink != nil && len(*elr.NextLink) != 0
+}
+
+// exemptionListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (elr ExemptionListResult) exemptionListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if !elr.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(elr.NextLink)))
+}
+
+// ExemptionListResultPage contains a page of Exemption values.
+type ExemptionListResultPage struct {
+	fn  func(context.Context, ExemptionListResult) (ExemptionListResult, error)
+	elr ExemptionListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ExemptionListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExemptionListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.elr)
+		if err != nil {
+			return err
+		}
+		page.elr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ExemptionListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ExemptionListResultPage) NotDone() bool {
+	return !page.elr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ExemptionListResultPage) Response() ExemptionListResult {
+	return page.elr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ExemptionListResultPage) Values() []Exemption {
+	if page.elr.IsEmpty() {
+		return nil
+	}
+	return *page.elr.Value
+}
+
+// Creates a new instance of the ExemptionListResultPage type.
+func NewExemptionListResultPage(getNextPage func(context.Context, ExemptionListResult) (ExemptionListResult, error)) ExemptionListResultPage {
+	return ExemptionListResultPage{fn: getNextPage}
+}
+
+// ExemptionProperties the policy exemption properties.
+type ExemptionProperties struct {
+	// PolicyAssignmentID - The ID of the policy assignment that is being exempted.
+	PolicyAssignmentID *string `json:"policyAssignmentId,omitempty"`
+	// PolicyDefinitionReferenceIds - The policy definition reference ID list when the associated policy assignment is an assignment of a policy set definition.
+	PolicyDefinitionReferenceIds *[]string `json:"policyDefinitionReferenceIds,omitempty"`
+	// ExemptionCategory - The policy exemption category. Possible values are Waiver and Mitigated. Possible values include: 'Waiver', 'Mitigated'
+	ExemptionCategory ExemptionCategory `json:"exemptionCategory,omitempty"`
+	// ExpiresOn - The expiration date and time (in UTC ISO 8601 format yyyy-MM-ddTHH:mm:ssZ) of the policy exemption.
+	ExpiresOn *date.Time `json:"expiresOn,omitempty"`
+	// DisplayName - The display name of the policy exemption.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Description - The description of the policy exemption.
+	Description *string `json:"description,omitempty"`
+	// Metadata - The policy exemption metadata. Metadata is an open ended object and is typically a collection of key value pairs.
+	Metadata interface{} `json:"metadata,omitempty"`
 }
 
 // Identity identity for the resource.
@@ -800,6 +1081,27 @@ func (pdv *ParameterDefinitionsValueMetadata) UnmarshalJSON(body []byte) error {
 type ParameterValuesValue struct {
 	// Value - The value of the parameter.
 	Value interface{} `json:"value,omitempty"`
+}
+
+// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
+// required location and tags
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// Resource the resource model definition for a ARM tracked top level resource
+type Resource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // SetDefinition the policy set definition.
@@ -1082,4 +1384,46 @@ type Sku struct {
 	Name *string `json:"name,omitempty"`
 	// Tier - The policy sku tier. Possible values are Free and Standard.
 	Tier *string `json:"tier,omitempty"`
+}
+
+// SystemData metadata pertaining to creation and last modification of the resource.
+type SystemData struct {
+	// CreatedBy - The identity that created the resource.
+	CreatedBy *string `json:"createdBy,omitempty"`
+	// CreatedByType - The type of identity that created the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	CreatedByType CreatedByType `json:"createdByType,omitempty"`
+	// CreatedAt - The timestamp of resource creation (UTC).
+	CreatedAt *date.Time `json:"createdAt,omitempty"`
+	// LastModifiedBy - The identity that last modified the resource.
+	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
+	// LastModifiedByType - The type of identity that last modified the resource. Possible values include: 'User', 'Application', 'ManagedIdentity', 'Key'
+	LastModifiedByType CreatedByType `json:"lastModifiedByType,omitempty"`
+	// LastModifiedAt - The type of identity that last modified the resource.
+	LastModifiedAt *date.Time `json:"lastModifiedAt,omitempty"`
+}
+
+// TrackedResource the resource model definition for a ARM tracked top level resource
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	return json.Marshal(objectMap)
 }

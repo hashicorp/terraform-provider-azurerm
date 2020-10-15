@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2020-03-01-preview/policy"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -157,6 +157,7 @@ func policyDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *schema.Res
 func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -173,7 +174,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if d.IsNewResource() {
-		existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+		existing, err := getPolicyDefinitionByName(ctx, client, name, subscriptionId, managementGroupName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("checking for presence of existing Policy Definition %q: %+v", name, err)
@@ -224,7 +225,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	var err error
 
 	if managementGroupName == "" {
-		_, err = client.CreateOrUpdate(ctx, name, definition)
+		_, err = client.CreateOrUpdate(ctx, name, definition, subscriptionId)
 	} else {
 		_, err = client.CreateOrUpdateAtManagementGroup(ctx, name, definition, managementGroupName)
 	}
@@ -238,7 +239,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, managementGroupName),
+		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, subscriptionId, managementGroupName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
@@ -253,7 +254,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("waiting for Policy Definition %q to become available: %+v", name, err)
 	}
 
-	resp, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+	resp, err := getPolicyDefinitionByName(ctx, client, name, subscriptionId, managementGroupName)
 	if err != nil {
 		return err
 	}
@@ -269,6 +270,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	id, err := parse.PolicyDefinitionID(d.Id())
@@ -282,7 +284,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		managementGroupName = scopeId.ManagementGroupName
 	}
 
-	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
+	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, subscriptionId, managementGroupName)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -312,7 +314,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr, err := flattenParameterDefintionsValueToString(props.Parameters); err == nil {
+		if parametersStr, err := flattenParameterDefinitionsValueToString(props.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
 		} else {
 			return fmt.Errorf("flattening policy definition parameters %+v", err)
@@ -325,6 +327,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	id, err := parse.PolicyDefinitionID(d.Id())
@@ -340,7 +343,7 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 
 	var resp autorest.Response
 	if managementGroupName == "" {
-		resp, err = client.Delete(ctx, id.Name)
+		resp, err = client.Delete(ctx, id.Name, subscriptionId)
 	} else {
 		resp, err = client.DeleteAtManagementGroup(ctx, id.Name, managementGroupName)
 	}
@@ -356,9 +359,9 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, subscriptionId, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
+		res, err := getPolicyDefinitionByName(ctx, client, name, subscriptionId, managementGroupID)
 
 		if err != nil {
 			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %+v", name, err)

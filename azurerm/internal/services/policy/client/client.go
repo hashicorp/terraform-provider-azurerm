@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/policyinsights/mgmt/2019-10-01/policyinsights"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2020-03-01-preview/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -14,13 +14,13 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	assignmentsClient := policy.NewAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	assignmentsClient := policy.NewAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&assignmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	definitionsClient := policy.NewDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	definitionsClient := policy.NewDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&definitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	setDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	setDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&setDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
 	remediationsClient := policyinsights.NewRemediationsClientWithBaseURI(o.ResourceManagerEndpoint)

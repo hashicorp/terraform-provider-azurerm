@@ -26,21 +26,20 @@ import (
 	"net/http"
 )
 
-// AssignmentsClient is the to manage and control access to your resources, you can define customized policies and
-// assign them at a scope.
+// AssignmentsClient is the client for the Assignments methods of the Policy service.
 type AssignmentsClient struct {
 	BaseClient
 }
 
 // NewAssignmentsClient creates an instance of the AssignmentsClient client.
-func NewAssignmentsClient(subscriptionID string) AssignmentsClient {
-	return NewAssignmentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewAssignmentsClient() AssignmentsClient {
+	return NewAssignmentsClientWithBaseURI(DefaultBaseURI)
 }
 
 // NewAssignmentsClientWithBaseURI creates an instance of the AssignmentsClient client using a custom endpoint.  Use
 // this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewAssignmentsClientWithBaseURI(baseURI string, subscriptionID string) AssignmentsClient {
-	return AssignmentsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewAssignmentsClientWithBaseURI(baseURI string) AssignmentsClient {
+	return AssignmentsClient{NewWithBaseURI(baseURI)}
 }
 
 // Create this operation creates or updates a policy assignment with the given scope and name. Policy assignments apply
@@ -100,7 +99,7 @@ func (client AssignmentsClient) CreatePreparer(ctx context.Context, scope string
 		"scope":                scope,
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -193,7 +192,7 @@ func (client AssignmentsClient) CreateByIDPreparer(ctx context.Context, policyAs
 		"policyAssignmentId": policyAssignmentID,
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -278,7 +277,7 @@ func (client AssignmentsClient) DeletePreparer(ctx context.Context, scope string
 		"scope":                scope,
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -357,7 +356,7 @@ func (client AssignmentsClient) DeleteByIDPreparer(ctx context.Context, policyAs
 		"policyAssignmentId": policyAssignmentID,
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -435,7 +434,7 @@ func (client AssignmentsClient) GetPreparer(ctx context.Context, scope string, p
 		"scope":                scope,
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -513,7 +512,7 @@ func (client AssignmentsClient) GetByIDPreparer(ctx context.Context, policyAssig
 		"policyAssignmentId": policyAssignmentID,
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -545,17 +544,26 @@ func (client AssignmentsClient) GetByIDResponder(resp *http.Response) (result As
 }
 
 // List this operation retrieves the list of all policy assignments associated with the given subscription that match
-// the optional given $filter. Valid values for $filter are: 'atScope()' or 'policyDefinitionId eq '{value}''. If
-// $filter is not provided, the unfiltered list includes all policy assignments associated with the subscription,
-// including those that apply directly or from management groups that contain the given subscription, as well as any
-// applied to objects contained within the subscription. If $filter=atScope() is provided, the returned list includes
-// all policy assignments that apply to the subscription, which is everything in the unfiltered list except those
-// applied to objects contained within the subscription. If $filter=policyDefinitionId eq '{value}' is provided, the
-// returned list includes all policy assignments of the policy definition whose id is {value}.
+// the optional given $filter. Valid values for $filter are: 'atScope()', 'atExactScope()' or 'policyDefinitionId eq
+// '{value}''. If $filter is not provided, the unfiltered list includes all policy assignments associated with the
+// subscription, including those that apply directly or from management groups that contain the given subscription, as
+// well as any applied to objects contained within the subscription. If $filter=atScope() is provided, the returned
+// list includes all policy assignments that apply to the subscription, which is everything in the unfiltered list
+// except those applied to objects contained within the subscription. If $filter=atExactScope() is provided, the
+// returned list only includes all policy assignments that at the subscription. If $filter=policyDefinitionId eq
+// '{value}' is provided, the returned list includes all policy assignments of the policy definition whose id is
+// {value}.
 // Parameters:
-// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()' or
-// 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed.
-func (client AssignmentsClient) List(ctx context.Context, filter string) (result AssignmentListResultPage, err error) {
+// subscriptionID - the ID of the target subscription.
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()', 'atExactScope()'
+// or 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed. If
+// $filter=atScope() is provided, the returned list only includes all policy assignments that apply to the
+// scope, which is everything in the unfiltered list except those applied to sub scopes contained within the
+// given scope. If $filter=atExactScope() is provided, the returned list only includes all policy assignments
+// that at the given scope. If $filter=policyDefinitionId eq '{value}' is provided, the returned list includes
+// all policy assignments of the policy definition whose id is {value}.
+// top - maximum number of records to return. When the $top filter is not provided, it will return 500 records.
+func (client AssignmentsClient) List(ctx context.Context, subscriptionID string, filter string, top *int32) (result AssignmentListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.List")
 		defer func() {
@@ -566,8 +574,17 @@ func (client AssignmentsClient) List(ctx context.Context, filter string) (result
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("policy.AssignmentsClient", "List", err.Error())
+	}
+
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, filter)
+	req, err := client.ListPreparer(ctx, subscriptionID, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "List", nil, "Failure preparing request")
 		return
@@ -592,17 +609,20 @@ func (client AssignmentsClient) List(ctx context.Context, filter string) (result
 }
 
 // ListPreparer prepares the List request.
-func (client AssignmentsClient) ListPreparer(ctx context.Context, filter string) (*http.Request, error) {
+func (client AssignmentsClient) ListPreparer(ctx context.Context, subscriptionID string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+		"subscriptionId": autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if len(filter) > 0 {
-		queryParameters["$filter"] = autorest.Encode("query", filter)
+		queryParameters["$filter"] = filter
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -653,7 +673,7 @@ func (client AssignmentsClient) listNextResults(ctx context.Context, lastResults
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AssignmentsClient) ListComplete(ctx context.Context, filter string) (result AssignmentListResultIterator, err error) {
+func (client AssignmentsClient) ListComplete(ctx context.Context, subscriptionID string, filter string, top *int32) (result AssignmentListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.List")
 		defer func() {
@@ -664,22 +684,28 @@ func (client AssignmentsClient) ListComplete(ctx context.Context, filter string)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, filter)
+	result.page, err = client.List(ctx, subscriptionID, filter, top)
 	return
 }
 
 // ListForManagementGroup this operation retrieves the list of all policy assignments applicable to the management
-// group that match the given $filter. Valid values for $filter are: 'atScope()' or 'policyDefinitionId eq '{value}''.
-// If $filter=atScope() is provided, the returned list includes all policy assignments that are assigned to the
-// management group or the management group's ancestors. If $filter=policyDefinitionId eq '{value}' is provided, the
-// returned list includes all policy assignments of the policy definition whose id is {value} that apply to the
-// management group.
+// group that match the given $filter. Valid values for $filter are: 'atScope()', 'atExactScope()' or
+// 'policyDefinitionId eq '{value}''. If $filter=atScope() is provided, the returned list includes all policy
+// assignments that are assigned to the management group or the management group's ancestors. If $filter=atExactScope()
+// is provided, the returned list only includes all policy assignments that at the management group. If
+// $filter=policyDefinitionId eq '{value}' is provided, the returned list includes all policy assignments of the policy
+// definition whose id is {value} that apply to the management group.
 // Parameters:
 // managementGroupID - the ID of the management group.
-// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()' or
-// 'policyDefinitionId eq '{value}''. A filter is required when listing policy assignments at management group
-// scope.
-func (client AssignmentsClient) ListForManagementGroup(ctx context.Context, managementGroupID string, filter string) (result AssignmentListResultPage, err error) {
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()', 'atExactScope()'
+// or 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed. If
+// $filter=atScope() is provided, the returned list only includes all policy assignments that apply to the
+// scope, which is everything in the unfiltered list except those applied to sub scopes contained within the
+// given scope. If $filter=atExactScope() is provided, the returned list only includes all policy assignments
+// that at the given scope. If $filter=policyDefinitionId eq '{value}' is provided, the returned list includes
+// all policy assignments of the policy definition whose id is {value}.
+// top - maximum number of records to return. When the $top filter is not provided, it will return 500 records.
+func (client AssignmentsClient) ListForManagementGroup(ctx context.Context, managementGroupID string, filter string, top *int32) (result AssignmentListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.ListForManagementGroup")
 		defer func() {
@@ -690,8 +716,17 @@ func (client AssignmentsClient) ListForManagementGroup(ctx context.Context, mana
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("policy.AssignmentsClient", "ListForManagementGroup", err.Error())
+	}
+
 	result.fn = client.listForManagementGroupNextResults
-	req, err := client.ListForManagementGroupPreparer(ctx, managementGroupID, filter)
+	req, err := client.ListForManagementGroupPreparer(ctx, managementGroupID, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "ListForManagementGroup", nil, "Failure preparing request")
 		return
@@ -716,21 +751,26 @@ func (client AssignmentsClient) ListForManagementGroup(ctx context.Context, mana
 }
 
 // ListForManagementGroupPreparer prepares the ListForManagementGroup request.
-func (client AssignmentsClient) ListForManagementGroupPreparer(ctx context.Context, managementGroupID string, filter string) (*http.Request, error) {
+func (client AssignmentsClient) ListForManagementGroupPreparer(ctx context.Context, managementGroupID string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"managementGroupId": autorest.Encode("path", managementGroupID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
-		"$filter":     filter,
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = filter
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.Management/managementgroups/{managementGroupId}/providers/Microsoft.Authorization/policyAssignments", pathParameters),
+		autorest.WithPathParameters("/providers/Microsoft.Management/managementGroups/{managementGroupId}/providers/Microsoft.Authorization/policyAssignments", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -775,7 +815,7 @@ func (client AssignmentsClient) listForManagementGroupNextResults(ctx context.Co
 }
 
 // ListForManagementGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AssignmentsClient) ListForManagementGroupComplete(ctx context.Context, managementGroupID string, filter string) (result AssignmentListResultIterator, err error) {
+func (client AssignmentsClient) ListForManagementGroupComplete(ctx context.Context, managementGroupID string, filter string, top *int32) (result AssignmentListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.ListForManagementGroup")
 		defer func() {
@@ -786,28 +826,29 @@ func (client AssignmentsClient) ListForManagementGroupComplete(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListForManagementGroup(ctx, managementGroupID, filter)
+	result.page, err = client.ListForManagementGroup(ctx, managementGroupID, filter, top)
 	return
 }
 
 // ListForResource this operation retrieves the list of all policy assignments associated with the specified resource
 // in the given resource group and subscription that match the optional given $filter. Valid values for $filter are:
-// 'atScope()' or 'policyDefinitionId eq '{value}''. If $filter is not provided, the unfiltered list includes all
-// policy assignments associated with the resource, including those that apply directly or from all containing scopes,
-// as well as any applied to resources contained within the resource. If $filter=atScope() is provided, the returned
-// list includes all policy assignments that apply to the resource, which is everything in the unfiltered list except
-// those applied to resources contained within the resource. If $filter=policyDefinitionId eq '{value}' is provided,
-// the returned list includes all policy assignments of the policy definition whose id is {value} that apply to the
-// resource. Three parameters plus the resource name are used to identify a specific resource. If the resource is not
-// part of a parent resource (the more common case), the parent resource path should not be provided (or provided as
-// ''). For example a web app could be specified as ({resourceProviderNamespace} == 'Microsoft.Web',
-// {parentResourcePath} == '', {resourceType} == 'sites', {resourceName} == 'MyWebApp'). If the resource is part of a
-// parent resource, then all parameters should be provided. For example a virtual machine DNS name could be specified
-// as ({resourceProviderNamespace} == 'Microsoft.Compute', {parentResourcePath} == 'virtualMachines/MyVirtualMachine',
-// {resourceType} == 'domainNames', {resourceName} == 'MyComputerName'). A convenient alternative to providing the
-// namespace and type name separately is to provide both in the {resourceType} parameter, format:
-// ({resourceProviderNamespace} == '', {parentResourcePath} == '', {resourceType} == 'Microsoft.Web/sites',
-// {resourceName} == 'MyWebApp').
+// 'atScope()', 'atExactScope()' or 'policyDefinitionId eq '{value}''. If $filter is not provided, the unfiltered list
+// includes all policy assignments associated with the resource, including those that apply directly or from all
+// containing scopes, as well as any applied to resources contained within the resource. If $filter=atScope() is
+// provided, the returned list includes all policy assignments that apply to the resource, which is everything in the
+// unfiltered list except those applied to resources contained within the resource. If $filter=atExactScope() is
+// provided, the returned list only includes all policy assignments that at the resource level. If
+// $filter=policyDefinitionId eq '{value}' is provided, the returned list includes all policy assignments of the policy
+// definition whose id is {value} that apply to the resource. Three parameters plus the resource name are used to
+// identify a specific resource. If the resource is not part of a parent resource (the more common case), the parent
+// resource path should not be provided (or provided as ''). For example a web app could be specified as
+// ({resourceProviderNamespace} == 'Microsoft.Web', {parentResourcePath} == '', {resourceType} == 'sites',
+// {resourceName} == 'MyWebApp'). If the resource is part of a parent resource, then all parameters should be provided.
+// For example a virtual machine DNS name could be specified as ({resourceProviderNamespace} == 'Microsoft.Compute',
+// {parentResourcePath} == 'virtualMachines/MyVirtualMachine', {resourceType} == 'domainNames', {resourceName} ==
+// 'MyComputerName'). A convenient alternative to providing the namespace and type name separately is to provide both
+// in the {resourceType} parameter, format: ({resourceProviderNamespace} == '', {parentResourcePath} == '',
+// {resourceType} == 'Microsoft.Web/sites', {resourceName} == 'MyWebApp').
 // Parameters:
 // resourceGroupName - the name of the resource group containing the resource.
 // resourceProviderNamespace - the namespace of the resource provider. For example, the namespace of a virtual
@@ -816,9 +857,16 @@ func (client AssignmentsClient) ListForManagementGroupComplete(ctx context.Conte
 // resourceType - the resource type name. For example the type name of a web app is 'sites' (from
 // Microsoft.Web/sites).
 // resourceName - the name of the resource.
-// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()' or
-// 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed.
-func (client AssignmentsClient) ListForResource(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string) (result AssignmentListResultPage, err error) {
+// subscriptionID - the ID of the target subscription.
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()', 'atExactScope()'
+// or 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed. If
+// $filter=atScope() is provided, the returned list only includes all policy assignments that apply to the
+// scope, which is everything in the unfiltered list except those applied to sub scopes contained within the
+// given scope. If $filter=atExactScope() is provided, the returned list only includes all policy assignments
+// that at the given scope. If $filter=policyDefinitionId eq '{value}' is provided, the returned list includes
+// all policy assignments of the policy definition whose id is {value}.
+// top - maximum number of records to return. When the $top filter is not provided, it will return 500 records.
+func (client AssignmentsClient) ListForResource(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, subscriptionID string, filter string, top *int32) (result AssignmentListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.ListForResource")
 		defer func() {
@@ -833,12 +881,17 @@ func (client AssignmentsClient) ListForResource(ctx context.Context, resourceGro
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
 		return result, validation.NewError("policy.AssignmentsClient", "ListForResource", err.Error())
 	}
 
 	result.fn = client.listForResourceNextResults
-	req, err := client.ListForResourcePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, filter)
+	req, err := client.ListForResourcePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, subscriptionID, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "ListForResource", nil, "Failure preparing request")
 		return
@@ -863,28 +916,31 @@ func (client AssignmentsClient) ListForResource(ctx context.Context, resourceGro
 }
 
 // ListForResourcePreparer prepares the ListForResource request.
-func (client AssignmentsClient) ListForResourcePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string) (*http.Request, error) {
+func (client AssignmentsClient) ListForResourcePreparer(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, subscriptionID string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"parentResourcePath":        parentResourcePath,
 		"resourceGroupName":         autorest.Encode("path", resourceGroupName),
 		"resourceName":              autorest.Encode("path", resourceName),
 		"resourceProviderNamespace": autorest.Encode("path", resourceProviderNamespace),
 		"resourceType":              resourceType,
-		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
+		"subscriptionId":            autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if len(filter) > 0 {
-		queryParameters["$filter"] = autorest.Encode("query", filter)
+		queryParameters["$filter"] = filter
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{parentResourcePath}/{resourceType}/{resourceName}/providers/Microsoft.Authorization/policyAssignments", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{parentResourcePath}/{resourceType}/{resourceName}/providers/Microsoft.Authorization/policyAssignments", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -929,7 +985,7 @@ func (client AssignmentsClient) listForResourceNextResults(ctx context.Context, 
 }
 
 // ListForResourceComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AssignmentsClient) ListForResourceComplete(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, filter string) (result AssignmentListResultIterator, err error) {
+func (client AssignmentsClient) ListForResourceComplete(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string, subscriptionID string, filter string, top *int32) (result AssignmentListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.ListForResource")
 		defer func() {
@@ -940,24 +996,32 @@ func (client AssignmentsClient) ListForResourceComplete(ctx context.Context, res
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListForResource(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, filter)
+	result.page, err = client.ListForResource(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName, subscriptionID, filter, top)
 	return
 }
 
 // ListForResourceGroup this operation retrieves the list of all policy assignments associated with the given resource
-// group in the given subscription that match the optional given $filter. Valid values for $filter are: 'atScope()' or
-// 'policyDefinitionId eq '{value}''. If $filter is not provided, the unfiltered list includes all policy assignments
-// associated with the resource group, including those that apply directly or apply from containing scopes, as well as
-// any applied to resources contained within the resource group. If $filter=atScope() is provided, the returned list
-// includes all policy assignments that apply to the resource group, which is everything in the unfiltered list except
-// those applied to resources contained within the resource group. If $filter=policyDefinitionId eq '{value}' is
-// provided, the returned list includes all policy assignments of the policy definition whose id is {value} that apply
-// to the resource group.
+// group in the given subscription that match the optional given $filter. Valid values for $filter are: 'atScope()',
+// 'atExactScope()' or 'policyDefinitionId eq '{value}''. If $filter is not provided, the unfiltered list includes all
+// policy assignments associated with the resource group, including those that apply directly or apply from containing
+// scopes, as well as any applied to resources contained within the resource group. If $filter=atScope() is provided,
+// the returned list includes all policy assignments that apply to the resource group, which is everything in the
+// unfiltered list except those applied to resources contained within the resource group. If $filter=atExactScope() is
+// provided, the returned list only includes all policy assignments that at the resource group. If
+// $filter=policyDefinitionId eq '{value}' is provided, the returned list includes all policy assignments of the policy
+// definition whose id is {value} that apply to the resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains policy assignments.
-// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()' or
-// 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed.
-func (client AssignmentsClient) ListForResourceGroup(ctx context.Context, resourceGroupName string, filter string) (result AssignmentListResultPage, err error) {
+// subscriptionID - the ID of the target subscription.
+// filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()', 'atExactScope()'
+// or 'policyDefinitionId eq '{value}''. If $filter is not provided, no filtering is performed. If
+// $filter=atScope() is provided, the returned list only includes all policy assignments that apply to the
+// scope, which is everything in the unfiltered list except those applied to sub scopes contained within the
+// given scope. If $filter=atExactScope() is provided, the returned list only includes all policy assignments
+// that at the given scope. If $filter=policyDefinitionId eq '{value}' is provided, the returned list includes
+// all policy assignments of the policy definition whose id is {value}.
+// top - maximum number of records to return. When the $top filter is not provided, it will return 500 records.
+func (client AssignmentsClient) ListForResourceGroup(ctx context.Context, resourceGroupName string, subscriptionID string, filter string, top *int32) (result AssignmentListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.ListForResourceGroup")
 		defer func() {
@@ -972,12 +1036,17 @@ func (client AssignmentsClient) ListForResourceGroup(ctx context.Context, resour
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\p{L}\._\(\)\w]+$`, Chain: nil}}},
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+				}}}}}); err != nil {
 		return result, validation.NewError("policy.AssignmentsClient", "ListForResourceGroup", err.Error())
 	}
 
 	result.fn = client.listForResourceGroupNextResults
-	req, err := client.ListForResourceGroupPreparer(ctx, resourceGroupName, filter)
+	req, err := client.ListForResourceGroupPreparer(ctx, resourceGroupName, subscriptionID, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policy.AssignmentsClient", "ListForResourceGroup", nil, "Failure preparing request")
 		return
@@ -1002,18 +1071,21 @@ func (client AssignmentsClient) ListForResourceGroup(ctx context.Context, resour
 }
 
 // ListForResourceGroupPreparer prepares the ListForResourceGroup request.
-func (client AssignmentsClient) ListForResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string) (*http.Request, error) {
+func (client AssignmentsClient) ListForResourceGroupPreparer(ctx context.Context, resourceGroupName string, subscriptionID string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"subscriptionId":    autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2019-09-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 	if len(filter) > 0 {
 		queryParameters["$filter"] = filter
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1064,7 +1136,7 @@ func (client AssignmentsClient) listForResourceGroupNextResults(ctx context.Cont
 }
 
 // ListForResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AssignmentsClient) ListForResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string) (result AssignmentListResultIterator, err error) {
+func (client AssignmentsClient) ListForResourceGroupComplete(ctx context.Context, resourceGroupName string, subscriptionID string, filter string, top *int32) (result AssignmentListResultIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.ListForResourceGroup")
 		defer func() {
@@ -1075,6 +1147,6 @@ func (client AssignmentsClient) ListForResourceGroupComplete(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.ListForResourceGroup(ctx, resourceGroupName, filter)
+	result.page, err = client.ListForResourceGroup(ctx, resourceGroupName, subscriptionID, filter, top)
 	return
 }

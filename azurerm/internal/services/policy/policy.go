@@ -6,17 +6,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2020-03-01-preview/policy"
 )
 
-func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string) (policy.Definition, error) {
+func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, subscriptionId, managementGroupName string) (policy.Definition, error) {
 	var policyDefinitions policy.DefinitionListResultIterator
 	var err error
 
 	if managementGroupName != "" {
-		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupName)
+		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupName, "", nil)
 	} else {
-		policyDefinitions, err = client.ListComplete(ctx)
+		policyDefinitions, err = client.ListComplete(ctx, subscriptionId, "", nil)
 	}
 	if err != nil {
 		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: %+v", err)
@@ -47,9 +47,9 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 	return results[0], nil
 }
 
-func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupName string) (res policy.Definition, err error) {
+func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, subscriptionId, managementGroupName string) (res policy.Definition, err error) {
 	if managementGroupName == "" {
-		res, err = client.Get(ctx, name)
+		res, err = client.Get(ctx, name, subscriptionId)
 	} else {
 		res, err = client.GetAtManagementGroup(ctx, name, managementGroupName)
 	}
@@ -57,9 +57,9 @@ func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsCl
 	return res, err
 }
 
-func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupID string) (res policy.SetDefinition, err error) {
+func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name, subscriptionId, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
-		res, err = client.Get(ctx, name)
+		res, err = client.Get(ctx, name, subscriptionId)
 	} else {
 		res, err = client.GetAtManagementGroup(ctx, name, managementGroupID)
 	}
@@ -67,14 +67,14 @@ func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinit
 	return res, err
 }
 
-func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.SetDefinitionsClient, displayName, managementGroupID string) (policy.SetDefinition, error) {
+func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.SetDefinitionsClient, displayName, subscriptionId, managementGroupID string) (policy.SetDefinition, error) {
 	var setDefinitions policy.SetDefinitionListResultIterator
 	var err error
 
 	if managementGroupID != "" {
-		setDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID)
+		setDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID, "", nil)
 	} else {
-		setDefinitions, err = client.ListComplete(ctx)
+		setDefinitions, err = client.ListComplete(ctx, subscriptionId, "", nil)
 	}
 	if err != nil {
 		return policy.SetDefinition{}, fmt.Errorf("loading Policy Set Definition List: %+v", err)
@@ -113,7 +113,7 @@ func expandParameterDefinitionsValueFromString(jsonString string) (map[string]*p
 	return result, err
 }
 
-func flattenParameterDefintionsValueToString(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
+func flattenParameterDefinitionsValueToString(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
 	if len(input) == 0 {
 		return "", nil
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2020-03-01-preview/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -85,6 +85,7 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	displayName := d.Get("display_name").(string)
@@ -101,13 +102,13 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	var err error
 	// one of display_name and name must be non-empty, this is guaranteed by schema
 	if displayName != "" {
-		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupName)
+		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, subscriptionId, managementGroupName)
 		if err != nil {
 			return fmt.Errorf("reading Policy Definition (Display Name %q): %+v", displayName, err)
 		}
 	}
 	if name != "" {
-		policyDefinition, err = getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+		policyDefinition, err = getPolicyDefinitionByName(ctx, client, name, subscriptionId, managementGroupName)
 		if err != nil {
 			return fmt.Errorf("reading Policy Definition %q: %+v", name, err)
 		}
@@ -131,7 +132,7 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 		d.Set("metadata", metadataStr)
 	}
 
-	if parametersStr, err := flattenParameterDefintionsValueToString(policyDefinition.Parameters); err == nil {
+	if parametersStr, err := flattenParameterDefinitionsValueToString(policyDefinition.Parameters); err == nil {
 		d.Set("parameters", parametersStr)
 	} else {
 		return fmt.Errorf("failed to flatten Policy Parameters %q: %+v", name, err)

@@ -1,6 +1,6 @@
-// Package policy implements the Azure ARM Policy service API version 2019-09-01.
+// Package policy implements the Azure ARM Policy service API version .
 //
-// To manage and control access to your resources, you can define customized policies and assign them at a scope.
+//
 package policy
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
@@ -32,21 +32,19 @@ const (
 // BaseClient is the base client for Policy.
 type BaseClient struct {
 	autorest.Client
-	BaseURI        string
-	SubscriptionID string
+	BaseURI string
 }
 
 // New creates an instance of the BaseClient client.
-func New(subscriptionID string) BaseClient {
-	return NewWithBaseURI(DefaultBaseURI, subscriptionID)
+func New() BaseClient {
+	return NewWithBaseURI(DefaultBaseURI)
 }
 
 // NewWithBaseURI creates an instance of the BaseClient client using a custom endpoint.  Use this when interacting with
 // an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
+func NewWithBaseURI(baseURI string) BaseClient {
 	return BaseClient{
-		Client:         autorest.NewClientWithUserAgent(UserAgent()),
-		BaseURI:        baseURI,
-		SubscriptionID: subscriptionID,
+		Client:  autorest.NewClientWithUserAgent(UserAgent()),
+		BaseURI: baseURI,
 	}
 }
