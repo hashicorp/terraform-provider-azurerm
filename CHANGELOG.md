@@ -4,6 +4,7 @@ FEATURES:
 
 * **New data source:** `azurerm_mysql_server` [GH-8787]
 * **New resource:** `azurerm_security_center_setting` [GH-8783]
+* **New resource:** `azurerm_eventgrid_system_topic` [GH-8735]
 
 IMPROVEMENTS:
 
