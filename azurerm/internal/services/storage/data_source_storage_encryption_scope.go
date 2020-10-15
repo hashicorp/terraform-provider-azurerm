@@ -2,13 +2,13 @@ package storage
 
 import (
 	"fmt"
-	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
-	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
