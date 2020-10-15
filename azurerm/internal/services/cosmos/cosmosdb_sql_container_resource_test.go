@@ -262,22 +262,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "descending"
+        order = "Descending"
       }
       index {
         path  = "/path2"
-        order = "ascending"
+        order = "Dscending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "ascending"
+        order = "Ascending"
       }
       index {
         path  = "/path4"
-        order = "descending"
+        order = "Descending"
       }
     }
   }
@@ -318,22 +318,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "ascending"
+        order = "Ascending"
       }
       index {
         path  = "/path2"
-        order = "descending"
+        order = "Descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "ascending"
+        order = "Ascending"
       }
       index {
         path  = "/path4"
-        order = "descending"
+        order = "Descending"
       }
     }
   }
@@ -385,22 +385,22 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     composite_index {
       index {
         path  = "/path1"
-        order = "ascending"
+        order = "Ascending"
       }
       index {
         path  = "/path2"
-        order = "descending"
+        order = "Descending"
       }
     }
 
     composite_index {
       index {
         path  = "/path3"
-        order = "ascending"
+        order = "Ascending"
       }
       index {
         path  = "/path4"
-        order = "descending"
+        order = "Descending"
       }
     }
   }
