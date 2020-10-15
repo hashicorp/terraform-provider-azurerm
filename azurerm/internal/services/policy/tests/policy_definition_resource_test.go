@@ -197,6 +197,7 @@ func testCheckAzureRMPolicyDefinitionExists(resourceName string, mode string) re
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		subscriptionId := acceptance.AzureProvider.Meta().(*clients.Client).Account.SubscriptionId
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -208,7 +209,7 @@ func testCheckAzureRMPolicyDefinitionExists(resourceName string, mode string) re
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.Name)
+		resp, err := client.Get(ctx, id.Name, subscriptionId)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Policy Definition %q does not exist", id.Name)
@@ -227,6 +228,7 @@ func testCheckAzureRMPolicyDefinitionExists(resourceName string, mode string) re
 func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	subscriptionId := acceptance.AzureProvider.Meta().(*clients.Client).Account.SubscriptionId
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_policy_definition" {
@@ -238,7 +240,7 @@ func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.Name, subscriptionId); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Policy.DefinitionsClient: %+v", err)
 			}

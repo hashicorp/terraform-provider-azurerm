@@ -687,6 +687,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		subscriptionId := acceptance.AzureProvider.Meta().(*clients.Client).Account.SubscriptionId
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -702,7 +703,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 		if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
 			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupName)
 		} else {
-			resp, err = client.Get(ctx, id.Name)
+			resp, err = client.Get(ctx, id.Name, subscriptionId)
 		}
 
 		if err != nil {
@@ -720,6 +721,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	subscriptionId := acceptance.AzureProvider.Meta().(*clients.Client).Account.SubscriptionId
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_policy_set_definition" {
@@ -735,7 +737,7 @@ func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
 		if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
 			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupName)
 		} else {
-			resp, err = client.Get(ctx, id.Name)
+			resp, err = client.Get(ctx, id.Name, subscriptionId)
 		}
 
 		if err == nil {
