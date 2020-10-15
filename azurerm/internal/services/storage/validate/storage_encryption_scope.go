@@ -2,8 +2,9 @@ package validate
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"regexp"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func StorageEncryptionScopeName(v interface{}, _ string) (warnings []string, errors []error) {
