@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
 
-* `instant_restore_retention_range` - (Optional) Specifies the instant restore retention range in days.
+* `instant_restore_retention_days` - (Optional) Specifies the instant restore retention range in days.
 
 * `retention_daily` - (Optional) Configures the policy daily retention as documented in the `retention_daily` block below. Required when backup frequency is `Daily`.
 

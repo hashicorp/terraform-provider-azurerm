@@ -48,7 +48,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentio
 					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Daily"),
 					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
 					resource.TestCheckResourceAttr(data.ResourceName, "retention_daily.0.count", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "instant_restore_retention_range", "5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "instant_restore_retention_days", "5"),
 				),
 			},
 			data.ImportStep(),
@@ -568,7 +568,7 @@ resource "azurerm_backup_policy_vm" "test" {
   name                            = "acctest-BPVM-%d"
   resource_group_name             = azurerm_resource_group.test.name
   recovery_vault_name             = azurerm_recovery_services_vault.test.name
-  instant_restore_retention_range = 5
+  instant_restore_retention_days = 5
   backup {
     frequency = "Daily"
     time      = "23:00"
