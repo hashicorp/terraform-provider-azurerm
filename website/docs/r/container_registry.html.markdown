@@ -96,9 +96,9 @@ The following arguments are supported:
 
 `retention_policy` supports the following:
 
-* `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged.
+* `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged. Default is `7`.
 
-* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled. Default is `7`.
+* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
 
 ---
 ## Attributes Reference
