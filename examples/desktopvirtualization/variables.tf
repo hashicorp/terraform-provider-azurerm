@@ -1,14 +1,7 @@
-variable "subscriptionID" {
-    type = string
-    description = "subscriptionid"
-}
-
-variable "resourcegroupname" {
-    type = string
-    description = "name of the resource group"
+variable "prefix" {
+    description = "TThe prefix which should be used for all resources in this example"
 }
 
 variable "location" {
-    type = string
     description = "location of your resources"
 }
