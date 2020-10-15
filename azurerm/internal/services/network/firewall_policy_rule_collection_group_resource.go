@@ -2,10 +2,11 @@ package network
 
 import (
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/go-azure-helpers/response"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
