@@ -21,7 +21,6 @@ func TestAccAzureRMKeyVaultKeyEncrypt_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "cipher_text"),
 				),
 			},
-			data.ImportStep("algorithm", "plaintext"),
 		},
 	})
 }
