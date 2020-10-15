@@ -186,8 +186,8 @@ resource "azurerm_vpn_site" "test" {
   address_spaces      = ["10.0.0.0/24", "10.0.1.0/24"]
 
   device_property {
-    vendor          = "Cisco"
-    model           = "foobar"
+    vendor = "Cisco"
+    model  = "foobar"
   }
 
   vpn_site_link {

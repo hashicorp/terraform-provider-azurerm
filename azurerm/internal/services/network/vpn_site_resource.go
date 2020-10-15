@@ -390,7 +390,6 @@ func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 	output := make([]interface{}, 0)
 
 	for _, e := range *input {
-
 		var name string
 		if e.Name != nil {
 			name = *e.Name
