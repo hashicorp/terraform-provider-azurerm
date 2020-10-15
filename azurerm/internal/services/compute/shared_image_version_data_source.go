@@ -141,7 +141,7 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 
 			osDiskImageSize := -1
 			if profile.OsDiskImage != nil && profile.OsDiskImage.SizeInGB != nil {
-                osDiskImageSize = int(*profile.OsDiskImage.SizeInGB)
+                                osDiskImageSize = int(*profile.OsDiskImage.SizeInGB)
             }
 			d.Set("os_disk_image_size", osDiskImageSize)
 		}
