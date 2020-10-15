@@ -155,15 +155,17 @@ A `rule` (network rule) block supports the following:
 
 * `protocols` - (Required) Specifies a list of network protocols this rule applies to. Possible values are `Any`, `TCP`, `UDP`, `ICMP`.
 
+* `destination_ports` - (Required) Specifies a list of destination ports.
+
 * `source_addresses` - (Optional) Specifies a list of source IP addresses (including CIDR and `*`).
 
 * `source_ip_groups` - (Optional) Specifies a list of source IP groups.
 
 * `destination_addresses` - (Optional) Specifies a list of destination IP addresses (including CIDR and `*`) or Service Tags.
 
-* `destination_ports` - (Optional) Specifies a list of destination ports.
-
 * `destination_ip_groups` - (Optional) Specifies a list of destination IP groups.
+
+* `destination_fqdns` - (Optional) Specifies a list of destination FQDNs.
 
 ---
 

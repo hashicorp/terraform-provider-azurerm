@@ -59,13 +59,6 @@ func TestAccAzureRMFirewallPolicyRuleCollectionGroup_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
 				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
@@ -73,7 +66,14 @@ func TestAccAzureRMFirewallPolicyRuleCollectionGroup_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_basic(data),
+				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewallPolicyRuleCollectionGroup_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallPolicyRuleCollectionGroupExists(data.ResourceName),
 				),
@@ -156,25 +156,66 @@ func testCheckAzureRMFirewallPolicyRuleCollectionGroupDestroy(s *terraform.State
 }
 
 func testAccAzureRMFirewallPolicyRuleCollectionGroup_basic(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicyRuleCollectionGroup_template(data)
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fwpolicy-RCG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-fwpolicy-RCG-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
 
 resource "azurerm_firewall_policy_rule_collection_group" "test" {
-  name               = "acctest-fwpolicy-RCG-%d"
+  name               = "acctest-fwpolicy-RCG-%[1]d"
   firewall_policy_id = azurerm_firewall_policy.test.id
   priority           = 500
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMFirewallPolicyRuleCollectionGroup_complete(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicyRuleCollectionGroup_template(data)
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fwpolicy-RCG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-fwpolicy-RCG-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  dns {
+    network_rule_fqdn_enabled = false
+  }
+}
+
+resource "azurerm_ip_group" "test_source" {
+  name                = "acctestIpGroupForFirewallPolicySource"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["1.2.3.4/32", "12.34.56.0/24"]
+}
+
+resource "azurerm_ip_group" "test_destination" {
+  name                = "acctestIpGroupForFirewallPolicyDest"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
+}
 
 resource "azurerm_firewall_policy_rule_collection_group" "test" {
-  name               = "acctest-fwpolicy-RCG-%d"
+  name               = "acctest-fwpolicy-RCG-%[1]d"
   firewall_policy_id = azurerm_firewall_policy.test.id
   priority           = 500
   application_rule_collection {
@@ -204,6 +245,19 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
         type = "Https"
         port = 443
       }
+      source_ip_groups  = [azurerm_ip_group.test_source.id]
+      destination_fqdns = [".microsoft.com"]
+    }
+    rule {
+      name = "app_rule_collection1_rule3"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+      protocols {
+        type = "Https"
+        port = 443
+      }
       source_addresses      = ["10.0.0.1"]
       destination_fqdn_tags = ["WindowsDiagnostics"]
     }
@@ -218,6 +272,153 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       protocols             = ["TCP", "UDP"]
       source_addresses      = ["10.0.0.1"]
       destination_addresses = ["192.168.1.1", "ApiManagement"]
+      destination_ports     = ["80", "1000-2000"]
+    }
+    rule {
+      name              = "network_rule_collection1_rule2"
+      protocols         = ["TCP", "UDP"]
+      source_addresses  = ["10.0.0.1"]
+      destination_fqdns = ["time.windows.com"]
+      destination_ports = ["80", "1000-2000"]
+    }
+    rule {
+      name                  = "network_rule_collection1_rule3"
+      protocols             = ["TCP", "UDP"]
+      source_ip_groups      = [azurerm_ip_group.test_source.id]
+      destination_ip_groups = [azurerm_ip_group.test_destination.id]
+      destination_ports     = ["80", "1000-2000"]
+    }
+  }
+
+  nat_rule_collection {
+    name     = "nat_rule_collection1"
+    priority = 300
+    action   = "Dnat"
+    rule {
+      name                = "nat_rule_collection1_rule1"
+      protocols           = ["TCP", "UDP"]
+      source_addresses    = ["10.0.0.1", "10.0.0.2"]
+      destination_address = "192.168.1.1"
+      destination_ports   = ["80", "1000-2000"]
+      translated_address  = "192.168.0.1"
+      translated_port     = "8080"
+    }
+    rule {
+      name                = "nat_rule_collection1_rule2"
+      protocols           = ["TCP", "UDP"]
+      source_ip_groups    = [azurerm_ip_group.test_source.id]
+      destination_address = "192.168.1.1"
+      destination_ports   = ["80", "1000-2000"]
+      translated_address  = "192.168.0.1"
+      translated_port     = "8080"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMFirewallPolicyRuleCollectionGroup_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fwpolicy-RCG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-fwpolicy-RCG-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  dns {
+    network_rule_fqdn_enabled = false
+  }
+}
+
+resource "azurerm_ip_group" "test_source" {
+  name                = "acctestIpGroupForFirewallPolicySource"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["1.2.3.4/32", "12.34.56.0/24"]
+}
+
+resource "azurerm_ip_group" "test_destination" {
+  name                = "acctestIpGroupForFirewallPolicyDest"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
+}
+
+resource "azurerm_firewall_policy_rule_collection_group" "test" {
+  name               = "acctest-fwpolicy-RCG-%[1]d"
+  firewall_policy_id = azurerm_firewall_policy.test.id
+  priority           = 500
+  application_rule_collection {
+    name     = "app_rule_collection1"
+    priority = 500
+    action   = "Deny"
+    rule {
+      name = "app_rule_collection1_rule1"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses  = ["10.0.0.1", "10.0.0.2"]
+      destination_fqdns = [".microsoft.com"]
+    }
+    rule {
+      name = "app_rule_collection1_rule2"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+      source_ip_groups  = [azurerm_ip_group.test_source.id]
+      destination_fqdns = [".microsoft.com"]
+    }
+    rule {
+      name = "app_rule_collection1_rule3"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses      = ["10.0.0.1", "10.0.0.2"]
+      destination_fqdn_tags = ["WindowsDiagnostics"]
+    }
+  }
+
+  network_rule_collection {
+    name     = "network_rule_collection1"
+    priority = 400
+    action   = "Deny"
+    rule {
+      name                  = "network_rule_collection1_rule1"
+      protocols             = ["TCP", "UDP"]
+      source_addresses      = ["10.0.0.1"]
+      destination_addresses = ["192.168.1.2", "ApiManagement"]
+      destination_ports     = ["80", "1000-2000"]
+    }
+    rule {
+      name              = "network_rule_collection1_rule2"
+      protocols         = ["TCP", "UDP"]
+      source_addresses  = ["10.0.0.1", "10.0.0.2"]
+      destination_fqdns = ["time.windows.com"]
+      destination_ports = ["80", "1000-2000"]
+    }
+    rule {
+      name                  = "network_rule_collection1_rule3"
+      protocols             = ["TCP"]
+      source_ip_groups      = [azurerm_ip_group.test_source.id]
+      destination_ip_groups = [azurerm_ip_group.test_destination.id]
       destination_ports     = ["80", "1000-2000"]
     }
   }
@@ -237,7 +438,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMFirewallPolicyRuleCollectionGroup_requiresImport(data acceptance.TestData) string {
@@ -251,23 +452,4 @@ resource "azurerm_firewall_policy_rule_collection_group" "import" {
   priority           = azurerm_firewall_policy_rule_collection_group.test.priority
 }
 `, template)
-}
-
-func testAccAzureRMFirewallPolicyRuleCollectionGroup_template(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-fwpolicy-RCG-%d"
-  location = "%s"
-}
-
-resource "azurerm_firewall_policy" "test" {
-  name                = "acctest-fwpolicy-RCG-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

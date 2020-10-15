@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"log"
 	"strconv"
 	"time"
@@ -244,9 +245,17 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 											ValidateFunc: validation.StringIsNotEmpty,
 										},
 									},
-									"destination_ports": {
+									"destination_fqdns": {
 										Type:     schema.TypeSet,
 										Optional: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+									},
+									"destination_ports": {
+										Type:     schema.TypeSet,
+										Required: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: validate.FirewallPolicyRulePort,
@@ -490,8 +499,14 @@ func resourceArmFirewallPolicyRuleCollectionGroupDelete(d *schema.ResourceData, 
 	locks.ByName(id.PolicyName, azureFirewallPolicyResourceName)
 	defer locks.UnlockByName(id.PolicyName, azureFirewallPolicyResourceName)
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.PolicyName, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.PolicyName, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q): %+v", id.Name, id.ResourceGroup, id.PolicyName, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deleting %q (Resource Group %q / Policy: %q): %+v", id.Name, id.ResourceGroup, id.PolicyName, err)
+		}
 	}
 
 	return nil
@@ -583,6 +598,7 @@ func expandAzureRmFirewallPolicyRuleNetwork(input []interface{}) *[]network.Basi
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].(*schema.Set).List()),
 			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].(*schema.Set).List()),
 			DestinationIPGroups:  utils.ExpandStringSlice(condition["destination_ip_groups"].(*schema.Set).List()),
+			DestinationFqdns:     utils.ExpandStringSlice(condition["destination_fqdns"].(*schema.Set).List()),
 			DestinationPorts:     utils.ExpandStringSlice(condition["destination_ports"].(*schema.Set).List()),
 		}
 		result = append(result, output)
@@ -784,8 +800,9 @@ func flattenAzureRmFirewallPolicyRuleNetwork(input *[]network.BasicFirewallPolic
 			"source_addresses":      utils.FlattenStringSlice(rule.SourceAddresses),
 			"source_ip_groups":      utils.FlattenStringSlice(rule.SourceIPGroups),
 			"destination_addresses": utils.FlattenStringSlice(rule.DestinationAddresses),
-			"destination_ports":     utils.FlattenStringSlice(rule.DestinationPorts),
 			"destination_ip_groups": utils.FlattenStringSlice(rule.DestinationIPGroups),
+			"destination_fqdns":     utils.FlattenStringSlice(rule.DestinationFqdns),
+			"destination_ports":     utils.FlattenStringSlice(rule.DestinationPorts),
 		})
 	}
 	return output, nil
