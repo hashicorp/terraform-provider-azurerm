@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -123,7 +124,8 @@ func flattenCosmosDBIndexingPolicyCompositeIndex(input []documentdb.CompositePat
 
 		block := make(map[string]interface{})
 		block["path"] = path
-		block["order"] = string(v.Order)
+		// Workaround for Azure/azure-rest-api-specs#11222
+		block["order"] = strings.Title(string(v.Order))
 		indexPairs = append(indexPairs, block)
 	}
 
