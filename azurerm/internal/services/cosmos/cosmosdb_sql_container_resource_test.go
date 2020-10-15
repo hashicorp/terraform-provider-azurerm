@@ -266,7 +266,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
       }
       index {
         path  = "/path2"
-        order = "Dscending"
+        order = "Ascending"
       }
     }
 
