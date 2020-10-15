@@ -1,3 +1,9 @@
+## 2.33.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_mssql_database` - do not set longterm and shortterm retention policies when using the `DW` SKUs [GH-8899]
+
 ## 2.32.0 (October 15, 2020)
 
 FEATURES:
