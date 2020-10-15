@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Search Service should exist. Changing this forces a new Search Service to be created.
 
-* `sku` - (Required) The SKU which should be used for this Search Service. Possible values are `basic`, `free`, `standard`, `standard2` and `standard3` Changing this forces a new Search Service to be created.
+* `sku` - (Required) The SKU which should be used for this Search Service. Possible values are `basic`, `free`, `standard`, `standard2`, `standard3`, `storage_optimized_l1` and `storage_optimized_l2`. Changing this forces a new Search Service to be created.
 
 -> The `basic` and `free` SKU's provision the Search Service in a Shared Cluster - the `standard` SKU's use a Dedicated Cluster.
 

@@ -9,7 +9,6 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -64,7 +63,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	}
 
 	testData := TestData{
-		RandomInteger:   tf.AccRandTimeInt(),
+		RandomInteger:   RandTimeInt(),
 		RandomString:    acctest.RandString(5),
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
 		Environment:     *env,

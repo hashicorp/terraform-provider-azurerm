@@ -34,7 +34,7 @@ resource "azurerm_subnet" "example" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_local_network_gateway" "onpremise" {
@@ -106,7 +106,7 @@ resource "azurerm_subnet" "us_gateway" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.us.name
   virtual_network_name = azurerm_virtual_network.us.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "us" {
@@ -148,7 +148,7 @@ resource "azurerm_subnet" "europe_gateway" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.europe.name
   virtual_network_name = azurerm_virtual_network.europe.name
-  address_prefix       = "10.1.1.0/24"
+  address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_public_ip" "europe" {

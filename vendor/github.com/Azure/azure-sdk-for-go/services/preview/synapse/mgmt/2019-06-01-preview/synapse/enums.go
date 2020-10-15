@@ -426,11 +426,15 @@ const (
 	NodeSizeNone NodeSize = "None"
 	// NodeSizeSmall ...
 	NodeSizeSmall NodeSize = "Small"
+	// NodeSizeXLarge ...
+	NodeSizeXLarge NodeSize = "XLarge"
+	// NodeSizeXXLarge ...
+	NodeSizeXXLarge NodeSize = "XXLarge"
 )
 
 // PossibleNodeSizeValues returns an array of possible values for the NodeSize const type.
 func PossibleNodeSizeValues() []NodeSize {
-	return []NodeSize{NodeSizeLarge, NodeSizeMedium, NodeSizeNone, NodeSizeSmall}
+	return []NodeSize{NodeSizeLarge, NodeSizeMedium, NodeSizeNone, NodeSizeSmall, NodeSizeXLarge, NodeSizeXXLarge}
 }
 
 // NodeSizeFamily enumerates the values for node size family.

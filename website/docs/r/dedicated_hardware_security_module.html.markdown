@@ -120,7 +120,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The sku name of the dedicated hardware security module. Changing this forces a new Dedicated Hardware Security Module to be created.
 
-* `stamp_id` - (Required) The ID of the stamp. Possible values are `stamp1` or `stamp2`. Changing this forces a new Dedicated Hardware Security Module to be created.
+* `stamp_id` - (Optional) The ID of the stamp. Possible values are `stamp1` or `stamp2`. Changing this forces a new Dedicated Hardware Security Module to be created.
 
 * `zones` - (Optional) The Dedicated Hardware Security Module zones. Changing this forces a new Dedicated Hardware Security Module to be created.
 

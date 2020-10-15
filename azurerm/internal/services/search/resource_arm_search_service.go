@@ -59,6 +59,8 @@ func resourceArmSearchService() *schema.Resource {
 					string(search.Standard),
 					string(search.Standard2),
 					string(search.Standard3),
+					string(search.StorageOptimizedL1),
+					string(search.StorageOptimizedL2),
 				}, false),
 			},
 
