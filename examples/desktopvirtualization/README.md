@@ -10,6 +10,5 @@ Assign the application group to the workspace.
 
 ### Variables
 
-- `subscriptionID`- (Required) Azure Subscription id
 - `resourcegroupname` - (Required) Name of the resource group to be provisioned
 - `location`  - (Required) Azure Region in which all resources in this example should be provisioned
