@@ -7,6 +7,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_container_registry` - support for the `trust_policy` and `retention_policy` blocks [GH-8698]
 * `azurerm_security_center_contact` - override SDK creat function to handle `201` response code [GH-8774]
 
 ## 2.31.1 (October 08, 2020)
