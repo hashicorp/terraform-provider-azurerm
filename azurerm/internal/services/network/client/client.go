@@ -46,6 +46,7 @@ type Client struct {
 	VirtualHubClient                     *network.VirtualHubsClient
 	VpnGatewaysClient                    *network.VpnGatewaysClient
 	VpnServerConfigurationsClient        *network.VpnServerConfigurationsClient
+	VpnSitesClient                       *network.VpnSitesClient
 	WatcherClient                        *network.WatchersClient
 	WebApplicationFirewallPoliciesClient *network.WebApplicationFirewallPoliciesClient
 	PrivateDnsZoneGroupClient            *network.PrivateDNSZoneGroupsClient
@@ -178,6 +179,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	vpnGatewaysClient := network.NewVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
+	vpnSitesClient := network.NewVpnSitesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vpnSitesClient.Client, o.ResourceManagerAuthorizer)
+
 	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
 
@@ -230,6 +234,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		VirtualHubClient:                     &VirtualHubClient,
 		VpnGatewaysClient:                    &vpnGatewaysClient,
 		VpnServerConfigurationsClient:        &vpnServerConfigurationsClient,
+		VpnSitesClient:                       &vpnSitesClient,
 		WatcherClient:                        &WatcherClient,
 		WebApplicationFirewallPoliciesClient: &WebApplicationFirewallPoliciesClient,
 		PrivateDnsZoneGroupClient:            &PrivateDnsZoneGroupClient,
