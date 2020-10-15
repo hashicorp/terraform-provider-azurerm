@@ -74,9 +74,13 @@ func dataSourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interf
 	d.Set("storage_account_id", storageAccountIDRaw)
 	if props := resp.EncryptionScopeProperties; props != nil {
 		d.Set("source", string(props.Source))
+		var keyId string
 		if kv := props.KeyVaultProperties; kv != nil {
-			d.Set("key_vault_key_id", kv.KeyURI)
+			if kv.KeyURI != nil {
+				keyId = *kv.KeyURI
+			}
 		}
+		d.Set("key_vault_key_id", keyId)
 	}
 
 	return nil

@@ -256,7 +256,7 @@ func TestStorageEncryptionScopeID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "Sync Group Id",
+			Name:  "Encryption Scope Id",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/acc1/encryptionScopes/enScope1",
 			Expected: &StorageEncryptionScopeId{
 				Name:           "enScope1",
@@ -288,7 +288,7 @@ func TestStorageEncryptionScopeID(t *testing.T) {
 		}
 
 		if actual.StorageAccName != v.Expected.StorageAccName {
-			t.Fatalf("Expected %q but got %q for Storage Sync Name", v.Expected.Name, actual.Name)
+			t.Fatalf("Expected %q but got %q for Storage Encryption Scope Name", v.Expected.Name, actual.Name)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
