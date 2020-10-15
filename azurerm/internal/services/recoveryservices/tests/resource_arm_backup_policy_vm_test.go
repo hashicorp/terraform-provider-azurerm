@@ -565,10 +565,10 @@ func testAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentio
 %s
 
 resource "azurerm_backup_policy_vm" "test" {
-  name                            = "acctest-BPVM-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  recovery_vault_name             = azurerm_recovery_services_vault.test.name
-  instant_restore_retention_days  = 5
+  name                           = "acctest-BPVM-%d"
+  resource_group_name            = azurerm_resource_group.test.name
+  recovery_vault_name            = azurerm_recovery_services_vault.test.name
+  instant_restore_retention_days = 5
   backup {
     frequency = "Daily"
     time      = "23:00"
