@@ -5,6 +5,10 @@ FEATURES:
 * **New data source:** `azurerm_mysql_server` [GH-8787]
 * **New resource:** `azurerm_security_center_setting` [GH-8783]
 
+IMPROVEMENTS:
+
+* `azurerm_security_center_contact` - override SDK creat function to handle `201` response code [GH-8774]
+
 ## 2.31.1 (October 08, 2020)
 
 IMPROVEMENTS:
