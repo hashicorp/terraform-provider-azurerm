@@ -1,7 +1,7 @@
 variable "prefix" {
-    description = "TThe prefix which should be used for all resources in this example"
+    description = "The prefix which should be used for all resources in this example"
 }
 
 variable "location" {
-    description = "location of your resources"
+    description = "The Azure Region in which all resources in this example should be provisioned"
 }
