@@ -122,9 +122,9 @@ func TestAccAzureRMPolicySetDefinition_customNoParameter(t *testing.T) {
 }
 
 func TestAccAzureRMPolicySetDefinition_customUpdateDisplayName(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 
-    resource.ParallelTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,

@@ -324,8 +324,7 @@ func resourceArmPolicySetDefinitionUpdate(d *schema.ResourceData, meta interface
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
-	case parse.ScopeAtManagementGroup:
+	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
 		managementGroupName = scopeId.ManagementGroupName
 	}
 
@@ -425,8 +424,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
-	case parse.ScopeAtManagementGroup:
+	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
 		managementGroupName = scopeId.ManagementGroupName
 	}
 
