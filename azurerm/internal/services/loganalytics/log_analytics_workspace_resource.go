@@ -76,7 +76,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 			"daily_quota_gb": {
 				Type:         schema.TypeFloat,
 				Optional:     true,
-				Default:      float64(-1),
+				Default:      -1.0,
 				ValidateFunc: validation.Any(validation.FloatBetween(-1, -1), validation.FloatAtLeast(0)),
 			},
 
