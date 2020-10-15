@@ -331,7 +331,7 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 			TimeZone:                      utils.String(d.Get("timezone").(string)),
 			BackupManagementType:          backup.BackupManagementTypeAzureIaasVM,
 			SchedulePolicy:                expandArmBackupProtectionPolicyVMSchedule(d, times),
-			InstantRpRetentionRangeInDays: utils.Int32(d.Get("instant_restore_retention_days").(int32)),
+			InstantRpRetentionRangeInDays: utils.Int32(int32(d.Get("instant_restore_retention_days").(int))),
 			RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
 				DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
