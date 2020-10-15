@@ -109,6 +109,38 @@ func TestAccAppConfigurationResource_identity(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationResource_identityUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAppConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAppConfigurationResource_standard(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAppConfigurationExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAppConfigurationResource_identity(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAppConfigurationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAppConfigurationResource_standard(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAppConfigurationExists(data.ResourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAppConfigurationResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
