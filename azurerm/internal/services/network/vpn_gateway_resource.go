@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -89,6 +90,11 @@ func resourceArmVPNGateway() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"security_provider_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -97,6 +103,7 @@ func resourceArmVPNGateway() *schema.Resource {
 func resourceArmVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	vhubClient := meta.(*clients.Client).Network.VirtualHubClient
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -164,6 +171,25 @@ func resourceArmVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if d.HasChange("security_provider_name") {
+		securityProviderName := d.Get("security_provider_name").(string)
+
+		id, err := parse.VirtualHubID(virtualHubId)
+		if err != nil {
+			return err
+		}
+
+		virtualHub, err := vhubClient.Get(ctx, resourceGroup, id.Name)
+		if err != nil {
+			return err
+		}
+
+		err = setVirtualHubSecurityProviderName(vhubClient, ctx, resourceGroup, &virtualHub, utils.String(securityProviderName))
+		if err != nil {
+			return fmt.Errorf("updating Virtual Hub Security Provider Name: %+v", err)
+		}
+	}
+
 	d.SetId(*resp.ID)
 
 	return resourceArmVPNGatewayRead(d, meta)
@@ -171,6 +197,7 @@ func resourceArmVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
+	vhubClient := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -196,6 +223,7 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	virtualHubId := ""
 	if props := resp.VpnGatewayProperties; props != nil {
 		if err := d.Set("bgp_settings", flattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
@@ -207,24 +235,55 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		d.Set("scale_unit", scaleUnit)
 
-		virtualHubId := ""
 		if props.VirtualHub != nil && props.VirtualHub.ID != nil {
 			virtualHubId = *props.VirtualHub.ID
 		}
 		d.Set("virtual_hub_id", virtualHubId)
 	}
 
+	securityProviderName, err := getVirtualHubSecurityProviderName(vhubClient, ctx, id.ResourceGroup, virtualHubId)
+	if err != nil {
+		return fmt.Errorf("setting `security_provider_name`: %+v", err)
+	}
+
+	d.Set("security_provider_name", securityProviderName)
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VpnGatewaysClient
+	vhubClient := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := ParseVPNGatewayID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if resp.VpnGatewayProperties != nil && resp.VpnGatewayProperties.VirtualHub != nil {
+		id, err := parse.VirtualHubID(*resp.VpnGatewayProperties.VirtualHub.ID)
+		if err != nil {
+			return err
+		}
+
+		virtualHub, err := vhubClient.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return err
+		}
+
+		if virtualHub.VirtualHubProperties != nil && virtualHub.VirtualHubProperties.SecurityProviderName != nil {
+			err = setVirtualHubSecurityProviderName(vhubClient, ctx, id.ResourceGroup, &virtualHub, nil)
+			if err != nil {
+				return fmt.Errorf("deleting Virtual Hub Security Provider Name: %+v", err)
+			}
+		}
 	}
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
@@ -320,4 +379,57 @@ func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.Vp
 			return "pending", "pending", nil
 		}
 	}
+}
+
+func getVirtualHubSecurityProviderName(vhubClient *network.VirtualHubsClient, ctx context.Context, resourceGroup string, virtualHubId string) (*string, error) {
+	vhubId, err := parse.VirtualHubID(virtualHubId)
+	if err != nil {
+		return nil, err
+	}
+
+	vhub, err := vhubClient.Get(ctx, resourceGroup, vhubId.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if props := vhub.VirtualHubProperties; props != nil {
+		return props.SecurityProviderName, nil
+	}
+
+	return nil, nil
+}
+
+func setVirtualHubSecurityProviderName(vhubClient *network.VirtualHubsClient, ctx context.Context, resourceGroup string, virtualHub *network.VirtualHub, securityProviderName *string) error {
+	virtualHub.VirtualHubProperties.SecurityProviderName = securityProviderName
+
+	future, err := vhubClient.CreateOrUpdate(ctx, resourceGroup, *virtualHub.Name, *virtualHub)
+	if err != nil {
+		return fmt.Errorf("updating Virtual Hub %q (Resource Group %q): %+v", *virtualHub.Name, resourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, vhubClient.Client); err != nil {
+		return fmt.Errorf("waiting for update of Virtual Hub %q (Resource Group %q): %+v", *virtualHub.Name, resourceGroup, err)
+	}
+
+	// Hub returns provisioned while the routing state is still "provisining". This might cause issues with following hubvnet connection operations.
+	// https://github.com/Azure/azure-rest-api-specs/issues/10391
+	// As a workaround, we will poll the routing state and ensure it is "Provisioned".
+
+	// deadline is checked at the entry point of this function
+	timeout, _ := ctx.Deadline()
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Provisioning"},
+		Target:                    []string{"Provisioned", "Failed"},
+		Refresh:                   virtualHubCreateRefreshFunc(ctx, vhubClient, resourceGroup, *virtualHub.Name),
+		PollInterval:              15 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(timeout),
+	}
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("waiting for Virtual Hub %q (Host Group Name %q) provisioning route: %+v", *virtualHub.Name, resourceGroup, err)
+	}
+
+	return nil
 }

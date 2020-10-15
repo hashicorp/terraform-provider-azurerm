@@ -130,6 +130,25 @@ func TestAccAzureRMVPNGateway_tags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVPNGateway_withSecurityProviderName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVPNGateway_withSecurityProviderName(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVPNGatewayExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMVPNGatewayExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VpnGatewaysClient
@@ -313,4 +332,19 @@ resource "azurerm_virtual_hub" "test" {
   virtual_wan_id      = azurerm_virtual_wan.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMVPNGateway_withSecurityProviderName(data acceptance.TestData) string {
+	template := testAccAzureRMVPNGateway_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_vpn_gateway" "test" {
+  name                   = "acctestVPNG-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  virtual_hub_id         = azurerm_virtual_hub.test.id
+  security_provider_name = "ZScaler"
+}
+`, template, data.RandomInteger)
 }

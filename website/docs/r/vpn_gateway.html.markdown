@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `scale_unit` - (Optional) The Scale Unit for this VPN Gateway. Defaults to `1`.
 
+* `security_provider_name` - (Optional) The Security Provider name.
+
 * `tags` - (Optional) A mapping of tags to assign to the VPN Gateway.
 
 ---
