@@ -325,26 +325,28 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is less than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
 
+	vmProtectionPolicyProperties := &backup.AzureIaaSVMProtectionPolicy{
+		TimeZone:             utils.String(d.Get("timezone").(string)),
+		BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
+		SchedulePolicy:       expandArmBackupProtectionPolicyVMSchedule(d, times),
+		RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
+			RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
+			DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
+			WeeklySchedule:      expandArmBackupProtectionPolicyVMRetentionWeekly(d, times),
+			MonthlySchedule:     expandArmBackupProtectionPolicyVMRetentionMonthly(d, times),
+			YearlySchedule:      expandArmBackupProtectionPolicyVMRetentionYearly(d, times),
+		},
+	}
+
 	var instantRestoreDays *int32
 	if instantRestoreDaysRaw := d.Get("instant_restore_retention_days"); instantRestoreDaysRaw != nil {
 		instantRestoreDays = utils.Int32(int32(instantRestoreDaysRaw.(int)))
+		vmProtectionPolicyProperties.InstantRpRetentionRangeInDays = instantRestoreDays
 	}
 
 	policy := backup.ProtectionPolicyResource{
-		Tags: tags.Expand(t),
-		Properties: &backup.AzureIaaSVMProtectionPolicy{
-			TimeZone:                      utils.String(d.Get("timezone").(string)),
-			BackupManagementType:          backup.BackupManagementTypeAzureIaasVM,
-			SchedulePolicy:                expandArmBackupProtectionPolicyVMSchedule(d, times),
-			InstantRpRetentionRangeInDays: instantRestoreDays,
-			RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
-				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
-				DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
-				WeeklySchedule:      expandArmBackupProtectionPolicyVMRetentionWeekly(d, times),
-				MonthlySchedule:     expandArmBackupProtectionPolicyVMRetentionMonthly(d, times),
-				YearlySchedule:      expandArmBackupProtectionPolicyVMRetentionYearly(d, times),
-			},
-		},
+		Tags:       tags.Expand(t),
+		Properties: vmProtectionPolicyProperties,
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, policyName, policy); err != nil {
