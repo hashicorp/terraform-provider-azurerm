@@ -5,6 +5,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
@@ -38,9 +39,10 @@ func resourceArmStorageEncryptionScope() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: storageValidate.StorageEncryptionScopeName,
 			},
 
 			"storage_account_id": {
@@ -53,16 +55,18 @@ func resourceArmStorageEncryptionScope() *schema.Resource {
 			"source": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.MicrosoftKeyVault),
 					string(storage.MicrosoftStorage),
 				}, false),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"key_vault_key_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: storageValidate.KeyVaultChildId,
 			},
 		},
 	}
@@ -89,6 +93,12 @@ func resourceArmStorageEncryptionScopeCreateUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
+	if d.Get("source").(string) == string(storage.MicrosoftKeyVault) {
+		if _, ok := d.GetOk("key_vault_key_id"); !ok {
+			return fmt.Errorf("`key_vault_key_id` is necessary when the source is `Microsoft.KeyVault`")
+		}
+	}
+
 	props := storage.EncryptionScope{
 		EncryptionScopeProperties: &storage.EncryptionScopeProperties{
 			Source: storage.EncryptionScopeSource(d.Get("source").(string)),
@@ -109,6 +119,11 @@ func resourceArmStorageEncryptionScopeCreateUpdate(d *schema.ResourceData, meta 
 	}
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("storage Encryption Scope %q (Storage Account Name %q / Resource Group %q) ID is empty or nil", name, storageAccountID.Name, storageAccountID.ResourceGroup)
+	}
+	if props := resp.EncryptionScopeProperties; props != nil {
+		if props.State == storage.Disabled {
+			return fmt.Errorf("storage Encryption Scope %q (Storage Account Name %q / Resource Group %q) ID is not enabled", name, storageAccountID.Name, storageAccountID.ResourceGroup)
+		}
 	}
 
 	d.SetId(*resp.ID)
@@ -138,9 +153,13 @@ func resourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interfac
 	d.Set("storage_account_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s", client.SubscriptionID, id.ResourceGroup, id.StorageAccName))
 	if props := resp.EncryptionScopeProperties; props != nil {
 		d.Set("source", string(props.Source))
+		var keyId string
 		if kv := props.KeyVaultProperties; kv != nil {
-			d.Set("key_vault_key_id", kv.KeyURI)
+			if kv.KeyURI != nil {
+				keyId = *kv.KeyURI
+			}
 		}
+		d.Set("key_vault_key_id", keyId)
 	}
 
 	return nil
@@ -164,7 +183,7 @@ func resourceArmStorageEncryptionScopeDelete(d *schema.ResourceData, meta interf
 
 	_, err = client.Put(ctx, id.ResourceGroup, id.StorageAccName, id.Name, props)
 	if err != nil {
-		return fmt.Errorf("deleting Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccName, id.ResourceGroup, err)
+		return fmt.Errorf("disable Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.StorageAccName, id.ResourceGroup, err)
 	}
 
 	return nil
