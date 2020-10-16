@@ -163,7 +163,7 @@ The following arguments are supported:
 
 * `source_managed_instance_id` - (Optional) The resource id of the source managed instance associated with create operation of this instance. Specified for `Restore` create mode. `restore_point_in_time` must be specified too. Changing this forces a new resource to be created.
 
-* `storage_size_gb` - (Optional) Storage size in GB. Minimum value: 32. Maximum value: 8192. Increments of 32 GB allowed only.
+* `storage_size_gb` - (Optional) Storage size in GB. Minimum value: 32. Maximum value: 16384. Increments of 32 GB allowed only.
 
 ~> **NOTE:** The storage account type (used to store backups) is not supported yet in Go-SDK. 
 
@@ -173,7 +173,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The supported timezones can be found from the link [timezones](https://docs.microsoft.com/en-us/azure/azure-sql/managed-instance/timezones-overview)
 
-* `vcores` - (Optional) The number of vCores. Allowed values: 8, 16, 24, 32, 40, 64 and 80.
+* `vcores` - (Optional) The number of vCores. Allowed values: 4, 8, 16, 24, 32, 40, 64 and 80.
 
 * `sku` - (Optional) Managed instance SKU. The `sku` block is defined below.
 

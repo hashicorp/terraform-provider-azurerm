@@ -60,7 +60,7 @@ func resourceArmMSSQLManagedInstanceAdmin() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"login_username": {
+			"login_user_name": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,

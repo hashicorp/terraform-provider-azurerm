@@ -1,12 +1,12 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_mssql_managed_instance_admin"
+page_title: "Azure Resource Manager: azurerm_mssql_managed_instance_ad_admin"
 description: |-
   Manages a Managed instance AAD admin details.
 ---
 
-# azurerm_mssql_managed_instance_admin
+# azurerm_mssql_managed_instance_ad_admin
 
 Manages a Managed instance AAD admin details.
 
@@ -98,10 +98,10 @@ resource "azurerm_mssql_managed_instance" "example" {
   minimal_tls_version          = "1.2"
 }
 
-resource "azurerm_mssql_managed_instance_admin" "example" {
+resource "azurerm_mssql_managed_instance_ad_admin" "example" {
   managed_instance_name = azurerm_mssql_managed_instance.example.name
   resource_group_name   = azurerm_mssql_managed_instance.example.resource_group_name
-  login_username        = "user@example.com"
+  login_user_name       = "user@example.com"
   object_id             = "00000000-0000-0000-0000-000000000000"
 }
 
@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The resource group of the managed instance. Changing this forces a new resource to be created.
 
-* `login_username` - (Required) The Active Directory User name. Changing this forces a new resource to be created.
+* `login_user_name` - (Required) The Active Directory User name. Changing this forces a new resource to be created.
 
 * `object_id` - (Required) The active directory user service principal. Changing this forces a new resource to be created.
 
@@ -153,5 +153,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 SQL managed instance AD Admin details can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_managed_instance_admin.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/managedInstances/sql-mi/administrators/ActiveDirectory
+terraform import azurerm_mssql_managed_instance_ad_admin.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/managedInstances/sql-mi/administrators/ActiveDirectory
 ```
