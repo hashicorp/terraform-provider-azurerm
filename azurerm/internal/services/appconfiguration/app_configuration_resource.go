@@ -225,7 +225,7 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appConfigIdentity := expandAppConfigurationIdentity(d)
+		appConfigIdentity := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 		parameters.Identity = appConfigIdentity
 	}
 
@@ -270,7 +270,7 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		parameters.Identity = expandAppConfigurationIdentity(d)
+		parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -450,7 +450,7 @@ func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface
 func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.ResourceIdentity {
 	if len(identities) == 0 {
 		return &appconfiguration.ResourceIdentity{
-		   Type: appconfiguration.None,
+			Type: appconfiguration.None,
 		}
 	}
 	identity := identities[0].(map[string]interface{})
@@ -460,7 +460,7 @@ func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.
 	}
 }
 func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity) []interface{} {
-	if identity == nil {
+	if identity == nil || identity.Type == appconfiguration.None {
 		return []interface{}{}
 	}
 	result := make(map[string]interface{})
