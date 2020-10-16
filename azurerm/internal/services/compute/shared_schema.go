@@ -134,8 +134,21 @@ func expandBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
 	}
 }
 
+func expandBootDiagnosticsManaged(input []interface{}, managedEnabled bool) *compute.DiagnosticsProfile {
+	if managedEnabled {
+		return &compute.DiagnosticsProfile{
+			BootDiagnostics: &compute.BootDiagnostics{
+				Enabled: utils.Bool(true),
+				StorageURI: utils.String(""),
+			},
+		}
+	}
+
+	return expandBootDiagnostics(input)
+}
+
 func flattenBootDiagnostics(input *compute.DiagnosticsProfile) []interface{} {
-	if input == nil || input.BootDiagnostics == nil || input.BootDiagnostics.Enabled == nil || !*input.BootDiagnostics.Enabled {
+	if input == nil || input.BootDiagnostics == nil || input.BootDiagnostics.Enabled == nil || !*input.BootDiagnostics.Enabled || input.BootDiagnostics.StorageURI == nil || *input.BootDiagnostics.StorageURI == "" {
 		return []interface{}{}
 	}
 
