@@ -60,7 +60,7 @@ func resourceArmAppConfiguration() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(appconfiguration.SystemAssigned),
 							}, false),
 						},
 						"principal_id": {
