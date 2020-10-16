@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -33,6 +34,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	SettingClient := security.NewSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&SettingClient.Client, o.ResourceManagerAuthorizer)
+	AutomationsClient := azuresdkhacks.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
+
 	AutomationsClient := azuresdkhacks.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
 
