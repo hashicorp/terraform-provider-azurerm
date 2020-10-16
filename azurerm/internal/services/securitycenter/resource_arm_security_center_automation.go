@@ -138,12 +138,14 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 													Required: true,
 												},
 												"operator": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice([]string{string(security.Contains), string(security.EndsWith), string(security.Equals), string(security.GreaterThan), string(security.GreaterThanOrEqualTo), string(security.LesserThan), string(security.LesserThanOrEqualTo), string(security.NotEquals), string(security.StartsWith)}, true),
 												},
 												"property_type": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice([]string{string(security.Integer), string(security.String), string(security.Boolean), string(security.Number)}, true),
 												},
 											},
 										},
@@ -165,14 +167,14 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 
 	// Core resource props
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Security Center automation %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Security Center automation %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -182,14 +184,12 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 	}
 
 	enabled := d.Get("enabled").(bool)
-	description := "Created by Terraform"
 
 	// Build automation struct
 	automation := security.Automation{
 		Location: &location,
 		AutomationProperties: &security.AutomationProperties{
-			IsEnabled:   &enabled,
-			Description: &description,
+			IsEnabled: &enabled,
 		},
 	}
 
@@ -201,7 +201,7 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 		return err
 	}
 
-	automation.AutomationProperties.Sources = expandSources(d.Get("source").([]interface{}))
+	automation.AutomationProperties.Sources, err = expandSources(d.Get("source").([]interface{}))
 	if err != nil {
 		return err
 	}
@@ -211,7 +211,7 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 		Automation: automation,
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, patchedAutomation)
+	resp, err := client.CreateOrUpdate(ctx, resourceGroup, name, patchedAutomation)
 	if err != nil {
 		return fmt.Errorf("Error creating Security Center automation: %+v", err)
 	}
@@ -254,15 +254,27 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 	if properties := resp.AutomationProperties; properties != nil {
 		d.Set("enabled", properties.IsEnabled)
 
-		if err := d.Set("scopes", flattenScopes(properties.Scopes)); err != nil {
+		flatScopes, err := flattenScopes(properties.Scopes)
+		if err != nil {
+			return err
+		}
+		if err := d.Set("scopes", flatScopes); err != nil {
 			return fmt.Errorf("Error reading Security Center automation scopes: %+v", err)
 		}
 
-		if err = d.Set("action", flattenActions(properties.Actions, d)); err != nil {
+		flatActions, err := flattenActions(properties.Actions, d)
+		if err != nil {
+			return err
+		}
+		if err = d.Set("action", flatActions); err != nil {
 			return fmt.Errorf("Error reading Security Center automation actions: %+v", err)
 		}
 
-		if err = d.Set("source", flattenSources(properties.Sources)); err != nil {
+		flatSources, err := flattenSources(properties.Sources)
+		if err != nil {
+			return err
+		}
+		if err = d.Set("source", flatSources); err != nil {
 			return fmt.Errorf("Error reading Security Center automation sources: %+v", err)
 		}
 	}
@@ -295,9 +307,9 @@ func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func expandSources(sourcesRaw []interface{}) *[]security.AutomationSource {
+func expandSources(sourcesRaw []interface{}) (*[]security.AutomationSource, error) {
 	if len(sourcesRaw) == 0 {
-		return &[]security.AutomationSource{}
+		return &[]security.AutomationSource{}, nil
 	}
 
 	// Output is an array of AutomationSource
@@ -307,7 +319,7 @@ func expandSources(sourcesRaw []interface{}) *[]security.AutomationSource {
 	for _, sourceRaw := range sourcesRaw {
 		sourceMap, ok := sourceRaw.(map[string]interface{})
 		if !ok {
-			continue
+			return nil, fmt.Errorf("Security Center automation, unable to decode sources")
 		}
 
 		// Build and parse array of RuleSets
@@ -355,7 +367,7 @@ func expandSources(sourcesRaw []interface{}) *[]security.AutomationSource {
 		output = append(output, source)
 	}
 
-	return &output
+	return &output, nil
 }
 
 func expandScopes(scopePathsRaw []interface{}) *[]security.AutomationScope {
@@ -363,7 +375,7 @@ func expandScopes(scopePathsRaw []interface{}) *[]security.AutomationScope {
 
 	for _, scopePathRaw := range scopePathsRaw {
 		if path, ok := scopePathRaw.(string); ok {
-			desc := fmt.Sprintf("Scope for %s", path)
+			desc := fmt.Sprintf("scope for %s", path)
 			scope := security.AutomationScope{
 				ScopePath:   &path,
 				Description: &desc,
@@ -389,16 +401,6 @@ func expandActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction,
 		var resourceID string
 		var actionType string
 		var ok bool
-
-		// All action types require a resource_id
-		if resourceID, ok = actionMap["resource_id"].(string); !ok || resourceID == "" {
-			return nil, fmt.Errorf("Security Center automation, resource_id is required for action")
-		}
-
-		// Type is important and required
-		if actionType, ok = actionMap["type"].(string); !ok || actionType == "" {
-			return nil, fmt.Errorf("Security Center automation, type is required for action")
-		}
 
 		// Ignore case on type field
 		switch strings.ToLower(actionType) {
@@ -433,7 +435,7 @@ func expandActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction,
 				ActionType:         security.ActionTypeEventHub,
 			}
 		default:
-			continue
+			return nil, fmt.Errorf("Security Center automation, expected action type to be one of: %s, %s or %s", typeEventHub, typeLogAnalytics, typeLogicApp)
 		}
 		output = append(output, autoAction)
 	}
@@ -441,9 +443,9 @@ func expandActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction,
 	return &output, nil
 }
 
-func flattenSources(sources *[]security.AutomationSource) []map[string]interface{} {
+func flattenSources(sources *[]security.AutomationSource) ([]map[string]interface{}, error) {
 	if sources == nil {
-		return make([]map[string]interface{}, 0)
+		return make([]map[string]interface{}, 0), nil
 	}
 
 	resultSlice := make([]map[string]interface{}, 0)
@@ -456,6 +458,12 @@ func flattenSources(sources *[]security.AutomationSource) []map[string]interface
 				ruleSlice := make([]map[string]string, 0)
 
 				for _, rule := range *ruleSet.Rules {
+					if rule.PropertyJPath == nil {
+						return nil, fmt.Errorf("Security Center automation, API returned a rule with an empty PropertyJPath")
+					}
+					if rule.ExpectedValue == nil {
+						return nil, fmt.Errorf("Security Center automation, API returned a rule with empty ExpectedValue")
+					}
 					ruleMap := map[string]string{
 						"property_path":  *rule.PropertyJPath,
 						"expected_value": *rule.ExpectedValue,
@@ -479,29 +487,29 @@ func flattenSources(sources *[]security.AutomationSource) []map[string]interface
 		resultSlice = append(resultSlice, sourceMap)
 	}
 
-	return resultSlice
+	return resultSlice, nil
 }
 
-func flattenScopes(scopes *[]security.AutomationScope) []string {
+func flattenScopes(scopes *[]security.AutomationScope) ([]string, error) {
 	if scopes == nil {
-		return []string{}
+		return []string{}, nil
 	}
 
 	resultSlice := make([]string, 0)
 	for _, scope := range *scopes {
 		if scope.ScopePath == nil {
-			continue
+			return nil, fmt.Errorf("Security Center automation, API returned a scope with an empty ScopePath")
 		}
 
 		resultSlice = append(resultSlice, *scope.ScopePath)
 	}
 
-	return resultSlice
+	return resultSlice, nil
 }
 
-func flattenActions(actions *[]security.BasicAutomationAction, d *schema.ResourceData) []map[string]string {
+func flattenActions(actions *[]security.BasicAutomationAction, d *schema.ResourceData) ([]map[string]string, error) {
 	if actions == nil {
-		return []map[string]string{}
+		return []map[string]string{}, nil
 	}
 
 	// Get existing schema data for actions
@@ -513,6 +521,9 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 		// Use type assertion to discover the underlying action
 		actionLogicApp, isLogicApp := action.(security.AutomationActionLogicApp)
 		if isLogicApp {
+			if actionLogicApp.LogicAppResourceID == nil {
+				return nil, fmt.Errorf("Security Center automation, API returned an action with empty logicAppResourceId")
+			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogicApp.LogicAppResourceID,
 				"type":        "LogicApp",
@@ -534,6 +545,9 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 
 		actionEventHub, isEventHub := action.(security.AutomationActionEventHub)
 		if isEventHub {
+			if actionEventHub.EventHubResourceID == nil {
+				return nil, fmt.Errorf("Security Center automation, API returned an action with empty eventHubResourceId")
+			}
 			actionMap := map[string]string{
 				"resource_id":       *actionEventHub.EventHubResourceID,
 				"type":              "EventHub",
@@ -555,6 +569,9 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 
 		actionLogAnalytics, isLogAnalytics := action.(security.AutomationActionWorkspace)
 		if isLogAnalytics {
+			if actionLogAnalytics.WorkspaceResourceID == nil {
+				return nil, fmt.Errorf("Security Center automation, API returned an action with empty workspaceResourceId")
+			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogAnalytics.WorkspaceResourceID,
 				"type":        "LogAnalytics",
@@ -563,5 +580,5 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 		}
 	}
 
-	return resultSlice
+	return resultSlice, nil
 }
