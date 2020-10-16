@@ -1,17 +1,22 @@
 package compute
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-12-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	msiparse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 	msivalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -410,4 +415,408 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *compute.Disks
 			"write_accelerator_enabled": writeAcceleratorEnabled,
 		},
 	}, nil
+}
+
+func virtualMachineDataDiskSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"local": virtualMachineLocalDataDiskSchema(),
+
+				"existing": virtualMachineExistingDataDiskSchema(),
+			},
+		},
+	}
+}
+
+func virtualMachineLocalDataDiskSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"caching": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.CachingTypesNone),
+						string(compute.CachingTypesReadOnly),
+						string(compute.CachingTypesReadWrite),
+					}, false),
+				},
+
+				"lun": {
+					Type:         schema.TypeInt,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"storage_account_type": {
+					Type:     schema.TypeString,
+					Required: true,
+					// whilst this appears in the Update block the API returns this when changing:
+					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
+					ValidateFunc: validation.StringInSlice([]string{
+						// note: OS Disks don't support Ultra SSDs
+						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesStandardLRS),
+						string(compute.StorageAccountTypesStandardSSDLRS),
+					}, false),
+				},
+
+				"disk_size_gb": {
+					Type:     schema.TypeInt,
+					Required: true,
+					// Max based on P80/S80/E80 Managed Disk type max size
+					ValidateFunc: validation.IntBetween(1, 32767),
+				},
+
+				"disk_encryption_set_id": {
+					Type:     schema.TypeString,
+					Optional: true,
+					// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
+					DiffSuppressFunc: suppress.CaseDifference,
+					ValidateFunc:     validate.DiskEncryptionSetID,
+				},
+
+				"write_accelerator_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+		Set: resourceArmVirtualMachineNewDataDiskHash,
+	}
+}
+
+func virtualMachineExistingDataDiskSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"managed_disk_id": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.ManagedDiskID,
+				},
+
+				"lun": {
+					Type:         schema.TypeInt,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+
+				"caching": {Type: schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.CachingTypesNone),
+						string(compute.CachingTypesReadOnly),
+						string(compute.CachingTypesReadWrite),
+					}, false),
+				},
+
+				"storage_account_type": {
+					Type:     schema.TypeString,
+					Required: true,
+					// whilst this appears in the Update block the API returns this when changing:
+					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
+					ValidateFunc: validation.StringInSlice([]string{
+						// note: OS Disks don't support Ultra SSDs
+						string(compute.StorageAccountTypesPremiumLRS),
+						string(compute.StorageAccountTypesStandardLRS),
+						string(compute.StorageAccountTypesStandardSSDLRS),
+					}, false),
+				},
+
+				"write_accelerator_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineDataDisks(d *schema.ResourceData, meta interface{}) (*[]compute.DataDisk, error) {
+	input, ok := d.GetOk("data_disks")
+	if !ok {
+		return &[]compute.DataDisk{}, nil
+	}
+
+	var err error
+	dataDisksRaw := input.([]interface{})
+
+	result := make([]compute.DataDisk, 0)
+	dataDisks := dataDisksRaw[0].(map[string]interface{})
+	if newDisksRaw, ok := dataDisks["local"]; ok {
+		var newDisks []compute.DataDisk
+		if d.IsNewResource() {
+			newDisks = expandVirtualMachineNewDataDisksForCreate(newDisksRaw)
+		} else {
+			newDisks, err = expandVirtualMachineLocalDataDisksForUpdate(newDisksRaw, d, meta)
+			if err != nil {
+				return nil, err
+			}
+		}
+		result = append(result, newDisks...)
+	}
+
+	if existingDisksRaw, ok := dataDisks["existing"]; ok {
+		existingDisks, err := expandVirtualMachineExistingDataDisksForCreate(existingDisksRaw, d, meta)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, existingDisks...)
+	}
+
+	return &result, nil
+}
+
+func expandVirtualMachineNewDataDisksForCreate(input interface{}) []compute.DataDisk {
+	if input == nil || len(input.(*schema.Set).List()) == 0 {
+		return []compute.DataDisk{}
+	}
+
+	var dataDisks []compute.DataDisk
+
+	for _, v := range input.(*schema.Set).List() {
+		disk := v.(map[string]interface{})
+		dataDisk := compute.DataDisk{
+			Caching:      compute.CachingTypes(disk["caching"].(string)),
+			CreateOption: compute.DiskCreateOptionTypesEmpty,
+			DiskSizeGB:   utils.Int32(int32(disk["disk_size_gb"].(int))),
+			Lun:          utils.Int32(int32(disk["lun"].(int))),
+			Name:         utils.String(disk["name"].(string)),
+			ManagedDisk: &compute.ManagedDiskParameters{
+				StorageAccountType: compute.StorageAccountTypes(disk["storage_account_type"].(string)),
+			},
+		}
+		if diskEncryptionSetID, ok := disk["disk_encryption_set_id"].(string); ok && diskEncryptionSetID != "" {
+			dataDisk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+				ID: utils.String(diskEncryptionSetID),
+			}
+		}
+		dataDisks = append(dataDisks, dataDisk)
+	}
+
+	return dataDisks
+}
+
+func expandVirtualMachineLocalDataDisksForUpdate(input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
+	if input == nil || len(input.(*schema.Set).List()) == 0 {
+		return []compute.DataDisk{}, nil
+	}
+
+	diskClient := meta.(*clients.Client).Compute.DisksClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	var dataDisks []compute.DataDisk
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	for _, v := range input.(*schema.Set).List() {
+		disk := v.(map[string]interface{})
+		name := disk["name"].(string)
+		// this filters out the ghost entry we get from the set - less than ideal
+		if name == "" {
+			continue
+		}
+
+		current, err := diskClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return nil, fmt.Errorf("failure reading Data Disk %q (resource group %q) for update: %+v", name, resourceGroup, err)
+		}
+
+		if current.ID == nil {
+			return nil, fmt.Errorf("could not determine ID for Data Disk %q (resource group %q) for update: %+v", name, resourceGroup, err)
+		}
+
+		dataDisk := compute.DataDisk{
+			Caching:      compute.CachingTypes(disk["caching"].(string)),
+			CreateOption: compute.DiskCreateOptionTypesEmpty,
+			DiskSizeGB:   utils.Int32(int32(disk["disk_size_gb"].(int))),
+			Lun:          utils.Int32(int32(disk["lun"].(int))),
+			Name:         utils.String(name),
+			ManagedDisk: &compute.ManagedDiskParameters{
+				ID:                 current.ID,
+				StorageAccountType: compute.StorageAccountTypes(disk["storage_account_type"].(string)),
+			},
+		}
+		if diskEncryptionSetID, ok := disk["disk_encryption_set_id"]; ok && diskEncryptionSetID != "" {
+			dataDisk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
+				ID: utils.String(diskEncryptionSetID.(string)),
+			}
+		}
+		if writeAcceleratorEnabled, ok := disk["write_accelerator_enabled"]; ok {
+			dataDisk.WriteAcceleratorEnabled = utils.Bool(writeAcceleratorEnabled.(bool))
+		}
+
+		dataDisks = append(dataDisks, dataDisk)
+	}
+
+	return dataDisks, nil
+}
+
+func expandVirtualMachineExistingDataDisksForCreate(input interface{}, d *schema.ResourceData, meta interface{}) ([]compute.DataDisk, error) {
+	if input == nil || len(input.(*schema.Set).List()) == 0 {
+		return []compute.DataDisk{}, nil
+	}
+
+	disksClient := meta.(*clients.Client).Compute.DisksClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	var dataDisks []compute.DataDisk
+
+	for _, v := range input.(*schema.Set).List() {
+		disk := v.(map[string]interface{})
+		diskIDRaw := disk["managed_disk_id"].(string)
+
+		diskID, err := parse.ManagedDiskID(diskIDRaw)
+		if err != nil {
+			if d.IsNewResource() {
+				return nil, err
+			}
+			continue
+		}
+		existing, err := disksClient.Get(ctx, diskID.ResourceGroup, diskID.DiskName)
+		if err != nil {
+			return nil, fmt.Errorf("failed retrieving details for existing Managed Disk %q (resource group %q: %+v", diskID.DiskName, diskID.ResourceGroup, err)
+		}
+		dataDisk := compute.DataDisk{}
+		dataDisk.Name = &diskID.DiskName
+		dataDisk.CreateOption = compute.DiskCreateOptionTypesAttach
+
+		if existing.DiskSizeGB == nil {
+			return nil, fmt.Errorf("failed reading `disk_size_gb` from existing Managed Disk %q (resource group %q)", diskID.DiskName, diskID.ResourceGroup)
+		}
+		dataDisk.DiskSizeGB = existing.DiskSizeGB
+
+		dataDisk.Caching = compute.CachingTypes(disk["caching"].(string))
+		dataDisk.Lun = utils.Int32(int32(disk["lun"].(int)))
+		dataDisk.ManagedDisk = &compute.ManagedDiskParameters{
+			StorageAccountType: compute.StorageAccountTypes(disk["storage_account_type"].(string)),
+			ID:                 utils.String(diskIDRaw),
+		}
+
+		if writeAcceleratorEnabled, ok := disk["write_accelerator_enabled"]; ok {
+			dataDisk.WriteAcceleratorEnabled = utils.Bool(writeAcceleratorEnabled.(bool))
+		}
+
+		dataDisks = append(dataDisks, dataDisk)
+	}
+
+	return dataDisks, nil
+}
+
+func flattenVirtualMachineDataDisks(input *[]compute.DataDisk) ([]interface{}, error) {
+	if len(*input) == 0 {
+		return []interface{}{}, nil
+	}
+
+	var newDisks []interface{}
+	var existingDisks []interface{}
+	// we need to split into new and "existing", we can use `createOption` as indicator
+
+	for _, v := range *input {
+		dataDisk := make(map[string]interface{})
+
+		lun := 0
+		if v.Lun != nil {
+			lun = int(*v.Lun)
+		}
+		dataDisk["lun"] = lun
+		dataDisk["caching"] = string(v.Caching)
+
+		storageAccountType := ""
+		encryptionSetId := ""
+		managedDiskID := ""
+
+		writeAcceleratorEnabled := false
+		if v.WriteAcceleratorEnabled != nil {
+			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
+		}
+		dataDisk["write_accelerator_enabled"] = writeAcceleratorEnabled
+
+		createOption := v.CreateOption
+
+		switch createOption {
+		case compute.DiskCreateOptionTypesEmpty:
+			name := ""
+			if v.Name != nil {
+				name = *v.Name
+			}
+			dataDisk["name"] = name
+
+			if managedDisk := v.ManagedDisk; managedDisk != nil {
+				storageAccountType = string(managedDisk.StorageAccountType)
+				if managedDisk.DiskEncryptionSet != nil && managedDisk.DiskEncryptionSet.ID != nil {
+					encryptionSetId = *managedDisk.DiskEncryptionSet.ID
+				}
+			}
+			dataDisk["storage_account_type"] = storageAccountType
+			dataDisk["disk_encryption_set_id"] = encryptionSetId
+
+			diskSizeGB := 0
+			if v.DiskSizeGB != nil {
+				diskSizeGB = int(*v.DiskSizeGB)
+			}
+			dataDisk["disk_size_gb"] = diskSizeGB
+
+			newDisks = append(newDisks, dataDisk)
+
+		case compute.DiskCreateOptionTypesAttach:
+			if managedDisk := v.ManagedDisk; managedDisk != nil {
+				storageAccountType = string(managedDisk.StorageAccountType)
+				if managedDisk.ID != nil {
+					managedDiskID = *managedDisk.ID
+				}
+			}
+			dataDisk["storage_account_type"] = storageAccountType
+
+			dataDisk["managed_disk_id"] = managedDiskID
+			existingDisks = append(existingDisks, dataDisk)
+
+		default:
+			return nil, fmt.Errorf("unsupported `createOption` type while flattening: %s", string(createOption))
+		}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"local":    schema.NewSet(resourceArmVirtualMachineNewDataDiskHash, newDisks),
+			"existing": existingDisks,
+		},
+	}, nil
+}
+
+func resourceArmVirtualMachineNewDataDiskHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["caching"].(string)))
+		buf.WriteString(fmt.Sprintf("%d-", m["lun"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["storage_account_type"].(string)))
+		buf.WriteString(fmt.Sprintf("%d-", m["disk_size_gb"].(int)))
+		// Due to potential case diff in API response needs to be normalised
+		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["disk_encryption_set_id"].(string))))
+		buf.WriteString(fmt.Sprintf("%t-", m["write_accelerator_enabled"].(bool)))
+	}
+
+	return hashcode.String(buf.String())
 }

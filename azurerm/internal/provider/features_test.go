@@ -66,8 +66,9 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": true,
-							"graceful_shutdown":          true,
+							"delete_data_disk_on_deletion": true,
+							"delete_os_disk_on_deletion":   true,
+							"graceful_shutdown":            true,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
@@ -106,8 +107,9 @@ func TestExpandFeatures(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": false,
-							"graceful_shutdown":          false,
+							"delete_data_disk_on_deletion": false,
+							"delete_os_disk_on_deletion":   false,
+							"graceful_shutdown":            false,
 						},
 					},
 					"network_locking": []interface{}{
@@ -399,8 +401,9 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": true,
-							"graceful_shutdown":          true,
+							"delete_data_disk_on_deletion": true,
+							"delete_os_disk_on_deletion":   true,
+							"graceful_shutdown":            true,
 						},
 					},
 				},
@@ -418,8 +421,9 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
-							"delete_os_disk_on_deletion": false,
-							"graceful_shutdown":          false,
+							"delete_data_disk_on_deletion": false,
+							"delete_os_disk_on_deletion":   false,
+							"graceful_shutdown":            false,
 						},
 					},
 				},

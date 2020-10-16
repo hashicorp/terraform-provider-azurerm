@@ -10,8 +10,9 @@ type UserFeatures struct {
 }
 
 type VirtualMachineFeatures struct {
-	DeleteOSDiskOnDeletion bool
-	GracefulShutdown       bool
+	DeleteDataDiskOnDeletion bool
+	DeleteOSDiskOnDeletion   bool
+	GracefulShutdown         bool
 }
 
 type VirtualMachineScaleSetFeatures struct {
