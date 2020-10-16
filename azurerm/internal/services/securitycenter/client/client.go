@@ -34,8 +34,6 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	SettingClient := security.NewSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&SettingClient.Client, o.ResourceManagerAuthorizer)
-	AutomationsClient := azuresdkhacks.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
-	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
 
 	AutomationsClient := azuresdkhacks.NewAutomationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AutomationsClient.Client, o.ResourceManagerAuthorizer)
