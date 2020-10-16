@@ -45,6 +45,8 @@ The following attributes are exported:
 
 * `kind` - The Kind of the CosmosDB account.
 
+* `key_vault_key_uri` - The Key Vault URI for encryption
+
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
 * `enable_free_tier` - If Free Tier pricing option is enabled for this CosmosDB Account.

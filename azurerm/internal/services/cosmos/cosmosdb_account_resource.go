@@ -117,6 +117,13 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				Default:  false,
 			},
 
+			"key_vault_key_uri": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsURLWithHTTPS,
+			},
+
 			"consistency_policy": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -372,6 +379,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	keyVaultKeyURI := d.Get("key_vault_key_uri").(string)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -403,6 +411,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
+			KeyVaultKeyURI:                &keyVaultKeyURI,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -594,6 +603,10 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	if v := resp.EnableAutomaticFailover; v != nil {
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
+	}
+
+	if v := resp.KeyVaultKeyURI; v != nil {
+		d.Set("key_vault_key_uri", resp.KeyVaultKeyURI)
 	}
 
 	if v := resp.EnableMultipleWriteLocations; v != nil {

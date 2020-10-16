@@ -92,6 +92,8 @@ The following arguments are supported:
 
 * `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
 
+* `key_vault_key_uri` - (Optional) A Key Vault URI for encryption eg. `https://<vault-name>.vault.azure.net/keys/<key-name>` 
+
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
 
 * `enable_multiple_write_locations` - (Optional) Enable multi-master support for this Cosmos DB account.
