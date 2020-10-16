@@ -56,14 +56,20 @@ func resourceArmVirtualHub() *schema.Resource {
 
 			"address_prefix": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CIDR,
 			},
 
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"virtual_wan_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
@@ -123,21 +129,29 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	addressPrefix := d.Get("address_prefix").(string)
-	virtualWanId := d.Get("virtual_wan_id").(string)
 	route := d.Get("route").(*schema.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.VirtualHub{
 		Location: utils.String(location),
 		VirtualHubProperties: &network.VirtualHubProperties{
-			AddressPrefix: utils.String(addressPrefix),
-			VirtualWan: &network.SubResource{
-				ID: &virtualWanId,
-			},
 			RouteTable: expandArmVirtualHubRoute(route),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("address_prefix"); ok {
+		parameters.VirtualHubProperties.AddressPrefix = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("sku"); ok {
+		parameters.VirtualHubProperties.Sku = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("virtual_wan_id"); ok {
+		parameters.VirtualHubProperties.VirtualWan = &network.SubResource{
+			ID: utils.String(v.(string)),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -157,7 +171,7 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 	timeout, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Provisioning"},
-		Target:                    []string{"Provisioned", "Failed"},
+		Target:                    []string{"Provisioned", "Failed", "None"},
 		Refresh:                   virtualHubCreateRefreshFunc(ctx, client, resourceGroup, name),
 		PollInterval:              15 * time.Second,
 		ContinuousTargetOccurence: 3,
@@ -204,6 +218,7 @@ func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	if props := resp.VirtualHubProperties; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
+		d.Set("sku", props.Sku)
 
 		if err := d.Set("route", flattenArmVirtualHubRoute(props.RouteTable)); err != nil {
 			return fmt.Errorf("Error setting `route`: %+v", err)

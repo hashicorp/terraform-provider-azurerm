@@ -157,10 +157,7 @@ func testAccAzureRMVirtualHubIPConfiguration_basic(data acceptance.TestData) str
 
 resource "azurerm_virtual_hub_ip_configuration" "test" {
   name                         = "acctest-vhubipconfig-%d"
-  virtual_hub_id               = azurerm_virtual_hub.test.id  
-  private_ip_address           = "10.5.1.17"
-  private_ip_allocation_method = "Static"
-  public_ip_address_id         = azurerm_public_ip.test.id
+  virtual_hub_id               = azurerm_virtual_hub.test.id
   subnet_id                    = azurerm_subnet.test.id
 }
 `, template, data.RandomInteger)
@@ -185,8 +182,8 @@ func testAccAzureRMVirtualHubIPConfiguration_complete(data acceptance.TestData) 
 
 resource "azurerm_virtual_hub_ip_configuration" "test" {
   name                         = "acctest-vhubipconfig-%d"
-  virtual_hub_id               = azurerm_virtual_hub.test.id  
-  private_ip_address           = "10.5.1.17"
+  virtual_hub_id               = azurerm_virtual_hub.test.id
+  private_ip_address           = "10.5.1.18"
   private_ip_allocation_method = "Static"
   public_ip_address_id         = azurerm_public_ip.test.id
   subnet_id                    = azurerm_subnet.test.id

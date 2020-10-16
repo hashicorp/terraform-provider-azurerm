@@ -10,6 +10,8 @@ description: |-
 
 Manages a Virtual Hub IP Configuration.
 
+~> **NOTE** Virtual Hub IP Configuration only supports Standard Virtual Hub without Virtual Wan.
+
 ## Example Usage
 
 ```hcl
@@ -18,18 +20,11 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_virtual_wan" "example" {
-  name                = "example-vwan"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-}
-
 resource "azurerm_virtual_hub" "example" {
   name                = "example-vhub"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  virtual_wan_id      = azurerm_virtual_wan.example.id
-  address_prefix      = "10.0.1.0/24"
+  sku                 = "Standard"
 }
 
 resource "azurerm_public_ip" "example" {
@@ -54,10 +49,10 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_virtual_hub_ip_configuration" "example" {
-  name                         = "example-vhub-ipconfig"
-  virtual_hub_id               = azurerm_virtual_hub.example.id
-  private_ip_address           = "10.5.1.17"
-  private_ip_allocation_method = "Dynamic"
+  name                         = "example-vhubipconfig"
+  virtual_hub_id               = azurerm_virtual_hub.example.id  
+  private_ip_address           = "10.5.1.18"
+  private_ip_allocation_method = "Static"
   public_ip_address_id         = azurerm_public_ip.example.id
   subnet_id                    = azurerm_subnet.example.id
 }
@@ -73,13 +68,13 @@ The following arguments are supported:
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this ip configuration should be created. Changing this forces a new resource to be created.
 
+* `subnet_id` - (Required) The ID of the Subnet. Changing this forces a new resource to be created.
+
 * `private_ip_address` - (Optional) The private IP address of the IP configuration.
 
 * `private_ip_allocation_method` - (Optional) The private IP address allocation method. Possible values are `Static` and `Dynamic` is allowed.
 
 * `public_ip_address_id` - (Optional) The ID of the Public IP Address.
-
-* `subnet_id` - (Optional) The ID of the Subnet.
 
 ## Attributes Reference
 

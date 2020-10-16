@@ -26,10 +26,10 @@ func resourceArmVirtualHubIPConfiguration() *schema.Resource {
 		Delete: resourceArmVirtualHubIPConfigurationDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -51,6 +51,13 @@ func resourceArmVirtualHubIPConfiguration() *schema.Resource {
 				ValidateFunc: networkValidate.ValidateVirtualHubID,
 			},
 
+			"subnet_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: networkValidate.SubnetID,
+			},
+
 			"private_ip_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -70,12 +77,6 @@ func resourceArmVirtualHubIPConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: networkValidate.PublicIPAddressID,
-			},
-
-			"subnet_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: networkValidate.SubnetID,
 			},
 		},
 	}
@@ -109,8 +110,12 @@ func resourceArmVirtualHubIPConfigurationCreateUpdate(d *schema.ResourceData, me
 	}
 
 	parameters := network.HubIPConfiguration{
-		Name:                               utils.String(d.Get("name").(string)),
-		HubIPConfigurationPropertiesFormat: &network.HubIPConfigurationPropertiesFormat{},
+		Name: utils.String(d.Get("name").(string)),
+		HubIPConfigurationPropertiesFormat: &network.HubIPConfigurationPropertiesFormat{
+			Subnet: &network.Subnet{
+				ID: utils.String(d.Get("subnet_id").(string)),
+			},
+		},
 	}
 
 	if v, ok := d.GetOk("private_ip_address"); ok {
@@ -123,12 +128,6 @@ func resourceArmVirtualHubIPConfigurationCreateUpdate(d *schema.ResourceData, me
 
 	if v, ok := d.GetOk("public_ip_address_id"); ok {
 		parameters.HubIPConfigurationPropertiesFormat.PublicIPAddress = &network.PublicIPAddress{
-			ID: utils.String(v.(string)),
-		}
-	}
-
-	if v, ok := d.GetOk("subnet_id"); ok {
-		parameters.HubIPConfigurationPropertiesFormat.Subnet = &network.Subnet{
 			ID: utils.String(v.(string)),
 		}
 	}
