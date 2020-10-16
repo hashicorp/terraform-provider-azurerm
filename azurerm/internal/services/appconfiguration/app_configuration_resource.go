@@ -449,7 +449,9 @@ func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface
 
 func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.ResourceIdentity {
 	if len(identities) == 0 {
-		return &appconfiguration.ResourceIdentity{}
+		return &appconfiguration.ResourceIdentity{
+		   Type: appconfiguration.None,
+		}
 	}
 	identity := identities[0].(map[string]interface{})
 	identityType := appconfiguration.IdentityType(identity["type"].(string))
