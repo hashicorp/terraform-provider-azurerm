@@ -26,10 +26,10 @@ func resourceArmVirtualHubIPConfiguration() *schema.Resource {
 		Delete: resourceArmVirtualHubIPConfigurationDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -67,6 +67,7 @@ func resourceArmVirtualHubIPConfiguration() *schema.Resource {
 			"private_ip_allocation_method": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  network.Dynamic,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.Dynamic),
 					string(network.Static),

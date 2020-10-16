@@ -50,7 +50,7 @@ resource "azurerm_subnet" "example" {
 
 resource "azurerm_virtual_hub_ip_configuration" "example" {
   name                         = "example-vhubipconfig"
-  virtual_hub_id               = azurerm_virtual_hub.example.id  
+  virtual_hub_id               = azurerm_virtual_hub.example.id
   private_ip_address           = "10.5.1.18"
   private_ip_allocation_method = "Static"
   public_ip_address_id         = azurerm_public_ip.example.id
@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `private_ip_address` - (Optional) The private IP address of the IP configuration.
 
-* `private_ip_allocation_method` - (Optional) The private IP address allocation method. Possible values are `Static` and `Dynamic` is allowed.
+* `private_ip_allocation_method` - (Optional) The private IP address allocation method. Possible values are `Static` and `Dynamic` is allowed. Defaults to `Dynamic`.
 
 * `public_ip_address_id` - (Optional) The ID of the Public IP Address.
 
@@ -86,10 +86,10 @@ The following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Virtual Hub IP Configuration.
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub IP Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub IP Configuration.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Hub IP Configuration.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Hub IP Configuration.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Hub IP Configuration.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Hub IP Configuration.
 
 ## Import
 

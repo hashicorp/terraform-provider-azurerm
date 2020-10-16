@@ -156,9 +156,9 @@ func testAccAzureRMVirtualHubIPConfiguration_basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_virtual_hub_ip_configuration" "test" {
-  name                         = "acctest-vhubipconfig-%d"
-  virtual_hub_id               = azurerm_virtual_hub.test.id
-  subnet_id                    = azurerm_subnet.test.id
+  name           = "acctest-vhubipconfig-%d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+  subnet_id      = azurerm_subnet.test.id
 }
 `, template, data.RandomInteger)
 }
@@ -171,6 +171,7 @@ func testAccAzureRMVirtualHubIPConfiguration_requiresImport(data acceptance.Test
 resource "azurerm_virtual_hub_ip_configuration" "import" {
   name           = azurerm_virtual_hub_ip_configuration.test.name
   virtual_hub_id = azurerm_virtual_hub_ip_configuration.test.virtual_hub_id
+  subnet_id      = azurerm_virtual_hub_ip_configuration.test.subnet_id
 }
 `, template)
 }
@@ -198,47 +199,36 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vhub-%d"
+  name     = "acctestRG-vhubipconfig-%d"
   location = "%s"
 }
 
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctest-vhub-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-pip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Dynamic"
+}
+
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-virtnet%d"
+  name                = "acctest-vnet-%d"
   address_space       = ["10.5.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_network_security_group" "test" {
-  name                = "acctestnsg%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
+  name                 = "acctest-subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.1.0/24"]
+  address_prefix       = "10.5.1.0/24"
 }
-
-resource "azurerm_subnet_network_security_group_association" "test" {
-  subnet_id                 = azurerm_subnet.test.id
-  network_security_group_id = azurerm_network_security_group.test.id
-}
-
-resource "azurerm_virtual_wan" "test" {
-  name                = "acctest-vwan-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_virtual_hub" "test" {
-  name                = "acctest-VHUB-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  virtual_wan_id      = azurerm_virtual_wan.test.id
-  address_prefix      = "10.0.2.0/24"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
