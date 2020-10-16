@@ -447,8 +447,7 @@ func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface
 	}
 }
 
-func expandAppConfigurationIdentity(d *schema.ResourceData) *appconfiguration.ResourceIdentity {
-	identities := d.Get("identity").([]interface{})
+func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.ResourceIdentity {
 	if len(identities) == 0 {
 		return &appconfiguration.ResourceIdentity{}
 	}
