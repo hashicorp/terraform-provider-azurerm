@@ -17,11 +17,11 @@ func ServiceFabricMeshNetworkID(input string) (*ServiceFabricMeshNetworkId, erro
 		return nil, fmt.Errorf("[ERROR] Unable to parse Service Fabric Mesh Network ID %q: %+v", input, err)
 	}
 
-	cluster := ServiceFabricMeshNetworkId{
+	network := ServiceFabricMeshNetworkId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if cluster.Name, err = id.PopSegment("networks"); err != nil {
+	if network.Name, err = id.PopSegment("networks"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +29,5 @@ func ServiceFabricMeshNetworkID(input string) (*ServiceFabricMeshNetworkId, erro
 		return nil, err
 	}
 
-	return &cluster, nil
+	return &network, nil
 }
