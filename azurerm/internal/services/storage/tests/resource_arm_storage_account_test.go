@@ -622,6 +622,13 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMStorageAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMStorageAccount_blobProperties(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
@@ -636,6 +643,13 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.cors_rule.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.delete_retention_policy.0.days", "7"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -946,7 +960,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-    %s
+        %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1692,6 +1706,11 @@ resource "azurerm_storage_account" "test" {
     delete_retention_policy {
       days = 300
     }
+    versioning_enabled  = true
+    change_feed_enabled = true
+    restore_policy {
+      days = 5
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1735,6 +1754,8 @@ resource "azurerm_storage_account" "test" {
 
     delete_retention_policy {
     }
+
+    versioning_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

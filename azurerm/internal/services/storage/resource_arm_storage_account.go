@@ -267,6 +267,31 @@ func resourceArmStorageAccount() *schema.Resource {
 								},
 							},
 						},
+						"versioning_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"change_feed_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"restore_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -748,13 +773,16 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		if accountKind != string(storage.FileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
 
-			blobProperties := expandBlobProperties(val.([]interface{}))
+			blobProperties, err := expandBlobProperties(val.([]interface{}))
+			if err != nil {
+				return err
+			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
-				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+				return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
 		} else {
-			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
+			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts")
 		}
 	}
 
@@ -1002,13 +1030,16 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+			blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+			if err != nil {
+				return err
+			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
-				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+				return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
 			}
 		} else {
-			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
+			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts")
 		}
 	}
 
@@ -1235,7 +1266,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
-			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
+			return fmt.Errorf("setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
 		}
 	}
 
@@ -1457,7 +1488,7 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
+func expandBlobProperties(input []interface{}) (storage.BlobServiceProperties, error) {
 	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
 			Cors: &storage.CorsRules{
@@ -1466,11 +1497,14 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
+			RestorePolicy: &storage.RestorePolicyProperties{
+				Enabled: utils.Bool(false),
+			},
 		},
 	}
 
 	if len(input) == 0 || input[0] == nil {
-		return props
+		return props, nil
 	}
 
 	v := input[0].(map[string]interface{})
@@ -1481,7 +1515,22 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
-	return props
+	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
+	props.ChangeFeed = &storage.ChangeFeed{
+		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
+	}
+
+	// delete retention policy, versioning and change feed must be enabled when restore policy is enabled
+	if restoreRaw, ok := v["restore_policy"]; ok {
+		if restore := restoreRaw.([]interface{}); len(restore) > 0 && (!*props.BlobServicePropertiesProperties.DeleteRetentionPolicy.Enabled || !*props.IsVersioningEnabled || !*props.ChangeFeed.Enabled) {
+			return props, fmt.Errorf("`delete_retention_policy` and `versioning_enabled` and `change_feed_enabled` must be enabled when `restore_policy` is enabled")
+
+		}
+	}
+
+	props.RestorePolicy = expandBlobPropertiesRestorePolicy(v["restore_policy"].([]interface{}))
+
+	return props, nil
 }
 
 func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
@@ -1499,6 +1548,23 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 	deleteRetentionPolicy.Days = utils.Int32(int32(days))
 
 	return &deleteRetentionPolicy
+}
+
+func expandBlobPropertiesRestorePolicy(input []interface{}) *storage.RestorePolicyProperties {
+	restorePolicy := storage.RestorePolicyProperties{
+		Enabled: utils.Bool(false),
+	}
+
+	if len(input) == 0 {
+		return &restorePolicy
+	}
+
+	policy := input[0].(map[string]interface{})
+	days := policy["days"].(int)
+	restorePolicy.Enabled = utils.Bool(true)
+	restorePolicy.Days = utils.Int32(int32(days))
+
+	return &restorePolicy
 }
 
 func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
@@ -1744,14 +1810,29 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 {
-		return []interface{}{}
+	flattenedRestorePolicy := make([]interface{}, 0)
+	if restorePolicy := input.BlobServicePropertiesProperties.RestorePolicy; restorePolicy != nil {
+		flattenedRestorePolicy = flattenBlobPropertiesRestorePolicy(restorePolicy)
+	}
+
+	versioning := false
+	change_feed_enabled := false
+	if props := input.BlobServicePropertiesProperties; props != nil {
+		if props.IsVersioningEnabled != nil {
+			versioning = *props.IsVersioningEnabled
+		}
+		if props.ChangeFeed != nil && props.ChangeFeed.Enabled != nil {
+			change_feed_enabled = *props.ChangeFeed.Enabled
+		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"cors_rule":               flattenedCorsRules,
 			"delete_retention_policy": flattenedDeletePolicy,
+			"versioning_enabled":      versioning,
+			"change_feed_enabled":     change_feed_enabled,
+			"restore_policy":          flattenedRestorePolicy,
 		},
 	}
 }
@@ -1820,6 +1901,27 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	}
 
 	return deleteRetentionPolicy
+}
+
+func flattenBlobPropertiesRestorePolicy(input *storage.RestorePolicyProperties) []interface{} {
+	restorePolicy := make([]interface{}, 0)
+
+	if input == nil {
+		return restorePolicy
+	}
+
+	if enabled := input.Enabled; enabled != nil && *enabled {
+		days := 0
+		if input.Days != nil {
+			days = int(*input.Days)
+		}
+
+		restorePolicy = append(restorePolicy, map[string]interface{}{
+			"days": days,
+		})
+	}
+
+	return restorePolicy
 }
 
 func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
