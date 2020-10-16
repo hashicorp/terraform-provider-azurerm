@@ -1,7 +1,6 @@
 package client
 
 import (
-	networkLegacy "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
@@ -21,8 +20,8 @@ type Client struct {
 	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
 	IPGroupsClient                       *network.IPGroupsClient
-	LoadBalancersClient                  *networkLegacy.LoadBalancersClient
-	LoadBalancerLoadBalancingRulesClient *networkLegacy.LoadBalancerLoadBalancingRulesClient
+	LoadBalancersClient                  *network.LoadBalancersClient
+	LoadBalancerLoadBalancingRulesClient *network.LoadBalancerLoadBalancingRulesClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
 	PointToSiteVpnGatewaysClient         *network.P2sVpnGatewaysClient
 	ProfileClient                        *network.ProfilesClient
@@ -97,10 +96,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	IpGroupsClient := network.NewIPGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&IpGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	LoadBalancersClient := networkLegacy.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	LoadBalancersClient := network.NewLoadBalancersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LoadBalancersClient.Client, o.ResourceManagerAuthorizer)
 
-	LoadBalancerLoadBalancingRulesClient := networkLegacy.NewLoadBalancerLoadBalancingRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	LoadBalancerLoadBalancingRulesClient := network.NewLoadBalancerLoadBalancingRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LoadBalancerLoadBalancingRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
