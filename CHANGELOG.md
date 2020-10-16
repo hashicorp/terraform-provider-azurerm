@@ -11,6 +11,7 @@ FEATURES:
 
 * **New data source:** `azurerm_mysql_server` ([#8787](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8787))
 * **New resource:** `azurerm_security_center_setting` ([#8783](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8783))
+* **New Resource:** `azurerm_service_fabric_mesh_local_network` [GH-8838]
 * **New resource:** `azurerm_eventgrid_system_topic` ([#8735](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8735))
 
 IMPROVEMENTS:
