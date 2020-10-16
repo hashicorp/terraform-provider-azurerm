@@ -344,7 +344,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
 
 	if err := d.Set("identity", flattenAppConfigurationIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error flattening `identity`: %+v", err)
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
