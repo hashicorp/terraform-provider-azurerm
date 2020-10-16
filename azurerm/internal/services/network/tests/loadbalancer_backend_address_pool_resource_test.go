@@ -35,6 +35,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 
@@ -103,6 +104,29 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_disappears(t *testing.T) {
 				),
 				ExpectNonEmptyPlan: true,
 			},
+		},
+	})
+}
+
+func TestAccAzureRMLoadBalancerBackEndAddressPool_withNIC(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+
+	var lb network.LoadBalancer
+	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerBackEndAddressPool_withNIC(data, addressPoolName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -192,9 +216,8 @@ resource "azurerm_lb" "test" {
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "%s"
+  loadbalancer_id = azurerm_lb.test.id
+  name            = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, addressPoolName)
 }
@@ -205,9 +228,8 @@ func testAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(data acceptance
 %s
 
 resource "azurerm_lb_backend_address_pool" "import" {
-  name                = azurerm_lb_backend_address_pool.test.name
-  loadbalancer_id     = azurerm_lb_backend_address_pool.test.loadbalancer_id
-  resource_group_name = azurerm_lb_backend_address_pool.test.resource_group_name
+  name            = azurerm_lb_backend_address_pool.test.name
+  loadbalancer_id = azurerm_lb_backend_address_pool.test.loadbalancer_id
 }
 `, template)
 }
@@ -241,4 +263,117 @@ resource "azurerm_lb" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMLoadBalancerBackEndAddressPool_withNIC(data acceptance.TestData, addressPoolName string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVnet-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestSubnet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestPip-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestLB-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "PublicIPAddress"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "%[3]s"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_lb_outbound_rule" "test" {
+  name                    = "acctestOR-%[1]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  loadbalancer_id         = azurerm_lb.test.id
+  protocol                = "Tcp"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.test.id
+
+  frontend_ip_configuration {
+    name = "PublicIPAddress"
+  }
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                   = "acctestVMSS-%[1]d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  upgrade_policy_mode    = "Automatic"
+  overprovision          = false
+  single_placement_group = true
+
+  sku {
+    name     = "Standard_B2ms"
+    tier     = "Standard"
+    capacity = 3
+  }
+
+  storage_profile_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-datacenter-core-smalldisk-g2"
+    version   = "latest"
+  }
+
+  storage_profile_os_disk {
+    create_option     = "FromImage"
+    caching           = "ReadWrite"
+    managed_disk_type = "Premium_LRS"
+  }
+
+  os_profile {
+    computer_name_prefix = "prefix"
+    admin_username       = "azureuser"
+    admin_password       = "Qwerty12345!"
+  }
+
+  os_profile_windows_config {
+    provision_vm_agent        = true
+    enable_automatic_upgrades = false
+  }
+
+  network_profile {
+    name    = "primary"
+    primary = true
+
+    ip_configuration {
+      name      = "primary"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [
+        azurerm_lb_backend_address_pool.test.id
+      ]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, addressPoolName)
 }

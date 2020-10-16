@@ -39,9 +39,8 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_lb_backend_address_pool" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  loadbalancer_id     = azurerm_lb.example.id
-  name                = "BackEndAddressPool"
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "BackEndAddressPool"
 }
 ```
 
@@ -50,7 +49,7 @@ resource "azurerm_lb_backend_address_pool" "example" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Backend Address Pool.
-* `resource_group_name` - (Required) The name of the resource group in which to create the resource.
+* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the resource.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
 
 ## Attributes Reference
@@ -62,6 +61,8 @@ The following attributes are exported:
 * `backend_ip_configurations` - The Backend IP Configurations associated with this Backend Address Pool.
 
 * `load_balancing_rules` - The Load Balancing Rules associated with this Backend Address Pool.
+
+* `outbound_rules` - The Load Balancing Outbound Rules associated with this Backend Address Pool.
 
 ## Timeouts
 

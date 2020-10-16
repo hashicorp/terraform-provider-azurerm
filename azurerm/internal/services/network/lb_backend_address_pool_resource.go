@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -15,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
@@ -49,7 +50,8 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO 3.0: remove this as resource_group is determined from "loadbalancer_id"
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"loadbalancer_id": {
 				Type:         schema.TypeString,
@@ -59,23 +61,30 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 			},
 
 			"backend_ip_configurations": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				Set: schema.HashString,
 			},
 
 			"load_balancing_rules": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				Set: schema.HashString,
+			},
+
+			"outbound_rules": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 		},
 	}
@@ -190,6 +199,7 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 
 	var backendIpConfigurations []string
 	var loadBalancingRules []string
+	var outboundRules []string
 
 	if props := config.BackendAddressPoolPropertiesFormat; props != nil {
 		if configs := props.BackendIPConfigurations; configs != nil {
@@ -203,10 +213,17 @@ func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta 
 				loadBalancingRules = append(loadBalancingRules, *rule.ID)
 			}
 		}
+
+		if rules := props.OutboundRules; rules != nil {
+			for _, rule := range *rules {
+				outboundRules = append(outboundRules, *rule.ID)
+			}
+		}
 	}
 
 	d.Set("backend_ip_configurations", backendIpConfigurations)
 	d.Set("load_balancing_rules", loadBalancingRules)
+	d.Set("outbound_rules", outboundRules)
 
 	return nil
 }
