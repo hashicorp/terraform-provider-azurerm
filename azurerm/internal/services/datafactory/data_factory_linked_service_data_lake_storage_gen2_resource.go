@@ -58,21 +58,27 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 				ValidateFunc: validation.IsURLWithHTTPS,
 			},
 
+			"use_managed_identity": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"service_principal_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"service_principal_key": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"tenant": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -137,16 +143,39 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schem
 		}
 	}
 
-	secureString := datafactory.SecureString{
-		Value: utils.String(d.Get("service_principal_key").(string)),
-		Type:  datafactory.TypeSecureString,
-	}
+	var datalakeStorageGen2Properties *datafactory.AzureBlobFSLinkedServiceTypeProperties
 
-	datalakeStorageGen2Properties := &datafactory.AzureBlobFSLinkedServiceTypeProperties{
-		URL:                 utils.String(d.Get("url").(string)),
-		ServicePrincipalID:  utils.String(d.Get("service_principal_id").(string)),
-		Tenant:              utils.String(d.Get("tenant").(string)),
-		ServicePrincipalKey: &secureString,
+	if d.Get("use_managed_identity").(bool) {
+		for _, k := range []string{"service_principal_key", "service_principal_name"} {
+
+			if _, ok := d.GetOk(k); ok {
+				return fmt.Errorf("Error %s cannont be defined when use_managed_identity = true", k)
+			}
+		}
+		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
+			URL:    utils.String(d.Get("url").(string)),
+			Tenant: utils.String(d.Get("tenant").(string)),
+		}
+
+	} else {
+		_, key_ok := d.GetOk("service_principal_key")
+		_, id_ok := d.GetOk("service_principal_id")
+
+		if !key_ok || !id_ok {
+			return fmt.Errorf("service_principal_key and service_principal_id must be provided when use_managed_identity = false")
+		}
+
+		secureString := datafactory.SecureString{
+			Value: utils.String(d.Get("service_principal_key").(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+
+		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
+			URL:                 utils.String(d.Get("url").(string)),
+			ServicePrincipalID:  utils.String(d.Get("service_principal_id").(string)),
+			Tenant:              utils.String(d.Get("tenant").(string)),
+			ServicePrincipalKey: &secureString,
+		}
 	}
 
 	datalakeStorageGen2LinkedService := &datafactory.AzureBlobFSLinkedService{
@@ -222,6 +251,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.Resour
 	d.Set("data_factory_name", dataFactoryName)
 
 	dataLakeStorageGen2, ok := resp.Properties.AsAzureBlobFSLinkedService()
+
 	if !ok {
 		return fmt.Errorf("Error classifiying Data Factory Linked Service Data Lake Storage Gen2 %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeAzureBlobFS, *resp.Type)
 	}
@@ -232,6 +262,8 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.Resour
 
 	if dataLakeStorageGen2.ServicePrincipalID != nil {
 		d.Set("service_principal_id", dataLakeStorageGen2.ServicePrincipalID)
+	} else {
+		d.Set("use_managed_identity", true)
 	}
 
 	if dataLakeStorageGen2.URL != nil {
