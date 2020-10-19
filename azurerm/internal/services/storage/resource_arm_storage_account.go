@@ -813,9 +813,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	if val, ok := d.GetOk("share_properties"); ok {
 		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-		shareProperties := expandShareProperties(val.([]interface{}))
-
-		if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, shareProperties); err != nil {
+		if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(val.([]interface{}))); err != nil {
 			return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
 		}
 	}
@@ -1077,9 +1075,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("share_properties") {
 		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-		shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
-
-		if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, shareProperties); err != nil {
+		if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
 			return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
 		}
 	}
