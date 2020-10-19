@@ -402,6 +402,10 @@ func expandActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction,
 		var actionType string
 		var ok bool
 
+		// No checking, as fields are enforced by resource schema
+		resourceID = actionMap["resource_id"].(string)
+		actionType = actionMap["type"].(string)
+
 		// Ignore case on type field
 		switch strings.ToLower(actionType) {
 		// Handle LogicApp action type
@@ -512,13 +516,12 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 		return []map[string]string{}, nil
 	}
 
-	// Get existing schema data for actions
-	schemaDataActions, schemaDataActionsOk := d.GetOk("action")
-
 	resultSlice := make([]map[string]string, 0)
 
 	for i, action := range *actions {
+
 		// Use type assertion to discover the underlying action
+		// Trying to use action.(security.AutomationAction).ActionType results in a panic
 		actionLogicApp, isLogicApp := action.(security.AutomationActionLogicApp)
 		if isLogicApp {
 			if actionLogicApp.LogicAppResourceID == nil {
@@ -532,12 +535,8 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 
 			// Need to merge in trigger_url as it's not returned by API Get operation
 			// Otherwise don't have consistent state
-			if schemaDataActionsOk {
-				actionsSlice := schemaDataActions.([]interface{})
-				dataAction := actionsSlice[i].(map[string]interface{})
-				if dataAction["trigger_url"].(string) != "" {
-					actionMap["trigger_url"] = dataAction["trigger_url"].(string)
-				}
+			if triggerURL, ok := d.GetOk(fmt.Sprintf("action.%d.trigger_url", i)); ok {
+				actionMap["trigger_url"] = triggerURL.(string)
 			}
 
 			resultSlice = append(resultSlice, actionMap)
@@ -556,12 +555,8 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 
 			// Need to merge in connection_string as it's not returned by API Get operation
 			// Otherwise don't have consistent state
-			if schemaDataActionsOk {
-				actionsSlice := schemaDataActions.([]interface{})
-				dataAction := actionsSlice[i].(map[string]interface{})
-				if dataAction["connection_string"].(string) != "" {
-					actionMap["connection_string"] = dataAction["connection_string"].(string)
-				}
+			if triggerURL, ok := d.GetOk(fmt.Sprintf("action.%d.connection_string", i)); ok {
+				actionMap["connection_string"] = triggerURL.(string)
 			}
 
 			resultSlice = append(resultSlice, actionMap)
