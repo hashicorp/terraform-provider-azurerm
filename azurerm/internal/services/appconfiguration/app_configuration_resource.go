@@ -463,14 +463,7 @@ func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity
 	if identity == nil || identity.Type == appconfiguration.None {
 		return []interface{}{}
 	}
-	result := make(map[string]interface{})
-	result["type"] = identity.Type
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
-	}
+
 	principalId := ""
 	if identity.PrincipalID != nil {
 		principalId = *identity.PrincipalID
@@ -488,6 +481,4 @@ func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity
 			"tenant_id":    tenantId,
 		},
 	}
-
-	return []interface{}{result}
 }
