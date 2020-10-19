@@ -108,6 +108,8 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 										"order": {
 											Type:     schema.TypeString,
 											Required: true,
+											// Workaround for Azure/azure-rest-api-specs#11222
+											DiffSuppressFunc: suppress.CaseDifference,
 											ValidateFunc: validation.StringInSlice(
 												[]string{
 													string(documentdb.Ascending),
