@@ -811,10 +811,15 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("share_properties"); ok {
-		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+		// BlobStorage, Premium general purpose does not support file share settings
+		if accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
+			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-		if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(val.([]interface{}))); err != nil {
-			return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
+			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(val.([]interface{}))); err != nil {
+				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
+			}
+		} else {
+			return fmt.Errorf("`share_properties` aren't supported for Blob Storage / Block Blob Storage /Premium accounts")
 		}
 	}
 
@@ -1073,10 +1078,15 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("share_properties") {
-		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+		// BlobStorage, BlockBlobStorage, Premium does not support file share settings
+		if accountKind != string(storage.BlobStorage) && accountKind != string(storage.BlockBlobStorage) && accountTier != string(storage.Premium) {
+			fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
 
-		if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
-			return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
+			if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, expandShareProperties(d.Get("share_properties").([]interface{}))); err != nil {
+				return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
+			}
+		} else {
+			return fmt.Errorf("`share_properties` aren't supported for Blob Storage /Block Blob Storage / Premium accounts")
 		}
 	}
 
@@ -1283,6 +1293,20 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
+	// FileStorage does not support blob settings
+	if resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku.Tier != storage.Premium {
+		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(shareProps.Response) {
+				return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", name, err)
+			}
+		}
+
+		if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
+			return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", name, err)
+		}
+	}
+
 	// queue is only available for certain tier and kind (as specified below)
 	if resp.Sku == nil {
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `sku` was nil", name, resGroup)
@@ -1306,17 +1330,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
 			}
 		}
-	}
-
-	shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(shareProps.Response) {
-			return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", name, err)
-		}
-	}
-
-	if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
-		return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	var staticWebsite []interface{}
