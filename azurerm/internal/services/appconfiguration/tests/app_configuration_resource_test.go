@@ -123,6 +123,7 @@ func TestAccAppConfigurationResource_identityUpdated(t *testing.T) {
 					testCheckAppConfigurationExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAppConfigurationResource_identity(data),
 				Check: resource.ComposeTestCheckFunc(

@@ -271,6 +271,8 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 
 	if _, ok := d.GetOk("identity"); ok {
 		parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
+	} else {
+		parameters.Identity = &appconfiguration.ResourceIdentity{Type: "None"}
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
