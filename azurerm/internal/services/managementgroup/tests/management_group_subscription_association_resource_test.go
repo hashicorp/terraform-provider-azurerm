@@ -2,17 +2,22 @@ package tests
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
 )
 
 func TestAccAzureRMManagementGroupSubscriptionAssociation(t *testing.T) {
-	managementGroupData := acceptance.BuildTestData(t, "azurerm_management_group", "test")
-	managementGroupSubscriptionAssociationData := acceptance.BuildTestData(t, "azurerm_management_group_subscription_association", "test")
+	// managementGroupData := acceptance.BuildTestData(t, "azurerm_management_group", "test")
+	groupData := acceptance.BuildTestData(t, "azurerm_management_group", "test")
+	associationData := acceptance.BuildTestData(t, "azurerm_management_group_subscription_association", "test")
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.Test(t, resource.TestCase{
@@ -21,27 +26,21 @@ func TestAccAzureRMManagementGroupSubscriptionAssociation(t *testing.T) {
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMManagementGroup_managementGroupOnly(),
+				Config: testAzureRMManagementGroupSubscriptionAssociation_managementGroupOnly(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(managementGroupData.ResourceName),
-					testCheckAzureRMManagementGroupSubscriptionAssociationDoesNotExist(managementGroupSubscriptionAssociationData.ResourceName),
-					resource.TestCheckResourceAttr(managementGroupData.ResourceName, "subscription_ids.#", "0"),
+					testCheckAzureRMManagementGroupSubscriptionAssociationDoesNotExist(groupData.ResourceName, subscriptionId),
 				),
 			},
 			{
-				Config: testAzureRMManagementGroup_associatedSubscription(subscriptionId),
+				Config: testAzureRMManagementGroupSubscriptionAssociation_associatedSubscription(subscriptionId),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(managementGroupData.ResourceName),
-					testCheckAzureRMManagementGroupSubscriptionAssociationExists(managementGroupSubscriptionAssociationData.ResourceName),
-					resource.TestCheckResourceAttr(managementGroupData.ResourceName, "subscription_ids.#", "1"),
+					testCheckAzureRMManagementGroupSubscriptionAssociationExists(associationData.ResourceName),
 				),
 			},
 			{
-				Config: testAzureRMManagementGroup_managementGroupOnly(),
+				Config: testAzureRMManagementGroupSubscriptionAssociation_managementGroupOnly(),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagementGroupExists(managementGroupData.ResourceName),
-					testCheckAzureRMManagementGroupSubscriptionAssociationDoesNotExist(managementGroupSubscriptionAssociationData.ResourceName),
-					resource.TestCheckResourceAttr(managementGroupData.ResourceName, "subscription_ids.#", "0"),
+					testCheckAzureRMManagementGroupSubscriptionAssociationDoesNotExist(groupData.ResourceName, subscriptionId),
 				),
 			},
 		},
@@ -50,48 +49,132 @@ func TestAccAzureRMManagementGroupSubscriptionAssociation(t *testing.T) {
 
 func testCheckAzureRMManagementGroupSubscriptionAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// No GET for (*clients.Client).ManagementGroups.GroupsClient so just check Terraform state plus subscription_ids.# increment / decrement
+		groupsClient := acceptance.AzureProvider.Meta().(*clients.Client).ManagementGroups.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		_, ok := s.RootModule().Resources[resourceName]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		id, err := parse.ManagementGroupSubscriptionAssociationID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		recurse := false // Only want immediate children
+		resp, err := groupsClient.Get(ctx, id.ManagementGroupName, "children", &recurse, "", "no-cache")
+		if err != nil {
+			return err
+		}
+
+		props := resp.Properties
+		if props == nil {
+			return fmt.Errorf("properties was nil for Management Group %q", id.ManagementGroupName)
+		}
+
+		children := props.Children
+		if children == nil {
+			return fmt.Errorf("Management Group %q has no children", id.ManagementGroupName)
+		}
+
+		exists := false
+		if subscriptionIds := *children; subscriptionIds != nil {
+			for _, subscriptionId := range subscriptionIds {
+				if strings.EqualFold(id.SubscriptionID, *subscriptionId.Name) {
+					exists = true
+				}
+			}
+		}
+
+		if !exists {
+			return fmt.Errorf("Did not find %q associated to management group %q", id.SubscriptionID, id.ManagementGroupName)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMManagementGroupSubscriptionAssociationDoesNotExist(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMManagementGroupSubscriptionAssociationDoesNotExist(resourceName string, subscriptionIdToCheck string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// No GET for (*clients.Client).ManagementGroups.GroupsClient so just check Terraform state plus subscription_ids.# increment / decrement
+		log.Printf("[INFO] testCheckAzureRMManagementGroupSubscriptionAssociationDoesNotExist")
 
-		_, ok := s.RootModule().Resources[resourceName]
-		if ok {
-			return fmt.Errorf("unexpectedly found: %s", resourceName)
+		groupsClient := acceptance.AzureProvider.Meta().(*clients.Client).ManagementGroups.GroupsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		id, err := parse.ManagementGroupID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		recurse := false // Only want immediate children
+		resp, err := groupsClient.Get(ctx, id.Name, "children", &recurse, "", "no-cache")
+		if err != nil {
+			return err
+		}
+
+		props := resp.Properties
+		if props == nil {
+			return fmt.Errorf("properties was nil for Management Group %q", id.Name)
+		}
+
+		children := props.Children
+		if children == nil {
+			return nil
+		}
+
+		log.Printf("[INFO] Management Group Name: %s", id.Name)
+		log.Printf("[INFO] Children: %+v", *children)
+
+		exists := false
+		if subscriptionIds := *children; subscriptionIds != nil {
+			for _, subscriptionId := range subscriptionIds {
+				log.Printf("[INFO] Checking if %s is %s", *subscriptionId.Name, subscriptionIdToCheck)
+				if strings.EqualFold(subscriptionIdToCheck, *subscriptionId.Name) {
+					exists = true
+				}
+			}
+		}
+
+		if exists {
+			return fmt.Errorf("Found %q associated to management group %q", subscriptionIdToCheck, id.Name)
 		}
 
 		return nil
 	}
 }
 
-func testAzureRMManagementGroup_managementGroupOnly() string {
+func testAzureRMManagementGroupSubscriptionAssociation_managementGroupOnly() string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_management_group" "test" {}
+resource "azurerm_management_group" "test" {
+	lifecycle {
+    ignore_changes = [subscription_ids, ]
+  }
+}
 
 `)
 }
 
-func testAzureRMManagementGroup_associatedSubscription(subscriptionId string) string {
+func testAzureRMManagementGroupSubscriptionAssociation_associatedSubscription(subscriptionId string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_management_group" "test" {}
+resource "azurerm_management_group" "test" {
+	lifecycle {
+    ignore_changes = [subscription_ids, ]
+  }
+}
 
 resource "azurerm_management_group_subscription_association" "test" {
   management_group_id = azurerm_management_group.test.id

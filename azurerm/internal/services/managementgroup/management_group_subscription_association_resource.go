@@ -3,15 +3,14 @@ package managementgroup
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,10 +21,9 @@ func resourceArmManagementGroupSubscriptionAssociation() *schema.Resource {
 		Read:   resourceArmManagementGroupSubscriptionAssociationRead,
 		Delete: resourceArmManagementGroupSubscriptionAssociationDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.ManagementGroupID(id)
-			return err
-		}),
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -41,7 +39,7 @@ func resourceArmManagementGroupSubscriptionAssociation() *schema.Resource {
 				ValidateFunc: validate.ManagementGroupID,
 			},
 
-			"subscription_guid": {
+			"subscription_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -57,7 +55,7 @@ func resourceArmManagementGroupSubscriptionAssociationCreate(d *schema.ResourceD
 	defer cancel()
 
 	managementGroupId := d.Get("management_group_id").(string)
-	subscriptionGuid := d.Get("subscription_guid").(string)
+	subscriptionGuid := d.Get("subscription_id").(string)
 	subscriptionId := "/subscriptions/" + subscriptionGuid
 
 	parsedManagementGroupId, err := parse.ManagementGroupID(managementGroupId)
@@ -81,33 +79,26 @@ func resourceArmManagementGroupSubscriptionAssociationCreate(d *schema.ResourceD
 
 	log.Printf("[INFO] management group %q <-> subscription %q association created: %+v", managementGroupName, subscriptionGuid, result)
 
-	id := fmt.Sprintf("%s|%s", managementGroupId, subscriptionGuid)
+	resourceId := fmt.Sprintf("%s|%s", managementGroupId, subscriptionId)
+	log.Printf("[INFO] resourceId is %q", resourceId)
 
-	d.SetId(id)
+	d.SetId(resourceId)
 
-	d.Set("management_group_id", managementGroupId)
-	d.Set("subscription_guid", subscriptionGuid)
-
-	return resourceArmManagementGroupRead(d, meta)
+	return resourceArmManagementGroupSubscriptionAssociationRead(d, meta)
 }
 
 func resourceArmManagementGroupSubscriptionAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagementGroups.GroupsClient // No GET on SubscriptionsClient
+	groupsClient := meta.(*clients.Client).ManagementGroups.GroupsClient // No GET on SubscriptionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	managementGroupId := d.Get("management_group_id").(string)
-	subscriptionGuid := d.Get("subscription_guid").(string)
-
-	parsedManagementGroupId, err := parse.ManagementGroupID(managementGroupId)
+	id, err := parse.ManagementGroupSubscriptionAssociationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing management group name '%s': %+v", managementGroupId, err)
+		return err
 	}
 
-	managementGroupName := parsedManagementGroupId.Name
-
 	recurse := false // Only want immediate children
-	resp, err := client.Get(ctx, managementGroupName, "children", &recurse, "", managementGroupCacheControl)
+	resp, err := groupsClient.Get(ctx, id.ManagementGroupName, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
 		if utils.ResponseWasForbidden(resp.Response) || utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
@@ -117,18 +108,36 @@ func resourceArmManagementGroupSubscriptionAssociationRead(d *schema.ResourceDat
 		return fmt.Errorf("unable to read Management Group %q: %+v", d.Id(), err)
 	}
 
-	if props := resp.Properties; props != nil {
-		// subscriptionIds, err := flattenArmManagementGroupSubscriptionIds(props.Children)
-		err := checkArmSubscriptionGuidInManagementGroupSubscriptionIds(subscriptionGuid, props.Children)
-		if err != nil {
-			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+	props := resp.Properties
+	if props == nil {
+		return fmt.Errorf("properties was nil for Management Group %q: %+v", d.Id(), err)
+	}
+
+	children := props.Children
+	if children == nil {
+		log.Printf("[INFO] Management Group %q doesn't have any children - removing association with %q from state", d.Id(), id.SubscriptionID)
+		d.SetId("")
+		return nil
+	}
+
+	exists := false
+	if subscriptionIds := *children; subscriptionIds != nil {
+		for _, subscriptionId := range subscriptionIds {
+			if strings.EqualFold(id.SubscriptionID, *subscriptionId.Name) {
+				exists = true
+			}
 		}
 	}
 
-	log.Printf("[INFO] Management Group Subscription association %q is not found - removing from state", d.Id())
-	d.SetId("")
+	if !exists {
+		log.Printf("[INFO] Management Group %q doesn't include %q - %q - removing association from state", d.Id(), err, id.SubscriptionID)
+		d.SetId("")
+		return nil
+	}
+
+	d.Set("management_group_id", id.ManagementGroupID)
+	d.Set("subscription_id", id.SubscriptionID)
+
 	return nil
 }
 
@@ -137,53 +146,31 @@ func resourceArmManagementGroupSubscriptionAssociationDelete(d *schema.ResourceD
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	managementGroupId := d.Get("management_group_id").(string)
-	subscriptionGuid := d.Get("subscription_guid").(string)
-	subscriptionId := "/subscriptions/" + subscriptionGuid
-
-	parsedManagementGroupId, err := parse.ManagementGroupID(managementGroupId)
+	id, err := parse.ManagementGroupSubscriptionAssociationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing management group name '%s': %+v", managementGroupId, err)
+		return err
 	}
 
-	managementGroupName := parsedManagementGroupId.Name
+	log.Printf("[INFO] id object: %+v", id)
 
-	log.Printf("[INFO] management group %q <-> subscription %q association deletion.", managementGroupName, subscriptionGuid)
-
-	locks.ByID(managementGroupId)
-	defer locks.UnlockByID(managementGroupId)
-	locks.ByID(subscriptionId)
-	defer locks.UnlockByID(subscriptionId)
-
-	result, err := client.Delete(ctx, managementGroupId, subscriptionGuid, managementGroupCacheControl)
+	_, err = parse.ManagementGroupID(id.ManagementGroupID)
 	if err != nil {
-		return fmt.Errorf("Error deleting association for subscription %q to management group %q: %+v", subscriptionGuid, managementGroupName, err)
+		return fmt.Errorf("Error parsing management group name '%s': %+v", id.ManagementGroupID, err)
 	}
 
-	log.Printf("[INFO] management group %q <-> subscription %q association deleted: %+v", managementGroupName, subscriptionGuid, result)
+	log.Printf("[INFO] management group %q <-> subscription %q association deletion.", id.ManagementGroupName, id.SubscriptionID)
 
-	return resourceArmManagementGroupRead(d, meta)
-}
+	locks.ByID(id.ManagementGroupID)
+	defer locks.UnlockByID(id.ManagementGroupID)
+	locks.ByID(id.SubscriptionScopeID)
+	defer locks.UnlockByID(id.SubscriptionScopeID)
 
-func checkArmSubscriptionGuidInManagementGroupSubscriptionIds(subscriptionGuid string, input *[]managementgroups.ChildInfo) error {
-	if input == nil {
-		return fmt.Errorf("no children")
+	result, err := client.Delete(ctx, id.ManagementGroupName, id.SubscriptionID, managementGroupCacheControl)
+	if err != nil {
+		return fmt.Errorf("Error deleting association for subscription %q to management group %q: %+v", id.SubscriptionID, id.ManagementGroupName, err)
 	}
 
-	for _, child := range *input {
-		if child.ID == nil {
-			continue
-		}
+	log.Printf("[INFO] management group %q <-> subscription %q association deleted: %+v", id.ManagementGroupName, id.SubscriptionID, result)
 
-		_, err := parseManagementGroupSubscriptionID(*child.ID)
-		if err != nil {
-			return fmt.Errorf("unable to parse child Subscription GUID %+v", err)
-		}
-
-		if *child.ID == subscriptionGuid {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("%q was not found in children", subscriptionGuid)
+	return nil
 }
