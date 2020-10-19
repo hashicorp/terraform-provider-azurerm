@@ -2,8 +2,15 @@
 
 IMPROVEMENTS:
 
+* `azurerm_cosmosdb_sql_container` - support for composite indexes [GH-8792]
 * `azurerm_mssql_database` - do not set longterm and shortterm retention policies when using the `DW` SKUs [GH-8899]
-*  `azurerm_search_service` - add support for `identity` [GH-8907]
+* `azurerm_search_service` - support for the `identity` block [GH-8907]
+* `azurerm_sql_firewall_rule` - adding validation for the `start_ip_address` and `end_ip_address` fields [GH-8935]
+
+BUG FIXES:
+
+* `azurerm_application_gateway` - now supports `ignore_changes` for `ssl_certificate` when using pre-existing certificates [GH-8761]
+* `azurerm_policy_set_definition` - Fix updates for `parameters` and `parameter_values` in `policy_definition_reference` blocks [GH-8882]
 
 ## 2.32.0 (October 15, 2020)
 
