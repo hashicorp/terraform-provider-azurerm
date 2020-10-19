@@ -56,7 +56,7 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 				Computed: true,
 			},
 
-			"os_disk_image_size": {
+			"os_disk_image_size_gb": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -139,11 +139,11 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 			}
 			d.Set("os_disk_snapshot_id", osDiskSnapShotID)
 
-			osDiskImageSize := -1
+			osDiskImageSize := 0
 			if profile.OsDiskImage != nil && profile.OsDiskImage.SizeInGB != nil {
 				osDiskImageSize = int(*profile.OsDiskImage.SizeInGB)
 			}
-			d.Set("os_disk_image_size", osDiskImageSize)
+			d.Set("os_disk_image_size_gb", osDiskImageSize)
 		}
 	}
 
