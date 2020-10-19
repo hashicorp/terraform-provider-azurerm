@@ -351,7 +351,7 @@ func testCheckAzureRMKustoTableDestroy(s *terraform.State) error {
 			return err
 		}
 
-		exists, err := checkTableExists(rs, id, name)
+		exists, err := checkTableExists(id, name)
 
 		if err != nil {
 			return err
@@ -383,7 +383,7 @@ func testCheckAzureRMKustoTableExists(resourceName string) resource.TestCheckFun
 			return err
 		}
 
-		exists, err := checkTableExists(rs, id, name)
+		exists, err := checkTableExists(id, name)
 
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Kusto Data Plane Client: %+v", err)
@@ -397,7 +397,7 @@ func testCheckAzureRMKustoTableExists(resourceName string) resource.TestCheckFun
 	}
 }
 
-func checkTableExists(rs *terraform.ResourceState, id *parse.KustoDatabaseId, name string) (*bool, error) {
+func checkTableExists(id *parse.KustoDatabaseId, name string) (*bool, error) {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -417,16 +417,16 @@ func checkTableExists(rs *terraform.ResourceState, id *parse.KustoDatabaseId, na
 		return nil, fmt.Errorf("init Kusto Data Plane Client: %+v", err)
 	}
 
-	stmtRaw := fmt.Sprintf(".show tables | where TableName == \"%s\"", name)
-	stmt := kusto.NewStmt("", kusto.UnsafeStmt(unsafe.Stmt{Add: true})).UnsafeAdd(stmtRaw)
-	iter, err := dataplaneClient.Mgmt(ctx, id.Name, stmt)
+	showTablesStmtRaw := fmt.Sprintf(".show tables | where TableName == \"%s\"", name)
+	showTablesStmt := kusto.NewStmt("", kusto.UnsafeStmt(unsafe.Stmt{Add: true})).UnsafeAdd(showTablesStmtRaw)
+	iter, err := dataplaneClient.Mgmt(ctx, id.Name, showTablesStmt)
 	if err != nil {
 		return nil, fmt.Errorf("querying Kusto Table %q (Cluster %q, Database %q): %+v", name, id.Cluster, id.Name, err)
 	}
 	defer iter.Stop()
 
 	found := false
-	err = iter.Do(
+	_ = iter.Do(
 		func(row *table.Row) error {
 			rec := dataplaneTypes.KustoTableRecord{}
 			if err := row.ToStruct(&rec); err != nil {

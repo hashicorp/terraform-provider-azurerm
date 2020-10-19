@@ -176,7 +176,7 @@ func resourceArmKustoTableCreate(d *schema.ResourceData, meta interface{}) error
 		}
 		if folder != "" {
 			if tableOptions != "" {
-				tableOptions = tableOptions + ","
+				tableOptions += ","
 			}
 			tableOptions = tableOptions + "folder=\"" + folder + "\""
 		}
@@ -295,7 +295,7 @@ func resourceArmKustoTableRead(d *schema.ResourceData, meta interface{}) error {
 	defer iter.Stop()
 
 	recs := []dataplaneTypes.KustoTableRecord{}
-	err = iter.Do(
+	_ = iter.Do(
 		func(row *table.Row) error {
 			rec := dataplaneTypes.KustoTableRecord{}
 			if err := row.ToStruct(&rec); err != nil {
@@ -389,7 +389,7 @@ func flattenKustoTableColumns(columns []dataplaneTypes.KustoTableColumnSchemaRec
 
 	output := make([]interface{}, 0)
 	for _, v := range columns {
-		column := make(map[string]interface{}, 0)
+		column := make(map[string]interface{})
 		column["name"] = v.ColumnName
 		column["type"] = v.ColumnType
 		output = append(output, column)
@@ -422,7 +422,7 @@ func executeKustoMgmtStatementIgnoreResultSet(ctx context.Context, dataplaneClie
 		return fmt.Errorf("Error querying Kusto: %+v", err)
 	}
 	defer rowIter.Stop()
-	rowIter.Do(
+	_ = rowIter.Do(
 		func(row *table.Row) error {
 			return nil
 		},
