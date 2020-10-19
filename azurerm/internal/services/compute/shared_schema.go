@@ -138,7 +138,7 @@ func expandBootDiagnosticsManaged(input []interface{}, managedEnabled bool) *com
 	if managedEnabled {
 		return &compute.DiagnosticsProfile{
 			BootDiagnostics: &compute.BootDiagnostics{
-				Enabled: utils.Bool(true),
+				Enabled:    utils.Bool(true),
 				StorageURI: utils.String(""),
 			},
 		}

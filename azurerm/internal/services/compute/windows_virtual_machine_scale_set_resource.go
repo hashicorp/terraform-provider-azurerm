@@ -100,8 +100,8 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
 			"managed_boot_diagnostics_enabled": {
-				Type: schema.TypeBool,
-				Optional: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
 				ConflictsWith: []string{"boot_diagnostics"},
 			},
 
