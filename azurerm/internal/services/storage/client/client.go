@@ -26,6 +26,7 @@ type Client struct {
 	FileSystemsClient        *filesystems.Client
 	ManagementPoliciesClient *storage.ManagementPoliciesClient
 	BlobServicesClient       *storage.BlobServicesClient
+	FileServicesClient       *storage.FileServicesClient
 	CachesClient             *storagecache.CachesClient
 	StorageTargetsClient     *storagecache.StorageTargetsClient
 	SyncServiceClient        *storagesync.ServicesClient
@@ -49,6 +50,9 @@ func NewClient(options *common.ClientOptions) *Client {
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
 
+	fileServicesClient := storage.NewFileServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&fileServicesClient.Client, options.ResourceManagerAuthorizer)
+
 	cachesClient := storagecache.NewCachesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&cachesClient.Client, options.ResourceManagerAuthorizer)
 
@@ -68,6 +72,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		FileSystemsClient:        &fileSystemsClient,
 		ManagementPoliciesClient: &managementPoliciesClient,
 		BlobServicesClient:       &blobServicesClient,
+		FileServicesClient:       &fileServicesClient,
 		CachesClient:             &cachesClient,
 		SubscriptionId:           options.SubscriptionId,
 		StorageTargetsClient:     &storageTargetsClient,

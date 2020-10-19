@@ -119,6 +119,8 @@ The following arguments are supported:
 
 ~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
 
+* `share_properties` - (Optional) A `share_properties` block as defined below.
+
 * `static_website` - (Optional) A `static_website` block as defined below.
 
 ~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
@@ -322,6 +324,14 @@ The following attributes are exported in addition to the arguments listed above:
 ~> **NOTE:** If there's a Write Lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
 
 * `identity` - An `identity` block as defined below, which contains the Identity information for this Storage Account.
+
+---
+A `share_properties` block supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+
+* `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
+
 
 ---
 

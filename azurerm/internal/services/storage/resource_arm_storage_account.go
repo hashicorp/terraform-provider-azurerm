@@ -368,6 +368,33 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
+			"share_properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cors_rule": azure.SchemaStorageAccountCorsRule(true),
+						"delete_retention_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"static_website": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -783,6 +810,16 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if val, ok := d.GetOk("share_properties"); ok {
+		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+
+		shareProperties := expandShareProperties(val.([]interface{}))
+
+		if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, shareProperties); err != nil {
+			return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if val, ok := d.GetOk("static_website"); ok {
 		// static website only supported on StorageV2 and BlockBlobStorage
 		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
@@ -1037,6 +1074,16 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("share_properties") {
+		fileServiceClient := meta.(*clients.Client).Storage.FileServicesClient
+
+		shareProperties := expandShareProperties(d.Get("share_properties").([]interface{}))
+
+		if _, err = fileServiceClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, shareProperties); err != nil {
+			return fmt.Errorf("updating Azure Storage Account `file share_properties` %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if d.HasChange("static_website") {
 		// static website only supported on StorageV2 and BlockBlobStorage
 		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
@@ -1224,6 +1271,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	blobClient := storageClient.BlobServicesClient
+	fileServiceClient := storageClient.FileServicesClient
 
 	// FileStorage does not support blob settings
 	if resp.Kind != storage.FileStorage {
@@ -1262,6 +1310,17 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
 			}
 		}
+	}
+
+	shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(shareProps.Response) {
+			return fmt.Errorf("reading share properties for AzureRM Storage Account %q: %+v", name, err)
+		}
+	}
+
+	if err := d.Set("share_properties", flattenShareProperties(shareProps)); err != nil {
+		return fmt.Errorf("setting `share_properties `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	var staticWebsite []interface{}
@@ -1531,6 +1590,33 @@ func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
 	blobCorsRules.CorsRules = &corsRules
 
 	return &blobCorsRules
+}
+
+func expandShareProperties(input []interface{}) storage.FileServiceProperties {
+	props := storage.FileServiceProperties{
+		FileServicePropertiesProperties: &storage.FileServicePropertiesProperties{
+			Cors: &storage.CorsRules{
+				CorsRules: &[]storage.CorsRule{},
+			},
+			ShareDeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
+				Enabled: utils.Bool(false),
+			},
+		},
+	}
+
+	if len(input) == 0 || input[0] == nil {
+		return props
+	}
+
+	v := input[0].(map[string]interface{})
+
+	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
+	props.FileServicePropertiesProperties.ShareDeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
+
+	corsRaw := v["cors_rule"].([]interface{})
+	props.FileServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
+
+	return props
 }
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
@@ -1920,6 +2006,33 @@ func flattenCorsProperty(input string) []interface{} {
 	}
 
 	return results
+}
+
+func flattenShareProperties(input storage.FileServiceProperties) []interface{} {
+	if input.FileServicePropertiesProperties == nil {
+		return []interface{}{}
+	}
+
+	flattenedCorsRules := make([]interface{}, 0)
+	if corsRules := input.FileServicePropertiesProperties.Cors; corsRules != nil {
+		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
+	}
+
+	flattenedDeletePolicy := make([]interface{}, 0)
+	if deletePolicy := input.FileServicePropertiesProperties.ShareDeleteRetentionPolicy; deletePolicy != nil {
+		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
+	}
+
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"cors_rule":               flattenedCorsRules,
+			"delete_retention_policy": flattenedDeletePolicy,
+		},
+	}
 }
 
 func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) []interface{} {
