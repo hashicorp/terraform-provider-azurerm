@@ -147,16 +147,15 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schem
 
 	if d.Get("use_managed_identity").(bool) {
 		for _, k := range []string{"service_principal_key", "service_principal_name"} {
-
 			if _, ok := d.GetOk(k); ok {
 				return fmt.Errorf("Error %s cannont be defined when use_managed_identity = true", k)
 			}
 		}
+
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
 			URL:    utils.String(d.Get("url").(string)),
 			Tenant: utils.String(d.Get("tenant").(string)),
 		}
-
 	} else {
 		_, key_ok := d.GetOk("service_principal_key")
 		_, id_ok := d.GetOk("service_principal_id")
