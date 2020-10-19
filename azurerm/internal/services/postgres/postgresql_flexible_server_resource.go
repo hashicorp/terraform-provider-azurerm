@@ -1,8 +1,11 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
@@ -141,13 +144,6 @@ func resourceArmPostgresqlFlexibleServer() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"display_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -274,7 +270,7 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Postgresqlflexibleservers Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
@@ -322,7 +318,6 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 			AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
 			CreateMode:                 postgresqlflexibleservers.CreateMode(d.Get("create_mode").(string)),
 			DelegatedSubnetArguments:   expandArmServerServerPropertiesDelegatedSubnetArguments(d.Get("delegated_subnet_id").(string)),
-			DisplayName:                utils.String(d.Get("display_name").(string)),
 			SourceServerName:           utils.String(d.Get("source_server_name").(string)),
 			Version:                    postgresqlflexibleservers.ServerVersion(d.Get("version").(string)),
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
@@ -348,11 +343,11 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating Postgresqlflexibleservers Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Postgresqlflexibleservers Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting on creating future for Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// `maintenance_window` could only be updated with, could not be created with
@@ -364,21 +359,21 @@ func resourceArmPostgresqlFlexibleServerCreate(d *schema.ResourceData, meta inte
 		}
 		mwFuture, err := client.Update(ctx, resourceGroup, name, mwParams)
 		if err != nil {
-			return fmt.Errorf("updating Postgresqlflexibleservers Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("updating Postgresql Flexible Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		if err := mwFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting on updating future for Postgresqlflexibleservers Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting on updating future for Postgresql Flexible Server %q maintenance window (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Postgresqlflexibleservers Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Postgresql Flexible Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Postgresqlflexibleservers Server %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Postgresql Flexible Server %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -402,7 +397,7 @@ func resourceArmPostgresqlFlexibleServerRead(d *schema.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Postgresqlflexibleservers Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	name := id.Name
@@ -514,11 +509,11 @@ func resourceArmPostgresqlFlexibleServerUpdate(d *schema.ResourceData, meta inte
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("updating Postgresqlflexibleservers Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on updating future for Postgresqlflexibleservers Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting on updating future for Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	return resourceArmPostgresqlFlexibleServerRead(d, meta)
 }
@@ -535,13 +530,40 @@ func resourceArmPostgresqlFlexibleServerDelete(d *schema.ResourceData, meta inte
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Postgresqlflexibleservers Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Postgresqlflexibleservers Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting on deleting future for Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+	log.Printf("[DEBUG] Waiting for Postgresql Flexible Server %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	//stateConf := &resource.StateChangeConf{
+	//	ContinuousTargetOccurence: 5,
+	//	Delay:                     10 * time.Second,
+	//	MinTimeout:                10 * time.Second,
+	//	Pending:                   []string{"200", "202"},
+	//	Target:                    []string{"204", "404"},
+	//	Refresh:                   postgresqlFlexibleServerDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
+	//	Timeout:                   d.Timeout(schema.TimeoutDelete),
+	//}
+	//
+	//if _, err := stateConf.WaitForState(); err != nil {
+	//	return fmt.Errorf("waiting for Postgresql Flexible Server %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+	//}
 	return nil
+}
+
+func postgresqlFlexibleServerDeleteStateRefreshFunc(ctx context.Context, client *postgresqlflexibleservers.ServersClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("retrieving Postgresql Flexible Server %q (Resource Group %q):%+v", name, resourceGroupName, err)
+			}
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }
 
 func expandArmServerIdentity(input []interface{}) *postgresqlflexibleservers.Identity {

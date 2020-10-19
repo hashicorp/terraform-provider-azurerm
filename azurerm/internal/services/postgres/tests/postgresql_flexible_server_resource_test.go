@@ -73,7 +73,7 @@ func TestAccAzureRMpostgresqlflexibleServer_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password", "display_name", "create_mode"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -97,7 +97,7 @@ func TestAccAzureRMpostgresqlflexibleServer_completeUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_network_access"),
 				),
 			},
-			data.ImportStep("administrator_login_password", "display_name", "create_mode"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 			{
 				Config: testAccAzureRMpostgresqlflexibleServer_completeUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -111,7 +111,7 @@ func TestAccAzureRMpostgresqlflexibleServer_completeUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "standby_availability_zone"),
 				),
 			},
-			data.ImportStep("administrator_login_password", "display_name", "create_mode"),
+			data.ImportStep("administrator_login_password", "create_mode"),
 		},
 	})
 }
@@ -394,7 +394,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_login_password = "QAZwsx123"
   availability_zone            = "1"
-  display_name                 = "fsTerraform"
   version                      = "12"
   ha_enabled                   = false
   backup_retention_days        = 7
@@ -458,7 +457,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_login_password = "123wsxQAZ"
   availability_zone            = "1"
-  display_name                 = "fsTerraform"
   version                      = "12"
   ha_enabled                   = true
   backup_retention_days        = 10

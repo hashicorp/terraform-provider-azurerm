@@ -91,8 +91,6 @@ The following arguments are supported:
 
 * `delegated_subnet_id` - (Optional) Create a PostgreSQL Flexible Server using an already existing virtual network subnet. The provided subnet should not have any other resource deployed in it and this subnet will be delegated to the PostgreSQL Flexible Server, if not already delegated. Changing this forces a new resource to be created.
 
-* `display_name` - (Optional) The display name of a server. Changing this forces a new resource to be created.
-
 * `identity` - (Optional) An `identity` block as defined below. Changing this forces a new resource to be created.
 
 * `point_in_time_utc` - (Optional) Restore point creation time (ISO8601 format), specifying the time to restore from. Changing this forces a new resource to be created.
