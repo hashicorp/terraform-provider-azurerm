@@ -519,7 +519,6 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 	resultSlice := make([]map[string]string, 0)
 
 	for i, action := range *actions {
-
 		// Use type assertion to discover the underlying action
 		// Trying to use action.(security.AutomationAction).ActionType results in a panic
 		actionLogicApp, isLogicApp := action.(security.AutomationActionLogicApp)
@@ -571,6 +570,7 @@ func flattenActions(actions *[]security.BasicAutomationAction, d *schema.Resourc
 				"resource_id": *actionLogAnalytics.WorkspaceResourceID,
 				"type":        "LogAnalytics",
 			}
+
 			resultSlice = append(resultSlice, actionMap)
 		}
 	}
