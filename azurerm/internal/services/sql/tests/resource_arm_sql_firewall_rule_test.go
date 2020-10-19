@@ -174,6 +174,14 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_storage_account" "test" {
+    name                     = "accteststore%s"
+    resource_group_name      = azurerm_resource_group.test.name
+    location                 = azurerm_resource_group.test.location
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
+}
+
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
   resource_group_name          = azurerm_resource_group.test.name
@@ -181,6 +189,13 @@ resource "azurerm_sql_server" "test" {
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
+
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.test.primary_access_key
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
+  }
 }
 
 resource "azurerm_sql_firewall_rule" "test" {
@@ -190,7 +205,7 @@ resource "azurerm_sql_firewall_rule" "test" {
   start_ip_address    = "0.0.0.0"
   end_ip_address      = "255.255.255.255"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMSqlFirewallRule_requiresImport(data acceptance.TestData) string {
@@ -218,6 +233,14 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_storage_account" "test" {
+    name                     = "accteststore%s"
+    resource_group_name      = azurerm_resource_group.test.name
+    location                 = azurerm_resource_group.test.location
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
+}
+
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
   resource_group_name          = azurerm_resource_group.test.name
@@ -225,6 +248,13 @@ resource "azurerm_sql_server" "test" {
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
+
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.test.primary_access_key
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
+  }
 }
 
 resource "azurerm_sql_firewall_rule" "test" {
@@ -234,5 +264,5 @@ resource "azurerm_sql_firewall_rule" "test" {
   start_ip_address    = "10.0.17.62"
   end_ip_address      = "10.0.17.62"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
