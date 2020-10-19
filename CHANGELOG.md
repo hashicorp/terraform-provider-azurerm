@@ -10,6 +10,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_application_gateway` - now supports `ignore_changes` for `ssl_certificate` when using pre-existing certificates [GH-8761]
+* `azurerm_policy_set_definition` - Fix updates for `parameters` and `parameter_values` in `policy_definition_reference` blocks [GH-8882]
 
 ## 2.32.0 (October 15, 2020)
 
