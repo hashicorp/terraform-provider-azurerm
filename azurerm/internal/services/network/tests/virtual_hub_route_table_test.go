@@ -152,7 +152,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-vhubroutetable-%d"
-  location = "eastus2"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -199,7 +199,7 @@ resource "azurerm_virtual_hub_connection" "test" {
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMVirtualHubRouteTable_basic(data acceptance.TestData) string {
@@ -220,7 +220,7 @@ func testAccAzureRMVirtualHubRouteTable_requiresImport(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_route_table" "test" {
+resource "azurerm_virtual_hub_route_table" "import" {
   name           = azurerm_virtual_hub_route_table.test.name
   virtual_hub_id = azurerm_virtual_hub_route_table.test.virtual_hub_id
   labels         = azurerm_virtual_hub_route_table.test.labels
