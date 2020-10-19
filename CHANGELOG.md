@@ -3,7 +3,11 @@
 IMPROVEMENTS:
 
 * `azurerm_mssql_database` - do not set longterm and shortterm retention policies when using the `DW` SKUs [GH-8899]
-*  `azurerm_search_service` - add support for `identity` [GH-8907]
+* `azurerm_search_service` - add support for `identity` [GH-8907]
+
+BUG FIXES:
+
+* `azurerm_application_gateway` - now supports `ignore_changes` for `ssl_certificate` when using pre-existing certificates [GH-8761]
 
 ## 2.32.0 (October 15, 2020)
 
