@@ -138,8 +138,8 @@ func TestAccAppConfigurationResource_identityUpdated(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAppConfigurationExists(data.ResourceName),
 				),
-				ExpectNonEmptyPlan: true,
 			},
+			data.ImportStep(),
 		},
 	})
 }
