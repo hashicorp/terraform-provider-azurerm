@@ -18,6 +18,7 @@ type Client struct {
 	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
 	FirewallPolicyClient                 *network.FirewallPoliciesClient
+	HubRouteTableClient                  *network.HubRouteTablesClient
 	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
 	IPGroupsClient                       *network.IPGroupsClient
@@ -87,6 +88,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	FirewallPolicyClient := network.NewFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FirewallPolicyClient.Client, o.ResourceManagerAuthorizer)
+
+	HubRouteTableClient := network.NewHubRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HubRouteTableClient.Client, o.ResourceManagerAuthorizer)
 
 	HubVirtualNetworkConnectionClient := network.NewHubVirtualNetworkConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HubVirtualNetworkConnectionClient.Client, o.ResourceManagerAuthorizer)
@@ -202,6 +206,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
 		FirewallPolicyClient:                 &FirewallPolicyClient,
+		HubRouteTableClient:                  &HubRouteTableClient,
 		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
 		IPGroupsClient:                       &IpGroupsClient,
