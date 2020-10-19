@@ -50,7 +50,7 @@ func NewServerAzureADAdministratorsClientWithBaseURI(baseURI string, subscriptio
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
 // serverName - the name of the server.
-// parameters - the required parameters for creating or updating an Active Directory Administrator.
+// parameters - the requested Azure Active Directory administrator Resource state.
 func (client ServerAzureADAdministratorsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, parameters ServerAzureADAdministrator) (result ServerAzureADAdministratorsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServerAzureADAdministratorsClient.CreateOrUpdate")
@@ -211,82 +211,6 @@ func (client ServerAzureADAdministratorsClient) DeleteResponder(resp *http.Respo
 	return
 }
 
-// DisableAzureADOnlyAuthentication disables Azure Active Directory only authentication on logical Server.
-// Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// serverName - the name of the server.
-func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthentication(ctx context.Context, resourceGroupName string, serverName string) (result ServerAzureADAdministratorsDisableAzureADOnlyAuthenticationFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ServerAzureADAdministratorsClient.DisableAzureADOnlyAuthentication")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.DisableAzureADOnlyAuthenticationPreparer(ctx, resourceGroupName, serverName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "DisableAzureADOnlyAuthentication", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.DisableAzureADOnlyAuthenticationSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "DisableAzureADOnlyAuthentication", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// DisableAzureADOnlyAuthenticationPreparer prepares the DisableAzureADOnlyAuthentication request.
-func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"serverName":        autorest.Encode("path", serverName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2019-06-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/disableAzureADOnlyAuthentication", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// DisableAzureADOnlyAuthenticationSender sends the DisableAzureADOnlyAuthentication request. The method will close the
-// http.Response Body if it receives an error.
-func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationSender(req *http.Request) (future ServerAzureADAdministratorsDisableAzureADOnlyAuthenticationFuture, err error) {
-	var resp *http.Response
-	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// DisableAzureADOnlyAuthenticationResponder handles the response to the DisableAzureADOnlyAuthentication request. The method always
-// closes the http.Response Body.
-func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
 // Get gets a Azure Active Directory administrator.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -397,6 +321,9 @@ func (client ServerAzureADAdministratorsClient) ListByServer(ctx context.Context
 	result.alr, err = client.ListByServerResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "ListByServer", resp, "Failure responding to request")
+	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

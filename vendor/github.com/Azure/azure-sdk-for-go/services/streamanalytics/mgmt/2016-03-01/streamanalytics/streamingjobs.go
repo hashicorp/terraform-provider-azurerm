@@ -326,6 +326,9 @@ func (client StreamingJobsClient) List(ctx context.Context, expand string) (resu
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "List", resp, "Failure responding to request")
 	}
+	if result.sjlr.hasNextLink() && result.sjlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -443,6 +446,9 @@ func (client StreamingJobsClient) ListByResourceGroup(ctx context.Context, resou
 	result.sjlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.StreamingJobsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.sjlr.hasNextLink() && result.sjlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

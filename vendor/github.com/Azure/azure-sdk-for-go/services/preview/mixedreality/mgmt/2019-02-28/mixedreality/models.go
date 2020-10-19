@@ -29,36 +29,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/mixedreality/mgmt/2019-02-28/mixedreality"
 
-// NameAvailability enumerates the values for name availability.
-type NameAvailability string
-
-const (
-	// False ...
-	False NameAvailability = "false"
-	// True ...
-	True NameAvailability = "true"
-)
-
-// PossibleNameAvailabilityValues returns an array of possible values for the NameAvailability const type.
-func PossibleNameAvailabilityValues() []NameAvailability {
-	return []NameAvailability{False, True}
-}
-
-// NameUnavailableReason enumerates the values for name unavailable reason.
-type NameUnavailableReason string
-
-const (
-	// AlreadyExists ...
-	AlreadyExists NameUnavailableReason = "AlreadyExists"
-	// Invalid ...
-	Invalid NameUnavailableReason = "Invalid"
-)
-
-// PossibleNameUnavailableReasonValues returns an array of possible values for the NameUnavailableReason const type.
-func PossibleNameUnavailableReasonValues() []NameUnavailableReason {
-	return []NameUnavailableReason{AlreadyExists, Invalid}
-}
-
 // AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
 	// Etag - READ-ONLY; Resource Etag.
@@ -122,8 +92,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationList result of the request to list Resource Provider operations. It contains a list of
-// operations and a URL link to get the next set of results.
+// OperationList result of the request to list Resource Provider operations. It contains a list of operations
+// and a URL link to get the next set of results.
 type OperationList struct {
 	autorest.Response `json:"-"`
 	// Value - List of operations supported by the Resource Provider.
@@ -200,10 +170,15 @@ func (ol OperationList) IsEmpty() bool {
 	return ol.Value == nil || len(*ol.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ol OperationList) hasNextLink() bool {
+	return ol.NextLink != nil && len(*ol.NextLink) != 0
+}
+
 // operationListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ol OperationList) operationListPreparer(ctx context.Context) (*http.Request, error) {
-	if ol.NextLink == nil || len(to.String(ol.NextLink)) < 1 {
+	if !ol.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -231,11 +206,16 @@ func (page *OperationListPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ol)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ol)
+		if err != nil {
+			return err
+		}
+		page.ol = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ol = next
 	return nil
 }
 
@@ -406,8 +386,8 @@ type SpatialAnchorsAccountKeys struct {
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
 }
 
-// SpatialAnchorsAccountList result of the request to get resource collection. It contains a list of
-// resources and a URL link to get the next set of results.
+// SpatialAnchorsAccountList result of the request to get resource collection. It contains a list of resources
+// and a URL link to get the next set of results.
 type SpatialAnchorsAccountList struct {
 	autorest.Response `json:"-"`
 	// Value - List of resources supported by the Resource Provider.
@@ -484,10 +464,15 @@ func (saal SpatialAnchorsAccountList) IsEmpty() bool {
 	return saal.Value == nil || len(*saal.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (saal SpatialAnchorsAccountList) hasNextLink() bool {
+	return saal.NextLink != nil && len(*saal.NextLink) != 0
+}
+
 // spatialAnchorsAccountListPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (saal SpatialAnchorsAccountList) spatialAnchorsAccountListPreparer(ctx context.Context) (*http.Request, error) {
-	if saal.NextLink == nil || len(to.String(saal.NextLink)) < 1 {
+	if !saal.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -515,11 +500,16 @@ func (page *SpatialAnchorsAccountListPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.saal)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.saal)
+		if err != nil {
+			return err
+		}
+		page.saal = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.saal = next
 	return nil
 }
 

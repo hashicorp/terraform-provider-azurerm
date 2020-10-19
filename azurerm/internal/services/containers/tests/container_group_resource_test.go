@@ -333,6 +333,7 @@ func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_address_type", "Private"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network_profile_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "dns_config.#", "1"),
 				),
 			},
 		},
@@ -419,6 +420,27 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 				"container.0.secure_environment_variables.secureFoo",
 				"container.0.secure_environment_variables.secureFoo1",
 				"diagnostics.0.log_analytics.0.workspace_key",
+			),
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_withPrivateEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerGroup_withPrivateEmpty(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"container.0.secure_environment_variables.PRIVATE_VALUE",
 			),
 		},
 	})
@@ -893,6 +915,11 @@ resource "azurerm_container_group" "test" {
       port = 80
     }
   }
+  dns_config {
+    nameservers    = ["reddog.microsoft.com", "somecompany.somedomain"]
+    options        = ["one:option", "two:option", "red:option", "blue:option"]
+    search_domains = ["default.svc.cluster.local."]
+  }
 
   tags = {
     environment = "Testing"
@@ -1238,4 +1265,48 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAzureRMContainerGroup_withPrivateEmpty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-containergroup-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "public"
+  dns_name_label      = "jerome-aci-label"
+  os_type             = "Linux"
+
+  container {
+    name   = "hello-world"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "1.5"
+
+    ports {
+      port     = 8000
+      protocol = "TCP"
+    }
+
+    secure_environment_variables = {
+      PRIVATE_EMPTY = ""
+      PRIVATE_VALUE = "test"
+    }
+
+    environment_variables = {
+      PUBLIC_EMPTY = ""
+      PUBLIC_VALUE = "test"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

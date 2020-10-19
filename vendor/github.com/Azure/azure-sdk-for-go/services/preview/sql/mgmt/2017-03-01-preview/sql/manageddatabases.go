@@ -399,6 +399,9 @@ func (client ManagedDatabasesClient) ListByInstance(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.mdlr.hasNextLink() && result.mdlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

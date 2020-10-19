@@ -1,6 +1,21 @@
 package parse
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+)
+
+var _ resourceid.Formatter = VirtualMachineId{}
+
+func TestVirtualMachineIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewVirtualMachineId("group1", "vm1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestVirtualMachineID(t *testing.T) {
 	var testData = []struct {

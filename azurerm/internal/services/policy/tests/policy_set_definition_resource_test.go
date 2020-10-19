@@ -103,6 +103,24 @@ func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicySetDefinition_customNoParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicySetDefinition_customNoParameter(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMPolicySetDefinition_customWithPolicyReferenceID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 
@@ -260,9 +278,11 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 }
 `, data.RandomInteger, data.RandomInteger)
@@ -281,9 +301,11 @@ resource "azurerm_policy_set_definition" "import" {
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 }
 `, template)
@@ -353,9 +375,28 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = azurerm_policy_definition.test.id
-    parameters = {
-      allowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAzureRMPolicySetDefinition_customNoParameter(data acceptance.TestData) string {
+	template := testAzureRMPolicySetDefinition_templateNoParameter(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPolSet-%d"
+  policy_type  = "Custom"
+  display_name = "acctestPolSet-display-%d"
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -437,9 +478,11 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -517,9 +560,11 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-    parameters = {
-      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
+VALUES
   }
 
   metadata = <<METADATA
@@ -556,10 +601,12 @@ PARAMETERS
 
   policy_definition_reference {
     policy_definition_id = azurerm_policy_definition.test.id
-    parameters = {
-      allowedLocations = "[parameters('allowedLocations')]"
+    parameter_values     = <<VALUES
+	{
+      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
-    reference_id = "TestRef"
+VALUES
+    reference_id         = "TestRef"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
@@ -592,7 +639,7 @@ resource "azurerm_policy_definition" "test" {
 POLICY_RULE
 
   parameters = <<PARAMETERS
-	{
+  {
     "allowedLocations": {
       "type": "Array",
       "metadata": {
@@ -605,6 +652,35 @@ POLICY_RULE
 PARAMETERS
 }
 `, data.RandomInteger, data.RandomInteger)
+}
+
+func testAzureRMPolicySetDefinition_templateNoParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "equals": "%s"
+      }
+    },
+    "then": {
+      "effect": "deny"
+    }
+  }
+POLICY_RULE
+}
+`, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.TestCheckFunc {

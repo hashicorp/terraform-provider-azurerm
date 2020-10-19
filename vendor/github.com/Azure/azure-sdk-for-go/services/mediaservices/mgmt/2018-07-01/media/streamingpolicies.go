@@ -356,6 +356,9 @@ func (client StreamingPoliciesClient) List(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.StreamingPoliciesClient", "List", resp, "Failure responding to request")
 	}
+	if result.spc.hasNextLink() && result.spc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

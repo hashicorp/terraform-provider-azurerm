@@ -1,6 +1,21 @@
 package parse
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+)
+
+var _ resourceid.Formatter = DiskEncryptionSetId{}
+
+func TestDiskEncryptionSetIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewDiskEncryptionSetId("group1", "set1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/diskEncryptionSets/set1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestDiskEncryptionSetID(t *testing.T) {
 	testData := []struct {

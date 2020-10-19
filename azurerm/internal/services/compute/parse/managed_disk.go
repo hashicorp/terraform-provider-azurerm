@@ -11,10 +11,21 @@ type ManagedDiskId struct {
 	Name          string
 }
 
+func NewManagedDiskId(resourceGroup, name string) ManagedDiskId {
+	return ManagedDiskId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id ManagedDiskId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s", subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func ManagedDiskID(input string) (*ManagedDiskId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Managed Disk ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Managed Disk ID %q: %+v", input, err)
 	}
 
 	disk := ManagedDiskId{

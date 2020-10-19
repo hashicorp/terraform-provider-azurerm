@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing Key Vault Certificate.
 ---
 
-# Data Source: azurerm_key_vault_secret
+# Data Source: azurerm_key_vault_certificate
 
 Use this data source to access information about an existing Key Vault Certificate.
 

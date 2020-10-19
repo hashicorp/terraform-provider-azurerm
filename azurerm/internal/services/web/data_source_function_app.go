@@ -78,6 +78,21 @@ func dataSourceArmFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"os_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"possible_outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"site_credential": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -96,19 +111,31 @@ func dataSourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
-			"os_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"site_config": schemaFunctionAppDataSourceSiteConfig(),
 
-			"outbound_ip_addresses": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"source_control": schemaDataSourceAppServiceSiteSourceControl(),
 
-			"possible_outbound_ip_addresses": {
-				Type:     schema.TypeString,
+			"identity": {
+				Type:     schema.TypeList,
 				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"tags": tags.Schema(),
@@ -145,6 +172,11 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
 	}
 
+	scmResp, err := client.GetSourceControl(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
+	}
+
 	siteCredFuture, err := client.ListPublishingCredentials(ctx, resourceGroup, name)
 	if err != nil {
 		return err
@@ -156,6 +188,10 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+	}
+	configResp, err := client.GetConfiguration(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -191,8 +227,22 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	if err := d.Set("identity", flattenFunctionAppIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
 	if err = d.Set("site_credential", siteCred); err != nil {
+		return err
+	}
+
+	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
+	if err = d.Set("site_config", siteConfig); err != nil {
+		return err
+	}
+
+	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	if err := d.Set("source_control", scm); err != nil {
 		return err
 	}
 

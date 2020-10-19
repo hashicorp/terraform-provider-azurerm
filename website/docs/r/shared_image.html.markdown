@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `os_type` - (Required) The type of Operating System present in this Shared Image. Possible values are `Linux` and `Windows`. Changing this forces a new resource to be created.
 
+* `purchase_plan` - (Optional) A `purchase_plan` block as defined below.
+
 ---
 
 * `description` - (Optional) A description of this Shared Image.
@@ -89,6 +91,16 @@ A `identifier` block supports the following:
 * `publisher` - (Required) The Publisher Name for this Gallery Image.
 
 * `sku` - (Required) The Name of the SKU for this Gallery Image.
+
+---
+
+A `purchase_plan` block supports the following:
+
+* `name` - (Required) The Purchase Plan Name for this Shared Image. Changing this forces a new resource to be created.
+
+* `publisher` - (Optional) The Purchase Plan Publisher for this Gallery Image. Changing this forces a new resource to be created.
+
+* `product` - (Optional) The Purchase Plan Product for this Gallery Image. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

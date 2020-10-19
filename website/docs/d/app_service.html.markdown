@@ -59,9 +59,11 @@ output "app_service_id" {
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
+* `source_control` - A `source_control` block as defined below.
+
 ---
 
-`connection_string` supports the following:
+A `connection_string` block exports the following:
 
 * `name` - The name of the Connection String.
 
@@ -79,7 +81,7 @@ A `cors` block exports the following:
 
 ---
 
-A `ip_restriction` block exports the following:
+An `ip_restriction` block exports the following:
 
 * `ip_address` - The IP Address used for this IP Restriction.
 
@@ -92,7 +94,7 @@ A `ip_restriction` block exports the following:
 * `action` - Does this restriction `Allow` or `Deny` access for this IP range?
 
 ---
-A `scm_ip_restriction` block exports the following:  
+An `scm_ip_restriction` block exports the following:  
 
 * `ip_address` - The IP Address used for this IP Restriction in CIDR notation.
 
@@ -106,9 +108,9 @@ A `scm_ip_restriction` block exports the following:
 
 ---
 
-`site_config` supports the following:
+A `site_config` block exports the following:
 
-* `always_on` - Is the app be loaded at all times?
+* `always_on` - Is the app loaded at all times?
 
 * `app_command_line` - App command line to launch.
 
@@ -159,6 +161,21 @@ A `scm_ip_restriction` block exports the following:
 * `use_32_bit_worker_process` - Does the App Service run in 32 bit mode, rather than 64 bit mode?
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
+
+---
+
+A `source_control` block exports the following:
+
+* `repo_url` -  The URL of the source code repository.
+
+* `branch` - The branch of the remote repository in use. 
+
+* `manual_integration` - Limits to manual integration.  
+
+* `rollback_enabled` - Is roll-back enabled for the repository.
+
+* `use_mercurial` - Uses Mercurial if `true`, otherwise uses Git. 
+
 
 ## Timeouts
 

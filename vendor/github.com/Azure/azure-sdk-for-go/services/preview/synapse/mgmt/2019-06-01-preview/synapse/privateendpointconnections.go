@@ -347,6 +347,9 @@ func (client PrivateEndpointConnectionsClient) List(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.PrivateEndpointConnectionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.pecl.hasNextLink() && result.pecl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

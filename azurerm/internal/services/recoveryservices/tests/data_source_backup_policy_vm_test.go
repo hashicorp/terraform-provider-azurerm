@@ -36,7 +36,7 @@ func testAccDataSourceBackupPolicyVm_basic(data acceptance.TestData) string {
 
 data "azurerm_backup_policy_vm" "test" {
   name                = azurerm_backup_policy_vm.test.name
-  recovery_vault_name = azurerm_backup_vault.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, template)

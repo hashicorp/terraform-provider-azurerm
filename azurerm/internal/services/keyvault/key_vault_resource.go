@@ -10,18 +10,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -127,6 +127,11 @@ func resourceArmKeyVault() *schema.Resource {
 				Optional: true,
 			},
 
+			"enable_rbac_authorization": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"network_acls": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -174,6 +179,12 @@ func resourceArmKeyVault() *schema.Resource {
 			"soft_delete_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+
+			"soft_delete_retention_days": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(7, 90),
 			},
 
 			"tags": tags.Schema(),
@@ -238,6 +249,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
+	enableRbacAuthorization := d.Get("enable_rbac_authorization").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
@@ -263,14 +275,22 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
+			EnableRbacAuthorization:      &enableRbacAuthorization,
 			NetworkAcls:                  networkAcls,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	// This settings can only be set if it is true, if set when value is false API returns errors
-	if softDeleteEnabled := d.Get("soft_delete_enabled").(bool); softDeleteEnabled {
-		parameters.Properties.EnableSoftDelete = utils.Bool(softDeleteEnabled)
+	softDeleteEnabled := d.Get("soft_delete_enabled").(bool)
+	if softDeleteEnabled {
+		parameters.Properties.EnableSoftDelete = utils.Bool(true)
+
+		if softDeleteRetentionInDays := d.Get("soft_delete_retention_days").(int); softDeleteRetentionInDays != 0 {
+			parameters.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(softDeleteRetentionInDays))
+		}
+	} else {
+		parameters.Properties.EnableSoftDelete = utils.Bool(false)
 	}
 	if purgeProtectionEnabled := d.Get("purge_protection_enabled").(bool); purgeProtectionEnabled {
 		parameters.Properties.EnablePurgeProtection = utils.Bool(purgeProtectionEnabled)
@@ -289,7 +309,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		virtualNetworkName := id.Path["virtualNetworks"]
-		if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+		if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 		}
 	}
@@ -400,6 +420,14 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		update.Properties.EnabledForTemplateDeployment = utils.Bool(d.Get("enabled_for_template_deployment").(bool))
 	}
 
+	if d.HasChange("enable_rbac_authorization") {
+		if update.Properties == nil {
+			update.Properties = &keyvault.VaultPatchProperties{}
+		}
+
+		update.Properties.EnableRbacAuthorization = utils.Bool(d.Get("enable_rbac_authorization").(bool))
+	}
+
 	if d.HasChange("network_acls") {
 		if update.Properties == nil {
 			update.Properties = &keyvault.VaultPatchProperties{}
@@ -417,7 +445,7 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			virtualNetworkName := id.Path["virtualNetworks"]
-			if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+			if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 				virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 			}
 		}
@@ -483,6 +511,26 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		update.Properties.EnableSoftDelete = utils.Bool(newValue)
 	}
 
+	if d.HasChange("soft_delete_retention_days") {
+		if update.Properties == nil {
+			update.Properties = &keyvault.VaultPatchProperties{}
+		}
+
+		// existing.Properties guaranteed non-nil above
+		var oldValue int32 = 0
+		if existing.Properties.SoftDeleteRetentionInDays != nil {
+			oldValue = *existing.Properties.SoftDeleteRetentionInDays
+		}
+
+		// whilst this should have got caught in the customizeDiff this won't work if that fields interpolated
+		// hence the double-checking here
+		if oldValue != 0 {
+			return fmt.Errorf("updating Key Vault %q (Resource Group %q): once Soft Delete has been Enabled it's not possible to change `soft_delete_retention_days`", name, resourceGroup)
+		}
+
+		update.Properties.SoftDeleteRetentionInDays = utils.Int32(int32(d.Get("soft_delete_retention_days").(int)))
+	}
+
 	if d.HasChange("tenant_id") {
 		if update.Properties == nil {
 			update.Properties = &keyvault.VaultPatchProperties{}
@@ -539,7 +587,9 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 		d.Set("soft_delete_enabled", props.EnableSoftDelete)
+		d.Set("soft_delete_retention_days", props.SoftDeleteRetentionInDays)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
@@ -620,7 +670,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 					}
 
 					virtualNetworkName := id.Path["virtualNetworks"]
-					if !azure.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
+					if !utils.SliceContainsValue(virtualNetworkNames, virtualNetworkName) {
 						virtualNetworkNames = append(virtualNetworkNames, virtualNetworkName)
 					}
 				}

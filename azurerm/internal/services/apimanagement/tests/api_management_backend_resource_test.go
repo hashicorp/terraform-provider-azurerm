@@ -151,13 +151,7 @@ func TestAccAzureRMApiManagementBackend_serviceFabric(t *testing.T) {
 				Config: testAccAzureRMApiManagementBackend_serviceFabric(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementBackendExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "protocol", "http"),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "https://acctest"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_fabric_cluster.#", "1"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "service_fabric_cluster.0.client_certificate_thumbprint"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_fabric_cluster.0.max_partition_resolution_retries", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_fabric_cluster.0.management_endpoints.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_fabric_cluster.0.server_certificate_thumbprints.#", "2"),
 				),
 			},
 			data.ImportStep(),
@@ -401,7 +395,7 @@ resource "azurerm_api_management_backend" "test" {
   resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   protocol            = "http"
-  url                 = "https://acctest"
+  url                 = "fabric:/mytestapp/acctest"
   service_fabric_cluster {
     client_certificate_thumbprint = azurerm_api_management_certificate.test.thumbprint
     management_endpoints = [

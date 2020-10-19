@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
@@ -86,18 +85,16 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error building File Share Directories Client: %s", err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, accountName, shareName, directoryName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Directory %q (File Share %q / Storage Account %q / Resource Group %q): %s", directoryName, shareName, accountName, account.ResourceGroup, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, accountName, shareName, directoryName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			id := client.GetResourceID(accountName, shareName, directoryName)
-			return tf.ImportAsExistsError("azurerm_storage_share_directory", id)
+			return fmt.Errorf("Error checking for presence of existing Directory %q (File Share %q / Storage Account %q / Resource Group %q): %s", directoryName, shareName, accountName, account.ResourceGroup, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		id := client.GetResourceID(accountName, shareName, directoryName)
+		return tf.ImportAsExistsError("azurerm_storage_share_directory", id)
 	}
 
 	if _, err := client.Create(ctx, accountName, shareName, directoryName, metaData); err != nil {

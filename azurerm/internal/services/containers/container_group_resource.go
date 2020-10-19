@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -348,9 +348,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							},
 						},
 
-						"liveness_probe": azure.SchemaContainerGroupProbe(),
+						"liveness_probe": SchemaContainerGroupProbe(),
 
-						"readiness_probe": azure.SchemaContainerGroupProbe(),
+						"readiness_probe": SchemaContainerGroupProbe(),
 					},
 				},
 			},
@@ -418,6 +418,43 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"dns_config": {
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Type:     schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"nameservers": {
+							Type:     schema.TypeList,
+							Required: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"search_domains": {
+							Type:     schema.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+						"options": {
+							Type:     schema.TypeSet,
+							Required: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -450,7 +487,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	restartPolicy := d.Get("restart_policy").(string)
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
-
+	dnsConfig := d.Get("dns_config").([]interface{})
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
@@ -468,6 +505,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
+			DNSConfig:                expandContainerGroupDnsConfig(dnsConfig),
 		},
 	}
 
@@ -562,6 +600,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("restart_policy", string(props.RestartPolicy))
 		d.Set("os_type", string(props.OsType))
+		d.Set("dns_config", flattenContainerGroupDnsConfig(resp.DNSConfig))
 
 		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
 			return fmt.Errorf("Error setting `diagnostics`: %+v", err)
@@ -603,13 +642,12 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
 		return fmt.Errorf("Error deleting Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for deletion of Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if networkProfileId != "" {
@@ -1152,10 +1190,8 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 	if isSecure {
 		for _, envVar := range *input {
 			if envVar.Name != nil && envVar.Value == nil {
-				if v, ok := d.GetOk(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, *envVar.Name)); ok {
-					log.Printf("[DEBUG] SECURE    : Name: %s - Value: %s", *envVar.Name, v.(string))
-					output[*envVar.Name] = v.(string)
-				}
+				envVarValue := d.Get(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, *envVar.Name))
+				output[*envVar.Name] = envVarValue
 			}
 		}
 	} else {
@@ -1374,4 +1410,63 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 	}
 
 	return hashcode.String(buf.String())
+}
+
+func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{} {
+	output := make(map[string]interface{})
+
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	var searchDomains []string
+	if input.SearchDomains != nil {
+		searchDomains = strings.Split(*input.SearchDomains, " ")
+	}
+	output["search_domains"] = searchDomains
+
+	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	var options []string
+	if input.Options != nil {
+		options = strings.Split(*input.Options, " ")
+	}
+	output["options"] = options
+
+	//Nameservers is already an array from the API
+	var nameservers []string
+	if input.NameServers != nil {
+		nameservers = *input.NameServers
+	}
+	output["nameservers"] = nameservers
+
+	return []interface{}{output}
+}
+
+func expandContainerGroupDnsConfig(input interface{}) *containerinstance.DNSConfiguration {
+	dnsConfigRaw := input.([]interface{})
+	if len(dnsConfigRaw) > 0 {
+		config := dnsConfigRaw[0].(map[string]interface{})
+
+		nameservers := []string{}
+		for _, v := range config["nameservers"].([]interface{}) {
+			nameservers = append(nameservers, v.(string))
+		}
+		options := []string{}
+		for _, v := range config["options"].(*schema.Set).List() {
+			options = append(options, v.(string))
+		}
+		searchDomains := []string{}
+		for _, v := range config["search_domains"].(*schema.Set).List() {
+			searchDomains = append(searchDomains, v.(string))
+		}
+
+		return &containerinstance.DNSConfiguration{
+			Options:       utils.String(strings.Join(options, " ")),
+			SearchDomains: utils.String(strings.Join(searchDomains, " ")),
+			NameServers:   &nameservers,
+		}
+	}
+
+	return nil
 }

@@ -157,6 +157,9 @@ func (client ElasticPoolOperationsClient) ListByElasticPool(ctx context.Context,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ElasticPoolOperationsClient", "ListByElasticPool", resp, "Failure responding to request")
 	}
+	if result.epolr.hasNextLink() && result.epolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

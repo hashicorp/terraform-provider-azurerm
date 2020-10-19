@@ -319,6 +319,9 @@ func (client CustomDomainsClient) List(ctx context.Context, resourceGroupName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.CustomDomainsClient", "List", resp, "Failure responding to request")
 	}
+	if result.cdrc.hasNextLink() && result.cdrc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

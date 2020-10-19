@@ -11,10 +11,21 @@ type DiskEncryptionSetId struct {
 	Name          string
 }
 
+func NewDiskEncryptionSetId(resourceGroup, name string) DiskEncryptionSetId {
+	return DiskEncryptionSetId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id DiskEncryptionSetId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/diskEncryptionSets/%s", subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func DiskEncryptionSetID(input string) (*DiskEncryptionSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Disk Encryption Set ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Disk Encryption Set ID %q: %+v", input, err)
 	}
 
 	encryptionSetId := DiskEncryptionSetId{

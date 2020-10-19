@@ -73,25 +73,19 @@ resource "azurerm_virtual_network" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual network. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the virtual network. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the virtual network.
+* `resource_group_name` - (Required) The name of the resource group in which to create the virtual network.
 
-* `address_space` - (Required) The address space that is used the virtual
-    network. You can supply more than one address space. Changing this forces
-    a new resource to be created.
+* `address_space` - (Required) The address space that is used the virtual network. You can supply more than one address space.
 
-* `location` - (Required) The location/region where the virtual network is
-    created. Changing this forces a new resource to be created.
+* `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
 * `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
 
 * `dns_servers` - (Optional) List of IP addresses of DNS servers
 
-* `subnet` - (Optional) Can be specified multiple times to define multiple
-    subnets. Each `subnet` block supports fields documented below.
+* `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields documented below.
 
 -> **NOTE** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
@@ -101,7 +95,7 @@ The following arguments are supported:
 
 A `ddos_protection_plan` block supports the following:
 
-* `id` - (Required) The Resource ID of DDoS Protection Plan.
+* `id` - (Required) The ID of DDoS Protection Plan.
 
 * `enable` - (Required) Enable/disable DDoS Protection Plan on Virtual Network.
 
@@ -113,8 +107,7 @@ The `subnet` block supports:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
-* `security_group` - (Optional) The Network Security Group to associate with
-    the subnet. (Referenced by `id`, ie. `azurerm_network_security_group.example.id`)
+* `security_group` - (Optional) The Network Security Group to associate with the subnet. (Referenced by `id`, ie. `azurerm_network_security_group.example.id`)
 
 ## Attributes Reference
 
@@ -128,7 +121,7 @@ The following attributes are exported:
 
 * `location` - The location/region where the virtual network is created.
 
-* `address_space` - The address space that is used the virtual network.
+* `address_space` - The list of address spaces used by the virtual network.
 
 * `guid` - The GUID of the virtual network.
 

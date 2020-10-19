@@ -105,6 +105,7 @@ The following arguments are supported:
 * `not_scopes` - (Optional) A list of the Policy Assignment's excluded scopes. The list must contain Resource IDs (such as Subscriptions e.g. `/subscriptions/00000000-0000-0000-000000000000` or Resource Groups e.g.`/subscriptions/00000000-0000-0000-000000000000/resourceGroups/myResourceGroup`).
 
 * `enforcement_mode`- (Optional) Can be set to 'true' or 'false' to control whether the assignment is enforced (true) or not (false). Default is 'true'.
+
 ---
 
 An `identity` block supports the following:

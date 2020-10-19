@@ -315,6 +315,9 @@ func (client EventChannelsClient) ListByPartnerNamespace(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventChannelsClient", "ListByPartnerNamespace", resp, "Failure responding to request")
 	}
+	if result.eclr.hasNextLink() && result.eclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

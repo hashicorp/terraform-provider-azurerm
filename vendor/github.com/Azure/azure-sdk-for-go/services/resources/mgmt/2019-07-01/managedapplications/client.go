@@ -85,6 +85,9 @@ func (client BaseClient) ListOperations(ctx context.Context) (result OperationLi
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.BaseClient", "ListOperations", resp, "Failure responding to request")
 	}
+	if result.olr.hasNextLink() && result.olr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

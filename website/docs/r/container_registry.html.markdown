@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
-* `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
+* `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.  Changing this forces a new resource to be created.
 
 * `sku` - (Optional) The SKU name of the container registry. Possible values are  `Basic`, `Standard` and `Premium`. `Classic` (which was previously `Basic`) is supported only for existing resources.
 
@@ -59,6 +59,12 @@ The following arguments are supported:
 ~> **NOTE:** The `georeplication_locations` list cannot contain the location where the Container Registry exists.
 
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
+
+* `retention_policy` - (Optional) A `retention_policy` block as documented below.
+
+* `trust_policy` - (Optional) A `trust_policy` block as documented below.
+
+~> **NOTE:** `retention_policy` and `trust_policy` are only supported on resources with the `Premium` SKU.
 
 `network_rule_set` supports the following:
 
@@ -84,6 +90,15 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The subnet id from which requests will match the rule.
 
+`trust_policy` supports the following:
+
+* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled.
+
+`retention_policy` supports the following:
+
+* `days` - (Optional) The number of days to retain an untagged manifest after which it gets purged.
+
+* `enabled` - (Optional) Boolean value that indicates whether the policy is enabled. Default is `7`.
 
 ---
 ## Attributes Reference

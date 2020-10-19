@@ -106,6 +106,9 @@ func (client OperationClient) ListByTags(ctx context.Context, resourceGroupName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.OperationClient", "ListByTags", resp, "Failure responding to request")
 	}
+	if result.trc.hasNextLink() && result.trc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

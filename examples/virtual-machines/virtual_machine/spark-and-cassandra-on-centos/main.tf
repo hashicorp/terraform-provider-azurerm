@@ -103,7 +103,7 @@ resource "azurerm_subnet" "subnet1" {
   name                      = "${var.vnet_spark_subnet1_name}"
   virtual_network_name      = "${azurerm_virtual_network.spark.name}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
-  address_prefix            = "${var.vnet_spark_subnet1_prefix}"
+  address_prefixes            = ["${var.vnet_spark_subnet1_prefix}"]
   network_security_group_id = "${azurerm_network_security_group.primary.id}"
   depends_on                = ["azurerm_virtual_network.spark"]
 }
@@ -112,14 +112,14 @@ resource "azurerm_subnet" "subnet2" {
   name                 = "${var.vnet_spark_subnet2_name}"
   virtual_network_name = "${azurerm_virtual_network.spark.name}"
   resource_group_name  = "${azurerm_resource_group.rg.name}"
-  address_prefix       = "${var.vnet_spark_subnet2_prefix}"
+  address_prefixes     = ["${var.vnet_spark_subnet2_prefix}"]
 }
 
 resource "azurerm_subnet" "subnet3" {
   name                 = "${var.vnet_spark_subnet3_name}"
   virtual_network_name = "${azurerm_virtual_network.spark.name}"
   resource_group_name  = "${azurerm_resource_group.rg.name}"
-  address_prefix       = "${var.vnet_spark_subnet3_prefix}"
+  address_prefixes     = ["${var.vnet_spark_subnet3_prefix}"]
 }
 
 # **********************  PUBLIC IP ADDRESSES ********************** #

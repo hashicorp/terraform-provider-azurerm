@@ -249,6 +249,9 @@ func (client QueryKeysClient) ListBySearchService(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "ListBySearchService", resp, "Failure responding to request")
 	}
+	if result.lqkr.hasNextLink() && result.lqkr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

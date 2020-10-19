@@ -76,6 +76,9 @@ func (client ProtectableContainersClient) List(ctx context.Context, vaultName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "backup.ProtectableContainersClient", "List", resp, "Failure responding to request")
 	}
+	if result.pcrl.hasNextLink() && result.pcrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

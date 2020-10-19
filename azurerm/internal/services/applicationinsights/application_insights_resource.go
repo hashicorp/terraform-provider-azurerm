@@ -116,6 +116,12 @@ func resourceArmApplicationInsights() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -252,6 +258,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("instrumentation_key", props.InstrumentationKey)
 		d.Set("sampling_percentage", props.SamplingPercentage)
 		d.Set("disable_ip_masking", props.DisableIPMasking)
+		d.Set("connection_string", props.ConnectionString)
 		if v := props.RetentionInDays; v != nil {
 			d.Set("retention_in_days", v)
 		}

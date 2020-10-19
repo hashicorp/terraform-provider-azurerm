@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -209,18 +209,18 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Gallery, id.Name, id.Version, compute.ReplicationStatusTypesReplicationStatus)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Gallery, id.ImageName, id.Version, compute.ReplicationStatusTypesReplicationStatus)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Shared Image Version %q (Image %q / Gallery %q / Resource Group %q) was not found - removing from state", id.Version, id.Name, id.Gallery, id.ResourceGroup)
+			log.Printf("[DEBUG] Shared Image Version %q (Image %q / Gallery %q / Resource Group %q) was not found - removing from state", id.Version, id.ImageName, id.Gallery, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.Version, id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.Version, id.ImageName, id.Gallery, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("image_name", id.Name)
+	d.Set("image_name", id.ImageName)
 	d.Set("gallery_name", id.Gallery)
 	d.Set("resource_group_name", id.ResourceGroup)
 
@@ -263,18 +263,18 @@ func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Gallery, id.Name, id.Version)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Gallery, id.ImageName, id.Version)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.Version, id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.Version, id.ImageName, id.Gallery, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.Version, id.Name, id.Gallery, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.Version, id.ImageName, id.Gallery, id.ResourceGroup, err)
 		}
 	}
 
