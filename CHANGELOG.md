@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_cosmosdb_sql_container` - Add composite indexes support [GH-8792]
 * `azurerm_mssql_database` - do not set longterm and shortterm retention policies when using the `DW` SKUs [GH-8899]
 * `azurerm_search_service` - add support for `identity` [GH-8907]
 
