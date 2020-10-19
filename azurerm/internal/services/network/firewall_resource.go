@@ -509,6 +509,7 @@ func expandArmFirewallDNSSetting(input []interface{}) map[string]*string {
 		servers = append(servers, server.(string))
 	}
 
+	// Swagger issue asking finalize these properties: https://github.com/Azure/azure-rest-api-specs/issues/11278
 	return map[string]*string{
 		"Network.DNS.EnableProxy": utils.String(fmt.Sprintf("%t", v["enabled"].(bool))),
 		"Network.DNS.Servers":     utils.String(strings.Join(servers, ",")),
