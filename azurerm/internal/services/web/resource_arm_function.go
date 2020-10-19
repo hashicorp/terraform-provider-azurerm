@@ -139,7 +139,7 @@ func resourceArmFunctionCreate(d *schema.ResourceData, meta interface{}) error {
 		existing, err := client.GetFunction(ctx, resourceGroup, functionAppName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Function %q (Resource Group %q, Function App %q): %s", name, resourceGroup, functionAppName, err)
+				return fmt.Errorf("checking for presence of existing Function %q (Resource Group %q, Function App %q): %s", name, resourceGroup, functionAppName, err)
 			}
 		}
 
@@ -167,20 +167,20 @@ func resourceArmFunctionCreate(d *schema.ResourceData, meta interface{}) error {
 
 	createFuture, err := client.CreateFunction(ctx, resourceGroup, functionAppName, name, functionEnvelope)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Function %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Function %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for Function %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+		return fmt.Errorf("waiting for Function %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 	}
 
 	read, err := client.GetFunction(ctx, resourceGroup, functionAppName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Function %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Function %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Function %s (Resource Group %s) ID", name, resourceGroup)
+		return fmt.Errorf("reading Function %s (Resource Group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -205,7 +205,7 @@ func resourceArmFunctionRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Function %q: %+v", id.Name, err)
+		return fmt.Errorf("making Read request on AzureRM Function %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", id.Name)
@@ -264,7 +264,7 @@ func expandFunctionConfig(input interface{}) (map[string]interface{}, error) {
 
 	var config map[string]interface{}
 	if err := json.Unmarshal([]byte(cfg), &config); err != nil {
-		return nil, fmt.Errorf("Error parsing Function config: %s", err)
+		return nil, fmt.Errorf("parsing Function config: %s", err)
 	}
 
 	return config, nil
@@ -274,7 +274,7 @@ func flattenFunctionConfig(input interface{}) (*string, error) {
 	config, err := json.Marshal(input)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error serializing config to JSON: %+v", err)
+		return nil, fmt.Errorf("serializing config to JSON: %+v", err)
 	}
 
 	return utils.String(string(config)), nil
