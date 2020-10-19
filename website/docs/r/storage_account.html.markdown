@@ -121,6 +121,8 @@ The following arguments are supported:
 
 * `share_properties` - (Optional) A `share_properties` block as defined below.
 
+~> **NOTE:** `share_properties` cannot be set when the `account_kind` is set to `BlobStorage` and `BlockBlobStorage` or `account_tier` is `Premium`.
+
 * `static_website` - (Optional) A `static_website` block as defined below.
 
 ~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
