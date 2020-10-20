@@ -81,6 +81,5 @@ func TestManagementGroupSubscriptionAssociationID(t *testing.T) {
 		if actual.SubscriptionID != v.Expect.SubscriptionID {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.SubscriptionID, actual.SubscriptionID)
 		}
-
 	}
 }

@@ -150,7 +150,7 @@ func testCheckAzureRMManagementGroupSubscriptionAssociationDoesNotExist(resource
 }
 
 func testAzureRMManagementGroupSubscriptionAssociation_managementGroupOnly() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -160,8 +160,7 @@ resource "azurerm_management_group" "test" {
     ignore_changes = [subscription_ids, ]
   }
 }
-
-`)
+`
 }
 
 func testAzureRMManagementGroupSubscriptionAssociation_associatedSubscription(subscriptionId string) string {
@@ -171,7 +170,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_management_group" "test" {
-	lifecycle {
+  lifecycle {
     ignore_changes = [subscription_ids, ]
   }
 }
@@ -180,6 +179,5 @@ resource "azurerm_management_group_subscription_association" "test" {
   management_group_id = azurerm_management_group.test.id
   subscription_id     = "%s"
 }
-
 `, subscriptionId)
 }
