@@ -42,7 +42,7 @@ func TestManagementGroupSubscriptionAssociationID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "Nat Gateway / Public IP Association ID",
+			Name:  "Good Management Group | Subscription ID",
 			Input: "/providers/Microsoft.Management/managementGroups/myManagementGroup|/subscriptions/00000000-0000-0000-0000-000000000000",
 			Error: false,
 			Expect: &ManagementGroupSubscriptionAssociationId{

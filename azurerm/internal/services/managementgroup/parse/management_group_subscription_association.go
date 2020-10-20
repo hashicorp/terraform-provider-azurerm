@@ -3,6 +3,8 @@ package parse
 import (
 	"fmt"
 	"strings"
+
+	"github.com/hashicorp/go-uuid"
 )
 
 type ManagementGroupSubscriptionAssociationId struct {
@@ -34,6 +36,10 @@ func ManagementGroupSubscriptionAssociationID(input string) (*ManagementGroupSub
 
 	subscriptionId := strings.TrimPrefix(subscriptionScopeId, "/subscriptions/")
 	if subscriptionId == subscriptionScopeId {
+		return nil, fmt.Errorf("expected subscription scope ID %q  in `/subscriptions/00000000-0000-0000-0000-000000000000` format", subscriptionScopeId)
+	}
+
+	if _, err := uuid.ParseUUID(subscriptionId); err != nil {
 		return nil, fmt.Errorf("expected subscription scope ID %q  in `/subscriptions/00000000-0000-0000-0000-000000000000` format", subscriptionScopeId)
 	}
 
