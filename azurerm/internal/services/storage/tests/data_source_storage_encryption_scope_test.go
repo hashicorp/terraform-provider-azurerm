@@ -33,7 +33,7 @@ func testAccDataSourceAzureRMStorageEncryptionScope_basic(data acceptance.TestDa
 %s
 
 data "azurerm_storage_encryption_scope" "test" {
-  name                = azurerm_storage_encryption_scope.test.name
+  name               = azurerm_storage_encryption_scope.test.name
   storage_account_id = azurerm_storage_encryption_scope.test.storage_account_id
 }
 `, basic)
