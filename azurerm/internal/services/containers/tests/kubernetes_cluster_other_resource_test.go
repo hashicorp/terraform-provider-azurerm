@@ -598,6 +598,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count           = 1
     max_count           = 1
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
