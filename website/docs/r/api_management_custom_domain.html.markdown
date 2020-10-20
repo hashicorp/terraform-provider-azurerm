@@ -85,8 +85,7 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 
 resource "azurerm_api_management_custom_domain" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  api_management_name = azurerm_api_management.example.name
+  api_management_id = azurerm_api_management.example.id
 
   proxy {
     host_name    = "api.example.com"
@@ -104,9 +103,7 @@ resource "azurerm_api_management_custom_domain" "example" {
 
 The following arguments are supported:
 
-* `api_management_name` - (Required) The name of the API Management service to configure Custom Domain for. Changing this forces a new API Management Custom Domain to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the API Management resource exists. Changing this forces a new API Management Custom Domain to be created.
+* `api_management_id` - (Required) The ID of the API Management service for which to configure Custom Domains. Changing this forces a new API Management Custom Domain resource to be created.
 
 ---
 

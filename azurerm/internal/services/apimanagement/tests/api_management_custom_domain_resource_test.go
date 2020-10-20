@@ -117,8 +117,7 @@ func testAccAzureRMApiManagementCustomDomain_basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  api_management_id = azurerm_api_management.test.id
 
   proxy {
     host_name    = "api.example.com"

@@ -108,7 +108,7 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.IsNewResource() {
-		if existing.ServiceProperties != nil && existing.ServiceProperties.HostnameConfigurations != nil {
+		if existing.ServiceProperties != nil && existing.ServiceProperties.HostnameConfigurations != nil && len(*existing.ServiceProperties.HostnameConfigurations) > 0 {
 			return tf.ImportAsExistsError(apiManagementCustomDomainResourceName, *existing.ID)
 		}
 	}
