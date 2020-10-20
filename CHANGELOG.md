@@ -1,5 +1,10 @@
 ## 2.33.0 (Unreleased)
 
+FEATURES: 
+
+* **New Resource:** `azurerm_service_fabric_mesh_secret` [GH-8933]
+* **New Resource:** `azurerm_service_fabric_mesh_secret_value` [GH-8933]
+
 IMPROVEMENTS:
 
 * Data Source: `azurerm_shared_image_version` - exposing `os_disk_image_size_gb` [GH-8904]
