@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -80,56 +81,69 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 			"routing_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"associated_route_table_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
 						"propagated_route_table": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"labels": {
 										Type:     schema.TypeSet,
 										Optional: true,
+										Computed: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+										},
+									},
+
+									"route_table_ids": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
 								},
 							},
 						},
 
-						"vnet_route": {
-							Type:     schema.TypeList,
+						"vnet_static_route": {
+							Type:     schema.TypeSet,
 							Optional: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"static_route": {
+									"name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"address_prefixes": {
 										Type:     schema.TypeSet,
 										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"name": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-
-												"address_prefixes": {
-													Type:     schema.TypeSet,
-													Optional: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-													},
-												},
-
-												"next_hop_ip_address": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-											},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsCIDR,
 										},
+									},
+
+									"next_hop_ip_address": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.IsIPv4Address,
 									},
 								},
 							},
@@ -277,11 +291,24 @@ func expandArmVirtualHubConnectionRoutingConfiguration(input []interface{}) *net
 	}
 
 	v := input[0].(map[string]interface{})
-
-	return &network.RoutingConfiguration{
+	result := network.RoutingConfiguration{
 		PropagatedRouteTables: expandArmVirtualHubConnectionPropagatedRouteTable(v["propagated_route_table"].([]interface{})),
-		VnetRoutes:            expandArmVirtualHubConnectionVnetRoute(v["vnet_route"].([]interface{})),
+		VnetRoutes:            expandArmVirtualHubConnectionVnetStaticRoute(v["vnet_static_route"].(*schema.Set).List()),
 	}
+
+	if associatedRouteTableId := v["associated_route_table_id"].(string); associatedRouteTableId != "" {
+		result.AssociatedRouteTable = &network.SubResource{
+			ID: utils.String(associatedRouteTableId),
+		}
+	}
+
+	if associatedRouteTableId := v["associated_route_table_id"].(string); associatedRouteTableId != "" {
+		result.AssociatedRouteTable = &network.SubResource{
+			ID: utils.String(associatedRouteTableId),
+		}
+	}
+
+	return &result
 }
 
 func expandArmVirtualHubConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
@@ -291,50 +318,78 @@ func expandArmVirtualHubConnectionPropagatedRouteTable(input []interface{}) *net
 
 	v := input[0].(map[string]interface{})
 
-	return &network.PropagatedRouteTable{
-		Labels: utils.ExpandStringSlice(v["labels"].(*schema.Set).List()),
+	result := network.PropagatedRouteTable{}
+
+	if labels := v["labels"].(*schema.Set).List(); len(labels) != 0 {
+		result.Labels = utils.ExpandStringSlice(labels)
 	}
+
+	if routeTableIds := v["route_table_ids"].(*schema.Set).List(); len(routeTableIds) != 0 {
+		result.Ids = expandIDsToSubResources(routeTableIds)
+	}
+
+	return &result
 }
 
-func expandArmVirtualHubConnectionVnetRoute(input []interface{}) *network.VnetRoute {
+func expandArmVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.VnetRoute {
 	if len(input) == 0 {
 		return nil
 	}
 
-	v := input[0].(map[string]interface{})
-
-	return &network.VnetRoute{
-		StaticRoutes: expandArmVirtualHubConnectionStaticRoutes(v["static_route"].(*schema.Set).List()),
-	}
-}
-
-func expandArmVirtualHubConnectionStaticRoutes(input []interface{}) *[]network.StaticRoute {
 	results := make([]network.StaticRoute, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		result := network.StaticRoute{
-			Name:             utils.String(v["name"].(string)),
-			AddressPrefixes:  utils.ExpandStringSlice(v["address_prefixes"].(*schema.Set).List()),
-			NextHopIPAddress: utils.String(v["next_hop_ip_address"].(string)),
+		result := network.StaticRoute{}
+
+		if name := v["name"].(string); name != "" {
+			result.Name = utils.String(name)
+		}
+
+		if addressPrefixes := v["address_prefixes"].(*schema.Set).List(); len(addressPrefixes) != 0 {
+			result.AddressPrefixes = utils.ExpandStringSlice(addressPrefixes)
+		}
+
+		if nextHopIPAddress := v["next_hop_ip_address"].(string); nextHopIPAddress != "" {
+			result.NextHopIPAddress = utils.String(nextHopIPAddress)
 		}
 
 		results = append(results, result)
 	}
 
-	return &results
+	return &network.VnetRoute{
+		StaticRoutes: &results,
+	}
+}
+
+func expandIDsToSubResources(input []interface{}) *[]network.SubResource {
+	ids := make([]network.SubResource, 0)
+
+	for _, v := range input {
+		ids = append(ids, network.SubResource{
+			ID: utils.String(v.(string)),
+		})
+	}
+
+	return &ids
 }
 
 func flattenArmVirtualHubConnectionRoutingConfiguration(input *network.RoutingConfiguration) []interface{} {
 	if input == nil {
-		return make([]interface{}, 0)
+		return nil
+	}
+
+	associatedRouteTableId := ""
+	if input.AssociatedRouteTable != nil && input.AssociatedRouteTable.ID != nil {
+		associatedRouteTableId = *input.AssociatedRouteTable.ID
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"propagated_route_table": flattenArmVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
-			"vnet_route":             flattenArmVirtualHubConnectionVnetRoute(input.VnetRoutes),
+			"associated_route_table_id": associatedRouteTableId,
+			"propagated_route_table":    flattenArmVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"vnet_static_route":         flattenArmVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
 		},
 	}
 }
@@ -344,32 +399,31 @@ func flattenArmVirtualHubConnectionPropagatedRouteTable(input *network.Propagate
 		return make([]interface{}, 0)
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"labels": utils.FlattenStringSlice(input.Labels),
-		},
+	labels := make([]interface{}, 0)
+	if input.Labels != nil {
+		labels = utils.FlattenStringSlice(input.Labels)
 	}
-}
 
-func flattenArmVirtualHubConnectionVnetRoute(input *network.VnetRoute) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
+	routeTableIds := make([]interface{}, 0)
+	if input.Ids != nil {
+		routeTableIds = flattenSubResourcesToIDs(input.Ids)
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"static_route": flattenArmVirtualHubConnectionStaticRoutes(input.StaticRoutes),
+			"labels":          labels,
+			"route_table_ids": routeTableIds,
 		},
 	}
 }
 
-func flattenArmVirtualHubConnectionStaticRoutes(input *[]network.StaticRoute) []interface{} {
+func flattenArmVirtualHubConnectionVnetStaticRoute(input *network.VnetRoute) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil {
+	if input == nil || input.StaticRoutes == nil {
 		return results
 	}
 
-	for _, item := range *input {
+	for _, item := range *input.StaticRoutes {
 		var name string
 		if item.Name != nil {
 			name = *item.Name
@@ -380,9 +434,14 @@ func flattenArmVirtualHubConnectionStaticRoutes(input *[]network.StaticRoute) []
 			nextHopIpAddress = *item.NextHopIPAddress
 		}
 
+		addressPrefixes := make([]interface{}, 0)
+		if item.AddressPrefixes != nil {
+			addressPrefixes = utils.FlattenStringSlice(item.AddressPrefixes)
+		}
+
 		v := map[string]interface{}{
 			"name":                name,
-			"address_prefixes":    utils.FlattenStringSlice(item.AddressPrefixes),
+			"address_prefixes":    addressPrefixes,
 			"next_hop_ip_address": nextHopIpAddress,
 		}
 
@@ -390,4 +449,21 @@ func flattenArmVirtualHubConnectionStaticRoutes(input *[]network.StaticRoute) []
 	}
 
 	return results
+}
+
+func flattenSubResourcesToIDs(input *[]network.SubResource) []interface{} {
+	ids := make([]interface{}, 0)
+	if input == nil {
+		return ids
+	}
+
+	for _, v := range *input {
+		if v.ID == nil {
+			continue
+		}
+
+		ids = append(ids, *v.ID)
+	}
+
+	return ids
 }

@@ -131,6 +131,25 @@ func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testin
 	})
 }
 
+func TestAccAzureRMVirtualHubConnection_withRoutingConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.HubVirtualNetworkConnectionClient
@@ -319,4 +338,29 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.2.0/24"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data acceptance.TestData) string {
+	template := testAccAzureRMVirtualHubConnection_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing_configuration {
+    propagated_route_table {
+      labels = ["default"]
+    }
+
+    vnet_static_route {
+      name                = "testvnetroute"
+      address_prefixes    = ["10.0.3.0/24"]
+      next_hop_ip_address = "10.0.3.5"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }

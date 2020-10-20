@@ -66,9 +66,11 @@ The following arguments are supported:
 
 An `routing_configuration` block exports the following:
 
+* `associated_route_table_id` - (Optional) The ID of route table associated with this routing configuration.
+
 * `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
 
-* `vnet_route` - (Optional)  A `vnet_route` block as defined below.
+* `vnet_static_route` - (Optional)  A `vnet_static_route` block as defined below.
 
 ---
 
@@ -76,19 +78,15 @@ An `propagated_route_table` block exports the following:
 
 * `labels` - (Optional) The list of labels.
 
----
-
-An `vnet_route` block exports the following:
-
-* `static_route` - (Optional)  A `static_route` block as defined below.
+* `route_table_ids` - (Optional) The list of resource ids of all the route tables.
 
 ---
 
-An `static_route` block exports the following:
+An `vnet_static_route` block exports the following:
 
 * `name` - (Optional) The name which should be used for this static_route.
 
-* `address_prefixes` - (Optional) List of all address prefixes.
+* `address_prefixes` - (Optional) The list of all address prefixes.
 
 * `next_hop_ip_address` - (Optional) The ip address of the next hop.
 
