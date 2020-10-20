@@ -18,15 +18,15 @@ func ServiceFabricMeshSecretValueID(input string) (*ServiceFabricMeshSecretValue
 		return nil, fmt.Errorf("[ERROR] Unable to parse Service Fabric Mesh Secret ID %q: %+v", input, err)
 	}
 
-	secret := ServiceFabricMeshSecretValueId{
+	value := ServiceFabricMeshSecretValueId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if secret.SecretName, err = id.PopSegment("secrets"); err != nil {
+	if value.SecretName, err = id.PopSegment("secrets"); err != nil {
 		return nil, err
 	}
 
-	if secret.Name, err = id.PopSegment("values"); err != nil {
+	if value.Name, err = id.PopSegment("values"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +34,5 @@ func ServiceFabricMeshSecretValueID(input string) (*ServiceFabricMeshSecretValue
 		return nil, err
 	}
 
-	return &secret, nil
+	return &value, nil
 }
