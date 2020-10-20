@@ -95,12 +95,12 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 	log.Printf("[INFO] preparing arguments for API Management Custom domain creation.")
 
 	apiManagementID := d.Get("api_management_id").(string)
-	id, err := azure.ParseAzureResourceID(apiManagementID)
+	id, err := parse.ApiManagementID(apiManagementID)
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
+	serviceName := id.ServiceName
 
 	existing, err := client.Get(ctx, resourceGroup, serviceName)
 	if err != nil {
