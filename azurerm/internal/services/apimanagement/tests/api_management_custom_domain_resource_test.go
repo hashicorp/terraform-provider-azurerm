@@ -49,6 +49,46 @@ func TestAccAzureRMApiManagementCustomDomain_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementCustomDomain_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_custom_domain", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementCustomDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementCustomDomain_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementCustomDomainExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagementCustomDomain_proxyOnly(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementCustomDomainExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagementCustomDomain_developerPortalOnly(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementCustomDomainExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagementCustomDomain_builtinProxyOnly(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementCustomDomainExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMApiManagementCustomDomainDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -120,6 +160,10 @@ resource "azurerm_api_management_custom_domain" "test" {
   api_management_id = azurerm_api_management.test.id
 
   proxy {
+    host_name = "${azurerm_api_management.test.name}.azure-api.net"
+  }
+
+  proxy {
     host_name    = "api.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
   }
@@ -127,6 +171,64 @@ resource "azurerm_api_management_custom_domain" "test" {
   developer_portal {
     host_name    = "portal.example.com"
     key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+}
+`, template)
+}
+
+func testAccAzureRMApiManagementCustomDomain_proxyOnly(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementCustomDomain_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  proxy {
+    host_name = "${azurerm_api_management.test.name}.azure-api.net"
+  }
+
+  proxy {
+    host_name    = "api.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+}
+`, template)
+}
+
+func testAccAzureRMApiManagementCustomDomain_developerPortalOnly(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementCustomDomain_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  proxy {
+    host_name = "${azurerm_api_management.test.name}.azure-api.net"
+  }
+
+  developer_portal {
+    host_name    = "portal.example.com"
+    key_vault_id = azurerm_key_vault_certificate.test.secret_id
+  }
+}
+`, template)
+}
+
+func testAccAzureRMApiManagementCustomDomain_builtinProxyOnly(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementCustomDomain_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_custom_domain" "test" {
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  proxy {
+    host_name = "${azurerm_api_management.test.name}.azure-api.net"
   }
 }
 `, template)
@@ -140,6 +242,10 @@ func testAccAzureRMApiManagementCustomDomain_requiresImport(data acceptance.Test
 resource "azurerm_api_management_custom_domain" "import" {
   api_management_name = azurerm_api_management_custom_domain.test.api_management_name
   resource_group_name = azurerm_api_management_custom_domain.test.resource_group_name
+
+  proxy {
+    host_name = "${azurerm_api_management.test.name}.azure-api.net"
+  }
 
   proxy {
     host_name    = "api.example.com"
