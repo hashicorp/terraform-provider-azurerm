@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmServiceFabricMeshSecretInline() *schema.Resource {
+func resourceArmServiceFabricMeshSecret() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceFabricMeshSecretInlineCreateUpdate,
-		Read:   resourceArmServiceFabricMeshSecretInlineRead,
-		Update: resourceArmServiceFabricMeshSecretInlineCreateUpdate,
-		Delete: resourceArmServiceFabricMeshSecretInlineDelete,
+		Create: resourceArmServiceFabricMeshSecretCreateUpdate,
+		Read:   resourceArmServiceFabricMeshSecretRead,
+		Update: resourceArmServiceFabricMeshSecretCreateUpdate,
+		Delete: resourceArmServiceFabricMeshSecretDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.ServiceFabricMeshSecretID(id)
 			return err
@@ -69,7 +69,7 @@ func resourceArmServiceFabricMeshSecretInline() *schema.Resource {
 	}
 }
 
-func resourceArmServiceFabricMeshSecretInlineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceFabricMeshSecretCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -88,7 +88,7 @@ func resourceArmServiceFabricMeshSecretInlineCreateUpdate(d *schema.ResourceData
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_service_fabric_mesh_secret_inline", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_service_fabric_mesh_secret", *existing.ID)
 		}
 	}
 
@@ -117,10 +117,10 @@ func resourceArmServiceFabricMeshSecretInlineCreateUpdate(d *schema.ResourceData
 
 	d.SetId(*resp.ID)
 
-	return resourceArmServiceFabricMeshSecretInlineRead(d, meta)
+	return resourceArmServiceFabricMeshSecretRead(d, meta)
 }
 
-func resourceArmServiceFabricMeshSecretInlineRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceFabricMeshSecretRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,7 +143,7 @@ func resourceArmServiceFabricMeshSecretInlineRead(d *schema.ResourceData, meta i
 
 	props, ok := resp.Properties.AsSecretResourceProperties()
 	if !ok {
-		return fmt.Errorf("classifiying Service Fabric Mesh Secret Inline %q (Resource Group %q): Expected: %q Received: %q", id.Name, id.ResourceGroup, servicefabricmesh.KindInlinedValue, props.Kind)
+		return fmt.Errorf("classifiying Service Fabric Mesh Secret %q (Resource Group %q): Expected: %q Received: %q", id.Name, id.ResourceGroup, servicefabricmesh.KindInlinedValue, props.Kind)
 	}
 
 	d.Set("name", resp.Name)
@@ -155,7 +155,7 @@ func resourceArmServiceFabricMeshSecretInlineRead(d *schema.ResourceData, meta i
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmServiceFabricMeshSecretInlineDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceFabricMeshSecretDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceFabricMesh.SecretClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -168,7 +168,7 @@ func resourceArmServiceFabricMeshSecretInlineDelete(d *schema.ResourceData, meta
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("deleting Service Fabric Mesh Secret Inline %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Service Fabric Mesh Secret %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

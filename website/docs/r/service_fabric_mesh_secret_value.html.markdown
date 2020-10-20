@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_service_fabric_mesh_secret_inline" "example" {
+resource "azurerm_service_fabric_mesh_secret" "example" {
   name                = "example-mesh-secret"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location

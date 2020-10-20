@@ -1,14 +1,14 @@
 ---
 subcategory: "Service Fabric Mesh"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_service_fabric_mesh_secret_inline"
+page_title: "Azure Resource Manager: azurerm_service_fabric_mesh_secret"
 description: |-
-  Manages a Service Fabric Mesh Inline Secret.
+  Manages a Service Fabric Mesh Secret.
 ---
 
-# azurerm_service_fabric_mesh_secret_inline
+# azurerm_service_fabric_mesh_secret
 
-Manages a Service Fabric Mesh Inline Secret.
+Manages a Service Fabric Mesh Secret.
 
 ## Example Usage
 
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_service_fabric_mesh_secret_inline" "example" {
+resource "azurerm_service_fabric_mesh_secret" "example" {
   name                = "example-mesh-secret"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -62,5 +62,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Service Fabric Mesh Secret can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_service_fabric_mesh_secret_inline.secret1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceFabricMesh/secrets/secret1
+terraform import azurerm_service_fabric_mesh_secret.secret1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceFabricMesh/secrets/secret1
 ```
