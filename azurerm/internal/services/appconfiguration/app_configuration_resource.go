@@ -224,10 +224,7 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
-		appConfigIdentity := expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
-		parameters.Identity = appConfigIdentity
-	}
+	parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
@@ -269,10 +266,8 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, ok := d.GetOk("identity"); ok {
+	if d.HasChange("identity") {
 		parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
-	} else {
-		parameters.Identity = &appconfiguration.ResourceIdentity{Type: "None"}
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
