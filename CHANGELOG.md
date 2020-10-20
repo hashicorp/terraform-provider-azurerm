@@ -4,6 +4,8 @@ IMPROVEMENTS:
 
 * `azurerm_cosmosdb_sql_container` - support for composite indexes [GH-8792]
 * `azurerm_mssql_database` - do not set longterm and shortterm retention policies when using the `DW` SKUs [GH-8899]
+* `azurerm_mysql_firewall_rule` - validating the `start_ip_address` and `end_ip_address` fields are IP Addresses [GH-8948]
+* `azurerm_redis_firewall_rule` - validating the `start_ip` and `end_ip` fields are IP Addresses [GH-8948]
 * `azurerm_search_service` - support for the `identity` block [GH-8907]
 * `azurerm_sql_firewall_rule` - adding validation for the `start_ip_address` and `end_ip_address` fields [GH-8935]
 
