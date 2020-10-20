@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_shared_image_version` - exposing `os_disk_image_size_gb` [GH-8904]
 * `azurerm_app_configuration` - support for the `identity` block [GH-8875]
 * `azurerm_cosmosdb_sql_container` - support for composite indexes [GH-8792]
 * `azurerm_mssql_database` - do not set longterm and shortterm retention policies when using the `DW` SKUs [GH-8899]
