@@ -591,16 +591,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-	enable_auto_scaling = true
-	vm_size    = "Standard_DS2_v2"
-	min_count = 1
-	max_count = 1
-  }
-
-  identity {
-    type = "SystemAssigned"
+    name                = "default"
+    node_count          = 1
+    enable_auto_scaling = true
+    vm_size             = "Standard_DS2_v2"
+    min_count           = 1
+    max_count           = 1
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
