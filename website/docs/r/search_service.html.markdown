@@ -54,7 +54,15 @@ The following arguments are supported:
 
 * `allowed_ips` - (Optional) A list of IPv4 addresses that are allowed access to the search service endpoint. 
 
+* `identity` - (Optional) A `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Search Service.
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) The Type of Identity which should be used for the Search Service. At this time the only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -75,6 +83,14 @@ A `query_keys` block exports the following:
 * `key` - The value of this Query Key.
 
 * `name` - The name of this Query Key.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The (Client) ID of the Service Principal.
+
+* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
 
