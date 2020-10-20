@@ -27,5 +27,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_service_fabric_mesh_application":   resourceArmServiceFabricMeshApplication(),
 		"azurerm_service_fabric_mesh_local_network": resourceArmServiceFabricMeshLocalNetwork(),
 		"azurerm_service_fabric_mesh_secret_inline": resourceArmServiceFabricMeshSecretInline(),
+		"azurerm_service_fabric_mesh_secret_value":  resourceArmServiceFabricMeshSecretValue(),
 	}
 }

@@ -133,10 +133,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_service_fabric_mesh_secret_inline" "test" {
-  name                   = "accTest-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  content_type           = "string"
+  name                = "accTest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  content_type        = "string"
 
   description = "Test Description"
 }
@@ -155,11 +155,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_service_fabric_mesh_secret_inline" "test" {
-  name                   = "accTest-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  description            = "Test Description"
-  content_type           = "string"
+  name                = "accTest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  description         = "Test Description"
+  content_type        = "string"
 
   tags = {
     Hello = "World"
