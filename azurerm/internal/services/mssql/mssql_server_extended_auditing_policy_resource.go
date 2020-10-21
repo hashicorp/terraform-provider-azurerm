@@ -105,6 +105,10 @@ func resourceArmMsSqlServerExtendedAuditingPolicyCreateUpdate(d *schema.Resource
 			StorageEndpoint:            utils.String(d.Get("storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse: utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
 			RetentionDays:              utils.Int32(int32(d.Get("retention_in_days").(int))),
+
+			// NOTE: this works around a regression in the Azure API detailed here:
+			// https://github.com/Azure/azure-rest-api-specs/issues/11271
+			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		},
 	}
 
