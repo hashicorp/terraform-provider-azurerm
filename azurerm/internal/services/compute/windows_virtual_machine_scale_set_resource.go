@@ -181,6 +181,12 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 
 			"plan": planSchema(),
 
+			"platform_fault_domain_count": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"priority": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -509,6 +515,10 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 			},
 		},
 		Zones: zones,
+	}
+
+	if v, ok := d.GetOk("platform_fault_domain_count"); ok {
+		props.VirtualMachineScaleSetProperties.PlatformFaultDomainCount = utils.Int32(int32(v.(int)))
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -896,6 +906,7 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 
 	d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
 	d.Set("overprovision", props.Overprovision)
+	d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	proximityPlacementGroupId := ""
 	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
 		proximityPlacementGroupId = *props.ProximityPlacementGroup.ID

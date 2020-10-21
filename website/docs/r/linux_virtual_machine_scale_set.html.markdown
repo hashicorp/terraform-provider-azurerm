@@ -168,6 +168,8 @@ The following arguments are supported:
 
 -> **NOTE:** When using an image from Azure Marketplace a `plan` must be specified.
 
+* `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used by this Linux Virtual Machine Scale Set. Changing this forces a new resource to be created.
+
 * `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
 -> **NOTE:** When `priority` is set to `Spot` an `eviction_policy` must be specified.
