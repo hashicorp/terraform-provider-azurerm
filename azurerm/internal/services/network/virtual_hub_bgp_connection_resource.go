@@ -20,9 +20,8 @@ import (
 
 func resourceArmVirtualHubBgpConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubBgpConnectionCreateUpdate,
+		Create: resourceArmVirtualHubBgpConnectionCreate,
 		Read:   resourceArmVirtualHubBgpConnectionRead,
-		Update: resourceArmVirtualHubBgpConnectionCreateUpdate,
 		Delete: resourceArmVirtualHubBgpConnectionDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -67,9 +66,9 @@ func resourceArmVirtualHubBgpConnection() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubBgpConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualHubBgpConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.VirtualHubID(d.Get("virtual_hub_id").(string))
