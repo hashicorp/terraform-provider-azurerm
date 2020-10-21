@@ -137,7 +137,6 @@ func (client CaseCommentsClient) CreateCommentSender(req *http.Request) (*http.R
 func (client CaseCommentsClient) CreateCommentResponder(resp *http.Response) (result CaseComment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -307,10 +307,7 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_key_vault_certificate_issuer" "test" {
   name          = "acctestKVCI-%d"
   key_vault_id  = azurerm_key_vault.test.id
-  org_id        = "accTestOrg"
-  account_id    = "test-account"
-  password      = "test"
-  provider_name = "DigiCert"
+  provider_name = "OneCertV2-PrivateCA"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

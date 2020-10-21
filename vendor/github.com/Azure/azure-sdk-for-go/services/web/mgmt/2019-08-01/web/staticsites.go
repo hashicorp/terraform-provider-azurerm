@@ -1101,6 +1101,9 @@ func (client StaticSitesClient) GetStaticSiteBuilds(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "GetStaticSiteBuilds", resp, "Failure responding to request")
 	}
+	if result.ssbc.hasNextLink() && result.ssbc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1221,6 +1224,9 @@ func (client StaticSitesClient) GetStaticSitesByResourceGroup(ctx context.Contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "GetStaticSitesByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.ssc.hasNextLink() && result.ssc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1329,6 +1335,9 @@ func (client StaticSitesClient) List(ctx context.Context) (result StaticSiteColl
 	result.ssc, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "List", resp, "Failure responding to request")
+	}
+	if result.ssc.hasNextLink() && result.ssc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1535,6 +1544,9 @@ func (client StaticSitesClient) ListStaticSiteBuildFunctions(ctx context.Context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteBuildFunctions", resp, "Failure responding to request")
 	}
+	if result.ssfoc.hasNextLink() && result.ssfoc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1656,6 +1668,9 @@ func (client StaticSitesClient) ListStaticSiteCustomDomains(ctx context.Context,
 	result.sscdoc, err = client.ListStaticSiteCustomDomainsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteCustomDomains", resp, "Failure responding to request")
+	}
+	if result.sscdoc.hasNextLink() && result.sscdoc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1861,6 +1876,9 @@ func (client StaticSitesClient) ListStaticSiteFunctions(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteFunctions", resp, "Failure responding to request")
 	}
+	if result.ssfoc.hasNextLink() && result.ssfoc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -2065,6 +2083,9 @@ func (client StaticSitesClient) ListStaticSiteUsers(ctx context.Context, resourc
 	result.ssuc, err = client.ListStaticSiteUsersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.StaticSitesClient", "ListStaticSiteUsers", resp, "Failure responding to request")
+	}
+	if result.ssuc.hasNextLink() && result.ssuc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

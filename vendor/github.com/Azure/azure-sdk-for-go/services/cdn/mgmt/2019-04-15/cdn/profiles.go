@@ -412,6 +412,9 @@ func (client ProfilesClient) List(ctx context.Context) (result ProfileListResult
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "List", resp, "Failure responding to request")
 	}
+	if result.plr.hasNextLink() && result.plr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -529,6 +532,9 @@ func (client ProfilesClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.plr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.plr.hasNextLink() && result.plr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -649,6 +655,9 @@ func (client ProfilesClient) ListResourceUsage(ctx context.Context, resourceGrou
 	result.rulr, err = client.ListResourceUsageResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.ProfilesClient", "ListResourceUsage", resp, "Failure responding to request")
+	}
+	if result.rulr.hasNextLink() && result.rulr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

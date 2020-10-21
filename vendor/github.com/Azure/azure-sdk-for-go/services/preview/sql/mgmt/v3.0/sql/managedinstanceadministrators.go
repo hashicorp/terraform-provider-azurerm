@@ -322,6 +322,9 @@ func (client ManagedInstanceAdministratorsClient) ListByInstance(ctx context.Con
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceAdministratorsClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.mialr.hasNextLink() && result.mialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

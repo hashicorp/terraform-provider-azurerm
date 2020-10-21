@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2019-11-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -19,12 +19,14 @@ import (
 
 func resourceArmHPCCache() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHPCCacheCreate,
+		Create: resourceArmHPCCacheCreateOrUpdate,
+		Update: resourceArmHPCCacheCreateOrUpdate,
 		Read:   resourceArmHPCCacheRead,
 		Delete: resourceArmHPCCacheDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
@@ -76,6 +78,23 @@ func resourceArmHPCCache() *schema.Resource {
 				}, false),
 			},
 
+			"mtu": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1500,
+				ValidateFunc: validation.IntBetween(576, 1500),
+			},
+
+			"root_squash_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				// TODO 3.0: remove "Computed: true" and add "Default: true"
+				// The old resource has no consistent default for the rootSquash setting. In order not to
+				// break users, we intentionally mark this property as Computed.
+				// https://docs.microsoft.com/en-us/azure/hpc-cache/configuration#configure-root-squash.
+				Computed: true,
+			},
+
 			"mount_addresses": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -85,7 +104,7 @@ func resourceArmHPCCache() *schema.Resource {
 	}
 }
 
-func resourceArmHPCCacheCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.CachesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,6 +130,8 @@ func resourceArmHPCCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	cacheSize := d.Get("cache_size_in_gb").(int)
 	subnet := d.Get("subnet_id").(string)
 	skuName := d.Get("sku_name").(string)
+	rootSquash := d.Get("root_squash_enabled").(bool)
+	mtu := d.Get("mtu").(int)
 
 	cache := &storagecache.Cache{
 		Name:     utils.String(name),
@@ -118,6 +139,12 @@ func resourceArmHPCCacheCreate(d *schema.ResourceData, meta interface{}) error {
 		CacheProperties: &storagecache.CacheProperties{
 			CacheSizeGB: utils.Int32(int32(cacheSize)),
 			Subnet:      utils.String(subnet),
+			NetworkSettings: &storagecache.CacheNetworkSettings{
+				Mtu: utils.Int32(int32(mtu)),
+			},
+			SecuritySettings: &storagecache.CacheSecuritySettings{
+				RootSquash: &rootSquash,
+			},
 		},
 		Sku: &storagecache.CacheSku{
 			Name: utils.String(skuName),
@@ -174,6 +201,12 @@ func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("cache_size_in_gb", props.CacheSizeGB)
 		d.Set("subnet_id", props.Subnet)
 		d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
+		if props.NetworkSettings != nil {
+			d.Set("mtu", props.NetworkSettings.Mtu)
+		}
+		if props.SecuritySettings != nil {
+			d.Set("root_squash_enabled", props.SecuritySettings.RootSquash)
+		}
 	}
 
 	if sku := resp.Sku; sku != nil {

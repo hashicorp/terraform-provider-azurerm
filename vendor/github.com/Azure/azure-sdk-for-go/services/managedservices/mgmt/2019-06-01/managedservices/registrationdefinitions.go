@@ -317,6 +317,9 @@ func (client RegistrationDefinitionsClient) List(ctx context.Context, scope stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationDefinitionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rdl.hasNextLink() && result.rdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

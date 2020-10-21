@@ -349,6 +349,9 @@ func (client Python2PackageClient) ListByAutomationAccount(ctx context.Context, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.Python2PackageClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.mlr.hasNextLink() && result.mlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

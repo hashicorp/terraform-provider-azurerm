@@ -354,6 +354,9 @@ func (client VirtualNetworkRulesClient) ListByServer(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "postgresql.VirtualNetworkRulesClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

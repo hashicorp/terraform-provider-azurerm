@@ -172,7 +172,7 @@ The `kube_admin_config` and `kube_config` blocks exports the following:
 
 -> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
 
-```
+```hcl
 provider "kubernetes" {
   load_config_file       = "false"
   host                   = "${data.azurerm_kubernetes_cluster.main.kube_config.0.host}"

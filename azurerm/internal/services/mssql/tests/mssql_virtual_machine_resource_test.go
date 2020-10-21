@@ -148,6 +148,32 @@ func TestAccAzureRMMsSqlVirtualMachine_updateKeyVault(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlVirtualMachine_storageConfigurationSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_storageConfigurationSettings(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlVirtualMachine_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMMsSqlVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -574,4 +600,52 @@ resource "azurerm_mssql_virtual_machine" "test" {
   }
 }
 `, vmconfig, data.RandomInteger, value)
+}
+
+func testAccAzureRMMsSqlVirtualMachine_storageConfigurationSettings(data acceptance.TestData) string {
+	vmconfig := testAccAzureRMVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "accmd-sqlvm-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = azurerm_managed_disk.test.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = "0"
+  caching            = "None"
+}
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  storage_configuration {
+    disk_type             = "NEW"
+    storage_workload_type = "OLTP"
+
+    data_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLData"
+    }
+
+    log_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLLog"
+    }
+
+    temp_db_settings {
+      luns              = [0]
+      default_file_path = "F:\\SQLTemp"
+    }
+  }
+}
+`, vmconfig, data.RandomInteger)
 }

@@ -27,6 +27,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
+  location                                     = "EastUS2"
   resource_group_name                          = azurerm_resource_group.example.name
   enforce_backend_pools_certificate_name_check = false
 
@@ -76,6 +77,8 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Front Door service. Changing this forces a new resource to be created.
 
+* `location` -  (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created
+
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door service should exist. Changing this forces a new resource to be created.
 
 * `backend_pool` - (Required) A `backend_pool` block as defined below.
@@ -110,7 +113,7 @@ The `backend_pool` block supports the following:
 
 * `load_balancing_name` - (Required) Specifies the name of the `backend_pool_load_balancing` block within this resource to use for this `Backend Pool`.
 
-* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block whithin this resource to use for this `Backend Pool`.
+* `health_probe_name` - (Required) Specifies the name of the `backend_pool_health_probe` block within this resource to use for this `Backend Pool`.
 
 ---
 
@@ -186,7 +189,7 @@ The `routing_rule` block supports the following:
 
 * `name` - (Required) Specifies the name of the Routing Rule.
 
-* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks whithin this resource to associate with this `routing_rule`.
+* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks within this resource to associate with this `routing_rule`.
 
 * `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
 

@@ -174,6 +174,9 @@ func (client AdvisorsClient) ListByServer(ctx context.Context, resourceGroupName
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.AdvisorsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.arl.hasNextLink() && result.arl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -129,6 +129,25 @@ func TestAccAzureRMLogicAppWorkflow_integrationAccount(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogicAppWorkflow_integrationServiceEnvironment(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppWorkflow_integrationServiceEnvironment(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowClient
@@ -305,4 +324,18 @@ resource "azurerm_logic_app_workflow" "test" {
   logic_app_integration_account_id = azurerm_logic_app_integration_account.test2.id
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMLogicAppWorkflow_integrationServiceEnvironment(data acceptance.TestData) string {
+	template := testAccAzureRMIntegrationServiceEnvironment_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                               = "acctestlaw-%d"
+  location                           = azurerm_resource_group.test.location
+  resource_group_name                = azurerm_resource_group.test.name
+  integration_service_environment_id = azurerm_integration_service_environment.test.id
+}
+`, template, data.RandomInteger)
 }

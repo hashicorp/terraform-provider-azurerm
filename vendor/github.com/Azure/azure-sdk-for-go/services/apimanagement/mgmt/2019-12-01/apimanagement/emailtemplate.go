@@ -452,6 +452,9 @@ func (client EmailTemplateClient) ListByService(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.EmailTemplateClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.etc.hasNextLink() && result.etc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

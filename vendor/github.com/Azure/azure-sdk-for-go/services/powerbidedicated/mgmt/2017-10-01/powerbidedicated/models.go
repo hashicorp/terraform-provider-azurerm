@@ -30,91 +30,7 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated"
 
-// ProvisioningState enumerates the values for provisioning state.
-type ProvisioningState string
-
-const (
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Paused ...
-	Paused ProvisioningState = "Paused"
-	// Pausing ...
-	Pausing ProvisioningState = "Pausing"
-	// Preparing ...
-	Preparing ProvisioningState = "Preparing"
-	// Provisioning ...
-	Provisioning ProvisioningState = "Provisioning"
-	// Resuming ...
-	Resuming ProvisioningState = "Resuming"
-	// Scaling ...
-	Scaling ProvisioningState = "Scaling"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Suspended ...
-	Suspended ProvisioningState = "Suspended"
-	// Suspending ...
-	Suspending ProvisioningState = "Suspending"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
-)
-
-// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
-func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Deleting, Failed, Paused, Pausing, Preparing, Provisioning, Resuming, Scaling, Succeeded, Suspended, Suspending, Updating}
-}
-
-// SkuTier enumerates the values for sku tier.
-type SkuTier string
-
-const (
-	// PBIEAzure ...
-	PBIEAzure SkuTier = "PBIE_Azure"
-)
-
-// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
-func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{PBIEAzure}
-}
-
-// State enumerates the values for state.
-type State string
-
-const (
-	// StateDeleting ...
-	StateDeleting State = "Deleting"
-	// StateFailed ...
-	StateFailed State = "Failed"
-	// StatePaused ...
-	StatePaused State = "Paused"
-	// StatePausing ...
-	StatePausing State = "Pausing"
-	// StatePreparing ...
-	StatePreparing State = "Preparing"
-	// StateProvisioning ...
-	StateProvisioning State = "Provisioning"
-	// StateResuming ...
-	StateResuming State = "Resuming"
-	// StateScaling ...
-	StateScaling State = "Scaling"
-	// StateSucceeded ...
-	StateSucceeded State = "Succeeded"
-	// StateSuspended ...
-	StateSuspended State = "Suspended"
-	// StateSuspending ...
-	StateSuspending State = "Suspending"
-	// StateUpdating ...
-	StateUpdating State = "Updating"
-)
-
-// PossibleStateValues returns an array of possible values for the State const type.
-func PossibleStateValues() []State {
-	return []State{StateDeleting, StateFailed, StatePaused, StatePausing, StatePreparing, StateProvisioning, StateResuming, StateScaling, StateSucceeded, StateSuspended, StateSuspending, StateUpdating}
-}
-
-// CapacitiesCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// CapacitiesCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type CapacitiesCreateFuture struct {
 	azure.Future
 }
@@ -142,8 +58,7 @@ func (future *CapacitiesCreateFuture) Result(client CapacitiesClient) (dc Dedica
 	return
 }
 
-// CapacitiesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// CapacitiesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type CapacitiesDeleteFuture struct {
 	azure.Future
 }
@@ -165,8 +80,7 @@ func (future *CapacitiesDeleteFuture) Result(client CapacitiesClient) (ar autore
 	return
 }
 
-// CapacitiesResumeFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// CapacitiesResumeFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type CapacitiesResumeFuture struct {
 	azure.Future
 }
@@ -211,8 +125,7 @@ func (future *CapacitiesSuspendFuture) Result(client CapacitiesClient) (ar autor
 	return
 }
 
-// CapacitiesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// CapacitiesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type CapacitiesUpdateFuture struct {
 	azure.Future
 }
@@ -387,8 +300,8 @@ type DedicatedCapacityAdministrators struct {
 	Members *[]string `json:"members,omitempty"`
 }
 
-// DedicatedCapacityMutableProperties an object that represents a set of mutable Dedicated capacity
-// resource properties.
+// DedicatedCapacityMutableProperties an object that represents a set of mutable Dedicated capacity resource
+// properties.
 type DedicatedCapacityMutableProperties struct {
 	// Administration - A collection of Dedicated capacity administrators
 	Administration *DedicatedCapacityAdministrators `json:"administration,omitempty"`
@@ -402,6 +315,15 @@ type DedicatedCapacityProperties struct {
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Administration - A collection of Dedicated capacity administrators
 	Administration *DedicatedCapacityAdministrators `json:"administration,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DedicatedCapacityProperties.
+func (dcp DedicatedCapacityProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dcp.Administration != nil {
+		objectMap["administration"] = dcp.Administration
+	}
+	return json.Marshal(objectMap)
 }
 
 // DedicatedCapacityUpdateParameters provision request specification
@@ -487,6 +409,15 @@ type Operation struct {
 	Display *OperationDisplay `json:"display,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Operation.
+func (o Operation) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if o.Display != nil {
+		objectMap["display"] = o.Display
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
 	// Provider - READ-ONLY; Service provider: Microsoft.PowerBIDedicated.
@@ -497,8 +428,8 @@ type OperationDisplay struct {
 	Operation *string `json:"operation,omitempty"`
 }
 
-// OperationListResult result listing capacities. It contains a list of operations and a URL link to get
-// the next set of results.
+// OperationListResult result listing capacities. It contains a list of operations and a URL link to get the
+// next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; List of capacities supported by the Microsoft.PowerBIDedicated resource provider.
@@ -575,10 +506,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -606,11 +542,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -689,8 +630,7 @@ type SkuDetailsForExistingResource struct {
 	Sku *ResourceSku `json:"sku,omitempty"`
 }
 
-// SkuEnumerationForExistingResourceResult an object that represents enumerating SKUs for existing
-// resources
+// SkuEnumerationForExistingResourceResult an object that represents enumerating SKUs for existing resources
 type SkuEnumerationForExistingResourceResult struct {
 	autorest.Response `json:"-"`
 	// Value - The collection of available SKUs for existing resources

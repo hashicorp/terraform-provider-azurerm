@@ -461,8 +461,8 @@ func (client BlobContainersClient) DeleteResponder(resp *http.Response) (result 
 
 // DeleteImmutabilityPolicy aborts an unlocked immutability policy. The response of delete has
 // immutabilityPeriodSinceCreationInDays set to 0. ETag in If-Match is required for this operation. Deleting a locked
-// immutability policy is not allowed, only way is to delete the container after deleting all blobs inside the
-// container.
+// immutability policy is not allowed, the only way is to delete the container after deleting all expired blobs inside
+// the policy locked container.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
@@ -1033,6 +1033,9 @@ func (client BlobContainersClient) List(ctx context.Context, resourceGroupName s
 	result.lci, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.BlobContainersClient", "List", resp, "Failure responding to request")
+	}
+	if result.lci.hasNextLink() && result.lci.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

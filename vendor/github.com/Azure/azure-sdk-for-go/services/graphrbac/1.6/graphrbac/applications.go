@@ -460,6 +460,9 @@ func (client ApplicationsClient) List(ctx context.Context, filter string) (resul
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.ApplicationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -697,6 +700,9 @@ func (client ApplicationsClient) ListOwners(ctx context.Context, applicationObje
 	result.dolr, err = client.ListOwnersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.ApplicationsClient", "ListOwners", resp, "Failure responding to request")
+	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

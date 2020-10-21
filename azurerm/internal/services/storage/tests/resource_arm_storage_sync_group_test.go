@@ -61,7 +61,7 @@ func testCheckAzureRMStorageSyncGroupExists(resourceName string) resource.TestCh
 			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.StoragesyncGroupClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.SyncGroupsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.StorageSyncName, id.Name); err != nil {
@@ -76,7 +76,7 @@ func testCheckAzureRMStorageSyncGroupExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMStorageSyncGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.StoragesyncGroupClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.SyncGroupsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {

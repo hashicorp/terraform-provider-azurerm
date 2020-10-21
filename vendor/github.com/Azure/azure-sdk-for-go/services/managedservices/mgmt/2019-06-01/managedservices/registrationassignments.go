@@ -325,6 +325,9 @@ func (client RegistrationAssignmentsClient) List(ctx context.Context, scope stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedservices.RegistrationAssignmentsClient", "List", resp, "Failure responding to request")
 	}
+	if result.ral.hasNextLink() && result.ral.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

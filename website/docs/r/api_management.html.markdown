@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `publisher_email` - (Required) The email of publisher/company.
 
-* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The fist part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
+* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
 ---
 
@@ -91,6 +91,8 @@ A `additional_location` block supports the following:
 
 * `location` - (Required) The name of the Azure Region in which the API Management Service should be expanded to.
 
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below.  Required when `virtual_network_type` is `External` or `Internal`.
+
 ---
 
 A `certificate` block supports the following:
@@ -122,7 +124,7 @@ A `identity` block supports the following:
 
 ~> **Note:** User Assigned Managed Identities are in Preview
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
 * `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
 
@@ -277,7 +279,7 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Service.
 
-* `additional_location` - One or more `additional_location` blocks as documented below.
+* `additional_location` - Zero or more `additional_location` blocks as documented below.
 
 * `gateway_url` - The URL of the Gateway for the API Management Service.
 
@@ -293,6 +295,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
 
+* `private_ip_addresses` - The Private IP addresses of the API Management Service.
+
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.
 
 ---
@@ -302,6 +306,8 @@ An `additional_location` block exports the following:
 * `gateway_regional_url` - The URL of the Regional Gateway for the API Management Service in the specified region.
 
 * `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
+
+* `private_ip_addresses` - The Private IP addresses of the API Management Service.  Available only when the API Manager instance is using Virtual Network mode.
 
 ---
 

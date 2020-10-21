@@ -32,1046 +32,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 
-// AacAudioProfile enumerates the values for aac audio profile.
-type AacAudioProfile string
-
-const (
-	// AacLc Specifies that the output audio is to be encoded into AAC Low Complexity profile (AAC-LC).
-	AacLc AacAudioProfile = "AacLc"
-	// HeAacV1 Specifies that the output audio is to be encoded into HE-AAC v1 profile.
-	HeAacV1 AacAudioProfile = "HeAacV1"
-	// HeAacV2 Specifies that the output audio is to be encoded into HE-AAC v2 profile.
-	HeAacV2 AacAudioProfile = "HeAacV2"
-)
-
-// PossibleAacAudioProfileValues returns an array of possible values for the AacAudioProfile const type.
-func PossibleAacAudioProfileValues() []AacAudioProfile {
-	return []AacAudioProfile{AacLc, HeAacV1, HeAacV2}
-}
-
-// AnalysisResolution enumerates the values for analysis resolution.
-type AnalysisResolution string
-
-const (
-	// SourceResolution ...
-	SourceResolution AnalysisResolution = "SourceResolution"
-	// StandardDefinition ...
-	StandardDefinition AnalysisResolution = "StandardDefinition"
-)
-
-// PossibleAnalysisResolutionValues returns an array of possible values for the AnalysisResolution const type.
-func PossibleAnalysisResolutionValues() []AnalysisResolution {
-	return []AnalysisResolution{SourceResolution, StandardDefinition}
-}
-
-// AssetContainerPermission enumerates the values for asset container permission.
-type AssetContainerPermission string
-
-const (
-	// Read The SAS URL will allow read access to the container.
-	Read AssetContainerPermission = "Read"
-	// ReadWrite The SAS URL will allow read and write access to the container.
-	ReadWrite AssetContainerPermission = "ReadWrite"
-	// ReadWriteDelete The SAS URL will allow read, write and delete access to the container.
-	ReadWriteDelete AssetContainerPermission = "ReadWriteDelete"
-)
-
-// PossibleAssetContainerPermissionValues returns an array of possible values for the AssetContainerPermission const type.
-func PossibleAssetContainerPermissionValues() []AssetContainerPermission {
-	return []AssetContainerPermission{Read, ReadWrite, ReadWriteDelete}
-}
-
-// AssetStorageEncryptionFormat enumerates the values for asset storage encryption format.
-type AssetStorageEncryptionFormat string
-
-const (
-	// MediaStorageClientEncryption The Asset is encrypted with Media Services client-side encryption.
-	MediaStorageClientEncryption AssetStorageEncryptionFormat = "MediaStorageClientEncryption"
-	// None The Asset does not use client-side storage encryption (this is the only allowed value for new
-	// Assets).
-	None AssetStorageEncryptionFormat = "None"
-)
-
-// PossibleAssetStorageEncryptionFormatValues returns an array of possible values for the AssetStorageEncryptionFormat const type.
-func PossibleAssetStorageEncryptionFormatValues() []AssetStorageEncryptionFormat {
-	return []AssetStorageEncryptionFormat{MediaStorageClientEncryption, None}
-}
-
-// ContentKeyPolicyFairPlayRentalAndLeaseKeyType enumerates the values for content key policy fair play rental
-// and lease key type.
-type ContentKeyPolicyFairPlayRentalAndLeaseKeyType string
-
-const (
-	// DualExpiry Dual expiry for offline rental.
-	DualExpiry ContentKeyPolicyFairPlayRentalAndLeaseKeyType = "DualExpiry"
-	// PersistentLimited Content key can be persisted and the valid duration is limited by the Rental Duration
-	// value
-	PersistentLimited ContentKeyPolicyFairPlayRentalAndLeaseKeyType = "PersistentLimited"
-	// PersistentUnlimited Content key can be persisted with an unlimited duration
-	PersistentUnlimited ContentKeyPolicyFairPlayRentalAndLeaseKeyType = "PersistentUnlimited"
-	// Undefined Key duration is not specified.
-	Undefined ContentKeyPolicyFairPlayRentalAndLeaseKeyType = "Undefined"
-	// Unknown Represents a ContentKeyPolicyFairPlayRentalAndLeaseKeyType that is unavailable in current API
-	// version.
-	Unknown ContentKeyPolicyFairPlayRentalAndLeaseKeyType = "Unknown"
-)
-
-// PossibleContentKeyPolicyFairPlayRentalAndLeaseKeyTypeValues returns an array of possible values for the ContentKeyPolicyFairPlayRentalAndLeaseKeyType const type.
-func PossibleContentKeyPolicyFairPlayRentalAndLeaseKeyTypeValues() []ContentKeyPolicyFairPlayRentalAndLeaseKeyType {
-	return []ContentKeyPolicyFairPlayRentalAndLeaseKeyType{DualExpiry, PersistentLimited, PersistentUnlimited, Undefined, Unknown}
-}
-
-// ContentKeyPolicyPlayReadyContentType enumerates the values for content key policy play ready content type.
-type ContentKeyPolicyPlayReadyContentType string
-
-const (
-	// ContentKeyPolicyPlayReadyContentTypeUltraVioletDownload Ultraviolet download content type.
-	ContentKeyPolicyPlayReadyContentTypeUltraVioletDownload ContentKeyPolicyPlayReadyContentType = "UltraVioletDownload"
-	// ContentKeyPolicyPlayReadyContentTypeUltraVioletStreaming Ultraviolet streaming content type.
-	ContentKeyPolicyPlayReadyContentTypeUltraVioletStreaming ContentKeyPolicyPlayReadyContentType = "UltraVioletStreaming"
-	// ContentKeyPolicyPlayReadyContentTypeUnknown Represents a ContentKeyPolicyPlayReadyContentType that is
-	// unavailable in current API version.
-	ContentKeyPolicyPlayReadyContentTypeUnknown ContentKeyPolicyPlayReadyContentType = "Unknown"
-	// ContentKeyPolicyPlayReadyContentTypeUnspecified Unspecified content type.
-	ContentKeyPolicyPlayReadyContentTypeUnspecified ContentKeyPolicyPlayReadyContentType = "Unspecified"
-)
-
-// PossibleContentKeyPolicyPlayReadyContentTypeValues returns an array of possible values for the ContentKeyPolicyPlayReadyContentType const type.
-func PossibleContentKeyPolicyPlayReadyContentTypeValues() []ContentKeyPolicyPlayReadyContentType {
-	return []ContentKeyPolicyPlayReadyContentType{ContentKeyPolicyPlayReadyContentTypeUltraVioletDownload, ContentKeyPolicyPlayReadyContentTypeUltraVioletStreaming, ContentKeyPolicyPlayReadyContentTypeUnknown, ContentKeyPolicyPlayReadyContentTypeUnspecified}
-}
-
-// ContentKeyPolicyPlayReadyLicenseType enumerates the values for content key policy play ready license type.
-type ContentKeyPolicyPlayReadyLicenseType string
-
-const (
-	// ContentKeyPolicyPlayReadyLicenseTypeNonPersistent Non persistent license.
-	ContentKeyPolicyPlayReadyLicenseTypeNonPersistent ContentKeyPolicyPlayReadyLicenseType = "NonPersistent"
-	// ContentKeyPolicyPlayReadyLicenseTypePersistent Persistent license. Allows offline playback.
-	ContentKeyPolicyPlayReadyLicenseTypePersistent ContentKeyPolicyPlayReadyLicenseType = "Persistent"
-	// ContentKeyPolicyPlayReadyLicenseTypeUnknown Represents a ContentKeyPolicyPlayReadyLicenseType that is
-	// unavailable in current API version.
-	ContentKeyPolicyPlayReadyLicenseTypeUnknown ContentKeyPolicyPlayReadyLicenseType = "Unknown"
-)
-
-// PossibleContentKeyPolicyPlayReadyLicenseTypeValues returns an array of possible values for the ContentKeyPolicyPlayReadyLicenseType const type.
-func PossibleContentKeyPolicyPlayReadyLicenseTypeValues() []ContentKeyPolicyPlayReadyLicenseType {
-	return []ContentKeyPolicyPlayReadyLicenseType{ContentKeyPolicyPlayReadyLicenseTypeNonPersistent, ContentKeyPolicyPlayReadyLicenseTypePersistent, ContentKeyPolicyPlayReadyLicenseTypeUnknown}
-}
-
-// ContentKeyPolicyPlayReadyUnknownOutputPassingOption enumerates the values for content key policy play ready
-// unknown output passing option.
-type ContentKeyPolicyPlayReadyUnknownOutputPassingOption string
-
-const (
-	// ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowed Passing the video portion of protected
-	// content to an Unknown Output is allowed.
-	ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowed ContentKeyPolicyPlayReadyUnknownOutputPassingOption = "Allowed"
-	// ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowedWithVideoConstriction Passing the video
-	// portion of protected content to an Unknown Output is allowed but with constrained resolution.
-	ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowedWithVideoConstriction ContentKeyPolicyPlayReadyUnknownOutputPassingOption = "AllowedWithVideoConstriction"
-	// ContentKeyPolicyPlayReadyUnknownOutputPassingOptionNotAllowed Passing the video portion of protected
-	// content to an Unknown Output is not allowed.
-	ContentKeyPolicyPlayReadyUnknownOutputPassingOptionNotAllowed ContentKeyPolicyPlayReadyUnknownOutputPassingOption = "NotAllowed"
-	// ContentKeyPolicyPlayReadyUnknownOutputPassingOptionUnknown Represents a
-	// ContentKeyPolicyPlayReadyUnknownOutputPassingOption that is unavailable in current API version.
-	ContentKeyPolicyPlayReadyUnknownOutputPassingOptionUnknown ContentKeyPolicyPlayReadyUnknownOutputPassingOption = "Unknown"
-)
-
-// PossibleContentKeyPolicyPlayReadyUnknownOutputPassingOptionValues returns an array of possible values for the ContentKeyPolicyPlayReadyUnknownOutputPassingOption const type.
-func PossibleContentKeyPolicyPlayReadyUnknownOutputPassingOptionValues() []ContentKeyPolicyPlayReadyUnknownOutputPassingOption {
-	return []ContentKeyPolicyPlayReadyUnknownOutputPassingOption{ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowed, ContentKeyPolicyPlayReadyUnknownOutputPassingOptionAllowedWithVideoConstriction, ContentKeyPolicyPlayReadyUnknownOutputPassingOptionNotAllowed, ContentKeyPolicyPlayReadyUnknownOutputPassingOptionUnknown}
-}
-
-// ContentKeyPolicyRestrictionTokenType enumerates the values for content key policy restriction token type.
-type ContentKeyPolicyRestrictionTokenType string
-
-const (
-	// ContentKeyPolicyRestrictionTokenTypeJwt JSON Web Token.
-	ContentKeyPolicyRestrictionTokenTypeJwt ContentKeyPolicyRestrictionTokenType = "Jwt"
-	// ContentKeyPolicyRestrictionTokenTypeSwt Simple Web Token.
-	ContentKeyPolicyRestrictionTokenTypeSwt ContentKeyPolicyRestrictionTokenType = "Swt"
-	// ContentKeyPolicyRestrictionTokenTypeUnknown Represents a ContentKeyPolicyRestrictionTokenType that is
-	// unavailable in current API version.
-	ContentKeyPolicyRestrictionTokenTypeUnknown ContentKeyPolicyRestrictionTokenType = "Unknown"
-)
-
-// PossibleContentKeyPolicyRestrictionTokenTypeValues returns an array of possible values for the ContentKeyPolicyRestrictionTokenType const type.
-func PossibleContentKeyPolicyRestrictionTokenTypeValues() []ContentKeyPolicyRestrictionTokenType {
-	return []ContentKeyPolicyRestrictionTokenType{ContentKeyPolicyRestrictionTokenTypeJwt, ContentKeyPolicyRestrictionTokenTypeSwt, ContentKeyPolicyRestrictionTokenTypeUnknown}
-}
-
-// DeinterlaceMode enumerates the values for deinterlace mode.
-type DeinterlaceMode string
-
-const (
-	// AutoPixelAdaptive Apply automatic pixel adaptive de-interlacing on each frame in the input video.
-	AutoPixelAdaptive DeinterlaceMode = "AutoPixelAdaptive"
-	// Off Disables de-interlacing of the source video.
-	Off DeinterlaceMode = "Off"
-)
-
-// PossibleDeinterlaceModeValues returns an array of possible values for the DeinterlaceMode const type.
-func PossibleDeinterlaceModeValues() []DeinterlaceMode {
-	return []DeinterlaceMode{AutoPixelAdaptive, Off}
-}
-
-// DeinterlaceParity enumerates the values for deinterlace parity.
-type DeinterlaceParity string
-
-const (
-	// Auto Automatically detect the order of fields
-	Auto DeinterlaceParity = "Auto"
-	// BottomFieldFirst Apply bottom field first processing of input video.
-	BottomFieldFirst DeinterlaceParity = "BottomFieldFirst"
-	// TopFieldFirst Apply top field first processing of input video.
-	TopFieldFirst DeinterlaceParity = "TopFieldFirst"
-)
-
-// PossibleDeinterlaceParityValues returns an array of possible values for the DeinterlaceParity const type.
-func PossibleDeinterlaceParityValues() []DeinterlaceParity {
-	return []DeinterlaceParity{Auto, BottomFieldFirst, TopFieldFirst}
-}
-
-// EncoderNamedPreset enumerates the values for encoder named preset.
-type EncoderNamedPreset string
-
-const (
-	// AACGoodQualityAudio Produces a single MP4 file containing only stereo audio encoded at 192 kbps.
-	AACGoodQualityAudio EncoderNamedPreset = "AACGoodQualityAudio"
-	// AdaptiveStreaming Produces a set of GOP aligned MP4 files with H.264 video and stereo AAC audio.
-	// Auto-generates a bitrate ladder based on the input resolution and bitrate. The auto-generated preset
-	// will never exceed the input resolution and bitrate. For example, if the input is 720p at 3 Mbps, output
-	// will remain 720p at best, and will start at rates lower than 3 Mbps. The output will have video and
-	// audio in separate MP4 files, which is optimal for adaptive streaming.
-	AdaptiveStreaming EncoderNamedPreset = "AdaptiveStreaming"
-	// ContentAwareEncoding Produces a set of GOP-aligned MP4s by using content-aware encoding. Given any input
-	// content, the service performs an initial lightweight analysis of the input content, and uses the results
-	// to determine the optimal number of layers, appropriate bitrate and resolution settings for delivery by
-	// adaptive streaming. This preset is particularly effective for low and medium complexity videos, where
-	// the output files will be at lower bitrates but at a quality that still delivers a good experience to
-	// viewers. The output will contain MP4 files with video and audio interleaved.
-	ContentAwareEncoding EncoderNamedPreset = "ContentAwareEncoding"
-	// ContentAwareEncodingExperimental Exposes an experimental preset for content-aware encoding. Given any
-	// input content, the service attempts to automatically determine the optimal number of layers, appropriate
-	// bitrate and resolution settings for delivery by adaptive streaming. The underlying algorithms will
-	// continue to evolve over time. The output will contain MP4 files with video and audio interleaved.
-	ContentAwareEncodingExperimental EncoderNamedPreset = "ContentAwareEncodingExperimental"
-	// H264MultipleBitrate1080p Produces a set of 8 GOP-aligned MP4 files, ranging from 6000 kbps to 400 kbps,
-	// and stereo AAC audio. Resolution starts at 1080p and goes down to 360p.
-	H264MultipleBitrate1080p EncoderNamedPreset = "H264MultipleBitrate1080p"
-	// H264MultipleBitrate720p Produces a set of 6 GOP-aligned MP4 files, ranging from 3400 kbps to 400 kbps,
-	// and stereo AAC audio. Resolution starts at 720p and goes down to 360p.
-	H264MultipleBitrate720p EncoderNamedPreset = "H264MultipleBitrate720p"
-	// H264MultipleBitrateSD Produces a set of 5 GOP-aligned MP4 files, ranging from 1600kbps to 400 kbps, and
-	// stereo AAC audio. Resolution starts at 480p and goes down to 360p.
-	H264MultipleBitrateSD EncoderNamedPreset = "H264MultipleBitrateSD"
-	// H264SingleBitrate1080p Produces an MP4 file where the video is encoded with H.264 codec at 6750 kbps and
-	// a picture height of 1080 pixels, and the stereo audio is encoded with AAC-LC codec at 64 kbps.
-	H264SingleBitrate1080p EncoderNamedPreset = "H264SingleBitrate1080p"
-	// H264SingleBitrate720p Produces an MP4 file where the video is encoded with H.264 codec at 4500 kbps and
-	// a picture height of 720 pixels, and the stereo audio is encoded with AAC-LC codec at 64 kbps.
-	H264SingleBitrate720p EncoderNamedPreset = "H264SingleBitrate720p"
-	// H264SingleBitrateSD Produces an MP4 file where the video is encoded with H.264 codec at 2200 kbps and a
-	// picture height of 480 pixels, and the stereo audio is encoded with AAC-LC codec at 64 kbps.
-	H264SingleBitrateSD EncoderNamedPreset = "H264SingleBitrateSD"
-)
-
-// PossibleEncoderNamedPresetValues returns an array of possible values for the EncoderNamedPreset const type.
-func PossibleEncoderNamedPresetValues() []EncoderNamedPreset {
-	return []EncoderNamedPreset{AACGoodQualityAudio, AdaptiveStreaming, ContentAwareEncoding, ContentAwareEncodingExperimental, H264MultipleBitrate1080p, H264MultipleBitrate720p, H264MultipleBitrateSD, H264SingleBitrate1080p, H264SingleBitrate720p, H264SingleBitrateSD}
-}
-
-// EncryptionScheme enumerates the values for encryption scheme.
-type EncryptionScheme string
-
-const (
-	// EncryptionSchemeCommonEncryptionCbcs CommonEncryptionCbcs scheme
-	EncryptionSchemeCommonEncryptionCbcs EncryptionScheme = "CommonEncryptionCbcs"
-	// EncryptionSchemeCommonEncryptionCenc CommonEncryptionCenc scheme
-	EncryptionSchemeCommonEncryptionCenc EncryptionScheme = "CommonEncryptionCenc"
-	// EncryptionSchemeEnvelopeEncryption EnvelopeEncryption scheme
-	EncryptionSchemeEnvelopeEncryption EncryptionScheme = "EnvelopeEncryption"
-	// EncryptionSchemeNoEncryption NoEncryption scheme
-	EncryptionSchemeNoEncryption EncryptionScheme = "NoEncryption"
-)
-
-// PossibleEncryptionSchemeValues returns an array of possible values for the EncryptionScheme const type.
-func PossibleEncryptionSchemeValues() []EncryptionScheme {
-	return []EncryptionScheme{EncryptionSchemeCommonEncryptionCbcs, EncryptionSchemeCommonEncryptionCenc, EncryptionSchemeEnvelopeEncryption, EncryptionSchemeNoEncryption}
-}
-
-// EntropyMode enumerates the values for entropy mode.
-type EntropyMode string
-
-const (
-	// Cabac Context Adaptive Binary Arithmetic Coder (CABAC) entropy encoding.
-	Cabac EntropyMode = "Cabac"
-	// Cavlc Context Adaptive Variable Length Coder (CAVLC) entropy encoding.
-	Cavlc EntropyMode = "Cavlc"
-)
-
-// PossibleEntropyModeValues returns an array of possible values for the EntropyMode const type.
-func PossibleEntropyModeValues() []EntropyMode {
-	return []EntropyMode{Cabac, Cavlc}
-}
-
-// FilterTrackPropertyCompareOperation enumerates the values for filter track property compare operation.
-type FilterTrackPropertyCompareOperation string
-
-const (
-	// Equal The equal operation.
-	Equal FilterTrackPropertyCompareOperation = "Equal"
-	// NotEqual The not equal operation.
-	NotEqual FilterTrackPropertyCompareOperation = "NotEqual"
-)
-
-// PossibleFilterTrackPropertyCompareOperationValues returns an array of possible values for the FilterTrackPropertyCompareOperation const type.
-func PossibleFilterTrackPropertyCompareOperationValues() []FilterTrackPropertyCompareOperation {
-	return []FilterTrackPropertyCompareOperation{Equal, NotEqual}
-}
-
-// FilterTrackPropertyType enumerates the values for filter track property type.
-type FilterTrackPropertyType string
-
-const (
-	// FilterTrackPropertyTypeBitrate The bitrate.
-	FilterTrackPropertyTypeBitrate FilterTrackPropertyType = "Bitrate"
-	// FilterTrackPropertyTypeFourCC The fourCC.
-	FilterTrackPropertyTypeFourCC FilterTrackPropertyType = "FourCC"
-	// FilterTrackPropertyTypeLanguage The language.
-	FilterTrackPropertyTypeLanguage FilterTrackPropertyType = "Language"
-	// FilterTrackPropertyTypeName The name.
-	FilterTrackPropertyTypeName FilterTrackPropertyType = "Name"
-	// FilterTrackPropertyTypeType The type.
-	FilterTrackPropertyTypeType FilterTrackPropertyType = "Type"
-	// FilterTrackPropertyTypeUnknown The unknown track property type.
-	FilterTrackPropertyTypeUnknown FilterTrackPropertyType = "Unknown"
-)
-
-// PossibleFilterTrackPropertyTypeValues returns an array of possible values for the FilterTrackPropertyType const type.
-func PossibleFilterTrackPropertyTypeValues() []FilterTrackPropertyType {
-	return []FilterTrackPropertyType{FilterTrackPropertyTypeBitrate, FilterTrackPropertyTypeFourCC, FilterTrackPropertyTypeLanguage, FilterTrackPropertyTypeName, FilterTrackPropertyTypeType, FilterTrackPropertyTypeUnknown}
-}
-
-// H264Complexity enumerates the values for h264 complexity.
-type H264Complexity string
-
-const (
-	// Balanced Tells the encoder to use settings that achieve a balance between speed and quality.
-	Balanced H264Complexity = "Balanced"
-	// Quality Tells the encoder to use settings that are optimized to produce higher quality output at the
-	// expense of slower overall encode time.
-	Quality H264Complexity = "Quality"
-	// Speed Tells the encoder to use settings that are optimized for faster encoding. Quality is sacrificed to
-	// decrease encoding time.
-	Speed H264Complexity = "Speed"
-)
-
-// PossibleH264ComplexityValues returns an array of possible values for the H264Complexity const type.
-func PossibleH264ComplexityValues() []H264Complexity {
-	return []H264Complexity{Balanced, Quality, Speed}
-}
-
-// H264VideoProfile enumerates the values for h264 video profile.
-type H264VideoProfile string
-
-const (
-	// H264VideoProfileAuto Tells the encoder to automatically determine the appropriate H.264 profile.
-	H264VideoProfileAuto H264VideoProfile = "Auto"
-	// H264VideoProfileBaseline Baseline profile
-	H264VideoProfileBaseline H264VideoProfile = "Baseline"
-	// H264VideoProfileHigh High profile.
-	H264VideoProfileHigh H264VideoProfile = "High"
-	// H264VideoProfileHigh422 High 4:2:2 profile.
-	H264VideoProfileHigh422 H264VideoProfile = "High422"
-	// H264VideoProfileHigh444 High 4:4:4 predictive profile.
-	H264VideoProfileHigh444 H264VideoProfile = "High444"
-	// H264VideoProfileMain Main profile
-	H264VideoProfileMain H264VideoProfile = "Main"
-)
-
-// PossibleH264VideoProfileValues returns an array of possible values for the H264VideoProfile const type.
-func PossibleH264VideoProfileValues() []H264VideoProfile {
-	return []H264VideoProfile{H264VideoProfileAuto, H264VideoProfileBaseline, H264VideoProfileHigh, H264VideoProfileHigh422, H264VideoProfileHigh444, H264VideoProfileMain}
-}
-
-// InsightsType enumerates the values for insights type.
-type InsightsType string
-
-const (
-	// AllInsights Generate both audio and video insights. Fails if either audio or video Insights fail.
-	AllInsights InsightsType = "AllInsights"
-	// AudioInsightsOnly Generate audio only insights. Ignore video even if present. Fails if no audio is
-	// present.
-	AudioInsightsOnly InsightsType = "AudioInsightsOnly"
-	// VideoInsightsOnly Generate video only insights. Ignore audio if present. Fails if no video is present.
-	VideoInsightsOnly InsightsType = "VideoInsightsOnly"
-)
-
-// PossibleInsightsTypeValues returns an array of possible values for the InsightsType const type.
-func PossibleInsightsTypeValues() []InsightsType {
-	return []InsightsType{AllInsights, AudioInsightsOnly, VideoInsightsOnly}
-}
-
-// JobErrorCategory enumerates the values for job error category.
-type JobErrorCategory string
-
-const (
-	// JobErrorCategoryConfiguration The error is configuration related.
-	JobErrorCategoryConfiguration JobErrorCategory = "Configuration"
-	// JobErrorCategoryContent The error is related to data in the input files.
-	JobErrorCategoryContent JobErrorCategory = "Content"
-	// JobErrorCategoryDownload The error is download related.
-	JobErrorCategoryDownload JobErrorCategory = "Download"
-	// JobErrorCategoryService The error is service related.
-	JobErrorCategoryService JobErrorCategory = "Service"
-	// JobErrorCategoryUpload The error is upload related.
-	JobErrorCategoryUpload JobErrorCategory = "Upload"
-)
-
-// PossibleJobErrorCategoryValues returns an array of possible values for the JobErrorCategory const type.
-func PossibleJobErrorCategoryValues() []JobErrorCategory {
-	return []JobErrorCategory{JobErrorCategoryConfiguration, JobErrorCategoryContent, JobErrorCategoryDownload, JobErrorCategoryService, JobErrorCategoryUpload}
-}
-
-// JobErrorCode enumerates the values for job error code.
-type JobErrorCode string
-
-const (
-	// ConfigurationUnsupported There was a problem with the combination of input files and the configuration
-	// settings applied, fix the configuration settings and retry with the same input, or change input to match
-	// the configuration.
-	ConfigurationUnsupported JobErrorCode = "ConfigurationUnsupported"
-	// ContentMalformed There was a problem with the input content (for example: zero byte files, or
-	// corrupt/non-decodable files), check the input files.
-	ContentMalformed JobErrorCode = "ContentMalformed"
-	// ContentUnsupported There was a problem with the format of the input (not valid media file, or an
-	// unsupported file/codec), check the validity of the input files.
-	ContentUnsupported JobErrorCode = "ContentUnsupported"
-	// DownloadNotAccessible While trying to download the input files, the files were not accessible, please
-	// check the availability of the source.
-	DownloadNotAccessible JobErrorCode = "DownloadNotAccessible"
-	// DownloadTransientError While trying to download the input files, there was an issue during transfer
-	// (storage service, network errors), see details and check your source.
-	DownloadTransientError JobErrorCode = "DownloadTransientError"
-	// ServiceError Fatal service error, please contact support.
-	ServiceError JobErrorCode = "ServiceError"
-	// ServiceTransientError Transient error, please retry, if retry is unsuccessful, please contact support.
-	ServiceTransientError JobErrorCode = "ServiceTransientError"
-	// UploadNotAccessible While trying to upload the output files, the destination was not reachable, please
-	// check the availability of the destination.
-	UploadNotAccessible JobErrorCode = "UploadNotAccessible"
-	// UploadTransientError While trying to upload the output files, there was an issue during transfer
-	// (storage service, network errors), see details and check your destination.
-	UploadTransientError JobErrorCode = "UploadTransientError"
-)
-
-// PossibleJobErrorCodeValues returns an array of possible values for the JobErrorCode const type.
-func PossibleJobErrorCodeValues() []JobErrorCode {
-	return []JobErrorCode{ConfigurationUnsupported, ContentMalformed, ContentUnsupported, DownloadNotAccessible, DownloadTransientError, ServiceError, ServiceTransientError, UploadNotAccessible, UploadTransientError}
-}
-
-// JobRetry enumerates the values for job retry.
-type JobRetry string
-
-const (
-	// DoNotRetry Issue needs to be investigated and then the job resubmitted with corrections or retried once
-	// the underlying issue has been corrected.
-	DoNotRetry JobRetry = "DoNotRetry"
-	// MayRetry Issue may be resolved after waiting for a period of time and resubmitting the same Job.
-	MayRetry JobRetry = "MayRetry"
-)
-
-// PossibleJobRetryValues returns an array of possible values for the JobRetry const type.
-func PossibleJobRetryValues() []JobRetry {
-	return []JobRetry{DoNotRetry, MayRetry}
-}
-
-// JobState enumerates the values for job state.
-type JobState string
-
-const (
-	// Canceled The job was canceled. This is a final state for the job.
-	Canceled JobState = "Canceled"
-	// Canceling The job is in the process of being canceled. This is a transient state for the job.
-	Canceling JobState = "Canceling"
-	// Error The job has encountered an error. This is a final state for the job.
-	Error JobState = "Error"
-	// Finished The job is finished. This is a final state for the job.
-	Finished JobState = "Finished"
-	// Processing The job is processing. This is a transient state for the job.
-	Processing JobState = "Processing"
-	// Queued The job is in a queued state, waiting for resources to become available. This is a transient
-	// state.
-	Queued JobState = "Queued"
-	// Scheduled The job is being scheduled to run on an available resource. This is a transient state, between
-	// queued and processing states.
-	Scheduled JobState = "Scheduled"
-)
-
-// PossibleJobStateValues returns an array of possible values for the JobState const type.
-func PossibleJobStateValues() []JobState {
-	return []JobState{Canceled, Canceling, Error, Finished, Processing, Queued, Scheduled}
-}
-
-// LiveEventEncodingType enumerates the values for live event encoding type.
-type LiveEventEncodingType string
-
-const (
-	// LiveEventEncodingTypeBasic ...
-	LiveEventEncodingTypeBasic LiveEventEncodingType = "Basic"
-	// LiveEventEncodingTypeNone ...
-	LiveEventEncodingTypeNone LiveEventEncodingType = "None"
-	// LiveEventEncodingTypePremium1080p ...
-	LiveEventEncodingTypePremium1080p LiveEventEncodingType = "Premium1080p"
-	// LiveEventEncodingTypeStandard ...
-	LiveEventEncodingTypeStandard LiveEventEncodingType = "Standard"
-)
-
-// PossibleLiveEventEncodingTypeValues returns an array of possible values for the LiveEventEncodingType const type.
-func PossibleLiveEventEncodingTypeValues() []LiveEventEncodingType {
-	return []LiveEventEncodingType{LiveEventEncodingTypeBasic, LiveEventEncodingTypeNone, LiveEventEncodingTypePremium1080p, LiveEventEncodingTypeStandard}
-}
-
-// LiveEventInputProtocol enumerates the values for live event input protocol.
-type LiveEventInputProtocol string
-
-const (
-	// FragmentedMP4 ...
-	FragmentedMP4 LiveEventInputProtocol = "FragmentedMP4"
-	// RTMP ...
-	RTMP LiveEventInputProtocol = "RTMP"
-)
-
-// PossibleLiveEventInputProtocolValues returns an array of possible values for the LiveEventInputProtocol const type.
-func PossibleLiveEventInputProtocolValues() []LiveEventInputProtocol {
-	return []LiveEventInputProtocol{FragmentedMP4, RTMP}
-}
-
-// LiveEventResourceState enumerates the values for live event resource state.
-type LiveEventResourceState string
-
-const (
-	// Deleting ...
-	Deleting LiveEventResourceState = "Deleting"
-	// Running ...
-	Running LiveEventResourceState = "Running"
-	// Starting ...
-	Starting LiveEventResourceState = "Starting"
-	// Stopped ...
-	Stopped LiveEventResourceState = "Stopped"
-	// Stopping ...
-	Stopping LiveEventResourceState = "Stopping"
-)
-
-// PossibleLiveEventResourceStateValues returns an array of possible values for the LiveEventResourceState const type.
-func PossibleLiveEventResourceStateValues() []LiveEventResourceState {
-	return []LiveEventResourceState{Deleting, Running, Starting, Stopped, Stopping}
-}
-
-// LiveOutputResourceState enumerates the values for live output resource state.
-type LiveOutputResourceState string
-
-const (
-	// LiveOutputResourceStateCreating ...
-	LiveOutputResourceStateCreating LiveOutputResourceState = "Creating"
-	// LiveOutputResourceStateDeleting ...
-	LiveOutputResourceStateDeleting LiveOutputResourceState = "Deleting"
-	// LiveOutputResourceStateRunning ...
-	LiveOutputResourceStateRunning LiveOutputResourceState = "Running"
-)
-
-// PossibleLiveOutputResourceStateValues returns an array of possible values for the LiveOutputResourceState const type.
-func PossibleLiveOutputResourceStateValues() []LiveOutputResourceState {
-	return []LiveOutputResourceState{LiveOutputResourceStateCreating, LiveOutputResourceStateDeleting, LiveOutputResourceStateRunning}
-}
-
-// MetricAggregationType enumerates the values for metric aggregation type.
-type MetricAggregationType string
-
-const (
-	// Average The average.
-	Average MetricAggregationType = "Average"
-	// Count The count of a number of items, usually requests.
-	Count MetricAggregationType = "Count"
-	// Total The sum.
-	Total MetricAggregationType = "Total"
-)
-
-// PossibleMetricAggregationTypeValues returns an array of possible values for the MetricAggregationType const type.
-func PossibleMetricAggregationTypeValues() []MetricAggregationType {
-	return []MetricAggregationType{Average, Count, Total}
-}
-
-// MetricUnit enumerates the values for metric unit.
-type MetricUnit string
-
-const (
-	// MetricUnitBytes The number of bytes.
-	MetricUnitBytes MetricUnit = "Bytes"
-	// MetricUnitCount The count.
-	MetricUnitCount MetricUnit = "Count"
-	// MetricUnitMilliseconds The number of milliseconds.
-	MetricUnitMilliseconds MetricUnit = "Milliseconds"
-)
-
-// PossibleMetricUnitValues returns an array of possible values for the MetricUnit const type.
-func PossibleMetricUnitValues() []MetricUnit {
-	return []MetricUnit{MetricUnitBytes, MetricUnitCount, MetricUnitMilliseconds}
-}
-
-// OdataType enumerates the values for odata type.
-type OdataType string
-
-const (
-	// OdataTypeContentKeyPolicyPlayReadyContentKeyLocation ...
-	OdataTypeContentKeyPolicyPlayReadyContentKeyLocation OdataType = "ContentKeyPolicyPlayReadyContentKeyLocation"
-	// OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader ...
-	OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader OdataType = "#Microsoft.Media.ContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader"
-	// OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier ...
-	OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier OdataType = "#Microsoft.Media.ContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier"
-)
-
-// PossibleOdataTypeValues returns an array of possible values for the OdataType const type.
-func PossibleOdataTypeValues() []OdataType {
-	return []OdataType{OdataTypeContentKeyPolicyPlayReadyContentKeyLocation, OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromHeader, OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyContentEncryptionKeyFromKeyIdentifier}
-}
-
-// OdataTypeBasicClipTime enumerates the values for odata type basic clip time.
-type OdataTypeBasicClipTime string
-
-const (
-	// OdataTypeClipTime ...
-	OdataTypeClipTime OdataTypeBasicClipTime = "ClipTime"
-	// OdataTypeMicrosoftMediaAbsoluteClipTime ...
-	OdataTypeMicrosoftMediaAbsoluteClipTime OdataTypeBasicClipTime = "#Microsoft.Media.AbsoluteClipTime"
-)
-
-// PossibleOdataTypeBasicClipTimeValues returns an array of possible values for the OdataTypeBasicClipTime const type.
-func PossibleOdataTypeBasicClipTimeValues() []OdataTypeBasicClipTime {
-	return []OdataTypeBasicClipTime{OdataTypeClipTime, OdataTypeMicrosoftMediaAbsoluteClipTime}
-}
-
-// OdataTypeBasicCodec enumerates the values for odata type basic codec.
-type OdataTypeBasicCodec string
-
-const (
-	// OdataTypeCodec ...
-	OdataTypeCodec OdataTypeBasicCodec = "Codec"
-	// OdataTypeMicrosoftMediaAacAudio ...
-	OdataTypeMicrosoftMediaAacAudio OdataTypeBasicCodec = "#Microsoft.Media.AacAudio"
-	// OdataTypeMicrosoftMediaAudio ...
-	OdataTypeMicrosoftMediaAudio OdataTypeBasicCodec = "#Microsoft.Media.Audio"
-	// OdataTypeMicrosoftMediaCopyAudio ...
-	OdataTypeMicrosoftMediaCopyAudio OdataTypeBasicCodec = "#Microsoft.Media.CopyAudio"
-	// OdataTypeMicrosoftMediaCopyVideo ...
-	OdataTypeMicrosoftMediaCopyVideo OdataTypeBasicCodec = "#Microsoft.Media.CopyVideo"
-	// OdataTypeMicrosoftMediaH264Video ...
-	OdataTypeMicrosoftMediaH264Video OdataTypeBasicCodec = "#Microsoft.Media.H264Video"
-	// OdataTypeMicrosoftMediaImage ...
-	OdataTypeMicrosoftMediaImage OdataTypeBasicCodec = "#Microsoft.Media.Image"
-	// OdataTypeMicrosoftMediaJpgImage ...
-	OdataTypeMicrosoftMediaJpgImage OdataTypeBasicCodec = "#Microsoft.Media.JpgImage"
-	// OdataTypeMicrosoftMediaPngImage ...
-	OdataTypeMicrosoftMediaPngImage OdataTypeBasicCodec = "#Microsoft.Media.PngImage"
-	// OdataTypeMicrosoftMediaVideo ...
-	OdataTypeMicrosoftMediaVideo OdataTypeBasicCodec = "#Microsoft.Media.Video"
-)
-
-// PossibleOdataTypeBasicCodecValues returns an array of possible values for the OdataTypeBasicCodec const type.
-func PossibleOdataTypeBasicCodecValues() []OdataTypeBasicCodec {
-	return []OdataTypeBasicCodec{OdataTypeCodec, OdataTypeMicrosoftMediaAacAudio, OdataTypeMicrosoftMediaAudio, OdataTypeMicrosoftMediaCopyAudio, OdataTypeMicrosoftMediaCopyVideo, OdataTypeMicrosoftMediaH264Video, OdataTypeMicrosoftMediaImage, OdataTypeMicrosoftMediaJpgImage, OdataTypeMicrosoftMediaPngImage, OdataTypeMicrosoftMediaVideo}
-}
-
-// OdataTypeBasicContentKeyPolicyConfiguration enumerates the values for odata type basic content key policy
-// configuration.
-type OdataTypeBasicContentKeyPolicyConfiguration string
-
-const (
-	// OdataTypeContentKeyPolicyConfiguration ...
-	OdataTypeContentKeyPolicyConfiguration OdataTypeBasicContentKeyPolicyConfiguration = "ContentKeyPolicyConfiguration"
-	// OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration ...
-	OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration OdataTypeBasicContentKeyPolicyConfiguration = "#Microsoft.Media.ContentKeyPolicyClearKeyConfiguration"
-	// OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration ...
-	OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration OdataTypeBasicContentKeyPolicyConfiguration = "#Microsoft.Media.ContentKeyPolicyFairPlayConfiguration"
-	// OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration ...
-	OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration OdataTypeBasicContentKeyPolicyConfiguration = "#Microsoft.Media.ContentKeyPolicyPlayReadyConfiguration"
-	// OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration ...
-	OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration OdataTypeBasicContentKeyPolicyConfiguration = "#Microsoft.Media.ContentKeyPolicyUnknownConfiguration"
-	// OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration ...
-	OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration OdataTypeBasicContentKeyPolicyConfiguration = "#Microsoft.Media.ContentKeyPolicyWidevineConfiguration"
-)
-
-// PossibleOdataTypeBasicContentKeyPolicyConfigurationValues returns an array of possible values for the OdataTypeBasicContentKeyPolicyConfiguration const type.
-func PossibleOdataTypeBasicContentKeyPolicyConfigurationValues() []OdataTypeBasicContentKeyPolicyConfiguration {
-	return []OdataTypeBasicContentKeyPolicyConfiguration{OdataTypeContentKeyPolicyConfiguration, OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration, OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration, OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration, OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration, OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration}
-}
-
-// OdataTypeBasicContentKeyPolicyRestriction enumerates the values for odata type basic content key policy
-// restriction.
-type OdataTypeBasicContentKeyPolicyRestriction string
-
-const (
-	// OdataTypeContentKeyPolicyRestriction ...
-	OdataTypeContentKeyPolicyRestriction OdataTypeBasicContentKeyPolicyRestriction = "ContentKeyPolicyRestriction"
-	// OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction ...
-	OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction OdataTypeBasicContentKeyPolicyRestriction = "#Microsoft.Media.ContentKeyPolicyOpenRestriction"
-	// OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction ...
-	OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction OdataTypeBasicContentKeyPolicyRestriction = "#Microsoft.Media.ContentKeyPolicyTokenRestriction"
-	// OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction ...
-	OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction OdataTypeBasicContentKeyPolicyRestriction = "#Microsoft.Media.ContentKeyPolicyUnknownRestriction"
-)
-
-// PossibleOdataTypeBasicContentKeyPolicyRestrictionValues returns an array of possible values for the OdataTypeBasicContentKeyPolicyRestriction const type.
-func PossibleOdataTypeBasicContentKeyPolicyRestrictionValues() []OdataTypeBasicContentKeyPolicyRestriction {
-	return []OdataTypeBasicContentKeyPolicyRestriction{OdataTypeContentKeyPolicyRestriction, OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction, OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction, OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction}
-}
-
-// OdataTypeBasicContentKeyPolicyRestrictionTokenKey enumerates the values for odata type basic content key
-// policy restriction token key.
-type OdataTypeBasicContentKeyPolicyRestrictionTokenKey string
-
-const (
-	// OdataTypeContentKeyPolicyRestrictionTokenKey ...
-	OdataTypeContentKeyPolicyRestrictionTokenKey OdataTypeBasicContentKeyPolicyRestrictionTokenKey = "ContentKeyPolicyRestrictionTokenKey"
-	// OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey ...
-	OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey OdataTypeBasicContentKeyPolicyRestrictionTokenKey = "#Microsoft.Media.ContentKeyPolicyRsaTokenKey"
-	// OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey ...
-	OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey OdataTypeBasicContentKeyPolicyRestrictionTokenKey = "#Microsoft.Media.ContentKeyPolicySymmetricTokenKey"
-	// OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey ...
-	OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey OdataTypeBasicContentKeyPolicyRestrictionTokenKey = "#Microsoft.Media.ContentKeyPolicyX509CertificateTokenKey"
-)
-
-// PossibleOdataTypeBasicContentKeyPolicyRestrictionTokenKeyValues returns an array of possible values for the OdataTypeBasicContentKeyPolicyRestrictionTokenKey const type.
-func PossibleOdataTypeBasicContentKeyPolicyRestrictionTokenKeyValues() []OdataTypeBasicContentKeyPolicyRestrictionTokenKey {
-	return []OdataTypeBasicContentKeyPolicyRestrictionTokenKey{OdataTypeContentKeyPolicyRestrictionTokenKey, OdataTypeMicrosoftMediaContentKeyPolicyRsaTokenKey, OdataTypeMicrosoftMediaContentKeyPolicySymmetricTokenKey, OdataTypeMicrosoftMediaContentKeyPolicyX509CertificateTokenKey}
-}
-
-// OdataTypeBasicFormat enumerates the values for odata type basic format.
-type OdataTypeBasicFormat string
-
-const (
-	// OdataTypeFormat ...
-	OdataTypeFormat OdataTypeBasicFormat = "Format"
-	// OdataTypeMicrosoftMediaImageFormat ...
-	OdataTypeMicrosoftMediaImageFormat OdataTypeBasicFormat = "#Microsoft.Media.ImageFormat"
-	// OdataTypeMicrosoftMediaJpgFormat ...
-	OdataTypeMicrosoftMediaJpgFormat OdataTypeBasicFormat = "#Microsoft.Media.JpgFormat"
-	// OdataTypeMicrosoftMediaMp4Format ...
-	OdataTypeMicrosoftMediaMp4Format OdataTypeBasicFormat = "#Microsoft.Media.Mp4Format"
-	// OdataTypeMicrosoftMediaMultiBitrateFormat ...
-	OdataTypeMicrosoftMediaMultiBitrateFormat OdataTypeBasicFormat = "#Microsoft.Media.MultiBitrateFormat"
-	// OdataTypeMicrosoftMediaPngFormat ...
-	OdataTypeMicrosoftMediaPngFormat OdataTypeBasicFormat = "#Microsoft.Media.PngFormat"
-	// OdataTypeMicrosoftMediaTransportStreamFormat ...
-	OdataTypeMicrosoftMediaTransportStreamFormat OdataTypeBasicFormat = "#Microsoft.Media.TransportStreamFormat"
-)
-
-// PossibleOdataTypeBasicFormatValues returns an array of possible values for the OdataTypeBasicFormat const type.
-func PossibleOdataTypeBasicFormatValues() []OdataTypeBasicFormat {
-	return []OdataTypeBasicFormat{OdataTypeFormat, OdataTypeMicrosoftMediaImageFormat, OdataTypeMicrosoftMediaJpgFormat, OdataTypeMicrosoftMediaMp4Format, OdataTypeMicrosoftMediaMultiBitrateFormat, OdataTypeMicrosoftMediaPngFormat, OdataTypeMicrosoftMediaTransportStreamFormat}
-}
-
-// OdataTypeBasicJobInput enumerates the values for odata type basic job input.
-type OdataTypeBasicJobInput string
-
-const (
-	// OdataTypeJobInput ...
-	OdataTypeJobInput OdataTypeBasicJobInput = "JobInput"
-	// OdataTypeMicrosoftMediaJobInputAsset ...
-	OdataTypeMicrosoftMediaJobInputAsset OdataTypeBasicJobInput = "#Microsoft.Media.JobInputAsset"
-	// OdataTypeMicrosoftMediaJobInputClip ...
-	OdataTypeMicrosoftMediaJobInputClip OdataTypeBasicJobInput = "#Microsoft.Media.JobInputClip"
-	// OdataTypeMicrosoftMediaJobInputHTTP ...
-	OdataTypeMicrosoftMediaJobInputHTTP OdataTypeBasicJobInput = "#Microsoft.Media.JobInputHttp"
-	// OdataTypeMicrosoftMediaJobInputs ...
-	OdataTypeMicrosoftMediaJobInputs OdataTypeBasicJobInput = "#Microsoft.Media.JobInputs"
-)
-
-// PossibleOdataTypeBasicJobInputValues returns an array of possible values for the OdataTypeBasicJobInput const type.
-func PossibleOdataTypeBasicJobInputValues() []OdataTypeBasicJobInput {
-	return []OdataTypeBasicJobInput{OdataTypeJobInput, OdataTypeMicrosoftMediaJobInputAsset, OdataTypeMicrosoftMediaJobInputClip, OdataTypeMicrosoftMediaJobInputHTTP, OdataTypeMicrosoftMediaJobInputs}
-}
-
-// OdataTypeBasicJobOutput enumerates the values for odata type basic job output.
-type OdataTypeBasicJobOutput string
-
-const (
-	// OdataTypeJobOutput ...
-	OdataTypeJobOutput OdataTypeBasicJobOutput = "JobOutput"
-	// OdataTypeMicrosoftMediaJobOutputAsset ...
-	OdataTypeMicrosoftMediaJobOutputAsset OdataTypeBasicJobOutput = "#Microsoft.Media.JobOutputAsset"
-)
-
-// PossibleOdataTypeBasicJobOutputValues returns an array of possible values for the OdataTypeBasicJobOutput const type.
-func PossibleOdataTypeBasicJobOutputValues() []OdataTypeBasicJobOutput {
-	return []OdataTypeBasicJobOutput{OdataTypeJobOutput, OdataTypeMicrosoftMediaJobOutputAsset}
-}
-
-// OdataTypeBasicLayer enumerates the values for odata type basic layer.
-type OdataTypeBasicLayer string
-
-const (
-	// OdataTypeLayer ...
-	OdataTypeLayer OdataTypeBasicLayer = "Layer"
-	// OdataTypeMicrosoftMediaH264Layer ...
-	OdataTypeMicrosoftMediaH264Layer OdataTypeBasicLayer = "#Microsoft.Media.H264Layer"
-	// OdataTypeMicrosoftMediaJpgLayer ...
-	OdataTypeMicrosoftMediaJpgLayer OdataTypeBasicLayer = "#Microsoft.Media.JpgLayer"
-	// OdataTypeMicrosoftMediaPngLayer ...
-	OdataTypeMicrosoftMediaPngLayer OdataTypeBasicLayer = "#Microsoft.Media.PngLayer"
-	// OdataTypeMicrosoftMediaVideoLayer ...
-	OdataTypeMicrosoftMediaVideoLayer OdataTypeBasicLayer = "#Microsoft.Media.VideoLayer"
-)
-
-// PossibleOdataTypeBasicLayerValues returns an array of possible values for the OdataTypeBasicLayer const type.
-func PossibleOdataTypeBasicLayerValues() []OdataTypeBasicLayer {
-	return []OdataTypeBasicLayer{OdataTypeLayer, OdataTypeMicrosoftMediaH264Layer, OdataTypeMicrosoftMediaJpgLayer, OdataTypeMicrosoftMediaPngLayer, OdataTypeMicrosoftMediaVideoLayer}
-}
-
-// OdataTypeBasicOverlay enumerates the values for odata type basic overlay.
-type OdataTypeBasicOverlay string
-
-const (
-	// OdataTypeMicrosoftMediaAudioOverlay ...
-	OdataTypeMicrosoftMediaAudioOverlay OdataTypeBasicOverlay = "#Microsoft.Media.AudioOverlay"
-	// OdataTypeMicrosoftMediaVideoOverlay ...
-	OdataTypeMicrosoftMediaVideoOverlay OdataTypeBasicOverlay = "#Microsoft.Media.VideoOverlay"
-	// OdataTypeOverlay ...
-	OdataTypeOverlay OdataTypeBasicOverlay = "Overlay"
-)
-
-// PossibleOdataTypeBasicOverlayValues returns an array of possible values for the OdataTypeBasicOverlay const type.
-func PossibleOdataTypeBasicOverlayValues() []OdataTypeBasicOverlay {
-	return []OdataTypeBasicOverlay{OdataTypeMicrosoftMediaAudioOverlay, OdataTypeMicrosoftMediaVideoOverlay, OdataTypeOverlay}
-}
-
-// OdataTypeBasicPreset enumerates the values for odata type basic preset.
-type OdataTypeBasicPreset string
-
-const (
-	// OdataTypeMicrosoftMediaAudioAnalyzerPreset ...
-	OdataTypeMicrosoftMediaAudioAnalyzerPreset OdataTypeBasicPreset = "#Microsoft.Media.AudioAnalyzerPreset"
-	// OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset ...
-	OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset OdataTypeBasicPreset = "#Microsoft.Media.BuiltInStandardEncoderPreset"
-	// OdataTypeMicrosoftMediaFaceDetectorPreset ...
-	OdataTypeMicrosoftMediaFaceDetectorPreset OdataTypeBasicPreset = "#Microsoft.Media.FaceDetectorPreset"
-	// OdataTypeMicrosoftMediaStandardEncoderPreset ...
-	OdataTypeMicrosoftMediaStandardEncoderPreset OdataTypeBasicPreset = "#Microsoft.Media.StandardEncoderPreset"
-	// OdataTypeMicrosoftMediaVideoAnalyzerPreset ...
-	OdataTypeMicrosoftMediaVideoAnalyzerPreset OdataTypeBasicPreset = "#Microsoft.Media.VideoAnalyzerPreset"
-	// OdataTypePreset ...
-	OdataTypePreset OdataTypeBasicPreset = "Preset"
-)
-
-// PossibleOdataTypeBasicPresetValues returns an array of possible values for the OdataTypeBasicPreset const type.
-func PossibleOdataTypeBasicPresetValues() []OdataTypeBasicPreset {
-	return []OdataTypeBasicPreset{OdataTypeMicrosoftMediaAudioAnalyzerPreset, OdataTypeMicrosoftMediaBuiltInStandardEncoderPreset, OdataTypeMicrosoftMediaFaceDetectorPreset, OdataTypeMicrosoftMediaStandardEncoderPreset, OdataTypeMicrosoftMediaVideoAnalyzerPreset, OdataTypePreset}
-}
-
-// OnErrorType enumerates the values for on error type.
-type OnErrorType string
-
-const (
-	// ContinueJob Tells the service that if this TransformOutput fails, then allow any other TransformOutput
-	// to continue.
-	ContinueJob OnErrorType = "ContinueJob"
-	// StopProcessingJob Tells the service that if this TransformOutput fails, then any other incomplete
-	// TransformOutputs can be stopped.
-	StopProcessingJob OnErrorType = "StopProcessingJob"
-)
-
-// PossibleOnErrorTypeValues returns an array of possible values for the OnErrorType const type.
-func PossibleOnErrorTypeValues() []OnErrorType {
-	return []OnErrorType{ContinueJob, StopProcessingJob}
-}
-
-// Priority enumerates the values for priority.
-type Priority string
-
-const (
-	// High Used for TransformOutputs that should take precedence over others.
-	High Priority = "High"
-	// Low Used for TransformOutputs that can be generated after Normal and High priority TransformOutputs.
-	Low Priority = "Low"
-	// Normal Used for TransformOutputs that can be generated at Normal priority.
-	Normal Priority = "Normal"
-)
-
-// PossiblePriorityValues returns an array of possible values for the Priority const type.
-func PossiblePriorityValues() []Priority {
-	return []Priority{High, Low, Normal}
-}
-
-// Rotation enumerates the values for rotation.
-type Rotation string
-
-const (
-	// RotationAuto Automatically detect and rotate as needed.
-	RotationAuto Rotation = "Auto"
-	// RotationNone Do not rotate the video.  If the output format supports it, any metadata about rotation is
-	// kept intact.
-	RotationNone Rotation = "None"
-	// RotationRotate0 Do not rotate the video but remove any metadata about the rotation.
-	RotationRotate0 Rotation = "Rotate0"
-	// RotationRotate180 Rotate 180 degrees clockwise.
-	RotationRotate180 Rotation = "Rotate180"
-	// RotationRotate270 Rotate 270 degrees clockwise.
-	RotationRotate270 Rotation = "Rotate270"
-	// RotationRotate90 Rotate 90 degrees clockwise.
-	RotationRotate90 Rotation = "Rotate90"
-)
-
-// PossibleRotationValues returns an array of possible values for the Rotation const type.
-func PossibleRotationValues() []Rotation {
-	return []Rotation{RotationAuto, RotationNone, RotationRotate0, RotationRotate180, RotationRotate270, RotationRotate90}
-}
-
-// StorageAccountType enumerates the values for storage account type.
-type StorageAccountType string
-
-const (
-	// Primary The primary storage account for the Media Services account.
-	Primary StorageAccountType = "Primary"
-	// Secondary A secondary storage account for the Media Services account.
-	Secondary StorageAccountType = "Secondary"
-)
-
-// PossibleStorageAccountTypeValues returns an array of possible values for the StorageAccountType const type.
-func PossibleStorageAccountTypeValues() []StorageAccountType {
-	return []StorageAccountType{Primary, Secondary}
-}
-
-// StreamingEndpointResourceState enumerates the values for streaming endpoint resource state.
-type StreamingEndpointResourceState string
-
-const (
-	// StreamingEndpointResourceStateDeleting ...
-	StreamingEndpointResourceStateDeleting StreamingEndpointResourceState = "Deleting"
-	// StreamingEndpointResourceStateRunning ...
-	StreamingEndpointResourceStateRunning StreamingEndpointResourceState = "Running"
-	// StreamingEndpointResourceStateScaling ...
-	StreamingEndpointResourceStateScaling StreamingEndpointResourceState = "Scaling"
-	// StreamingEndpointResourceStateStarting ...
-	StreamingEndpointResourceStateStarting StreamingEndpointResourceState = "Starting"
-	// StreamingEndpointResourceStateStopped ...
-	StreamingEndpointResourceStateStopped StreamingEndpointResourceState = "Stopped"
-	// StreamingEndpointResourceStateStopping ...
-	StreamingEndpointResourceStateStopping StreamingEndpointResourceState = "Stopping"
-)
-
-// PossibleStreamingEndpointResourceStateValues returns an array of possible values for the StreamingEndpointResourceState const type.
-func PossibleStreamingEndpointResourceStateValues() []StreamingEndpointResourceState {
-	return []StreamingEndpointResourceState{StreamingEndpointResourceStateDeleting, StreamingEndpointResourceStateRunning, StreamingEndpointResourceStateScaling, StreamingEndpointResourceStateStarting, StreamingEndpointResourceStateStopped, StreamingEndpointResourceStateStopping}
-}
-
-// StreamingLocatorContentKeyType enumerates the values for streaming locator content key type.
-type StreamingLocatorContentKeyType string
-
-const (
-	// StreamingLocatorContentKeyTypeCommonEncryptionCbcs Common Encryption using CBCS
-	StreamingLocatorContentKeyTypeCommonEncryptionCbcs StreamingLocatorContentKeyType = "CommonEncryptionCbcs"
-	// StreamingLocatorContentKeyTypeCommonEncryptionCenc Common Encryption using CENC
-	StreamingLocatorContentKeyTypeCommonEncryptionCenc StreamingLocatorContentKeyType = "CommonEncryptionCenc"
-	// StreamingLocatorContentKeyTypeEnvelopeEncryption Envelope Encryption
-	StreamingLocatorContentKeyTypeEnvelopeEncryption StreamingLocatorContentKeyType = "EnvelopeEncryption"
-)
-
-// PossibleStreamingLocatorContentKeyTypeValues returns an array of possible values for the StreamingLocatorContentKeyType const type.
-func PossibleStreamingLocatorContentKeyTypeValues() []StreamingLocatorContentKeyType {
-	return []StreamingLocatorContentKeyType{StreamingLocatorContentKeyTypeCommonEncryptionCbcs, StreamingLocatorContentKeyTypeCommonEncryptionCenc, StreamingLocatorContentKeyTypeEnvelopeEncryption}
-}
-
-// StreamingPolicyStreamingProtocol enumerates the values for streaming policy streaming protocol.
-type StreamingPolicyStreamingProtocol string
-
-const (
-	// StreamingPolicyStreamingProtocolDash DASH protocol
-	StreamingPolicyStreamingProtocolDash StreamingPolicyStreamingProtocol = "Dash"
-	// StreamingPolicyStreamingProtocolDownload Download protocol
-	StreamingPolicyStreamingProtocolDownload StreamingPolicyStreamingProtocol = "Download"
-	// StreamingPolicyStreamingProtocolHls HLS protocol
-	StreamingPolicyStreamingProtocolHls StreamingPolicyStreamingProtocol = "Hls"
-	// StreamingPolicyStreamingProtocolSmoothStreaming SmoothStreaming protocol
-	StreamingPolicyStreamingProtocolSmoothStreaming StreamingPolicyStreamingProtocol = "SmoothStreaming"
-)
-
-// PossibleStreamingPolicyStreamingProtocolValues returns an array of possible values for the StreamingPolicyStreamingProtocol const type.
-func PossibleStreamingPolicyStreamingProtocolValues() []StreamingPolicyStreamingProtocol {
-	return []StreamingPolicyStreamingProtocol{StreamingPolicyStreamingProtocolDash, StreamingPolicyStreamingProtocolDownload, StreamingPolicyStreamingProtocolHls, StreamingPolicyStreamingProtocolSmoothStreaming}
-}
-
-// StreamOptionsFlag enumerates the values for stream options flag.
-type StreamOptionsFlag string
-
-const (
-	// Default ...
-	Default StreamOptionsFlag = "Default"
-	// LowLatency ...
-	LowLatency StreamOptionsFlag = "LowLatency"
-)
-
-// PossibleStreamOptionsFlagValues returns an array of possible values for the StreamOptionsFlag const type.
-func PossibleStreamOptionsFlagValues() []StreamOptionsFlag {
-	return []StreamOptionsFlag{Default, LowLatency}
-}
-
-// StretchMode enumerates the values for stretch mode.
-type StretchMode string
-
-const (
-	// StretchModeAutoFit Pad the output (with either letterbox or pillar box) to honor the output resolution,
-	// while ensuring that the active video region in the output has the same aspect ratio as the input. For
-	// example, if the input is 1920x1080 and the encoding preset asks for 1280x1280, then the output will be
-	// at 1280x1280, which contains an inner rectangle of 1280x720 at aspect ratio of 16:9, and pillar box
-	// regions 280 pixels wide at the left and right.
-	StretchModeAutoFit StretchMode = "AutoFit"
-	// StretchModeAutoSize Override the output resolution, and change it to match the display aspect ratio of
-	// the input, without padding. For example, if the input is 1920x1080 and the encoding preset asks for
-	// 1280x1280, then the value in the preset is overridden, and the output will be at 1280x720, which
-	// maintains the input aspect ratio of 16:9.
-	StretchModeAutoSize StretchMode = "AutoSize"
-	// StretchModeNone Strictly respect the output resolution without considering the pixel aspect ratio or
-	// display aspect ratio of the input video.
-	StretchModeNone StretchMode = "None"
-)
-
-// PossibleStretchModeValues returns an array of possible values for the StretchMode const type.
-func PossibleStretchModeValues() []StretchMode {
-	return []StretchMode{StretchModeAutoFit, StretchModeAutoSize, StretchModeNone}
-}
-
-// TrackPropertyCompareOperation enumerates the values for track property compare operation.
-type TrackPropertyCompareOperation string
-
-const (
-	// TrackPropertyCompareOperationEqual Equal operation
-	TrackPropertyCompareOperationEqual TrackPropertyCompareOperation = "Equal"
-	// TrackPropertyCompareOperationUnknown Unknown track property compare operation
-	TrackPropertyCompareOperationUnknown TrackPropertyCompareOperation = "Unknown"
-)
-
-// PossibleTrackPropertyCompareOperationValues returns an array of possible values for the TrackPropertyCompareOperation const type.
-func PossibleTrackPropertyCompareOperationValues() []TrackPropertyCompareOperation {
-	return []TrackPropertyCompareOperation{TrackPropertyCompareOperationEqual, TrackPropertyCompareOperationUnknown}
-}
-
-// TrackPropertyType enumerates the values for track property type.
-type TrackPropertyType string
-
-const (
-	// TrackPropertyTypeFourCC Track FourCC
-	TrackPropertyTypeFourCC TrackPropertyType = "FourCC"
-	// TrackPropertyTypeUnknown Unknown track property
-	TrackPropertyTypeUnknown TrackPropertyType = "Unknown"
-)
-
-// PossibleTrackPropertyTypeValues returns an array of possible values for the TrackPropertyType const type.
-func PossibleTrackPropertyTypeValues() []TrackPropertyType {
-	return []TrackPropertyType{TrackPropertyTypeFourCC, TrackPropertyTypeUnknown}
-}
-
 // AacAudio describes Advanced Audio Codec (AAC) audio encoding settings.
 type AacAudio struct {
 	// Profile - The encoding profile to be used when encoding audio with AAC. Possible values include: 'AacLc', 'HeAacV1', 'HeAacV2'
@@ -1183,9 +143,9 @@ func (aa AacAudio) AsBasicCodec() (BasicCodec, bool) {
 	return &aa, true
 }
 
-// AbsoluteClipTime specifies the clip time as an absolute time position in the media file.  The absolute
-// time can point to a different position depending on whether the media file starts from a timestamp of
-// zero or not.
+// AbsoluteClipTime specifies the clip time as an absolute time position in the media file.  The absolute time
+// can point to a different position depending on whether the media file starts from a timestamp of zero or
+// not.
 type AbsoluteClipTime struct {
 	// Time - The time position on the timeline of the input media. It is usually specified as an ISO8601 period. e.g PT30S for 30 seconds.
 	Time *string `json:"time,omitempty"`
@@ -1370,10 +330,15 @@ func (afc AccountFilterCollection) IsEmpty() bool {
 	return afc.Value == nil || len(*afc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (afc AccountFilterCollection) hasNextLink() bool {
+	return afc.OdataNextLink != nil && len(*afc.OdataNextLink) != 0
+}
+
 // accountFilterCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (afc AccountFilterCollection) accountFilterCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if afc.OdataNextLink == nil || len(to.String(afc.OdataNextLink)) < 1 {
+	if !afc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1401,11 +366,16 @@ func (page *AccountFilterCollectionPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.afc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.afc)
+		if err != nil {
+			return err
+		}
+		page.afc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.afc = next
 	return nil
 }
 
@@ -1611,10 +581,15 @@ func (ac AssetCollection) IsEmpty() bool {
 	return ac.Value == nil || len(*ac.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ac AssetCollection) hasNextLink() bool {
+	return ac.OdataNextLink != nil && len(*ac.OdataNextLink) != 0
+}
+
 // assetCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ac AssetCollection) assetCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if ac.OdataNextLink == nil || len(to.String(ac.OdataNextLink)) < 1 {
+	if !ac.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1642,11 +617,16 @@ func (page *AssetCollectionPage) NextWithContext(ctx context.Context) (err error
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ac)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ac)
+		if err != nil {
+			return err
+		}
+		page.ac = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ac = next
 	return nil
 }
 
@@ -1846,10 +826,15 @@ func (afc AssetFilterCollection) IsEmpty() bool {
 	return afc.Value == nil || len(*afc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (afc AssetFilterCollection) hasNextLink() bool {
+	return afc.OdataNextLink != nil && len(*afc.OdataNextLink) != 0
+}
+
 // assetFilterCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (afc AssetFilterCollection) assetFilterCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if afc.OdataNextLink == nil || len(to.String(afc.OdataNextLink)) < 1 {
+	if !afc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1877,11 +862,16 @@ func (page *AssetFilterCollectionPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.afc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.afc)
+		if err != nil {
+			return err
+		}
+		page.afc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.afc = next
 	return nil
 }
 
@@ -1933,6 +923,24 @@ type AssetProperties struct {
 	StorageAccountName *string `json:"storageAccountName,omitempty"`
 	// StorageEncryptionFormat - READ-ONLY; The Asset encryption format. One of None or MediaStorageEncryption. Possible values include: 'None', 'MediaStorageClientEncryption'
 	StorageEncryptionFormat AssetStorageEncryptionFormat `json:"storageEncryptionFormat,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AssetProperties.
+func (ap AssetProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.AlternateID != nil {
+		objectMap["alternateId"] = ap.AlternateID
+	}
+	if ap.Description != nil {
+		objectMap["description"] = ap.Description
+	}
+	if ap.Container != nil {
+		objectMap["container"] = ap.Container
+	}
+	if ap.StorageAccountName != nil {
+		objectMap["storageAccountName"] = ap.StorageAccountName
+	}
+	return json.Marshal(objectMap)
 }
 
 // AssetStreamingLocator properties of the Streaming Locator.
@@ -2344,8 +1352,7 @@ func (bisep BuiltInStandardEncoderPreset) AsBasicPreset() (BasicPreset, bool) {
 	return &bisep, true
 }
 
-// CbcsDrmConfiguration class to specify DRM configurations of CommonEncryptionCbcs scheme in Streaming
-// Policy
+// CbcsDrmConfiguration class to specify DRM configurations of CommonEncryptionCbcs scheme in Streaming Policy
 type CbcsDrmConfiguration struct {
 	// FairPlay - FairPlay configurations
 	FairPlay *StreamingPolicyFairPlayConfiguration `json:"fairPlay,omitempty"`
@@ -2355,8 +1362,7 @@ type CbcsDrmConfiguration struct {
 	Widevine *StreamingPolicyWidevineConfiguration `json:"widevine,omitempty"`
 }
 
-// CencDrmConfiguration class to specify DRM configurations of CommonEncryptionCenc scheme in Streaming
-// Policy
+// CencDrmConfiguration class to specify DRM configurations of CommonEncryptionCenc scheme in Streaming Policy
 type CencDrmConfiguration struct {
 	// PlayReady - PlayReady configurations
 	PlayReady *StreamingPolicyPlayReadyConfiguration `json:"playReady,omitempty"`
@@ -2849,10 +1855,15 @@ func (ckpc ContentKeyPolicyCollection) IsEmpty() bool {
 	return ckpc.Value == nil || len(*ckpc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ckpc ContentKeyPolicyCollection) hasNextLink() bool {
+	return ckpc.OdataNextLink != nil && len(*ckpc.OdataNextLink) != 0
+}
+
 // contentKeyPolicyCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ckpc ContentKeyPolicyCollection) contentKeyPolicyCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if ckpc.OdataNextLink == nil || len(to.String(ckpc.OdataNextLink)) < 1 {
+	if !ckpc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2880,11 +1891,16 @@ func (page *ContentKeyPolicyCollectionPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ckpc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ckpc)
+		if err != nil {
+			return err
+		}
+		page.ckpc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ckpc = next
 	return nil
 }
 
@@ -3123,8 +2139,8 @@ type ContentKeyPolicyFairPlayOfflineRentalConfiguration struct {
 	StorageDurationSeconds *int64 `json:"storageDurationSeconds,omitempty"`
 }
 
-// ContentKeyPolicyOpenRestriction represents an open restriction. License or key will be delivered on
-// every request.
+// ContentKeyPolicyOpenRestriction represents an open restriction. License or key will be delivered on every
+// request.
 type ContentKeyPolicyOpenRestriction struct {
 	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyOpenRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownRestriction', 'OdataTypeMicrosoftMediaContentKeyPolicyTokenRestriction'
 	OdataType OdataTypeBasicContentKeyPolicyRestriction `json:"@odata.type,omitempty"`
@@ -3175,6 +2191,17 @@ type ContentKeyPolicyOption struct {
 	Configuration BasicContentKeyPolicyConfiguration `json:"configuration,omitempty"`
 	// Restriction - The requirements that must be met to deliver keys with this configuration
 	Restriction BasicContentKeyPolicyRestriction `json:"restriction,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ContentKeyPolicyOption.
+func (ckpo ContentKeyPolicyOption) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ckpo.Name != nil {
+		objectMap["name"] = ckpo.Name
+	}
+	objectMap["configuration"] = ckpo.Configuration
+	objectMap["restriction"] = ckpo.Restriction
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for ContentKeyPolicyOption struct.
@@ -3634,6 +2661,18 @@ type ContentKeyPolicyProperties struct {
 	Options *[]ContentKeyPolicyOption `json:"options,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ContentKeyPolicyProperties.
+func (ckpp ContentKeyPolicyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ckpp.Description != nil {
+		objectMap["description"] = ckpp.Description
+	}
+	if ckpp.Options != nil {
+		objectMap["options"] = ckpp.Options
+	}
+	return json.Marshal(objectMap)
+}
+
 // BasicContentKeyPolicyRestriction base class for Content Key Policy restrictions. A derived class must be used to
 // create a restriction.
 type BasicContentKeyPolicyRestriction interface {
@@ -4091,8 +3130,8 @@ func (ckptr *ContentKeyPolicyTokenRestriction) UnmarshalJSON(body []byte) error 
 	return nil
 }
 
-// ContentKeyPolicyUnknownConfiguration represents a ContentKeyPolicyConfiguration that is unavailable in
-// the current API version.
+// ContentKeyPolicyUnknownConfiguration represents a ContentKeyPolicyConfiguration that is unavailable in the
+// current API version.
 type ContentKeyPolicyUnknownConfiguration struct {
 	// OdataType - Possible values include: 'OdataTypeContentKeyPolicyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyClearKeyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyUnknownConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyWidevineConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyPlayReadyConfiguration', 'OdataTypeMicrosoftMediaContentKeyPolicyFairPlayConfiguration'
 	OdataType OdataTypeBasicContentKeyPolicyConfiguration `json:"@odata.type,omitempty"`
@@ -4556,8 +3595,8 @@ type EnvelopeEncryption struct {
 	CustomKeyAcquisitionURLTemplate *string `json:"customKeyAcquisitionUrlTemplate,omitempty"`
 }
 
-// FaceDetectorPreset describes all the settings to be used when analyzing a video in order to detect all
-// the faces present.
+// FaceDetectorPreset describes all the settings to be used when analyzing a video in order to detect all the
+// faces present.
 type FaceDetectorPreset struct {
 	// Resolution - Specifies the maximum resolution at which your video is analyzed. The default behavior is "SourceResolution," which will keep the input video at its original resolution when analyzed. Using "StandardDefinition" will resize input videos to standard definition while preserving the appropriate aspect ratio. It will only resize if the video is of higher resolution. For example, a 1920x1080 input would be scaled to 640x360 before processing. Switching to "StandardDefinition" will reduce the time it takes to process high resolution video. It may also reduce the cost of using this component (see https://azure.microsoft.com/en-us/pricing/details/media-services/#analytics for details). However, faces that end up being too small in the resized video may not be detected. Possible values include: 'SourceResolution', 'StandardDefinition'
 	Resolution AnalysisResolution `json:"resolution,omitempty"`
@@ -4633,8 +3672,8 @@ type FilterProperties struct {
 	Tracks *[]FilterTrackSelection `json:"tracks,omitempty"`
 }
 
-// Filters describes all the filtering operations, such as de-interlacing, rotation etc. that are to be
-// applied to the input media before encoding.
+// Filters describes all the filtering operations, such as de-interlacing, rotation etc. that are to be applied
+// to the input media before encoding.
 type Filters struct {
 	// Deinterlace - The de-interlacing settings.
 	Deinterlace *Deinterlace `json:"deinterlace,omitempty"`
@@ -4706,8 +3745,8 @@ type FilterTrackPropertyCondition struct {
 	Operation FilterTrackPropertyCompareOperation `json:"operation,omitempty"`
 }
 
-// FilterTrackSelection representing a list of FilterTrackPropertyConditions to select a track.  The
-// filters are combined using a logical AND operation.
+// FilterTrackSelection representing a list of FilterTrackPropertyConditions to select a track.  The filters
+// are combined using a logical AND operation.
 type FilterTrackSelection struct {
 	// TrackSelections - The track selections.
 	TrackSelections *[]FilterTrackPropertyCondition `json:"trackSelections,omitempty"`
@@ -5403,8 +4442,8 @@ type IPRange struct {
 	SubnetPrefixLength *int32 `json:"subnetPrefixLength,omitempty"`
 }
 
-// Job a Job resource type. The progress and state can be obtained by polling a Job or subscribing to
-// events using EventGrid.
+// Job a Job resource type. The progress and state can be obtained by polling a Job or subscribing to events
+// using EventGrid.
 type Job struct {
 	autorest.Response `json:"-"`
 	// JobProperties - The resource properties.
@@ -5554,10 +4593,15 @@ func (jc JobCollection) IsEmpty() bool {
 	return jc.Value == nil || len(*jc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jc JobCollection) hasNextLink() bool {
+	return jc.OdataNextLink != nil && len(*jc.OdataNextLink) != 0
+}
+
 // jobCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jc JobCollection) jobCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if jc.OdataNextLink == nil || len(to.String(jc.OdataNextLink)) < 1 {
+	if !jc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5585,11 +4629,16 @@ func (page *JobCollectionPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jc)
+		if err != nil {
+			return err
+		}
+		page.jc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jc = next
 	return nil
 }
 
@@ -7231,10 +6280,15 @@ func (lelr LiveEventListResult) IsEmpty() bool {
 	return lelr.Value == nil || len(*lelr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lelr LiveEventListResult) hasNextLink() bool {
+	return lelr.OdataNextLink != nil && len(*lelr.OdataNextLink) != 0
+}
+
 // liveEventListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lelr LiveEventListResult) liveEventListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lelr.OdataNextLink == nil || len(to.String(lelr.OdataNextLink)) < 1 {
+	if !lelr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7262,11 +6316,16 @@ func (page *LiveEventListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lelr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lelr)
+		if err != nil {
+			return err
+		}
+		page.lelr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lelr = next
 	return nil
 }
 
@@ -7346,8 +6405,34 @@ type LiveEventProperties struct {
 	LastModified *date.Time `json:"lastModified,omitempty"`
 }
 
-// LiveEventsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// MarshalJSON is the custom marshaler for LiveEventProperties.
+func (lep LiveEventProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lep.Description != nil {
+		objectMap["description"] = lep.Description
+	}
+	if lep.Input != nil {
+		objectMap["input"] = lep.Input
+	}
+	if lep.Preview != nil {
+		objectMap["preview"] = lep.Preview
+	}
+	if lep.Encoding != nil {
+		objectMap["encoding"] = lep.Encoding
+	}
+	if lep.CrossSiteAccessPolicies != nil {
+		objectMap["crossSiteAccessPolicies"] = lep.CrossSiteAccessPolicies
+	}
+	if lep.VanityURL != nil {
+		objectMap["vanityUrl"] = lep.VanityURL
+	}
+	if lep.StreamOptions != nil {
+		objectMap["streamOptions"] = lep.StreamOptions
+	}
+	return json.Marshal(objectMap)
+}
+
+// LiveEventsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type LiveEventsCreateFuture struct {
 	azure.Future
 }
@@ -7375,8 +6460,7 @@ func (future *LiveEventsCreateFuture) Result(client LiveEventsClient) (le LiveEv
 	return
 }
 
-// LiveEventsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// LiveEventsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type LiveEventsDeleteFuture struct {
 	azure.Future
 }
@@ -7398,8 +6482,7 @@ func (future *LiveEventsDeleteFuture) Result(client LiveEventsClient) (ar autore
 	return
 }
 
-// LiveEventsResetFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// LiveEventsResetFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type LiveEventsResetFuture struct {
 	azure.Future
 }
@@ -7421,8 +6504,7 @@ func (future *LiveEventsResetFuture) Result(client LiveEventsClient) (ar autores
 	return
 }
 
-// LiveEventsStartFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// LiveEventsStartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type LiveEventsStartFuture struct {
 	azure.Future
 }
@@ -7444,8 +6526,7 @@ func (future *LiveEventsStartFuture) Result(client LiveEventsClient) (ar autores
 	return
 }
 
-// LiveEventsStopFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// LiveEventsStopFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type LiveEventsStopFuture struct {
 	azure.Future
 }
@@ -7467,8 +6548,7 @@ func (future *LiveEventsStopFuture) Result(client LiveEventsClient) (ar autorest
 	return
 }
 
-// LiveEventsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
+// LiveEventsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type LiveEventsUpdateFuture struct {
 	azure.Future
 }
@@ -7648,10 +6728,15 @@ func (lolr LiveOutputListResult) IsEmpty() bool {
 	return lolr.Value == nil || len(*lolr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (lolr LiveOutputListResult) hasNextLink() bool {
+	return lolr.OdataNextLink != nil && len(*lolr.OdataNextLink) != 0
+}
+
 // liveOutputListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (lolr LiveOutputListResult) liveOutputListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if lolr.OdataNextLink == nil || len(to.String(lolr.OdataNextLink)) < 1 {
+	if !lolr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7679,11 +6764,16 @@ func (page *LiveOutputListResultPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.lolr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.lolr)
+		if err != nil {
+			return err
+		}
+		page.lolr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.lolr = next
 	return nil
 }
 
@@ -7739,6 +6829,30 @@ type LiveOutputProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// ResourceState - READ-ONLY; The resource state of the Live Output. Possible values include: 'LiveOutputResourceStateCreating', 'LiveOutputResourceStateRunning', 'LiveOutputResourceStateDeleting'
 	ResourceState LiveOutputResourceState `json:"resourceState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LiveOutputProperties.
+func (lop LiveOutputProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if lop.Description != nil {
+		objectMap["description"] = lop.Description
+	}
+	if lop.AssetName != nil {
+		objectMap["assetName"] = lop.AssetName
+	}
+	if lop.ArchiveWindowLength != nil {
+		objectMap["archiveWindowLength"] = lop.ArchiveWindowLength
+	}
+	if lop.ManifestName != nil {
+		objectMap["manifestName"] = lop.ManifestName
+	}
+	if lop.Hls != nil {
+		objectMap["hls"] = lop.Hls
+	}
+	if lop.OutputSnapTime != nil {
+		objectMap["outputSnapTime"] = lop.OutputSnapTime
+	}
+	return json.Marshal(objectMap)
 }
 
 // LiveOutputsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -8141,10 +7255,15 @@ func (oc OperationCollection) IsEmpty() bool {
 	return oc.Value == nil || len(*oc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (oc OperationCollection) hasNextLink() bool {
+	return oc.OdataNextLink != nil && len(*oc.OdataNextLink) != 0
+}
+
 // operationCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (oc OperationCollection) operationCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if oc.OdataNextLink == nil || len(to.String(oc.OdataNextLink)) < 1 {
+	if !oc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8172,11 +7291,16 @@ func (page *OperationCollectionPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.oc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.oc)
+		if err != nil {
+			return err
+		}
+		page.oc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.oc = next
 	return nil
 }
 
@@ -8755,8 +7879,7 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// Rectangle describes the properties of a rectangular window applied to the input media before processing
-// it.
+// Rectangle describes the properties of a rectangular window applied to the input media before processing it.
 type Rectangle struct {
 	// Left - The number of pixels from the left-margin. This can be absolute pixel value (e.g 100), or relative to the size of the video (For example, 50%).
 	Left *string `json:"left,omitempty"`
@@ -8956,10 +8079,15 @@ func (sc ServiceCollection) IsEmpty() bool {
 	return sc.Value == nil || len(*sc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sc ServiceCollection) hasNextLink() bool {
+	return sc.OdataNextLink != nil && len(*sc.OdataNextLink) != 0
+}
+
 // serviceCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sc ServiceCollection) serviceCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if sc.OdataNextLink == nil || len(to.String(sc.OdataNextLink)) < 1 {
+	if !sc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -8987,11 +8115,16 @@ func (page *ServiceCollectionPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sc)
+		if err != nil {
+			return err
+		}
+		page.sc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sc = next
 	return nil
 }
 
@@ -9033,14 +8166,23 @@ type ServiceProperties struct {
 	StorageAccounts *[]StorageAccount `json:"storageAccounts,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for ServiceProperties.
+func (sp ServiceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.StorageAccounts != nil {
+		objectMap["storageAccounts"] = sp.StorageAccounts
+	}
+	return json.Marshal(objectMap)
+}
+
 // ServiceSpecification the service metric specifications.
 type ServiceSpecification struct {
 	// MetricSpecifications - READ-ONLY; List of metric specifications.
 	MetricSpecifications *[]Metric `json:"metricSpecifications,omitempty"`
 }
 
-// StandardEncoderPreset describes all the settings to be used when encoding the input video with the
-// Standard Encoder.
+// StandardEncoderPreset describes all the settings to be used when encoding the input video with the Standard
+// Encoder.
 type StandardEncoderPreset struct {
 	// Filters - One or more filtering operations that are applied to the input media before encoding.
 	Filters *Filters `json:"filters,omitempty"`
@@ -9366,10 +8508,15 @@ func (selr StreamingEndpointListResult) IsEmpty() bool {
 	return selr.Value == nil || len(*selr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (selr StreamingEndpointListResult) hasNextLink() bool {
+	return selr.OdataNextLink != nil && len(*selr.OdataNextLink) != 0
+}
+
 // streamingEndpointListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (selr StreamingEndpointListResult) streamingEndpointListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if selr.OdataNextLink == nil || len(to.String(selr.OdataNextLink)) < 1 {
+	if !selr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9397,11 +8544,16 @@ func (page *StreamingEndpointListResultPage) NextWithContext(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.selr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.selr)
+		if err != nil {
+			return err
+		}
+		page.selr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.selr = next
 	return nil
 }
 
@@ -9471,8 +8623,44 @@ type StreamingEndpointProperties struct {
 	LastModified *date.Time `json:"lastModified,omitempty"`
 }
 
-// StreamingEndpointsCreateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// MarshalJSON is the custom marshaler for StreamingEndpointProperties.
+func (sep StreamingEndpointProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sep.Description != nil {
+		objectMap["description"] = sep.Description
+	}
+	if sep.ScaleUnits != nil {
+		objectMap["scaleUnits"] = sep.ScaleUnits
+	}
+	if sep.AvailabilitySetName != nil {
+		objectMap["availabilitySetName"] = sep.AvailabilitySetName
+	}
+	if sep.AccessControl != nil {
+		objectMap["accessControl"] = sep.AccessControl
+	}
+	if sep.MaxCacheAge != nil {
+		objectMap["maxCacheAge"] = sep.MaxCacheAge
+	}
+	if sep.CustomHostNames != nil {
+		objectMap["customHostNames"] = sep.CustomHostNames
+	}
+	if sep.CdnEnabled != nil {
+		objectMap["cdnEnabled"] = sep.CdnEnabled
+	}
+	if sep.CdnProvider != nil {
+		objectMap["cdnProvider"] = sep.CdnProvider
+	}
+	if sep.CdnProfile != nil {
+		objectMap["cdnProfile"] = sep.CdnProfile
+	}
+	if sep.CrossSiteAccessPolicies != nil {
+		objectMap["crossSiteAccessPolicies"] = sep.CrossSiteAccessPolicies
+	}
+	return json.Marshal(objectMap)
+}
+
+// StreamingEndpointsCreateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type StreamingEndpointsCreateFuture struct {
 	azure.Future
 }
@@ -9500,8 +8688,8 @@ func (future *StreamingEndpointsCreateFuture) Result(client StreamingEndpointsCl
 	return
 }
 
-// StreamingEndpointsDeleteFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// StreamingEndpointsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type StreamingEndpointsDeleteFuture struct {
 	azure.Future
 }
@@ -9592,8 +8780,8 @@ func (future *StreamingEndpointsStopFuture) Result(client StreamingEndpointsClie
 	return
 }
 
-// StreamingEndpointsUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// StreamingEndpointsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type StreamingEndpointsUpdateFuture struct {
 	azure.Future
 }
@@ -9776,10 +8964,15 @@ func (slc StreamingLocatorCollection) IsEmpty() bool {
 	return slc.Value == nil || len(*slc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (slc StreamingLocatorCollection) hasNextLink() bool {
+	return slc.OdataNextLink != nil && len(*slc.OdataNextLink) != 0
+}
+
 // streamingLocatorCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (slc StreamingLocatorCollection) streamingLocatorCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if slc.OdataNextLink == nil || len(to.String(slc.OdataNextLink)) < 1 {
+	if !slc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -9807,11 +9000,16 @@ func (page *StreamingLocatorCollectionPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.slc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.slc)
+		if err != nil {
+			return err
+		}
+		page.slc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.slc = next
 	return nil
 }
 
@@ -9861,6 +9059,21 @@ type StreamingLocatorContentKey struct {
 	Tracks *[]TrackSelection `json:"tracks,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for StreamingLocatorContentKey.
+func (slck StreamingLocatorContentKey) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if slck.ID != nil {
+		objectMap["id"] = slck.ID
+	}
+	if slck.LabelReferenceInStreamingPolicy != nil {
+		objectMap["labelReferenceInStreamingPolicy"] = slck.LabelReferenceInStreamingPolicy
+	}
+	if slck.Value != nil {
+		objectMap["value"] = slck.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // StreamingLocatorProperties properties of the Streaming Locator.
 type StreamingLocatorProperties struct {
 	// AssetName - Asset Name
@@ -9883,6 +9096,39 @@ type StreamingLocatorProperties struct {
 	AlternativeMediaID *string `json:"alternativeMediaId,omitempty"`
 	// Filters - A list of asset or account filters which apply to this streaming locator
 	Filters *[]string `json:"filters,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StreamingLocatorProperties.
+func (slp StreamingLocatorProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if slp.AssetName != nil {
+		objectMap["assetName"] = slp.AssetName
+	}
+	if slp.StartTime != nil {
+		objectMap["startTime"] = slp.StartTime
+	}
+	if slp.EndTime != nil {
+		objectMap["endTime"] = slp.EndTime
+	}
+	if slp.StreamingLocatorID != nil {
+		objectMap["streamingLocatorId"] = slp.StreamingLocatorID
+	}
+	if slp.StreamingPolicyName != nil {
+		objectMap["streamingPolicyName"] = slp.StreamingPolicyName
+	}
+	if slp.DefaultContentKeyPolicyName != nil {
+		objectMap["defaultContentKeyPolicyName"] = slp.DefaultContentKeyPolicyName
+	}
+	if slp.ContentKeys != nil {
+		objectMap["contentKeys"] = slp.ContentKeys
+	}
+	if slp.AlternativeMediaID != nil {
+		objectMap["alternativeMediaId"] = slp.AlternativeMediaID
+	}
+	if slp.Filters != nil {
+		objectMap["filters"] = slp.Filters
+	}
+	return json.Marshal(objectMap)
 }
 
 // StreamingPath class of paths for streaming
@@ -10044,10 +9290,15 @@ func (spc StreamingPolicyCollection) IsEmpty() bool {
 	return spc.Value == nil || len(*spc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (spc StreamingPolicyCollection) hasNextLink() bool {
+	return spc.OdataNextLink != nil && len(*spc.OdataNextLink) != 0
+}
+
 // streamingPolicyCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (spc StreamingPolicyCollection) streamingPolicyCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if spc.OdataNextLink == nil || len(to.String(spc.OdataNextLink)) < 1 {
+	if !spc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10075,11 +9326,16 @@ func (page *StreamingPolicyCollectionPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.spc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.spc)
+		if err != nil {
+			return err
+		}
+		page.spc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.spc = next
 	return nil
 }
 
@@ -10161,6 +9417,27 @@ type StreamingPolicyProperties struct {
 	CommonEncryptionCbcs *CommonEncryptionCbcs `json:"commonEncryptionCbcs,omitempty"`
 	// NoEncryption - Configurations of NoEncryption
 	NoEncryption *NoEncryption `json:"noEncryption,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StreamingPolicyProperties.
+func (spp StreamingPolicyProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if spp.DefaultContentKeyPolicyName != nil {
+		objectMap["defaultContentKeyPolicyName"] = spp.DefaultContentKeyPolicyName
+	}
+	if spp.EnvelopeEncryption != nil {
+		objectMap["envelopeEncryption"] = spp.EnvelopeEncryption
+	}
+	if spp.CommonEncryptionCenc != nil {
+		objectMap["commonEncryptionCenc"] = spp.CommonEncryptionCenc
+	}
+	if spp.CommonEncryptionCbcs != nil {
+		objectMap["commonEncryptionCbcs"] = spp.CommonEncryptionCbcs
+	}
+	if spp.NoEncryption != nil {
+		objectMap["noEncryption"] = spp.NoEncryption
+	}
+	return json.Marshal(objectMap)
 }
 
 // StreamingPolicyWidevineConfiguration class to specify configurations of Widevine in Streaming Policy
@@ -10279,8 +9556,8 @@ type SubscriptionMediaServiceCollection struct {
 	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
 }
 
-// SubscriptionMediaServiceCollectionIterator provides access to a complete listing of
-// SubscriptionMediaService values.
+// SubscriptionMediaServiceCollectionIterator provides access to a complete listing of SubscriptionMediaService
+// values.
 type SubscriptionMediaServiceCollectionIterator struct {
 	i    int
 	page SubscriptionMediaServiceCollectionPage
@@ -10348,10 +9625,15 @@ func (smsc SubscriptionMediaServiceCollection) IsEmpty() bool {
 	return smsc.Value == nil || len(*smsc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (smsc SubscriptionMediaServiceCollection) hasNextLink() bool {
+	return smsc.OdataNextLink != nil && len(*smsc.OdataNextLink) != 0
+}
+
 // subscriptionMediaServiceCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (smsc SubscriptionMediaServiceCollection) subscriptionMediaServiceCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if smsc.OdataNextLink == nil || len(to.String(smsc.OdataNextLink)) < 1 {
+	if !smsc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10379,11 +9661,16 @@ func (page *SubscriptionMediaServiceCollectionPage) NextWithContext(ctx context.
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.smsc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.smsc)
+		if err != nil {
+			return err
+		}
+		page.smsc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.smsc = next
 	return nil
 }
 
@@ -10466,8 +9753,8 @@ type TrackSelection struct {
 }
 
 // Transform a Transform encapsulates the rules or instructions for generating desired outputs from input
-// media, such as by transcoding or by extracting insights. After the Transform is created, it can be
-// applied to input media by creating Jobs.
+// media, such as by transcoding or by extracting insights. After the Transform is created, it can be applied
+// to input media by creating Jobs.
 type Transform struct {
 	autorest.Response `json:"-"`
 	// TransformProperties - The resource properties.
@@ -10617,10 +9904,15 @@ func (tc TransformCollection) IsEmpty() bool {
 	return tc.Value == nil || len(*tc.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (tc TransformCollection) hasNextLink() bool {
+	return tc.OdataNextLink != nil && len(*tc.OdataNextLink) != 0
+}
+
 // transformCollectionPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (tc TransformCollection) transformCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if tc.OdataNextLink == nil || len(to.String(tc.OdataNextLink)) < 1 {
+	if !tc.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -10648,11 +9940,16 @@ func (page *TransformCollectionPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.tc)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.tc)
+		if err != nil {
+			return err
+		}
+		page.tc = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.tc = next
 	return nil
 }
 
@@ -10750,8 +10047,20 @@ type TransformProperties struct {
 	Outputs *[]TransformOutput `json:"outputs,omitempty"`
 }
 
-// TransportStreamFormat describes the properties for generating an MPEG-2 Transport Stream (ISO/IEC
-// 13818-1) output video file(s).
+// MarshalJSON is the custom marshaler for TransformProperties.
+func (tp TransformProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tp.Description != nil {
+		objectMap["description"] = tp.Description
+	}
+	if tp.Outputs != nil {
+		objectMap["outputs"] = tp.Outputs
+	}
+	return json.Marshal(objectMap)
+}
+
+// TransportStreamFormat describes the properties for generating an MPEG-2 Transport Stream (ISO/IEC 13818-1)
+// output video file(s).
 type TransportStreamFormat struct {
 	// OutputFiles - The list of output files to produce.  Each entry in the list is a set of audio and video layer labels to be muxed together .
 	OutputFiles *[]OutputFile `json:"outputFiles,omitempty"`

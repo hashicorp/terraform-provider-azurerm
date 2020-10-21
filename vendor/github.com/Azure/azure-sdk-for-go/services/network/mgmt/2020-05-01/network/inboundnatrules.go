@@ -333,6 +333,9 @@ func (client InboundNatRulesClient) List(ctx context.Context, resourceGroupName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.InboundNatRulesClient", "List", resp, "Failure responding to request")
 	}
+	if result.inrlr.hasNextLink() && result.inrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

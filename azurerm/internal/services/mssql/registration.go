@@ -23,6 +23,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_mssql_database":    dataSourceArmMsSqlDatabase(),
 		"azurerm_mssql_elasticpool": dataSourceArmMsSqlElasticpool(),
+		"azurerm_mssql_server":      dataSourceMsSqlServer(),
 	}
 }
 

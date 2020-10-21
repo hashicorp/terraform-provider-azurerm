@@ -25,23 +25,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/attestation/mgmt/2018-09-01-preview/attestation"
 
-// ServiceStatus enumerates the values for service status.
-type ServiceStatus string
-
-const (
-	// Error ...
-	Error ServiceStatus = "Error"
-	// NotReady ...
-	NotReady ServiceStatus = "NotReady"
-	// Ready ...
-	Ready ServiceStatus = "Ready"
-)
-
-// PossibleServiceStatusValues returns an array of possible values for the ServiceStatus const type.
-func PossibleServiceStatusValues() []ServiceStatus {
-	return []ServiceStatus{Error, NotReady, Ready}
-}
-
 // AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
 type AzureEntityResource struct {
 	// Etag - READ-ONLY; Resource Etag.
@@ -321,8 +304,7 @@ func (scp ServiceCreationParams) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// ServiceCreationSpecificParams client supplied parameters used to create a new attestation service
-// instance.
+// ServiceCreationSpecificParams client supplied parameters used to create a new attestation service instance.
 type ServiceCreationSpecificParams struct {
 	// AttestationPolicy - Name of attestation policy.
 	AttestationPolicy *string `json:"attestationPolicy,omitempty"`

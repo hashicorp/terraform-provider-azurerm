@@ -404,6 +404,9 @@ func (client JobsClient) List(ctx context.Context, resourceGroupName string, acc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.JobsClient", "List", resp, "Failure responding to request")
 	}
+	if result.jc.hasNextLink() && result.jc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

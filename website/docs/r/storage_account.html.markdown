@@ -50,7 +50,7 @@ resource "azurerm_subnet" "example" {
   name                 = "subnetname"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
   service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
 }
 
@@ -124,6 +124,8 @@ The following arguments are supported:
 ~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
+
+* `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

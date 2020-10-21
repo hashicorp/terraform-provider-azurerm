@@ -343,6 +343,9 @@ func (client VariableClient) ListByAutomationAccount(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.VariableClient", "ListByAutomationAccount", resp, "Failure responding to request")
 	}
+	if result.vlr.hasNextLink() && result.vlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

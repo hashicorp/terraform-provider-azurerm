@@ -398,6 +398,9 @@ func (client FileSharesClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "List", resp, "Failure responding to request")
 	}
+	if result.fsi.hasNextLink() && result.fsi.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

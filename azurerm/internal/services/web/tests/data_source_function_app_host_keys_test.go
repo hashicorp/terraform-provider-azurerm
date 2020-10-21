@@ -21,7 +21,7 @@ func TestAccDataSourceAzureRMFunctionAppHostKeys_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
 					testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "master_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "default_function_key"),
 				),
 			},

@@ -336,6 +336,9 @@ func (client WorkloadClassifiersClient) ListByWorkloadGroup(ctx context.Context,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.WorkloadClassifiersClient", "ListByWorkloadGroup", resp, "Failure responding to request")
 	}
+	if result.wclr.hasNextLink() && result.wclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

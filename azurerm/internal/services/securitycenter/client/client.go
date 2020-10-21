@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -11,6 +11,7 @@ type Client struct {
 	WorkspaceClient                *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
 	AutoProvisioningClient         *security.AutoProvisioningSettingsClient
+	SettingClient                  *security.SettingsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -30,6 +31,8 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	AutoProvisioningClient := security.NewAutoProvisioningSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AutoProvisioningClient.Client, o.ResourceManagerAuthorizer)
+	SettingClient := security.NewSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&SettingClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		ContactsClient:                 &ContactsClient,
@@ -37,5 +40,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		WorkspaceClient:                &WorkspaceClient,
 		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,
 		AutoProvisioningClient:         &AutoProvisioningClient,
+		SettingClient:                  &SettingClient,
 	}
 }
