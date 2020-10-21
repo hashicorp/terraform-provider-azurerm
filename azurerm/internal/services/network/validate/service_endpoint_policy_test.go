@@ -62,5 +62,4 @@ func TestServiceEndpointPolicyName(t *testing.T) {
 			t.Fatalf("Expected %t but got %t", v.Error, isError)
 		}
 	}
-
 }
