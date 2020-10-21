@@ -1,8 +1,13 @@
 package network
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -396,16 +401,48 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	locks.ByName(name, SubnetResourceName)
 	defer locks.UnlockByName(name, SubnetResourceName)
 
-	future, err := client.Delete(ctx, resourceGroup, networkName, name)
-	if err != nil {
-		return fmt.Errorf("Error deleting Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+	log.Printf("[DEBUG] Waiting for Subnet %q (Virtual Network %q / Resource Group %q)", name, networkName, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"InUse"},
+		Target:                    []string{"Deleted"},
+		Refresh:                   subnetDeleteStateRefreshFunc(ctx, client, resourceGroup, networkName, name),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for deletion of Subnet %q (Virtual Network %q / Resource Group %q):%+v", name, networkName, resourceGroup, err)
 	}
-
 	return nil
+}
+
+func subnetDeleteStateRefreshFunc(ctx context.Context, client *network.SubnetsClient, resourceGroup, networkName, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		future, err := client.Delete(ctx, resourceGroup, networkName, name)
+		if err != nil {
+			if r := future.Response(); r.StatusCode == http.StatusBadRequest {
+				var e map[string]interface{}
+				if parseErr := json.Unmarshal([]byte(err.Error()), &e); parseErr != nil {
+					return nil, "", fmt.Errorf("can't parse in Error Message: %+v", parseErr)
+				}
+				if v, ok := e["Code"]; ok && v == "InUseSubnetCannotBeDeleted" {
+					return nil, "InUse", nil
+				}
+				return nil, "", err
+			}
+			if response.WasNotFound(future.Response()) {
+				return nil, "Deleted", nil
+			}
+			return nil, "", err
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return nil, "", err
+		}
+		return nil, "Deleted", nil
+	}
 }
 
 func expandSubnetServiceEndpoints(input []interface{}) *[]network.ServiceEndpointPropertiesFormat {

@@ -1,11 +1,8 @@
 package postgres
 
 import (
-	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/postgresql/mgmt/2020-02-14-preview/postgresqlflexibleservers"
@@ -536,34 +533,8 @@ func resourceArmPostgresqlFlexibleServerDelete(d *schema.ResourceData, meta inte
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on deleting future for Postgresql Flexible Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	log.Printf("[DEBUG] Waiting for Postgresql Flexible Server %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
-	//stateConf := &resource.StateChangeConf{
-	//	ContinuousTargetOccurence: 5,
-	//	Delay:                     10 * time.Second,
-	//	MinTimeout:                10 * time.Second,
-	//	Pending:                   []string{"200", "202"},
-	//	Target:                    []string{"204", "404"},
-	//	Refresh:                   postgresqlFlexibleServerDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.Name),
-	//	Timeout:                   d.Timeout(schema.TimeoutDelete),
-	//}
-	//
-	//if _, err := stateConf.WaitForState(); err != nil {
-	//	return fmt.Errorf("waiting for Postgresql Flexible Server %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
-	//}
+
 	return nil
-}
-
-func postgresqlFlexibleServerDeleteStateRefreshFunc(ctx context.Context, client *postgresqlflexibleservers.ServersClient, resourceGroupName string, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroupName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("retrieving Postgresql Flexible Server %q (Resource Group %q):%+v", name, resourceGroupName, err)
-			}
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
 }
 
 func expandArmServerIdentity(input []interface{}) *postgresqlflexibleservers.Identity {
