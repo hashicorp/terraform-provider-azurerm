@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	parsers2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -84,12 +83,12 @@ func testCheckAzureRMHPCCacheBlobTargetExists(resourceName string) resource.Test
 			return fmt.Errorf("HPC Cache Blob Target not found: %s", resourceName)
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers2.HPCCacheTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.StorageTargetsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Cache, id.Name); err != nil {
@@ -104,7 +103,7 @@ func testCheckAzureRMHPCCacheBlobTargetExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMHPCCacheBlobTargetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.StorageTargetsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -112,7 +111,7 @@ func testCheckAzureRMHPCCacheBlobTargetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers2.HPCCacheTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

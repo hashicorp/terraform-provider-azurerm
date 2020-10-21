@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	parsers2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -119,7 +118,7 @@ func TestAccAzureRMHPCCacheNFSTarget_requiresImport(t *testing.T) {
 
 func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.StorageTargetsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -127,7 +126,7 @@ func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestC
 			return fmt.Errorf("HPC Cache NFS Target not found: %s", resourceName)
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers2.HPCCacheTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -144,7 +143,7 @@ func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMHPCCacheNFSTargetDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.StorageTargetsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -152,7 +151,7 @@ func testCheckAzureRMHPCCacheNFSTargetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers2.HPCCacheTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
