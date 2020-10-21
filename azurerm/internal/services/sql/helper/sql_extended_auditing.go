@@ -49,6 +49,10 @@ func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.Extend
 	if len(input) == 0 {
 		return &sql.ExtendedServerBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
+
+			// NOTE: this works around a regression in the Azure API detailed here:
+			// https://github.com/Azure/azure-rest-api-specs/issues/11271
+			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		}
 	}
 	serverBlobAuditingPolicies := input[0].(map[string]interface{})
