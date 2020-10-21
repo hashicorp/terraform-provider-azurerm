@@ -102,6 +102,8 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_route_filter":                                                           resourceArmRouteFilter(),
 		"azurerm_route_table":                                                            resourceArmRouteTable(),
 		"azurerm_route":                                                                  resourceArmRoute(),
+		"azurerm_service_endpoint_policy":                                                resourceArmServiceEndpointPolicy(),
+		"azurerm_service_endpoint_policy_definition":                                     resourceArmServiceEndpointPolicyDefinition(),
 		"azurerm_subnet_network_security_group_association":                              resourceArmSubnetNetworkSecurityGroupAssociation(),
 		"azurerm_subnet_route_table_association":                                         resourceArmSubnetRouteTableAssociation(),
 		"azurerm_subnet_nat_gateway_association":                                         resourceArmSubnetNatGatewayAssociation(),
