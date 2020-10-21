@@ -87,7 +87,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Hub Bgp Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub Bgp Connection.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Hub Bgp Connection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Hub Bgp Connection.
 
 ## Import
