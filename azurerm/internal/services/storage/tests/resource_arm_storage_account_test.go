@@ -5,15 +5,14 @@ import (
 	"net/http"
 	"regexp"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
 func TestValidateArmStorageAccountName(t *testing.T) {
@@ -638,7 +637,8 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_blobPropertiesUpdated(data),
+				PreConfig: func() { time.Sleep(5 * time.Minute) },
+				Config:    testAccAzureRMStorageAccount_blobPropertiesUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.cors_rule.#", "2"),
@@ -647,7 +647,8 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_basic(data),
+				PreConfig: func() { time.Sleep(5 * time.Minute) },
+				Config:    testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
