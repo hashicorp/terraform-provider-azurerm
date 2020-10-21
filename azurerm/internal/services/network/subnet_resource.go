@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -75,6 +77,16 @@ func resourceArmSubnet() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"service_endpoint_policies": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.ServiceEndpointPolicyID,
+				},
 			},
 
 			"delegation": {
@@ -215,6 +227,9 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
+	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policies").(*schema.Set).List()
+	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
+
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
 
@@ -304,6 +319,11 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 	}
 
+	if d.HasChange("service_endpoint_policies") {
+		serviceEndpointPoliciesRaw := d.Get("service_endpoint_policies").(*schema.Set).List()
+		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
+	}
+
 	subnet := network.Subnet{
 		Name:                   utils.String(name),
 		SubnetPropertiesFormat: &props,
@@ -371,6 +391,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return fmt.Errorf("Error setting `service_endpoints`: %+v", err)
+		}
+
+		serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
+		if err := d.Set("service_endpoint_policies", serviceEndpointPolicies); err != nil {
+			return fmt.Errorf("Error setting `service_endpoint_policies`: %+v", err)
 		}
 	}
 
@@ -527,4 +552,29 @@ func flattenSubnetPrivateLinkNetworkPolicy(input *string) bool {
 	}
 
 	return strings.EqualFold(*input, "Disabled")
+}
+
+func expandSubnetServiceEndpointPolicies(input []interface{}) *[]network.ServiceEndpointPolicy {
+	output := make([]network.ServiceEndpointPolicy, 0)
+	for _, policy := range input {
+		policy := policy.(string)
+		output = append(output, network.ServiceEndpointPolicy{ID: &policy})
+	}
+	return &output
+}
+
+func flattenSubnetServiceEndpointPolicies(input *[]network.ServiceEndpointPolicy) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	var output []interface{}
+	for _, policy := range *input {
+		id := ""
+		if policy.ID != nil {
+			id = *policy.ID
+		}
+		output = append(output, id)
+	}
+	return output
 }
