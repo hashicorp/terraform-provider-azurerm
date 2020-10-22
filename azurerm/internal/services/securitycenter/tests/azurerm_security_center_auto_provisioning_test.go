@@ -23,7 +23,7 @@ func TestAccAzureRMSecurityCenterAutoProvision_update(t *testing.T) {
 			{
 				Config: testAccAzureRMSecurityCenterAutoProvisioning_setting("On"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterAutoProvisioningExists(data.ResourceName),
+					testCheckAzureRMSecurityCenterAutoProvisioningExists(data.ResourceName, "On"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_provision", "On"),
 				),
 			},
@@ -31,7 +31,7 @@ func TestAccAzureRMSecurityCenterAutoProvision_update(t *testing.T) {
 			{
 				Config: testAccAzureRMSecurityCenterAutoProvisioning_setting("Off"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterAutoProvisioningExists(data.ResourceName),
+					testCheckAzureRMSecurityCenterAutoProvisioningExists(data.ResourceName, "Off"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_provision", "Off"),
 				),
 			},
@@ -40,7 +40,7 @@ func TestAccAzureRMSecurityCenterAutoProvision_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSecurityCenterAutoProvisioningExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMSecurityCenterAutoProvisioningExists(resourceName string, expectedSetting string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AutoProvisioningClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -60,6 +60,11 @@ func testCheckAzureRMSecurityCenterAutoProvisioningExists(resourceName string) r
 			}
 
 			return fmt.Errorf("Bad: GetAutoProvisioning: %+v", err)
+		}
+
+		// Check expected value
+		if string(resp.AutoProvision) != expectedSetting {
+			return fmt.Errorf("Security Center auto provision not expected, wanted %s, but got %s", expectedSetting, string(resp.AutoProvision))
 		}
 
 		return nil
