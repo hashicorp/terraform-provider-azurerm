@@ -3,6 +3,7 @@
 BUG FIXES: 
 
 * `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
+* `azurerm_signalr_service` - switching the`features` block to a set so order is irrelevant [GH-8815]
 
 ## 2.33.0 (October 22, 2020)
 
