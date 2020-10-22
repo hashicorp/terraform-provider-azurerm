@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -54,8 +54,6 @@ func resourceArmSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := securityCenterAutoProvisioningName
-
 	// No need for import check as there's always single resource called 'default'
 	// - it cannot be deleted, all this does is set a string property to: "on" or "off"
 
@@ -67,16 +65,16 @@ func resourceArmSecurityCenterAutoProvisioningUpdate(d *schema.ResourceData, met
 	}
 
 	// There is no update function or operation in the API, only create
-	if _, err := client.Create(ctx, name, settings); err != nil {
+	if _, err := client.Create(ctx, securityCenterAutoProvisioningName, settings); err != nil {
 		return fmt.Errorf("Error creating/updating Security Center auto provisioning: %+v", err)
 	}
 
-	resp, err := client.Get(ctx, name)
+	resp, err := client.Get(ctx, securityCenterAutoProvisioningName)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center auto provisioning: %+v", err)
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("Security Center auto provisioning ID is nil")
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("Security Center auto provisioning ID is nil or empty")
 	}
 
 	d.SetId(*resp.ID)
@@ -107,7 +105,24 @@ func resourceArmSecurityCenterAutoProvisioningRead(d *schema.ResourceData, meta 
 	return nil
 }
 
-func resourceArmSecurityCenterAutoProvisioningDelete(_ *schema.ResourceData, _ interface{}) error {
-	log.Printf("[DEBUG] Security Center auto provisioning deletion invocation")
-	return nil // cannot be deleted.
+func resourceArmSecurityCenterAutoProvisioningDelete(d *schema.ResourceData, meta interface{}) error {
+	// The API has no delete operation
+	// Instead we reset back to 'Off' which is the default
+
+	client := meta.(*clients.Client).SecurityCenter.AutoProvisioningClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	settings := security.AutoProvisioningSetting{
+		AutoProvisioningSettingProperties: &security.AutoProvisioningSettingProperties{
+			AutoProvision: "Off",
+		},
+	}
+
+	// There is no update function or operation in the API, only create
+	if _, err := client.Create(ctx, securityCenterAutoProvisioningName, settings); err != nil {
+		return fmt.Errorf("Error resetting Security Center auto provisioning to 'Off': %+v", err)
+	}
+
+	return nil
 }
