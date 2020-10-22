@@ -1,3 +1,9 @@
+## 2.34.0 (Unreleased)
+
+BUG FIXES: 
+
+* `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
+
 ## 2.33.0 (October 22, 2020)
 
 UPGRADE NOTES
