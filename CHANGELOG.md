@@ -1,4 +1,4 @@
-## 2.33.0 (Unreleased)
+## 2.33.0 (October 22, 2020)
 
 UPGRADE NOTES
 
@@ -6,30 +6,30 @@ UPGRADE NOTES
 
 FEATURES: 
 
-* **New Resource:** `azurerm_service_fabric_mesh_secret` [GH-8933]
-* **New Resource:** `azurerm_service_fabric_mesh_secret_value` [GH-8933]
+* **New Resource:** `azurerm_service_fabric_mesh_secret` ([#8933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8933))
+* **New Resource:** `azurerm_service_fabric_mesh_secret_value` ([#8933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8933))
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_shared_image_version` - exposing `os_disk_image_size_gb` [GH-8904]
-* `azurerm_app_configuration` - support for the `identity` block [GH-8875]
-* `azurerm_cosmosdb_sql_container` - support for composite indexes [GH-8792]
-* `azurerm_mssql_database` - do not set longterm and shortterm retention policies when using the `DW` SKUs [GH-8899]
-* `azurerm_mysql_firewall_rule` - validating the `start_ip_address` and `end_ip_address` fields are IP Addresses [GH-8948]
-* `azurerm_redis_firewall_rule` - validating the `start_ip` and `end_ip` fields are IP Addresses [GH-8948]
-* `azurerm_search_service` - support for the `identity` block [GH-8907]
-* `azurerm_sql_firewall_rule` - adding validation for the `start_ip_address` and `end_ip_address` fields [GH-8935]
+* Data Source: `azurerm_shared_image_version` - exposing `os_disk_image_size_gb` ([#8904](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8904))
+* `azurerm_app_configuration` - support for the `identity` block ([#8875](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8875))
+* `azurerm_cosmosdb_sql_container` - support for composite indexes ([#8792](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8792))
+* `azurerm_mssql_database` - do not set longterm and shortterm retention policies when using the `DW` SKUs ([#8899](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8899))
+* `azurerm_mysql_firewall_rule` - validating the `start_ip_address` and `end_ip_address` fields are IP Addresses ([#8948](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8948))
+* `azurerm_redis_firewall_rule` - validating the `start_ip` and `end_ip` fields are IP Addresses ([#8948](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8948))
+* `azurerm_search_service` - support for the `identity` block ([#8907](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8907))
+* `azurerm_sql_firewall_rule` - adding validation for the `start_ip_address` and `end_ip_address` fields ([#8935](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8935))
 
 BUG FIXES:
 
-* `azurerm_application_gateway` - now supports `ignore_changes` for `ssl_certificate` when using pre-existing certificates [GH-8761]
-* `azurerm_mssql_database` - working around a breaking change/regression in the Azure API [GH-8975]
-* `azurerm_mssql_database_extended_auditing_policy` - working around a breaking change/regression in the Azure API [GH-8975]
-* `azurerm_mssql_server` - working around a breaking change/regression in the Azure API [GH-8975]
-* `azurerm_mssql_server_extended_auditing_policy` - working around a breaking change/regression in the Azure API [GH-8975]
-* `azurerm_sql_database` - working around a breaking change/regression in the Azure API [GH-8975]
-* `azurerm_sql_server` - working around a breaking change/regression in the Azure API [GH-8975]
-* `azurerm_policy_set_definition` - Fix updates for `parameters` and `parameter_values` in `policy_definition_reference` blocks [GH-8882]
+* `azurerm_application_gateway` - now supports `ignore_changes` for `ssl_certificate` when using pre-existing certificates ([#8761](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8761))
+* `azurerm_mssql_database` - working around a breaking change/regression in the Azure API ([#8975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8975))
+* `azurerm_mssql_database_extended_auditing_policy` - working around a breaking change/regression in the Azure API ([#8975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8975))
+* `azurerm_mssql_server` - working around a breaking change/regression in the Azure API ([#8975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8975))
+* `azurerm_mssql_server_extended_auditing_policy` - working around a breaking change/regression in the Azure API ([#8975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8975))
+* `azurerm_sql_database` - working around a breaking change/regression in the Azure API ([#8975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8975))
+* `azurerm_sql_server` - working around a breaking change/regression in the Azure API ([#8975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8975))
+* `azurerm_policy_set_definition` - Fix updates for `parameters` and `parameter_values` in `policy_definition_reference` blocks ([#8882](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8882))
 
 ## 2.32.0 (October 15, 2020)
 
@@ -37,7 +37,7 @@ FEATURES:
 
 * **New data source:** `azurerm_mysql_server` ([#8787](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8787))
 * **New resource:** `azurerm_security_center_setting` ([#8783](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8783))
-* **New Resource:** `azurerm_service_fabric_mesh_local_network` [GH-8838]
+* **New Resource:** `azurerm_service_fabric_mesh_local_network` ([#8838](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8838))
 * **New resource:** `azurerm_eventgrid_system_topic` ([#8735](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8735))
 
 IMPROVEMENTS:
