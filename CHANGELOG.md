@@ -2,6 +2,7 @@
 
 BUG FIXES: 
 
+* `log_analytics_workspace` - support for the `daily_quota_gb` property [GH-8861]
 * `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
 * `azurerm_signalr_service` - switching the`features` block to a set so order is irrelevant [GH-8815]
 
