@@ -81,6 +81,10 @@ The following arguments are supported:
 
 * `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
+* `bgp_community` - (Optional) A List of two integer consisting the BGP community attribute as defined in [RFC1997](https://tools.ietf.org/html/rfc1997).
+
+-> **NOTE** The first element is the Microsoft ASN, which is always `12076` for now.
+
 * `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
 
 * `dns_servers` - (Optional) List of IP addresses of DNS servers
@@ -88,6 +92,8 @@ The following arguments are supported:
 * `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields documented below.
 
 -> **NOTE** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+
+* `vm_protection_enabled` - (Optional) Whether to enable VM protection for all the subnets in this Virtual Network. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

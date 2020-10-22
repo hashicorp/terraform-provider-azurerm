@@ -203,6 +203,79 @@ func TestAccAzureRMVirtualNetwork_deleteSubnet(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_bgpCommunity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualNetwork_bgpCommunity(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualNetwork_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualNetwork_vmProtection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualNetwork_vmProtection(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualNetwork_vmProtection(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualNetwork_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
@@ -479,4 +552,58 @@ resource "azurerm_virtual_network" "test" {
   subnet              = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualNetwork_bgpCommunity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+
+  bgp_community = [12076, 20000]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualNetwork_vmProtection(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+
+  vm_protection_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }

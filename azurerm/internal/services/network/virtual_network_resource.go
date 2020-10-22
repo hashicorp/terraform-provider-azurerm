@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -63,6 +65,14 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				},
 			},
 
+			"bgp_community": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 2,
+				MaxItems: 2,
+				Elem:     &schema.Schema{Type: schema.TypeInt, ValidateFunc: validation.IntAtMost(65535)},
+			},
+
 			"ddos_protection_plan": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -90,6 +100,12 @@ func resourceArmVirtualNetwork() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+			},
+
+			"vm_protection_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"guid": {
@@ -260,6 +276,16 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
 			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
 		}
+
+		bgpCommunity, err := flattenArmVirtualNetworkBgpCommunity(props.BgpCommunities)
+		if err != nil {
+			return fmt.Errorf("Error flattening `bgp_community`: %+v", err)
+		}
+		if err := d.Set("bgp_community", bgpCommunity); err != nil {
+			return fmt.Errorf("Error setting `bgp_community`: %+v", err)
+		}
+
+		d.Set("vm_protection_enabled", props.EnableVMProtection)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -345,7 +371,8 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
-		Subnets: &subnets,
+		EnableVMProtection: utils.Bool(d.Get("vm_protection_enabled").(bool)),
+		Subnets:            &subnets,
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
@@ -367,6 +394,10 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			enable := v.(bool)
 			properties.EnableDdosProtection = &enable
 		}
+	}
+
+	if v, ok := d.GetOk("bgp_community"); ok {
+		properties.BgpCommunities = expandArmVirtualNetworkBgpCommunity(v.([]interface{}))
 	}
 
 	return properties, nil
@@ -497,4 +528,36 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *schema.Resou
 	}
 
 	return nsgNames, nil
+}
+
+func expandArmVirtualNetworkBgpCommunity(input []interface{}) *network.VirtualNetworkBgpCommunities {
+	if len(input) != 2 {
+		return nil
+	}
+	return &network.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: utils.String(fmt.Sprintf("%d:%d", input[0].(int), input[1].(int)))}
+}
+
+func flattenArmVirtualNetworkBgpCommunity(input *network.VirtualNetworkBgpCommunities) ([]interface{}, error) {
+	if input == nil {
+		return nil, nil
+	}
+
+	if input.VirtualNetworkCommunity == nil {
+		return nil, fmt.Errorf("`virtualNetworkCommunity` is nil")
+	}
+
+	var output []interface{}
+
+	bgpCommunityValues := strings.Split(*input.VirtualNetworkCommunity, ":")
+	if len(bgpCommunityValues) != 2 {
+		return nil, fmt.Errorf("`virtualNetworkCommunity` %q doesn't contain two parts that is split by ':', which doesn't conform to RFC1997", *input.VirtualNetworkCommunity)
+	}
+	for _, v := range bgpCommunityValues {
+		v, err := strconv.Atoi(v)
+		if err != nil {
+			return nil, fmt.Errorf("`virtualNetworkCommunity` %q contains invalid value", *input.VirtualNetworkCommunity)
+		}
+		output = append(output, v)
+	}
+	return output, nil
 }
