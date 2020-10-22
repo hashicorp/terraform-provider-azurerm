@@ -183,6 +183,10 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyDelete(d *schema.ResourceData
 	params := sql.ExtendedDatabaseBlobAuditingPolicy{
 		ExtendedDatabaseBlobAuditingPolicyProperties: &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
+
+			// NOTE: this works around a regression in the Azure API detailed here:
+			// https://github.com/Azure/azure-rest-api-specs/issues/11271
+			IsAzureMonitorTargetEnabled: utils.Bool(true),
 		},
 	}
 
