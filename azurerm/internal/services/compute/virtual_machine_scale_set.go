@@ -779,6 +779,18 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 					Optional: true,
 					Default:  false,
 				},
+
+				"disk_iops_read_write": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
+
+				"disk_mbps_read_write": {
+					Type:     schema.TypeInt,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -805,6 +817,14 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.Virtua
 			disk.ManagedDisk.DiskEncryptionSet = &compute.DiskEncryptionSetParameters{
 				ID: utils.String(id),
 			}
+		}
+
+		if iops := raw["disk_iops_read_write"].(int); iops != 0 {
+			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
+		}
+
+		if mbps := raw["disk_mbps_read_write"].(int); mbps != 0 {
+			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
 		}
 
 		disks = append(disks, disk)
@@ -845,6 +865,16 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			writeAcceleratorEnabled = *v.WriteAcceleratorEnabled
 		}
 
+		iops := 0
+		if v.DiskIOPSReadWrite != nil {
+			iops = int(*v.DiskIOPSReadWrite)
+		}
+
+		mbps := 0
+		if v.DiskMBpsReadWrite != nil {
+			mbps = int(*v.DiskMBpsReadWrite)
+		}
+
 		output = append(output, map[string]interface{}{
 			"caching":                   string(v.Caching),
 			"create_option":             string(v.CreateOption),
@@ -853,6 +883,8 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 			"disk_size_gb":              diskSizeGb,
 			"storage_account_type":      storageAccountType,
 			"write_accelerator_enabled": writeAcceleratorEnabled,
+			"disk_iops_read_write":      iops,
+			"disk_mbps_read_write":      mbps,
 		})
 	}
 

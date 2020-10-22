@@ -266,6 +266,10 @@ A `data_disk` block supports the following:
 
 ~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
 
+* `disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
+
+* `disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable for UltraSSD disks.
+
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
