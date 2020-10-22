@@ -1,7 +1,12 @@
 ## 2.34.0 (Unreleased)
 
+UPGRADE NOTES
+
+* This release changes the default value for `azurerm_api_management_api.subscription_required` property to `true`. This was the behaviour prior to `v2.15.0` and is a more secure default which will prevent accidently exposing API's. 
+
 BUG FIXES: 
 
+* `azurerm_api_management_api` - ensure `subscription_required` defaults to the more secure `true` value as well revery to `v2.15` and lower's behaviour [GH-7963]
 * `log_analytics_workspace` - support for the `daily_quota_gb` property [GH-8861]
 * `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
 * `azurerm_signalr_service` - switching the`features` block to a set so order is irrelevant [GH-8815]
@@ -10,7 +15,7 @@ BUG FIXES:
 
 UPGRADE NOTES
 
-> * This release includes a workaround for [a breaking change in Azure’s API related to the Extended Auditing Policy](https://github.com/Azure/azure-rest-api-specs/issues/11271) of the SQL and MSSQL resources. The Service Team have confirmed that this Regression will first roll out to all regions before the bug fix is deployed - as such this workaround will be removed in a future release once the fix for the Azure API has been rolled out to all regions.
+* This release includes a workaround for [a breaking change in Azure’s API related to the Extended Auditing Policy](https://github.com/Azure/azure-rest-api-specs/issues/11271) of the SQL and MSSQL resources. The Service Team have confirmed that this Regression will first roll out to all regions before the bug fix is deployed - as such this workaround will be removed in a future release once the fix for the Azure API has been rolled out to all regions.
 
 FEATURES: 
 
