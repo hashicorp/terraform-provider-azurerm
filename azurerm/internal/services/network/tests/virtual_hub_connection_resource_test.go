@@ -131,7 +131,7 @@ func TestAccAzureRMVirtualHubConnection_recreateWithSameConnectionName(t *testin
 	})
 }
 
-func TestAccAzureRMVirtualHubConnection_withRoutingConfiguration(t *testing.T) {
+func TestAccAzureRMVirtualHubConnection_removeRoutingConfiguration(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -141,6 +141,87 @@ func TestAccAzureRMVirtualHubConnection_withRoutingConfiguration(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualHubConnection_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMVirtualHubConnection_removePropagatedRouteTable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualHubConnection_withoutPropagatedRouteTable(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMVirtualHubConnection_removeVnetStaticRoute(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualHubConnection_withoutVnetStaticRoute(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMVirtualHubConnection_updateRoutingConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualHubConnection_withRoutingConfiguration(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualHubConnection_updateRoutingConfiguration(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualHubConnectionExists(data.ResourceName),
 				),
@@ -352,13 +433,84 @@ resource "azurerm_virtual_hub_connection" "test" {
 
   routing_configuration {
     propagated_route_table {
-      labels = ["default"]
+      labels = ["label1", "label2"]
     }
 
     vnet_static_route {
       name                = "testvnetroute"
+      address_prefixes    = ["10.0.3.0/24", "10.0.4.0/24"]
+      next_hop_ip_address = "10.0.3.5"
+    }
+
+    vnet_static_route {
+      name                = "testvnetroute2"
+      address_prefixes    = ["10.0.5.0/24"]
+      next_hop_ip_address = "10.0.5.5"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualHubConnection_withoutPropagatedRouteTable(data acceptance.TestData) string {
+	template := testAccAzureRMVirtualHubConnection_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing_configuration {
+    vnet_static_route {
+      name                = "testvnetroute"
       address_prefixes    = ["10.0.3.0/24"]
       next_hop_ip_address = "10.0.3.5"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualHubConnection_withoutVnetStaticRoute(data acceptance.TestData) string {
+	template := testAccAzureRMVirtualHubConnection_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing_configuration {
+    propagated_route_table {
+      labels = ["default"]
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualHubConnection_updateRoutingConfiguration(data acceptance.TestData) string {
+	template := testAccAzureRMVirtualHubConnection_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing_configuration {
+    propagated_route_table {
+      labels = ["label3"]
+    }
+
+    vnet_static_route {
+      name                = "testvnetroute6"
+      address_prefixes    = ["10.0.6.0/24", "10.0.7.0/24"]
+      next_hop_ip_address = "10.0.6.5"
     }
   }
 }

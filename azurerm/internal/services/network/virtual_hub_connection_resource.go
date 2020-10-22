@@ -109,7 +109,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 									},
 
 									"route_table_ids": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Optional: true,
 										Computed: true,
 										Elem: &schema.Schema{
@@ -122,7 +122,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 						},
 
 						"vnet_static_route": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -189,8 +189,11 @@ func resourceArmVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta 
 				ID: utils.String(d.Get("remote_virtual_network_id").(string)),
 			},
 			EnableInternetSecurity: utils.Bool(d.Get("internet_security_enabled").(bool)),
-			RoutingConfiguration:   expandArmVirtualHubConnectionRoutingConfiguration(d.Get("routing_configuration").([]interface{})),
 		},
+	}
+
+	if v, ok := d.GetOk("routing_configuration"); ok {
+		connection.HubVirtualNetworkConnectionProperties.RoutingConfiguration = expandArmVirtualHubConnectionRoutingConfiguration(v.([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, connection)
@@ -287,14 +290,11 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 
 func expandArmVirtualHubConnectionRoutingConfiguration(input []interface{}) *network.RoutingConfiguration {
 	if len(input) == 0 {
-		return nil
+		return &network.RoutingConfiguration{}
 	}
 
 	v := input[0].(map[string]interface{})
-	result := network.RoutingConfiguration{
-		PropagatedRouteTables: expandArmVirtualHubConnectionPropagatedRouteTable(v["propagated_route_table"].([]interface{})),
-		VnetRoutes:            expandArmVirtualHubConnectionVnetStaticRoute(v["vnet_static_route"].(*schema.Set).List()),
-	}
+	result := network.RoutingConfiguration{}
 
 	if associatedRouteTableId := v["associated_route_table_id"].(string); associatedRouteTableId != "" {
 		result.AssociatedRouteTable = &network.SubResource{
@@ -302,10 +302,12 @@ func expandArmVirtualHubConnectionRoutingConfiguration(input []interface{}) *net
 		}
 	}
 
-	if associatedRouteTableId := v["associated_route_table_id"].(string); associatedRouteTableId != "" {
-		result.AssociatedRouteTable = &network.SubResource{
-			ID: utils.String(associatedRouteTableId),
-		}
+	if vnetStaticRoute := v["vnet_static_route"].([]interface{}); len(vnetStaticRoute) != 0 {
+		result.VnetRoutes = expandArmVirtualHubConnectionVnetStaticRoute(vnetStaticRoute)
+	}
+
+	if propagatedRouteTable := v["propagated_route_table"].([]interface{}); len(propagatedRouteTable) != 0 {
+		result.PropagatedRouteTables = expandArmVirtualHubConnectionPropagatedRouteTable(propagatedRouteTable)
 	}
 
 	return &result
@@ -313,7 +315,7 @@ func expandArmVirtualHubConnectionRoutingConfiguration(input []interface{}) *net
 
 func expandArmVirtualHubConnectionPropagatedRouteTable(input []interface{}) *network.PropagatedRouteTable {
 	if len(input) == 0 {
-		return nil
+		return &network.PropagatedRouteTable{}
 	}
 
 	v := input[0].(map[string]interface{})
@@ -324,7 +326,7 @@ func expandArmVirtualHubConnectionPropagatedRouteTable(input []interface{}) *net
 		result.Labels = utils.ExpandStringSlice(labels)
 	}
 
-	if routeTableIds := v["route_table_ids"].(*schema.Set).List(); len(routeTableIds) != 0 {
+	if routeTableIds := v["route_table_ids"].([]interface{}); len(routeTableIds) != 0 {
 		result.Ids = expandIDsToSubResources(routeTableIds)
 	}
 
@@ -333,7 +335,7 @@ func expandArmVirtualHubConnectionPropagatedRouteTable(input []interface{}) *net
 
 func expandArmVirtualHubConnectionVnetStaticRoute(input []interface{}) *network.VnetRoute {
 	if len(input) == 0 {
-		return nil
+		return &network.VnetRoute{}
 	}
 
 	results := make([]network.StaticRoute, 0)
@@ -377,7 +379,7 @@ func expandIDsToSubResources(input []interface{}) *[]network.SubResource {
 
 func flattenArmVirtualHubConnectionRoutingConfiguration(input *network.RoutingConfiguration) []interface{} {
 	if input == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	associatedRouteTableId := ""

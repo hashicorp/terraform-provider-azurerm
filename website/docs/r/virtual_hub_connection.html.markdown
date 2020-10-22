@@ -64,9 +64,9 @@ The following arguments are supported:
 
 ---
 
-An `routing_configuration` block exports the following:
+A `routing_configuration` block supports the following:
 
-* `associated_route_table_id` - (Optional) The ID of route table associated with this routing configuration.
+* `associated_route_table_id` - (Optional) The ID of route table associated with Virtual Hub connection.
 
 * `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
 
@@ -74,21 +74,21 @@ An `routing_configuration` block exports the following:
 
 ---
 
-An `propagated_route_table` block exports the following:
+A `propagated_route_table` block supports the following:
 
-* `labels` - (Optional) The list of labels.
+* `labels` - (Optional) The list of labels to provide a mechanism to logically group route tables.
 
-* `route_table_ids` - (Optional) The list of resource ids of all the route tables.
+* `route_table_ids` - (Optional) A list of Route Table ID's which is used for Virtual Hub Connection.
 
 ---
 
-An `vnet_static_route` block exports the following:
+A `vnet_static_route` block supports the following:
 
-* `name` - (Optional) The name which should be used for this static_route.
+* `name` - (Optional) The name which should be used for this Static Route.
 
-* `address_prefixes` - (Optional) The list of all address prefixes.
+* `address_prefixes` - (Optional) A list of CIDR Blocks which should be used for Virtual Hub Connection.
 
-* `next_hop_ip_address` - (Optional) The ip address of the next hop.
+* `next_hop_ip_address` - (Optional) The IP Address which should be used for the Next Hop.
 
 ## Attributes Reference
 
