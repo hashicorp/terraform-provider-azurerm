@@ -2,7 +2,7 @@
 
 UPGRADE NOTES
 
-* This release includes a [workaround for a breaking change in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/11271) for the SQL and MSSQL resources - related to the Extended Auditing Policy. We've been informed that fix for the breaking change is being rolled out over the next couple of weeks - and so this workaround will be removed in a future release when it's no longer needed.
+> * This release includes a workaround for [a breaking change in Azure’s API related to the Extended Auditing Policy](https://github.com/Azure/azure-rest-api-specs/issues/11271) of the SQL and MSSQL resources. The Service Team have confirmed that this Regression will first roll out to all regions before the bug fix is deployed - as such this workaround will be removed in a future release once the fix for the Azure API has been rolled out to all regions.
 
 FEATURES: 
 
