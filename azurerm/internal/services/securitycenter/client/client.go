@@ -31,6 +31,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	AutoProvisioningClient := security.NewAutoProvisioningSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AutoProvisioningClient.Client, o.ResourceManagerAuthorizer)
+
 	SettingClient := security.NewSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&SettingClient.Client, o.ResourceManagerAuthorizer)
 
