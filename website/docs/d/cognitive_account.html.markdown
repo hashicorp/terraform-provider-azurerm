@@ -42,6 +42,7 @@ The following attributes are exported:
 
 * `endpoint` - The endpoint of the Cognitive Services Account
 
+* `qna_runtime_endpoint` - If `kind` is `QnAMaker` the link to the QNA runtime.
 * `primary_access_key` - The primary access key of the Cognitive Services Account
 
 * `secondary_access_key` - The secondary access key of the Cognitive Services Account
