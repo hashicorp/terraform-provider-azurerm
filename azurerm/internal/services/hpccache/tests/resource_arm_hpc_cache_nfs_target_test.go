@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	parsers2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -126,7 +126,7 @@ func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestC
 			return fmt.Errorf("HPC Cache NFS Target not found: %s", resourceName)
 		}
 
-		id, err := parsers2.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -151,7 +151,7 @@ func testCheckAzureRMHPCCacheNFSTargetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers2.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
