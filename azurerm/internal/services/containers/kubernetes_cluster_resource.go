@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -178,7 +178,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.SystemAssigned),
+								string(containerservice.ResourceIdentityTypeSystemAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -1706,7 +1706,7 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *containerservice.ManagedClusterIdentity {
 	if len(input) == 0 || input[0] == nil {
 		return &containerservice.ManagedClusterIdentity{
-			Type: containerservice.None,
+			Type: containerservice.ResourceIdentityTypeNone,
 		}
 	}
 
@@ -1859,7 +1859,7 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 
 func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
 	// if it's none, omit the block
-	if input == nil || input.Type == containerservice.None {
+	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
 		return []interface{}{}
 	}
 
