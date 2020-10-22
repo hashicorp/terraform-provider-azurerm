@@ -388,6 +388,18 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
+			"table_properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cors_rule": azure.SchemaStorageAccountCorsRule(true),
+					},
+				},
+			},
+
 			"large_file_share_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -810,6 +822,16 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if val, ok := d.GetOk("table_properties"); ok {
+		tableClient := meta.(*clients.Client).Storage.TableServicesClient
+
+		tableProperties := expandTableProperties(val.([]interface{}))
+
+		if _, err = tableClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, tableProperties); err != nil {
+			return fmt.Errorf("updating Azure Storage Account `table_properties` %q: %+v", storageAccountName, err)
+		}
+	}
+
 	return resourceArmStorageAccountRead(d, meta)
 }
 
@@ -1064,6 +1086,15 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("table_properties") {
+		tableClient := meta.(*clients.Client).Storage.TableServicesClient
+		tableProps := expandTableProperties(d.Get("table_properties").([]interface{}))
+
+		if _, err = tableClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, tableProps); err != nil {
+			return fmt.Errorf("updating Azure Storage Account `table_properties` %q: %+v", storageAccountName, err)
+		}
+	}
+
 	return resourceArmStorageAccountRead(d, meta)
 }
 
@@ -1292,6 +1323,19 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	if err := d.Set("static_website", staticWebsite); err != nil {
 		return fmt.Errorf("Error setting `static_website `for AzureRM Storage Account %q: %+v", name, err)
+	}
+
+	tableClient := storageClient.TableServicesClient
+
+	tableProps, err := tableClient.GetServiceProperties(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(tableProps.Response) {
+			return fmt.Errorf("reading table properties for AzureRM Storage Account %q: %+v", name, err)
+		}
+	}
+
+	if err := d.Set("table_properties", flattenTableProperties(tableProps)); err != nil {
+		return fmt.Errorf("setting `table_properties `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1680,6 +1724,27 @@ func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceP
 	return properties
 }
 
+func expandTableProperties(input []interface{}) storage.TableServiceProperties {
+	props := storage.TableServiceProperties{
+		TableServicePropertiesProperties: &storage.TableServicePropertiesProperties{
+			Cors: &storage.CorsRules{
+				CorsRules: &[]storage.CorsRule{},
+			},
+		},
+	}
+
+	if len(input) == 0 || input[0] == nil {
+		return props
+	}
+
+	v := input[0].(map[string]interface{})
+
+	corsRaw := v["cors_rule"].([]interface{})
+	props.TableServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
+
+	return props
+}
+
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -1938,6 +2003,23 @@ func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) [
 		}
 	}
 	return []interface{}{}
+}
+
+func flattenTableProperties(input storage.TableServiceProperties) []interface{} {
+	if input.TableServicePropertiesProperties == nil {
+		return []interface{}{}
+	}
+
+	flattenedCorsRules := make([]interface{}, 0)
+	if corsRules := input.TableServicePropertiesProperties.Cors; corsRules != nil {
+		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"cors_rule": flattenedCorsRules,
+		},
+	}
 }
 
 func flattenStorageAccountBypass(input storage.Bypass) []interface{} {

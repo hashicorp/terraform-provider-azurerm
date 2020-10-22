@@ -755,6 +755,32 @@ func TestAccAzureRMStorageAccount_staticWebsitePropertiesForBlockBlobStorage(t *
 	})
 }
 
+func TestAccAzureRMStorageAccount_tableProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_tableProperties(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_tablePropertiesUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageAccount_replicationTypeGZRS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
@@ -1984,6 +2010,78 @@ resource "azurerm_storage_account" "test" {
   static_website {
     index_document     = "index-2.html"
     error_404_document = "404-2.html"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_tableProperties(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  table_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT", "PATCH"]
+      max_age_in_seconds = "500"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_tablePropertiesUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  table_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*", "x-method-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["GET"]
+      max_age_in_seconds = "2000000000"
+    }
+
+    cors_rule {
+      allowed_origins    = ["http://www.test.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["PUT"]
+      max_age_in_seconds = "1000"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
