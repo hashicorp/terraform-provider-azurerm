@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -636,6 +637,7 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
+				PreConfig: func() { time.Sleep(5 * time.Minute) },
 				Config: testAccAzureRMStorageAccount_blobPropertiesUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
@@ -645,6 +647,7 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
+				PreConfig: func() { time.Sleep(5 * time.Minute) },
 				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
