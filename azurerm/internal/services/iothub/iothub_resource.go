@@ -293,11 +293,7 @@ func resourceArmIotHub() *schema.Resource {
 							ValidateFunc: validateIoTHubFileNameFormat,
 						},
 
-						"resource_group_name": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: azure.ValidateResourceGroupName,
-						},
+						"resource_group_name": azure.SchemaResourceGroupNameOptional(),
 					},
 				},
 			},

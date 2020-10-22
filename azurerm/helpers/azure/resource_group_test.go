@@ -58,7 +58,7 @@ func TestValidateResourceGroupName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateResourceGroupName(tc.Value, "azurerm_resource_group")
+		_, errors := validateResourceGroupName(tc.Value, "azurerm_resource_group")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected "+
