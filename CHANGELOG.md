@@ -1,5 +1,9 @@
 ## 2.33.0 (Unreleased)
 
+UPGRADE NOTES
+
+* This release includes a [workaround for a breaking change in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/11271) for the SQL and MSSQL resources - related to the Extended Auditing Policy. We've been informed that fix for the breaking change is being rolled out over the next couple of weeks - and so this workaround will be removed in a future release when it's no longer needed.
+
 FEATURES: 
 
 * **New Resource:** `azurerm_service_fabric_mesh_secret` [GH-8933]
@@ -19,6 +23,12 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_application_gateway` - now supports `ignore_changes` for `ssl_certificate` when using pre-existing certificates [GH-8761]
+* `azurerm_mssql_database` - working around a breaking change/regression in the Azure API [GH-8975]
+* `azurerm_mssql_database_extended_auditing_policy` - working around a breaking change/regression in the Azure API [GH-8975]
+* `azurerm_mssql_server` - working around a breaking change/regression in the Azure API [GH-8975]
+* `azurerm_mssql_server_extended_auditing_policy` - working around a breaking change/regression in the Azure API [GH-8975]
+* `azurerm_sql_database` - working around a breaking change/regression in the Azure API [GH-8975]
+* `azurerm_sql_server` - working around a breaking change/regression in the Azure API [GH-8975]
 * `azurerm_policy_set_definition` - Fix updates for `parameters` and `parameter_values` in `policy_definition_reference` blocks [GH-8882]
 
 ## 2.32.0 (October 15, 2020)
