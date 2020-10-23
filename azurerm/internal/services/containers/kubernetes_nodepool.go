@@ -102,15 +102,6 @@ func SchemaDefaultNodePool() *schema.Schema {
 					},
 				},
 
-				"node_taints": {
-					Type:     schema.TypeList,
-					ForceNew: true,
-					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
-
 				"tags": tags.Schema(),
 
 				"os_disk_size_gb": {
@@ -174,8 +165,6 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
 	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
 	nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw)
-	nodeTaintsRaw := raw["node_taints"].([]interface{})
-	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
 	t := raw["tags"].(map[string]interface{})
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
@@ -183,7 +172,6 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
 		Name:               utils.String(raw["name"].(string)),
 		NodeLabels:         nodeLabels,
-		NodeTaints:         nodeTaints,
 		Tags:               tags.Expand(t),
 		Type:               containerservice.AgentPoolType(raw["type"].(string)),
 		VMSize:             containerservice.VMSizeTypes(raw["vm_size"].(string)),
@@ -337,11 +325,6 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		}
 	}
 
-	var nodeTaints []string
-	if agentPool.NodeTaints != nil {
-		nodeTaints = *agentPool.NodeTaints
-	}
-
 	osDiskSizeGB := 0
 	if agentPool.OsDiskSizeGB != nil {
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
@@ -368,7 +351,6 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"name":                  name,
 			"node_count":            count,
 			"node_labels":           nodeLabels,
-			"node_taints":           nodeTaints,
 			"os_disk_size_gb":       osDiskSizeGB,
 			"tags":                  tags.Flatten(agentPool.Tags),
 			"type":                  string(agentPool.Type),

@@ -85,10 +85,10 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 				"kube_dashboard": {
 					Type:     schema.TypeList,
 					MaxItems: 1,
-					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"enabled": {
+								Default:  true,
 								Type:     schema.TypeBool,
 								Required: true,
 							},
@@ -327,7 +327,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 
 	kubeDashboards := make([]interface{}, 0)
 	if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
-		enabled := false
+		enabled := true
 		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}

@@ -161,11 +161,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ValidateFunc: computeValidate.DiskEncryptionSetID,
 			},
 
-			"enable_pod_security_policy": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -729,8 +724,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
-	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
-
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 
@@ -754,7 +747,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			WindowsProfile:          windowsProfile,
 			NetworkProfile:          networkProfile,
 			NodeResourceGroup:       utils.String(nodeResourceGroup),
-			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -949,12 +941,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 		autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 		existing.ManagedClusterProperties.AutoScalerProfile = autoScalerProfile
-	}
-
-	if d.HasChange("enable_pod_security_policy") {
-		updateCluster = true
-		enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
-		existing.ManagedClusterProperties.EnablePodSecurityPolicy = utils.Bool(enablePodSecurityPolicy)
 	}
 
 	if d.HasChange("linux_profile") {
@@ -1169,7 +1155,6 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
-		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
 		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
