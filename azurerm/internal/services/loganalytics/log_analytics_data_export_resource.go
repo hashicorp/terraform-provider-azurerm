@@ -112,8 +112,8 @@ func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData
 			Destination: &operationalinsights.Destination{
 				ResourceID: utils.String(d.Get("destination_resource_id").(string)),
 			},
-			TableNames:  utils.ExpandStringSlice(d.Get("table_names").(*schema.Set).List()),
-			Enable:      utils.Bool(d.Get("enabled").(bool)),
+			TableNames: utils.ExpandStringSlice(d.Get("table_names").(*schema.Set).List()),
+			Enable:     utils.Bool(d.Get("enabled").(bool)),
 		},
 	}
 
@@ -160,9 +160,7 @@ func resourceArmOperationalinsightsDataExportRead(d *schema.ResourceData, meta i
 		d.Set("export_rule_id", props.DataExportID)
 		d.Set("destination_resource_id", flattenArmDataExportDestination(props.Destination))
 		d.Set("enabled", props.Enable)
-		if tableNames := props.TableNames; tableNames != nil {
-			d.Set("table_names", utils.FlattenStringSlice(tableNames))
-		}
+		d.Set("table_names", utils.FlattenStringSlice(tableNames))
 	}
 	return nil
 }
