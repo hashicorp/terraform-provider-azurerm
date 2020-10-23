@@ -175,6 +175,86 @@ func TestAccAzureRMStorageContainer_encryptionScope(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_immutabilityPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageContainer_immutabilityPolicy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageContainer_immutabilityPolicyUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageContainer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageContainer_legalHold(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageContainer_legalHold(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageContainer_legalHoldUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageContainer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
@@ -585,4 +665,71 @@ resource "azurerm_storage_container" "test" {
   encryption_scope_for_all_blobs = true
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMStorageContainer_immutabilityPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+  extended_immutability_policy {
+    since_creation_in_days        = 7
+    allow_protected_append_writes = true
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_immutabilityPolicyUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+  extended_immutability_policy {
+    since_creation_in_days        = 3
+    allow_protected_append_writes = false
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_legalHold(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+  legal_hold {
+    tags = ["production"]
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageContainer_legalHoldUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+
+  legal_hold {
+    tags = ["production", "stage", "stage2"]
+  }
+}
+`, template)
 }
