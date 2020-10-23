@@ -448,8 +448,10 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
 
-		if is_compression_enabled := props.IsCompressionEnabled; is_compression_enabled != nil {
-			d.Set("is_compression_enabled", *is_compression_enabled)
+		if _, ok := d.GetOk("is_compression_enabled"); ok {
+			if compressionEnabled := props.IsCompressionEnabled; compressionEnabled != nil {
+				d.Set("is_compression_enabled", *compressionEnabled)
+			}
 		}
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
