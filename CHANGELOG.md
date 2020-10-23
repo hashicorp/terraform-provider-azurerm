@@ -7,7 +7,8 @@ UPGRADE NOTES
 BUG FIXES: 
 
 * `azurerm_api_management_api` - ensure `subscription_required` defaults to the more secure `true` value as well revery to `v2.15` and lower's behaviour [GH-7963]
-* `log_analytics_workspace` - support for the `daily_quota_gb` property [GH-8861]
+* `azurerm_log_analytics_workspace` - support for the `daily_quota_gb` property [GH-8861]
+* `azurerm_key_vault` - prevent unwanted diff due to inconsistent casing for the `sku_name` property [GH-8983]
 * `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
 * `azurerm_kubernetes_cluster` - `min_count` can be updated when `enable_auto_scaling` is set to true [GH-8619]
 * `azurerm_signalr_service` - switching the`features` block to a set so order is irrelevant [GH-8815]
