@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `destination_resource_id` - (Required) The destination resource ID. It should be a storage account, an event hub namespace or an event hub. If the destination is an event hub namespace, an event hub would be created for each table automatically.
 
-* `table_names` - (Required) A list of table names to export to the destination resource, for example: ["Heartbeat", "SecurityEvent"].
+* `table_names` - (Required) A list of table names to export to the destination resource, for example: `["Heartbeat", "SecurityEvent"]`.
 
 * `enabled` - (Optional) Is this Log Analytics Data Export Rule when enabled? Possible values include `true` or `false`. Defaults to `false`.
 
