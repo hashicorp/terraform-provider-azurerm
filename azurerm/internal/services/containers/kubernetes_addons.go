@@ -85,10 +85,11 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 				"kube_dashboard": {
 					Type:     schema.TypeList,
 					MaxItems: 1,
+					Optional: true,
+					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"enabled": {
-								Default:  true,
 								Type:     schema.TypeBool,
 								Required: true,
 							},
