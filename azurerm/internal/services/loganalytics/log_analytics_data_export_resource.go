@@ -160,7 +160,7 @@ func resourceArmOperationalinsightsDataExportRead(d *schema.ResourceData, meta i
 		d.Set("export_rule_id", props.DataExportID)
 		d.Set("destination_resource_id", flattenArmDataExportDestination(props.Destination))
 		d.Set("enabled", props.Enable)
-		d.Set("table_names", utils.FlattenStringSlice(tableNames))
+		d.Set("table_names", utils.FlattenStringSlice(props.TableNames))
 	}
 	return nil
 }
