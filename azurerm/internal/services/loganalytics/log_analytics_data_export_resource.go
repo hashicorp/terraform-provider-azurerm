@@ -107,13 +107,11 @@ func resourceArmOperationalinsightsDataExportCreateUpdate(d *schema.ResourceData
 		}
 	}
 
-	destination := &operationalinsights.Destination{
-		ResourceID: utils.String(d.Get("destination_resource_id").(string)),
-	}
-
 	parameters := operationalinsights.DataExport{
 		DataExportProperties: &operationalinsights.DataExportProperties{
-			Destination: destination,
+			Destination: &operationalinsights.Destination{
+				ResourceID: utils.String(d.Get("destination_resource_id").(string)),
+			},
 			TableNames:  utils.ExpandStringSlice(d.Get("table_names").(*schema.Set).List()),
 			Enable:      utils.Bool(d.Get("enabled").(bool)),
 		},
