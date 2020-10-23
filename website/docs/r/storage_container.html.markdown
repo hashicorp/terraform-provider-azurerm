@@ -55,7 +55,7 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Storage Container.
 
-* `has_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
+* `has_extended_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
 
 * `has_legal_hold` - Is there a Legal Hold configured on this Storage Container?
 

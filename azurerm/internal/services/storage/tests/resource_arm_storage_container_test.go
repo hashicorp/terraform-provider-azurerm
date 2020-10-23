@@ -2,15 +2,14 @@ package tests
 
 import (
 	"fmt"
-	"strings"
-	"testing"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"strings"
+	"testing"
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
@@ -111,14 +110,12 @@ func TestAccAzureRMStorageContainer_update(t *testing.T) {
 				Config: testAccAzureRMStorageContainer_update(data, "private"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "private"),
 				),
 			},
 			{
 				Config: testAccAzureRMStorageContainer_update(data, "container"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageContainerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "container_access_type", "container"),
 				),
 			},
 			data.ImportStep(),
@@ -150,6 +147,25 @@ func TestAccAzureRMStorageContainer_metaData(t *testing.T) {
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMStorageContainer_metaDataEmpty(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageContainer_encryptionScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_encryptionScope(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageContainerExists(data.ResourceName),
 				),
@@ -387,16 +403,35 @@ resource "azurerm_storage_container" "import" {
 }
 
 func testAccAzureRMStorageContainer_update(data acceptance.TestData, accessType string) string {
-	template := testAccAzureRMStorageContainer_template(data)
 	return fmt.Sprintf(`
-%s
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  allow_blob_public_access = true
+
+  tags = {
+    environment = "staging"
+  }
+}
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "%s"
 }
-`, template, accessType)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, accessType)
 }
 
 func testAccAzureRMStorageContainer_metaData(data acceptance.TestData) string {
@@ -530,4 +565,24 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 			t.Fatalf("%q should be an invalid Storage Container Name", v)
 		}
 	}
+}
+
+func testAccAzureRMStorageContainer_encryptionScope(data acceptance.TestData) string {
+	template := testAccAzureRMStorageContainer_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_encryption_scope" "test" {
+  name               = "acctestES%d"
+  storage_account_id = azurerm_storage_account.test.id
+}
+
+resource "azurerm_storage_container" "test" {
+  name                           = "vhds"
+  storage_account_name           = azurerm_storage_account.test.name
+  container_access_type          = "private"
+  default_encryption_scope       = azurerm_storage_encryption_scope.test.name
+  encryption_scope_for_all_blobs = true
+}
+`, template, data.RandomInteger)
 }

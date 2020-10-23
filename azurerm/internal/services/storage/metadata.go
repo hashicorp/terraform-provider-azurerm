@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"regexp"
 	"strings"
 
@@ -41,11 +42,31 @@ func ExpandMetaData(input map[string]interface{}) map[string]string {
 	return output
 }
 
+func ExpandMetaDataPtr(input map[string]interface{}) map[string]*string {
+	output := make(map[string]*string)
+
+	for k, v := range input {
+		output[k] = utils.String(v.(string))
+	}
+
+	return output
+}
+
 func FlattenMetaData(input map[string]string) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	for k, v := range input {
 		output[k] = v
+	}
+
+	return output
+}
+
+func FlattenMetaDataPtr(input map[string]*string) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	for k, v := range input {
+		output[k] = *v
 	}
 
 	return output

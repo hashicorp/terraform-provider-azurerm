@@ -37,7 +37,7 @@ func dataSourceArmStorageContainer() *schema.Resource {
 			"metadata": MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
-			"has_immutability_policy": {
+			"has_extended_immutability_policy": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -57,6 +57,7 @@ func dataSourceArmStorageContainer() *schema.Resource {
 
 func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	mgmtContainerClient := storageClient.BlobContainersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -78,27 +79,29 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 
 	d.SetId(client.GetResourceID(accountName, containerName))
 
-	props, err := client.GetProperties(ctx, accountName, containerName)
+	resp, err := mgmtContainerClient.Get(ctx, account.ResourceGroup, accountName, containerName)
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
-			return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
 	}
 
 	d.Set("name", containerName)
 
 	d.Set("storage_account_name", accountName)
 
-	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
+	if props := resp.ContainerProperties; props != nil {
+		d.Set("container_access_type", flattenStorageContainerAccessLevel(props.PublicAccess))
 
-	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("Error setting `metadata`: %+v", err)
+		if err := d.Set("metadata", FlattenMetaDataPtr(props.Metadata)); err != nil {
+			return fmt.Errorf("setting `metadata`: %+v", err)
+		}
+
+		d.Set("has_extended_immutability_policy", props.HasImmutabilityPolicy)
+		d.Set("has_legal_hold", props.HasLegalHold)
 	}
-
-	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
-	d.Set("has_legal_hold", props.HasLegalHold)
 
 	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
 	d.Set("resource_manager_id", resourceManagerId)

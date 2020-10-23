@@ -26,6 +26,7 @@ type Client struct {
 	FileSystemsClient        *filesystems.Client
 	ManagementPoliciesClient *storage.ManagementPoliciesClient
 	BlobServicesClient       *storage.BlobServicesClient
+	BlobContainersClient     *storage.BlobContainersClient
 	CachesClient             *storagecache.CachesClient
 	EncryptionScopesClient   *storage.EncryptionScopesClient
 	StorageTargetsClient     *storagecache.StorageTargetsClient
@@ -50,6 +51,9 @@ func NewClient(options *common.ClientOptions) *Client {
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
 
+	blobContainersClient := storage.NewBlobContainersClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&blobContainersClient.Client, options.ResourceManagerAuthorizer)
+
 	cachesClient := storagecache.NewCachesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&cachesClient.Client, options.ResourceManagerAuthorizer)
 
@@ -72,6 +76,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		FileSystemsClient:        &fileSystemsClient,
 		ManagementPoliciesClient: &managementPoliciesClient,
 		BlobServicesClient:       &blobServicesClient,
+		BlobContainersClient:     &blobContainersClient,
 		CachesClient:             &cachesClient,
 		EncryptionScopesClient:   &encryptionScopesClient,
 		SubscriptionId:           options.SubscriptionId,

@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `container_access_type` - The Access Level configured for this Container.
 
-* `has_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
+* `has_extended_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
 
 * `has_legal_hold` - Is there a Legal Hold configured on this Storage Container?
 

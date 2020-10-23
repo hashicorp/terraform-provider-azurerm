@@ -1,21 +1,19 @@
 package storage
 
 import (
-	"context"
 	"fmt"
-	"log"
-	"strings"
-	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
+	"log"
+	"time"
 )
 
 func resourceArmStorageContainer() *schema.Resource {
@@ -62,12 +60,60 @@ func resourceArmStorageContainer() *schema.Resource {
 					string(containers.Container),
 					"private",
 				}, false),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"default_encryption_scope": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"encryption_scope_for_all_blobs": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
+
+			"extended_immutability_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"since_creation_in_days": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"allow_protected_append_writes": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"legal_hold": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"tags": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
 			},
 
 			"metadata": MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
-			"has_immutability_policy": {
+			"has_extended_immutability_policy": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -81,12 +127,22 @@ func resourceArmStorageContainer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"deleted": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"remaining_retention_days": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	mgmtContainerClient := storageClient.BlobContainersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -96,64 +152,76 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	metaData := ExpandMetaData(metaDataRaw)
+	metaData := ExpandMetaDataPtr(metaDataRaw)
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
+		return fmt.Errorf("retrieving Account %q for Container %q: %s", accountName, containerName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		return fmt.Errorf("unable to locate Storage Account %q", accountName)
 	}
 
 	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client: %s", err)
+		return fmt.Errorf("building Containers Client: %s", err)
 	}
 
 	id := client.GetResourceID(accountName, containerName)
-	existing, err := client.GetProperties(ctx, accountName, containerName)
+	existing, err := mgmtContainerClient.Get(ctx, account.ResourceGroup, accountName, containerName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q): %+v", containerName, accountName, account.ResourceGroup, err)
+			return fmt.Errorf("checking for present of existing Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
 		}
 	}
-
-	if !utils.ResponseWasNotFound(existing.Response) {
-		return tf.ImportAsExistsError("azurerm_storage_container", id)
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_storage_container", *existing.ID)
 	}
 
 	log.Printf("[INFO] Creating Container %q in Storage Account %q", containerName, accountName)
-	input := containers.CreateInput{
-		AccessLevel: accessLevel,
-		MetaData:    metaData,
+	params := storage.BlobContainer{
+		ContainerProperties: &storage.ContainerProperties{
+			PublicAccess: accessLevel,
+			Metadata:     metaData,
+		},
 	}
-	if resp, err := client.Create(ctx, accountName, containerName, input); err != nil {
-		// If we fail due to previous delete still in progress, then we can retry
-		if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
-			stateConf := &resource.StateChangeConf{
-				Pending:        []string{"waitingOnDelete"},
-				Target:         []string{"succeeded"},
-				Refresh:        storageContainerCreateRefreshFunc(ctx, client, accountName, containerName, input),
-				PollInterval:   10 * time.Second,
-				NotFoundChecks: 180,
-				Timeout:        d.Timeout(schema.TimeoutCreate),
-			}
+	if v := d.Get("encryption_scope_for_all_blobs").(bool); v {
+		params.ContainerProperties.DenyEncryptionScopeOverride = utils.Bool(v)
+	}
 
-			if _, err := stateConf.WaitForState(); err != nil {
-				return fmt.Errorf("failed creating container: %+v", err)
-			}
-		} else {
-			return fmt.Errorf("failed creating container: %+v", err)
+	if es, ok := d.GetOk("default_encryption_scope"); ok {
+		params.ContainerProperties.DefaultEncryptionScope = utils.String(es.(string))
+	}
+	if _, err := mgmtContainerClient.Create(ctx, account.ResourceGroup, accountName, containerName, params); err != nil {
+		return fmt.Errorf("creating Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
+	}
+
+	if v, ok := d.GetOk("extended_immutability_policy"); ok {
+		expandImmutability := expandStorageContainerImmutabilityPolicy(v.([]interface{}))
+
+		if _, err := mgmtContainerClient.ExtendImmutabilityPolicy(ctx, account.ResourceGroup, accountName, containerName, "", expandImmutability); err != nil {
+			return fmt.Errorf("setting `extended_immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
+
+		}
+	}
+
+	if v, ok := d.GetOk("legal_hold"); ok {
+		expandLegalHold := expandStorageContainerLegalHold(v.([]interface{}))
+
+		if _, err := mgmtContainerClient.SetLegalHold(ctx, account.ResourceGroup, accountName, containerName, expandLegalHold); err != nil {
+			return fmt.Errorf("setting `legal_hold` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
+
 		}
 	}
 
 	d.SetId(id)
+
 	return resourceArmStorageContainerRead(d, meta)
 }
 
 func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	mgmtContainerClient := storageClient.BlobContainersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -170,38 +238,49 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+	params := storage.BlobContainer{
+		ContainerProperties: &storage.ContainerProperties{},
 	}
 
 	if d.HasChange("container_access_type") {
 		log.Printf("[DEBUG] Updating the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 		accessLevelRaw := d.Get("container_access_type").(string)
-		accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
-
-		if _, err := client.SetAccessControl(ctx, id.AccountName, id.ContainerName, accessLevel); err != nil {
-			return fmt.Errorf("Error updating the Access Control for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
-		}
-		log.Printf("[DEBUG] Updated the Access Control for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, account.ResourceGroup)
+		params.ContainerProperties.PublicAccess = expandStorageContainerAccessLevel(accessLevelRaw)
 	}
 
 	if d.HasChange("metadata") {
 		log.Printf("[DEBUG] Updating the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
-		metaData := ExpandMetaData(metaDataRaw)
-
-		if _, err := client.SetMetaData(ctx, id.AccountName, id.ContainerName, metaData); err != nil {
-			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
-		}
-		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, account.ResourceGroup)
+		params.ContainerProperties.Metadata = ExpandMetaDataPtr(metaDataRaw)
 	}
 
+	if _, err := mgmtContainerClient.Update(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, params); err != nil {
+		return fmt.Errorf("updating Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	}
+
+	if d.HasChange("extended_immutability_policy") {
+		expandImmutability := expandStorageContainerImmutabilityPolicy(d.Get("extended_immutability_policy").([]interface{}))
+
+		if _, err := mgmtContainerClient.ExtendImmutabilityPolicy(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, "", expandImmutability); err != nil {
+			return fmt.Errorf("setting `extended_immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+
+		}
+	}
+
+	if d.HasChange("legal_hold") {
+		expandLegalHold := expandStorageContainerLegalHold(d.Get("legal_hold").([]interface{}))
+
+		if _, err := mgmtContainerClient.SetLegalHold(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, expandLegalHold); err != nil {
+			return fmt.Errorf("setting `legal_hold` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+
+		}
+	}
 	return resourceArmStorageContainerRead(d, meta)
 }
 
 func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	mgmtContainerClient := storageClient.BlobContainersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -225,28 +304,39 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
-	props, err := client.GetProperties(ctx, id.AccountName, id.ContainerName)
+	resp, err := mgmtContainerClient.Get(ctx, account.ResourceGroup, id.AccountName, id.ContainerName)
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountName, account.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	d.Set("name", id.ContainerName)
 	d.Set("storage_account_name", id.AccountName)
 
-	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
+	if props := resp.ContainerProperties; props != nil {
+		d.Set("container_access_type", flattenStorageContainerAccessLevel(props.PublicAccess))
+		if err := d.Set("metadata", FlattenMetaDataPtr(props.Metadata)); err != nil {
+			return fmt.Errorf("setting `metadata`: %+v", err)
+		}
+		d.Set("has_extended_immutability_policy", props.HasImmutabilityPolicy)
+		d.Set("has_legal_hold", props.HasLegalHold)
+		d.Set("default_encryption_scope", props.DefaultEncryptionScope)
+		d.Set("encryption_scope_for_all_blobs", props.DenyEncryptionScopeOverride)
+		d.Set("deleted", props.Deleted)
+		d.Set("remaining_retention_days", props.RemainingRetentionDays)
+		if err := d.Set("extended_immutability_policy", flattenStorageContainerImmutabilityPolicy(props.ImmutabilityPolicy, props.HasImmutabilityPolicy)); err != nil {
+			return fmt.Errorf("setting `extended_immutability_policy` in Container %q", id.ContainerName)
+		}
 
-	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("Error setting `metadata`: %+v", err)
+		if err := d.Set("legal_hold", flattenStorageContainerLegalHold(props.LegalHold)); err != nil {
+			return fmt.Errorf("setting `legal_hold` in Container %q", id.ContainerName)
+		}
 	}
-
-	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
-	d.Set("has_legal_hold", props.HasLegalHold)
 
 	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, id.ContainerName)
 	d.Set("resource_manager_id", resourceManagerId)
@@ -256,6 +346,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	mgmtContainerClient := storageClient.BlobContainersClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -272,51 +363,126 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
-	}
-
-	if _, err := client.Delete(ctx, id.AccountName, id.ContainerName); err != nil {
-		return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	if _, err := mgmtContainerClient.Delete(ctx, account.ResourceGroup, id.AccountName, id.ContainerName); err != nil {
+		return fmt.Errorf("deleting Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandStorageContainerAccessLevel(input string) containers.AccessLevel {
+func expandStorageContainerAccessLevel(input string) storage.PublicAccess {
 	// for historical reasons, "private" above is an empty string in the API
 	// so the enum doesn't 1:1 match. You could argue the SDK should handle this
 	// but this is suitable for now
 	if input == "private" {
-		return containers.Private
+		return storage.PublicAccessNone
 	}
 
-	return containers.AccessLevel(input)
+	return storage.PublicAccess(input)
 }
 
-func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
+func flattenStorageContainerAccessLevel(input storage.PublicAccess) string {
 	// for historical reasons, "private" above is an empty string in the API
-	if input == containers.Private {
+	if input == storage.PublicAccessNone {
 		return "private"
 	}
 
 	return string(input)
 }
 
-func storageContainerCreateRefreshFunc(ctx context.Context, client *containers.Client, accountName string, containerName string, input containers.CreateInput) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Create(ctx, accountName, containerName, input)
-		if err != nil {
-			if !utils.ResponseWasConflict(resp.Response) {
-				return nil, "", err
-			}
+func expandStorageContainerImmutabilityPolicy(input []interface{}) *storage.ImmutabilityPolicy {
+	res := storage.ImmutabilityPolicy{
+		ImmutabilityPolicyProperty: &storage.ImmutabilityPolicyProperty{},
+	}
+	if len(input) == 0 || input[0] == nil {
+		return &res
+	}
 
-			if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
-				return nil, "waitingOnDelete", nil
-			}
+	policy := input[0].(map[string]interface{})
+	if v, ok := policy["since_creation_in_days"]; ok {
+		res.ImmutabilityPolicyProperty.ImmutabilityPeriodSinceCreationInDays = utils.Int32(int32(v.(int)))
+	}
+	if v, ok := policy["allow_protected_append_writes"]; ok {
+		res.ImmutabilityPolicyProperty.AllowProtectedAppendWrites = utils.Bool(v.(bool))
+	}
+	return &res
+
+}
+
+func flattenStorageContainerImmutabilityPolicy(input *storage.ImmutabilityPolicyProperties, hasImmutabilityPolicy *bool) []interface{} {
+	if input == nil || hasImmutabilityPolicy == nil || !*hasImmutabilityPolicy {
+		return []interface{}{}
+	}
+	var immutabilityPeriodSinceCreationInDays int32
+	var allowProtectedAppendWrites bool
+	if props := input.ImmutabilityPolicyProperty; props != nil {
+		if v := props.ImmutabilityPeriodSinceCreationInDays; v != nil {
+			immutabilityPeriodSinceCreationInDays = *v
 		}
+		if v := props.AllowProtectedAppendWrites; v != nil {
+			allowProtectedAppendWrites = *v
+		}
+	}
 
-		return "succeeded", "succeeded", nil
+	return []interface{}{
+		map[string]interface{}{
+			"since_creation_in_days":        immutabilityPeriodSinceCreationInDays,
+			"allow_protected_append_writes": allowProtectedAppendWrites,
+		},
 	}
 }
+
+func expandStorageContainerLegalHold(input []interface{}) storage.LegalHold {
+	if len(input) == 0 || input[0] == nil {
+		return storage.LegalHold{}
+	}
+
+	lh := input[0].(map[string]interface{})
+
+	return storage.LegalHold{
+		Tags: utils.ExpandStringSlice(lh["tags"].(*schema.Set).List()),
+	}
+
+}
+
+func flattenStorageContainerLegalHold(input *storage.LegalHoldProperties) []interface{} {
+	if input == nil || input.HasLegalHold == nil || !*input.HasLegalHold {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"tags": flattenStorageContainerLegalHoldTags(input.Tags),
+		},
+	}
+}
+
+func flattenStorageContainerLegalHoldTags(input *[]storage.TagProperty) *schema.Set {
+	res := &schema.Set{F: schema.HashString}
+	if input == nil || len(*input) == 0 {
+		return res
+	}
+
+	for _, t := range *input {
+		res.Add(*t.Tag)
+	}
+
+	return res
+}
+
+//func storageContainerCreateRefreshFunc(ctx context.Context, client *containers.Client, accountName string, containerName string, input containers.CreateInput) resource.StateRefreshFunc {
+//	return func() (interface{}, string, error) {
+//		resp, err := client.Create(ctx, accountName, containerName, input)
+//		if err != nil {
+//			if !utils.ResponseWasConflict(resp.Response) {
+//				return nil, "", err
+//			}
+//
+//			if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
+//				return nil, "waitingOnDelete", nil
+//			}
+//		}
+//
+//		return "succeeded", "succeeded", nil
+//	}
+//}
