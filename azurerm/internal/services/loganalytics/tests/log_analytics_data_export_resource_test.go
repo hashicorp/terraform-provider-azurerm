@@ -103,7 +103,7 @@ func TestAccAzureRMLogAnalyticsDataExportRule_complete(t *testing.T) {
 func testCheckAzureRMLogAnalyticsDataExportRuleDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.DataExportClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-	return nil
+
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_log_analytics_data_export_rule" {
 			continue
@@ -135,7 +135,6 @@ func testCheckAzureRMLogAnalyticsDataExportRuleExists(resourceName string) resou
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.DataExportClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		return nil
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
