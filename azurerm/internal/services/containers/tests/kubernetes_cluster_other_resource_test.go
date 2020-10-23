@@ -11,20 +11,19 @@ import (
 )
 
 var kubernetesOtherTests = map[string]func(t *testing.T){
-	"basicAvailabilitySet":           testAccAzureRMKubernetesCluster_basicAvailabilitySet,
-	"basicVMSS":                      testAccAzureRMKubernetesCluster_basicVMSS,
-	"requiresImport":                 testAccAzureRMKubernetesCluster_requiresImport,
-	"linuxProfile":                   testAccAzureRMKubernetesCluster_linuxProfile,
-	"nodeLabels":                     testAccAzureRMKubernetesCluster_nodeLabels,
-	"nodeResourceGroup":              testAccAzureRMKubernetesCluster_nodeResourceGroup,
-	"paidSku":                        testAccAzureRMKubernetesCluster_paidSku,
-	"upgradeConfig":                  testAccAzureRMKubernetesCluster_upgrade,
-	"tags":                           testAccAzureRMKubernetesCluster_tags,
-	"windowsProfile":                 testAccAzureRMKubernetesCluster_windowsProfile,
-	"outboundTypeLoadBalancer":       testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
-	"outboundTypeUserDefinedRouting": testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting,
-	"privateClusterOn":               testAccAzureRMKubernetesCluster_privateClusterOn,
-	"privateClusterOff":              testAccAzureRMKubernetesCluster_privateClusterOff,
+	"basicAvailabilitySet":     testAccAzureRMKubernetesCluster_basicAvailabilitySet,
+	"basicVMSS":                testAccAzureRMKubernetesCluster_basicVMSS,
+	"requiresImport":           testAccAzureRMKubernetesCluster_requiresImport,
+	"linuxProfile":             testAccAzureRMKubernetesCluster_linuxProfile,
+	"nodeLabels":               testAccAzureRMKubernetesCluster_nodeLabels,
+	"nodeResourceGroup":        testAccAzureRMKubernetesCluster_nodeResourceGroup,
+	"paidSku":                  testAccAzureRMKubernetesCluster_paidSku,
+	"upgradeConfig":            testAccAzureRMKubernetesCluster_upgrade,
+	"tags":                     testAccAzureRMKubernetesCluster_tags,
+	"windowsProfile":           testAccAzureRMKubernetesCluster_windowsProfile,
+	"outboundTypeLoadBalancer": testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
+	"privateClusterOn":         testAccAzureRMKubernetesCluster_privateClusterOn,
+	"privateClusterOff":        testAccAzureRMKubernetesCluster_privateClusterOff,
 }
 
 func TestAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
