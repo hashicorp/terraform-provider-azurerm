@@ -172,7 +172,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-lader-%d"
+  name     = "acctestRG-la-%d"
   location = "%s"
 }
 
