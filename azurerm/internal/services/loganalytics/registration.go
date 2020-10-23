@@ -28,6 +28,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_log_analytics_linked_service":                         resourceArmLogAnalyticsLinkedService(),
+		"azurerm_log_analytics_linked_storage_account":                 resourceArmLogAnalyticsLinkedStorageAccount(),
 		"azurerm_log_analytics_saved_search":                           resourceArmLogAnalyticsSavedSearch(),
 		"azurerm_log_analytics_solution":                               resourceArmLogAnalyticsSolution(),
 		"azurerm_log_analytics_workspace":                              resourceArmLogAnalyticsWorkspace(),
