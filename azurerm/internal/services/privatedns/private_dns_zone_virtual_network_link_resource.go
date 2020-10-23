@@ -10,9 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -41,8 +42,8 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/10933
-				ValidateFunc: validate.LowerCasedString,
+				// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10933
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"private_dns_zone_name": {
@@ -88,7 +89,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 		existing, err := client.Get(ctx, resGroup, dnsZoneName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("error checking for presence of existing Private DNS Zone Virtual network link %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("checking for presence of existing Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %s", name, dnsZoneName, resGroup, err)
 			}
 		}
 
@@ -116,20 +117,20 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, dnsZoneName, name, parameters, etag, ifNoneMatch)
 	if err != nil {
-		return fmt.Errorf("error creating/updating Private DNS Zone Virtual network link %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("creating/updating Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %s", name, dnsZoneName, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("error waiting for Private DNS Zone Virtual network link %q to become available: %+v", name, err)
+		return fmt.Errorf("waiting for Private DNS Zone Virtual Network Link %q to become available: %+v", name, err)
 	}
 
 	resp, err := client.Get(ctx, resGroup, dnsZoneName, name)
 	if err != nil {
-		return fmt.Errorf("error retrieving Private DNS Zone Virtual network link %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("retrieving Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %s", name, dnsZoneName, resGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("cannot read Private DNS Zone Virtual network link %q (Resource Group %q) ID", name, resGroup)
+		return fmt.Errorf("cannot read Virtual Network Link %q (Private DNS Zone %q / Resource Group %q) ID", name, dnsZoneName, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -157,7 +158,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, met
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error reading Private DNS Zone Virtual network link %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("reading Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %+v", name, dnsZoneName, resGroup, err)
 	}
 
 	d.Set("name", name)
@@ -194,7 +195,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, m
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("error deleting Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %+v", name, dnsZoneName, resGroup, err)
+		return fmt.Errorf("deleting Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %+v", name, dnsZoneName, resGroup, err)
 	}
 
 	// whilst the Delete above returns a Future, the Azure API's broken such that even though it's marked as "gone"
@@ -225,7 +226,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, m
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("error waiting for deletion of Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %+v", name, dnsZoneName, resGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %+v", name, dnsZoneName, resGroup, err)
 	}
 
 	return nil
