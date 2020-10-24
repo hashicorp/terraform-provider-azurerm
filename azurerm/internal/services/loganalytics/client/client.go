@@ -7,6 +7,7 @@ import (
 )
 
 type Client struct {
+	DataExportClient     *operationalinsights.DataExportsClient
 	DataSourcesClient    *operationalinsights.DataSourcesClient
 	LinkedServicesClient *operationalinsights.LinkedServicesClient
 	SavedSearchesClient  *operationalinsights.SavedSearchesClient
@@ -16,6 +17,9 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	DataExportClient := operationalinsights.NewDataExportsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DataExportClient.Client, o.ResourceManagerAuthorizer)
+
 	DataSourcesClient := operationalinsights.NewDataSourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DataSourcesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -35,6 +39,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&LinkedServicesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		DataExportClient:     &DataExportClient,
 		DataSourcesClient:    &DataSourcesClient,
 		LinkedServicesClient: &LinkedServicesClient,
 		SavedSearchesClient:  &SavedSearchesClient,
