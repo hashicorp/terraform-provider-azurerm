@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
@@ -593,13 +594,16 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
+		skuName := ""
 		if sku := props.Sku; sku != nil {
-			if err := d.Set("sku_name", string(sku.Name)); err != nil {
-				return fmt.Errorf("Error setting 'sku_name' for KeyVault %q: %+v", *resp.Name, err)
+			// the Azure API is inconsistent here, so rewrite this into the casing we expect
+			for _, v := range keyvault.PossibleSkuNameValues() {
+				if strings.EqualFold(string(v), string(sku.Name)) {
+					skuName = string(v)
+				}
 			}
-		} else {
-			return fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
 		}
+		d.Set("sku_name", skuName)
 
 		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
 			return fmt.Errorf("Error setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)

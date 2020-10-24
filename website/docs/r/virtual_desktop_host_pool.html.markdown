@@ -1,5 +1,5 @@
 ---
-subcategory: "Desktop Virtualization"
+subcategory: "DesktopVirtualization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_desktop_host_pool"
 description: |-
@@ -88,7 +88,7 @@ The following arguments are supported:
 
 ~> **NOTE:** `personal_desktop_assignment_type` is required if the `type` of your Virtual Desktop Host Pool is `Personal`
 
-* `maximum_sessions_allowed` (Optional) A valid integer value from 0 to 999999 for the maximum number of users that have concurrent sessions on a session host. 
+* `maximum_sessions_allowed` (Optional) A valid integer value from 0 to 999999 for the maximum number of users that have concurrent sessions on a session host.
     Should only be set if the `type` of your Virtual Desktop Host Pool is `Pooled`.
 
 * `preferred_app_group_type` (Optional) Option to specify the preferred Application Group type for the Virtual Desktop Host Pool.
