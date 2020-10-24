@@ -150,7 +150,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-lalsa-%d"
+  name     = "acctestRG-la-%d"
   location = "%s"
 }
 
