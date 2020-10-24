@@ -97,22 +97,30 @@ func resourceBackupProtectedFileShareCreateUpdate(d *schema.ResourceData, meta i
 	// The fileshare has a user defined name, but its system name (fileShareSystemName) is only known to Azure Backup
 	filter := fmt.Sprintf("backupManagementType eq 'AzureStorage' and friendlyName eq '%s'", fileShareName)
 	backupProtectableItemsResponse, err := protectableClient.List(ctx, vaultName, resourceGroup, filter, "")
+	if err != nil {
+		return fmt.Errorf("Error checking for protectable fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+	}
 	backupProtectableItems := backupProtectableItemsResponse.Values()
 
 	backupProtectedItemsResponse, err := protectedClient.List(ctx, vaultName, resourceGroup, filter, "")
+	if err != nil {
+		return fmt.Errorf("Error checking for protected fileshares in Recovery Service Vault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
+	}
 	backupProtectedItems := backupProtectedItemsResponse.Values()
+
+	if backupProtectedItems == nil && backupProtectableItems == nil {
+		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure Storage Account %q is registered with Recovery Service Vault %q (Resource Group %q)", fileShareName, accountName, vaultName, resourceGroup)
+	}
+	if len(backupProtectableItems)+len(backupProtectedItems) > 1 {
+		return fmt.Errorf("[ERROR] multiple fileshares found after filtering protectable or protected fileshares where only one is expected")
+	}
 
 	fileShareSystemName := ""
 	if backupProtectableItems != nil && *backupProtectableItems[0].Name != "" {
 		fileShareSystemName = *backupProtectableItems[0].Name
-	} else if backupProtectedItems != nil && *backupProtectedItems[0].Name != "" {
-		fileShareSystemName = *backupProtectedItems[0].Name
-	} else {
-		return fmt.Errorf("[ERROR] fileshare '%s' not found in protectable or protected fileshares, make sure ", fileShareName)
 	}
-
-	if len(backupProtectableItems)+len(backupProtectedItems) > 1 {
-		return fmt.Errorf("[ERROR] multiple fileshares found after filtering protectable or protected fileshares where only one is expected")
+	if backupProtectedItems != nil && *backupProtectedItems[0].Name != "" {
+		fileShareSystemName = *backupProtectedItems[0].Name
 	}
 
 	containerName := fmt.Sprintf("StorageContainer;storage;%s;%s", parsedStorageAccountID.ResourceGroup, accountName)
