@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsDataExportName(t *testing.T) {
+func TestLogAnalyticsStorageInsightConfigWorkspaceName(t *testing.T) {
 	testCases := []struct {
 		Input    string
 		Expected bool
@@ -18,31 +18,31 @@ func TestLogAnalyticsDataExportName(t *testing.T) {
 			Expected: false,
 		},
 		{
-			Input:    "invalid Exports Name",
+			Input:    "invalid Storage Insight Config Name Name",
 			Expected: false,
 		},
 		{
-			Input:    "-invalidExportsName",
+			Input:    "-invalidStorageInsightConfigName",
 			Expected: false,
 		},
 		{
-			Input:    "invalidExportsName-",
+			Input:    "invalidStorageInsightConfigName-",
 			Expected: false,
 		},
 		{
-			Input:    "thisIsToLooooooooooooooooooooooooooooooooooooooongForAExportName",
-			Expected: false,
-		},
-		{
-			Input:    "validExportsName",
+			Input:    "thisIsToLoooooooooooooooooooooongestForAStorageInsightConfigName",
 			Expected: true,
 		},
 		{
-			Input:    "validExportsName-2",
+			Input:    "validStorageInsightConfigName",
 			Expected: true,
 		},
 		{
-			Input:    "thisIsTheLoooooooooooooooooooooooooongestValidExportNameThereIs",
+			Input:    "validStorageInsightConfigName-2",
+			Expected: true,
+		},
+		{
+			Input:    "thisIsTheLoooooooooooongestValidStorageInsightConfigNameThereIs",
 			Expected: true,
 		},
 		{
@@ -51,7 +51,7 @@ func TestLogAnalyticsDataExportName(t *testing.T) {
 		},
 	}
 	for _, v := range testCases {
-		_, errors := LogAnalyticsDataExportName(v.Input, "name")
+		_, errors := LogAnalyticsStorageInsightConfigWorkspaceName(v.Input, "workspace_name")
 		result := len(errors) == 0
 		if result != v.Expected {
 			t.Fatalf("Expected the result to be %q but got %q (and %d errors)", v.Expected, result, len(errors))
