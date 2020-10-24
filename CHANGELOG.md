@@ -4,6 +4,10 @@ UPGRADE NOTES
 
 * This release changes the default value for `azurerm_api_management_api.subscription_required` property to `true`. This was the behaviour prior to `v2.15.0` and is a more secure default which will prevent accidently exposing API's. 
 
+FEATURES: 
+
+**New Resource:** `azurerm_log_analytics_data_export_rule` [GH-8995]
+
 BUG FIXES: 
 
 * `azurerm_api_management_api` - ensure `subscription_required` defaults to the more secure `true` value as well revery to `v2.15` and lower's behaviour [GH-7963]
