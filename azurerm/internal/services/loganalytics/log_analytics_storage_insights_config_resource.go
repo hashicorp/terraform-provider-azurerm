@@ -7,11 +7,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -39,9 +40,10 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.LogAnalyticsStorageInsightConfigName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -53,7 +55,7 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"container_names": {
+			"blob_container_names": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
@@ -69,11 +71,11 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 
 			"table_names": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.NoZeroValues,
 				},
 			},
 
@@ -88,13 +90,16 @@ func resourceArmLogAnalyticsStorageInsightConfigCreateUpdate(d *schema.ResourceD
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	workspaceName := d.Get("workspace_name").(string)
+	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_resource_id").(string))
+	if err != nil {
+		return err
+	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspaceName, name)
+		existing, err := client.Get(ctx, resourceGroup, workspace.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing LogAnalytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspaceName, err)
+				return fmt.Errorf("checking for present of existing Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -103,25 +108,24 @@ func resourceArmLogAnalyticsStorageInsightConfigCreateUpdate(d *schema.ResourceD
 	}
 
 	parameters := operationalinsights.StorageInsight{
-		ETag: utils.String(d.Get("e_tag").(string)),
 		StorageInsightProperties: &operationalinsights.StorageInsightProperties{
-			Containers:     utils.ExpandStringSlice(d.Get("containers").(*schema.Set).List()),
-			StorageAccount: expandArmStorageInsightConfigStorageAccount(d.Get("storage_account").([]interface{})),
-			Tables:         utils.ExpandStringSlice(d.Get("tables").(*schema.Set).List()),
+			Containers:     utils.ExpandStringSlice(d.Get("blob_container_names").(*schema.Set).List()),
+			StorageAccount: expandArmStorageInsightConfigStorageAccount(d.Get("storage_account_resource_id").([]interface{})),
+			Tables:         utils.ExpandStringSlice(d.Get("table_names").(*schema.Set).List()),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspaceName, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating LogAnalytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspaceName, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, name, parameters); err != nil {
+		return fmt.Errorf("creating/updating Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
+	resp, err := client.Get(ctx, resourceGroup, workspace.Name, name)
 	if err != nil {
-		return fmt.Errorf("retrieving LogAnalytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for LogAnalytics Storage Insight Config %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspaceName)
+		return fmt.Errorf("empty or nil ID returned for Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.Name)
 	}
 
 	d.SetId(*resp.ID)
@@ -141,11 +145,11 @@ func resourceArmLogAnalyticsStorageInsightConfigRead(d *schema.ResourceData, met
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] operationalinsights %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Log Analytics Storage Insight Config %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving LogAnalytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
 	}
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
