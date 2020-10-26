@@ -516,7 +516,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
 	dnsConfig := d.Get("dns_config").([]interface{})
-	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
+	containers, containerGroupPorts, containerGroupVolumes, err := expandContainerGroupContainers(d)
+	if err != nil {
+		return err
+	}
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
@@ -754,7 +757,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 	}
 }
 
-func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
+func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume, error) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
 	containerGroupPorts := make([]containerinstance.Port, 0)
@@ -847,7 +850,10 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, ok := data["volume"]; ok {
-			volumeMounts, containerGroupVolumesPartial := expandContainerVolumes(v)
+			volumeMounts, containerGroupVolumesPartial, err := expandContainerVolumes(v)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 			container.VolumeMounts = volumeMounts
 			if containerGroupVolumesPartial != nil {
 				containerGroupVolumes = append(containerGroupVolumes, *containerGroupVolumesPartial...)
@@ -865,7 +871,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		containers = append(containers, container)
 	}
 
-	return &containers, &containerGroupPorts, &containerGroupVolumes
+	return &containers, &containerGroupPorts, &containerGroupVolumes, nil
 }
 
 func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
@@ -940,11 +946,11 @@ func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containe
 	return &output
 }
 
-func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume) {
+func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume, error) {
 	volumesRaw := input.([]interface{})
 
 	if len(volumesRaw) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	volumeMounts := make([]containerinstance.VolumeMount, 0)
@@ -972,21 +978,29 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 			Name: utils.String(name),
 		}
 
-		if gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{})); gitRepoVolume != nil {
+		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{}))
+		if gitRepoVolume != nil {
+			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
+				return nil, nil, fmt.Errorf("only one of git repo volume or storage account volume could be specified")
+			}
 			cv.GitRepo = gitRepoVolume
 		} else {
-			cv.AzureFile = &containerinstance.AzureFileVolume{
-				ShareName:          utils.String(shareName),
-				ReadOnly:           utils.Bool(readOnly),
-				StorageAccountName: utils.String(storageAccountName),
-				StorageAccountKey:  utils.String(storageAccountKey),
+			if shareName != "" && storageAccountName != "" && storageAccountKey != "" {
+				cv.AzureFile = &containerinstance.AzureFileVolume{
+					ShareName:          utils.String(shareName),
+					ReadOnly:           utils.Bool(readOnly),
+					StorageAccountName: utils.String(storageAccountName),
+					StorageAccountKey:  utils.String(storageAccountKey),
+				}
+			} else if shareName != "" || storageAccountName == "" || storageAccountKey != "" {
+				return nil, nil, fmt.Errorf("if using storage account volume, `share_name`, `storage_account_name`, `storage_account_key` should be specified")
 			}
 		}
 
 		containerGroupVolumes = append(containerGroupVolumes, cv)
 	}
 
-	return &volumeMounts, &containerGroupVolumes
+	return &volumeMounts, &containerGroupVolumes, nil
 }
 
 func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
