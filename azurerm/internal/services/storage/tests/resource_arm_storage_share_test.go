@@ -152,6 +152,25 @@ func TestAccAzureRMStorageShare_acl(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShare_aclGhostedRecall(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_aclGhostedRecall(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
@@ -370,6 +389,25 @@ resource "azurerm_storage_share" "test" {
       permissions = "rwd"
       start       = "2019-07-02T09:38:21.0000000Z"
       expiry      = "2019-07-02T10:38:21.0000000Z"
+    }
+  }
+}
+`, template, data.RandomString)
+}
+
+func testAccAzureRMStorageShare_aclGhostedRecall(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+
+  acl {
+    id = "GhostedRecall"
+    access_policy {
+      permissions = "r"
     }
   }
 }

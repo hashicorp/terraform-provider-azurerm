@@ -26,8 +26,8 @@ import (
 
 func resourceArmPolicySetDefinition() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPolicySetDefinitionCreateUpdate,
-		Update: resourceArmPolicySetDefinitionCreateUpdate,
+		Create: resourceArmPolicySetDefinitionCreate,
+		Update: resourceArmPolicySetDefinitionUpdate,
 		Read:   resourceArmPolicySetDefinitionRead,
 		Delete: resourceArmPolicySetDefinitionDelete,
 
@@ -205,9 +205,9 @@ type DefinitionReferenceInOldApiVersion struct {
 	Parameters map[string]*policy.ParameterValuesValue `json:"parameters"`
 }
 
-func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicySetDefinitionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
@@ -219,17 +219,15 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		managementGroupName = v.(string)
 	}
 
-	if d.IsNewResource() {
-		existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Policy Set Definition %q: %+v", name, err)
-			}
+	existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Policy Set Definition %q: %+v", name, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_policy_set_definition", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_policy_set_definition", *existing.ID)
 	}
 
 	properties := policy.SetDefinitionProperties{
@@ -274,7 +272,6 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		SetDefinitionProperties: &properties,
 	}
 
-	var err error
 	if managementGroupName == "" {
 		_, err = client.CreateOrUpdate(ctx, name, definition)
 	} else {
@@ -282,7 +279,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if err != nil {
-		return fmt.Errorf("creating/updating Policy Set Definition %q: %+v", name, err)
+		return fmt.Errorf("creating Policy Set Definition %q: %+v", name, err)
 	}
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
@@ -316,6 +313,106 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	return resourceArmPolicySetDefinitionRead(d, meta)
 }
 
+func resourceArmPolicySetDefinitionUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Policy.SetDefinitionsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.PolicySetDefinitionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	managementGroupName := ""
+	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
+		managementGroupName = scopeId.ManagementGroupName
+	}
+
+	// retrieve
+	existing, err := getPolicySetDefinitionByName(ctx, client, id.Name, managementGroupName)
+	if err != nil {
+		return fmt.Errorf("retrieving Policy Set Definition %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
+	}
+	if existing.SetDefinitionProperties == nil {
+		return fmt.Errorf("retrieving Policy Set Definition %q (Scope %q): `properties` was nil", id.Name, id.ScopeId())
+	}
+
+	if d.HasChange("policy_type") {
+		existing.SetDefinitionProperties.PolicyType = policy.Type(d.Get("policy_type").(string))
+	}
+
+	if d.HasChange("display_name") {
+		existing.SetDefinitionProperties.DisplayName = utils.String(d.Get("display_name").(string))
+	}
+
+	if d.HasChange("description") {
+		existing.SetDefinitionProperties.Description = utils.String(d.Get("description").(string))
+	}
+
+	if d.HasChange("metadata") {
+		metaDataString := d.Get("metadata").(string)
+		if metaDataString != "" {
+			metaData, err := structure.ExpandJsonFromString(metaDataString)
+			if err != nil {
+				return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
+			}
+			existing.SetDefinitionProperties.Metadata = metaData
+		} else {
+			existing.SetDefinitionProperties.Metadata = nil
+		}
+	}
+
+	if d.HasChange("parameters") {
+		parametersString := d.Get("parameters").(string)
+		if parametersString != "" {
+			parameters, err := expandParameterDefinitionsValueFromString(parametersString)
+			if err != nil {
+				return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+			}
+			existing.SetDefinitionProperties.Parameters = parameters
+		} else {
+			existing.SetDefinitionProperties.Parameters = nil
+		}
+	}
+
+	if d.HasChange("policy_definitions") {
+		var policyDefinitions []policy.DefinitionReference
+		err := json.Unmarshal([]byte(d.Get("policy_definitions").(string)), &policyDefinitions)
+		if err != nil {
+			return fmt.Errorf("expanding JSON for `policy_definitions`: %+v", err)
+		}
+		existing.SetDefinitionProperties.PolicyDefinitions = &policyDefinitions
+	}
+
+	if d.HasChange("policy_definition_reference") {
+		definitions, err := expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d)
+		if err != nil {
+			return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
+		}
+		existing.SetDefinitionProperties.PolicyDefinitions = definitions
+	}
+
+	if managementGroupName == "" {
+		_, err = client.CreateOrUpdate(ctx, id.Name, existing)
+	} else {
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, id.Name, existing, managementGroupName)
+	}
+
+	if err != nil {
+		return fmt.Errorf("updating Policy Set Definition %q: %+v", id.Name, err)
+	}
+
+	var resp policy.SetDefinition
+	resp, err = getPolicySetDefinitionByName(ctx, client, id.Name, managementGroupName)
+	if err != nil {
+		return fmt.Errorf("retrieving Policy Set Definition %q: %+v", id.Name, err)
+	}
+
+	d.SetId(*resp.ID)
+
+	return resourceArmPolicySetDefinitionRead(d, meta)
+}
+
 func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Policy.SetDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -327,8 +424,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	}
 
 	managementGroupName := ""
-	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
-	case parse.ScopeAtManagementGroup:
+	if scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
 		managementGroupName = scopeId.ManagementGroupName
 	}
 
@@ -437,6 +533,44 @@ func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefin
 	}
 }
 
+func expandAzureRMPolicySetDefinitionPolicyDefinitionsUpdate(d *schema.ResourceData) (*[]policy.DefinitionReference, error) {
+	result := make([]policy.DefinitionReference, 0)
+	input := d.Get("policy_definition_reference").([]interface{})
+
+	for i := range input {
+		if d.HasChange(fmt.Sprintf("policy_definition_reference.%d.parameter_values", i)) && d.HasChange(fmt.Sprintf("policy_definition_reference.%d.parameters", i)) {
+			return nil, fmt.Errorf("cannot set both `parameters` and `parameter_values`")
+		}
+		parameters := make(map[string]*policy.ParameterValuesValue)
+		if d.HasChange(fmt.Sprintf("policy_definition_reference.%d.parameters", i)) {
+			// there is change in `parameters` - the user is will to use this attribute as parameter values
+			log.Printf("[DEBUG] updating %s", fmt.Sprintf("policy_definition_reference.%d.parameters", i))
+			p := d.Get(fmt.Sprintf("policy_definition_reference.%d.parameters", i)).(map[string]interface{})
+			for k, v := range p {
+				parameters[k] = &policy.ParameterValuesValue{
+					Value: v,
+				}
+			}
+		} else {
+			// in this case, it is either parameter_values updated or no update on both, we took the value in `parameter_values` as the final value
+			log.Printf("[DEBUG] updating %s", fmt.Sprintf("policy_definition_reference.%d.parameter_values", i))
+			if p, ok := d.Get(fmt.Sprintf("policy_definition_reference.%d.parameter_values", i)).(string); ok && p != "" {
+				if err := json.Unmarshal([]byte(p), &parameters); err != nil {
+					return nil, fmt.Errorf("unmarshalling `parameter_values`: %+v", err)
+				}
+			}
+		}
+
+		result = append(result, policy.DefinitionReference{
+			PolicyDefinitionID:          utils.String(d.Get(fmt.Sprintf("policy_definition_reference.%d.policy_definition_id", i)).(string)),
+			Parameters:                  parameters,
+			PolicyDefinitionReferenceID: utils.String(d.Get(fmt.Sprintf("policy_definition_reference.%d.reference_id", i)).(string)),
+		})
+	}
+
+	return &result, nil
+}
+
 func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]policy.DefinitionReference, error) {
 	result := make([]policy.DefinitionReference, 0)
 
@@ -449,12 +583,11 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]
 				return nil, fmt.Errorf("unmarshalling `parameter_values`: %+v", err)
 			}
 		}
-		if p, ok := v["parameters"]; ok {
-			m := p.(map[string]interface{})
-			if len(parameters) > 0 && len(m) > 0 {
+		if p, ok := v["parameters"].(map[string]interface{}); ok {
+			if len(parameters) > 0 && len(p) > 0 {
 				return nil, fmt.Errorf("cannot set both `parameters` and `parameter_values`")
 			}
-			for k, value := range p.(map[string]interface{}) {
+			for k, value := range p {
 				parameters[k] = &policy.ParameterValuesValue{
 					Value: value,
 				}
