@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -370,6 +371,42 @@ func TestAccAzureRMFirewallApplicationRuleCollection_updateFirewallTags(t *testi
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "rule.0.name", "rule1"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMFirewallApplicationRuleCollection_ipGroups(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewallApplicationRuleCollection_ipGroups(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallApplicationRuleCollectionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "rule.#", "1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFirewallApplicationRuleCollection_noSource(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_application_rule_collection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMFirewallApplicationRuleCollection_noSource(data),
+				ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q and %q must be specified", "source_addresses", "source_ip_groups")),
 			},
 		},
 	})
@@ -833,6 +870,73 @@ resource "azurerm_firewall_application_rule_collection" "test" {
     source_addresses = [
       "10.0.0.0/16",
     ]
+
+    target_fqdns = [
+      "*.google.com",
+    ]
+
+    protocol {
+      port = 443
+      type = "Https"
+    }
+  }
+}
+`, template)
+}
+
+func testAccAzureRMFirewallApplicationRuleCollection_ipGroups(data acceptance.TestData) string {
+	template := testAccAzureRMFirewall_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_ip_group" "test" {
+  name                = "acctestIpGroupForFirewallAppRules"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  cidrs               = ["192.168.0.0/25", "192.168.0.192/26"]
+}
+
+resource "azurerm_firewall_application_rule_collection" "test" {
+  name                = "acctestarc"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name = "rule1"
+
+    source_ip_groups = [
+      azurerm_ip_group.test.id,
+    ]
+
+    target_fqdns = [
+      "*.google.com",
+    ]
+
+    protocol {
+      port = 443
+      type = "Https"
+    }
+  }
+}
+`, template)
+}
+
+func testAccAzureRMFirewallApplicationRuleCollection_noSource(data acceptance.TestData) string {
+	template := testAccAzureRMFirewall_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_application_rule_collection" "test" {
+  name                = "acctestarc"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name = "rule1"
 
     target_fqdns = [
       "*.google.com",

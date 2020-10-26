@@ -27,15 +27,13 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_storage_container":                  dataSourceArmStorageContainer(),
 		"azurerm_storage_management_policy":          dataSourceArmStorageManagementPolicy(),
 		"azurerm_storage_sync":                       dataSourceArmStorageSync(),
+		"azurerm_storage_sync_group":                 dataSourceArmStorageSyncGroup(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_hpc_cache":                            resourceArmHPCCache(),
-		"azurerm_hpc_cache_blob_target":                resourceArmHPCCacheBlobTarget(),
-		"azurerm_hpc_cache_nfs_target":                 resourceArmHPCCacheNFSTarget(),
 		"azurerm_storage_account":                      resourceArmStorageAccount(),
 		"azurerm_storage_account_customer_managed_key": resourceArmStorageAccountCustomerManagedKey(),
 		"azurerm_storage_account_network_rules":        resourceArmStorageAccountNetworkRules(),
@@ -49,5 +47,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_storage_table":                        resourceArmStorageTable(),
 		"azurerm_storage_table_entity":                 resourceArmStorageTableEntity(),
 		"azurerm_storage_sync":                         resourceArmStorageSync(),
+		"azurerm_storage_sync_group":                   resourceArmStorageSyncGroup(),
 	}
 }

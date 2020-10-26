@@ -327,6 +327,9 @@ func (client FunctionsClient) ListByStreamingJob(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "streamanalytics.FunctionsClient", "ListByStreamingJob", resp, "Failure responding to request")
 	}
+	if result.flr.hasNextLink() && result.flr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -179,6 +179,9 @@ func (client SQLPoolRestorePointsClient) List(ctx context.Context, resourceGroup
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "synapse.SQLPoolRestorePointsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rplr.hasNextLink() && result.rplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

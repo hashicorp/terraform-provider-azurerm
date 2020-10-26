@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -58,10 +58,12 @@ func resourceArmVirtualWan() *schema.Resource {
 				Default:  true,
 			},
 
+			// TODO 3.0: remove this property
 			"allow_vnet_to_vnet_traffic": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Default:    false,
+				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 
 			"office365_local_breakout_category": {
@@ -99,7 +101,6 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	disableVpnEncryption := d.Get("disable_vpn_encryption").(bool)
 	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
-	allowVnetToVnetTraffic := d.Get("allow_vnet_to_vnet_traffic").(bool)
 	office365LocalBreakoutCategory := d.Get("office365_local_breakout_category").(string)
 	virtualWanType := d.Get("type").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -123,7 +124,6 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 		VirtualWanProperties: &network.VirtualWanProperties{
 			DisableVpnEncryption:           utils.Bool(disableVpnEncryption),
 			AllowBranchToBranchTraffic:     utils.Bool(allowBranchToBranchTraffic),
-			AllowVnetToVnetTraffic:         utils.Bool(allowVnetToVnetTraffic),
 			Office365LocalBreakoutCategory: network.OfficeTrafficCategory(office365LocalBreakoutCategory),
 			Type:                           utils.String(virtualWanType),
 		},
@@ -182,8 +182,8 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.VirtualWanProperties; props != nil {
 		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
-		d.Set("allow_vnet_to_vnet_traffic", props.AllowVnetToVnetTraffic)
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
+		d.Set("allow_vnet_to_vnet_traffic", false)
 		d.Set("type", props.Type)
 	}
 

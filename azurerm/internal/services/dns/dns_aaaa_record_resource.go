@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -58,7 +59,7 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsIPv6Address,
 				},
-				Set:           azure.HashIPv6Address,
+				Set:           set.HashIPv6Address,
 				ConflictsWith: []string{"target_resource_id"},
 			},
 
@@ -211,7 +212,7 @@ func expandAzureRmDnsAaaaRecords(input []interface{}) *[]dns.AaaaRecord {
 	records := make([]dns.AaaaRecord, len(input))
 
 	for i, v := range input {
-		ipv6 := azure.NormalizeIPv6Address(v)
+		ipv6 := utils.NormalizeIPv6Address(v)
 		records[i] = dns.AaaaRecord{
 			Ipv6Address: &ipv6,
 		}
@@ -231,7 +232,7 @@ func flattenAzureRmDnsAaaaRecords(records *[]dns.AaaaRecord) []string {
 			continue
 		}
 
-		results = append(results, azure.NormalizeIPv6Address(*record.Ipv6Address))
+		results = append(results, utils.NormalizeIPv6Address(*record.Ipv6Address))
 	}
 	return results
 }

@@ -385,6 +385,9 @@ func (client ReplicationRecoveryPlansClient) List(ctx context.Context) (result R
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationRecoveryPlansClient", "List", resp, "Failure responding to request")
 	}
+	if result.RPCVar.hasNextLink() && result.RPCVar.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -73,6 +73,9 @@ func (client UsagesClient) List(ctx context.Context, location string) (result Us
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "signalr.UsagesClient", "List", resp, "Failure responding to request")
 	}
+	if result.ul.hasNextLink() && result.ul.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

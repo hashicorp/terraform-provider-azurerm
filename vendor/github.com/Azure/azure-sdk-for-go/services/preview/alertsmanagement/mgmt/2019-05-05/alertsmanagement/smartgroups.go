@@ -174,6 +174,9 @@ func (client SmartGroupsClient) GetAll(ctx context.Context, targetResource strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "alertsmanagement.SmartGroupsClient", "GetAll", resp, "Failure responding to request")
 	}
+	if result.sgl.hasNextLink() && result.sgl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

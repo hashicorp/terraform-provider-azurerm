@@ -482,6 +482,9 @@ func (client InstanceFailoverGroupsClient) ListByLocation(ctx context.Context, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.InstanceFailoverGroupsClient", "ListByLocation", resp, "Failure responding to request")
 	}
+	if result.ifglr.hasNextLink() && result.ifglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

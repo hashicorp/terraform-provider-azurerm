@@ -368,6 +368,9 @@ func (client DataSourcesClient) ListByWorkspace(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.DataSourcesClient", "ListByWorkspace", resp, "Failure responding to request")
 	}
+	if result.dslr.hasNextLink() && result.dslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

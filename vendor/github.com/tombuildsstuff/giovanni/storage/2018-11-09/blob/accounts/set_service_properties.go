@@ -2,11 +2,12 @@ package accounts
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
-	"net/http"
 )
 
 // SetServicePropertiesSender sends the SetServiceProperties request. The method will close the

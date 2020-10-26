@@ -28,6 +28,13 @@ func dataSourceArmFunctionAppHostKeys() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"master_key": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
+			},
+
+			"primary_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -74,6 +81,7 @@ func dataSourceArmFunctionAppHostKeysRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("master_key", res.MasterKey)
+	d.Set("primary_key", res.MasterKey)
 
 	defaultFunctionKey := ""
 	if v, ok := res.FunctionKeys["default"]; ok {

@@ -68,6 +68,7 @@ func resourceArmDedicatedHost() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"DSv3-Type1",
 					"DSv3-Type2",
+					"DSv4-Type1",
 					"ESv3-Type1",
 					"ESv3-Type2",
 					"FSv2-Type2",

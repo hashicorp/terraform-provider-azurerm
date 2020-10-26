@@ -303,6 +303,9 @@ func (client GroupsClient) List(ctx context.Context) (result GroupListResultPage
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "List", resp, "Failure responding to request")
 	}
+	if result.glr.hasNextLink() && result.glr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -413,6 +416,9 @@ func (client GroupsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	result.glr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sqlvirtualmachine.GroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.glr.hasNextLink() && result.glr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

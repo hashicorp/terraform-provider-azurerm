@@ -42,7 +42,7 @@ func NewPatchSchedulesClientWithBaseURI(baseURI string, subscriptionID string) P
 	return PatchSchedulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate create or replace the patching schedule for Redis cache (requires Premium SKU).
+// CreateOrUpdate create or replace the patching schedule for Redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the Redis cache.
@@ -128,7 +128,7 @@ func (client PatchSchedulesClient) CreateOrUpdateResponder(resp *http.Response) 
 	return
 }
 
-// Delete deletes the patching schedule of a redis cache (requires Premium SKU).
+// Delete deletes the patching schedule of a redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the redis cache.
@@ -203,7 +203,7 @@ func (client PatchSchedulesClient) DeleteResponder(resp *http.Response) (result 
 	return
 }
 
-// Get gets the patching schedule of a redis cache (requires Premium SKU).
+// Get gets the patching schedule of a redis cache.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // name - the name of the redis cache.
@@ -311,6 +311,9 @@ func (client PatchSchedulesClient) ListByRedisResource(ctx context.Context, reso
 	result.pslr, err = client.ListByRedisResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.PatchSchedulesClient", "ListByRedisResource", resp, "Failure responding to request")
+	}
+	if result.pslr.hasNextLink() && result.pslr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

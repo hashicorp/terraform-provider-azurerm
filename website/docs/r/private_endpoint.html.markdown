@@ -153,8 +153,6 @@ See the product [documentation](https://docs.microsoft.com/en-us/azure/private-l
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
-* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -191,6 +189,12 @@ A `private_dns_zone_configs` block exports:
 
 ---
 
+A `private_service_connection` block exports:
+
+* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+
+---
+
 A `record_sets` block exports:
 
 * `name` - The name of the Private DNS Zone that the config belongs to.
@@ -203,7 +207,7 @@ A `record_sets` block exports:
 
 * `ip_addresses` - A list of all IP Addresses that map to the `private_dns_zone` fqdn.
 
--> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attibutes will be empty.
+-> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attributes will be empty.
 
 ---
 

@@ -314,6 +314,9 @@ func (client GalleryApplicationsClient) ListByGallery(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.GalleryApplicationsClient", "ListByGallery", resp, "Failure responding to request")
 	}
+	if result.gal.hasNextLink() && result.gal.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

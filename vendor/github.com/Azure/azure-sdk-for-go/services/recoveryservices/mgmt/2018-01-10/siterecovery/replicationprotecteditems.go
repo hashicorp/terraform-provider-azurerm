@@ -479,6 +479,9 @@ func (client ReplicationProtectedItemsClient) List(ctx context.Context, skipToke
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rpic.hasNextLink() && result.rpic.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -597,6 +600,9 @@ func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContain
 	result.rpic, err = client.ListByReplicationProtectionContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "ListByReplicationProtectionContainers", resp, "Failure responding to request")
+	}
+	if result.rpic.hasNextLink() && result.rpic.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

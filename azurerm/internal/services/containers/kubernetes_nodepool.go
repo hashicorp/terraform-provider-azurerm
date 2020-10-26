@@ -260,7 +260,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		if minCount > 0 {
 			profile.MinCount = utils.Int32(int32(minCount))
 
-			if minCount > count {
+			if minCount > count && d.IsNewResource() {
 				return nil, fmt.Errorf("`node_count`(%d) must be equal to or greater than `min_count`(%d) when `enable_auto_scaling` is set to `true`", count, minCount)
 			}
 		} else {
@@ -392,7 +392,9 @@ func findDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfil
 				break
 			}
 		}
-	} else {
+	}
+
+	if agentPool == nil {
 		// otherwise we need to fall back to the name of the first agent pool
 		for _, v := range *input {
 			if v.Name == nil {

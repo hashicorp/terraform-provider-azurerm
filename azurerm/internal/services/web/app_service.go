@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -421,10 +420,7 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 						string(web.ScmTypeOneDrive),
 						string(web.ScmTypeTfs),
 						string(web.ScmTypeVSO),
-						// Not in the specs, but is set by Azure Pipelines
-						// https://github.com/Microsoft/azure-pipelines-tasks/blob/master/Tasks/AzureRmWebAppDeploymentV4/operations/AzureAppServiceUtility.ts#L19
-						// upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/5345
-						"VSTSRM",
+						string(web.ScmTypeVSTSRM),
 					}, false),
 				},
 
@@ -812,7 +808,7 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 				"ip_address": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validate.CIDR,
+					ValidateFunc: validation.IsCIDR,
 				},
 
 				"subnet_id": {

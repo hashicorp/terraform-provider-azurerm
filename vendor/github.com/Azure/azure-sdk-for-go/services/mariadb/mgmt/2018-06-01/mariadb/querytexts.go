@@ -177,6 +177,9 @@ func (client QueryTextsClient) ListByServer(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.QueryTextsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.qtrl.hasNextLink() && result.qtrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

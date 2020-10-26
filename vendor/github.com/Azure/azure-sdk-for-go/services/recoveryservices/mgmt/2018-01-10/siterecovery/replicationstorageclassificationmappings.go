@@ -313,6 +313,9 @@ func (client ReplicationStorageClassificationMappingsClient) List(ctx context.Co
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "List", resp, "Failure responding to request")
 	}
+	if result.scmc.hasNextLink() && result.scmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -425,6 +428,9 @@ func (client ReplicationStorageClassificationMappingsClient) ListByReplicationSt
 	result.scmc, err = client.ListByReplicationStorageClassificationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationStorageClassificationMappingsClient", "ListByReplicationStorageClassifications", resp, "Failure responding to request")
+	}
+	if result.scmc.hasNextLink() && result.scmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

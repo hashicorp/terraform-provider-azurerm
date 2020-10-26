@@ -374,6 +374,9 @@ func (client ReplicationFabricsClient) List(ctx context.Context) (result FabricC
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationFabricsClient", "List", resp, "Failure responding to request")
 	}
+	if result.fc.hasNextLink() && result.fc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

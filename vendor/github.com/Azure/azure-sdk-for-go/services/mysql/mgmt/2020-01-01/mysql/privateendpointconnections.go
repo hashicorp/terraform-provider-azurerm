@@ -355,6 +355,9 @@ func (client PrivateEndpointConnectionsClient) ListByServer(ctx context.Context,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.PrivateEndpointConnectionsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.peclr.hasNextLink() && result.peclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -333,6 +333,7 @@ func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "ip_address_type", "Private"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "network_profile_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "dns_config.#", "1"),
 				),
 			},
 		},
@@ -913,6 +914,11 @@ resource "azurerm_container_group" "test" {
     ports {
       port = 80
     }
+  }
+  dns_config {
+    nameservers    = ["reddog.microsoft.com", "somecompany.somedomain"]
+    options        = ["one:option", "two:option", "red:option", "blue:option"]
+    search_domains = ["default.svc.cluster.local."]
   }
 
   tags = {

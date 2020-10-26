@@ -160,7 +160,6 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-
 						"prefix": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -183,6 +182,11 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
+
+						"zone_redundant": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 				Set: resourceAzureRMCosmosDBAccountGeoLocationHash,
@@ -203,11 +207,13 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								"EnableCassandra",
 								"EnableGremlin",
 								"EnableTable",
+								"EnableServerless",
 								"EnableMongo",
 								"MongoDBv3.4",
 								"mongoEnableDocLevelTTL",
 								"DisableRateLimitingResponses",
 								"AllowSelfServeUpgradeToMongo36",
+								"EnableAnalyticalStorage",
 							}, true),
 						},
 					},
@@ -269,28 +275,56 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				},
 			},
 
-			"primary_master_key": {
+			"primary_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+
+			"secondary_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_readonly_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_readonly_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_master_key": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `primary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"secondary_master_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `secondary_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"primary_readonly_master_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `primary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"secondary_readonly_master_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Sensitive:  true,
+				Deprecated: "This property has been renamed to `secondary_readonly_key` and will be removed in v3.0 of the provider in support of HashiCorp's inclusive language policy which can be found here: https://discuss.hashicorp.com/t/inclusive-language-changes",
 			},
 
 			"connection_strings": {
@@ -570,7 +604,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(resp)); err != nil {
+	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(resp.DatabaseAccountGetProperties)); err != nil {
 		return fmt.Errorf("Error setting `geo_location`: %+v", err)
 	}
 
@@ -622,6 +656,8 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 		return fmt.Errorf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
 	}
+	d.Set("primary_key", keys.PrimaryMasterKey)
+	d.Set("secondary_key", keys.SecondaryMasterKey)
 	d.Set("primary_master_key", keys.PrimaryMasterKey)
 	d.Set("secondary_master_key", keys.SecondaryMasterKey)
 
@@ -635,6 +671,8 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 		return fmt.Errorf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
 	}
+	d.Set("primary_readonly_key", readonlyKeys.PrimaryReadonlyMasterKey)
+	d.Set("secondary_readonly_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
 	d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 
@@ -804,6 +842,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData) ([]documen
 		location := documentdb.Location{
 			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
+			IsZoneRedundant:  utils.Bool(data["zone_redundant"].(bool)),
 		}
 
 		locations = append(locations, location)
@@ -876,9 +915,12 @@ func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.Consisten
 	return []interface{}{result}
 }
 
-func flattenAzureRmCosmosDBAccountGeoLocations(account documentdb.DatabaseAccountGetResults) *schema.Set {
+func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccountGetProperties) *schema.Set {
 	locationSet := schema.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
+	}
+	if account == nil {
+		return &locationSet
 	}
 
 	for _, l := range *account.FailoverPolicies {
@@ -887,12 +929,28 @@ func flattenAzureRmCosmosDBAccountGeoLocations(account documentdb.DatabaseAccoun
 			"id":                id,
 			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
+			// there is not zone redundancy information in the FailoverPolicies currently, we have to search it by `id` in the Locations property.
+			"zone_redundant": findZoneRedundant(account.Locations, id),
 		}
 
 		locationSet.Add(lb)
 	}
 
 	return &locationSet
+}
+
+func findZoneRedundant(locations *[]documentdb.Location, id string) bool {
+	if locations == nil {
+		return false
+	}
+	for _, location := range *locations {
+		if location.ID != nil && *location.ID == id {
+			if location.IsZoneRedundant != nil {
+				return *location.IsZoneRedundant
+			}
+		}
+	}
+	return false
 }
 
 func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *schema.Set {
