@@ -168,13 +168,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		wrappedErr := fmt.Errorf("waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
-		if resp, err := client.Delete(ctx, resGroup, accName, name); err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				wrappedErr = fmt.Errorf("%s\nattempting to delete failed automation account: %+v", wrappedErr, err)
-			}
-		}
-		return wrappedErr
+		return fmt.Errorf("Error waiting for Module %q (Automation Account %q / Resource Group %q) to finish provisioning: %+v", name, accName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, accName, name)
