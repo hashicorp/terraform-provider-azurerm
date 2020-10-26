@@ -1,7 +1,6 @@
 package automation
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"time"
