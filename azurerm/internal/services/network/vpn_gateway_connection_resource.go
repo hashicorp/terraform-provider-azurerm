@@ -62,6 +62,12 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 				ValidateFunc: validate.VpnSiteID,
 			},
 
+			"internet_security_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			// TODO: make it settable once the routetable PR is ready
 			// https://github.com/terraform-providers/terraform-provider-azurerm/pull/8939
 			"routing_configuration": {
@@ -77,8 +83,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
-								Type:     schema.TypeString,
-								Computed: true,
+								Type: schema.TypeString,
 							},
 						},
 					},
@@ -94,14 +99,14 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"vpn_site_link_id": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
+							// The vpn site link associated with one link connection can not be updated
+							ForceNew:     true,
 							ValidateFunc: validate.VpnSiteLinkID,
 						},
 
@@ -137,6 +142,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 
 						"bgp_enabled": {
 							Type:     schema.TypeBool,
+							ForceNew: true,
 							Optional: true,
 							Default:  false,
 						},
@@ -154,12 +160,14 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"sa_lifetime_sec": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(300, 172799),
 									},
 									"sa_data_size_kb": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1024, 2147483647),
 									},
 									"ipsec_encryption_algorithm": {
 										Type:     schema.TypeString,
@@ -204,7 +212,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 									},
 
 									"ike_integrity_algorithm": {
-										Type:     schema.TypeInt,
+										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.IkeIntegrityMD5),
@@ -289,16 +297,16 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 		}
 
 		if resp.ID != nil && *resp.ID != "" {
-			return tf.ImportAsExistsError("azurerm_vpn_gateway_connection_resource", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_vpn_gateway_connection", *resp.ID)
 		}
 	}
 
-	// TODO: d.Get() && Create
 	param := network.VpnConnection{
 		Name: &name,
 		VpnConnectionProperties: &network.VpnConnectionProperties{
-			RemoteVpnSite:      &network.SubResource{ID: utils.String(d.Get("remote_vpn_site_id").(string))},
-			VpnLinkConnections: expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link_connection").([]interface{})),
+			EnableInternetSecurity: utils.Bool(d.Get("internet_security_enabled").(bool)),
+			RemoteVpnSite:          &network.SubResource{ID: utils.String(d.Get("remote_vpn_site_id").(string))},
+			VpnLinkConnections:     expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link_connection").([]interface{})),
 			// TODO:
 			//RoutingConfiguration:           &network.RoutingConfiguration{...},
 		},
@@ -368,8 +376,13 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 				vpnSiteId = theVpnSiteId.ID(subscriptionId)
 			}
 		}
-
 		d.Set("remote_vpn_site_id", vpnSiteId)
+
+		enableInternetSecurity := false
+		if prop.EnableInternetSecurity != nil {
+			enableInternetSecurity = *prop.EnableInternetSecurity
+		}
+		d.Set("internet_security_enabled", enableInternetSecurity)
 
 		if err := d.Set("routing_configuration", flattenArmVpnGatewayConnectionRoutingConfiguration(prop.RoutingConfiguration)); err != nil {
 			return fmt.Errorf(`setting "routing_configuration": %v`, err)
@@ -412,6 +425,7 @@ func expandArmVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[
 		v := network.VpnSiteLinkConnection{
 			Name: utils.String(e["name"].(string)),
 			VpnSiteLinkConnectionProperties: &network.VpnSiteLinkConnectionProperties{
+				VpnSiteLink:                    &network.SubResource{ID: utils.String(e["vpn_site_link_id"].(string))},
 				RoutingWeight:                  utils.Int32(int32(e["route_weight"].(int))),
 				VpnConnectionProtocolType:      network.VirtualNetworkGatewayConnectionProtocol(e["protocol"].(string)),
 				ConnectionBandwidth:            utils.Int32(int32(e["bandwidth_mbps"].(int))),
@@ -444,6 +458,11 @@ func flattenArmVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSi
 		name := ""
 		if e.Name != nil {
 			name = *e.Name
+		}
+
+		vpnSiteLinkId := ""
+		if e.VpnSiteLink != nil && e.VpnSiteLink.ID != nil {
+			vpnSiteLinkId = *e.VpnSiteLink.ID
 		}
 
 		routeWeight := 0
@@ -483,6 +502,7 @@ func flattenArmVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSi
 
 		v := map[string]interface{}{
 			"name":                              name,
+			"vpn_site_link_id":                  vpnSiteLinkId,
 			"route_weight":                      routeWeight,
 			"protocol":                          string(e.VpnConnectionProtocolType),
 			"bandwidth_mbps":                    bandwidth,
