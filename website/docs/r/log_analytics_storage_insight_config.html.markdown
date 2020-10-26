@@ -19,15 +19,30 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
-  name = "example-workspace"
+  name                = "exampleworkspace"
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "examplestoracc"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_log_analytics_storage_insight_config" "example" {
-  name = "example-storageinsightconfig"
-  resource_group_name = azurerm_resource_group.example.name
-  workspace_name = azurerm_log_analytics_workspace.example.name
+  name                  = "example-storageinsightconfig"
+  resource_group_name   = azurerm_resource_group.example.name
+  workspace_resource_id = azurerm_log_analytics_workspace.example.id
+
+  storage_account {
+    id  = azurerm_storage_account.example.id
+    key = azurerm_storage_account.example.primary_access_key
+  }
 }
 ```
 
@@ -41,14 +56,23 @@ The following arguments are supported:
 
 * `workspace_resource_id` - (Required) The resource ID of the workspace to create the Log Analytics Storage Insight Config within. Changing this forces a new Log Analytics Storage Insight Config to be created.
 
-* `containers` - (Optional) The names of the blob containers that the workspace should read.
+* `storage_account` - (Required) A `storage_account` block as defined below.
 
-* `storage_account_resource_id` - (Required)  The storage account resource id.
+* `blob_container_names` - (Optional) The names of the blob containers that the workspace should read.
 
-* `table_names` - (Required) The names of the Azure tables that the workspace should read.
+* `table_names` - (Optional) The names of the Azure tables that the workspace should read.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Log Analytics Storage Insight Config.
 
+---
+
+The `storage_account` block supports:
+
+* `id` - (Required) The resource ID of the storage account to be used by this Log Analytics Storage Insight Config.
+
+* `key` - (Required) The storage access key to be used to connect to the storage account.
+
+---
 
 ## Attributes Reference
 
@@ -61,8 +85,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Storage Insight Config.
-* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Storage Insight Config.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Storage Insight Config.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Storage Insight Config.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Storage Insight Config.
 
 ## Import

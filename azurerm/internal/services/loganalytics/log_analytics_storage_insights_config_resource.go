@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
@@ -46,13 +47,36 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 				ValidateFunc: validate.LogAnalyticsStorageInsightConfigName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// must ignore case since API lowercases all returned data
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"workspace_resource_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     azure.ValidateResourceID,
+			},
+
+			"storage_account": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"key": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.IsBase64Encoded,
+						},
+					},
+				},
 			},
 
 			"blob_container_names": {
@@ -61,12 +85,6 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-			},
-
-			"storage_account_resource_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"table_names": {
@@ -109,12 +127,19 @@ func resourceArmLogAnalyticsStorageInsightConfigCreateUpdate(d *schema.ResourceD
 
 	parameters := operationalinsights.StorageInsight{
 		StorageInsightProperties: &operationalinsights.StorageInsightProperties{
-			Containers:     utils.ExpandStringSlice(d.Get("blob_container_names").(*schema.Set).List()),
-			StorageAccount: expandArmStorageInsightConfigStorageAccount(d.Get("storage_account_resource_id").([]interface{})),
-			Tables:         utils.ExpandStringSlice(d.Get("table_names").(*schema.Set).List()),
+			StorageAccount: expandArmStorageInsightConfigStorageAccount(d.Get("storage_account").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if _, ok := d.GetOk("table_names"); ok {
+		parameters.StorageInsightProperties.Tables = utils.ExpandStringSlice(d.Get("table_names").(*schema.Set).List())
+	}
+
+	if _, ok := d.GetOk("blob_container_names"); ok {
+		parameters.StorageInsightProperties.Containers = utils.ExpandStringSlice(d.Get("blob_container_names").(*schema.Set).List())
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, name, parameters); err != nil {
 		return fmt.Errorf("creating/updating Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
 	}
@@ -151,18 +176,23 @@ func resourceArmLogAnalyticsStorageInsightConfigRead(d *schema.ResourceData, met
 		}
 		return fmt.Errorf("retrieving Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
 	}
+
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_name", id.WorkspaceName)
-	d.Set("e_tag", resp.ETag)
+	d.Set("workspace_resource_id", id.WorkspaceID)
+
+	// the API does not return the key so we need to pull it from the config
+	sa := d.Get("storage_account").([]interface{})
+	v := sa[0].(map[string]interface{})
+
 	if props := resp.StorageInsightProperties; props != nil {
-		d.Set("containers", utils.FlattenStringSlice(props.Containers))
-		if err := d.Set("storage_account", flattenArmStorageInsightConfigStorageAccount(props.StorageAccount)); err != nil {
+		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))
+		if err := d.Set("storage_account", flattenArmStorageInsightConfigStorageAccount(props.StorageAccount, v["key"].(string))); err != nil {
 			return fmt.Errorf("setting `storage_account`: %+v", err)
 		}
-		d.Set("tables", utils.FlattenStringSlice(props.Tables))
+		d.Set("table_names", utils.FlattenStringSlice(props.Tables))
 	}
-	d.Set("type", resp.Type)
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -186,24 +216,30 @@ func expandArmStorageInsightConfigStorageAccount(input []interface{}) *operation
 	if len(input) == 0 {
 		return nil
 	}
+
 	v := input[0].(map[string]interface{})
 	return &operationalinsights.StorageAccount{
+		ID:  utils.String(v["id"].(string)),
 		Key: utils.String(v["key"].(string)),
 	}
 }
 
-func flattenArmStorageInsightConfigStorageAccount(input *operationalinsights.StorageAccount) []interface{} {
+// you must pass the storage account key to the the flatten since the API only returns the id of the storage account
+func flattenArmStorageInsightConfigStorageAccount(input *operationalinsights.StorageAccount, key string) *[]interface{} {
+	output := make([]interface{}, 0)
 	if input == nil {
-		return make([]interface{}, 0)
+		return &output
 	}
 
-	var key string
-	if input.Key != nil {
-		key = *input.Key
+	var id string
+	if input.ID != nil {
+		id = *input.ID
 	}
-	return []interface{}{
-		map[string]interface{}{
-			"key": key,
-		},
-	}
+
+	output = append(output, map[string]interface{}{
+		"id":  id,
+		"key": key,
+	})
+
+	return &output
 }
