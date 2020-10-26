@@ -95,8 +95,8 @@ func resourceArmVpnSite() *schema.Resource {
 			},
 
 			"vpn_site_link": {
-				Type:     schema.TypeSet,
-				Required: true,
+				Type:     schema.TypeList,
+				Optional: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -145,6 +145,10 @@ func resourceArmVpnSite() *schema.Resource {
 								},
 							},
 						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -186,7 +190,7 @@ func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) er
 			VirtualWan:       &network.SubResource{ID: utils.String(d.Get("virtual_wan_id").(string))},
 			DeviceProperties: expandArmVpnSiteDeviceProperties(d.Get("device_property").([]interface{})),
 			AddressSpace:     expandArmVpnSiteAddressSpace(d.Get("address_spaces").(*schema.Set).List()),
-			VpnSiteLinks:     expandArmVpnSiteLinks(d.Get("vpn_site_link").(*schema.Set).List()),
+			VpnSiteLinks:     expandArmVpnSiteLinks(d.Get("vpn_site_link").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -348,6 +352,10 @@ func flattenArmVpnSiteAddressSpace(input *network.AddressSpace) []interface{} {
 }
 
 func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
+	if len(input) == 0 {
+		return nil
+	}
+
 	result := make([]network.VpnSiteLink, 0)
 	for _, e := range input {
 		if e == nil {
@@ -395,6 +403,11 @@ func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 			name = *e.Name
 		}
 
+		var id string
+		if e.ID != nil {
+			id = *e.ID
+		}
+
 		var (
 			ipAddress        string
 			fqdn             string
@@ -426,6 +439,7 @@ func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 
 		link := map[string]interface{}{
 			"name":               name,
+			"id":                 id,
 			"link_provider_name": linkProviderName,
 			"link_speed_mbps":    linkSpeed,
 			"ip_address":         ipAddress,

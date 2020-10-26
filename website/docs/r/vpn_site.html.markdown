@@ -102,6 +102,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the VPN Site.
 
+* `vpn_site_link` - One or more `vpn_site_link` blocks as defined below.
+
+---
+
+A `vpn_site_link` block supports the following:
+
+* `id` - The ID of the VPN Site Link.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
