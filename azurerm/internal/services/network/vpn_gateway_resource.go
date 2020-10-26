@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -174,7 +176,7 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVPNGatewayID(d.Id())
+	id, err := parse.VPNGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -222,7 +224,7 @@ func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVPNGatewayID(d.Id())
+	id, err := parse.VPNGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
