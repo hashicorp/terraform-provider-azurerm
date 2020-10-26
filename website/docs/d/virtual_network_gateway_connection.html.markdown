@@ -45,12 +45,16 @@ output "virtual_network_gateway_connection_id" {
     Express Route Circuit. This field is present only if the type is an
     ExpressRoute connection.
 
+* `dpd_timeout_seconds` - (Optional) The dead peer detection timeout of this connection in seconds. Changing this forces a new resource to be created.
+
 * `express_route_circuit_id` - The ID of the Express Route Circuit
     (i.e. when `type` is `ExpressRoute`).
 
 * `peer_virtual_network_gateway_id` - The ID of the peer virtual
     network gateway when a VNet-to-VNet connection (i.e. when `type`
     is `Vnet2Vnet`). 
+
+* `use_local_azure_ip_address` - (Optional) Use private local Azure IP for the connection. Changing this forces a new resource to be created.
 
 * `local_network_gateway_id` - The ID of the local network gateway
     when a Site-to-Site connection (i.e. when `type` is `IPsec`).
