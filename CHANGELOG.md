@@ -10,6 +10,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_container_group` - add support for `volume.x.git_repo` [GH-7924]
 * `azurerm_iothub` - support for the `endpoint.resource_group` property [GH-8032]
 
 BUG FIXES: 
