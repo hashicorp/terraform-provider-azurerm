@@ -195,6 +195,42 @@ func resourceArmKeyVault() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"private_endpoint_connection": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"private_endpoint_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"connection_state": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"status": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"description": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"action_required": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -613,6 +649,10 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
+
+		if err := d.Set("private_endpoint_connection", flattenKeyVaultPrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
+			return fmt.Errorf("Error setting `private_endpoint_connection` for KeyVault %q: %+v", *resp.Name, err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -833,6 +873,47 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	output["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, virtualNetworkRules)
 
 	return []interface{}{output}
+}
+
+func flattenKeyVaultPrivateEndpointConnections(input *[]keyvault.PrivateEndpointConnectionItem) []interface{} {
+	if input == nil {
+		return []interface{}{
+			map[string]interface{}{},
+		}
+	}
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		if v.PrivateEndpointConnectionProperties == nil {
+			continue
+		}
+		var privateEndpointId string
+		if v.PrivateEndpointConnectionProperties.PrivateEndpoint != nil && v.PrivateEndpointConnectionProperties.PrivateEndpoint.ID != nil {
+			privateEndpointId = *v.PrivateEndpointConnectionProperties.PrivateEndpoint.ID
+		}
+		connectionState := []interface{}{}
+		if state := v.PrivateEndpointConnectionProperties.PrivateLinkServiceConnectionState; state != nil {
+			var description, actionRequired string
+			if state.Description != nil {
+				description = *state.Description
+			}
+			if state.ActionRequired != nil {
+				actionRequired = *state.ActionRequired
+			}
+			connectionState = []interface{}{
+				map[string]interface{}{
+					"status":          string(state.Status),
+					"description":     description,
+					"action_required": actionRequired,
+				},
+			}
+		}
+		result = append(result, map[string]interface{}{
+			"private_endpoint_id": privateEndpointId,
+			"connection_state":    connectionState,
+		})
+	}
+
+	return result
 }
 
 func optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location string) string {

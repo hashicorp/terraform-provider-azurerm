@@ -158,6 +158,26 @@ The following attributes are exported:
 
 * `vault_uri` - The URI of the Key Vault, used for performing operations on keys and secrets.
 
+* `private_endpoint_connection` - One or more `private_endpoint_connection` blocks as defined below.
+
+---
+
+A `private_endpoint_connection` block exports the following:
+
+* `private_endpoint_id` - The resource id of Private Endpoint.
+
+* `connection_state` - A `connection_state` block as defined below.
+
+---
+
+A `connection_state` block exports the following:
+
+* `status` - The status of the Private Endpoint Connection.
+
+* `description` - The description for approval or rejection of the Private Endpoint Connection.
+
+* `action_required` - The message indicating if changes on the service provider require any updates on the consumer.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
