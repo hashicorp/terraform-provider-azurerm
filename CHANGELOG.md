@@ -8,6 +8,10 @@ FEATURES:
 
 **New Resource:** `azurerm_log_analytics_data_export_rule` [GH-8995]
 
+IMPROVEMENTS:
+
+* `azurerm_iothub` - support for the `endpoint.resource_group` property [GH-8032]
+
 BUG FIXES: 
 
 * `azurerm_api_management_api` - ensure `subscription_required` defaults to the more secure `true` value as well revery to `v2.15` and lower's behaviour [GH-7963]
