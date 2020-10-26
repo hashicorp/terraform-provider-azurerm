@@ -32,6 +32,7 @@ var services = mapOf(
         "eventgrid" to "EventGrid",
         "eventhub" to "EventHub",
         "frontdoor" to "FrontDoor",
+        "hpccache" to "HPC Cache",
         "hsm" to "Hardware Security Module",
         "hdinsight" to "HDInsight",
         "healthcare" to "Health Care",

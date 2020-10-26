@@ -213,6 +213,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								"mongoEnableDocLevelTTL",
 								"DisableRateLimitingResponses",
 								"AllowSelfServeUpgradeToMongo36",
+								"EnableAnalyticalStorage",
 							}, true),
 						},
 					},

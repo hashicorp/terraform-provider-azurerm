@@ -1,4 +1,4 @@
-package desktopvirtualization
+package hpccache
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -6,15 +6,15 @@ import (
 
 type Registration struct{}
 
-// Registration - Name is the name of this Service
+// Name is the name of this Service
 func (r Registration) Name() string {
-	return "Desktop Virtualization"
+	return "HPC Cache"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Desktop Virtualization",
+		"Storage",
 	}
 }
 
@@ -26,9 +26,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_virtual_desktop_workspace":                               resourceArmDesktopVirtualizationWorkspace(),
-		"azurerm_virtual_desktop_host_pool":                               resourceArmVirtualDesktopHostPool(),
-		"azurerm_virtual_desktop_application_group":                       resourceArmVirtualDesktopApplicationGroup(),
-		"azurerm_virtual_desktop_workspace_application_group_association": resourceArmVirtualDesktopWorkspaceApplicationGroupAssociation(),
+		"azurerm_hpc_cache":             resourceArmHPCCache(),
+		"azurerm_hpc_cache_blob_target": resourceArmHPCCacheBlobTarget(),
+		"azurerm_hpc_cache_nfs_target":  resourceArmHPCCacheNFSTarget(),
 	}
 }

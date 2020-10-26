@@ -1,4 +1,4 @@
-package storage
+package hpccache
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -105,7 +105,7 @@ func resourceArmHPCCache() *schema.Resource {
 }
 
 func resourceArmHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.CachesClient
+	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -173,7 +173,7 @@ func resourceArmHPCCacheCreateOrUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.CachesClient
+	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -217,7 +217,7 @@ func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.CachesClient
+	client := meta.(*clients.Client).HPCCache.CachesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
