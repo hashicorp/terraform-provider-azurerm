@@ -981,19 +981,20 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{}))
 		if gitRepoVolume != nil {
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
-				return nil, nil, fmt.Errorf("only one of git repo volume or storage account volume could be specified")
+				return nil, nil, fmt.Errorf("only one of `git_repo` volume or `share_name`, `storage_account_name`, and `storage_account_key` can be specified")
 			}
 			cv.GitRepo = gitRepoVolume
 		} else {
-			if shareName != "" && storageAccountName != "" && storageAccountKey != "" {
-				cv.AzureFile = &containerinstance.AzureFileVolume{
-					ShareName:          utils.String(shareName),
-					ReadOnly:           utils.Bool(readOnly),
-					StorageAccountName: utils.String(storageAccountName),
-					StorageAccountKey:  utils.String(storageAccountKey),
-				}
-			} else if shareName != "" || storageAccountName == "" || storageAccountKey != "" {
-				return nil, nil, fmt.Errorf("if using storage account volume, `share_name`, `storage_account_name`, `storage_account_key` should be specified")
+			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
+				return nil, nil, fmt.Errorf("one of `git_repo` or `share_name`, `storage_account_name`, and `storage_account_key` must be specified")
+			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
+				return nil, nil, fmt.Errorf("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
+			}
+			cv.AzureFile = &containerinstance.AzureFileVolume{
+				ShareName:          utils.String(shareName),
+				ReadOnly:           utils.Bool(readOnly),
+				StorageAccountName: utils.String(storageAccountName),
+				StorageAccountKey:  utils.String(storageAccountKey),
 			}
 		}
 
