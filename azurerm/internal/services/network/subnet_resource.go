@@ -2,16 +2,12 @@ package network
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/go-autorest/autorest"
+	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"log"
-	"net/http"
-	"strings"
-	"time"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -20,6 +16,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
+	"reflect"
+	"strings"
+	"time"
 )
 
 var SubnetResourceName = "azurerm_subnet"
@@ -422,15 +422,24 @@ func subnetDeleteStateRefreshFunc(ctx context.Context, client *network.SubnetsCl
 	return func() (interface{}, string, error) {
 		future, err := client.Delete(ctx, resourceGroup, networkName, name)
 		if err != nil {
-			if r := future.Response(); r.StatusCode == http.StatusBadRequest {
-				var e map[string]interface{}
-				if parseErr := json.Unmarshal([]byte(err.Error()), &e); parseErr != nil {
-					return nil, "", fmt.Errorf("can't parse in Error Message: %+v", parseErr)
+			if e, ok := err.(autorest.DetailedError); ok {
+				serviceError, ok := e.Original.(autorestAzure.ServiceError)
+				log.Printf("Original %s", e.Original)
+				log.Printf("Original Type %s", reflect.TypeOf(e.Original))
+				log.Printf("case value %s,bool %s", serviceError, ok)
+
+				var se autorestAzure.ServiceError
+				if parseErr := se.UnmarshalJSON([]byte(e.Original.Error())); parseErr != nil {
+					return nil, "", fmt.Errorf("can not parse %q", e.Original.Error())
 				}
-				if v, ok := e["Code"]; ok && v == "InUseSubnetCannotBeDeleted" {
+				if se.Code == "InUseSubnetCannotBeDeleted" {
 					return nil, "InUse", nil
 				}
-				return nil, "", err
+				if serviceError, ok := e.Original.(autorestAzure.ServiceError); ok {
+					if serviceError.Code == "InUseSubnetCannotBeDeleted" {
+						return nil, "InUse", nil
+					}
+				}
 			}
 			if response.WasNotFound(future.Response()) {
 				return nil, "Deleted", nil
