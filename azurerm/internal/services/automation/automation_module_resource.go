@@ -152,7 +152,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 
 			if properties := resp.ModuleProperties; properties != nil {
 				if properties.Error != nil && properties.Error.Message != nil && *properties.Error.Message != "" {
-					return resp, string(properties.ProvisioningState), errors.New(*properties.Error.Message)
+					return resp, string(properties.ProvisioningState), fmt.Errorf(*properties.Error.Message)
 				}
 				return resp, string(properties.ProvisioningState), nil
 			}
