@@ -8,7 +8,6 @@ on:
       - '.github/workflows/**'
 
 jobs:
-
   website-lint:
     runs-on: ubuntu-latest
     steps:

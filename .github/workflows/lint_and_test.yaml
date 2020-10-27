@@ -9,18 +9,6 @@ on:
       - '.github/workflows/**'
 
 jobs:
-  configure:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.14.5'
-      - run: bash scripts/gogetcookie.sh
-      - run: make tools
-
   lintrest:
     runs-on: ubuntu-latest
     steps:
