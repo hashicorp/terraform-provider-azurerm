@@ -167,11 +167,11 @@ resource "azurerm_vpn_gateway_connection" "test" {
   remote_vpn_site_id = azurerm_vpn_site.test.id
   vpn_link_connection {
     name             = "link1"
-    vpn_site_link_id = azurerm_vpn_site.test.vpn_site_link[0].id
+    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
   }
   vpn_link_connection {
     name             = "link2"
-    vpn_site_link_id = azurerm_vpn_site.test.vpn_site_link[1].id
+    vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
 }
 `, template, data.RandomInteger)
@@ -188,7 +188,7 @@ resource "azurerm_vpn_gateway_connection" "test" {
   remote_vpn_site_id = azurerm_vpn_site.test.id
   vpn_link_connection {
     name             = "link1"
-    vpn_site_link_id = azurerm_vpn_site.test.vpn_site_link[0].id
+    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
     ipsec_policy {
       sa_lifetime_sec            = 300
       sa_data_size_kb            = 1024
@@ -210,7 +210,7 @@ resource "azurerm_vpn_gateway_connection" "test" {
 
   vpn_link_connection {
     name             = "link3"
-    vpn_site_link_id = azurerm_vpn_site.test.vpn_site_link[1].id
+    vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
 }
 `, template, data.RandomInteger)
@@ -274,11 +274,11 @@ resource "azurerm_vpn_site" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_wan_id      = azurerm_virtual_wan.test.id
-  vpn_site_link {
+  link {
     name       = "link1"
     ip_address = "10.0.0.1"
   }
-  vpn_site_link {
+  link {
     name       = "link2"
     ip_address = "10.0.0.2"
   }
