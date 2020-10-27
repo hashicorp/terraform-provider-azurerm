@@ -75,6 +75,16 @@ A `bgp_settings` block supports the following:
 
 * `peer_weight` - (Required) The weight added to Routes learned from this BGP Speaker. Changing this forces a new resource to be created.
 
+* `bgp_peering_addresses` - (Optional) One or more `bgp_peering_addresses` block as defined below.
+
+---
+
+A `bgp_peering_addresses` block supports the following:
+
+* `ip_configuration_id` - (Required) The ID of IP configuration which belongs to gateway.
+
+* `custom_bgp_ip_addresses` - (Required) The list of custom BGP peering addresses which belong to IP configuration.
+
 ## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
@@ -88,6 +98,16 @@ In addition to the arguments above, the following attributes are exported:
 A `bgp_settings` block exports the following:
 
 * `bgp_peering_address` - The Address which should be used for the BGP Peering.
+
+* `bgp_peering_addresses` - One or more `bgp_peering_addresses` block as defined below.
+
+---
+
+A `bgp_peering_addresses` block exports the following:
+
+* `default_bgp_ip_addresses` - The list of default BGP peering addresses which belong to IP configuration.
+
+* `tunnel_ip_addresses` - The list of tunnel public IP addresses which belong to IP configuration.
 
 ## Timeouts
 

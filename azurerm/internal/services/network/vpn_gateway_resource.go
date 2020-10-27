@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -15,7 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -60,6 +60,7 @@ func resourceArmVPNGateway() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"asn": {
@@ -77,6 +78,45 @@ func resourceArmVPNGateway() *schema.Resource {
 						"bgp_peering_address": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+
+						"bgp_peering_addresses": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_configuration_id": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"custom_bgp_ip_addresses": {
+										Type:     schema.TypeSet,
+										Required: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: commonValidate.IPv4Address,
+										},
+									},
+
+									"default_bgp_ip_addresses": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"tunnel_ip_addresses": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -116,7 +156,7 @@ func resourceArmVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
-	bgpSettings := expandVPNGatewayBGPSettings(bgpSettingsRaw)
+	bgpSettings := expandVPNGatewayBGPSettings(bgpSettingsRaw, true)
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	scaleUnit := d.Get("scale_unit").(int)
@@ -138,25 +178,20 @@ func resourceArmVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
-	log.Printf("[DEBUG] Waiting for Virtual Hub %q (Resource Group %q) to become available", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
-		Pending:                   []string{"pending"},
-		Target:                    []string{"available"},
-		Refresh:                   vpnGatewayWaitForCreatedRefreshFunc(ctx, client, resourceGroup, name),
-		Delay:                     30 * time.Second,
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 3,
+	if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
+		return err
 	}
 
-	if d.IsNewResource() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-	} else {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for creation of Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+	// `vpnGatewayParameters.Properties.bgpSettings.bgpPeeringAddress` customer cannot provide this field during create. This will be set with default value once gateway is created.
+	// it could only be updated
+	if d.HasChange("bgp_settings.0.bgp_peering_addresses") {
+		parameters.VpnGatewayProperties.BgpSettings = expandVPNGatewayBGPSettings(bgpSettingsRaw, false)
+		if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
+			return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err := waitForCompletion(d, ctx, client, resourceGroup, name); err != nil {
+			return err
+		}
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -248,20 +283,59 @@ func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func expandVPNGatewayBGPSettings(input []interface{}) *network.BgpSettings {
+func waitForCompletion(d *schema.ResourceData, ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) error {
+	log.Printf("[DEBUG] Waiting for Virtual Hub %q (Resource Group %q) to become available", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"pending"},
+		Target:                    []string{"available"},
+		Refresh:                   vpnGatewayWaitForCreatedRefreshFunc(ctx, client, resourceGroup, name),
+		Delay:                     30 * time.Second,
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 3,
+	}
+
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for creation of Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
+}
+
+func expandVPNGatewayBGPSettings(input []interface{}, create bool) *network.BgpSettings {
 	if len(input) == 0 {
 		return nil
 	}
 
 	val := input[0].(map[string]interface{})
-
-	asn := val["asn"].(int)
-	peerWeight := val["peer_weight"].(int)
-
-	return &network.BgpSettings{
-		Asn:        utils.Int64(int64(asn)),
-		PeerWeight: utils.Int32(int32(peerWeight)),
+	result := &network.BgpSettings{
+		Asn:        utils.Int64(int64(val["asn"].(int))),
+		PeerWeight: utils.Int32(int32(val["peer_weight"].(int))),
 	}
+	if !create {
+		result.BgpPeeringAddresses = expandVPNGatewayIPConfigurationBgpPeeringAddress(val["bgp_peering_addresses"].(*schema.Set).List())
+	}
+	return result
+}
+
+func expandVPNGatewayIPConfigurationBgpPeeringAddress(input []interface{}) *[]network.IPConfigurationBgpPeeringAddress {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	result := make([]network.IPConfigurationBgpPeeringAddress, 0)
+	for _, v := range input {
+		val := v.(map[string]interface{})
+		result = append(result, network.IPConfigurationBgpPeeringAddress{
+			IpconfigurationID:    utils.String(val["ip_configuration_id"].(string)),
+			CustomBgpIPAddresses: utils.ExpandStringSlice(val["custom_bgp_ip_addresses"].(*schema.Set).List()),
+		})
+	}
+	return &result
 }
 
 func flattenVPNGatewayBGPSettings(input *network.BgpSettings) []interface{} {
@@ -286,11 +360,33 @@ func flattenVPNGatewayBGPSettings(input *network.BgpSettings) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"asn":                 asn,
-			"bgp_peering_address": bgpPeeringAddress,
-			"peer_weight":         peerWeight,
+			"asn":                   asn,
+			"bgp_peering_address":   bgpPeeringAddress,
+			"bgp_peering_addresses": flattenVPNGatewayIPConfigurationBgpPeeringAddress(input.BgpPeeringAddresses),
+			"peer_weight":           peerWeight,
 		},
 	}
+}
+
+func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input *[]network.IPConfigurationBgpPeeringAddress) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	result := make([]interface{}, 0)
+	for _, v := range *input {
+		ipConfigurationID := ""
+		if v.IpconfigurationID != nil {
+			ipConfigurationID = *v.IpconfigurationID
+		}
+
+		result = append(result, map[string]interface{}{
+			"ip_configuration_id":      ipConfigurationID,
+			"custom_bgp_ip_addresses":  utils.FlattenStringSlice(v.CustomBgpIPAddresses),
+			"default_bgp_ip_addresses": utils.FlattenStringSlice(v.DefaultBgpIPAddresses),
+			"tunnel_ip_addresses":      utils.FlattenStringSlice(v.TunnelIPAddresses),
+		})
+	}
+	return result
 }
 
 func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) resource.StateRefreshFunc {
