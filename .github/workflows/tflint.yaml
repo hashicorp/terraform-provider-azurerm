@@ -20,5 +20,5 @@ jobs:
           go-version: '1.14.5'
       - run: bash scripts/gogetcookie.sh
       - run: make tools
-      - run: TRAVIS=ci make tflint
+      - run: make tflint
 
