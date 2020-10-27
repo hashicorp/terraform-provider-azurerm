@@ -55,10 +55,10 @@ func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"workspace_resource_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     azure.ValidateResourceID,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 				// https://github.com/Azure/azure-rest-api-specs/issues/9633
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
