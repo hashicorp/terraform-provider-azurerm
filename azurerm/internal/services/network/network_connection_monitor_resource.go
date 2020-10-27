@@ -82,6 +82,11 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
+												"address": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+
 												"type": {
 													Type:     schema.TypeString,
 													Optional: true,
@@ -89,11 +94,6 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(network.AgentAddress),
 													}, false),
-												},
-
-												"address": {
-													Type:     schema.TypeString,
-													Optional: true,
 												},
 											},
 										},
@@ -120,11 +120,6 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				},
 			},
 
-			"notes": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
 			"test_configuration": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -143,13 +138,6 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 								string(network.ConnectionMonitorTestConfigurationProtocolHTTP),
 								string(network.ConnectionMonitorTestConfigurationProtocolIcmp),
 							}, false),
-						},
-
-						"test_frequency_sec": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      60,
-							ValidateFunc: validation.IntBetween(30, 1800),
 						},
 
 						"http_configuration": {
@@ -281,6 +269,13 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 								},
 							},
 						},
+
+						"test_frequency_sec": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      60,
+							ValidateFunc: validation.IntBetween(30, 1800),
+						},
 					},
 				},
 			},
@@ -328,6 +323,62 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				},
 			},
 
+			"auto_start": {
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "The field is not supported as the API has deprecated it",
+			},
+
+			"destination": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				Deprecated: "The field is not supported as the API has deprecated it",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"address": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Computed:      true,
+							ConflictsWith: []string{"destination.0.virtual_machine_id"},
+							Deprecated:    "The field is not supported as the API has deprecated it",
+						},
+
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.PortNumber,
+							Deprecated:   "The field is not supported as the API has deprecated it",
+						},
+
+						"virtual_machine_id": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Computed:      true,
+							ValidateFunc:  azure.ValidateResourceID,
+							ConflictsWith: []string{"destination.0.address"},
+							Deprecated:    "The field is not supported as the API has deprecated it",
+						},
+					},
+				},
+			},
+
+			"interval_in_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(30),
+				Deprecated:   "The field is not supported as the API has deprecated it",
+			},
+
+			"notes": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"output_workspace_resource_ids": {
 				Type:       schema.TypeSet,
 				Optional:   true,
@@ -336,6 +387,33 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
+				},
+			},
+
+			"source": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				Deprecated: "The field is not supported as the API has deprecated it",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.PortNumberOrZero,
+							Deprecated:   "The field is not supported as the API has deprecated it",
+						},
+
+						"virtual_machine_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							Deprecated:   "The field is not supported as the API has deprecated it",
+						},
+					},
 				},
 			},
 
@@ -425,6 +503,10 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 			return nil
 		}
 		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
+	}
+
+	if resp.ConnectionMonitorType == network.SingleSourceDestination {
+		return fmt.Errorf("reading Connection Monitor %q (Watcher %q / Resource Group %q): the resource created via API version 2019-06-01 or lower isn't compatible to this version", id.Name, id.WatcherName, id.ResourceGroup)
 	}
 
 	d.Set("name", id.Name)
