@@ -8,7 +8,8 @@ on:
       - '.github/workflows/**'
 
 jobs:
-  configure:
+
+  website-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,15 +18,15 @@ jobs:
           go-version: '1.14.5'
       - run: bash scripts/gogetcookie.sh
       - run: make tools
-
-  website-lint:
-    needs: configure
-    runs-on: ubuntu-latest
-    steps:
       - run: make website-lint
 
   website-test:
-    needs: configure
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.5'
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
       - run: make website-test
