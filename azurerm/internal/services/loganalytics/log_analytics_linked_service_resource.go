@@ -64,6 +64,11 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"write_access_resource_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			// Exported properties
 			"name": {
 				Type:     schema.TypeString,
@@ -107,6 +112,10 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 			ResourceID: utils.String(resourceId),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if d.Get("write_access_resource_id") != "" {
+		parameters.WriteAccessResourceID = utils.String(d.Get("write_access_resource_id").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
@@ -156,6 +165,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 
 	if props := resp.LinkedServiceProperties; props != nil {
 		d.Set("resource_id", props.ResourceID)
+		d.Set("write_access_resource_id", props.WriteAccessResourceID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

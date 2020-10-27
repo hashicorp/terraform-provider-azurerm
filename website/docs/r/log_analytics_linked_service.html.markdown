@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `resource_id` - (Required) The ID of the Resource that will be linked to the workspace. Changing this forces a new resource to be created.
 
+* `write_access_resource_id` - (Optional) The ID of the write_access_resource.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference

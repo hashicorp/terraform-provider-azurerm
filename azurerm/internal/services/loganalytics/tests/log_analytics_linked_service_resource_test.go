@@ -78,6 +78,25 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsLinkedService_withWriteAccessResourceId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_linked_service", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsLinkedService_withWriteAccessResourceId(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.LinkedServicesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -211,4 +230,18 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsLinkedService_withWriteAccessResourceId(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_linked_service" "test" {
+  resource_group_name      = azurerm_resource_group.test.name
+  workspace_name           = azurerm_log_analytics_workspace.test.name
+  resource_id              = azurerm_automation_account.test.id
+  write_access_resource_id = 
+}
+`, template)
 }
