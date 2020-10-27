@@ -59,7 +59,7 @@ func resourceArmLogAnalyticsLinkedStorageAccount() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateFunc:     azure.ValidateResourceID,
-				https://github.com/Azure/azure-rest-api-specs/issues/9633
+				// https://github.com/Azure/azure-rest-api-specs/issues/9633
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
