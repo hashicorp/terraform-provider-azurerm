@@ -52,10 +52,14 @@ func resourceArmSynapseRoleAssignment() *schema.Resource {
 			},
 
 			"role_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Workspace Admin",
+					"Apache Spark Admin",
+					"Sql Admin",
+				}, false),
 			},
 		},
 	}

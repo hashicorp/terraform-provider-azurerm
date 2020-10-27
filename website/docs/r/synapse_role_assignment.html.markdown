@@ -51,23 +51,28 @@ resource "azurerm_synapse_firewall_rule" "example" {
 
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_synapse_role_assignment" "test" {
-  synapse_workspace_id = azurerm_synapse_workspace.test.id
+resource "azurerm_synapse_role_assignment" "example" {
+  synapse_workspace_id = azurerm_synapse_workspace.example.id
   role_name            = "Sql Admin"
   principal_id         = data.azurerm_client_config.current.object_id
+
+  depends_on = [azurerm_synapse_firewall_rule.example]
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `synapse_workspace_id` - (Required) The ID of the Synapse Workspace on which to create the Role Assignment. Changing this forces a new resource to be created.
 
+-> **NOTE:** A Synapse firewall rule including local IP is needed to allow access.
+
 * `role_name` - (Required) The Role Name of the Synapse Built-In Role. Changing this forces a new resource to be created.
 
 -> **NOTE:** Currently, the Synapse built-in roles are `Workspace Admin`, `Apache Spark Admin` and `Sql Admin`.
 
-* `principal_id` - (Required) The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created.
+* `principal_id` - (Required) The ID of the Principal (User, Group or Service Principal) to assign the Synapse Role Definition to. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

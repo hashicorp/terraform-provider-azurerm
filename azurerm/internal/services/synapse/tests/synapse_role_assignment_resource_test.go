@@ -19,11 +19,6 @@ func TestAccAzureRMSynapseRoleAssignment_basic(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSynapseRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
-			// apply firewall rule first
-			{
-				Config: testAccAzureRMSynapseRoleAssignment_template(data),
-			},
-			// create synapse role assignment
 			{
 				Config: testAccAzureRMSynapseRoleAssignment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -42,11 +37,6 @@ func TestAccAzureRMSynapseRoleAssignment_requiresImport(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSynapseRoleAssignmentDestroy,
 		Steps: []resource.TestStep{
-			// apply firewall rule first
-			{
-				Config: testAccAzureRMSynapseRoleAssignment_template(data),
-			},
-			// create synapse role assignment
 			{
 				Config: testAccAzureRMSynapseRoleAssignment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -125,6 +115,8 @@ resource "azurerm_synapse_role_assignment" "test" {
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   role_name            = "Sql Admin"
   principal_id         = data.azurerm_client_config.current.object_id
+
+  depends_on = [azurerm_synapse_firewall_rule.test]
 }
 `, template)
 }
