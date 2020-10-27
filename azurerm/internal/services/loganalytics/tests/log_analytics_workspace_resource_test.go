@@ -172,6 +172,58 @@ func TestAccAzureRMLogAnalyticsWorkspace_withVolumeCap(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestionEnabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestionDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQuery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQueryEnabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQueryDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -351,4 +403,88 @@ resource "azurerm_log_analytics_workspace" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, volumeCapGb)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                                        = "acctestLAW-%d"
+  location                                    = azurerm_resource_group.test.location
+  resource_group_name                         = azurerm_resource_group.test.name
+  public_network_access_for_ingestion_enabled = true
+  sku                                         = "PerGB2018"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestionDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                                        = "acctestLAW-%d"
+  location                                    = azurerm_resource_group.test.location
+  resource_group_name                         = azurerm_resource_group.test.name
+  public_network_access_for_ingestion_enabled = false
+  sku                                         = "PerGB2018"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQueryEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                                    = "acctestLAW-%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  public_network_access_for_query_enabled = true
+  sku                                     = "PerGB2018"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQueryDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                                    = "acctestLAW-%d"
+  location                                = azurerm_resource_group.test.location
+  resource_group_name                     = azurerm_resource_group.test.name
+  public_network_access_for_query_enabled = false
+  sku                                     = "PerGB2018"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

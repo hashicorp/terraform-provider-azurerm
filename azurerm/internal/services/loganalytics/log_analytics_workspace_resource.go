@@ -49,6 +49,18 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
+			"public_network_access_for_ingestion_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"public_network_access_for_query_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"sku": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -89,6 +101,24 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				Type:       schema.TypeString,
 				Computed:   true,
 				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
+			},
+
+			"private_link_scoped_resource": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"resource_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"scope_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"primary_shared_key": {
@@ -136,6 +166,15 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
 	}
 
+	publicNetworkAccessForIngestion := operationalinsights.Disabled
+	if d.Get("public_network_access_for_ingestion_enabled").(bool) {
+		publicNetworkAccessForIngestion = operationalinsights.Enabled
+	}
+	publicNetworkAccessForQuery := operationalinsights.Disabled
+	if d.Get("public_network_access_for_query_enabled").(bool) {
+		publicNetworkAccessForQuery = operationalinsights.Enabled
+	}
+
 	retentionInDays := int32(d.Get("retention_in_days").(int))
 	dailyQuotaGb := d.Get("daily_quota_gb").(float64)
 
@@ -147,6 +186,8 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Tags:     tags.Expand(t),
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
 			Sku:             sku,
+			PublicNetworkAccessForIngestion: publicNetworkAccessForIngestion,
+			PublicNetworkAccessForQuery:     publicNetworkAccessForQuery,
 			RetentionInDays: &retentionInDays,
 			WorkspaceCapping: &operationalinsights.WorkspaceCapping{
 				DailyQuotaGb: &dailyQuotaGb,
@@ -202,6 +243,9 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	d.Set("public_network_access_for_ingestion_enabled", resp.PublicNetworkAccessForIngestion != operationalinsights.Disabled)
+	d.Set("public_network_access_for_query_enabled", resp.PublicNetworkAccessForQuery != operationalinsights.Disabled)
+
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", "")
 	if sku := resp.Sku; sku != nil {
@@ -212,6 +256,10 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("daily_quota_gb", resp.WorkspaceCapping.DailyQuotaGb)
 	} else {
 		d.Set("daily_quota_gb", utils.Float(-1))
+	}
+
+	if err := d.Set("private_link_scoped_resource", flattenArmWorkspacePrivateLinkScopedResourceArray(resp.PrivateLinkScopedResources)); err != nil {
+		return fmt.Errorf("setting `private_link_scoped_resource`: %+v", err)
 	}
 
 	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
@@ -262,4 +310,27 @@ func ValidateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings
 	}
 
 	return warnings, errors
+}
+
+func flattenArmWorkspacePrivateLinkScopedResourceArray(input *[]operationalinsights.PrivateLinkScopedResource) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var resourceId string
+		if item.ResourceID != nil {
+			resourceId = *item.ResourceID
+		}
+		var scopeId string
+		if item.ScopeID != nil {
+			scopeId = *item.ScopeID
+		}
+		results = append(results, map[string]interface{}{
+			"resource_id": resourceId,
+			"scope_id":    scopeId,
+		})
+	}
+	return results
 }
