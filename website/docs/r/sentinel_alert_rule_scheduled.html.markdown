@@ -85,6 +85,14 @@ The following arguments are supported:
 
 ---
 
+A `incident_configuration` block supports the following:
+
+* `create_incident` - (Required) Whether to create an incident from alerts triggered by this Sentinel Scheduled Alert Rule?
+
+* `grouping` - (Optional) A `grouping` block as defined below.
+
+---
+
 A `grouping` block supports the following:
 
 * `enabled` - (Optional) Enable grouping incidents created from alerts triggered by this Sentinel Scheduled Alert Rule. Defaults to `true`.
@@ -96,14 +104,6 @@ A `grouping` block supports the following:
 * `entity_matching_method` - (Optional) The method used to group incidents. Possible values are `All`, `Custom` and `None`. Defaults to `None`.
 
 * `group_by` - (Optional) A list of entity types to group by, only when the `entity_matching_method` is `Custom`. Possible values are `Account`, `Host`, `Url`, `Ip`.
-
----
-
-A `incident_configuration` block supports the following:
-
-* `create_incident` - (Required) Whether to create an incident from alerts triggered by this Sentinel Scheduled Alert Rule?
-
-* `grouping` - (Optional) A `grouping` block as defined above.
 
 ## Attributes Reference
 
