@@ -27,5 +27,5 @@ jobs:
   website-test:
     needs: configure
     runs-on: ubuntu-latest
-      steps:
+    steps:
       - run: make website-test
