@@ -24,8 +24,8 @@ func resourceArmAppService() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmAppServiceCreate,
 		Read:   resourceArmAppServiceRead,
-		Update: resourceArmAppServiceUpdate,
-		Delete: resourceArmAppServiceDelete,
+		//Update: resourceArmAppServiceUpdate,
+		//Delete: resourceArmAppServiceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.AppServiceID(id)

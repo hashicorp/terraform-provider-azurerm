@@ -1958,7 +1958,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "%s"
+  location = "%s" 
 }
 
 resource "azurerm_app_service_plan" "test" {
