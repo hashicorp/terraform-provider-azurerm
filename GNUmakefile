@@ -17,7 +17,7 @@ tools:
 	GO111MODULE=off go install github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go install github.com/bflad/tfproviderdocs
 	GO111MODULE=off go install github.com/katbyte/terrafmt
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$GOPATH/bin v1.24.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.24.0
 
 build: fmtcheck generate
 	go install
