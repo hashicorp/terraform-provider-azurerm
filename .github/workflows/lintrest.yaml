@@ -1,5 +1,5 @@
 ---
-name: lintrest
+name: Lint rest
 on:
   pull_request:
     types: ['opened', 'edited', 'reopened', 'synchronize']
@@ -11,6 +11,8 @@ on:
 jobs:
   lintrest:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2

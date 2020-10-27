@@ -10,6 +10,8 @@ on:
 jobs:
   website-lint:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
