@@ -216,6 +216,7 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	if existing.RemediationProperties != nil && existing.RemediationProperties.ResourceDiscoveryMode == policyinsights.ReEvaluateCompliance {
+		log.Printf("[DEBUG] cancelling the remediation first before deleting it when `resource_discovery_mode` is set to `ReEvaluateCompliance`")
 		if err := cancelRemediation(ctx, client, id.Name, id.PolicyScopeId); err != nil {
 			return fmt.Errorf("cancelling Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
 		}
