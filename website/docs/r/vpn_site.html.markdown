@@ -16,6 +16,7 @@ Manages a VPN Site.
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
   location = "West Europe"
@@ -33,7 +34,7 @@ resource "azurerm_vpn_site" "example" {
   location            = azurerm_resource_group.example.location
   virtual_wan_id      = azurerm_virtual_wan.example.id
 
-  vpn_site_link {
+  link {
     name       = "link1"
     ip_address = "10.0.0.1"
   }
@@ -52,19 +53,21 @@ The following arguments are supported:
 
 * `virtual_wan_id` - (Required) The ID of the Virtual Wan where this VPN site resides in. Changing this forces a new VPN Site to be created.
 
-* `vpn_site_link` - (Required) One or more `vpn_site_link` blocks as defined below.
+* `link` - (Required) One or more `link` blocks as defined below.
 
 ---
 
-* `address_spaces` - (Optional) Specifies a list of IP address spaces that is located on your on-premises site. Traffic destined for the address spaces is routed to your local site.
+* `address_cidrs` - (Optional) Specifies a list of IP address CIDRs that are located on your on-premises site. Traffic destined for these address spaces is routed to your local site.
 
-* `device_property` - (Optional) A `device_property` block as defined below.
+* `device_model` - (Optional) The model of the VPN device.
+
+* `device_vendor` - (Optional) The name of the VPN device vendor.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the VPN Site.
 
 ---
 
-A `bgp_property` block supports the following:
+A `bgp` block supports the following:
 
 * `asn` - (Required) The BGP speaker's ASN.
 
@@ -72,19 +75,11 @@ A `bgp_property` block supports the following:
 
 ---
 
-A `device_property` block supports the following:
-
-* `model` - (Optional) The model of the VPN device.
-
-* `vendor` - (Optional) The name of the VPN device vendor.
-                        
----
-
-A `vpn_site_link` block supports the following:
+A `link` block supports the following:
 
 * `name` - (Required) The name which should be used for this VPN Site Link.
 
-* `bgp_property` - (Optional) A `bgp_property` block as defined above.
+* `bgp` - (Optional) A `bgp` block as defined above.
 
 * `fqdn` - (Optional) The FQDN of this VPN Site Link.
 
@@ -92,9 +87,9 @@ A `vpn_site_link` block supports the following:
 
 -> **NOTE**: Either `fqdn` or `ip_address` should be specified.
 
-* `link_provider_name` - (Optional) The name of the physical link at the VPN Site. Example: ATT, Verizon.
+* `provider_name` - (Optional) The name of the physical link at the VPN Site. Example: ATT, Verizon.
 
-* `link_speed_mbps` - (Optional) The speed of the VPN device at the branch location in unit of mbps.
+* `speed_in_mbps` - (Optional) The speed of the VPN device at the branch location in unit of mbps.
 
 ## Attributes Reference
 
@@ -102,11 +97,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the VPN Site.
 
-* `vpn_site_link` - One or more `vpn_site_link` blocks as defined below.
+* `link` - One or more `link` blocks as defined below.
 
 ---
 
-A `vpn_site_link` block supports the following:
+A `link` block supports the following:
 
 * `id` - The ID of the VPN Site Link.
 

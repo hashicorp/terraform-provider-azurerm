@@ -165,7 +165,7 @@ resource "azurerm_vpn_site" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_wan_id      = azurerm_virtual_wan.test.id
-  vpn_site_link {
+  link {
     name       = "link1"
     ip_address = "10.0.0.1"
   }
@@ -183,25 +183,23 @@ resource "azurerm_vpn_site" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_wan_id      = azurerm_virtual_wan.test.id
-  address_spaces      = ["10.0.0.0/24", "10.0.1.0/24"]
+  address_cidrs       = ["10.0.0.0/24", "10.0.1.0/24"]
 
-  device_property {
-    vendor = "Cisco"
-    model  = "foobar"
-  }
+  device_vendor = "Cisco"
+  device_model  = "foobar"
 
-  vpn_site_link {
-    name               = "link1"
-    link_provider_name = "Verizon"
-    link_speed_mbps    = 50
-    ip_address         = "10.0.0.1"
-    bgp_property {
+  link {
+    name          = "link1"
+    provider_name = "Verizon"
+    speed_in_mbps = 50
+    ip_address    = "10.0.0.1"
+    bgp {
       asn             = 12345
       peering_address = "10.0.0.1"
     }
   }
 
-  vpn_site_link {
+  link {
     name = "link2"
     fqdn = "foo.com"
   }
@@ -219,7 +217,7 @@ resource "azurerm_vpn_site" "import" {
   location            = azurerm_vpn_site.test.location
   resource_group_name = azurerm_vpn_site.test.resource_group_name
   virtual_wan_id      = azurerm_vpn_site.test.virtual_wan_id
-  vpn_site_link {
+  link {
     name       = "link1"
     ip_address = "10.0.0.1"
   }

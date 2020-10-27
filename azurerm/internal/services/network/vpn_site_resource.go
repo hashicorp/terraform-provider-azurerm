@@ -62,7 +62,7 @@ func resourceArmVpnSite() *schema.Resource {
 				ValidateFunc: validate.VirtualWanID,
 			},
 
-			"address_spaces": {
+			"address_cidrs": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
@@ -71,30 +71,18 @@ func resourceArmVpnSite() *schema.Resource {
 				},
 			},
 
-			"device_property": {
-				Type:     schema.TypeList,
-				Optional: true,
-				// The "Computed" could be removed once following issue is addressed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/11212
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"vendor": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"model": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-					},
-				},
+			"device_vendor": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			"device_model": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"vpn_site_link": {
+			"link": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MinItems: 1,
@@ -105,12 +93,12 @@ func resourceArmVpnSite() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"link_provider_name": {
+						"provider_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"link_speed_mbps": {
+						"speed_in_mbps": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
@@ -126,7 +114,7 @@ func resourceArmVpnSite() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-						"bgp_property": {
+						"bgp": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -181,16 +169,14 @@ func resourceArmVpnSiteCreateUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	// TODO: d.Get() && Create
-
 	param := network.VpnSite{
 		Name:     &name,
 		Location: &location,
 		VpnSiteProperties: &network.VpnSiteProperties{
 			VirtualWan:       &network.SubResource{ID: utils.String(d.Get("virtual_wan_id").(string))},
-			DeviceProperties: expandArmVpnSiteDeviceProperties(d.Get("device_property").([]interface{})),
-			AddressSpace:     expandArmVpnSiteAddressSpace(d.Get("address_spaces").(*schema.Set).List()),
-			VpnSiteLinks:     expandArmVpnSiteLinks(d.Get("vpn_site_link").([]interface{})),
+			DeviceProperties: expandArmVpnSiteDeviceProperties(d),
+			AddressSpace:     expandArmVpnSiteAddressSpace(d.Get("address_cidrs").(*schema.Set).List()),
+			VpnSiteLinks:     expandArmVpnSiteLinks(d.Get("link").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -250,17 +236,18 @@ func resourceArmVpnSiteRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if prop := resp.VpnSiteProperties; prop != nil {
-		if err := d.Set("device_property", flattenArmVpnSiteDeviceProperties(prop.DeviceProperties)); err != nil {
-			return fmt.Errorf("setting `device_property`")
+		if deviceProp := prop.DeviceProperties; deviceProp != nil {
+			d.Set("device_vendor", deviceProp.DeviceVendor)
+			d.Set("device_model", deviceProp.DeviceModel)
 		}
 		if prop.VirtualWan != nil {
 			d.Set("virtual_wan_id", prop.VirtualWan.ID)
 		}
-		if err := d.Set("address_spaces", flattenArmVpnSiteAddressSpace(prop.AddressSpace)); err != nil {
-			return fmt.Errorf("setting `address_spaces`")
+		if err := d.Set("address_cidrs", flattenArmVpnSiteAddressSpace(prop.AddressSpace)); err != nil {
+			return fmt.Errorf("setting `address_cidrs`")
 		}
-		if err := d.Set("vpn_site_link", flattenArmVpnSiteLinks(prop.VpnSiteLinks)); err != nil {
-			return fmt.Errorf("setting `vpn_site_link`")
+		if err := d.Set("link", flattenArmVpnSiteLinks(prop.VpnSiteLinks)); err != nil {
+			return fmt.Errorf("setting `link`")
 		}
 	}
 
@@ -290,43 +277,20 @@ func resourceArmVpnSiteDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func expandArmVpnSiteDeviceProperties(input []interface{}) *network.DeviceProperties {
-	if len(input) == 0 || input[0] == nil {
+func expandArmVpnSiteDeviceProperties(d *schema.ResourceData) *network.DeviceProperties {
+	vendor, model := d.Get("device_vendor").(string), d.Get("device_model").(string)
+	if vendor == "" && model == "" {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
 	output := &network.DeviceProperties{}
-	if vendor, ok := v["vendor"]; ok {
-		output.DeviceVendor = utils.String(vendor.(string))
+	if vendor != "" {
+		output.DeviceVendor = &vendor
 	}
-	if model, ok := v["model"]; ok {
-		output.DeviceModel = utils.String(model.(string))
+	if model != "" {
+		output.DeviceModel = &model
 	}
 
 	return output
-}
-
-func flattenArmVpnSiteDeviceProperties(input *network.DeviceProperties) []interface{} {
-	if input == nil {
-		return nil
-	}
-
-	var vendor string
-	if input.DeviceVendor != nil {
-		vendor = *input.DeviceVendor
-	}
-
-	var model string
-	if input.DeviceModel != nil {
-		model = *input.DeviceModel
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"vendor": vendor,
-			"model":  model,
-		},
-	}
 }
 
 func expandArmVpnSiteAddressSpace(input []interface{}) *network.AddressSpace {
@@ -366,12 +330,12 @@ func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 			Name: utils.String(e["name"].(string)),
 			VpnSiteLinkProperties: &network.VpnSiteLinkProperties{
 				LinkProperties: &network.VpnLinkProviderProperties{
-					LinkSpeedInMbps: utils.Int32(int32(e["link_speed_mbps"].(int))),
+					LinkSpeedInMbps: utils.Int32(int32(e["speed_in_mbps"].(int))),
 				},
 			},
 		}
 
-		if v, ok := e["link_provider_name"]; ok {
+		if v, ok := e["provider_name"]; ok {
 			link.VpnSiteLinkProperties.LinkProperties.LinkProviderName = utils.String(v.(string))
 		}
 		if v, ok := e["ip_address"]; ok {
@@ -380,7 +344,7 @@ func expandArmVpnSiteLinks(input []interface{}) *[]network.VpnSiteLink {
 		if v, ok := e["fqdn"]; ok {
 			link.VpnSiteLinkProperties.Fqdn = utils.String(v.(string))
 		}
-		if v, ok := e["bgp_property"]; ok {
+		if v, ok := e["bgp"]; ok {
 			link.VpnSiteLinkProperties.BgpProperties = expandArmVpnSiteVpnLinkBgpSettings(v.([]interface{}))
 		}
 
@@ -438,13 +402,13 @@ func flattenArmVpnSiteLinks(input *[]network.VpnSiteLink) []interface{} {
 		}
 
 		link := map[string]interface{}{
-			"name":               name,
-			"id":                 id,
-			"link_provider_name": linkProviderName,
-			"link_speed_mbps":    linkSpeed,
-			"ip_address":         ipAddress,
-			"fqdn":               fqdn,
-			"bgp_property":       bgpProperty,
+			"name":          name,
+			"id":            id,
+			"provider_name": linkProviderName,
+			"speed_in_mbps": linkSpeed,
+			"ip_address":    ipAddress,
+			"fqdn":          fqdn,
+			"bgp":           bgpProperty,
 		}
 
 		output = append(output, link)
