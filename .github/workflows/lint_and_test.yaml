@@ -23,20 +23,24 @@ jobs:
 
   lintrest:
     needs: configure
+    runs-on: ubuntu-latest
     steps:
       - run: TRAVIS=ci GOGC=5 make lintrest
 
   tflint:
     needs: configure
+    runs-on: ubuntu-latest
     steps:
       - run: TRAVIS=ci make tflint
 
   test:
     needs: configure
+    runs-on: ubuntu-latest
     steps:
       - run: TRAVIS=ci make test
 
   depscheck:
     needs: configure
-    steps:
+    runs-on: ubuntu-latest
+      steps:
       - run: make depscheck

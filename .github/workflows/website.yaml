@@ -20,10 +20,12 @@ jobs:
 
   website-lint:
     needs: configure
+    runs-on: ubuntu-latest
     steps:
       - run: make website-lint
 
   website-test:
     needs: configure
-    steps:
+    runs-on: ubuntu-latest
+      steps:
       - run: make website-test
