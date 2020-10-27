@@ -2,7 +2,7 @@
 
 UPGRADE NOTES
 
-* This release changes the default value for `azurerm_api_management_api.subscription_required` property to `true`. This was the behaviour prior to `v2.15.0` and is a more secure default which will prevent accidently exposing API's. 
+* `azurerm_api_management_api` - fixing a regression introduced in v2.16 where this value for `subscription_required` was defaulted to `false` instead of `true` [GH-7963]
 
 FEATURES: 
 
@@ -16,7 +16,8 @@ IMPROVEMENTS:
 
 BUG FIXES: 
 
-* `azurerm_api_management_api` - ensure `subscription_required` defaults to the more secure `true` value as well revery to `v2.15` and lower's behaviour [GH-7963]
+* `azurerm_api_management_api` - fixing a regression introduced in v2.16 where the value for `subscription_required` was defaulted to `false` instead of `true` [GH-7963]
+* `azurerm_app_service` - fixing a crash when provisioning an app service inside an App Service Environment which doesn't exist [GH-8993]
 * `azurerm_cdn_endpoint` - disable persisting default value for `is_compression_enabled` to state file [GH-8610]
 * `azurerm_databricks_workspace` correctly validate the `name` property [GH-8997]
 * `azurerm_log_analytics_workspace` - support for the `daily_quota_gb` property [GH-8861]
