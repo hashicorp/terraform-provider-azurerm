@@ -54,6 +54,16 @@ The following arguments are supported:
 
 * `function_parameters` - (Optional) The function parameters if the query serves as a function. Changing this forces a new resource to be created.
 
+* `tag` - (Optional)  A `tag` block as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `tag` block supports the following:
+
+* `name` - (Required) The name which should be used for this tag.
+
+* `value` - (Required) The tag value.
+
 ## Attributes Reference
 
 The following attributes are exported:

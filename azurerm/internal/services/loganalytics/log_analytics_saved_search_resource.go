@@ -94,6 +94,26 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 					),
 				},
 			},
+
+			// tag is defined as an object set and cannot be updated in service side
+			"tag": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -130,6 +150,7 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 			DisplayName:   utils.String(d.Get("display_name").(string)),
 			Query:         utils.String(d.Get("query").(string)),
 			FunctionAlias: utils.String(d.Get("function_alias").(string)),
+			Tags:          expandArmSavedSearchTagArray(d.Get("tag").(*schema.Set).List()),
 		},
 	}
 
@@ -194,6 +215,9 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 			functionParams = strings.Split(*props.FunctionParameters, ", ")
 		}
 		d.Set("function_parameters", functionParams)
+		if err := d.Set("tag", flattenArmSavedSearchTagArray(props.Tags)); err != nil {
+			return fmt.Errorf("setting `tag`: %+v", err)
+		}
 	}
 
 	return nil
@@ -213,4 +237,40 @@ func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func expandArmSavedSearchTagArray(input []interface{}) *[]operationalinsights.Tag {
+	results := make([]operationalinsights.Tag, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		result := operationalinsights.Tag{
+			Name:  utils.String(v["name"].(string)),
+			Value: utils.String(v["value"].(string)),
+		}
+		results = append(results, result)
+	}
+	return &results
+}
+
+func flattenArmSavedSearchTagArray(input *[]operationalinsights.Tag) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var name string
+		if item.Name != nil {
+			name = *item.Name
+		}
+		var value string
+		if item.Value != nil {
+			value = *item.Value
+		}
+		results = append(results, map[string]interface{}{
+			"name":  name,
+			"value": value,
+		})
+	}
+	return results
 }
