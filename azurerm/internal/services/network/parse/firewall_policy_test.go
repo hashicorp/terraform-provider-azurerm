@@ -2,7 +2,20 @@ package parse
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = FirewallPolicyId{}
+
+func TestFirewallPolicyIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewFirewallPolicyID("group1", "policy1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestFirewallPolicyID(t *testing.T) {
 	testData := []struct {
@@ -78,6 +91,17 @@ func TestFirewallPolicyID(t *testing.T) {
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
+	}
+}
+
+var _ resourceid.Formatter = FirewallPolicyRuleCollectionGroupId{}
+
+func TestFirewallPolicyRuleCollectionGroupIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewFirewallPolicyRuleCollectionGroupID(NewFirewallPolicyID("group1", "policy1"), "group1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1/ruleCollectionGroups/group1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 

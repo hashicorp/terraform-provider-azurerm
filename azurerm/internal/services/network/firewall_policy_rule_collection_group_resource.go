@@ -375,6 +375,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 }
 
 func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -427,31 +428,24 @@ func resourceArmFirewallPolicyRuleCollectionGroupCreateUpdate(d *schema.Resource
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("empty or nil ID returned for Firewall Policy Rule Collection Group %q (Resource Group %q / Policy: %q) ID", name, policyId.ResourceGroup, policyId.Name)
 	}
-	d.SetId(*resp.ID)
+	id, err := parse.FirewallPolicyRuleCollectionGroupID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmFirewallPolicyRuleCollectionGroupRead(d, meta)
 }
 
 func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleGroupClient
-	policyClient := meta.(*clients.Client).Network.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.FirewallPolicyRuleCollectionGroupID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	policyResp, err := policyClient.Get(ctx, id.ResourceGroup, id.PolicyName, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(policyResp.Response) {
-			log.Printf("[DEBUG] Firewall Policy %q was not found in Resource Group %q - removing from state!", id.PolicyName, id.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving Firewall Policy %q (Resource Group %q): %+v", id.PolicyName, id.ResourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.PolicyName, id.Name)
@@ -467,7 +461,7 @@ func resourceArmFirewallPolicyRuleCollectionGroupRead(d *schema.ResourceData, me
 
 	d.Set("name", resp.Name)
 	d.Set("priority", resp.Priority)
-	d.Set("firewall_policy_id", policyResp.ID)
+	d.Set("firewall_policy_id", parse.NewFirewallPolicyID(id.ResourceGroup, id.PolicyName).ID(subscriptionId))
 
 	applicationRuleCollections, networkRuleCollections, natRuleCollections, err := flattenAzureRmFirewallPolicyRuleCollection(resp.RuleCollections)
 	if err != nil {
