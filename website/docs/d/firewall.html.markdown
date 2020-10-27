@@ -34,7 +34,7 @@ output "firewall_private_ip" {
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Azure Firewall.
+* `id` - The ID of the Azure Firewall.
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
 
@@ -42,11 +42,11 @@ The following attributes are exported:
 
 A `ip_configuration` block exports the following:
 
-* `subnet_id` - The Resource ID of the subnet where the Azure Firewall is deployed.
+* `subnet_id` - The ID of the Subnet where the Azure Firewall is deployed.
 
-* `private_ip_address` - The private IP address of the Azure Firewall.
+* `private_ip_address` - The Private IP Address of the Azure Firewall.
 
-* `public_ip_address_id`- The Resource ID of the public IP address of the Azure Firewall.
+* `public_ip_address_id`- The ID of the Public IP address of the Azure Firewall.
 
 ## Timeouts
 

@@ -129,7 +129,6 @@ func (client EntityQueriesClient) GetSender(req *http.Request) (*http.Response, 
 func (client EntityQueriesClient) GetResponder(resp *http.Response) (result EntityQuery, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -186,6 +185,9 @@ func (client EntityQueriesClient) List(ctx context.Context, resourceGroupName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.EntityQueriesClient", "List", resp, "Failure responding to request")
 	}
+	if result.eql.hasNextLink() && result.eql.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -223,7 +225,6 @@ func (client EntityQueriesClient) ListSender(req *http.Request) (*http.Response,
 func (client EntityQueriesClient) ListResponder(resp *http.Response) (result EntityQueryList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

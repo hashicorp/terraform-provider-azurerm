@@ -58,9 +58,9 @@ The following arguments are supported:
 
 * `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
 
-* `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled. Defaults to false.
+* `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled.
 
-* `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. Defaults to `IgnoreQueryString`.
+* `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. `NotSet` value can be used for `Premium Verizon` CDN profile. Defaults to `IgnoreQueryString`.
 
 * `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
 
@@ -71,6 +71,12 @@ The following arguments are supported:
 * `origin_path` - (Optional) The path used at for origin requests.
 
 * `probe_path` - (Optional) the path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the `origin_path`.
+
+-> **NOTE:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
+
+* `global_delivery_rule` - (Optional) Actions that are valid for all resources regardless of any conditions. A `global_delivery_rule` block as defined below.
+
+* `delivery_rule` - (Optional) Rules for the rules engine. An endpoint can contain up until 4 of those rules that consist of conditions and actions. A `delivery_rule` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -91,12 +97,6 @@ The `geo_filter` block supports:
 * `action` - (Required) The Action of the Geo Filter. Possible values include `Allow` and `Block`.
 
 * `country_codes` - (Required) A List of two letter country codes (e.g. `US`, `GB`) to be associated with this Geo Filter.
-
--> **NOTE:** `global_delivery_rule` and `delivery_rule` are currently only available for `Microsoft_Standard` CDN profiles.
-
-* `global_delivery_rule` - (Optional) Actions that are valid for all resources regardless of any conditions. A `global_delivery_rule` block as defined below.
-
-* `delivery_rule` - (Optional) Rules for the rules engine. An endpoint can contain up until 4 of those rules that consist of conditions and actions. A `delivery_rule` blocks as defined below.
 
 ---
 

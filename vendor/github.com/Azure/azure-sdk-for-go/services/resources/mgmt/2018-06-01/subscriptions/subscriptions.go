@@ -145,6 +145,9 @@ func (client Client) List(ctx context.Context) (result ListResultPage, err error
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "subscriptions.Client", "List", resp, "Failure responding to request")
 	}
+	if result.lr.hasNextLink() && result.lr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

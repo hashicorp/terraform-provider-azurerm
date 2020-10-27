@@ -11,10 +11,21 @@ type DedicatedHostGroupId struct {
 	Name          string
 }
 
+func NewDedicatedHostGroupId(resourceGroup, name string) DedicatedHostGroupId {
+	return DedicatedHostGroupId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id DedicatedHostGroupId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s", subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Dedicated Host Group ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Dedicated Host Group ID %q: %+v", input, err)
 	}
 
 	group := DedicatedHostGroupId{

@@ -13,10 +13,6 @@ Manages a PostgreSQL Server.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -72,6 +68,8 @@ The following arguments are supported:
 
 * `geo_redundant_backup_enabled` - (Optional) Turn Geo-redundant server backups on/off. This allows you to choose between locally redundant or geo-redundant backup storage in the General Purpose and Memory Optimized tiers. When the backups are stored in geo-redundant backup storage, they are not only stored within the region in which your server is hosted, but are also replicated to a paired data center. This provides better protection and ability to restore your server in a different region in the event of a disaster. This is not support for the Basic tier.
 
+* `identity` - (Optional) An `identity` block as defined below. 
+
 * `infrastructure_encryption_enabled` - (Optional) Whether or not infrastructure is encrypted for this server. Defaults to `false`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** This property is currently still in development and not supported by Microsoft. If the `infrastructure_encryption_enabled` attribute is set to `true` the postgreSQL instance will incur a substantial performance degradation due to a second encryption pass on top of the existing default encryption that is already provided by Azure Storage. It is strongly suggested to leave this value `false` as not doing so can lead to unclear error messages.
@@ -89,6 +87,12 @@ The following arguments are supported:
 * `threat_detection_policy` - (Optional) Threat detection policy configuration, known in the API as Server Security Alerts Policy. The `threat_detection_policy` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.  
+
+---
+
+A `identity` block supports the following:
+
+* `type` - (Required) The Type of Identity which should be used for this PostgreSQL Server. At this time the only possible value is `SystemAssigned`.
 
 ---
 
@@ -116,6 +120,16 @@ The following attributes are exported:
 * `id` - The ID of the PostgreSQL Server.
 
 * `fqdn` - The FQDN of the PostgreSQL Server.
+
+* `identity` - An `identity` block as documented below.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Client ID of the Service Principal assigned to this PostgreSQL Server.
+
+* `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
 ## Timeouts
 

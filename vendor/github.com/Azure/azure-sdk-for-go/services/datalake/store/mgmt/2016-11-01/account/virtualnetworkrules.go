@@ -317,6 +317,9 @@ func (client VirtualNetworkRulesClient) ListByAccount(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.VirtualNetworkRulesClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.vnrlr.hasNextLink() && result.vnrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

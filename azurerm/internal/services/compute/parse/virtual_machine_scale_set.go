@@ -11,10 +11,21 @@ type VirtualMachineScaleSetId struct {
 	Name          string
 }
 
+func NewVirtualMachineScaleSetId(resourceGroup, name string) VirtualMachineScaleSetId {
+	return VirtualMachineScaleSetId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id VirtualMachineScaleSetId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s", subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine Scale Set ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Virtual Machine Scale Set ID %q: %+v", input, err)
 	}
 
 	vmScaleSet := VirtualMachineScaleSetId{

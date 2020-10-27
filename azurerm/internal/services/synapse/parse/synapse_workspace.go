@@ -7,8 +7,9 @@ import (
 )
 
 type SynapseWorkspaceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionID string
+	ResourceGroup  string
+	Name           string
 }
 
 func SynapseWorkspaceID(input string) (*SynapseWorkspaceId, error) {
@@ -18,7 +19,8 @@ func SynapseWorkspaceID(input string) (*SynapseWorkspaceId, error) {
 	}
 
 	synapseWorkspace := SynapseWorkspaceId{
-		ResourceGroup: id.ResourceGroup,
+		ResourceGroup:  id.ResourceGroup,
+		SubscriptionID: id.SubscriptionID,
 	}
 	if synapseWorkspace.Name, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
@@ -28,4 +30,8 @@ func SynapseWorkspaceID(input string) (*SynapseWorkspaceId, error) {
 	}
 
 	return &synapseWorkspace, nil
+}
+
+func (id *SynapseWorkspaceId) String() string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s", id.SubscriptionID, id.ResourceGroup, id.Name)
 }

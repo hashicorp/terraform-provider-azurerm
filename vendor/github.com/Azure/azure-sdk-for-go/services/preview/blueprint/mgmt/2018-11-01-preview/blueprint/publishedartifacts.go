@@ -158,6 +158,9 @@ func (client PublishedArtifactsClient) List(ctx context.Context, resourceScope s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.PublishedArtifactsClient", "List", resp, "Failure responding to request")
 	}
+	if result.al.hasNextLink() && result.al.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

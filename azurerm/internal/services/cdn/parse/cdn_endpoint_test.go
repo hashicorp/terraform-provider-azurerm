@@ -2,7 +2,20 @@ package parse
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = CdnEndpointId{}
+
+func TestCdnEndpointIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewCdnEndpointID(NewCdnProfileID("group1", "profile1"), "endpoint1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestCdnEndpointId(t *testing.T) {
 	testData := []struct {

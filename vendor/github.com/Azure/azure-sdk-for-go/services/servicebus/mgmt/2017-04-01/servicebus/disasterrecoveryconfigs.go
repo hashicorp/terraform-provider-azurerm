@@ -722,6 +722,9 @@ func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "List", resp, "Failure responding to request")
 	}
+	if result.adrlr.hasNextLink() && result.adrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -848,6 +851,9 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.C
 	result.sarlr, err = client.ListAuthorizationRulesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.DisasterRecoveryConfigsClient", "ListAuthorizationRules", resp, "Failure responding to request")
+	}
+	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

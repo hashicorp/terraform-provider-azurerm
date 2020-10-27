@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2019-11-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
 	"github.com/Azure/go-autorest/autorest"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
@@ -23,10 +23,10 @@ import (
 type Client struct {
 	AccountsClient           *storage.AccountsClient
 	FileSystemsClient        *filesystems.Client
-	ManagementPoliciesClient storage.ManagementPoliciesClient
-	BlobServicesClient       storage.BlobServicesClient
-	CachesClient             *storagecache.CachesClient
-	StorageTargetsClient     *storagecache.StorageTargetsClient
+	ManagementPoliciesClient *storage.ManagementPoliciesClient
+	BlobServicesClient       *storage.BlobServicesClient
+	SyncServiceClient        *storagesync.ServicesClient
+	SyncGroupsClient         *storagesync.SyncGroupsClient
 	SubscriptionId           string
 
 	environment   az.Environment
@@ -46,22 +46,22 @@ func NewClient(options *common.ClientOptions) *Client {
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
 
-	cachesClient := storagecache.NewCachesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&cachesClient.Client, options.ResourceManagerAuthorizer)
+	syncServiceClient := storagesync.NewServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&syncServiceClient.Client, options.ResourceManagerAuthorizer)
 
-	storageTargetsClient := storagecache.NewStorageTargetsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&storageTargetsClient.Client, options.ResourceManagerAuthorizer)
+	syncGroupsClient := storagesync.NewSyncGroupsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&syncGroupsClient.Client, options.ResourceManagerAuthorizer)
 
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
 		AccountsClient:           &accountsClient,
 		FileSystemsClient:        &fileSystemsClient,
-		ManagementPoliciesClient: managementPoliciesClient,
-		BlobServicesClient:       blobServicesClient,
-		CachesClient:             &cachesClient,
+		ManagementPoliciesClient: &managementPoliciesClient,
+		BlobServicesClient:       &blobServicesClient,
 		SubscriptionId:           options.SubscriptionId,
-		StorageTargetsClient:     &storageTargetsClient,
+		SyncServiceClient:        &syncServiceClient,
+		SyncGroupsClient:         &syncGroupsClient,
 		environment:              options.Environment,
 	}
 
@@ -84,7 +84,7 @@ func (client Client) AccountsDataPlaneClient(ctx context.Context, account accoun
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyForAccount)
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKey)
 	if err != nil {
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}

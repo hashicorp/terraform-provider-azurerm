@@ -39,6 +39,12 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 				Default:  true,
 			},
 
+			"signed_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  sasSignedVersion,
+			},
+
 			"resource_types": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -167,6 +173,7 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
+	signedVersion := d.Get("signed_version").(string)
 	resourceTypesIface := d.Get("resource_types").([]interface{})
 	servicesIface := d.Get("services").([]interface{})
 	start := d.Get("start").(string)
@@ -194,7 +201,6 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 		signedProtocol = "https"
 	}
 	signedIp := ""
-	signedVersion := sasSignedVersion
 
 	sasToken, err := storage.ComputeAccountSASToken(accountName, accountKey, permissions, services, resourceTypes,
 		start, expiry, signedProtocol, signedIp, signedVersion)

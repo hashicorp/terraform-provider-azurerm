@@ -52,10 +52,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	if features.EnhancedValidationEnabled() {
-		// e.g. https://management.azure.com/ but we need management.azure.com
-		endpoint := strings.TrimPrefix(env.ResourceManagerEndpoint, "https://")
-		endpoint = strings.TrimSuffix(endpoint, "/")
-		location.CacheSupportedLocations(ctx, endpoint)
+		location.CacheSupportedLocations(ctx, env)
 	}
 
 	// client declarations:

@@ -7,17 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -37,6 +37,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			_, err := parse.KubernetesClusterID(id)
 			return err
 		}),
+
+		CustomizeDiff: customdiff.Sequence(
+			// Downgrade from Paid to Free is not supported and requires rebuild to apply
+			customdiff.ForceNewIfChange("sku_tier", func(old, new, meta interface{}) bool {
+				return new == "Free"
+			}),
+		),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(90 * time.Minute),
@@ -510,11 +517,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				// @tombuildsstuff (2020-05-29) - Preview limitations:
-				//  * Currently, cannot convert as existing cluster to enable the Uptime SLA.
 				//  * Currently, there is no way to remove Uptime SLA from an AKS cluster after creation with it enabled.
 				//  * Private clusters aren't currently supported.
-				ForceNew: true,
-				Default:  string(containerservice.Free),
+				// @jackofallops (2020-07-21) - Update:
+				//  * sku_tier can now be upgraded in place, downgrade requires rebuild
+				Default: string(containerservice.Free),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.Free),
 					string(containerservice.Paid),
@@ -652,17 +659,15 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
-			}
+	existing, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *existing.ID)
 	}
 
 	if err := validateKubernetesCluster(d, nil, resGroup, name); err != nil {
@@ -888,16 +893,24 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			props.AadProfile = azureADProfile
 			props.EnableRBAC = utils.Bool(rbacEnabled)
 
-			log.Printf("[DEBUG] Updating the RBAC AAD profile")
-			future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.Name, *props.AadProfile)
-			if err != nil {
-				return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+			// Reset AAD profile is only possible if not managed
+			if props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
+				log.Printf("[DEBUG] Updating the RBAC AAD profile")
+				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.Name, *props.AadProfile)
+				if err != nil {
+					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
 
-			if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-				return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.Name, id.ResourceGroup, err)
+				if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+					return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.Name, id.ResourceGroup, err)
+				}
 			}
 		} else {
+			updateCluster = true
+		}
+
+		if props.AadProfile != nil && props.AadProfile.Managed != nil && *props.AadProfile.Managed {
+			existing.ManagedClusterProperties.AadProfile = azureADProfile
 			updateCluster = true
 		}
 	}
@@ -1030,6 +1043,11 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		updateCluster = true
 		managedClusterIdentityRaw := d.Get("identity").([]interface{})
 		existing.Identity = expandKubernetesClusterManagedClusterIdentity(managedClusterIdentityRaw)
+	}
+
+	if d.HasChange("sku_tier") {
+		updateCluster = true
+		existing.Sku.Tier = containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string))
 	}
 
 	if updateCluster {

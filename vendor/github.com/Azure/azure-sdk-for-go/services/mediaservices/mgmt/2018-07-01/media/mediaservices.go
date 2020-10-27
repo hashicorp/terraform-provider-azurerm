@@ -373,6 +373,9 @@ func (client MediaservicesClient) List(ctx context.Context, resourceGroupName st
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "List", resp, "Failure responding to request")
 	}
+	if result.sc.hasNextLink() && result.sc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -481,6 +484,9 @@ func (client MediaservicesClient) ListBySubscription(ctx context.Context) (resul
 	result.smsc, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.smsc.hasNextLink() && result.smsc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

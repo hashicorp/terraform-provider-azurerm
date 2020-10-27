@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -22,9 +21,9 @@ import (
 
 func resourceArmSignalRService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSignalRServiceCreateUpdate,
+		Create: resourceArmSignalRServiceCreate,
 		Read:   resourceArmSignalRServiceRead,
-		Update: resourceArmSignalRServiceCreateUpdate,
+		Update: resourceArmSignalRServiceUpdate,
 		Delete: resourceArmSignalRServiceDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -76,7 +75,7 @@ func resourceArmSignalRService() *schema.Resource {
 			},
 
 			"features": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -165,33 +164,31 @@ func resourceArmSignalRService() *schema.Resource {
 	}
 }
 
-func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSignalRServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.Client
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	sku := d.Get("sku").([]interface{})
-	t := d.Get("tags").(map[string]interface{})
-	featureFlags := d.Get("features").([]interface{})
-	cors := d.Get("cors").([]interface{})
-	expandedTags := tags.Expand(t)
-
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_signalr_service", *existing.ID)
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
+
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_signalr_service", *existing.ID)
+	}
+
+	sku := d.Get("sku").([]interface{})
+	t := d.Get("tags").(map[string]interface{})
+	featureFlags := d.Get("features").(*schema.Set).List()
+	cors := d.Get("cors").([]interface{})
+	expandedTags := tags.Expand(t)
 
 	properties := &signalr.CreateOrUpdateProperties{
 		Cors:     expandSignalRCors(cors),
@@ -218,11 +215,11 @@ func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("SignalR %q (Resource Group %q) ID is empty", name, resourceGroup)
+		return fmt.Errorf("SignalR Service %q (Resource Group %q) ID is empty", name, resourceGroup)
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmSignalRServiceRead(d, meta)
+	return resourceArmSignalRServiceUpdate(d, meta)
 }
 
 func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) error {
@@ -284,6 +281,53 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
+func resourceArmSignalRServiceUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).SignalR.Client
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SignalRServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := &signalr.UpdateParameters{}
+
+	if d.HasChanges("cors", "features") {
+		parameters.Properties = &signalr.CreateOrUpdateProperties{}
+
+		if d.HasChange("cors") {
+			corsRaw := d.Get("cors").([]interface{})
+			parameters.Properties.Cors = expandSignalRCors(corsRaw)
+		}
+
+		if d.HasChange("features") {
+			featuresRaw := d.Get("features").(*schema.Set).List()
+			parameters.Properties.Features = expandSignalRFeatures(featuresRaw)
+		}
+	}
+
+	if d.HasChange("sku") {
+		sku := d.Get("sku").([]interface{})
+		parameters.Sku = expandSignalRServiceSku(sku)
+	}
+
+	if d.HasChange("tags") {
+		tagsRaw := d.Get("tags").(map[string]interface{})
+		parameters.Tags = tags.Expand(tagsRaw)
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
+	if err != nil {
+		return fmt.Errorf("updating SignalR Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for the update of SignalR Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return resourceArmSignalRServiceRead(d, meta)
+}
+
 func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).SignalR.Client
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
@@ -297,13 +341,13 @@ func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) e
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting SignalR %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting SignalR Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 		return nil
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of SignalR %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for the deletion of SignalR Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -327,19 +371,21 @@ func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
 }
 
 func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
-	result := make([]interface{}, 0)
-	if features != nil {
-		for _, feature := range *features {
-			value := ""
-			if feature.Value != nil {
-				value = *feature.Value
-			}
+	if features == nil {
+		return []interface{}{}
+	}
 
-			result = append(result, map[string]interface{}{
-				"flag":  string(feature.Flag),
-				"value": value,
-			})
+	result := make([]interface{}, 0)
+	for _, feature := range *features {
+		value := ""
+		if feature.Value != nil {
+			value = *feature.Value
 		}
+
+		result = append(result, map[string]interface{}{
+			"flag":  string(feature.Flag),
+			"value": value,
+		})
 	}
 	return result
 }
@@ -396,15 +442,20 @@ func flattenSignalRServiceSku(input *signalr.ResourceSku) []interface{} {
 		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-
-	if input.Name != nil {
-		result["name"] = *input.Name
-	}
-
+	capacity := 0
 	if input.Capacity != nil {
-		result["capacity"] = *input.Capacity
+		capacity = int(*input.Capacity)
 	}
 
-	return []interface{}{result}
+	name := ""
+	if input.Name != nil {
+		name = *input.Name
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"capacity": capacity,
+			"name":     name,
+		},
+	}
 }

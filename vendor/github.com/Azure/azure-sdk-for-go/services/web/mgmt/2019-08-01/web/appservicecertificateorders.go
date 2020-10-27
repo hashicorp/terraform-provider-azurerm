@@ -588,6 +588,9 @@ func (client AppServiceCertificateOrdersClient) List(ctx context.Context) (resul
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "List", resp, "Failure responding to request")
 	}
+	if result.ascoc.hasNextLink() && result.ascoc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -705,6 +708,9 @@ func (client AppServiceCertificateOrdersClient) ListByResourceGroup(ctx context.
 	result.ascoc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.ascoc.hasNextLink() && result.ascoc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -825,6 +831,9 @@ func (client AppServiceCertificateOrdersClient) ListCertificates(ctx context.Con
 	result.ascc, err = client.ListCertificatesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppServiceCertificateOrdersClient", "ListCertificates", resp, "Failure responding to request")
+	}
+	if result.ascc.hasNextLink() && result.ascc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

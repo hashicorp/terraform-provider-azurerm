@@ -41,6 +41,7 @@ resource "azurerm_key_vault" "example" {
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_enabled         = true
+  soft_delete_retention_days  = 7
   purge_protection_enabled    = false
 
   sku_name = "standard"
@@ -99,6 +100,8 @@ The following arguments are supported:
 
 * `enabled_for_template_deployment` - (Optional) Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault. Defaults to `false`.
 
+* `enable_rbac_authorization` - (Optional) Boolean flag to specify whether Azure Key Vault uses Role Based Access Control (RBAC) for authorization of data actions. Defaults to `false`.
+
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
 * `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault? Defaults to `false`.
@@ -110,6 +113,10 @@ The following arguments are supported:
 !> **Note:** Once Soft Delete has been Enabled it's not possible to Disable it.
 
 ~> **Note:** Terraform will check when creating a Key Vault for a previous soft-deleted Key Vault and recover it if one exists. You can configure this behaviour using the `features` block within the `provider` block.  
+
+* `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted.
+
+~> **Note:** This field can only be set once Soft Delete is Enabled and cannot be updated.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

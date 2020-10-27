@@ -1322,6 +1322,9 @@ func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponses(ctx cont
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListHostingEnvironmentDetectorResponses", resp, "Failure responding to request")
 	}
+	if result.drc.hasNextLink() && result.drc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1443,6 +1446,9 @@ func (client DiagnosticsClient) ListSiteAnalyses(ctx context.Context, resourceGr
 	result.dac, err = client.ListSiteAnalysesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteAnalyses", resp, "Failure responding to request")
+	}
+	if result.dac.hasNextLink() && result.dac.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1568,6 +1574,9 @@ func (client DiagnosticsClient) ListSiteAnalysesSlot(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteAnalysesSlot", resp, "Failure responding to request")
 	}
+	if result.dac.hasNextLink() && result.dac.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1691,6 +1700,9 @@ func (client DiagnosticsClient) ListSiteDetectorResponses(ctx context.Context, r
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorResponses", resp, "Failure responding to request")
 	}
+	if result.drc.hasNextLink() && result.drc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -1812,6 +1824,9 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesSlot(ctx context.Contex
 	result.drc, err = client.ListSiteDetectorResponsesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorResponsesSlot", resp, "Failure responding to request")
+	}
+	if result.drc.hasNextLink() && result.drc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1935,6 +1950,9 @@ func (client DiagnosticsClient) ListSiteDetectors(ctx context.Context, resourceG
 	result.ddc, err = client.ListSiteDetectorsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectors", resp, "Failure responding to request")
+	}
+	if result.ddc.hasNextLink() && result.ddc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -2060,6 +2078,9 @@ func (client DiagnosticsClient) ListSiteDetectorsSlot(ctx context.Context, resou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorsSlot", resp, "Failure responding to request")
 	}
+	if result.ddc.hasNextLink() && result.ddc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -2183,6 +2204,9 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategories(ctx context.Context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDiagnosticCategories", resp, "Failure responding to request")
 	}
+	if result.dcc.hasNextLink() && result.dcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -2304,6 +2328,9 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSlot(ctx context.Con
 	result.dcc, err = client.ListSiteDiagnosticCategoriesSlotResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDiagnosticCategoriesSlot", resp, "Failure responding to request")
+	}
+	if result.dcc.hasNextLink() && result.dcc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

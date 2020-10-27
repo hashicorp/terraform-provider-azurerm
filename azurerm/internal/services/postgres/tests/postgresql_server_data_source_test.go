@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMPPostgreSqlServer_basic(t *testing.T) {
+func TestAccDataSourceAzureRMPostgreSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_postgresql_server", "test")
 	version := "9.5"
 

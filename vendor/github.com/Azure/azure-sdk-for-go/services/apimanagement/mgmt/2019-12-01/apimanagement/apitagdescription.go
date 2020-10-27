@@ -505,6 +505,9 @@ func (client APITagDescriptionClient) ListByService(ctx context.Context, resourc
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APITagDescriptionClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.tdc.hasNextLink() && result.tdc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

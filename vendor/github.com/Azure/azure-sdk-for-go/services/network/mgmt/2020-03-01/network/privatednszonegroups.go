@@ -309,6 +309,9 @@ func (client PrivateDNSZoneGroupsClient) List(ctx context.Context, privateEndpoi
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.PrivateDNSZoneGroupsClient", "List", resp, "Failure responding to request")
 	}
+	if result.pdzglr.hasNextLink() && result.pdzglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

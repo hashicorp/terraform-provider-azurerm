@@ -13,7 +13,10 @@ var kubernetesAuthTests = map[string]func(t *testing.T){
 	"enablePodSecurityPolicy":     testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
 	"managedClusterIdentity":      testAccAzureRMKubernetesCluster_managedClusterIdentity,
 	"roleBasedAccessControl":      testAccAzureRMKubernetesCluster_roleBasedAccessControl,
-	"roleBasedAccessControlAAD":   testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+	"AAD":                         testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+	"AADUpdateToManaged":          testAccAzureRMKubernetesCluster_roleBasedAccessControlAADUpdateToManaged,
+	"AADManaged":                  testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManaged,
+	"AADManagedChange":            testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManagedChange,
 	"servicePrincipal":            testAccAzureRMKubernetesCluster_servicePrincipal,
 }
 
@@ -178,6 +181,56 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t)
+}
+
+func testAccAzureRMKubernetesCluster_roleBasedAccessControlAADUpdateToManaged(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	clientData := data.Client()
+	auth := clientData.Default
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.client_app_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.server_app_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.server_app_secret"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_admin_config_raw"),
+				),
+			},
+			data.ImportStep(
+				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+			),
+			{
+				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManagedConfig(data, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.managed", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_admin_config_raw"),
+				),
+			},
 			data.ImportStep(
 				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
 			),
@@ -221,6 +274,51 @@ func testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManaged(t *testing
 				PlanOnly: true,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+			),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManagedChange(t)
+}
+
+func testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManagedChange(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	clientData := data.Client()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManagedConfig(data, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.tenant_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "role_based_access_control.0.azure_active_directory.0.managed"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_admin_config_raw"),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "1"),
+				),
+			},
+			data.ImportStep(
+				"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+			),
+			{
+				Config: testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManagedConfigScale(data, clientData.TenantID),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_count", "2"),
 				),
 			},
 			data.ImportStep(
@@ -561,6 +659,53 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  role_based_access_control {
+    enabled = true
+
+    azure_active_directory {
+      tenant_id = var.tenant_id
+      managed   = true
+    }
+  }
+}
+`, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMKubernetesCluster_roleBasedAccessControlAADManagedConfigScale(data acceptance.TestData, tenantId string) string {
+	return fmt.Sprintf(`
+variable "tenant_id" {
+  default = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 2
     vm_size    = "Standard_DS2_v2"
   }
 

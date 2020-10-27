@@ -79,18 +79,37 @@ The `vpn_client_configuration` block supports:
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
 
+* `aad_tenant` - AzureAD Tenant URL
+    This setting is incompatible with the use of
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
+* `aad_audience` - The client id of the Azure VPN application.
+    See [Create an Active Directory (AD) tenant for P2S OpenVPN protocol connections](https://docs.microsoft.com/en-gb/azure/vpn-gateway/openvpn-azure-ad-tenant-multi-app) for values
+    This setting is incompatible with the use of
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
+* `aad_issuer` - The STS url for your tenant
+    This setting is incompatible with the use of
+    `root_certificate` and `revoked_certificate`, `radius_server_address`, and `radius_server_secret`.
+
 * `root_certificate` - One or more `root_certificate` blocks which are
     defined below. These root certificates are used to sign the client certificate
     used by the VPN clients to connect to the gateway.
+    This setting is incompatible with the use of
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.
 
 * `revoked_certificate` - One or more `revoked_certificate` blocks which
     are defined below.
+    This setting is incompatible with the use of
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `radius_server_address`, and `radius_server_secret`.
 
 * `radius_server_address` - The address of the Radius server.
-    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+    This setting is incompatible with the use of
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.
 
 * `radius_server_secret` - The secret used by the Radius server.
-    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+    This setting is incompatible with the use of
+    `aad_tenant`, `aad_audience`, `aad_issuer`, `root_certificate` and `revoked_certificate`.
 
 * `vpn_client_protocols` - List of the protocols supported by the vpn client.
     The supported values are `SSTP`, `IkeV2` and `OpenVPN`.

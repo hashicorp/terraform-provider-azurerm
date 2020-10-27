@@ -83,6 +83,9 @@ func (client ServiceSkusClient) ListAvailableServiceSkus(ctx context.Context, re
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.ServiceSkusClient", "ListAvailableServiceSkus", resp, "Failure responding to request")
 	}
+	if result.rsr.hasNextLink() && result.rsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

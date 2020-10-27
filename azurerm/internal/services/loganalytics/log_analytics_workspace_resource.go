@@ -6,14 +6,14 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -51,15 +51,16 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 			"sku": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
+				Default:  string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(operationalinsights.Free),
-					string(operationalinsights.PerGB2018),
-					string(operationalinsights.PerNode),
-					string(operationalinsights.Premium),
-					string(operationalinsights.Standalone),
-					string(operationalinsights.Standard),
+					string(operationalinsights.WorkspaceSkuNameEnumFree),
+					string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
+					string(operationalinsights.WorkspaceSkuNameEnumPerNode),
+					string(operationalinsights.WorkspaceSkuNameEnumPremium),
+					string(operationalinsights.WorkspaceSkuNameEnumStandalone),
+					string(operationalinsights.WorkspaceSkuNameEnumStandard),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -72,14 +73,22 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
 			},
 
+			"daily_quota_gb": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      -1.0,
+				ValidateFunc: validation.Any(validation.FloatBetween(-1, -1), validation.FloatAtLeast(0)),
+			},
+
 			"workspace_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"portal_url": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 
 			"primary_shared_key": {
@@ -108,7 +117,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -123,11 +132,12 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuName := d.Get("sku").(string)
-	sku := &operationalinsights.Sku{
-		Name: operationalinsights.SkuNameEnum(skuName),
+	sku := &operationalinsights.WorkspaceSku{
+		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
 	}
 
 	retentionInDays := int32(d.Get("retention_in_days").(int))
+	dailyQuotaGb := d.Get("daily_quota_gb").(float64)
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -138,6 +148,9 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
 			Sku:             sku,
 			RetentionInDays: &retentionInDays,
+			WorkspaceCapping: &operationalinsights.WorkspaceCapping{
+				DailyQuotaGb: &dailyQuotaGb,
+			},
 		},
 	}
 
@@ -166,6 +179,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	sharedKeysClient := meta.(*clients.Client).LogAnalytics.SharedKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := parse.LogAnalyticsWorkspaceID(d.Id())
@@ -189,13 +203,18 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("workspace_id", resp.CustomerID)
-	d.Set("portal_url", resp.PortalURL)
+	d.Set("portal_url", "")
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
+	if workspaceCapping := resp.WorkspaceCapping; workspaceCapping != nil {
+		d.Set("daily_quota_gb", resp.WorkspaceCapping.DailyQuotaGb)
+	} else {
+		d.Set("daily_quota_gb", utils.Float(-1))
+	}
 
-	sharedKeys, err := client.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
+	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.Name, err)
 	} else {
@@ -214,14 +233,17 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 
+	force := false
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(force))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
+		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.Name, err)
+	}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.Name, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deletion of Log Analytics Worspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return nil

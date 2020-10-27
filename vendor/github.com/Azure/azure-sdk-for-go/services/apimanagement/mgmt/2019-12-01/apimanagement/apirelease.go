@@ -485,6 +485,9 @@ func (client APIReleaseClient) ListByService(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.APIReleaseClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.arc.hasNextLink() && result.arc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -463,6 +463,9 @@ func (client DataFlowDebugSessionClient) QueryByFactory(ctx context.Context, res
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.DataFlowDebugSessionClient", "QueryByFactory", resp, "Failure responding to request")
 	}
+	if result.qdfdsr.hasNextLink() && result.qdfdsr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

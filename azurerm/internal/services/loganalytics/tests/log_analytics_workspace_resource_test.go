@@ -134,6 +134,44 @@ func TestAccAzureRMLogAnalyticsWorkspace_freeTier(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsWorkspace_withDefaultSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_withDefaultSku(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMLogAnalyticsWorkspace_withVolumeCap(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsWorkspace_withVolumeCap(data, 4.5),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -268,4 +306,49 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days   = 7
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_withDefaultSku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_withVolumeCap(data acceptance.TestData, volumeCapGb float64) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+  daily_quota_gb      = %f
+
+  tags = {
+    Environment = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, volumeCapGb)
 }

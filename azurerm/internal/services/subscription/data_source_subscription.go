@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -17,7 +16,43 @@ func dataSourceArmSubscription() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
-		Schema: azure.SchemaSubscription(true),
+		Schema: map[string]*schema.Schema{
+			"subscription_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"tenant_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"display_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"location_placement_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"quota_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"spending_limit": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+		},
 	}
 }
 

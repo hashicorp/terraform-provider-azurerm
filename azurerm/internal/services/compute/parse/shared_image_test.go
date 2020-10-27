@@ -2,7 +2,21 @@ package parse
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = SharedImageId{}
+
+func TestSharedImageIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	galleryId := NewSharedImageGalleryId("group1", "gallery1")
+	actual := NewSharedImageId(galleryId, "image1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/galleries/gallery1/images/image1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestSharedImageID(t *testing.T) {
 	testData := []struct {
@@ -72,6 +86,10 @@ func TestSharedImageID(t *testing.T) {
 
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		}
+
+		if actual.Gallery != v.Expect.Gallery {
+			t.Fatalf("Expected %q but got %q for Gallery", v.Expect.Gallery, actual.Gallery)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

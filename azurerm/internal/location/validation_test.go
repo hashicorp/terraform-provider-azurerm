@@ -31,6 +31,10 @@ func TestEnhancedValidationDisabled(t *testing.T) {
 			input: "West Europe",
 			valid: true,
 		},
+		{
+			input: "global",
+			valid: true,
+		},
 	}
 	enhancedEnabled = false
 	defer func() {
@@ -71,6 +75,10 @@ func TestEnhancedValidationEnabledButIsOffline(t *testing.T) {
 		},
 		{
 			input: "West Europe",
+			valid: true,
+		},
+		{
+			input: "global",
 			valid: true,
 		},
 	}
@@ -142,6 +150,11 @@ func TestEnhancedValidationEnabled(t *testing.T) {
 			availableLocations: chinaLocations,
 			input:              "West Europe",
 			valid:              false,
+		},
+		{
+			availableLocations: publicLocations,
+			input:              "global",
+			valid:              true,
 		},
 	}
 	enhancedEnabled = true

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -102,12 +102,12 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 }
 
 func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
 	client := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {

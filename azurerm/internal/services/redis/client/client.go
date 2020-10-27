@@ -9,6 +9,7 @@ type Client struct {
 	Client               *redis.Client
 	FirewallRulesClient  *redis.FirewallRulesClient
 	PatchSchedulesClient *redis.PatchSchedulesClient
+	LinkedServerClient   *redis.LinkedServerClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -21,9 +22,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	PatchSchedulesClient := redis.NewPatchSchedulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PatchSchedulesClient.Client, o.ResourceManagerAuthorizer)
 
+	LinkedServerClient := redis.NewLinkedServerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LinkedServerClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		Client:               &client,
 		FirewallRulesClient:  &FirewallRulesClient,
 		PatchSchedulesClient: &PatchSchedulesClient,
+		LinkedServerClient:   &LinkedServerClient,
 	}
 }

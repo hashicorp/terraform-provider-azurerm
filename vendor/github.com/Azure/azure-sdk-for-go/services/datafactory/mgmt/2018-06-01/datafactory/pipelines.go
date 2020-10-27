@@ -506,6 +506,9 @@ func (client PipelinesClient) ListByFactory(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.PipelinesClient", "ListByFactory", resp, "Failure responding to request")
 	}
+	if result.plr.hasNextLink() && result.plr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

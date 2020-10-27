@@ -86,7 +86,7 @@ A `microsoft_peering_config` block contains:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the ExpressRoute Circuit Peering.
+* `id` - The ID of the ExpressRoute Circuit Peering.
 
 * `azure_asn` - The ASN used by Azure.
 
