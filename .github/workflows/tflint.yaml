@@ -1,5 +1,5 @@
 ---
-name: Terraform Lint
+name: Terraform Schema Linting
 on:
   pull_request:
     types: ['opened', 'edited', 'reopened', 'synchronize']
@@ -21,4 +21,3 @@ jobs:
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make tflint
-
