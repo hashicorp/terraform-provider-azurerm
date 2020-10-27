@@ -30,6 +30,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_log_analytics_cluster":                                resourceArmLogAnalyticsCluster(),
 		"azurerm_log_analytics_datasource_windows_event":               resourceArmLogAnalyticsDataSourceWindowsEvent(),
 		"azurerm_log_analytics_datasource_windows_performance_counter": resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter(),
+		"azurerm_log_analytics_data_export_rule":                       resourceArmLogAnalyticsDataExport(),
 		"azurerm_log_analytics_linked_service":                         resourceArmLogAnalyticsLinkedService(),
 		"azurerm_log_analytics_saved_search":                           resourceArmLogAnalyticsSavedSearch(),
 		"azurerm_log_analytics_solution":                               resourceArmLogAnalyticsSolution(),
