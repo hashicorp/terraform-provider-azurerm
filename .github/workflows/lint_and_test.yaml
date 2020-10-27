@@ -13,6 +13,8 @@ on:
 jobs:
   configure:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
     steps:
       - uses: actions/checkout@v2
       - uese: actions/setup-go@v2
