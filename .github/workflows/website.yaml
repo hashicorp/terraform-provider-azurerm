@@ -1,0 +1,31 @@
+---
+name: PR lint and test
+on:
+  push:
+    branches:
+      - '!main'
+      - '!master'
+  pull_request:
+    paths:
+      - 'website/**'
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uese: actions/setup-go@v2
+        with:
+          go-version: '1.14.5'
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+
+  website-lint:
+    needs: configure
+    steps:
+      - run: make website-lint
+
+  website-test:
+    needs: configure
+    steps:
+      - run: make website-test

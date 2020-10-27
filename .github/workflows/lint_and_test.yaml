@@ -1,0 +1,43 @@
+---
+name: PR lint and test
+on:
+  push:
+    branches:
+      - '!main'
+      - '!master'
+  pull_request:
+    paths:
+      - '**.go'
+      - 'vendor/**'
+
+jobs:
+  configure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uese: actions/setup-go@v2
+        with:
+          go-version: '1.14.5'
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+
+  lintrest:
+    needs: configure
+    steps:
+      - run: TRAVIS=ci GOGC=5 make lintrest
+  tflint:
+    needs: configure
+    steps:
+      - run: TRAVIS=ci make tflint
+
+  test:
+    needs: configure
+    steps:
+      - run: TRAVIS=ci make test
+
+  depscheck:
+    needs: configure
+    steps:
+      - run: make depscheck
+
+
