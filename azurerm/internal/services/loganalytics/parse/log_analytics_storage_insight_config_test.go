@@ -41,6 +41,7 @@ func TestLogAnalyticsStorageInsightConfigID(t *testing.T) {
 			Expected: &LogAnalyticsStorageInsightConfigId{
 				ResourceGroup: "resourceGroup1",
 				WorkspaceName: "workspace1",
+				WorkspaceID:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1",
 				Name:          "storageInsight1",
 			},
 		},

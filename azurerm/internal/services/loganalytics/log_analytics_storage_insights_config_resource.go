@@ -3,6 +3,7 @@ package loganalytics
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
@@ -58,25 +59,18 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 			},
 
-			"storage_account": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-						"key": {
-							Type:         schema.TypeString,
-							Required:     true,
-							Sensitive:    true,
-							ValidateFunc: validate.IsBase64Encoded,
-						},
-					},
-				},
+			"storage_account_resource_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"storage_account_key": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.IsBase64Encoded,
 			},
 
 			"blob_container_names": {
@@ -108,6 +102,12 @@ func resourceArmLogAnalyticsStorageInsightConfigCreateUpdate(d *schema.ResourceD
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	storageAccountId := d.Get("storage_account_resource_id").(string)
+	storageAccountKey := d.Get("storage_account_key").(string)
+	if len(strings.TrimSpace(storageAccountKey)) < 1 {
+		return fmt.Errorf("The argument 'storage_account_key' is required, but no definition was found.")
+	}
+
 	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_resource_id").(string))
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func resourceArmLogAnalyticsStorageInsightConfigCreateUpdate(d *schema.ResourceD
 
 	parameters := operationalinsights.StorageInsight{
 		StorageInsightProperties: &operationalinsights.StorageInsightProperties{
-			StorageAccount: expandArmStorageInsightConfigStorageAccount(d.Get("storage_account").([]interface{})),
+			StorageAccount: expandArmStorageInsightConfigStorageAccount(storageAccountId, storageAccountKey),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -167,6 +167,9 @@ func resourceArmLogAnalyticsStorageInsightConfigRead(d *schema.ResourceData, met
 		return err
 	}
 
+	// Need to pull this from the config since the API does not return this value
+	storageAccountKey := d.Get("storage_account_key").(string)
+
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -181,15 +184,10 @@ func resourceArmLogAnalyticsStorageInsightConfigRead(d *schema.ResourceData, met
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_resource_id", id.WorkspaceID)
 
-	// the API does not return the key so we need to pull it from the config
-	sa := d.Get("storage_account").([]interface{})
-	v := sa[0].(map[string]interface{})
-
 	if props := resp.StorageInsightProperties; props != nil {
 		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))
-		if err := d.Set("storage_account", flattenArmStorageInsightConfigStorageAccount(props.StorageAccount, v["key"].(string))); err != nil {
-			return fmt.Errorf("setting `storage_account`: %+v", err)
-		}
+		d.Set("storage_account_resource_id", props.StorageAccount.ID)
+		d.Set("storage_account_key", storageAccountKey)
 		d.Set("table_names", utils.FlattenStringSlice(props.Tables))
 	}
 
@@ -212,34 +210,10 @@ func resourceArmLogAnalyticsStorageInsightConfigDelete(d *schema.ResourceData, m
 	return nil
 }
 
-func expandArmStorageInsightConfigStorageAccount(input []interface{}) *operationalinsights.StorageAccount {
-	if len(input) == 0 {
-		return nil
-	}
+func expandArmStorageInsightConfigStorageAccount(id string, key string) *operationalinsights.StorageAccount {
 
-	v := input[0].(map[string]interface{})
 	return &operationalinsights.StorageAccount{
-		ID:  utils.String(v["id"].(string)),
-		Key: utils.String(v["key"].(string)),
+		ID:  utils.String(id),
+		Key: utils.String(key),
 	}
-}
-
-// you must pass the storage account key to the the flatten since the API only returns the id of the storage account
-func flattenArmStorageInsightConfigStorageAccount(input *operationalinsights.StorageAccount, key string) *[]interface{} {
-	output := make([]interface{}, 0)
-	if input == nil {
-		return &output
-	}
-
-	var id string
-	if input.ID != nil {
-		id = *input.ID
-	}
-
-	output = append(output, map[string]interface{}{
-		"id":  id,
-		"key": key,
-	})
-
-	return &output
 }

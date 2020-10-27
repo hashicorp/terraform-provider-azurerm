@@ -25,7 +25,7 @@ func TestAccAzureRMLogAnalyticsStorageInsightConfig_basic(t *testing.T) {
 					testCheckAzureRMLogAnalyticsStorageInsightConfigExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage_account_key"), // key is not returned by the API
 		},
 	})
 }
@@ -61,7 +61,7 @@ func TestAccAzureRMLogAnalyticsStorageInsightConfig_complete(t *testing.T) {
 					testCheckAzureRMLogAnalyticsStorageInsightConfigExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage_account_key"), // key is not returned by the API
 		},
 	})
 }
@@ -79,21 +79,21 @@ func TestAccAzureRMLogAnalyticsStorageInsightConfig_update(t *testing.T) {
 					testCheckAzureRMLogAnalyticsStorageInsightConfigExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage_account_key"),
 			{
 				Config: testAccAzureRMLogAnalyticsStorageInsightConfig_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsStorageInsightConfigExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage_account_key"),
 			{
 				Config: testAccAzureRMLogAnalyticsStorageInsightConfig_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsStorageInsightConfigExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage_account_key"), // key is not returned by the API
 		},
 	})
 }
@@ -111,14 +111,14 @@ func TestAccAzureRMLogAnalyticsStorageInsightConfig_updateStorageAccount(t *test
 					testCheckAzureRMLogAnalyticsStorageInsightConfigExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage_account_key"),
 			{
 				Config: testAccAzureRMLogAnalyticsStorageInsightConfig_updateStorageAccount(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsStorageInsightConfigExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage_account_key"), // key is not returned by the API
 		},
 	})
 }
@@ -174,16 +174,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-la-%d"
+  name     = "acctestRG-la-%d"
   location = "%s"
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name = "acctest-law-%d"
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  sku                 = "PerGB2018"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctestsads%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }
 
 func testAccAzureRMLogAnalyticsStorageInsightConfig_basic(data acceptance.TestData) string {
@@ -192,9 +202,12 @@ func testAccAzureRMLogAnalyticsStorageInsightConfig_basic(data acceptance.TestDa
 %s
 
 resource "azurerm_log_analytics_storage_insight_config" "test" {
-  name = "acctest-lasic-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name = azurerm_log_analytics_workspace.test.name
+  name                  = "acctest-la-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+
+  storage_account_resource_id = azurerm_storage_account.test.id
+  storage_account_key         = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
 }
@@ -205,9 +218,12 @@ func testAccAzureRMLogAnalyticsStorageInsightConfig_requiresImport(data acceptan
 %s
 
 resource "azurerm_log_analytics_storage_insight_config" "import" {
-  name = azurerm_log_analytics_storage_insight_config.test.name
-  resource_group_name = azurerm_log_analytics_storage_insight_config.test.resource_group_name
-  workspace_name = azurerm_log_analytics_storage_insight_config.test.workspace_name
+  name                  = azurerm_log_analytics_storage_insight_config.test.name
+  resource_group_name   = azurerm_log_analytics_storage_insight_config.test.resource_group_name
+  workspace_resource_id = azurerm_log_analytics_storage_insight_config.test.workspace_resource_id
+
+  storage_account_resource_id = azurerm_storage_account.test.id
+  storage_account_key         = azurerm_storage_account.test.primary_access_key
 }
 `, config)
 }
@@ -218,18 +234,15 @@ func testAccAzureRMLogAnalyticsStorageInsightConfig_complete(data acceptance.Tes
 %s
 
 resource "azurerm_log_analytics_storage_insight_config" "test" {
-  name = "acctest-lasic-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_name = azurerm_log_analytics_workspace.test.name
-  containers = ["wad-iis-logfiles"]
-  e_tag = ""
-  storage_account {
-    key = "1234"
-  }
-  tables = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
-  tags = {
-    ENV = "Test"
-  }
+  name                  = "acctest-LA-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+
+  blob_container_names = ["wad-iis-logfiles"]
+	table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
+
+  storage_account_resource_id = azurerm_storage_account.test.id
+  storage_account_key         = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
 }
@@ -239,19 +252,25 @@ func testAccAzureRMLogAnalyticsStorageInsightConfig_updateStorageAccount(data ac
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_log_analytics_storage_insight_config" "test" {
-  name = "acctest-lasic-%d"
+resource "azurerm_storage_account" "test2" {
+  name                = "acctestsads%s"
   resource_group_name = azurerm_resource_group.test.name
-  workspace_name = azurerm_log_analytics_workspace.test.name
-  containers = ["wad-iis-logfiles"]
-  e_tag = ""
-  storage_account {
-    key = "1234"
-  }
-  tables = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
-  tags = {
-    ENV = "Test"
-  }
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
-`, template, data.RandomInteger)
+
+resource "azurerm_log_analytics_storage_insight_config" "test" {
+  name                  = "acctest-la-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+
+  blob_container_names = ["wad-iis-logfiles"]
+	table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
+
+  storage_account_resource_id = azurerm_storage_account.test2.id
+  storage_account_key         = azurerm_storage_account.test2.primary_access_key
+}
+`, template, data.RandomStringOfLength(6), data.RandomInteger)
 }

@@ -39,10 +39,8 @@ resource "azurerm_log_analytics_storage_insight_config" "example" {
   resource_group_name   = azurerm_resource_group.example.name
   workspace_resource_id = azurerm_log_analytics_workspace.example.id
 
-  storage_account {
-    id  = azurerm_storage_account.example.id
-    key = azurerm_storage_account.example.primary_access_key
-  }
+  storage_account_resource_id  = azurerm_storage_account.example.id
+  storage_account_key          = azurerm_storage_account.example.primary_access_key
 }
 ```
 
@@ -56,23 +54,15 @@ The following arguments are supported:
 
 * `workspace_resource_id` - (Required) The resource ID of the workspace to create the Log Analytics Storage Insight Config within. Changing this forces a new Log Analytics Storage Insight Config to be created.
 
-* `storage_account` - (Required) A `storage_account` block as defined below.
+* `storage_account_resource_id` - (Required) The resource ID of the storage account to be used by this Log Analytics Storage Insight Config.
+
+* `storage_account_key` - (Required) The storage access key to be used to connect to the storage account.
 
 * `blob_container_names` - (Optional) The names of the blob containers that the workspace should read.
 
 * `table_names` - (Optional) The names of the Azure tables that the workspace should read.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Log Analytics Storage Insight Config.
-
----
-
-The `storage_account` block supports:
-
-* `id` - (Required) The resource ID of the storage account to be used by this Log Analytics Storage Insight Config.
-
-* `key` - (Required) The storage access key to be used to connect to the storage account.
-
----
 
 ## Attributes Reference
 
