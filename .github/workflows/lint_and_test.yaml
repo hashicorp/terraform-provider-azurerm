@@ -1,5 +1,5 @@
 ---
-name: PR lint and test
+name: PR Code lint and test
 on:
   pull_request:
     types: ['opened', 'edited', 'reopened', 'synchronize']
