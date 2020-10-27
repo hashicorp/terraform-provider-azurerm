@@ -6,8 +6,8 @@ UPGRADE NOTES
 
 FEATURES: 
 
-**New Resource:** `azurerm_log_analytics_data_export_rule` [GH-8995]
-**New Resource:**  `azurerm_security_center_auto_provisioning` [GH-8595]
+* **New Resource:** `azurerm_log_analytics_data_export_rule` [GH-8995]
+* **New Resource:**  `azurerm_security_center_auto_provisioning` [GH-8595]
 
 IMPROVEMENTS:
 
