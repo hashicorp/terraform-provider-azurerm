@@ -505,6 +505,10 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
 	}
 
+	if resp.ConnectionMonitorType == network.SingleSourceDestination {
+		return fmt.Errorf("the resource created via API version 2019-06-01 or before (a.k.a v1) isn't compatible to this version of provider. Please migrate to v2 resource.")
+	}
+
 	d.Set("name", id.Name)
 	d.Set("network_watcher_id", id.WatcherId)
 	if location := resp.Location; location != nil {
