@@ -5,9 +5,11 @@ on:
     branches:
       - '!main'
       - '!master'
+
   pull_request:
     paths:
       - 'website/**'
+      - '.github/workflows'
 
 jobs:
   configure:

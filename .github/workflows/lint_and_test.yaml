@@ -5,10 +5,12 @@ on:
     branches:
       - '!main'
       - '!master'
+
   pull_request:
     paths:
       - '**.go'
       - 'vendor/**'
+      - '.github/workflows'
 
 jobs:
   configure:
