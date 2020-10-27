@@ -239,7 +239,7 @@ resource "azurerm_log_analytics_storage_insight_config" "test" {
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
 
   blob_container_names = ["wad-iis-logfiles"]
-	table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
+  table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
 
   storage_account_resource_id = azurerm_storage_account.test.id
   storage_account_key         = azurerm_storage_account.test.primary_access_key
@@ -267,7 +267,7 @@ resource "azurerm_log_analytics_storage_insight_config" "test" {
   workspace_resource_id = azurerm_log_analytics_workspace.test.id
 
   blob_container_names = ["wad-iis-logfiles"]
-	table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
+  table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
 
   storage_account_resource_id = azurerm_storage_account.test2.id
   storage_account_key         = azurerm_storage_account.test2.primary_access_key

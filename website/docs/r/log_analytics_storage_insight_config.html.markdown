@@ -39,8 +39,8 @@ resource "azurerm_log_analytics_storage_insight_config" "example" {
   resource_group_name   = azurerm_resource_group.example.name
   workspace_resource_id = azurerm_log_analytics_workspace.example.id
 
-  storage_account_resource_id  = azurerm_storage_account.example.id
-  storage_account_key          = azurerm_storage_account.example.primary_access_key
+  storage_account_resource_id = azurerm_storage_account.example.id
+  storage_account_key         = azurerm_storage_account.example.primary_access_key
 }
 ```
 

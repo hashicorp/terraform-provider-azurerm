@@ -211,7 +211,6 @@ func resourceArmLogAnalyticsStorageInsightConfigDelete(d *schema.ResourceData, m
 }
 
 func expandArmStorageInsightConfigStorageAccount(id string, key string) *operationalinsights.StorageAccount {
-
 	return &operationalinsights.StorageAccount{
 		ID:  utils.String(id),
 		Key: utils.String(key),
