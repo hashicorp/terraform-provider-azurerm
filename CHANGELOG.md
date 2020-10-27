@@ -17,6 +17,7 @@ IMPROVEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_automation_module` - correctly show creation error messages [GH-8498]
 * `azurerm_api_management_api` - fixing a regression introduced in v2.16 where the value for `subscription_required` was defaulted to `false` instead of `true` [GH-7963]
 * `azurerm_app_service` - fixing a crash when provisioning an app service inside an App Service Environment which doesn't exist [GH-8993]
 * `azurerm_cdn_endpoint` - disable persisting default value for `is_compression_enabled` to state file [GH-8610]
