@@ -2,9 +2,10 @@ package storage
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"regexp"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )

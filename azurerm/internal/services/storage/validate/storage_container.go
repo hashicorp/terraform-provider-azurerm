@@ -2,10 +2,10 @@ package validate
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 )
 
@@ -27,7 +27,6 @@ func StorageContainerResourceManagerID(i interface{}, k string) (warnings []stri
 func StorageContainerLegalHoldTag() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-z0-9]{3,23}$"),
-
 		`Each tag should be 3 to 23 alphanumeric characters and is normalized to lower case.`,
 	)
 }

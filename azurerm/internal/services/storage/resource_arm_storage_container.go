@@ -66,10 +66,11 @@ func resourceArmStorageContainer() *schema.Resource {
 			},
 
 			"default_encryption_scope": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: storageValidate.StorageEncryptionScopeName,
 			},
 
 			"encryption_scope_for_all_blobs": {
@@ -218,7 +219,6 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if expandLegalHold := expandStorageContainerLegalHold(d.Get("legal_hold").([]interface{})); expandLegalHold != nil {
-
 		if _, err := mgmtContainerClient.SetLegalHold(ctx, account.ResourceGroup, accountName, containerName, *expandLegalHold); err != nil {
 			return fmt.Errorf("setting `legal_hold` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
 		}
@@ -461,7 +461,6 @@ func expandStorageContainerLegalHold(input []interface{}) *storage.LegalHold {
 	return &storage.LegalHold{
 		Tags: utils.ExpandStringSlice(lh["tags"].(*schema.Set).List()),
 	}
-
 }
 
 func flattenStorageContainerLegalHold(input *storage.LegalHoldProperties) []interface{} {

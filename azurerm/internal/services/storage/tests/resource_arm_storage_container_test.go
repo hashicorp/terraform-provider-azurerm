@@ -101,6 +101,7 @@ func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
 	})
 }
 
+//for container with public access `private`, storage account must enable allow_blob_public_access
 func TestAccAzureRMStorageContainer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
