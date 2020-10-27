@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -22,6 +24,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var VPNGatewayResourceName = "azurerm_vpn_gateway"
 
 func resourceArmVPNGateway() *schema.Resource {
 	return &schema.Resource{
@@ -117,6 +121,9 @@ func resourceArmVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	locks.ByName(name, VPNGatewayResourceName)
+	defer locks.UnlockByName(name, VPNGatewayResourceName)
+
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
 	bgpSettings := expandVPNGatewayBGPSettings(bgpSettingsRaw)
 
@@ -135,6 +142,17 @@ func resourceArmVPNGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 			VpnGatewayScaleUnit: utils.Int32(int32(scaleUnit)),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	// Keep the existing vpn gateway connections
+	if !d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("getting existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if existing.VpnGatewayProperties != nil {
+			parameters.VpnGatewayProperties.Connections = existing.VpnGatewayProperties.Connections
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
@@ -228,6 +246,9 @@ func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.Name, VPNGatewayResourceName)
+	defer locks.UnlockByName(id.Name, VPNGatewayResourceName)
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {

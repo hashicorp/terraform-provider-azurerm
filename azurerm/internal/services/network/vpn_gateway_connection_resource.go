@@ -5,6 +5,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+
+	"github.com/hashicorp/go-azure-helpers/response"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
@@ -301,6 +305,9 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 		}
 	}
 
+	locks.ByName(gatewayId.Name, VPNGatewayResourceName)
+	defer locks.UnlockByName(gatewayId.Name, VPNGatewayResourceName)
+
 	param := network.VpnConnection{
 		Name: &name,
 		VpnConnectionProperties: &network.VpnConnectionProperties{
@@ -406,8 +413,20 @@ func resourceArmVpnGatewayConnectionResourceDelete(d *schema.ResourceData, meta 
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Gateway, id.Name); err != nil {
+	locks.ByName(id.Gateway, VPNGatewayResourceName)
+	defer locks.UnlockByName(id.Gateway, VPNGatewayResourceName)
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Gateway, id.Name)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
 		return fmt.Errorf("deleting Vpn Gateway Connection Resource %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.Gateway, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("Error waiting for the deletion of VPN Gateway Connection %q (Resource Group %q / VPN Gateway %q): %+v", id.Name, id.ResourceGroup, id.Gateway, err)
+		}
 	}
 
 	return nil
