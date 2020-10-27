@@ -372,8 +372,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		if read.Properties == nil || read.Properties.VaultURI == nil {
 			return fmt.Errorf("failed to get vault base url Key Vault %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 		}
-		_, err := dataPlaneClient.SetCertificateContacts(ctx, *read.Properties.VaultURI, contacts)
-		if err != nil {
+		if _, err := dataPlaneClient.SetCertificateContacts(ctx, *read.Properties.VaultURI, contacts); err != nil {
 			return fmt.Errorf("failed to set Contacts for Key Vault %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
