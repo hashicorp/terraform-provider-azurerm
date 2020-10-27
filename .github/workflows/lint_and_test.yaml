@@ -2,10 +2,11 @@
 name: PR lint and test
 on:
   pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize']
     paths:
       - '**.go'
       - 'vendor/**'
-      - '.github/workflows'
+      - '.github/workflows/**'
 
 jobs:
   configure:
@@ -39,5 +40,3 @@ jobs:
     needs: configure
     steps:
       - run: make depscheck
-
-
