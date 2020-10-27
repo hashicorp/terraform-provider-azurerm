@@ -1,11 +1,6 @@
 ---
 name: PR lint and test
 on:
-  push:
-    branches:
-      - '!main'
-      - '!master'
-
   pull_request:
     paths:
       - '**.go'
