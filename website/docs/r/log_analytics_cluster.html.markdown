@@ -23,9 +23,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_log_analytics_cluster" "example" {
-  name = "example-cluster"
+  name                = "example-cluster"
   resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
+  location            = azurerm_resource_group.example.location
 }
 ```
 
