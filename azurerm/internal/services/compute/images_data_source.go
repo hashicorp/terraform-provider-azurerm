@@ -126,17 +126,17 @@ func dataSourceArmImagesRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.ListByResourceGroupComplete(ctx, resourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response().Response) {
-			return fmt.Errorf("Images (Resource Group %q) was not found", resourceGroup)
+			return fmt.Errorf("no images were found in Resource Group %q", resourceGroup)
 		}
 		return fmt.Errorf("retrieving Images (Resource Group %q): %+v", resourceGroup, err)
 	}
 
-	images, err := flattenImages(ctx, resp, filterTags)
+	images, err := flattenImagesResult(ctx, resp, filterTags)
 	if err != nil {
-		return fmt.Errorf("retrieving Images (Resource Group %q): %+v", resourceGroup, err)
+		return fmt.Errorf("parsing Images (Resource Group %q): %+v", resourceGroup, err)
 	}
 	if len(images) == 0 {
-		return fmt.Errorf("unable to find any images")
+		return fmt.Errorf("no images were found that match the specified tags")
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -150,14 +150,10 @@ func dataSourceArmImagesRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenImages(ctx context.Context, iterator compute.ImageListResultIterator, filterTags map[string]*string) ([]interface{}, error) {
+func flattenImagesResult(ctx context.Context, iterator compute.ImageListResultIterator, filterTags map[string]*string) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 
-	var err error
-	for ; iterator.NotDone(); err = iterator.NextWithContext(ctx) {
-		if err != nil {
-			return nil, fmt.Errorf("loading Images list: %+v", err)
-		}
+	for iterator.NotDone() {
 		image := iterator.Value()
 		found := true
 		// Loop through our filter tags and see if they match
@@ -172,6 +168,9 @@ func flattenImages(ctx context.Context, iterator compute.ImageListResultIterator
 
 		if found {
 			results = append(results, flattenImage(image))
+		}
+		if err := iterator.NextWithContext(ctx); err != nil {
+			return nil, err
 		}
 	}
 
