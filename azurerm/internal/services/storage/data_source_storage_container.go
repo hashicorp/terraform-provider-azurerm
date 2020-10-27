@@ -37,7 +37,7 @@ func dataSourceArmStorageContainer() *schema.Resource {
 			"metadata": MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
-			"has_extended_immutability_policy": {
+			"has_immutability_policy": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -99,7 +99,7 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("setting `metadata`: %+v", err)
 		}
 
-		d.Set("has_extended_immutability_policy", props.HasImmutabilityPolicy)
+		d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 		d.Set("has_legal_hold", props.HasLegalHold)
 	}
 

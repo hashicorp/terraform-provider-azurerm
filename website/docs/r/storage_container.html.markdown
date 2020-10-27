@@ -47,7 +47,31 @@ The following arguments are supported:
 
 * `container_access_type` - (Optional) The Access Level configured for this Container. Possible values are `blob`, `container` or `private`. Defaults to `private`.
 
+* `default_encryption_scope` - (Optional) The encryption scope name which by default the container uses for all writes.
+
+* `encryption_scope_for_all_blobs` - (Optional) Use this encryption scope for all blobs in the container?
+
+* `immutability_policy` - (Optional) A `immutability_policy` block as documented below.
+
+* `legal_hold` - (Optional) A `legal_hold` block as documented below.
+
 * `metadata` - (Optional) A mapping of MetaData for this Container.
+
+---
+
+A `immutability_policy` block supports the following:
+
+* `since_creation_in_days` - (Required) The immutability period in days for the blobs in the container since the policy creation.
+
+* `allow_protected_append_writes` - (Optional) Will additional append block actions (beyond the initial append to create the append blob) be allowed on append blobs in this container? This property can only be changed for unlocked time-based retention policies.
+
+---
+
+A `legal_hold` block supports the following:
+
+* `tags` - (Required) A set of tags for legal hold.
+
+---
 
 ## Attributes Reference
 
@@ -55,11 +79,21 @@ The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Storage Container.
 
-* `has_extended_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
+* `has_immutability_policy` - Is there an Immutability Policy configured on this Storage Container?
 
 * `has_legal_hold` - Is there a Legal Hold configured on this Storage Container?
 
 * `resource_manager_id` - The Resource Manager ID of this Storage Container.
+
+* `deleted` - Was the blob container deleted?
+
+* `remaining_retention_days` - Remaining retention days for soft deleted blob container.
+
+---
+
+A `immutability_policy` block exports the following:
+
+* `etag` - The Etag for the Immutability Policy.
 
 ## Timeouts
 

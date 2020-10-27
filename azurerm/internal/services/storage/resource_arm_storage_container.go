@@ -2,6 +2,9 @@ package storage
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -9,12 +12,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
-	"log"
-	"reflect"
-	"time"
 )
 
 func resourceArmStorageContainer() *schema.Resource {
@@ -78,34 +79,32 @@ func resourceArmStorageContainer() *schema.Resource {
 				Default:  false,
 			},
 
-			"extended_immutability_policy": {
+			"immutability_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"since_creation_in_days": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 146000),
 						},
+
 						"allow_protected_append_writes": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
-						//"locked":{
-						//	Type:     schema.TypeBool,
-						//	Optional: true,
-						//	Default: false,
-						//},
+
+						// "etag" is required in immutability policy delete
+						"etag": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
-
-			//"lease":{
-			//	Type:     schema.TypeBool,
-			//	Optional: true,
-			//	Default: false,
-			//},
 
 			"legal_hold": {
 				Type:     schema.TypeList,
@@ -116,8 +115,10 @@ func resourceArmStorageContainer() *schema.Resource {
 						"tags": {
 							Type:     schema.TypeSet,
 							Required: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							//	 validation in lowercase
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: storageValidate.StorageContainerLegalHoldTag(),
+							},
 						},
 					},
 				},
@@ -126,7 +127,7 @@ func resourceArmStorageContainer() *schema.Resource {
 			"metadata": MetaDataComputedSchema(),
 
 			// TODO: support for ACL's, Legal Holds and Immutability Policies
-			"has_extended_immutability_policy": {
+			"has_immutability_policy": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -205,30 +206,21 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	if es, ok := d.GetOk("default_encryption_scope"); ok {
 		params.ContainerProperties.DefaultEncryptionScope = utils.String(es.(string))
 	}
+
 	if _, err := mgmtContainerClient.Create(ctx, account.ResourceGroup, accountName, containerName, params); err != nil {
 		return fmt.Errorf("creating Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
 	}
 
-	if v, ok := d.GetOk("extended_immutability_policy"); ok {
-		expandImmutability := expandStorageContainerImmutabilityPolicy(v.([]interface{}))
-
-		if _, err := mgmtContainerClient.ExtendImmutabilityPolicy(ctx, account.ResourceGroup, accountName, containerName, "", expandImmutability); err != nil {
-			return fmt.Errorf("setting `extended_immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
+	if immutability := expandStorageContainerImmutabilityPolicy(d.Get("immutability_policy").([]interface{})); immutability != nil {
+		if _, err := mgmtContainerClient.CreateOrUpdateImmutabilityPolicy(ctx, account.ResourceGroup, accountName, containerName, immutability, ""); err != nil {
+			return fmt.Errorf("setting `immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
 		}
-
-		//if d.Get("extended_immutability_policy.0.locked").(bool){
-		//	if _,err := mgmtContainerClient.LockImmutabilityPolicy(ctx,account.ResourceGroup,accountName,containerName,"");err!=nil{
-		//		return fmt.Errorf("locking `extended_immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
-		//	}
-		//}
 	}
 
-	if v, ok := d.GetOk("legal_hold"); ok {
-		expandLegalHold := expandStorageContainerLegalHold(v.([]interface{}))
+	if expandLegalHold := expandStorageContainerLegalHold(d.Get("legal_hold").([]interface{})); expandLegalHold != nil {
 
-		if _, err := mgmtContainerClient.SetLegalHold(ctx, account.ResourceGroup, accountName, containerName, expandLegalHold); err != nil {
+		if _, err := mgmtContainerClient.SetLegalHold(ctx, account.ResourceGroup, accountName, containerName, *expandLegalHold); err != nil {
 			return fmt.Errorf("setting `legal_hold` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
-
 		}
 	}
 
@@ -272,42 +264,35 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 		params.ContainerProperties.Metadata = ExpandMetaDataPtr(metaDataRaw)
 	}
 
-	if !reflect.DeepEqual(params, storage.BlobContainer{
-		ContainerProperties: &storage.ContainerProperties{}}) {
-		if _, err := mgmtContainerClient.Update(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, params); err != nil {
-			return fmt.Errorf("updating Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
-		}
+	if _, err := mgmtContainerClient.Update(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, params); err != nil {
+		return fmt.Errorf("updating Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
-	if d.HasChange("extended_immutability_policy") {
-		expandImmutability := expandStorageContainerImmutabilityPolicy(d.Get("extended_immutability_policy").([]interface{}))
-
-		if _, err := mgmtContainerClient.ExtendImmutabilityPolicy(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, "", expandImmutability); err != nil {
-			return fmt.Errorf("setting `extended_immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
-
+	if d.HasChange("immutability_policy") {
+		if immutabilityResp, err := mgmtContainerClient.DeleteImmutabilityPolicy(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, d.Get("immutability_policy.0.etag").(string)); err != nil {
+			if !utils.ResponseWasNotFound(immutabilityResp.Response) {
+				return fmt.Errorf("deleting `immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+			}
 		}
-
-		//	if d.HasChange("extended_immutability_policy.0.locked"){
-		//		if d.Get("extended_immutability_policy.0.locked").(bool){
-		//		if _,err := mgmtContainerClient.LockImmutabilityPolicy(ctx,account.ResourceGroup,id.AccountName,id.ContainerName,"");err!=nil{
-		//			return fmt.Errorf("locking `extended_immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", containerName, accountName, account.ResourceGroup, err)
-		//		}
-		//	}
-		//}
+		if immutabilityPolicy := expandStorageContainerImmutabilityPolicy(d.Get("immutability_policy").([]interface{})); immutabilityPolicy != nil {
+			if _, err := mgmtContainerClient.CreateOrUpdateImmutabilityPolicy(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, immutabilityPolicy, ""); err != nil {
+				return fmt.Errorf("setting `immutability_policy` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+			}
+		}
 	}
 
 	if d.HasChange("legal_hold") {
 		o, n := d.GetChange("legal_hold")
-		expandClearLegalHold := expandStorageContainerLegalHold(o.([]interface{}))
-
-		if _, err := mgmtContainerClient.ClearLegalHold(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, expandClearLegalHold); err != nil {
-			return fmt.Errorf("clearing `legal_hold` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		if expandClearLegalHold := expandStorageContainerLegalHold(o.([]interface{})); expandClearLegalHold != nil {
+			if _, err := mgmtContainerClient.ClearLegalHold(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, *expandClearLegalHold); err != nil {
+				return fmt.Errorf("clearing `legal_hold` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+			}
 		}
 
-		expandLegalHold := expandStorageContainerLegalHold(n.([]interface{}))
-
-		if _, err := mgmtContainerClient.SetLegalHold(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, expandLegalHold); err != nil {
-			return fmt.Errorf("setting `legal_hold` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		if expandLegalHold := expandStorageContainerLegalHold(n.([]interface{})); expandLegalHold != nil {
+			if _, err := mgmtContainerClient.SetLegalHold(ctx, account.ResourceGroup, id.AccountName, id.ContainerName, *expandLegalHold); err != nil {
+				return fmt.Errorf("setting `legal_hold` in Storage Account Container %q (Storage Account %q/ Resource Group Name %q): %+v", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+			}
 		}
 	}
 	return resourceArmStorageContainerRead(d, meta)
@@ -358,14 +343,14 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		if err := d.Set("metadata", FlattenMetaDataPtr(props.Metadata)); err != nil {
 			return fmt.Errorf("setting `metadata`: %+v", err)
 		}
-		d.Set("has_extended_immutability_policy", props.HasImmutabilityPolicy)
+		d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 		d.Set("has_legal_hold", props.HasLegalHold)
 		d.Set("default_encryption_scope", props.DefaultEncryptionScope)
 		d.Set("encryption_scope_for_all_blobs", props.DenyEncryptionScopeOverride)
 		d.Set("deleted", props.Deleted)
 		d.Set("remaining_retention_days", props.RemainingRetentionDays)
-		if err := d.Set("extended_immutability_policy", flattenStorageContainerImmutabilityPolicy(props.ImmutabilityPolicy, props.HasImmutabilityPolicy)); err != nil {
-			return fmt.Errorf("setting `extended_immutability_policy` in Container %q", id.ContainerName)
+		if err := d.Set("immutability_policy", flattenStorageContainerImmutabilityPolicy(props.ImmutabilityPolicy, props.HasImmutabilityPolicy)); err != nil {
+			return fmt.Errorf("setting `immutability_policy` in Container %q", id.ContainerName)
 		}
 
 		if err := d.Set("legal_hold", flattenStorageContainerLegalHold(props.LegalHold)); err != nil {
@@ -426,22 +411,17 @@ func flattenStorageContainerAccessLevel(input storage.PublicAccess) string {
 }
 
 func expandStorageContainerImmutabilityPolicy(input []interface{}) *storage.ImmutabilityPolicy {
-	res := storage.ImmutabilityPolicy{
-		ImmutabilityPolicyProperty: &storage.ImmutabilityPolicyProperty{},
-	}
 	if len(input) == 0 || input[0] == nil {
-		return &res
+		return nil
 	}
 
 	policy := input[0].(map[string]interface{})
-	if v, ok := policy["since_creation_in_days"]; ok {
-		res.ImmutabilityPolicyProperty.ImmutabilityPeriodSinceCreationInDays = utils.Int32(int32(v.(int)))
+	return &storage.ImmutabilityPolicy{
+		ImmutabilityPolicyProperty: &storage.ImmutabilityPolicyProperty{
+			ImmutabilityPeriodSinceCreationInDays: utils.Int32(int32(policy["since_creation_in_days"].(int))),
+			AllowProtectedAppendWrites:            utils.Bool(policy["allow_protected_append_writes"].(bool)),
+		},
 	}
-	if v, ok := policy["allow_protected_append_writes"]; ok {
-		res.ImmutabilityPolicyProperty.AllowProtectedAppendWrites = utils.Bool(v.(bool))
-	}
-	return &res
-
 }
 
 func flattenStorageContainerImmutabilityPolicy(input *storage.ImmutabilityPolicyProperties, hasImmutabilityPolicy *bool) []interface{} {
@@ -450,7 +430,6 @@ func flattenStorageContainerImmutabilityPolicy(input *storage.ImmutabilityPolicy
 	}
 	var immutabilityPeriodSinceCreationInDays int32
 	var allowProtectedAppendWrites bool
-	//locked := false
 	if props := input.ImmutabilityPolicyProperty; props != nil {
 		if v := props.ImmutabilityPeriodSinceCreationInDays; v != nil {
 			immutabilityPeriodSinceCreationInDays = *v
@@ -458,31 +437,28 @@ func flattenStorageContainerImmutabilityPolicy(input *storage.ImmutabilityPolicy
 		if v := props.AllowProtectedAppendWrites; v != nil {
 			allowProtectedAppendWrites = *v
 		}
-		//if  props.State == "Locked"{
-		//	locked = true
-		//}
+	}
+	var etag string
+	if input.Etag != nil {
+		etag = *input.Etag
 	}
 
 	return []interface{}{
 		map[string]interface{}{
 			"since_creation_in_days":        immutabilityPeriodSinceCreationInDays,
 			"allow_protected_append_writes": allowProtectedAppendWrites,
-			//"locked":locked,
+			"etag":                          etag,
 		},
 	}
 }
 
-func expandStorageContainerLegalHold(input []interface{}) storage.LegalHold {
-	tags := []string{}
+func expandStorageContainerLegalHold(input []interface{}) *storage.LegalHold {
 	if len(input) == 0 || input[0] == nil {
-		return storage.LegalHold{
-			Tags: &tags,
-		}
+		return nil
 	}
 
 	lh := input[0].(map[string]interface{})
-
-	return storage.LegalHold{
+	return &storage.LegalHold{
 		Tags: utils.ExpandStringSlice(lh["tags"].(*schema.Set).List()),
 	}
 
@@ -514,20 +490,3 @@ func flattenStorageContainerLegalHoldTags(input *[]storage.TagProperty) *schema.
 
 	return res
 }
-
-//func storageContainerCreateRefreshFunc(ctx context.Context, client *containers.Client, accountName string, containerName string, input containers.CreateInput) resource.StateRefreshFunc {
-//	return func() (interface{}, string, error) {
-//		resp, err := client.Create(ctx, accountName, containerName, input)
-//		if err != nil {
-//			if !utils.ResponseWasConflict(resp.Response) {
-//				return nil, "", err
-//			}
-//
-//			if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
-//				return nil, "waitingOnDelete", nil
-//			}
-//		}
-//
-//		return "succeeded", "succeeded", nil
-//	}
-//}

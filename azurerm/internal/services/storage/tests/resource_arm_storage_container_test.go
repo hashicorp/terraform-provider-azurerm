@@ -2,14 +2,16 @@ package tests
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"strings"
-	"testing"
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
@@ -50,7 +52,8 @@ func TestAccAzureRMStorageContainer_deleteAndRecreate(t *testing.T) {
 				Config: testAccAzureRMStorageContainer_template(data),
 			},
 			{
-				Config: testAccAzureRMStorageContainer_basic(data),
+				PreConfig: func() { time.Sleep(1 * time.Minute) },
+				Config:    testAccAzureRMStorageContainer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageContainerExists(data.ResourceName),
 				),
@@ -676,7 +679,7 @@ resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
-  extended_immutability_policy {
+  immutability_policy {
     since_creation_in_days        = 7
     allow_protected_append_writes = true
   }
@@ -693,7 +696,7 @@ resource "azurerm_storage_container" "test" {
   name                  = "vhds"
   storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
-  extended_immutability_policy {
+  immutability_policy {
     since_creation_in_days        = 3
     allow_protected_append_writes = false
   }
