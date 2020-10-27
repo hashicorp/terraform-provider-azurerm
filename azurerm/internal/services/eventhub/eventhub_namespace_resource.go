@@ -199,6 +199,12 @@ func resourceArmEventHubNamespace() *schema.Resource {
 								},
 							},
 						},
+
+						"allow_trusted_microsoft_services_bypass_firewall": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
