@@ -75,15 +75,13 @@ A `bgp_settings` block supports the following:
 
 * `peer_weight` - (Required) The weight added to Routes learned from this BGP Speaker. Changing this forces a new resource to be created.
 
-* `bgp_peering_addresses` - (Optional) One or more `bgp_peering_addresses` block as defined below.
+* `instance_bgp_peering_address` - (Optional) One or more `instance_bgp_peering_address` block as defined below.
 
 ---
 
-A `bgp_peering_addresses` block supports the following:
+A `instance_bgp_peering_address` block supports the following:
 
-* `ip_configuration_id` - (Required) The ID of IP configuration which belongs to gateway.
-
-* `custom_bgp_ip_addresses` - (Required) The list of custom BGP peering addresses which belong to IP configuration.
+* `custom_ips` - (Required) The list of custom BGP peering addresses which belong to pre-defined IP configuration.
 
 ## Attributes Reference
 
@@ -99,15 +97,17 @@ A `bgp_settings` block exports the following:
 
 * `bgp_peering_address` - The Address which should be used for the BGP Peering.
 
-* `bgp_peering_addresses` - One or more `bgp_peering_addresses` block as defined below.
+* `instance_bgp_peering_address` - One or more `instance_bgp_peering_address` block as defined below.
 
 ---
 
-A `bgp_peering_addresses` block exports the following:
+A `instance_bgp_peering_address` block exports the following:
 
-* `default_bgp_ip_addresses` - The list of default BGP peering addresses which belong to IP configuration.
+* `ip_configuration_id` - The pre-defined id of VPN Gateway Ip Configuration.
 
-* `tunnel_ip_addresses` - The list of tunnel public IP addresses which belong to IP configuration.
+* `default_ips` - The list of default BGP peering addresses which belong to the pre-defined VPN Gateway IP configuration.
+
+* `tunnel_ips` - The list of tunnel public IP addresses which belong to the pre-defined VPN Gateway IP configuration.
 
 ## Timeouts
 
