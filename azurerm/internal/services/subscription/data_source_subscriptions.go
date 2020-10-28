@@ -158,7 +158,6 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 		}
 
 		subscriptions = append(subscriptions, s)
-
 	}
 
 	d.SetId("subscriptions-" + armClient.Account.TenantId)
