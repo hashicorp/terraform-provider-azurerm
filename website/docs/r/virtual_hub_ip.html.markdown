@@ -1,16 +1,16 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_virtual_hub_ip_configuration"
+page_title: "Azure Resource Manager: azurerm_virtual_hub_ip"
 description: |-
-  Manages a Virtual Hub IP Configuration.
+  Manages a Virtual Hub IP.
 ---
 
-# azurerm_virtual_hub_ip_configuration
+# azurerm_virtual_hub_ip
 
-Manages a Virtual Hub IP Configuration.
+Manages a Virtual Hub IP.
 
-~> **NOTE** Virtual Hub IP Configuration only supports Standard Virtual Hub without Virtual Wan.
+~> **NOTE** Virtual Hub IP only supports Standard Virtual Hub without Virtual Wan.
 
 ## Example Usage
 
@@ -48,7 +48,7 @@ resource "azurerm_subnet" "example" {
   address_prefix       = "10.5.1.0/24"
 }
 
-resource "azurerm_virtual_hub_ip_configuration" "example" {
+resource "azurerm_virtual_hub_ip" "example" {
   name                         = "example-vhubipconfig"
   virtual_hub_id               = azurerm_virtual_hub.example.id
   private_ip_address           = "10.5.1.18"
@@ -62,9 +62,7 @@ resource "azurerm_virtual_hub_ip_configuration" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Virtual Hub IP Configuration. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Virtual Hub IP Configuration should exist. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Virtual Hub IP. Changing this forces a new resource to be created.
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this ip configuration should be created. Changing this forces a new resource to be created.
 
@@ -80,21 +78,21 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Virtual Hub IP Configuration.
+* `id` - The ID of the Virtual Hub IP.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub IP Configuration.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub IP Configuration.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Hub IP Configuration.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Hub IP Configuration.
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub IP.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub IP.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Hub IP.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Hub IP.
 
 ## Import
 
-Virtual Hub IP Configurations can be imported using the `resource id`, e.g.
+Virtual Hub IPs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_hub_ip_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/ipConfigurations/ipConfig1
+terraform import azurerm_virtual_hub_ip.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/virtualHubs/virtualHub1/ipConfigurations/ipConfig1
 ```

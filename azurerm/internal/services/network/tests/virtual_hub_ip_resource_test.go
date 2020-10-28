@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualHubIPConfiguration_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip_configuration", "test")
+func TestAccAzureRMVirtualHubIP_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubIPConfigurationDestroy,
+		CheckDestroy: testCheckAzureRMVirtualHubIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualHubIPConfiguration_basic(data),
+				Config: testAccAzureRMVirtualHubIP_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubIPConfigurationExists(data.ResourceName),
+					testCheckAzureRMVirtualHubIPExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,40 +31,40 @@ func TestAccAzureRMVirtualHubIPConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualHubIPConfiguration_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip_configuration", "test")
+func TestAccAzureRMVirtualHubIP_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubIPConfigurationDestroy,
+		CheckDestroy: testCheckAzureRMVirtualHubIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualHubIPConfiguration_basic(data),
+				Config: testAccAzureRMVirtualHubIP_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubIPConfigurationExists(data.ResourceName),
+					testCheckAzureRMVirtualHubIPExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMVirtualHubIPConfiguration_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_hub_ip_configuration"),
+				Config:      testAccAzureRMVirtualHubIP_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_virtual_hub_ip"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMVirtualHubIPConfiguration_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip_configuration", "test")
+func TestAccAzureRMVirtualHubIP_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubIPConfigurationDestroy,
+		CheckDestroy: testCheckAzureRMVirtualHubIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualHubIPConfiguration_complete(data),
+				Config: testAccAzureRMVirtualHubIP_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubIPConfigurationExists(data.ResourceName),
+					testCheckAzureRMVirtualHubIPExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -72,25 +72,25 @@ func TestAccAzureRMVirtualHubIPConfiguration_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualHubIPConfiguration_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip_configuration", "test")
+func TestAccAzureRMVirtualHubIP_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubIPConfigurationDestroy,
+		CheckDestroy: testCheckAzureRMVirtualHubIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualHubIPConfiguration_basic(data),
+				Config: testAccAzureRMVirtualHubIP_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubIPConfigurationExists(data.ResourceName),
+					testCheckAzureRMVirtualHubIPExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMVirtualHubIPConfiguration_complete(data),
+				Config: testAccAzureRMVirtualHubIP_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubIPConfigurationExists(data.ResourceName),
+					testCheckAzureRMVirtualHubIPExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -98,49 +98,49 @@ func TestAccAzureRMVirtualHubIPConfiguration_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMVirtualHubIPConfigurationExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualHubIPExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubIPConfigurationClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubIPClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Virtual Hub IP Configuration not found: %s", resourceName)
+			return fmt.Errorf("Virtual Hub IP not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualHubIPConfigurationID(rs.Primary.ID)
+		id, err := parse.VirtualHubIPID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Virtual Hub IP Configuration %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("Bad: Virtual Hub IP %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on network.VirtualHubIPConfigurationClient: %+v", err)
+			return fmt.Errorf("Bad: Get on network.VirtualHubIPClient: %+v", err)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMVirtualHubIPConfigurationDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubIPConfigurationClient
+func testCheckAzureRMVirtualHubIPDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VirtualHubIPClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_hub_ip_configuration" {
+		if rs.Type != "azurerm_virtual_hub_ip" {
 			continue
 		}
 
-		id, err := parse.VirtualHubIPConfigurationID(rs.Primary.ID)
+		id, err := parse.VirtualHubIPID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.VirtualHubIPConfigurationClient: %+v", err)
+				return fmt.Errorf("Bad: Get on network.VirtualHubIPClient: %+v", err)
 			}
 		}
 
@@ -150,12 +150,12 @@ func testCheckAzureRMVirtualHubIPConfigurationDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testAccAzureRMVirtualHubIPConfiguration_basic(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubIPConfiguration_template(data)
+func testAccAzureRMVirtualHubIP_basic(data acceptance.TestData) string {
+	template := testAccAzureRMVirtualHubIP_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_ip_configuration" "test" {
+resource "azurerm_virtual_hub_ip" "test" {
   name           = "acctest-vhubipconfig-%d"
   virtual_hub_id = azurerm_virtual_hub.test.id
   subnet_id      = azurerm_subnet.test.id
@@ -163,25 +163,25 @@ resource "azurerm_virtual_hub_ip_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubIPConfiguration_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubIPConfiguration_basic(data)
+func testAccAzureRMVirtualHubIP_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMVirtualHubIP_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_ip_configuration" "import" {
-  name           = azurerm_virtual_hub_ip_configuration.test.name
-  virtual_hub_id = azurerm_virtual_hub_ip_configuration.test.virtual_hub_id
-  subnet_id      = azurerm_virtual_hub_ip_configuration.test.subnet_id
+resource "azurerm_virtual_hub_ip" "import" {
+  name           = azurerm_virtual_hub_ip.test.name
+  virtual_hub_id = azurerm_virtual_hub_ip.test.virtual_hub_id
+  subnet_id      = azurerm_virtual_hub_ip.test.subnet_id
 }
 `, template)
 }
 
-func testAccAzureRMVirtualHubIPConfiguration_complete(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHubIPConfiguration_template(data)
+func testAccAzureRMVirtualHubIP_complete(data acceptance.TestData) string {
+	template := testAccAzureRMVirtualHubIP_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_ip_configuration" "test" {
+resource "azurerm_virtual_hub_ip" "test" {
   name                         = "acctest-vhubipconfig-%d"
   virtual_hub_id               = azurerm_virtual_hub.test.id
   private_ip_address           = "10.5.1.18"
@@ -192,7 +192,7 @@ resource "azurerm_virtual_hub_ip_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualHubIPConfiguration_template(data acceptance.TestData) string {
+func testAccAzureRMVirtualHubIP_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

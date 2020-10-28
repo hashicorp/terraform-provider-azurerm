@@ -108,7 +108,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_subnet":                                                                 resourceArmSubnet(),
 		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
 		"azurerm_virtual_hub_connection":                                                 resourceArmVirtualHubConnection(),
-		"azurerm_virtual_hub_ip_configuration":                                           resourceArmVirtualHubIPConfiguration(),
+		"azurerm_virtual_hub_ip":                                                         resourceArmVirtualHubIP(),
 		"azurerm_virtual_network_gateway_connection":                                     resourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network_gateway":                                                resourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),

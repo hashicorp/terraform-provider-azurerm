@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualHubIPConfiguration() *schema.Resource {
+func resourceArmVirtualHubIP() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubIPConfigurationCreateUpdate,
-		Read:   resourceArmVirtualHubIPConfigurationRead,
-		Update: resourceArmVirtualHubIPConfigurationCreateUpdate,
-		Delete: resourceArmVirtualHubIPConfigurationDelete,
+		Create: resourceArmVirtualHubIPCreateUpdate,
+		Read:   resourceArmVirtualHubIPRead,
+		Update: resourceArmVirtualHubIPCreateUpdate,
+		Delete: resourceArmVirtualHubIPDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
@@ -33,7 +33,7 @@ func resourceArmVirtualHubIPConfiguration() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualHubIPConfigurationID(id)
+			_, err := parse.VirtualHubIPID(id)
 			return err
 		}),
 
@@ -82,8 +82,8 @@ func resourceArmVirtualHubIPConfiguration() *schema.Resource {
 		},
 	}
 }
-func resourceArmVirtualHubIPConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubIPConfigurationClient
+func resourceArmVirtualHubIPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -101,12 +101,12 @@ func resourceArmVirtualHubIPConfigurationCreateUpdate(d *schema.ResourceData, me
 		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Virtual Hub IP Configuration %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
+				return fmt.Errorf("checking for present of existing Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_virtual_hub_ip_configuration", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_virtual_hub_ip", *existing.ID)
 		}
 	}
 
@@ -135,34 +135,34 @@ func resourceArmVirtualHubIPConfigurationCreateUpdate(d *schema.ResourceData, me
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, parameters)
 	if err != nil {
-		return fmt.Errorf("creating/updating Virtual Hub IP Configuration %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("creating/updating Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for Virtual Hub IP Configuration %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("waiting on creating/updating future for Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Virtual Hub IP Configuration %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
+		return fmt.Errorf("retrieving Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", name, id.ResourceGroup, id.Name, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Virtual Hub IP Configuration %q (Resource Group %q / Virtual Hub %q) ID", name, id.ResourceGroup, id.Name)
+		return fmt.Errorf("empty or nil ID returned for Virtual Hub IP %q (Resource Group %q / Virtual Hub %q) ID", name, id.ResourceGroup, id.Name)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualHubIPConfigurationRead(d, meta)
+	return resourceArmVirtualHubIPRead(d, meta)
 }
 
-func resourceArmVirtualHubIPConfigurationRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualHubIPRead(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Network.VirtualHubIPConfigurationClient
+	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubIPConfigurationID(d.Id())
+	id, err := parse.VirtualHubIPID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -170,12 +170,12 @@ func resourceArmVirtualHubIPConfigurationRead(d *schema.ResourceData, meta inter
 	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Virtual Hub IP Configuration %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Virtual Hub IP %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Hub IP Configuration %q (Resource Group %q / Virtual Hub %q): %+v", id.Name, id.ResourceGroup, id.VirtualHubName, err)
+		return fmt.Errorf("retrieving Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", id.Name, id.ResourceGroup, id.VirtualHubName, err)
 	}
 
 	d.Set("name", id.Name)
@@ -197,12 +197,12 @@ func resourceArmVirtualHubIPConfigurationRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmVirtualHubIPConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubIPConfigurationClient
+func resourceArmVirtualHubIPDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubIPConfigurationID(d.Id())
+	id, err := parse.VirtualHubIPID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -212,11 +212,11 @@ func resourceArmVirtualHubIPConfigurationDelete(d *schema.ResourceData, meta int
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Virtual Hub IP Configuration %q (Resource Group %q / virtualHubName %q): %+v", id.Name, id.ResourceGroup, id.VirtualHubName, err)
+		return fmt.Errorf("deleting Virtual Hub IP %q (Resource Group %q / virtualHubName %q): %+v", id.Name, id.ResourceGroup, id.VirtualHubName, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Virtual Hub IP Configuration %q (Resource Group %q / virtualHubName %q): %+v", id.Name, id.ResourceGroup, id.VirtualHubName, err)
+		return fmt.Errorf("waiting on deleting future for Virtual Hub IP %q (Resource Group %q / virtualHubName %q): %+v", id.Name, id.ResourceGroup, id.VirtualHubName, err)
 	}
 
 	return nil

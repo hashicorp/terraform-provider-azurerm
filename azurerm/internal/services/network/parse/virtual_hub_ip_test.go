@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestVirtualHubIPConfigurationID(t *testing.T) {
+func TestVirtualHubIPID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *VirtualHubIPConfigurationId
+		Expected *VirtualHubIPId
 	}{
 		{
 			Name:     "Empty",
@@ -31,14 +31,14 @@ func TestVirtualHubIPConfigurationID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing VirtualHubIPConfiguration Value",
+			Name:     "Missing VirtualHubIP Value",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/ipConfigurations",
 			Expected: nil,
 		},
 		{
-			Name:  "network VirtualHubIPConfiguration ID",
+			Name:  "network VirtualHubIP ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/ipConfigurations/ipConfig1",
-			Expected: &VirtualHubIPConfigurationId{
+			Expected: &VirtualHubIPId{
 				ResourceGroup:  "resourceGroup1",
 				VirtualHubName: "virtualHub1",
 				Name:           "ipConfig1",
@@ -54,7 +54,7 @@ func TestVirtualHubIPConfigurationID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := VirtualHubIPConfigurationID(v.Input)
+		actual, err := VirtualHubIPID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
