@@ -251,7 +251,7 @@ resource "azurerm_log_analytics_saved_search" "test" {
   display_name = "Create or Update Saved Search Test"
   query        = "Heartbeat | summarize Count() by Computer | take a"
   tags = {
-    "Environment" = "test"
+    "Environment" = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
