@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -95,25 +96,7 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 				},
 			},
 
-			// tag is defined as an object set and cannot be updated in service side
-			"tag": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"value": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
+			"tags": tags.ForceNewSchema(),
 		},
 	}
 }
@@ -150,7 +133,7 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 			DisplayName:   utils.String(d.Get("display_name").(string)),
 			Query:         utils.String(d.Get("query").(string)),
 			FunctionAlias: utils.String(d.Get("function_alias").(string)),
-			Tags:          expandArmSavedSearchTagArray(d.Get("tag").(*schema.Set).List()),
+			Tags:          expandArmSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
 		},
 	}
 
@@ -215,7 +198,9 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 			functionParams = strings.Split(*props.FunctionParameters, ", ")
 		}
 		d.Set("function_parameters", functionParams)
-		if err := d.Set("tag", flattenArmSavedSearchTagArray(props.Tags)); err != nil {
+
+		// flatten tags because it's defined as object set in service
+		if err := d.Set("tags", flattenArmSavedSearchTag(props.Tags)); err != nil {
 			return fmt.Errorf("setting `tag`: %+v", err)
 		}
 	}
@@ -239,38 +224,34 @@ func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandArmSavedSearchTagArray(input []interface{}) *[]operationalinsights.Tag {
+func expandArmSavedSearchTag(input map[string]interface{}) *[]operationalinsights.Tag {
 	results := make([]operationalinsights.Tag, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
+	for key, value := range input {
 		result := operationalinsights.Tag{
-			Name:  utils.String(v["name"].(string)),
-			Value: utils.String(v["value"].(string)),
+			Name:  utils.String(key),
+			Value: utils.String(value.(string)),
 		}
 		results = append(results, result)
 	}
 	return &results
 }
 
-func flattenArmSavedSearchTagArray(input *[]operationalinsights.Tag) []interface{} {
-	results := make([]interface{}, 0)
+func flattenArmSavedSearchTag(input *[]operationalinsights.Tag) map[string]interface{} {
+	results := make(map[string]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		var name string
+		var key string
 		if item.Name != nil {
-			name = *item.Name
+			key = *item.Name
 		}
 		var value string
 		if item.Value != nil {
 			value = *item.Value
 		}
-		results = append(results, map[string]interface{}{
-			"name":  name,
-			"value": value,
-		})
+		results[key] = value
 	}
 	return results
 }
