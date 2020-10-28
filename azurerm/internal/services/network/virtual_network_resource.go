@@ -56,6 +56,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 			"address_space": {
 				Type:     schema.TypeList,
 				Required: true,
+				ForceNew: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,

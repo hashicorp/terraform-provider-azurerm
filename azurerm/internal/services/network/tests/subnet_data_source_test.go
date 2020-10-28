@@ -135,16 +135,14 @@ func testAccDataSourceSubnet_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.0.0/24"
 }
 
 data "azurerm_subnet" "test" {
-  name                 = azurerm_subnet.test.name
-  virtual_network_name = azurerm_subnet.test.virtual_network_name
-  resource_group_name  = azurerm_subnet.test.resource_group_name
+  name               = azurerm_subnet.test.name
+  virtual_network_id = azurerm_subnet.test.virtual_network_id
 }
 `, template)
 }
@@ -165,15 +163,13 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 resource "azurerm_subnet" "test" {
-  name                 = "acctest%d-private"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefixes     = ["10.0.0.0/24", "ace:cab:deca:deed::/64"]
+  name               = "acctest%d-private"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.0.0/24", "ace:cab:deca:deed::/64"]
 }
 data "azurerm_subnet" "test" {
-  name                 = "${azurerm_subnet.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  name               = "${azurerm_subnet.test.name}"
+  virtual_network_id = azurerm_virtual_network.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -184,10 +180,9 @@ func testAccDataSourceSubnet_networkSecurityGroupDependencies(data acceptance.Te
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.0.0/24"
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -221,9 +216,8 @@ func testAccDataSourceSubnet_networkSecurityGroup(data acceptance.TestData) stri
 %s
 
 data "azurerm_subnet" "test" {
-  name                 = azurerm_subnet.test.name
-  virtual_network_name = azurerm_subnet.test.virtual_network_name
-  resource_group_name  = azurerm_subnet.test.resource_group_name
+  name               = azurerm_subnet.test.name
+  virtual_network_id = azurerm_subnet.test.virtual_network_id
 }
 `, template)
 }
@@ -234,10 +228,9 @@ func testAccDataSourceSubnet_routeTableDependencies(data acceptance.TestData) st
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.0.0/24"
 }
 
 resource "azurerm_route_table" "test" {
@@ -266,9 +259,8 @@ func testAccDataSourceSubnet_routeTable(data acceptance.TestData) string {
 %s
 
 data "azurerm_subnet" "test" {
-  name                 = azurerm_subnet.test.name
-  virtual_network_name = azurerm_subnet.test.virtual_network_name
-  resource_group_name  = azurerm_subnet.test.resource_group_name
+  name               = azurerm_subnet.test.name
+  virtual_network_id = azurerm_subnet.test.virtual_network_id
 }
 `, template)
 }
@@ -279,9 +271,8 @@ func testAccDataSourceSubnet_serviceEndpoint(data acceptance.TestData) string {
 %s
 
 data "azurerm_subnet" "test" {
-  name                 = azurerm_subnet.test.name
-  virtual_network_name = azurerm_subnet.test.virtual_network_name
-  resource_group_name  = azurerm_subnet.test.resource_group_name
+  name               = azurerm_subnet.test.name
+  virtual_network_id = azurerm_subnet.test.virtual_network_id
 }
 `, template)
 }

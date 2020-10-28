@@ -363,10 +363,9 @@ func testAccAzureRMSubnet_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
 }
 `, template)
 }
@@ -377,10 +376,9 @@ func testAccAzureRMSubnet_delegation(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
 
   delegation {
     name = "first"
@@ -402,10 +400,9 @@ func testAccAzureRMSubnet_delegationUpdated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
 
   delegation {
     name = "first"
@@ -429,10 +426,9 @@ func testAccAzureRMSubnet_enforcePrivateLinkEndpointNetworkPolicies(data accepta
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
 
   enforce_private_link_endpoint_network_policies = %t
 }
@@ -445,10 +441,9 @@ func testAccAzureRMSubnet_enforcePrivateLinkServiceNetworkPolicies(data acceptan
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
 
   enforce_private_link_service_network_policies = %t
 }
@@ -468,10 +463,9 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefixes     = ["10.0.0.0/24", "ace:cab:deca:deed::/64"]
+  name               = "acctestsubnet%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.0.0/24", "ace:cab:deca:deed::/64"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -482,10 +476,9 @@ func testAccAzureRMSubnet_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "import" {
-  name                 = azurerm_subnet.test.name
-  resource_group_name  = azurerm_subnet.test.resource_group_name
-  virtual_network_name = azurerm_subnet.test.virtual_network_name
-  address_prefix       = azurerm_subnet.test.address_prefix
+  name               = azurerm_subnet.test.name
+  virtual_network_id = azurerm_subnet.test.virtual_network_id
+  address_prefix     = azurerm_subnet.test.address_prefix
 }
 `, template)
 }
@@ -496,11 +489,10 @@ func testAccAzureRMSubnet_serviceEndpoints(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Sql"]
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
+  service_endpoints  = ["Microsoft.Sql"]
 }
 `, template)
 }
@@ -511,11 +503,10 @@ func testAccAzureRMSubnet_serviceEndpointsUpdated(data acceptance.TestData) stri
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
+  service_endpoints  = ["Microsoft.Sql", "Microsoft.Storage"]
 }
 `, template)
 }
@@ -526,10 +517,9 @@ func testAccAzureRMSubnet_updatedAddressPrefix(data acceptance.TestData) string 
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.3.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.3.0/24"
 }
 `, template)
 }

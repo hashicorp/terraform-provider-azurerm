@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -43,12 +45,27 @@ func resourceArmSubnet() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO 3.0 - remove this property
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
+			// TODO 3.0 - remove this property
 			"virtual_network_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				Deprecated:   "This property is deprecated in favor of `virtual_network_id`",
+				ExactlyOneOf: []string{"virtual_network_name", "virtual_network_id"},
+				RequiredWith: []string{"resource_group_name"},
+			},
+
+			"virtual_network_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ExactlyOneOf:  []string{"virtual_network_name", "virtual_network_id"},
+				ConflictsWith: []string{"resource_group_name"},
 			},
 
 			"address_prefix": {
@@ -164,6 +181,7 @@ func resourceArmSubnet() *schema.Resource {
 
 // TODO: refactor the create/flatten functions
 func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -171,13 +189,22 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
 
 	name := d.Get("name").(string)
-	vnetName := d.Get("virtual_network_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
 
-	existing, err := client.Get(ctx, resGroup, vnetName, name, "")
+	var vnetId parse.VirtualNetworkId
+	if d.Get("virtual_network_id") != "" {
+		vnetIdPtr, err := parse.VirtualNetworkID(d.Get("virtual_network_id").(string))
+		if err != nil {
+			return err
+		}
+		vnetId = *vnetIdPtr
+	} else {
+		vnetId = parse.NewVirtualNetworkID(d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string))
+	}
+
+	existing, err := client.Get(ctx, vnetId.ResourceGroup, vnetId.Name, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Subnet %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
+			return fmt.Errorf("Error checking for presence of existing Subnet %q (Virtual Network %q / Resource Group %q): %s", name, vnetId.Name, vnetId.ResourceGroup, err)
 		}
 	}
 
@@ -185,8 +212,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		return tf.ImportAsExistsError("azurerm_subnet", *existing.ID)
 	}
 
-	locks.ByName(vnetName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(vnetName, VirtualNetworkResourceName)
+	locks.ByName(vnetId.Name, VirtualNetworkResourceName)
+	defer locks.UnlockByName(vnetId.Name, VirtualNetworkResourceName)
 
 	properties := network.SubnetPropertiesFormat{}
 	if value, ok := d.GetOk("address_prefixes"); ok {
@@ -223,24 +250,29 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		SubnetPropertiesFormat: &properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, vnetName, name, subnet)
+	future, err := client.CreateOrUpdate(ctx, vnetId.ResourceGroup, vnetId.Name, name, subnet)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetId.Name, vnetId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("Error waiting for completion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetId.Name, vnetId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, vnetName, name, "")
+	read, err := client.Get(ctx, vnetId.ResourceGroup, vnetId.Name, name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of Subnet %q (Virtual Network %q / Resource Group %q)", vnetName, name, resGroup)
+		return fmt.Errorf("Cannot read ID of Subnet %q (Virtual Network %q / Resource Group %q)", name, vnetId.Name, vnetId.ResourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.SubnetID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmSubnetRead(d, meta)
 }
@@ -250,21 +282,18 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	networkName := id.Path["virtualNetworks"]
-	name := id.Path["subnets"]
 
-	existing, err := client.Get(ctx, resourceGroup, networkName, name, "")
+	existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving existing Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving existing Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 	}
 
 	if existing.SubnetPropertiesFormat == nil {
-		return fmt.Errorf("Error retrieving existing Subnet %q (Virtual Network %q / Resource Group %q): `properties` was nil", name, networkName, resourceGroup)
+		return fmt.Errorf("Error retrieving existing Subnet %q (Virtual Network %q / Resource Group %q): `properties` was nil", id.Name, id.VirtualNetworkName, id.ResourceGroup)
 	}
 
 	// TODO: locking on the NSG/Route Table if applicable
@@ -305,48 +334,47 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	subnet := network.Subnet{
-		Name:                   utils.String(name),
+		Name:                   utils.String(id.Name),
 		SubnetPropertiesFormat: &props,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, networkName, name, subnet)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, subnet)
 	if err != nil {
-		return fmt.Errorf("Error updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("Error updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for update of Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 	}
 
 	return resourceArmSubnetRead(d, meta)
 }
 
 func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	networkName := id.Path["virtualNetworks"]
-	name := id.Path["subnets"]
 
-	resp, err := client.Get(ctx, resourceGroup, networkName, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("virtual_network_name", networkName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("virtual_network_name", id.VirtualNetworkName)
+	d.Set("virtual_network_id", parse.NewVirtualNetworkID(id.ResourceGroup, id.VirtualNetworkName).ID(subscriptionId))
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
@@ -382,27 +410,24 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SubnetID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["subnets"]
-	networkName := id.Path["virtualNetworks"]
 
-	locks.ByName(networkName, VirtualNetworkResourceName)
-	defer locks.UnlockByName(networkName, VirtualNetworkResourceName)
+	locks.ByName(id.VirtualNetworkName, VirtualNetworkResourceName)
+	defer locks.UnlockByName(id.VirtualNetworkName, VirtualNetworkResourceName)
 
-	locks.ByName(name, SubnetResourceName)
-	defer locks.UnlockByName(name, SubnetResourceName)
+	locks.ByName(id.Name, SubnetResourceName)
+	defer locks.UnlockByName(id.Name, SubnetResourceName)
 
-	future, err := client.Delete(ctx, resourceGroup, networkName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("Error deleting Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, networkName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", id.Name, id.VirtualNetworkName, id.ResourceGroup, err)
 	}
 
 	return nil

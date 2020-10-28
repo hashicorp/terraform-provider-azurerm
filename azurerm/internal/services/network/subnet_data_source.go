@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -27,13 +29,26 @@ func dataSourceArmSubnet() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// TODO 3.0 - remove this property
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
+
+			// TODO 3.0 - remove this property
 			"virtual_network_name": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Optional:     true,
+				Computed:     true,
+				Deprecated:   "This property is deprecated in favor of `virtual_network_id`",
+				ExactlyOneOf: []string{"virtual_network_name", "virtual_network_id"},
+				RequiredWith: []string{"resource_group_name"},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"virtual_network_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ExactlyOneOf:  []string{"virtual_network_name", "virtual_network_id"},
+				ConflictsWith: []string{"resource_group_name"},
+			},
 
 			"address_prefix": {
 				Type:     schema.TypeString,
@@ -78,26 +93,42 @@ func dataSourceArmSubnet() *schema.Resource {
 }
 
 func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.SubnetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	virtualNetworkName := d.Get("virtual_network_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, name, "")
+	var vnetId parse.VirtualNetworkId
+	if d.Get("virtual_network_id") != "" {
+		vnetIdPtr, err := parse.VirtualNetworkID(d.Get("virtual_network_id").(string))
+		if err != nil {
+			return err
+		}
+		vnetId = *vnetIdPtr
+	} else {
+		vnetId = parse.NewVirtualNetworkID(d.Get("resource_group_name").(string), d.Get("virtual_network_name").(string))
+	}
+
+	resp, err := client.Get(ctx, vnetId.ResourceGroup, vnetId.Name, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Subnet %q (Virtual Network %q / Resource Group %q) was not found", name, virtualNetworkName, resourceGroup)
+			return fmt.Errorf("Error: Subnet %q (Virtual Network %q / Resource Group %q) was not found", name, vnetId.Name, vnetId.ResourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on Azure Subnet %q: %+v", name, err)
 	}
-	d.SetId(*resp.ID)
+
+	id, err := parse.SubnetID(*resp.ID)
+	if err != nil {
+		return err
+	}
+	d.SetId(id.ID(subscriptionId))
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("virtual_network_name", virtualNetworkName)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("virtual_network_name", id.VirtualNetworkName)
+	d.Set("virtual_network_id", parse.NewVirtualNetworkID(id.ResourceGroup, id.VirtualNetworkName).ID(subscriptionId))
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)

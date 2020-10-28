@@ -13,10 +13,14 @@ Use this data source to access information about an existing Subnet within a Vir
 ## Example Usage
 
 ```hcl
+data "azurerm_virtual_network" "example" {
+  name                = "production"
+  resource_group_name = "networking"
+}
+
 data "azurerm_subnet" "example" {
   name                 = "backend"
-  virtual_network_name = "production"
-  resource_group_name  = "networking"
+  virtual_network_id = data.azurerm_virtual_network.example.id
 }
 
 output "subnet_id" {

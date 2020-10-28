@@ -12,6 +12,19 @@ type SubnetId struct {
 	Name               string
 }
 
+func (id SubnetId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s",
+		subscriptionId, id.ResourceGroup, id.VirtualNetworkName, id.Name)
+}
+
+func NewSubnetID(vnetId VirtualNetworkId, name string) SubnetId {
+	return SubnetId{
+		ResourceGroup:      vnetId.ResourceGroup,
+		VirtualNetworkName: vnetId.Name,
+		Name:               name,
+	}
+}
+
 func SubnetID(input string) (*SubnetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

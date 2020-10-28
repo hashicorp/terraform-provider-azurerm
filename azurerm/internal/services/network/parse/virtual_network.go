@@ -11,6 +11,18 @@ type VirtualNetworkId struct {
 	Name          string
 }
 
+func (id VirtualNetworkId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s",
+		subscriptionId, id.ResourceGroup, id.Name)
+}
+
+func NewVirtualNetworkID(resourceGroup, name string) VirtualNetworkId {
+	return VirtualNetworkId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
 func VirtualNetworkID(input string) (*VirtualNetworkId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

@@ -203,6 +203,36 @@ func TestAccAzureRMVirtualNetwork_deleteSubnet(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_changeAddressSpaceGivenContainingStandaloneSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_changeAddressSpaceGivenContainingStandaloneSubnet(data, "10.0.0.0"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet.1472110187.id"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualNetwork_changeAddressSpaceGivenContainingStandaloneSubnet(data, "192.168.0.0"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet.1472110187.id"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
@@ -479,4 +509,30 @@ resource "azurerm_virtual_network" "test" {
   subnet              = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualNetwork_changeAddressSpaceGivenContainingStandaloneSubnet(data acceptance.TestData, addressPrefix string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["%[3]s/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name               = "acctestvirtnet%[1]d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["%[3]s/24"]
+}
+`, data.RandomInteger, data.Locations.Primary, addressPrefix)
 }
