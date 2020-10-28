@@ -79,7 +79,7 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 							},
 						},
 
-						"destination_type": {
+						"destinations_type": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -97,7 +97,8 @@ func resourceArmVirtualHubRouteTable() *schema.Resource {
 
 						"next_hop_type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  "ResourceId",
 							ValidateFunc: validation.StringInSlice([]string{
 								"ResourceId",
 							}, false),
@@ -236,7 +237,7 @@ func expandArmVirtualHubRouteTableHubRoutes(input []interface{}) *[]network.HubR
 
 		result := network.HubRoute{
 			Name:            utils.String(v["name"].(string)),
-			DestinationType: utils.String(v["destination_type"].(string)),
+			DestinationType: utils.String(v["destinations_type"].(string)),
 			Destinations:    utils.ExpandStringSlice(v["destinations"].(*schema.Set).List()),
 			NextHopType:     utils.String(v["next_hop_type"].(string)),
 			NextHop:         utils.String(v["next_hop"].(string)),
@@ -276,11 +277,11 @@ func flattenArmVirtualHubRouteTableHubRoutes(input *[]network.HubRoute) []interf
 		}
 
 		v := map[string]interface{}{
-			"name":             name,
-			"destinations":     utils.FlattenStringSlice(item.Destinations),
-			"destination_type": destinationType,
-			"next_hop":         nextHop,
-			"next_hop_type":    nextHopType,
+			"name":              name,
+			"destinations":      utils.FlattenStringSlice(item.Destinations),
+			"destinations_type": destinationType,
+			"next_hop":          nextHop,
+			"next_hop_type":     nextHopType,
 		}
 
 		results = append(results, v)

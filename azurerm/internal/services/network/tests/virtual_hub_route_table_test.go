@@ -239,11 +239,11 @@ resource "azurerm_virtual_hub_route_table" "test" {
   labels         = ["label1"]
 
   route {
-    name             = "akc-route-test"
-    destination_type = "CIDR"
-    destinations     = ["10.0.0.0/16"]
-    next_hop_type    = "ResourceId"
-    next_hop         = azurerm_virtual_hub_connection.test.id
+    name              = "akc-route-test"
+    destinations_type = "CIDR"
+    destinations      = ["10.0.0.0/16"]
+    next_hop_type     = "ResourceId"
+    next_hop          = azurerm_virtual_hub_connection.test.id
   }
 }
 `, template, data.RandomInteger)

@@ -69,11 +69,11 @@ resource "azurerm_virtual_hub_route_table" "example" {
   labels         = ["label1"]
 
   route {
-    name             = "example-route"
-    destination_type = "CIDR"
-    destinations     = ["10.0.0.0/16"]
-    next_hop_type    = "ResourceId"
-    next_hop         = azurerm_virtual_hub_connection.example.id
+    name              = "example-route"
+    destinations_type = "CIDR"
+    destinations      = ["10.0.0.0/16"]
+    next_hop_type     = "ResourceId"
+    next_hop          = azurerm_virtual_hub_connection.example.id
   }
 }
 ```
@@ -96,13 +96,13 @@ An `route` block exports the following:
 
 * `name` - (Required) The name which should be used for this route.
 
-* `destinations` - (Required) The list of all destinations.
+* `destinations` - (Required) A list of destination addresses for this route.
 
-* `destination_type` - (Required) The type of destinations. Possible values are `CIDR`, `ResourceId` and `Service`.
+* `destinations_type` - (Required) The type of destinations. Possible values are `CIDR`, `ResourceId` and `Service`.
 
 * `next_hop` - (Required) The next hop resource ID.
 
-* `next_hop_type` - (Required) The type of next hop. Possible value is `ResourceId`.
+* `next_hop_type` - (Optional) The type of next hop. Currently the only possible value is `ResourceId`. Defaults to `ResourceId`.
 
 ## Attributes Reference
 
