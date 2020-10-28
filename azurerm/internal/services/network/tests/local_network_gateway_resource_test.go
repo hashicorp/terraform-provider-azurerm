@@ -529,7 +529,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-%d"
+  name     = "acctestRG-network-%d"
   location = "%s"
 }
 
