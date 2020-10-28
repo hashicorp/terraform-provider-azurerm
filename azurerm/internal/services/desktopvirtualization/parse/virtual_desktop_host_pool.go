@@ -6,20 +6,31 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-// VirtualDesktopHostPoolid - The id for the virtual desktop host pool
-type VirtualDesktopHostPoolid struct {
+type VirtualDesktopHostPoolId struct {
 	ResourceGroup string
 	Name          string
 }
 
+func (id VirtualDesktopHostPoolId) ID(subscriptionId string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/hostpools/%s"
+	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+}
+
+func NewVirtualDesktopHostPoolId(resourceGroup, name string) VirtualDesktopHostPoolId {
+	return VirtualDesktopHostPoolId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
 // VirtualDesktopHostPoolID - Parses and validates the virtual desktop host pool
-func VirtualDesktopHostPoolID(input string) (*VirtualDesktopHostPoolid, error) {
+func VirtualDesktopHostPoolID(input string) (*VirtualDesktopHostPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Desktop Host Pool ID %q: %+v", input, err)
 	}
 
-	hostPool := VirtualDesktopHostPoolid{
+	hostPool := VirtualDesktopHostPoolId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
