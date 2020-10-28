@@ -35,6 +35,7 @@ output "current_subscription_display_name" {
 * `location_placement_id` - The subscription location placement ID.
 * `quota_id` - The subscription quota ID.
 * `spending_limit` - The subscription spending limit.
+* `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts
 
