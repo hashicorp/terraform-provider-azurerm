@@ -250,6 +250,7 @@ resource "azurerm_log_analytics_saved_search" "test" {
   category     = "Saved Search Test Category"
   display_name = "Create or Update Saved Search Test"
   query        = "Heartbeat | summarize Count() by Computer | take a"
+
   tags = {
     "Environment" = "Test"
   }
