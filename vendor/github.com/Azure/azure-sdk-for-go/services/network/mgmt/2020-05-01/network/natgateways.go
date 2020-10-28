@@ -305,6 +305,9 @@ func (client NatGatewaysClient) List(ctx context.Context, resourceGroupName stri
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "List", resp, "Failure responding to request")
 	}
+	if result.nglr.hasNextLink() && result.nglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -413,6 +416,9 @@ func (client NatGatewaysClient) ListAll(ctx context.Context) (result NatGatewayL
 	result.nglr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.NatGatewaysClient", "ListAll", resp, "Failure responding to request")
+	}
+	if result.nglr.hasNextLink() && result.nglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

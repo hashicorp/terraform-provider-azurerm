@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	parseCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -171,6 +172,37 @@ func resourceArmMsSqlVirtualMachine() *schema.Resource {
 				ValidateFunc: validate.MsSqlVMLoginUserName,
 			},
 
+			"storage_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"disk_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sqlvirtualmachine.NEW),
+								string(sqlvirtualmachine.EXTEND),
+								string(sqlvirtualmachine.ADD),
+							}, false),
+						},
+						"storage_workload_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sqlvirtualmachine.GENERAL),
+								string(sqlvirtualmachine.OLTP),
+								string(sqlvirtualmachine.DW),
+							}, false),
+						},
+						"data_settings":    helper.StorageSettingSchema(),
+						"log_settings":     helper.StorageSettingSchema(),
+						"temp_db_settings": helper.StorageSettingSchema(),
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -229,6 +261,7 @@ func resourceArmMsSqlVirtualMachineCreateUpdate(d *schema.ResourceData, meta int
 					SQLAuthUpdateUserName: utils.String(d.Get("sql_connectivity_update_username").(string)),
 				},
 			},
+			StorageConfigurationSettings: expandArmSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -292,6 +325,17 @@ func resourceArmMsSqlVirtualMachineRead(d *schema.ResourceData, meta interface{}
 				d.Set("sql_connectivity_port", mgmtSettings.SQLConnectivityUpdateSettings.Port)
 				d.Set("sql_connectivity_type", mgmtSettings.SQLConnectivityUpdateSettings.ConnectivityType)
 			}
+		}
+
+		// `storage_configuration.0.storage_workload_type` is in a different spot than the rest of the `storage_configuration`
+		// so we'll grab that here and pass it along
+		storageWorkloadType := ""
+		if props.ServerConfigurationsManagementSettings != nil && props.ServerConfigurationsManagementSettings.SQLWorkloadTypeUpdateSettings != nil {
+			storageWorkloadType = string(props.ServerConfigurationsManagementSettings.SQLWorkloadTypeUpdateSettings.SQLWorkloadType)
+		}
+
+		if err := d.Set("storage_configuration", flattenArmSqlVirtualMachineStorageConfigurationSettings(props.StorageConfigurationSettings, storageWorkloadType)); err != nil {
+			return fmt.Errorf("error setting `storage_configuration`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -418,4 +462,75 @@ func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *schema.Resourc
 		}
 	}
 	return false
+}
+
+func expandArmSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *sqlvirtualmachine.StorageConfigurationSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	storageSettings := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachine.StorageConfigurationSettings{
+		DiskConfigurationType: sqlvirtualmachine.DiskConfigurationType(storageSettings["disk_type"].(string)),
+		StorageWorkloadType:   sqlvirtualmachine.StorageWorkloadType(storageSettings["storage_workload_type"].(string)),
+		SQLDataSettings:       expandArmSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
+		SQLLogSettings:        expandArmSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
+		SQLTempDbSettings:     expandArmSqlVirtualMachineDataStorageSettings(storageSettings["temp_db_settings"].([]interface{})),
+	}
+}
+
+func flattenArmSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachine.StorageConfigurationSettings, storageWorkloadType string) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"disk_type":             string(input.DiskConfigurationType),
+			"storage_workload_type": storageWorkloadType,
+			"data_settings":         flattenArmSqlVirtualMachineStorageSettings(input.SQLDataSettings),
+			"log_settings":          flattenArmSqlVirtualMachineStorageSettings(input.SQLLogSettings),
+			"temp_db_settings":      flattenArmSqlVirtualMachineStorageSettings(input.SQLTempDbSettings),
+		},
+	}
+}
+
+func expandArmSqlVirtualMachineDataStorageSettings(input []interface{}) *sqlvirtualmachine.SQLStorageSettings {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	dataStorageSettings := input[0].(map[string]interface{})
+
+	return &sqlvirtualmachine.SQLStorageSettings{
+		Luns:            expandArmSqlVirtualMachineStorageSettingsLuns(dataStorageSettings["luns"].([]interface{})),
+		DefaultFilePath: utils.String(dataStorageSettings["default_file_path"].(string)),
+	}
+}
+
+func expandArmSqlVirtualMachineStorageSettingsLuns(input []interface{}) *[]int32 {
+	expandedLuns := make([]int32, len(input))
+	for i := range input {
+		if input[i] != nil {
+			expandedLuns[i] = int32(input[i].(int))
+		}
+	}
+
+	return &expandedLuns
+}
+
+func flattenArmSqlVirtualMachineStorageSettings(input *sqlvirtualmachine.SQLStorageSettings) []interface{} {
+	if input == nil || input.Luns == nil {
+		return []interface{}{}
+	}
+	attrs := make(map[string]interface{})
+
+	if input.Luns != nil {
+		attrs["luns"] = *input.Luns
+	}
+
+	if input.DefaultFilePath != nil {
+		attrs["default_file_path"] = *input.DefaultFilePath
+	}
+
+	return []interface{}{attrs}
 }

@@ -339,6 +339,9 @@ func (client ControllersClient) List(ctx context.Context) (result ControllerList
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "List", resp, "Failure responding to request")
 	}
+	if result.cl.hasNextLink() && result.cl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -456,6 +459,9 @@ func (client ControllersClient) ListByResourceGroup(ctx context.Context, resourc
 	result.cl, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.cl.hasNextLink() && result.cl.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

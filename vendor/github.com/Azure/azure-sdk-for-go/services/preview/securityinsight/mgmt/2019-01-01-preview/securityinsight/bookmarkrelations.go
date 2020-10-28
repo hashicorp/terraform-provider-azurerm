@@ -138,7 +138,6 @@ func (client BookmarkRelationsClient) CreateOrUpdateRelationSender(req *http.Req
 func (client BookmarkRelationsClient) CreateOrUpdateRelationResponder(resp *http.Response) (result Relation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -235,7 +234,6 @@ func (client BookmarkRelationsClient) DeleteRelationSender(req *http.Request) (*
 func (client BookmarkRelationsClient) DeleteRelationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -331,7 +329,6 @@ func (client BookmarkRelationsClient) GetRelationSender(req *http.Request) (*htt
 func (client BookmarkRelationsClient) GetRelationResponder(resp *http.Response) (result Relation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -395,6 +392,9 @@ func (client BookmarkRelationsClient) List(ctx context.Context, resourceGroupNam
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.rl.hasNextLink() && result.rl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -445,7 +445,6 @@ func (client BookmarkRelationsClient) ListSender(req *http.Request) (*http.Respo
 func (client BookmarkRelationsClient) ListResponder(resp *http.Response) (result RelationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

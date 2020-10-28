@@ -581,6 +581,9 @@ func (client ApplicationDefinitionsClient) ListByResourceGroup(ctx context.Conte
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managedapplications.ApplicationDefinitionsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.adlr.hasNextLink() && result.adlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

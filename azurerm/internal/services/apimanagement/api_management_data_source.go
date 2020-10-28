@@ -37,6 +37,14 @@ func dataSourceApiManagementService() *schema.Resource {
 				},
 			},
 
+			"private_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"publisher_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -134,6 +142,14 @@ func dataSourceApiManagementService() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+
+						"private_ip_addresses": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -224,6 +240,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
+		d.Set("private_ip_addresses", props.PrivateIPAddresses)
 
 		if err := d.Set("hostname_configuration", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
 			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
@@ -314,6 +331,10 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 
 		if prop.PublicIPAddresses != nil {
 			output["public_ip_addresses"] = *prop.PublicIPAddresses
+		}
+
+		if prop.PrivateIPAddresses != nil {
+			output["private_ip_addresses"] = *prop.PrivateIPAddresses
 		}
 
 		if prop.GatewayRegionalURL != nil {

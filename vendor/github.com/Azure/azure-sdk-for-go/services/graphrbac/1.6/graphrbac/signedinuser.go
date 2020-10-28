@@ -147,6 +147,9 @@ func (client SignedInUserClient) ListOwnedObjects(ctx context.Context) (result D
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.SignedInUserClient", "ListOwnedObjects", resp, "Failure responding to request")
 	}
+	if result.dolr.hasNextLink() && result.dolr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

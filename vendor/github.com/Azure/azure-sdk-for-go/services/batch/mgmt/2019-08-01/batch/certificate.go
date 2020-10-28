@@ -469,6 +469,9 @@ func (client CertificateClient) ListByBatchAccount(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "batch.CertificateClient", "ListByBatchAccount", resp, "Failure responding to request")
 	}
+	if result.lcr.hasNextLink() && result.lcr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

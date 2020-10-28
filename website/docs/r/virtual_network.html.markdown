@@ -121,7 +121,7 @@ The following attributes are exported:
 
 * `location` - The location/region where the virtual network is created.
 
-* `address_space` - The address space that is used the virtual network.
+* `address_space` - The list of address spaces used by the virtual network.
 
 * `guid` - The GUID of the virtual network.
 

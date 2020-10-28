@@ -375,6 +375,9 @@ func (client PartnerRegistrationsClient) ListByResourceGroup(ctx context.Context
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.prlr.hasNextLink() && result.prlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -498,6 +501,9 @@ func (client PartnerRegistrationsClient) ListBySubscription(ctx context.Context,
 	result.prlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.PartnerRegistrationsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.prlr.hasNextLink() && result.prlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

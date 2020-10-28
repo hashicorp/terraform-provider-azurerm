@@ -52,6 +52,7 @@ resource "azurerm_key_vault" "example" {
 
     key_permissions = [
       "get",
+      "ManageContacts",
     ]
 
     secret_permissions = [
@@ -66,6 +67,12 @@ resource "azurerm_key_vault" "example" {
   network_acls {
     default_action = "Deny"
     bypass         = "AzureServices"
+  }
+
+  contact {
+    email = "example@example.com"
+    name  = "example"
+    phone = "0123456789"
   }
 
   tags = {
@@ -100,6 +107,8 @@ The following arguments are supported:
 
 * `enabled_for_template_deployment` - (Optional) Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault. Defaults to `false`.
 
+* `enable_rbac_authorization` - (Optional) Boolean flag to specify whether Azure Key Vault uses Role Based Access Control (RBAC) for authorization of data actions. Defaults to `false`.
+
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
 * `purge_protection_enabled` - (Optional) Is Purge Protection enabled for this Key Vault? Defaults to `false`.
@@ -115,6 +124,10 @@ The following arguments are supported:
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted.
 
 ~> **Note:** This field can only be set once Soft Delete is Enabled and cannot be updated.
+
+* `contact` - (Optional) One or more `contact` block as defined below.
+
+~> **Note:** This field can only be set once user has `ManageContacts` permission.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -147,6 +160,16 @@ A `network_acls` block supports the following:
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Key Vault.
 
 * `virtual_network_subnet_ids` - (Optional) One or more Subnet ID's which should be able to access this Key Vault.
+
+---
+
+A `contact` block supports the following:
+
+* `email` - (Required) E-mail address of the contact.
+
+* `name` - (Optional) Name of the contact.
+
+* `phone` - (Optional) Phone number of the contact.
 
 ## Attributes Reference
 

@@ -213,7 +213,10 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 	// Check if App Service Plan is part of ASE
 	// If so, the name needs updating to <app name>.<ASE name>.appserviceenvironment.net and FQDN setting true for name availability check
-	aspDetails, _ := aspClient.Get(ctx, aspID.ResourceGroup, aspID.Name)
+	aspDetails, err := aspClient.Get(ctx, aspID.ResourceGroup, aspID.Name)
+	if err != nil {
+		return fmt.Errorf("App Service Environment %q (Resource Group %q) does not exist", aspID.Name, aspID.ResourceGroup)
+	}
 	if aspDetails.HostingEnvironmentProfile != nil {
 		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, aspID.Name))
 		availabilityRequest.IsFqdn = utils.Bool(true)
@@ -377,6 +380,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	// If `source_control` is defined, we need to set site_config.0.scm_type to "None" or we cannot update it
 	_, hasSourceControl := d.GetOk("source_control.0.repo_url")
 
+	scmType := web.ScmTypeNone
+
 	if d.HasChange("site_config") || hasSourceControl {
 		// update the main configuration
 		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
@@ -387,8 +392,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			SiteConfig: siteConfig,
 		}
 
-		if hasSourceControl {
-			siteConfigResource.SiteConfig.ScmType = "None"
+		scmType = siteConfig.ScmType
+		// ScmType being set blocks the update of source_control in _most_ cases, ADO is an exception
+		if hasSourceControl && scmType != web.ScmTypeVSTSRM {
+			siteConfigResource.SiteConfig.ScmType = web.ScmTypeNone
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
@@ -396,7 +403,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if hasSourceControl {
+	// Don't send source_control changes for ADO controlled Apps
+	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
 		sourceControlProperties := expandAppServiceSiteSourceControl(d)
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties

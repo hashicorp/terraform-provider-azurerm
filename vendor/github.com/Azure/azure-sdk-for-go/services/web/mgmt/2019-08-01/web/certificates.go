@@ -326,6 +326,9 @@ func (client CertificatesClient) List(ctx context.Context) (result CertificateCo
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.CertificatesClient", "List", resp, "Failure responding to request")
 	}
+	if result.cc.hasNextLink() && result.cc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -443,6 +446,9 @@ func (client CertificatesClient) ListByResourceGroup(ctx context.Context, resour
 	result.cc, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.CertificatesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.cc.hasNextLink() && result.cc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

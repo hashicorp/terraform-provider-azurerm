@@ -629,6 +629,9 @@ func (client FactoriesClient) List(ctx context.Context) (result FactoryListRespo
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "List", resp, "Failure responding to request")
 	}
+	if result.flr.hasNextLink() && result.flr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -746,6 +749,9 @@ func (client FactoriesClient) ListByResourceGroup(ctx context.Context, resourceG
 	result.flr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "datafactory.FactoriesClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.flr.hasNextLink() && result.flr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

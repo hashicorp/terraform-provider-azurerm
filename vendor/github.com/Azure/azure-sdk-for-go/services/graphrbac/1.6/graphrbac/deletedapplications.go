@@ -152,6 +152,9 @@ func (client DeletedApplicationsClient) List(ctx context.Context, filter string)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.DeletedApplicationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.alr.hasNextLink() && result.alr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

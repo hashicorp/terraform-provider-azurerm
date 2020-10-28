@@ -173,6 +173,7 @@ func TestAccAzureRMMsSqlDatabase_GP_Serverless(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMMsSqlDatabase_BC(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
@@ -308,6 +309,46 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlDatabase_createRestoreMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_createRestoreMode(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("create_mode", "creation_source_database_id"),
+
+			{
+				PreConfig: func() { time.Sleep(8 * time.Minute) },
+				Config:    testAccAzureRMMsSqlDatabase_createRestoreModeDBDeleted(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+
+			data.ImportStep(),
+
+			{
+				PreConfig: func() { time.Sleep(8 * time.Minute) },
+				Config:    testAccAzureRMMsSqlDatabase_createRestoreModeDBRestored(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					testCheckAzureRMMsSqlDatabaseExists("azurerm_mssql_database.restore"),
+				),
+			},
+
+			data.ImportStep("create_mode", "restore_dropped_database_id"),
+		},
+	})
+}
+
 func TestAccAzureRMMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
@@ -371,7 +412,7 @@ func TestAccAzureRMMsSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 			},
 			data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
 			{
-				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Config: testAccAzureRMMsSqlDatabase_withBlobAuditingPolicesDisabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
@@ -410,6 +451,90 @@ func TestAccAzureRMMsSqlDatabase_updateSku(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_minCapacity0(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_minCapacity0(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_withLongTermRetentionPolicy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_withLongTermRetentionPolicyUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_withShortTermRetentionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_withShortTermRetentionPolicy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_withShortTermRetentionPolicyUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
 		},
 	})
 }
@@ -781,6 +906,106 @@ resource "azurerm_mssql_database" "secondary" {
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
+func testAccAzureRMMsSqlDatabase_createRestoreMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+resource "azurerm_mssql_database" "copy" {
+  name                        = "acctest-dbc-%[1]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Copy"
+  creation_source_database_id = azurerm_mssql_database.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMsSqlDatabase_createRestoreModeDBDeleted(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMsSqlDatabase_createRestoreModeDBRestored(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest-sqlserver-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[1]d"
+  server_id = azurerm_mssql_server.test.id
+}
+
+resource "azurerm_mssql_database" "restore" {
+  name                        = "acctest-dbr-%[1]d"
+  server_id                   = azurerm_mssql_server.test.id
+  create_mode                 = "Restore"
+  restore_dropped_database_id = azurerm_mssql_server.test.restorable_dropped_database_ids[0]
+}
+
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data acceptance.TestData, state string) string {
 	template := testAccAzureRMMsSqlDatabase_template(data)
 	return fmt.Sprintf(`
@@ -888,6 +1113,35 @@ resource "azurerm_mssql_database" "test" {
 `, template, data.RandomIntOfLength(15), data.RandomInteger)
 }
 
+func testAccAzureRMMsSqlDatabase_withBlobAuditingPolicesDisabled(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name                     = "acctest-db-%[3]d"
+  server_id                = azurerm_sql_server.test.id
+  extended_auditing_policy = []
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
 func testAccAzureRMMsSqlDatabase_updateSku(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlDatabase_template(data)
 	return fmt.Sprintf(`
@@ -912,4 +1166,147 @@ resource "azurerm_mssql_database" "test" {
   sku_name  = "HS_Gen5_4"
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_minCapacity0(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%d"
+  server_id = azurerm_sql_server.test.id
+
+  min_capacity = 0
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withLongTermRetentionPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_sql_server.test.id
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 1
+  }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withLongTermRetentionPolicyUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_sql_server.test.id
+  long_term_retention_policy {
+    weekly_retention = "P1W"
+    yearly_retention = "P1Y"
+    week_of_year     = 2
+  }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withShortTermRetentionPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_sql_server.test.id
+  short_term_retention_policy {
+    retention_days = 8
+  }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withShortTermRetentionPolicyUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_sql_server.test.id
+  short_term_retention_policy {
+    retention_days = 10
+  }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
 }

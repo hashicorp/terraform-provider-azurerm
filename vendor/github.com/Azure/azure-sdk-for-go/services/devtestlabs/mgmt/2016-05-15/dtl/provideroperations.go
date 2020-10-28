@@ -72,6 +72,9 @@ func (client ProviderOperationsClient) List(ctx context.Context) (result Provide
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dtl.ProviderOperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.por.hasNextLink() && result.por.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

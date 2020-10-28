@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -151,6 +151,9 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 			}
 
 			if properties := resp.ModuleProperties; properties != nil {
+				if properties.Error != nil && properties.Error.Message != nil && *properties.Error.Message != "" {
+					return resp, string(properties.ProvisioningState), fmt.Errorf(*properties.Error.Message)
+				}
 				return resp, string(properties.ProvisioningState), nil
 			}
 

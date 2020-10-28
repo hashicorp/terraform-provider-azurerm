@@ -328,6 +328,9 @@ func (client JobTargetGroupsClient) ListByAgent(ctx context.Context, resourceGro
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.JobTargetGroupsClient", "ListByAgent", resp, "Failure responding to request")
 	}
+	if result.jtglr.hasNextLink() && result.jtglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -80,6 +80,12 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Optional: true,
 			},
 
+			"dead_lettering_on_filter_evaluation_error": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"enable_batched_operations": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -132,11 +138,6 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	deadLetteringExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
-	enableBatchedOps := d.Get("enable_batched_operations").(bool)
-	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
-	requiresSession := d.Get("requires_session").(bool)
-
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
@@ -152,11 +153,12 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 
 	parameters := servicebus.SBSubscription{
 		SBSubscriptionProperties: &servicebus.SBSubscriptionProperties{
-			DeadLetteringOnMessageExpiration: &deadLetteringExpiration,
-			EnableBatchedOperations:          &enableBatchedOps,
-			MaxDeliveryCount:                 &maxDeliveryCount,
-			RequiresSession:                  &requiresSession,
-			Status:                           servicebus.EntityStatus(d.Get("status").(string)),
+			DeadLetteringOnMessageExpiration:          utils.Bool(d.Get("dead_lettering_on_message_expiration").(bool)),
+			DeadLetteringOnFilterEvaluationExceptions: utils.Bool(d.Get("dead_lettering_on_filter_evaluation_error").(bool)),
+			EnableBatchedOperations:                   utils.Bool(d.Get("enable_batched_operations").(bool)),
+			MaxDeliveryCount:                          utils.Int32(int32(d.Get("max_delivery_count").(int))),
+			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
+			Status:                                    servicebus.EntityStatus(d.Get("status").(string)),
 		},
 	}
 
@@ -230,6 +232,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 		d.Set("lock_duration", props.LockDuration)
 		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
+		d.Set("dead_lettering_on_filter_evaluation_error", props.DeadLetteringOnFilterEvaluationExceptions)
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_to", props.ForwardTo)

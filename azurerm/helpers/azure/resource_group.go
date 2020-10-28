@@ -55,6 +55,14 @@ func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
 	}
 }
 
+func SchemaResourceGroupNameOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		ValidateFunc: validateResourceGroupName,
+	}
+}
+
 func SchemaResourceGroupNameSetOptional() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,

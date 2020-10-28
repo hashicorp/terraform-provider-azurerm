@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -53,6 +53,11 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 
 			"os_disk_snapshot_id": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"os_disk_image_size_gb": {
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
@@ -133,6 +138,12 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 				osDiskSnapShotID = *profile.OsDiskImage.Source.ID
 			}
 			d.Set("os_disk_snapshot_id", osDiskSnapShotID)
+
+			osDiskImageSize := 0
+			if profile.OsDiskImage != nil && profile.OsDiskImage.SizeInGB != nil {
+				osDiskImageSize = int(*profile.OsDiskImage.SizeInGB)
+			}
+			d.Set("os_disk_image_size_gb", osDiskImageSize)
 		}
 	}
 

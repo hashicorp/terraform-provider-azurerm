@@ -650,6 +650,9 @@ func (client WCFRelaysClient) ListAuthorizationRules(ctx context.Context, resour
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "ListAuthorizationRules", resp, "Failure responding to request")
 	}
+	if result.arlr.hasNextLink() && result.arlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -773,6 +776,9 @@ func (client WCFRelaysClient) ListByNamespace(ctx context.Context, resourceGroup
 	result.wrlr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "relay.WCFRelaysClient", "ListByNamespace", resp, "Failure responding to request")
+	}
+	if result.wrlr.hasNextLink() && result.wrlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

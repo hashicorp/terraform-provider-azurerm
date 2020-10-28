@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -388,6 +388,12 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
+			"large_file_share_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"primary_location": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -575,6 +581,13 @@ func resourceArmStorageAccount() *schema.Resource {
 				}
 			}
 
+			if d.HasChange("large_file_share_enabled") {
+				lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
+				if lfsEnabled.(bool) && !changedEnabled.(bool) {
+					return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+				}
+			}
+
 			return nil
 		},
 	}
@@ -697,6 +710,14 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	if accountKind == string(storage.FileStorage) {
 		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
 			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
+		}
+	}
+
+	// nolint staticcheck
+	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
+		parameters.LargeFileSharesState = storage.LargeFileSharesStateDisabled
+		if v.(bool) {
+			parameters.LargeFileSharesState = storage.LargeFileSharesStateEnabled
 		}
 	}
 
@@ -961,6 +982,22 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("large_file_share_enabled") {
+		isEnabled := storage.LargeFileSharesStateDisabled
+		if v := d.Get("large_file_share_enabled").(bool); v {
+			isEnabled = storage.LargeFileSharesStateEnabled
+		}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				LargeFileSharesState: isEnabled,
+			},
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
@@ -1159,6 +1196,10 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 		if err := d.Set("network_rules", flattenStorageAccountNetworkRules(props.NetworkRuleSet)); err != nil {
 			return fmt.Errorf("Error setting `network_rules`: %+v", err)
+		}
+
+		if props.LargeFileSharesState != "" {
+			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
 		}
 	}
 

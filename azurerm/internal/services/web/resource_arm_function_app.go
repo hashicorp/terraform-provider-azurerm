@@ -62,6 +62,7 @@ func resourceArmFunctionApp() *schema.Resource {
 			"app_settings": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -458,6 +459,8 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	// repo_url is required by the API
 	_, hasSourceControl := d.GetOk("source_control.0.repo_url")
 
+	scmType := web.ScmTypeNone
+
 	if d.HasChange("site_config") || hasSourceControl {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
@@ -467,8 +470,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			SiteConfig: &siteConfig,
 		}
 
-		if hasSourceControl {
-			siteConfigResource.SiteConfig.ScmType = "None"
+		scmType = siteConfig.ScmType
+		// ScmType being set blocks the update of source_control in _most_ cases, ADO is an exception
+		if hasSourceControl && scmType != web.ScmTypeVSTSRM {
+			siteConfigResource.SiteConfig.ScmType = web.ScmTypeNone
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
@@ -476,7 +481,8 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if hasSourceControl {
+	// Don't send source_control changes for ADO controlled Apps
+	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
 		sourceControlProperties := expandAppServiceSiteSourceControl(d)
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
@@ -637,7 +643,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
 	}
 
-	// Let the user have a final say whether he wants to keep these 2 or not on
+	// Let the user have a final say whether they want to keep these 2 or not on
 	// Linux consumption plans. They shouldn't be there according to a bug
 	// report (see // https://github.com/Azure/azure-functions-python-worker/issues/598)
 	if !strings.EqualFold(d.Get("os_type").(string), "linux") {

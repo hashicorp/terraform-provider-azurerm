@@ -317,6 +317,9 @@ func (client TransformsClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.TransformsClient", "List", resp, "Failure responding to request")
 	}
+	if result.tc.hasNextLink() && result.tc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

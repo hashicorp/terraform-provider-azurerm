@@ -339,6 +339,9 @@ func (client LiveEventsClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.LiveEventsClient", "List", resp, "Failure responding to request")
 	}
+	if result.lelr.hasNextLink() && result.lelr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

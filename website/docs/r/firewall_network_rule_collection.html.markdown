@@ -30,7 +30,7 @@ resource "azurerm_subnet" "example" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -110,7 +110,15 @@ A `rule` block supports the following:
 
 * `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
 
-* `destination_addresses` - (Required) A list of destination IP addresses, IP ranges, or FQDNs.
+* `source_ip_groups` - (Optional) A list of IP Group IDs for the rule.
+
+-> **NOTE** At least one of `source_addresses` and `source_ip_groups` must be specified for a rule.
+
+* `destination_addresses` - (Optional) Either a list of destination IP addresses and/or IP ranges, or a list of destination [Service Tags](https://docs.microsoft.com/en-us/azure/virtual-network/service-tags-overview#available-service-tags).
+
+* `destination_ip_groups` - (Optional) A list of destination IP Group IDs for the rule.
+
+-> **NOTE** At least one of `destination_addresses` and `destination_ip_groups` must be specified for a rule.
 
 * `destination_ports` - (Required) A list of destination ports.
 

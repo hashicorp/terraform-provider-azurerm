@@ -522,6 +522,9 @@ func (client AgentPoolsClient) List(ctx context.Context, resourceGroupName strin
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "List", resp, "Failure responding to request")
 	}
+	if result.aplr.hasNextLink() && result.aplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

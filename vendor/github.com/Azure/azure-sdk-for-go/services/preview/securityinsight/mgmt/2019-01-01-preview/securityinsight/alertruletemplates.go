@@ -130,7 +130,6 @@ func (client AlertRuleTemplatesClient) GetSender(req *http.Request) (*http.Respo
 func (client AlertRuleTemplatesClient) GetResponder(resp *http.Response) (result AlertRuleTemplateModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -187,6 +186,9 @@ func (client AlertRuleTemplatesClient) List(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRuleTemplatesClient", "List", resp, "Failure responding to request")
 	}
+	if result.artl.hasNextLink() && result.artl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -224,7 +226,6 @@ func (client AlertRuleTemplatesClient) ListSender(req *http.Request) (*http.Resp
 func (client AlertRuleTemplatesClient) ListResponder(resp *http.Response) (result AlertRuleTemplatesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

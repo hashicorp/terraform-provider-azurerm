@@ -417,6 +417,9 @@ func (client AppsClient) List(ctx context.Context, resourceGroupName string, ser
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.AppsClient", "List", resp, "Failure responding to request")
 	}
+	if result.arc.hasNextLink() && result.arc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

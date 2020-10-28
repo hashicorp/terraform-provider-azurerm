@@ -132,7 +132,6 @@ func (client DataConnectorsCheckRequirementsClient) PostSender(req *http.Request
 func (client DataConnectorsCheckRequirementsClient) PostResponder(resp *http.Response) (result DataConnectorRequirementsState, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

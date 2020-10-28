@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMySSQLVirtualNetworkRule() *schema.Resource {
+func resourceArmMySQLVirtualNetworkRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMySSQLVirtualNetworkRuleCreateUpdate,
-		Read:   resourceArmMySSQLVirtualNetworkRuleRead,
-		Update: resourceArmMySSQLVirtualNetworkRuleCreateUpdate,
-		Delete: resourceArmMySSQLVirtualNetworkRuleDelete,
+		Create: resourceArmMySQLVirtualNetworkRuleCreateUpdate,
+		Read:   resourceArmMySQLVirtualNetworkRuleRead,
+		Update: resourceArmMySQLVirtualNetworkRuleCreateUpdate,
+		Delete: resourceArmMySQLVirtualNetworkRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -50,7 +50,7 @@ func resourceArmMySSQLVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MysqlServerServerName,
+				ValidateFunc: validate.MySQLServerName,
 			},
 
 			"subnet_id": {
@@ -62,7 +62,7 @@ func resourceArmMySSQLVirtualNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceArmMySSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMySQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -122,10 +122,10 @@ func resourceArmMySSQLVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, met
 
 	d.SetId(*resp.ID)
 
-	return resourceArmMySSQLVirtualNetworkRuleRead(d, meta)
+	return resourceArmMySQLVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceArmMySSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMySQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -161,7 +161,7 @@ func resourceArmMySSQLVirtualNetworkRuleRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmMySSQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMySQLVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MySQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

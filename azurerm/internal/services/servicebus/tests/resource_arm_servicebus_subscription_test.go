@@ -174,6 +174,31 @@ func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t 
 	})
 }
 
+func TestAccAzureRMServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusSubscription_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusSubscription_status(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 
@@ -366,4 +391,9 @@ resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
 func testAccAzureRMServiceBusSubscription_status(data acceptance.TestData, status string) string {
 	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
 		fmt.Sprintf("status = \"%s\"", status))
+}
+
+func testAccAzureRMServiceBusSubscription_updateDeadLetteringOnFilterEvaluationExceptions(data acceptance.TestData) string {
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger,
+		"dead_lettering_on_filter_evaluation_error = false\n")
 }

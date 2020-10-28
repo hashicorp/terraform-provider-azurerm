@@ -342,6 +342,9 @@ func (client WebTestsClient) List(ctx context.Context) (result WebTestListResult
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "List", resp, "Failure responding to request")
 	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -462,6 +465,9 @@ func (client WebTestsClient) ListByComponent(ctx context.Context, componentName 
 	result.wtlr, err = client.ListByComponentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "ListByComponent", resp, "Failure responding to request")
+	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -584,6 +590,9 @@ func (client WebTestsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.wtlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.WebTestsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.wtlr.hasNextLink() && result.wtlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
