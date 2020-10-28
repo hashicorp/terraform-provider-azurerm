@@ -25,6 +25,7 @@ func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 					testCheckAzureRMSubscriptionId(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "tenant_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "tags.%"),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "Enabled"),
 				),
 			},

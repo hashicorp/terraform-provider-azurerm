@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -52,12 +53,15 @@ func dataSourceArmSubscription() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client)
+	tagsClient := client.Subscription.TagsClient
 	groupClient := client.Subscription.Client
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -70,10 +74,22 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := groupClient.Get(ctx, subscriptionId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error: default tags for Subscription %q was not found", subscriptionId)
+		}
+
+		return fmt.Errorf("Error reading default tags for Subscription: %+v", err)
+	}
+
+	tagsResp, err := tagsClient.GetAtScope(ctx, "subscriptions/"+subscriptionId)
+	if err != nil {
+		if utils.ResponseWasNotFound(tagsResp.Response) {
 			return fmt.Errorf("Error: Subscription %q was not found", subscriptionId)
 		}
 
 		return fmt.Errorf("Error reading Subscription: %+v", err)
+	}
+	if tagsResp.Properties == nil {
+		return fmt.Errorf("nil tags properties of Subscription %q", subscriptionId)
 	}
 
 	d.SetId(*resp.ID)
@@ -87,5 +103,5 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("spending_limit", resp.SubscriptionPolicies.SpendingLimit)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, tagsResp.Properties.Tags)
 }
