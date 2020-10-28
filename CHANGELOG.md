@@ -26,6 +26,7 @@ BUG FIXES:
 * `azurerm_cdn_endpoint` - disable persisting default value for `is_compression_enabled` to state file [GH-8610]
 * `azurerm_databricks_workspace` correctly validate the `name` property [GH-8997]
 * `azurerm_log_analytics_workspace` - support for the `daily_quota_gb` property [GH-8861]
+* `azurerm_local_network_gateway` - support for the `gateway_fqdn` property [GH-8998]
 * `azurerm_key_vault` - prevent unwanted diff due to inconsistent casing for the `sku_name` property [GH-8983]
 * `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
 * `azurerm_kubernetes_cluster` - `min_count` can be updated when `enable_auto_scaling` is set to true [GH-8619]
