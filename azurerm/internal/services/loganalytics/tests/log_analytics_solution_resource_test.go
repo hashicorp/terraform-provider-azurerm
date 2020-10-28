@@ -153,6 +153,10 @@ resource "azurerm_log_analytics_solution" "test" {
     publisher = "Microsoft"
     product   = "OMSGallery/ContainerInsights"
   }
+
+  tags = {
+    environment = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
