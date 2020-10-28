@@ -296,19 +296,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "service" {
-  name                 = "acctestsnetservice-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.1.0/24"]
+  name               = "acctestsnetservice-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.2.0/24"]
+  name               = "acctestsnetendpoint-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.2.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }
@@ -461,19 +459,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "service" {
-  name                 = "acctestsnetservice-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.1.0/24"]
+  name               = "acctestsnetservice-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.2.0/24"]
+  name               = "acctestsnetendpoint-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.2.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }
@@ -541,19 +537,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "service" {
-  name                 = "acctestsnetservice-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.1.0/24"]
+  name               = "acctestsnetservice-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.2.0/24"]
+  name               = "acctestsnetendpoint-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.2.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }
@@ -616,19 +610,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "service" {
-  name                 = "acctestsnetservice-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.1.0/24"]
+  name               = "acctestsnetservice-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.2.0/24"]
+  name               = "acctestsnetendpoint-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.2.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }
@@ -701,19 +693,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "service" {
-  name                 = "acctestsnetservice-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.1.0/24"]
+  name               = "acctestsnetservice-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.2.0/24"]
+  name               = "acctestsnetendpoint-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.2.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }

@@ -238,10 +238,9 @@ func testAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(data acceptance.T
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {
@@ -269,10 +268,9 @@ func testAccAzureRMSubnetNetworkSecurityGroupAssociation_updateSubnet(data accep
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  name               = "internal"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
 
   enforce_private_link_endpoint_network_policies = true
 }

@@ -263,10 +263,9 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "isesubnet1" {
-  name                 = "isesubnet1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/26"]
+  name               = "isesubnet1"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.1.0/26"]
 
   delegation {
     name = "integrationServiceEnvironments"
@@ -278,24 +277,21 @@ resource "azurerm_subnet" "isesubnet1" {
 }
 
 resource "azurerm_subnet" "isesubnet2" {
-  name                 = "isesubnet2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.64/26"]
+  name               = "isesubnet2"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.1.64/26"]
 }
 
 resource "azurerm_subnet" "isesubnet3" {
-  name                 = "isesubnet3"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.128/26"]
+  name               = "isesubnet3"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.1.128/26"]
 }
 
 resource "azurerm_subnet" "isesubnet4" {
-  name                 = "isesubnet4"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.192/26"]
+  name               = "isesubnet4"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.1.192/26"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -387,7 +383,7 @@ resource "azurerm_integration_service_environment" "test" {
     azurerm_subnet.isesubnet4.id
   ]
 }
-  `, template, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMIntegrationServiceEnvironment_requiresImport(data acceptance.TestData) string {

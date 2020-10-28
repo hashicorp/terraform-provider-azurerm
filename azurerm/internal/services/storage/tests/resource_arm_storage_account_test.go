@@ -1088,7 +1088,6 @@ resource "azurerm_storage_account" "test" {
 
 func testAccAzureRMStorageAccount_minTLSVersion(data acceptance.TestData, tlsVersion string) string {
 	return fmt.Sprintf(`
-
 provider "azurerm" {
   features {}
 }
@@ -1111,13 +1110,11 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
 }
 
 func testAccAzureRMStorageAccount_allowBlobPublicAccess(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 provider "azurerm" {
   features {}
 }
@@ -1140,8 +1137,7 @@ resource "azurerm_storage_account" "test" {
     environment = "production"
   }
 }
-
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMStorageAccount_disAllowBlobPublicAccess(data acceptance.TestData) string {
@@ -1542,11 +1538,10 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Storage"]
+  name               = "acctestsubnet%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
+  service_endpoints  = ["Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1588,11 +1583,10 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Storage"]
+  name               = "acctestsubnet%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
+  service_endpoints  = ["Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "test" {
@@ -1634,11 +1628,10 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.Storage"]
+  name               = "acctestsubnet%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
+  service_endpoints  = ["Microsoft.Storage"]
 }
 
 resource "azurerm_storage_account" "test" {

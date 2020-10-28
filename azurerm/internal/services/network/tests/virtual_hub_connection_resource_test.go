@@ -228,10 +228,9 @@ resource "azurerm_network_security_group" "test2" {
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctestsubnet2%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefixes     = ["10.6.1.0/24"]
+  name               = "acctestsubnet2%d"
+  virtual_network_id = azurerm_virtual_network.test2.id
+  address_prefixes   = ["10.6.1.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "test2" {
@@ -294,10 +293,9 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.1.0/24"]
+  name               = "acctestsubnet%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.5.1.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "test" {

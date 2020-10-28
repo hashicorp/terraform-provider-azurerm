@@ -304,17 +304,15 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "internal1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.0.0/24"
+  name               = "internal1"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.1.0.0/24"
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "internal2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.1.1.0/24"
+  name               = "internal2"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.1.1.0/24"
 }
 
 data "azuread_service_principal" "test" {

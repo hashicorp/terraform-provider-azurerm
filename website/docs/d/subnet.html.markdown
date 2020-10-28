@@ -19,7 +19,7 @@ data "azurerm_virtual_network" "example" {
 }
 
 data "azurerm_subnet" "example" {
-  name                 = "backend"
+  name               = "backend"
   virtual_network_id = data.azurerm_virtual_network.example.id
 }
 
@@ -30,9 +30,10 @@ output "subnet_id" {
 
 ## Argument Reference
 
-* `name` - Specifies the name of the Subnet.
-* `virtual_network_name` - Specifies the name of the Virtual Network this Subnet is located within.
-* `resource_group_name` - Specifies the name of the resource group the Virtual Network is located in.
+* `name` - (Required) Specifies the name of the Subnet.
+* `virtual_network_name` - (Optional / **Deprecated**) Specifies the name of the Virtual Network this Subnet is located within.
+* `resource_group_name` - (Optional / **Deprecated**) Specifies the name of the resource group the Virtual Network is located in.
+* `virtual_network_id` - (Optional) Specifies the ID of the Virtual Network this Subnet is located within.
 
 ## Attributes Reference
 

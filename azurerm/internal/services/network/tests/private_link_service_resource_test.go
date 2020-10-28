@@ -285,10 +285,9 @@ func testAccAzureRMPrivateLinkService_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-basic-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.4.0/24"
+  name               = "acctestsnet-basic-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.4.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -316,10 +315,9 @@ func testAccAzureRMPrivateLinkService_basicIp(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-update-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.3.0/24"
+  name               = "acctestsnet-update-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.3.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -373,10 +371,9 @@ func testAccAzureRMPrivateLinkService_enableProxyProtocol(data acceptance.TestDa
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-basic-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.4.0/24"
+  name               = "acctestsnet-basic-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.4.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -406,10 +403,9 @@ func testAccAzureRMPrivateLinkService_update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-update-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.3.0/24"
+  name               = "acctestsnet-update-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.3.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -470,10 +466,9 @@ func testAccAzureRMPrivateLinkService_moveSetup(data acceptance.TestData) string
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-move-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  name               = "acctestsnet-move-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -510,10 +505,9 @@ func testAccAzureRMPrivateLinkService_moveAdd(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-move-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  name               = "acctestsnet-move-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -574,10 +568,9 @@ func testAccAzureRMPrivateLinkService_moveChangeOne(data acceptance.TestData) st
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-move-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  name               = "acctestsnet-move-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -638,10 +631,9 @@ func testAccAzureRMPrivateLinkService_moveChangeTwo(data acceptance.TestData) st
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-move-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  name               = "acctestsnet-move-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -702,10 +694,9 @@ func testAccAzureRMPrivateLinkService_moveChangeThree(data acceptance.TestData) 
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-move-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.2.0/24"
+  name               = "acctestsnet-move-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.2.0/24"
 
   enforce_private_link_service_network_policies = true
 }
@@ -766,10 +757,9 @@ func testAccAzureRMPrivateLinkService_complete(data acceptance.TestData) string 
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-complete-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.5.1.0/24"
+  name               = "acctestsnet-complete-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.5.1.0/24"
 
   enforce_private_link_service_network_policies = true
 }

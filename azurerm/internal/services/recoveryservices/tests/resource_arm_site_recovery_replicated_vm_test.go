@@ -110,10 +110,9 @@ resource "azurerm_virtual_network" "test1" {
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "snet-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test1.name
-  address_prefix       = "192.168.1.0/24"
+  name               = "snet-%[1]d"
+  virtual_network_id = azurerm_virtual_network.test1.id
+  address_prefix     = "192.168.1.0/24"
 }
 
 resource "azurerm_virtual_network" "test2" {
@@ -124,24 +123,21 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 resource "azurerm_subnet" "test2_1" {
-  name                 = "acctest-snet-%[1]d_1"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefix       = "192.168.2.0/27"
+  name               = "acctest-snet-%[1]d_1"
+  virtual_network_id = azurerm_virtual_network.test2.id
+  address_prefix     = "192.168.2.0/27"
 }
 
 resource "azurerm_subnet" "test2_2" {
-  name                 = "snet-%[1]d_2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefix       = "192.168.2.32/27"
+  name               = "snet-%[1]d_2"
+  virtual_network_id = azurerm_virtual_network.test2.id
+  address_prefix     = "192.168.2.32/27"
 }
 
 resource "azurerm_subnet" "test2_3" {
-  name                 = "snet-%[1]d_3"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefix       = "192.168.2.64/27"
+  name               = "snet-%[1]d_3"
+  virtual_network_id = azurerm_virtual_network.test2.id
+  address_prefix     = "192.168.2.64/27"
 }
 
 resource "azurerm_site_recovery_network_mapping" "test" {

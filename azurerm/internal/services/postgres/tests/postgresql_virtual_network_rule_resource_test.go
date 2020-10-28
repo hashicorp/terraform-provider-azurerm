@@ -250,11 +250,10 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctest-SN-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/29"
-  service_endpoints    = ["Microsoft.Sql"]
+  name               = "acctest-SN-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.7.29.0/29"
+  service_endpoints  = ["Microsoft.Sql"]
 }
 
 resource "azurerm_postgresql_server" "test" {
@@ -317,19 +316,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "acctest-SN1-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
-  service_endpoints    = ["Microsoft.Sql"]
+  name               = "acctest-SN1-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.7.29.0/25"
+  service_endpoints  = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctest-SN2-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
-  service_endpoints    = ["Microsoft.Sql"]
+  name               = "acctest-SN2-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.7.29.128/25"
+  service_endpoints  = ["Microsoft.Sql"]
 }
 
 resource "azurerm_postgresql_server" "test" {
@@ -378,19 +375,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "acctest-SN1-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.0/25"
-  service_endpoints    = ["Microsoft.Sql"]
+  name               = "acctest-SN1-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.7.29.0/25"
+  service_endpoints  = ["Microsoft.Sql"]
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctest-SN2-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.7.29.128/25"
-  service_endpoints    = ["Microsoft.Sql"]
+  name               = "acctest-SN2-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.7.29.128/25"
+  service_endpoints  = ["Microsoft.Sql"]
 }
 
 resource "azurerm_postgresql_server" "test" {

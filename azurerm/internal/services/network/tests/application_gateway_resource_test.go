@@ -5099,10 +5099,9 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "subnet-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.0.0/24"
+  name               = "subnet-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.0.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
@@ -5580,10 +5579,9 @@ func testAccAzureRMApplicationGateway_gatewayIPUpdated(data acceptance.TestData)
 %s
 
 resource "azurerm_subnet" "test1" {
-  name                 = "subnet1-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  name               = "subnet1-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.1.0/24"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable

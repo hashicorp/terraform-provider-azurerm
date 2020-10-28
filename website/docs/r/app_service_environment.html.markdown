@@ -27,17 +27,15 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "ase" {
-  name                 = "asesubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "asesubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 resource "azurerm_subnet" "gateway" {
-  name                 = "gatewaysubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name               = "gatewaysubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.2.0/24"]
 }
 
 resource "azurerm_app_service_environment" "example" {

@@ -291,17 +291,15 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  name               = "acctestsubnet%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "172.0.2.0/24"
 }
 
 resource "azurerm_subnet" "test-aci" {
-  name                 = "acctestsubnet-aci%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.3.0/24"
+  name               = "acctestsubnet-aci%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "172.0.3.0/24"
 
   delegation {
     name = "aciDelegation"
@@ -371,10 +369,9 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "172.0.2.0/24"
+  name               = "acctestsubnet%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "172.0.2.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

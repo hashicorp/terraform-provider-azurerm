@@ -448,7 +448,7 @@ resource "azurerm_kusto_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMKustoCluster_languageExtensions(data acceptance.TestData) string {
@@ -578,10 +578,9 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestkc%s-subnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "acctestkc%s-subnet"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 resource "azurerm_network_security_group" "test" {

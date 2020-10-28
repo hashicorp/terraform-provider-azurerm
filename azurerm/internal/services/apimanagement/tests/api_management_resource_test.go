@@ -891,10 +891,9 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestSNET-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  name               = "acctestSNET-%d"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.1.0/24"
 }
 
 resource "azurerm_api_management" "test" {
@@ -938,10 +937,9 @@ resource "azurerm_virtual_network" "test1" {
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "acctestSNET1-%d"
-  resource_group_name  = azurerm_resource_group.test1.name
-  virtual_network_name = azurerm_virtual_network.test1.name
-  address_prefix       = "10.0.1.0/24"
+  name               = "acctestSNET1-%d"
+  virtual_network_id = azurerm_virtual_network.test1.id
+  address_prefix     = "10.0.1.0/24"
 }
 
 resource "azurerm_virtual_network" "test2" {
@@ -952,10 +950,9 @@ resource "azurerm_virtual_network" "test2" {
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctestSNET2-%d"
-  resource_group_name  = azurerm_resource_group.test2.name
-  virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefix       = "10.1.1.0/24"
+  name               = "acctestSNET2-%d"
+  virtual_network_id = azurerm_virtual_network.test2.id
+  address_prefix     = "10.1.1.0/24"
 }
 
 resource "azurerm_api_management" "test" {

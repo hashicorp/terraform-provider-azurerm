@@ -30,17 +30,15 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-compute"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.2.0.0/24"]
+  name               = "example-compute"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.2.0.0/24"]
 }
 
 resource "azurerm_subnet" "example2" {
-  name                 = "example-hsmsubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.2.1.0/24"]
+  name               = "example-hsmsubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.2.1.0/24"]
 
   delegation {
     name = "first"
@@ -56,10 +54,9 @@ resource "azurerm_subnet" "example2" {
 }
 
 resource "azurerm_subnet" "example3" {
-  name                 = "gatewaysubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.2.255.0/26"]
+  name               = "gatewaysubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.2.255.0/26"]
 }
 
 resource "azurerm_public_ip" "example" {

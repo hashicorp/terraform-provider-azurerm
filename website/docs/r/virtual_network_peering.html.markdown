@@ -81,10 +81,9 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "nva" {
-  count                = length(var.location)
-  name                 = "nva"
-  resource_group_name  = element(azurerm_resource_group.vnet.*.name, count.index)
-  virtual_network_name = element(azurerm_virtual_network.vnet.*.name, count.index)
+  count              = length(var.location)
+  name               = "nva"
+  virtual_network_id = element(azurerm_virtual_network.vnet.*.id, count.index)
   address_prefix = cidrsubnet(
     element(
       azurerm_virtual_network.vnet[count.index].address_space,

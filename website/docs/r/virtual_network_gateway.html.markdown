@@ -28,10 +28,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "GatewaySubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {

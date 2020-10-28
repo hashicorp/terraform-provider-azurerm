@@ -30,19 +30,17 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "service" {
-  name                 = "service"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.1.0/24"]
+  name               = "service"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "endpoint"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name               = "endpoint"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["10.0.2.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }

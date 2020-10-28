@@ -265,10 +265,9 @@ func testAccAzureRMHPCCacheNFSTarget_template(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "testvm" {
-  name                 = "acctest-sub-vm-%[2]s"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.3.0/24"
+  name               = "acctest-sub-vm-%[2]s"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.3.0/24"
 }
 
 resource "azurerm_network_interface" "test" {

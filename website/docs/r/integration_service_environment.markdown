@@ -27,8 +27,7 @@ resource "azurerm_virtual_network" "example" {
 
 resource "azurerm_subnet" "isesubnet1" {
   name                 = "isesubnet1"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
+  virtual_network_id = azurerm_virtual_network.example.id
   address_prefixes     = ["10.0.1.0/26"]
 
   delegation {
@@ -41,22 +40,19 @@ resource "azurerm_subnet" "isesubnet1" {
 
 resource "azurerm_subnet" "isesubnet2" {
   name                 = "isesubnet2"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
+  virtual_network_id = azurerm_virtual_network.example.id
   address_prefixes     = ["10.0.1.64/26"]
 }
 
 resource "azurerm_subnet" "isesubnet3" {
   name                 = "isesubnet3"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
+  virtual_network_id = azurerm_virtual_network.example.id
   address_prefixes     = ["10.0.1.128/26"]
 }
 
 resource "azurerm_subnet" "isesubnet4" {
   name                 = "isesubnet4"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
+  virtual_network_id = azurerm_virtual_network.example.id
   address_prefixes     = ["10.0.1.192/26"]
 }
 

@@ -52,9 +52,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the subnet. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the subnet. Changing this forces a new resource to be created.
+* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the subnet. Changing this forces a new resource to be created.
 
-* `virtual_network_name` - (Required) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
+* `virtual_network_name` - (Optional / **Deprecated**) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
+
+* `virtual_network_id` - (Optional) The ID of the Virtual Network this Subnet is located within.
 
 * `address_prefix` - (Optional / **Deprecated in favour of `address_prefixes`**) The address prefix to use for the subnet.
 

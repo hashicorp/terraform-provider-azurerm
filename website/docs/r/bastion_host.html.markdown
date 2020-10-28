@@ -31,10 +31,9 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "AzureBastionSubnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["192.168.1.224/27"]
+  name               = "AzureBastionSubnet"
+  virtual_network_id = azurerm_virtual_network.example.id
+  address_prefixes   = ["192.168.1.224/27"]
 }
 
 resource "azurerm_public_ip" "example" {

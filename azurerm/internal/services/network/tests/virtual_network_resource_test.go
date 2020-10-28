@@ -215,8 +215,6 @@ func TestAccAzureRMVirtualNetwork_changeAddressSpaceGivenContainingStandaloneSub
 				Config: testAccAzureRMVirtualNetwork_changeAddressSpaceGivenContainingStandaloneSubnet(data, "10.0.0.0"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet.1472110187.id"),
 				),
 			},
 			data.ImportStep(),
@@ -224,8 +222,6 @@ func TestAccAzureRMVirtualNetwork_changeAddressSpaceGivenContainingStandaloneSub
 				Config: testAccAzureRMVirtualNetwork_changeAddressSpaceGivenContainingStandaloneSubnet(data, "192.168.0.0"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet.1472110187.id"),
 				),
 			},
 			data.ImportStep(),

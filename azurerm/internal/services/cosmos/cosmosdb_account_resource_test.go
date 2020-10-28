@@ -620,19 +620,17 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "subnet1" {
-  name                 = "acctest-SN1-%[1]d-1"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
-  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+  name               = "acctest-SN1-%[1]d-1"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.1.0/24"
+  service_endpoints  = ["Microsoft.AzureCosmosDB"]
 }
 
 resource "azurerm_subnet" "subnet2" {
-  name                 = "acctest-SN2-%[1]d-2"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
-  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+  name               = "acctest-SN2-%[1]d-2"
+  virtual_network_id = azurerm_virtual_network.test.id
+  address_prefix     = "10.0.2.0/24"
+  service_endpoints  = ["Microsoft.AzureCosmosDB"]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -883,8 +881,7 @@ resource "azurerm_virtual_network" "test" {
 
 resource "azurerm_subnet" "subnet1" {
   name                                           = "acctest-SN1-%[1]d-1"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
+  virtual_network_id                             = azurerm_virtual_network.test.id
   address_prefixes                               = ["10.0.1.0/24"]
   enforce_private_link_endpoint_network_policies = false
   enforce_private_link_service_network_policies  = false
@@ -892,8 +889,7 @@ resource "azurerm_subnet" "subnet1" {
 
 resource "azurerm_subnet" "subnet2" {
   name                                           = "acctest-SN2-%[1]d-2"
-  resource_group_name                            = azurerm_resource_group.test.name
-  virtual_network_name                           = azurerm_virtual_network.test.name
+  virtual_network_id                             = azurerm_virtual_network.test.id
   address_prefixes                               = ["10.0.2.0/24"]
   service_endpoints                              = ["Microsoft.AzureCosmosDB"]
   enforce_private_link_endpoint_network_policies = false
