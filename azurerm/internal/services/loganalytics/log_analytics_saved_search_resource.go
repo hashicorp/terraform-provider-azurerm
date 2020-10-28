@@ -237,7 +237,7 @@ func expandArmSavedSearchTag(input map[string]interface{}) *[]operationalinsight
 }
 
 func flattenArmSavedSearchTag(input *[]operationalinsights.Tag) map[string]interface{} {
-	results := make(map[string]interface{}, 0)
+	results := make(map[string]interface{})
 	if input == nil {
 		return results
 	}
