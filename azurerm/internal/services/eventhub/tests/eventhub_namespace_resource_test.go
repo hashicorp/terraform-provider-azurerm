@@ -221,7 +221,7 @@ func TestAccAzureRMEventHubNamespace_networkruleVnetIpRule(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_networkruleAllowTrustedMSServices(t *testing.T) {
+func TestAccAzureRMEventHubNamespace_networkruleTrustedServiceAAccessEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -230,10 +230,10 @@ func TestAccAzureRMEventHubNamespace_networkruleAllowTrustedMSServices(t *testin
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubNamespace_networkruleAllowTrustedMSServices(data),
+				Config: testAccAzureRMEventHubNamespace_networkruleTrustedServiceAAccessEnabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_rulesets.allow_trusted_microsoft_services_bypass_firewall", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_rulesets.trusted_service_access_enabled", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -858,7 +858,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMEventHubNamespace_networkruleAllowTrustedMSServices(data acceptance.TestData) string {
+func testAccAzureRMEventHubNamespace_networkruleTrustedServiceAAccessEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -907,7 +907,8 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity            = "2"
 
   network_rulesets {
-	allow_trusted_microsoft_services_bypass_firewall = true
+    default_action                 = "Deny"
+	trusted_service_access_enabled = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
