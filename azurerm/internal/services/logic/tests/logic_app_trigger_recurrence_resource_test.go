@@ -199,7 +199,6 @@ func TestAccAzureRMLogicAppTriggerRecurrence_startTime(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_time", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "time_zone", "UTC"),
 				),
 			},
 			data.ImportStep(),
@@ -216,11 +215,11 @@ func TestAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T)
 		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "U.S. Eastern Standard Time"),
+				Config: testAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "US Eastern Standard Time"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "start_time", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(data.ResourceName, "time_zone", "U.S. Eastern Standard Time"),
+					resource.TestCheckResourceAttr(data.ResourceName, "time_zone", "US Eastern Standard Time"),
 				),
 			},
 			data.ImportStep(),
