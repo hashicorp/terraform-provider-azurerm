@@ -137,6 +137,14 @@ A `blob_properties` block supports the following:
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
+* `versioning_enabled` - (Optional) Default to `false`
+
+* `change_feed_enabled` - (Optional) Default to `false`
+
+* `restore_policy` - (Optional) A `restore_policy` block as defined below.
+
+* `container_delete_retention_policy` - (Optional) A `container_delete_retention_policy` block as defined below.
+
 ---
 
 A `cors_rule` block supports the following:
@@ -248,6 +256,18 @@ A `static_website` block supports the following:
 * `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
 
 * `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
+
+---
+
+A `restore_policy` block supports the following:
+
+* `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days.
+
+---
+
+A `container_delete_retention_policy` block supports the following:
+
+* `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days.
 
 ## Attributes Reference
 

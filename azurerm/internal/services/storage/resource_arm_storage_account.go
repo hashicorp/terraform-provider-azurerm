@@ -292,6 +292,20 @@ func resourceArmStorageAccount() *schema.Resource {
 								},
 							},
 						},
+						"container_delete_retention_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1029,10 +1043,21 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
+			o, n := d.GetChange("blob_properties")
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-			blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+			blobProperties, err := expandBlobProperties(n.([]interface{}))
 			if err != nil {
 				return err
+			}
+			// `container_delete_retention_policy` needs extra enable of feature "container soft-delete" in provider
+			// Thus it will only be set if previous it's set. Else, it raises error.
+			if oldRaw := o.([]interface{}); len(oldRaw) > 0 && blobProperties.ContainerDeleteRetentionPolicy == nil {
+				oldInput := oldRaw[0].(map[string]interface{})
+				if oldContainerInput := oldInput["container_delete_retention_policy"].([]interface{}); len(oldContainerInput) > 0 {
+					blobProperties.ContainerDeleteRetentionPolicy = &storage.DeleteRetentionPolicy{
+						Enabled: utils.Bool(false),
+					}
+				}
 			}
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
@@ -1530,6 +1555,10 @@ func expandBlobProperties(input []interface{}) (storage.BlobServiceProperties, e
 
 	props.RestorePolicy = expandBlobPropertiesRestorePolicy(v["restore_policy"].([]interface{}))
 
+	if container := expandBlobPropertiesContainerDeleteRetentionPolicy(v["container_delete_retention_policy"].([]interface{})); container != nil {
+		props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = container
+	}
+
 	return props, nil
 }
 
@@ -1548,6 +1577,19 @@ func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.Del
 	deleteRetentionPolicy.Days = utils.Int32(int32(days))
 
 	return &deleteRetentionPolicy
+}
+
+func expandBlobPropertiesContainerDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	policy := input[0].(map[string]interface{})
+
+	return &storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(true),
+		Days:    utils.Int32(int32(policy["days"].(int))),
+	}
 }
 
 func expandBlobPropertiesRestorePolicy(input []interface{}) *storage.RestorePolicyProperties {
@@ -1815,6 +1857,11 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedRestorePolicy = flattenBlobPropertiesRestorePolicy(restorePolicy)
 	}
 
+	flattenedContainerDeletePolicy := make([]interface{}, 0)
+	if containerDeletePolicy := input.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy; containerDeletePolicy != nil {
+		flattenedContainerDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(containerDeletePolicy)
+	}
+
 	versioning := false
 	change_feed_enabled := false
 	if props := input.BlobServicePropertiesProperties; props != nil {
@@ -1828,11 +1875,12 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"cors_rule":               flattenedCorsRules,
-			"delete_retention_policy": flattenedDeletePolicy,
-			"versioning_enabled":      versioning,
-			"change_feed_enabled":     change_feed_enabled,
-			"restore_policy":          flattenedRestorePolicy,
+			"cors_rule":                         flattenedCorsRules,
+			"delete_retention_policy":           flattenedDeletePolicy,
+			"versioning_enabled":                versioning,
+			"change_feed_enabled":               change_feed_enabled,
+			"restore_policy":                    flattenedRestorePolicy,
+			"container_delete_retention_policy": flattenedContainerDeletePolicy,
 		},
 	}
 }
