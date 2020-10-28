@@ -155,7 +155,7 @@ resource "azurerm_log_analytics_solution" "test" {
   }
 
   tags = {
-    environment = "Test"
+    Environment = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
