@@ -32,6 +32,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
 * `azurerm_kubernetes_cluster` - `min_count` can be updated when `enable_auto_scaling` is set to true [GH-8619]
 * `azurerm_signalr_service` - switching the`features` block to a set so order is irrelevant [GH-8815]
+* `azurerm_virtual_desktop_application_group` - correctly validate the `name`property [GH-9030]
 
 ## 2.33.0 (October 22, 2020)
 
