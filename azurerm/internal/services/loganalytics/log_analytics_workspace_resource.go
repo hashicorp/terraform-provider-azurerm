@@ -49,13 +49,13 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"public_network_access_for_ingestion_enabled": {
+			"enable_ingestion_over_public_dns": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"public_network_access_for_query_enabled": {
+			"enable_query_over_public_dns": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -167,11 +167,11 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	publicNetworkAccessForIngestion := operationalinsights.Disabled
-	if d.Get("public_network_access_for_ingestion_enabled").(bool) {
+	if d.Get("enable_ingestion_over_public_dns").(bool) {
 		publicNetworkAccessForIngestion = operationalinsights.Enabled
 	}
 	publicNetworkAccessForQuery := operationalinsights.Disabled
-	if d.Get("public_network_access_for_query_enabled").(bool) {
+	if d.Get("enable_query_over_public_dns").(bool) {
 		publicNetworkAccessForQuery = operationalinsights.Enabled
 	}
 
@@ -185,10 +185,10 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Location: &location,
 		Tags:     tags.Expand(t),
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
-			Sku:             sku,
+			Sku:                             sku,
 			PublicNetworkAccessForIngestion: publicNetworkAccessForIngestion,
 			PublicNetworkAccessForQuery:     publicNetworkAccessForQuery,
-			RetentionInDays: &retentionInDays,
+			RetentionInDays:                 &retentionInDays,
 			WorkspaceCapping: &operationalinsights.WorkspaceCapping{
 				DailyQuotaGb: &dailyQuotaGb,
 			},
@@ -243,8 +243,8 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("public_network_access_for_ingestion_enabled", resp.PublicNetworkAccessForIngestion != operationalinsights.Disabled)
-	d.Set("public_network_access_for_query_enabled", resp.PublicNetworkAccessForQuery != operationalinsights.Disabled)
+	d.Set("enable_ingestion_over_public_dns", resp.PublicNetworkAccessForIngestion == operationalinsights.Enabled)
+	d.Set("enable_query_over_public_dns", resp.PublicNetworkAccessForQuery == operationalinsights.Enabled)
 
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", "")

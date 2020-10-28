@@ -172,7 +172,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_withVolumeCap(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestion(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspace_withEnableIngestionOverPublicDNS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -181,14 +181,14 @@ func TestAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestion(t *
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestionEnabled(data),
+				Config: testAccAzureRMLogAnalyticsWorkspace_withEnableIngestionOverPublicDNS(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestionDisabled(data),
+				Config: testAccAzureRMLogAnalyticsWorkspace_withEnableIngestionOverPublicDNSUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
 				),
@@ -198,7 +198,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestion(t *
 	})
 }
 
-func TestAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQuery(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspace_withEnableQueryOverPublicDNS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -207,14 +207,14 @@ func TestAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQuery(t *test
 		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQueryEnabled(data),
+				Config: testAccAzureRMLogAnalyticsWorkspace_withEnableQueryOverPublicDNS(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQueryDisabled(data),
+				Config: testAccAzureRMLogAnalyticsWorkspace_withEnableQueryOverPublicDNSUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsWorkspaceExists(data.ResourceName),
 				),
@@ -405,7 +405,7 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, volumeCapGb)
 }
 
-func testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestionEnabled(data acceptance.TestData) string {
+func testAccAzureRMLogAnalyticsWorkspace_withEnableIngestionOverPublicDNS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -417,16 +417,16 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                                        = "acctestLAW-%d"
-  location                                    = azurerm_resource_group.test.location
-  resource_group_name                         = azurerm_resource_group.test.name
-  public_network_access_for_ingestion_enabled = true
-  sku                                         = "PerGB2018"
+  name                             = "acctestLAW-%d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  enable_ingestion_over_public_dns = true
+  sku                              = "PerGB2018"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForIngestionDisabled(data acceptance.TestData) string {
+func testAccAzureRMLogAnalyticsWorkspace_withEnableIngestionOverPublicDNSUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -438,16 +438,16 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                                        = "acctestLAW-%d"
-  location                                    = azurerm_resource_group.test.location
-  resource_group_name                         = azurerm_resource_group.test.name
-  public_network_access_for_ingestion_enabled = false
-  sku                                         = "PerGB2018"
+  name                             = "acctestLAW-%d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  enable_ingestion_over_public_dns = false
+  sku                              = "PerGB2018"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQueryEnabled(data acceptance.TestData) string {
+func testAccAzureRMLogAnalyticsWorkspace_withEnableQueryOverPublicDNS(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -459,16 +459,16 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                                    = "acctestLAW-%d"
-  location                                = azurerm_resource_group.test.location
-  resource_group_name                     = azurerm_resource_group.test.name
-  public_network_access_for_query_enabled = true
-  sku                                     = "PerGB2018"
+  name                         = "acctestLAW-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  enable_query_over_public_dns = true
+  sku                          = "PerGB2018"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsWorkspace_withPublicNetworkAccessForQueryDisabled(data acceptance.TestData) string {
+func testAccAzureRMLogAnalyticsWorkspace_withEnableQueryOverPublicDNSUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -480,11 +480,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                                    = "acctestLAW-%d"
-  location                                = azurerm_resource_group.test.location
-  resource_group_name                     = azurerm_resource_group.test.name
-  public_network_access_for_query_enabled = false
-  sku                                     = "PerGB2018"
+  name                         = "acctestLAW-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  enable_query_over_public_dns = false
+  sku                          = "PerGB2018"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
