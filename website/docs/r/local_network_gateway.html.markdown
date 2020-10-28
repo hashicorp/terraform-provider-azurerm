@@ -46,8 +46,7 @@ The following arguments are supported:
 * `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
     Local Network Gateway's BGP speaker settings.
     
-* `gateway_address` - (Optional) The IP address of the gateway to which to
-    connect.
+* `gateway_address` - (Optional) The gateway IP address to connect with.
     
 * `gateway_fqdn` - (Optional) The FQDN of the gateway to which to
     connect.
