@@ -48,8 +48,7 @@ The following arguments are supported:
     
 * `gateway_address` - (Optional) The gateway IP address to connect with.
     
-* `gateway_fqdn` - (Optional) The FQDN of the gateway to which to
-    connect.
+* `gateway_fqdn` - (Optional) The gateway FQDN to connect with.
 
 -> **NOTE**: Either `gateway_address` or `gateway_fqdn` should be specified.
 
