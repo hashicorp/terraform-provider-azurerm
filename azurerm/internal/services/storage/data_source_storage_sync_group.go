@@ -43,13 +43,12 @@ func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{})
 	defer cancel()
 
 	name := d.Get("name").(string)
-	ssID := d.Get("storage_sync_id").(string)
-	ssId, _ := parsers.ParseStorageSyncID(ssID)
+	storageSyncId, err := parsers.ParseStorageSyncID(d.Get("storage_sync_id").(string))
 
 	resp, err := client.Get(ctx, ssId.ResourceGroup, ssId.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Storage Sync Group %q does not exist - removing from state", name)
+			log.Printf("[INFO]  does not exist - removing from state", name)
 			d.SetId("")
 			return nil
 		}
@@ -63,6 +62,6 @@ func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{})
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
-	d.Set("storage_sync_id", ssID)
+	d.Set("storage_sync_id", storageSyncId)
 	return nil
 }
