@@ -85,6 +85,7 @@ func resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter() *schema.Resour
 	}
 }
 
+// this should not have been merged, needs to be fixed once https://github.com/Azure/azure-rest-api-specs/issues/9072 has been addressed
 type dataSourceWindowsPerformanceCounterProperty struct {
 	CounterName     string `json:"counterName"`
 	InstanceName    string `json:"instanceName"`

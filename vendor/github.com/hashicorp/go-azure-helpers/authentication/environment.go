@@ -154,7 +154,7 @@ func IsEnvironmentAzureStack(ctx context.Context, endpoint string, environmentNa
 }
 
 func getSupportedEnvironments(ctx context.Context, endpoint string) ([]Environment, error) {
-	uri := fmt.Sprintf("https://%s/metadata/endpoints?api-version=2019-05-01", endpoint)
+	uri := fmt.Sprintf("https://%s/metadata/endpoints?api-version=2020-06-01", endpoint)
 	client := http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,

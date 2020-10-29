@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
-
+	dataPlaneKeyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -20,6 +19,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -187,6 +188,27 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validation.IntBetween(7, 90),
 			},
 
+			"contact": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"email": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"phone": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 
 			// Computed
@@ -200,6 +222,7 @@ func resourceArmKeyVault() *schema.Resource {
 
 func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -350,11 +373,24 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if v, ok := d.GetOk("contact"); ok {
+		contacts := dataPlaneKeyVault.Contacts{
+			ContactList: expandKeyVaultCertificateContactList(v.(*schema.Set).List()),
+		}
+		if read.Properties == nil || read.Properties.VaultURI == nil {
+			return fmt.Errorf("failed to get vault base url Key Vault %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+		}
+		if _, err := dataPlaneClient.SetCertificateContacts(ctx, *read.Properties.VaultURI, contacts); err != nil {
+			return fmt.Errorf("failed to set Contacts for Key Vault %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
+	}
+
 	return resourceArmKeyVaultRead(d, meta)
 }
 
 func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -549,6 +585,24 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if d.HasChange("contact") {
+		contacts := dataPlaneKeyVault.Contacts{
+			ContactList: expandKeyVaultCertificateContactList(d.Get("contact").(*schema.Set).List()),
+		}
+		if existing.Properties == nil || existing.Properties.VaultURI == nil {
+			return fmt.Errorf("failed to get vault base url Key Vault %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
+		}
+		var err error
+		if len(*contacts.ContactList) == 0 {
+			_, err = dataPlaneClient.DeleteCertificateContacts(ctx, *existing.Properties.VaultURI)
+		} else {
+			_, err = dataPlaneClient.SetCertificateContacts(ctx, *existing.Properties.VaultURI, contacts)
+		}
+		if err != nil {
+			return fmt.Errorf("failed to set Contacts for Key Vault %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
+	}
+
 	d.Partial(false)
 
 	return resourceArmKeyVaultRead(d, meta)
@@ -556,6 +610,7 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
+	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -593,13 +648,16 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		d.Set("vault_uri", props.VaultURI)
 
+		skuName := ""
 		if sku := props.Sku; sku != nil {
-			if err := d.Set("sku_name", string(sku.Name)); err != nil {
-				return fmt.Errorf("Error setting 'sku_name' for KeyVault %q: %+v", *resp.Name, err)
+			// the Azure API is inconsistent here, so rewrite this into the casing we expect
+			for _, v := range keyvault.PossibleSkuNameValues() {
+				if strings.EqualFold(string(v), string(sku.Name)) {
+					skuName = string(v)
+				}
 			}
-		} else {
-			return fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): Unable to retrieve 'sku' value", name, resourceGroup)
 		}
+		d.Set("sku_name", skuName)
 
 		if err := d.Set("network_acls", flattenKeyVaultNetworkAcls(props.NetworkAcls)); err != nil {
 			return fmt.Errorf("Error setting `network_acls` for KeyVault %q: %+v", *resp.Name, err)
@@ -608,6 +666,16 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		flattenedPolicies := azure.FlattenKeyVaultAccessPolicies(props.AccessPolicies)
 		if err := d.Set("access_policy", flattenedPolicies); err != nil {
 			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
+		}
+
+		if resp, err := dataPlaneClient.GetCertificateContacts(ctx, *props.VaultURI); err != nil {
+			if !utils.ResponseWasForbidden(resp.Response) && !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
+			}
+		} else {
+			if err := d.Set("contact", flattenKeyVaultCertificateContactList(resp.ContactList)); err != nil {
+				return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
+			}
 		}
 	}
 
@@ -787,6 +855,24 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*keyvault.NetworkRuleSet, [
 	return &ruleSet, subnetIds
 }
 
+func expandKeyVaultCertificateContactList(input []interface{}) *[]dataPlaneKeyVault.Contact {
+	results := make([]dataPlaneKeyVault.Contact, 0)
+	if len(input) == 0 || input[0] == nil {
+		return &results
+	}
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		results = append(results, dataPlaneKeyVault.Contact{
+			Name:         utils.String(v["name"].(string)),
+			EmailAddress: utils.String(v["email"].(string)),
+			Phone:        utils.String(v["phone"].(string)),
+		})
+	}
+
+	return &results
+}
+
 func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	if input == nil {
 		return []interface{}{
@@ -829,6 +915,38 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	output["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, virtualNetworkRules)
 
 	return []interface{}{output}
+}
+
+func flattenKeyVaultCertificateContactList(input *[]dataPlaneKeyVault.Contact) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, contact := range *input {
+		emailAddress := ""
+		if contact.EmailAddress != nil {
+			emailAddress = *contact.EmailAddress
+		}
+
+		name := ""
+		if contact.Name != nil {
+			name = *contact.Name
+		}
+
+		phone := ""
+		if contact.Phone != nil {
+			phone = *contact.Phone
+		}
+
+		results = append(results, map[string]interface{}{
+			"email": emailAddress,
+			"name":  name,
+			"phone": phone,
+		})
+	}
+
+	return results
 }
 
 func optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location string) string {

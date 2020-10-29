@@ -735,6 +735,11 @@ func TestAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	testAccAzureRMKubernetesClusterNodePool_zeroSize(t)
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_sameSize(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 
@@ -745,6 +750,25 @@ func testAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesClusterNodePool_zeroSizeConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func testAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_sameSizeConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
 				),
@@ -1619,6 +1643,27 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   min_count             = 0
   max_count             = 3
   node_count            = 0
+}
+`, template)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_sameSizeConfig(data acceptance.TestData) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  enable_auto_scaling   = true
+  min_count             = 1
+  max_count             = 1
+  node_count            = 1
 }
 `, template)
 }

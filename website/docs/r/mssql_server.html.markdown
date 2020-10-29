@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The Minimum TLS Version for all SQL Database and SQL Data Warehouse databases associated with the server. Valid values are: `1.0`, `1.1` and `1.2`.
 
+~> **NOTE:** Once `minimum_tls_version` is set it is not possible to remove this setting and must be given a valid value for any further updates to the resource.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.

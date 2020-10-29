@@ -82,11 +82,13 @@ func resourceArmLogAnalyticsDataSourceWindowsEvent() *schema.Resource {
 	}
 }
 
+// this should not have been merged, needs to be fixed once https://github.com/Azure/azure-rest-api-specs/issues/9072 has been addressed
 type dataSourceWindowsEvent struct {
 	EventLogName string                            `json:"eventLogName"`
 	EventTypes   []dataSourceWindowsEventEventType `json:"eventTypes"`
 }
 
+// this should not have been merged, needs to be fixed once https://github.com/Azure/azure-rest-api-specs/issues/9072 has been addressed
 type dataSourceWindowsEventEventType struct {
 	EventType string `json:"eventType"`
 }

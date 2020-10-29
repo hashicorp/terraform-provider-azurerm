@@ -67,7 +67,7 @@ The following attributes are exported:
 
 * `id` - The Role Definition ID.
 
-* `role_definition_resource_id` - The Azure Resource Manager ID for the resource
+* `role_definition_id` - The Azure Resource Manager ID for the resource
 
 ## Timeouts
 

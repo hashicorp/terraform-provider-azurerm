@@ -7,6 +7,8 @@ import (
 )
 
 type Client struct {
+	BackupLongTermRetentionPoliciesClient              *sql.BackupLongTermRetentionPoliciesClient
+	BackupShortTermRetentionPoliciesClient             *sql.BackupShortTermRetentionPoliciesClient
 	DatabasesClient                                    *sql.DatabasesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
@@ -23,6 +25,12 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	BackupLongTermRetentionPoliciesClient := sql.NewBackupLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BackupLongTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	BackupShortTermRetentionPoliciesClient := sql.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BackupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	databasesClient := sql.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&databasesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -63,7 +71,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&sqlVirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DatabasesClient: &databasesClient,
+		BackupLongTermRetentionPoliciesClient:              &BackupLongTermRetentionPoliciesClient,
+		BackupShortTermRetentionPoliciesClient:             &BackupShortTermRetentionPoliciesClient,
+		DatabasesClient:                                    &databasesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseThreatDetectionPoliciesClient:              &databaseThreatDetectionPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
