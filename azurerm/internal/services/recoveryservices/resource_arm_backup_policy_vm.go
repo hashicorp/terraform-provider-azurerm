@@ -58,6 +58,7 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 			"instant_restore_retention_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 5),
 			},
 
@@ -338,9 +339,8 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 		},
 	}
 
-	var instantRestoreDays *int32
-	if instantRestoreDaysRaw := d.Get("instant_restore_retention_days"); instantRestoreDaysRaw != nil {
-		instantRestoreDays = utils.Int32(int32(instantRestoreDaysRaw.(int)))
+	if instantRestoreDaysRaw, ok := d.GetOk("instant_restore_retention_days"); ok && instantRestoreDaysRaw != 0 {
+		instantRestoreDays := utils.Int32(int32(instantRestoreDaysRaw.(int)))
 		vmProtectionPolicyProperties.InstantRpRetentionRangeInDays = instantRestoreDays
 	}
 

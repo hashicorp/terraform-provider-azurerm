@@ -33,7 +33,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentionRange(t *testing.T) {
+func TestAccAzureRMBackupProtectionPolicyVM_withInstantRestoreRetentionRangeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -42,13 +42,23 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentio
 		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentionRange(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Daily"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_daily.0.count", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "instant_restore_retention_days", "5"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
