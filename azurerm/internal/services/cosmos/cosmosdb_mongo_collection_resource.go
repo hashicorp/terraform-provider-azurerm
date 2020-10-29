@@ -320,16 +320,16 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			for k := range res.ShardKey {
 				d.Set("shard_key", k)
 			}
-			version36 := false
+			accountIsVersion36 := false
 			if accProps := accResp.DatabaseAccountGetProperties; accProps != nil {
 				for _, v := range *accProps.Capabilities {
 					if *v.Name == "EnableMongo" {
-						version36 = true
+						accountIsVersion36 = true
 					}
 				}
 			}
 
-			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, version36)
+			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, accountIsVersion36)
 			if err := d.Set("default_ttl_seconds", ttl); err != nil {
 				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
 			}
@@ -414,7 +414,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 	return &results
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, version36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, accountIsVersion36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
 	indexes := make([]map[string]interface{}, 0)
 	systemIndexes := make([]map[string]interface{}, 0)
 	var ttl *int32
@@ -438,7 +438,7 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, version36
 
 				systemIndexes = append(systemIndexes, systemIndex)
 
-				if version36 {
+				if accountIsVersion36 {
 					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
 					index["unique"] = true
 				}
