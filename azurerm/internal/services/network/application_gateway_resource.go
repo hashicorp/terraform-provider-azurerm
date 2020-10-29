@@ -3250,6 +3250,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 		data := v["data"].(string)
 		password := v["password"].(string)
 		kvsid := v["key_vault_secret_id"].(string)
+		cert := v["public_cert_data"].(string)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
@@ -3270,6 +3271,8 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 			}
 
 			output.ApplicationGatewaySslCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
+		} else if cert != "" {
+			output.ApplicationGatewaySslCertificatePropertiesFormat.PublicCertData = utils.String(cert)
 		} else {
 			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		}

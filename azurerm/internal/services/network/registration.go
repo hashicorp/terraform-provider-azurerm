@@ -115,6 +115,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
 		"azurerm_vpn_gateway":                                                            resourceArmVPNGateway(),
 		"azurerm_vpn_server_configuration":                                               resourceArmVPNServerConfiguration(),
+		"azurerm_vpn_site":                                                               resourceArmVpnSite(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 }

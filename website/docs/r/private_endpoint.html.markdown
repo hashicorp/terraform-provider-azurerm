@@ -189,7 +189,7 @@ A `private_dns_zone_configs` block exports:
 
 ---
 
-A `private_serivce_connection` block exports:
+A `private_service_connection` block exports:
 
 * `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
 

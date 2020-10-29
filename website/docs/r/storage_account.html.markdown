@@ -125,6 +125,8 @@ The following arguments are supported:
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
+* `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
