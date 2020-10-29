@@ -48,10 +48,9 @@ func buildClient() *clients.Client {
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	if enableBinaryTesting {
 		testCase.ProviderFactories = map[string]terraform.ResourceProviderFactory{
-			// TODO: switch this out for dynamic initialization
+			// TODO: switch this out for dynamic initialization?
 			"azurerm": terraform.ResourceProviderFactoryFixed(AzureProvider),
 		}
-		//} else {
 	}
 	testCase.Providers = SupportedProviders
 
