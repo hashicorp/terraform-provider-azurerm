@@ -194,7 +194,9 @@ func resourceArmVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error
 		val := bgpSettingsRaw[0].(map[string]interface{})
 		input := val["instance_bgp_peering_address"].([]interface{})
 		if len(input) > 0 {
-			expandVPNGatewayIPConfigurationBgpPeeringAddress(resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses, input)
+			if err := expandVPNGatewayIPConfigurationBgpPeeringAddress(resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses, input); err != nil {
+				return err
+			}
 			if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, resp); err != nil {
 				return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
@@ -229,7 +231,9 @@ func resourceArmVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error
 		bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
 		if len(bgpSettingsRaw) > 0 {
 			val := bgpSettingsRaw[0].(map[string]interface{})
-			expandVPNGatewayIPConfigurationBgpPeeringAddress(existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses, val["instance_bgp_peering_address"].([]interface{}))
+			if err := expandVPNGatewayIPConfigurationBgpPeeringAddress(existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses, val["instance_bgp_peering_address"].([]interface{})); err != nil {
+				return err
+			}
 		}
 	}
 
