@@ -186,7 +186,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 	workspace.WorkspaceProperties.ApplicationGroupReferences = &applicationGroupReferences
 
 	if _, err = client.CreateOrUpdate(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, workspace); err != nil {
-		return fmt.Errorf("removing association between Virtual Desktop Workspace %q and Application Group %q (Resource Group %q): %+v", id.Workspace.Name, id.Workspace.ResourceGroup, id.ApplicationGroup.Name, id.ApplicationGroup.ResourceGroup, err)
+		return fmt.Errorf("removing association between Virtual Desktop Workspace %q (Resource Group %q) and Application Group %q (Resource Group %q): %+v", id.Workspace.Name, id.Workspace.ResourceGroup, id.ApplicationGroup.Name, id.ApplicationGroup.ResourceGroup, err)
 	}
 
 	return nil
