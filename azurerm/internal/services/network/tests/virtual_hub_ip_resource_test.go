@@ -32,7 +32,7 @@ func TestAccAzureRMVirtualHubIP_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualHubIP_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -199,7 +199,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vhubipconfig-%d"
+  name     = "acctestRG-vhub-%d"
   location = "%s"
 }
 
