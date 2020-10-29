@@ -505,11 +505,6 @@ func resourceArmImageBuilderTemplateCreate(d *schema.ResourceData, meta interfac
 
 	location := d.Get("location").(string)
 
-	identity, err := expandImageTemplateIdentity(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
 	distribution, err := expandBasicImageTemplateDistributor(d.Get("distribution_managed_image").([]interface{}),
 		d.Get("distribution_shared_image").([]interface{}),
 		d.Get("distribution_vhd").([]interface{}),
@@ -525,7 +520,7 @@ func resourceArmImageBuilderTemplateCreate(d *schema.ResourceData, meta interfac
 
 	parameters := virtualmachineimagebuilder.ImageTemplate{
 		Location: utils.String(location),
-		Identity: identity,
+		Identity: expandImageTemplateIdentity(d.Get("identity").([]interface{})),
 		ImageTemplateProperties: &virtualmachineimagebuilder.ImageTemplateProperties{
 			VMProfile: &virtualmachineimagebuilder.ImageTemplateVMProfile{
 				VMSize:       utils.String(d.Get("size").(string)),
@@ -688,12 +683,7 @@ func resourceArmImageBuilderTemplateUpdate(d *schema.ResourceData, meta interfac
 	parameters := virtualmachineimagebuilder.ImageTemplateUpdateParameters{}
 
 	if d.HasChange("identity") {
-		identity, err := expandImageTemplateIdentity(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-
-		parameters.Identity = identity
+		parameters.Identity =  expandImageTemplateIdentity(d.Get("identity").([]interface{}))
 	}
 
 	if d.HasChange("tags") {
@@ -734,9 +724,9 @@ func resourceArmImageBuilderTemplateDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func expandImageTemplateIdentity(input []interface{}) (*virtualmachineimagebuilder.ImageTemplateIdentity, error) {
+func expandImageTemplateIdentity(input []interface{}) *virtualmachineimagebuilder.ImageTemplateIdentity {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	identity := input[0].(map[string]interface{})
@@ -751,7 +741,7 @@ func expandImageTemplateIdentity(input []interface{}) (*virtualmachineimagebuild
 	return &virtualmachineimagebuilder.ImageTemplateIdentity{
 		Type:                   identityType,
 		UserAssignedIdentities: identityIds,
-	}, nil
+	}
 }
 
 func flattenImageBuilderTemplateIdentity(input *virtualmachineimagebuilder.ImageTemplateIdentity) []interface{} {
