@@ -60,33 +60,33 @@ The following arguments are supported:
 
 * `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
 
-* `routing_configuration` - (Optional)  A `routing_configuration` block as defined below.
+* `routing` - (Optional)  A `routing` block as defined below.
 
 ---
 
-A `routing_configuration` block supports the following:
+A `routing` block supports the following:
 
-* `associated_route_table_id` - (Optional) The ID of route table associated with Virtual Hub connection.
+* `associated_route_table_id` - (Optional) The ID of the route table associated with this Virtual Hub connection.
 
 * `propagated_route_table` - (Optional)  A `propagated_route_table` block as defined below.
 
-* `vnet_static_route` - (Optional)  A `vnet_static_route` block as defined below.
+* `static_vnet_route` - (Optional)  A `static_vnet_route` block as defined below.
 
 ---
 
 A `propagated_route_table` block supports the following:
 
-* `labels` - (Optional) The list of labels to provide a mechanism to logically group route tables.
+* `labels` - (Optional) The list of labels to assign to this route table.
 
-* `route_table_ids` - (Optional) A list of Route Table ID's which is used for Virtual Hub Connection.
+* `route_table_ids` - (Optional) A list of Route Table ID's to associated with this Virtual Hub Connection.
 
 ---
 
-A `vnet_static_route` block supports the following:
+A `static_vnet_route` block supports the following:
 
 * `name` - (Optional) The name which should be used for this Static Route.
 
-* `address_prefixes` - (Optional) A list of CIDR Blocks which should be used for Virtual Hub Connection.
+* `address_prefixes` - (Optional) A list of CIDR Ranges which should be used as Address Prefixes.
 
 * `next_hop_ip_address` - (Optional) The IP Address which should be used for the Next Hop.
 

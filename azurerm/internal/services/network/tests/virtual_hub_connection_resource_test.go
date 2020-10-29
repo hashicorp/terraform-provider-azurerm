@@ -431,18 +431,18 @@ resource "azurerm_virtual_hub_connection" "test" {
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
-  routing_configuration {
+  routing {
     propagated_route_table {
       labels = ["label1", "label2"]
     }
 
-    vnet_static_route {
+    static_vnet_route {
       name                = "testvnetroute"
       address_prefixes    = ["10.0.3.0/24", "10.0.4.0/24"]
       next_hop_ip_address = "10.0.3.5"
     }
 
-    vnet_static_route {
+    static_vnet_route {
       name                = "testvnetroute2"
       address_prefixes    = ["10.0.5.0/24"]
       next_hop_ip_address = "10.0.5.5"
@@ -462,8 +462,8 @@ resource "azurerm_virtual_hub_connection" "test" {
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
-  routing_configuration {
-    vnet_static_route {
+  routing {
+    static_vnet_route {
       name                = "testvnetroute"
       address_prefixes    = ["10.0.3.0/24"]
       next_hop_ip_address = "10.0.3.5"
@@ -483,7 +483,7 @@ resource "azurerm_virtual_hub_connection" "test" {
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
-  routing_configuration {
+  routing {
     propagated_route_table {
       labels = ["default"]
     }
@@ -502,12 +502,12 @@ resource "azurerm_virtual_hub_connection" "test" {
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
-  routing_configuration {
+  routing {
     propagated_route_table {
       labels = ["label3"]
     }
 
-    vnet_static_route {
+    static_vnet_route {
       name                = "testvnetroute6"
       address_prefixes    = ["10.0.6.0/24", "10.0.7.0/24"]
       next_hop_ip_address = "10.0.6.5"

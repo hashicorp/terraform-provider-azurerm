@@ -78,7 +78,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 				Default:  false,
 			},
 
-			"routing_configuration": {
+			"routing": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -121,14 +121,15 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 							},
 						},
 
-						"vnet_static_route": {
+						"static_vnet_route": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"address_prefixes": {
@@ -192,8 +193,8 @@ func resourceArmVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta 
 		},
 	}
 
-	if v, ok := d.GetOk("routing_configuration"); ok {
-		connection.HubVirtualNetworkConnectionProperties.RoutingConfiguration = expandArmVirtualHubConnectionRoutingConfiguration(v.([]interface{}))
+	if v, ok := d.GetOk("routing"); ok {
+		connection.HubVirtualNetworkConnectionProperties.RoutingConfiguration = expandArmVirtualHubConnectionRouting(v.([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, connection)
@@ -255,8 +256,8 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 		}
 		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 
-		if err := d.Set("routing_configuration", flattenArmVirtualHubConnectionRoutingConfiguration(props.RoutingConfiguration)); err != nil {
-			return fmt.Errorf("setting `routing_configuration`: %+v", err)
+		if err := d.Set("routing", flattenArmVirtualHubConnectionRouting(props.RoutingConfiguration)); err != nil {
+			return fmt.Errorf("setting `routing`: %+v", err)
 		}
 	}
 
@@ -288,7 +289,7 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func expandArmVirtualHubConnectionRoutingConfiguration(input []interface{}) *network.RoutingConfiguration {
+func expandArmVirtualHubConnectionRouting(input []interface{}) *network.RoutingConfiguration {
 	if len(input) == 0 {
 		return &network.RoutingConfiguration{}
 	}
@@ -302,7 +303,7 @@ func expandArmVirtualHubConnectionRoutingConfiguration(input []interface{}) *net
 		}
 	}
 
-	if vnetStaticRoute := v["vnet_static_route"].([]interface{}); len(vnetStaticRoute) != 0 {
+	if vnetStaticRoute := v["static_vnet_route"].([]interface{}); len(vnetStaticRoute) != 0 {
 		result.VnetRoutes = expandArmVirtualHubConnectionVnetStaticRoute(vnetStaticRoute)
 	}
 
@@ -377,7 +378,7 @@ func expandIDsToSubResources(input []interface{}) *[]network.SubResource {
 	return &ids
 }
 
-func flattenArmVirtualHubConnectionRoutingConfiguration(input *network.RoutingConfiguration) []interface{} {
+func flattenArmVirtualHubConnectionRouting(input *network.RoutingConfiguration) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -391,7 +392,7 @@ func flattenArmVirtualHubConnectionRoutingConfiguration(input *network.RoutingCo
 		map[string]interface{}{
 			"associated_route_table_id": associatedRouteTableId,
 			"propagated_route_table":    flattenArmVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
-			"vnet_static_route":         flattenArmVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
+			"static_vnet_route":         flattenArmVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
 		},
 	}
 }
