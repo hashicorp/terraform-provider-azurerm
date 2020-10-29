@@ -18,6 +18,7 @@ IMPROVEMENTS:
 * `azurerm_iothub` - support for the `endpoint.resource_group` property [GH-8032]
 * `azurerm_key_vault` - support for the `contact` block [GH-8937]
 * `azurerm_log_analytics_saved_search` - support for `tags` [GH-9034]
+* `azurerm_log_analytics_solution` - support for `tags` [GH-9048]
 
 BUG FIXES: 
 
