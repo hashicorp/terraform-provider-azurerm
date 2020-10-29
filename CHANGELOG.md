@@ -32,6 +32,7 @@ BUG FIXES:
 * `azurerm_key_vault` - prevent unwanted diff due to inconsistent casing for the `sku_name` property [GH-8983]
 * `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
 * `azurerm_kubernetes_cluster` - `min_count` can be updated when `enable_auto_scaling` is set to true [GH-8619]
+* `azurerm_private_endpoint` - fix crash when deleting private endpoint [GH-9068]
 * `azurerm_signalr_service` - switching the`features` block to a set so order is irrelevant [GH-8815]
 * `azurerm_virtual_desktop_application_group` - correctly validate the `name`property [GH-9030]
 
