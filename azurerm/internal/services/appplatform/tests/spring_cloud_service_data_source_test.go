@@ -11,6 +11,7 @@ import (
 func TestAccDataSourceAzureRMSpringCloudService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_spring_cloud_service", "test")
 
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,

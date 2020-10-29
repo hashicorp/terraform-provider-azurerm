@@ -36,6 +36,7 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api", "test")
 
+	//lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
