@@ -194,7 +194,7 @@ func TestAccAzureRMCosmosDbMongoCollection_ver36(t *testing.T) {
 					testCheckAzureRMCosmosDbMongoCollectionExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("index.#", "index.1997105887.keys.#", "index.1997105887.keys.0", "index.1997105887.unique"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -382,8 +382,8 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   index {
     keys   = ["_id"]
-    unique = false
+    unique = true
   }
 }
-`, testAccAzureRMCosmosDBAccount_basic(data, documentdb.MongoDB, documentdb.Strong), data.RandomInteger)
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.MongoDB, []string{"EnableMongo"}), data.RandomInteger)
 }

@@ -279,6 +279,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 
 func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.MongoDbClient
+	accClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -301,6 +302,12 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("database_name", id.MongodbDatabaseName)
+
+	accResp, err := accClient.Get(ctx, id.ResourceGroup, id.DatabaseAccountName)
+	if err != nil {
+		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+	}
+	d.Set("database_name", id.MongodbDatabaseName)
 	if props := resp.MongoDBCollectionGetProperties; props != nil {
 		if res := props.Resource; res != nil {
 			d.Set("name", res.ID)
@@ -313,8 +320,16 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			for k := range res.ShardKey {
 				d.Set("shard_key", k)
 			}
+			version36 := false
+			if accProps := accResp.DatabaseAccountGetProperties; accProps != nil {
+				for _, v := range *accProps.Capabilities {
+					if *v.Name == "EnableMongo" {
+						version36 = true
+					}
+				}
+			}
 
-			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, d)
+			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes, version36)
 			if err := d.Set("default_ttl_seconds", ttl); err != nil {
 				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
 			}
@@ -399,25 +414,12 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 	return &results
 }
 
-func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, d *schema.ResourceData) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, version36 bool) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
 	indexes := make([]map[string]interface{}, 0)
 	systemIndexes := make([]map[string]interface{}, 0)
 	var ttl *int32
 	if input == nil {
 		return &indexes, &systemIndexes, ttl
-	}
-
-	// For mongo db version 3.6, the index "_id" is required, and the api will not return it back
-	if v, ok := d.GetOk("index"); ok {
-		for _, i := range v.(*schema.Set).List() {
-			indexMap := i.(map[string]interface{})
-			if keyList := utils.ExpandStringSlice(indexMap["keys"].([]interface{})); len(*keyList) == 1 && (*keyList)[0] == "_id" {
-				index := map[string]interface{}{}
-				index["keys"] = []string{"_id"}
-				index["unique"] = indexMap["unique"].(bool)
-				indexes = append(indexes, index)
-			}
-		}
 	}
 
 	for _, v := range *input {
@@ -435,6 +437,12 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, d *schema
 				systemIndex["unique"] = true
 
 				systemIndexes = append(systemIndexes, systemIndex)
+
+				if version36 {
+					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+					index["unique"] = true
+				}
+				indexes = append(indexes, index)
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
 				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
