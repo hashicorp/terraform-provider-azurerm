@@ -12,6 +12,7 @@ import (
 func TestAccDataSourceAzureRMDatabricksWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,

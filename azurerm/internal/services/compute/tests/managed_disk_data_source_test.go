@@ -14,6 +14,7 @@ func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestmanageddisk-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -41,6 +42,7 @@ func TestAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(t *testing.T) {
 	name := fmt.Sprintf("acctestmanageddisk-%d", data.RandomInteger)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,

@@ -11,6 +11,7 @@ import (
 func TestAccDataSourceAzureRMDevTestLab_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -29,6 +30,7 @@ func TestAccDataSourceAzureRMDevTestLab_basic(t *testing.T) {
 func TestAccDataSourceAzureRMDevTestLab_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_test_lab", "test")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,

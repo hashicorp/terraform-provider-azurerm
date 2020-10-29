@@ -11,6 +11,7 @@ import (
 func TestAccDataSourceAzureRMPlatformImage_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -31,6 +32,7 @@ func TestAccDataSourceAzureRMPlatformImage_basic(t *testing.T) {
 func TestAccDataSourceAzureRMPlatformImage_withVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_platform_image", "test")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,

@@ -11,6 +11,7 @@ import (
 func TestAccDataSourceAzureRMSnapshot_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -29,6 +30,7 @@ func TestAccDataSourceAzureRMSnapshot_basic(t *testing.T) {
 func TestAccDataSourceAzureRMSnapshot_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_snapshot", "snapshot")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,

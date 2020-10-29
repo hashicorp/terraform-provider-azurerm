@@ -8,10 +8,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-// lintignore:AT001
 func TestAccDataSourceBlueprintPublishedVersion_atSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -32,6 +32,7 @@ func TestAccDataSourceBlueprintPublishedVersion_atSubscription(t *testing.T) {
 func TestAccDataSourceBlueprintPublishedVersion_atRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -52,6 +53,7 @@ func TestAccDataSourceBlueprintPublishedVersion_atRootManagementGroup(t *testing
 func TestAccDataSourceBlueprintPublishedVersion_atChildManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_published_version", "test")
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,

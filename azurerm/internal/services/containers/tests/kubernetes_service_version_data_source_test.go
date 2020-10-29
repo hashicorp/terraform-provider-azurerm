@@ -15,6 +15,7 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_service_versions", "test")
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
+	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -36,6 +37,7 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_filtered(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_service_versions", "test")
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
+	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -57,6 +59,7 @@ func TestAccDataSourceAzureRMKubernetesServiceVersions_nopreview(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_service_versions", "test")
 	kvrx := regexp.MustCompile(k8sVersionRX)
 
+	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
