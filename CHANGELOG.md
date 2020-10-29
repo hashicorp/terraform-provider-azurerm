@@ -20,6 +20,7 @@ IMPROVEMENTS:
 * `azurerm_key_vault` - support for the `contact` block [GH-8937]
 * `azurerm_log_analytics_saved_search` - support for `tags` [GH-9034]
 * `azurerm_log_analytics_solution` - support for `tags` [GH-9048]
+* `azurerm_logic_app_trigger_recurrence` - Support for `time_zone` [GH-8829] 
 
 BUG FIXES: 
 
