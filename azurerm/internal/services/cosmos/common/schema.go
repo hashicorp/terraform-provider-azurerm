@@ -89,6 +89,39 @@ func CosmosDbIndexingPolicySchema() *schema.Schema {
 						},
 					},
 				},
+				"composite_index": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"index": {
+								Type:     schema.TypeList,
+								MinItems: 1,
+								Required: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"path": {
+											Type:         schema.TypeString,
+											Required:     true,
+											ValidateFunc: validation.StringIsNotEmpty,
+										},
+										"order": {
+											Type:     schema.TypeString,
+											Required: true,
+											// Workaround for Azure/azure-rest-api-specs#11222
+											DiffSuppressFunc: suppress.CaseDifference,
+											ValidateFunc: validation.StringInSlice(
+												[]string{
+													string(documentdb.Ascending),
+													string(documentdb.Descending),
+												}, false),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}

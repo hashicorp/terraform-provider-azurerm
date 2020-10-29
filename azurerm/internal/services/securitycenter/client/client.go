@@ -11,6 +11,7 @@ type Client struct {
 	PricingClient                  *security.PricingsClient
 	WorkspaceClient                *security.WorkspaceSettingsClient
 	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
+	AutoProvisioningClient         *security.AutoProvisioningSettingsClient
 	SettingClient                  *security.SettingsClient
 	// Note. This is patched version of the client
 	// - With fixes for https://github.com/Azure/azure-sdk-for-go/issues/12634
@@ -32,6 +33,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	AdvancedThreatProtectionClient := security.NewAdvancedThreatProtectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&AdvancedThreatProtectionClient.Client, o.ResourceManagerAuthorizer)
 
+	AutoProvisioningClient := security.NewAutoProvisioningSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&AutoProvisioningClient.Client, o.ResourceManagerAuthorizer)
+
 	SettingClient := security.NewSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
 	o.ConfigureClient(&SettingClient.Client, o.ResourceManagerAuthorizer)
 
@@ -43,6 +47,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		PricingClient:                  &PricingClient,
 		WorkspaceClient:                &WorkspaceClient,
 		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,
+		AutoProvisioningClient:         &AutoProvisioningClient,
 		SettingClient:                  &SettingClient,
 		AutomationsClient:              &AutomationsClient,
 	}

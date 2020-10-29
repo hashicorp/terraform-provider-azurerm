@@ -1,0 +1,24 @@
+---
+name: Unit Tests
+on:
+  pull_request:
+    types: ['opened', 'edited', 'reopened', 'synchronize']
+    paths:
+      - '**.go'
+      - 'vendor/**'
+      - '.github/workflows/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.5'
+      - run: bash scripts/gogetcookie.sh
+      - run: make tools
+      - run: make test
+
