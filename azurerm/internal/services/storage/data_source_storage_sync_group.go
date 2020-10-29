@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -39,29 +38,31 @@ func dataSourceArmStorageSyncGroup() *schema.Resource {
 
 func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncGroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	storageSyncId, err := parsers.ParseStorageSyncID(d.Get("storage_sync_id").(string))
+	if err != nil {
+		return err
+	}
 
-	resp, err := client.Get(ctx, ssId.ResourceGroup, ssId.Name, name)
+	resp, err := client.Get(ctx, storageSyncId.ResourceGroup, storageSyncId.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO]  does not exist - removing from state", name)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Sync Group %q does not exist within Storage Sync %q / Resource Group %q", name, storageSyncId.Name, storageSyncId.ResourceGroup)
 		}
-		return fmt.Errorf("reading Storage Sync Group %q (Storage Sync Name %q / Resource Group %q): %+v", name, ssId.Name, ssId.ResourceGroup, err)
+		return fmt.Errorf("retrieving Sync Group %q (Storage Sync %q / Resource Group %q): %+v", name, storageSyncId.Name, storageSyncId.ResourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading Storage Sync Group %q (Storage Sync Name %q /Resource Group %q) ID is empty or nil", name, ssId.Name, ssId.ResourceGroup)
+		return fmt.Errorf("ID is nil for Sync Group %q (Storage Sync %q / Resource Group %q)", name, storageSyncId.Name, storageSyncId.ResourceGroup)
 	}
 
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
-	d.Set("storage_sync_id", storageSyncId)
+	d.Set("storage_sync_id", storageSyncId.ID(subscriptionId))
 	return nil
 }
