@@ -6,7 +6,7 @@ UPGRADE NOTES
 
 FEATURES: 
 
-* **New data source:** `azurerm_cognitive_account` [GH-8773]
+* **New Data Source:** `azurerm_cognitive_account` [GH-8773]
 * **New Resource:** `azurerm_log_analytics_data_export_rule` [GH-8995]
 * **New Resource:** `azurerm_log_analytics_linked_storage_account` [GH-9002]
 * **New Resource:** `azurerm_security_center_auto_provisioning` [GH-8595]
@@ -15,18 +15,19 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* `azurerm_backup_policy_vm` support `instant_restore_retention_days` property [GH-8822]
-* `azurerm_container_group` - add support for `volume.x.git_repo` [GH-7924]
-* `azurerm_iothub` - support for the `endpoint.resource_group` property [GH-8032]
+* Data Source: `azurerm_policy_definition` - can now look up built-in policy by name [GH-9078]
+* `azurerm_backup_policy_vm` - support for the property `instant_restore_retention_days` [GH-8822]
+* `azurerm_container_group` - support for the property `git_repo` within the `volume` block [GH-7924]
+* `azurerm_iothub` - support for the `resource_group` property within the `endpoint` block [GH-8032]
 * `azurerm_key_vault` - support for the `contact` block [GH-8937]
 * `azurerm_log_analytics_saved_search` - support for `tags` [GH-9034]
 * `azurerm_log_analytics_solution` - support for `tags` [GH-9048]
-* `azurerm_logic_app_trigger_recurrence` - Support for `time_zone` [GH-8829] 
-* `azurerm_policy_definition` resource and datasource can now look up builtin policy by name [GH-9078]
+* `azurerm_logic_app_trigger_recurrence` - support for `time_zone` [GH-8829] 
+* `azurerm_policy_definition` - can now look up builtin policy by name [GH-9078]
 
 BUG FIXES: 
 
-* `azurerm_automation_module` - correctly show creation error messages [GH-8498]
+* `azurerm_automation_module` - raising the full error from the Azure API during creation [GH-8498]
 * `azurerm_api_management_api` - fixing a regression introduced in v2.16 where the value for `subscription_required` was defaulted to `false` instead of `true` [GH-7963]
 * `azurerm_app_service` - fixing a crash when provisioning an app service inside an App Service Environment which doesn't exist [GH-8993]
 * `azurerm_cdn_endpoint` - disable persisting default value for `is_compression_enabled` to state file [GH-8610]
@@ -35,7 +36,7 @@ BUG FIXES:
 * `azurerm_log_analytics_workspace` - support for the `daily_quota_gb` property [GH-8861]
 * `azurerm_local_network_gateway` - support for the `gateway_fqdn` property [GH-8998]
 * `azurerm_key_vault` - prevent unwanted diff due to inconsistent casing for the `sku_name` property [GH-8983]
-* `azurerm_kubernetes_cluster` - Fix issue where `min_count` and `max_count` couldn't be the equal [GH-8957]
+* `azurerm_kubernetes_cluster` - fix issue where `min_count` and `max_count` couldn't be equal [GH-8957]
 * `azurerm_kubernetes_cluster` - `min_count` can be updated when `enable_auto_scaling` is set to true [GH-8619]
 * `azurerm_private_dns_zone_virtual_network_link` - fixes case issue in `name` [GH-8617]
 * `azurerm_private_endpoint` - fix crash when deleting private endpoint [GH-9068]
