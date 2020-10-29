@@ -48,9 +48,8 @@ resource "azurerm_cognitive_account" "test" {
 }
 
 data "azurerm_cognitive_account" "test" {
-  name                 = azurerm_cognitive_account.test.name
-  virtual_network_name = azurerm_cognitive_account.test.virtual_network_name
-  resource_group_name  = azurerm_cognitive_account.test.resource_group_name
+  name                = azurerm_cognitive_account.test.name
+  resource_group_name = azurerm_cognitive_account.test.resource_group_name
 }
 `, template, data.RandomInteger)
 }
