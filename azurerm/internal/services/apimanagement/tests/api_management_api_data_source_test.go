@@ -12,6 +12,7 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api", "test")
 
 	resource.Test(t, resource.TestCase{
+		// tflint-ignore: AT001: missing CheckDestroy
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
