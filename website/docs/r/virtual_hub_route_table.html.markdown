@@ -100,7 +100,7 @@ An `route` block exports the following:
 
 * `destinations_type` - (Required) The type of destinations. Possible values are `CIDR`, `ResourceId` and `Service`.
 
-* `next_hop` - (Required) The next hop resource ID.
+* `next_hop` - (Required) The next hop's resource ID.
 
 * `next_hop_type` - (Optional) The type of next hop. Currently the only possible value is `ResourceId`. Defaults to `ResourceId`.
 

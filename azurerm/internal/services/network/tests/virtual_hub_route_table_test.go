@@ -87,6 +87,13 @@ func TestAccAzureRMVirtualHubRouteTable_update(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualHubRouteTable_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubRouteTableExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -151,25 +158,25 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-vhubroutetable-%d"
+  name     = "acctestRG-VHUB-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet-%d"
+  name                = "acctest-VNET-%d"
   address_space       = ["10.5.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_group" "test" {
-  name                = "acctest-nsg-%d"
+  name                = "acctest-NSG-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctest-subnet-%d"
+  name                 = "acctest-SUBNET-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
@@ -181,7 +188,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 resource "azurerm_virtual_wan" "test" {
-  name                = "acctest-vwan-%d"
+  name                = "acctest-VWAN-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
@@ -195,7 +202,7 @@ resource "azurerm_virtual_hub" "test" {
 }
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%d"
+  name                      = "acctest-VHUBCONN-%d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
@@ -208,9 +215,9 @@ func testAccAzureRMVirtualHubRouteTable_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-routetable-%d"
+  name           = "acctest-RouteTable-%d"
   virtual_hub_id = azurerm_virtual_hub.test.id
-  labels         = ["label1"]
+  labels         = ["Label1"]
 }
 `, template, data.RandomInteger)
 }
@@ -234,12 +241,12 @@ func testAccAzureRMVirtualHubRouteTable_complete(data acceptance.TestData) strin
 %s
 
 resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-routetable-%d"
+  name           = "acctest-RouteTable-%d"
   virtual_hub_id = azurerm_virtual_hub.test.id
-  labels         = ["label1"]
+  labels         = ["labeL1", "AnotherLabel"]
 
   route {
-    name              = "akc-route-test"
+    name              = "VHub-Route-Test"
     destinations_type = "CIDR"
     destinations      = ["10.0.0.0/16"]
     next_hop_type     = "ResourceId"
