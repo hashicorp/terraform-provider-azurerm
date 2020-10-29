@@ -683,7 +683,7 @@ func resourceArmImageBuilderTemplateUpdate(d *schema.ResourceData, meta interfac
 	parameters := virtualmachineimagebuilder.ImageTemplateUpdateParameters{}
 
 	if d.HasChange("identity") {
-		parameters.Identity =  expandImageTemplateIdentity(d.Get("identity").([]interface{}))
+		parameters.Identity = expandImageTemplateIdentity(d.Get("identity").([]interface{}))
 	}
 
 	if d.HasChange("tags") {
