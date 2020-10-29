@@ -79,7 +79,28 @@ func TestAccAzureRMFirewall_enableDNS(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewall_enableDNS(data),
+				Config: testAccAzureRMFirewall_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_enableDNS(data, "1.1.1.1", "8.8.8.8"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_enableDNS(data, "1.1.1.1"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallExists(data.ResourceName),
 				),
@@ -392,7 +413,12 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFirewall_enableDNS(data acceptance.TestData) string {
+func testAccAzureRMFirewall_enableDNS(data acceptance.TestData, dnsServers ...string) string {
+	servers := make([]string, len(dnsServers))
+	for idx, server := range dnsServers {
+		servers[idx] = fmt.Sprintf(`"%s"`, server)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -436,13 +462,9 @@ resource "azurerm_firewall" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
   threat_intel_mode = "Deny"
-
-  dns_setting {
-    enabled = true
-    servers = ["8.8.8.8", "1.1.1.1"]
-  }
+  dns_servers       = [%s]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, strings.Join(servers, ","))
 }
 
 func testAccAzureRMFirewall_withManagementIp(data acceptance.TestData) string {

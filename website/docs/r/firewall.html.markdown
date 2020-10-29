@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `ip_configuration` - (Required) An `ip_configuration` block as documented below.
 
-* `dns_setting` - (Optional) A `dns_setting` block as documented below.
+* `dns_servers` - (Optional) A list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
 
 * `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which allows force-tunnelling of traffic to be performed by the firewall. Adding or removing this block or changing the `subnet_id` in an existing block forces a new resource to be created.
 
@@ -77,14 +77,6 @@ The following arguments are supported:
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-A `dns_setting` block supports the following:
-
-* `enabled` - (Optional) Whether enable the DNS proxy on the Azure Firewall. Defaults to `true`.
-
-* `servers` - (Optional) A list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
 
 ---
 
