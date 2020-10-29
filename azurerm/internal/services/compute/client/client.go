@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
+	"github.com/Azure/azure-sdk-for-go/services/virtualmachineimagebuilder/mgmt/2020-02-01/virtualmachineimagebuilder"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -27,6 +28,7 @@ type Client struct {
 	VMScaleSetRollingUpgradesClient *compute.VirtualMachineScaleSetRollingUpgradesClient
 	VMScaleSetVMsClient             *compute.VirtualMachineScaleSetVMsClient
 	VMClient                        *compute.VirtualMachinesClient
+	VMImageBuilderTemplateClient    *virtualmachineimagebuilder.VirtualMachineImageTemplatesClient
 	VMImageClient                   *compute.VirtualMachineImagesClient
 }
 
@@ -76,6 +78,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	vmExtensionClient := compute.NewVirtualMachineExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmExtensionClient.Client, o.ResourceManagerAuthorizer)
 
+	vmImageBuilderTemplate := virtualmachineimagebuilder.NewVirtualMachineImageTemplatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vmImageBuilderTemplate.Client, o.ResourceManagerAuthorizer)
+
 	vmImageClient := compute.NewVirtualMachineImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmImageClient.Client, o.ResourceManagerAuthorizer)
 
@@ -115,6 +120,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		VMScaleSetRollingUpgradesClient: &vmScaleSetRollingUpgradesClient,
 		VMScaleSetVMsClient:             &vmScaleSetVMsClient,
 		VMClient:                        &vmClient,
+		VMImageBuilderTemplateClient:    &vmImageBuilderTemplate,
 		VMImageClient:                   &vmImageClient,
 	}
 }
