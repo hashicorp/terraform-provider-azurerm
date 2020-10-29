@@ -11,6 +11,7 @@ import (
 func TestAccDataSourceAzureRMAutomationVariableInt_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_variable_int", "test")
 
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,

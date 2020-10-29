@@ -13,6 +13,7 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_account", "test")
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
+	//lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
