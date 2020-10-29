@@ -6,6 +6,7 @@ UPGRADE NOTES
 
 FEATURES: 
 
+* **New data source:** `azurerm_cognitive_account` [GH-8773]
 * **New Resource:** `azurerm_log_analytics_data_export_rule` [GH-8995]
 * **New Resource:** `azurerm_log_analytics_linked_storage_account` [GH-9002]
 * **New Resource:** `azurerm_security_center_auto_provisioning` [GH-8595]
