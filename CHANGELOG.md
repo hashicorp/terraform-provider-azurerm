@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_log_analytics_saved_search` - support for `tags` [GH-9034]
 * `azurerm_log_analytics_solution` - support for `tags` [GH-9048]
 * `azurerm_logic_app_trigger_recurrence` - Support for `time_zone` [GH-8829] 
+* `azurerm_policy_definition` resource and datasource can now look up builtin policy by name [GH-9078]
 
 BUG FIXES: 
 
