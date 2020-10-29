@@ -11,7 +11,7 @@ import (
 func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api", "test")
 
-	// nolint:staticcheck
+	//lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
