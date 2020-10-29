@@ -441,8 +441,9 @@ func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex, accountIs
 				if accountIsVersion36 {
 					index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
 					index["unique"] = true
+					indexes = append(indexes, index)
 				}
-				indexes = append(indexes, index)
+
 			case "DocumentDBDefaultIndex":
 				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
 				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
