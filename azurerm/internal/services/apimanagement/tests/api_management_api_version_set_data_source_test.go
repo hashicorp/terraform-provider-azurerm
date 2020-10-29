@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+// tflint-ignore: AT001: missing CheckDestroy
 func TestAccDataSourceAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_api_version_set", "test")
 
