@@ -43,7 +43,7 @@ resource "azurerm_subnet" "internal" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "example" {
@@ -151,6 +151,10 @@ The following arguments are supported:
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
 * `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `true`.
+
+* `plan` - (Optional) A `plan` block as documented below.
+
+-> **NOTE:** When using an image from Azure Marketplace a `plan` must be specified.
 
 * `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
@@ -393,6 +397,16 @@ A `os_disk` block supports the following:
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be Enabled for this OS Disk? Defaults to `false`.
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
+
+---
+
+A `plan` block supports the following:
+
+* `name` - (Required) Specifies the name of the image from the marketplace. Changing this forces a new resource to be created.
+
+* `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
+
+* `product` - (Required) Specifies the product of the image from the marketplace. Changing this forces a new resource to be created.
 
 ---
 

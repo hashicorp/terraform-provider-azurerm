@@ -110,7 +110,6 @@ func resourceArmStorageSyncCloudEndpointCreate(d *schema.ResourceData, meta inte
 	}
 
 	resp, err := client.Get(ctx, storagesyncGroupId.ResourceGroup, storagesyncGroupId.StorageSyncName, storagesyncGroupId.Name, name)
-
 	if err != nil {
 		return fmt.Errorf("retrieving Storage Sync Cloud Endpoint %q (Storage Sync Group %q / Storage Sync %q / Resource Group %q): %+v", name, storagesyncGroupId.Name, storagesyncGroupId.StorageSyncName, storagesyncGroupId.ResourceGroup, err)
 	}

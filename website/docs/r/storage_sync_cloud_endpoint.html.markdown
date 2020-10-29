@@ -48,7 +48,6 @@ resource "azurerm_storage_share" "example" {
   }
 }
 
-
 resource "azurerm_storage_sync_cloud_endpoint" "example" {
   name                  = "example-ss-ce"
   storage_sync_group_id = azurerm_storage_sync_group.example.id

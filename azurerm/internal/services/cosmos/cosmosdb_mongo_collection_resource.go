@@ -101,7 +101,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"keys": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
@@ -376,7 +376,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[
 
 			results = append(results, documentdb.MongoIndex{
 				Key: &documentdb.MongoIndexKeys{
-					Keys: utils.ExpandStringSlice(index["keys"].(*schema.Set).List()),
+					Keys: utils.ExpandStringSlice(index["keys"].([]interface{})),
 				},
 				Options: &documentdb.MongoIndexOptions{
 					Unique: utils.Bool(index["unique"].(bool)),

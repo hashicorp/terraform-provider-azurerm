@@ -35,6 +35,12 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 				Computed: true,
 			},
 
+			"connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"location": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -85,6 +91,7 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 
 	d.SetId(*resp.ID)
 	d.Set("instrumentation_key", resp.InstrumentationKey)
+	d.Set("connection_string", resp.ConnectionString)
 	d.Set("location", resp.Location)
 	d.Set("app_id", resp.AppID)
 	d.Set("application_type", resp.ApplicationType)

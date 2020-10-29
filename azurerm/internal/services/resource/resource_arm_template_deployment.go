@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -35,6 +36,8 @@ func resourceArmTemplateDeployment() *schema.Resource {
 			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
 
+		DeprecationMessage: features.DeprecatedInThreePointOh("The resource 'azurerm_template_deployment' has been superseded by the 'azurerm_resource_group_template_deployment' resource."),
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -48,7 +51,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: azure.NormalizeJson,
+				StateFunc: utils.NormalizeJson,
 			},
 
 			"parameters": {
@@ -63,7 +66,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 			"parameters_body": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				StateFunc:     azure.NormalizeJson,
+				StateFunc:     utils.NormalizeJson,
 				ConflictsWith: []string{"parameters"},
 			},
 
@@ -152,21 +155,29 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 		Properties: &properties,
 	}
 
-	deploymentValidateResponse, err := client.Validate(ctx, resourceGroup, name, deployment)
-
 	if !d.IsNewResource() {
 		d.Partial(true)
 	}
 
+	deploymentValidateFuture, err := client.Validate(ctx, resourceGroup, name, deployment)
 	if err != nil {
-		return fmt.Errorf("Error requesting Validation for Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("requesting Validation for Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if deploymentValidateResponse.Error != nil {
-		if deploymentValidateResponse.Error.Message != nil {
-			return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error.Message)
+	if err := deploymentValidateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for Validation of Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	validationResult, err := deploymentValidateFuture.Result(*client)
+	if err != nil {
+		return fmt.Errorf("retrieving Validation of Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if validationResult.Error != nil {
+		if validationResult.Error.Message != nil {
+			return fmt.Errorf("validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *validationResult.Error.Message)
 		}
-		return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error)
+		return fmt.Errorf("validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *validationResult.Error)
 	}
 
 	if !d.IsNewResource() {

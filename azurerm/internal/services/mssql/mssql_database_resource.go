@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -22,6 +21,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -111,6 +111,10 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				}, false),
 			},
 
+			"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+
+			"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
+
 			"max_size_gb": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -122,7 +126,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: azValidate.FloatInSlice([]float64{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5}),
+				ValidateFunc: azValidate.FloatInSlice([]float64{0, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20, 24, 32, 40}),
 			},
 
 			"restore_point_in_time": {
@@ -292,6 +296,8 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
+	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -385,9 +391,10 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		params.DatabaseProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
 	}
 
-	if v, ok := d.GetOk("sku_name"); ok {
+	skuName, ok := d.GetOk("sku_name")
+	if ok {
 		params.Sku = &sql.Sku{
-			Name: utils.String(v.(string)),
+			Name: utils.String(skuName.(string)),
 		}
 	}
 
@@ -436,6 +443,49 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
+	// hyper-scale SKU's do not support LRP currently
+	if d.HasChange("long_term_retention_policy") {
+		v := d.Get("long_term_retention_policy")
+		longTermRetentionProps := helper.ExpandLongTermRetentionPolicy(v.([]interface{}))
+		if longTermRetentionProps != nil {
+			longTermRetentionPolicy := sql.BackupLongTermRetentionPolicy{}
+
+			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
+				longTermRetentionPolicy.LongTermRetentionPolicyProperties = longTermRetentionProps
+			}
+
+			longTermRetentionfuture, err := longTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, longTermRetentionPolicy)
+			if err != nil {
+				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+
+			if err = longTermRetentionfuture.WaitForCompletionRef(ctx, longTermRetentionClient.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+		}
+	}
+
+	if d.HasChange("short_term_retention_policy") {
+		v := d.Get("short_term_retention_policy")
+		backupShortTermPolicyProps := helper.ExpandShortTermRetentionPolicy(v.([]interface{}))
+		if backupShortTermPolicyProps != nil {
+			backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{}
+
+			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
+				backupShortTermPolicy.BackupShortTermRetentionPolicyProperties = backupShortTermPolicyProps
+			}
+
+			shortTermRetentionFuture, err := shortTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, backupShortTermPolicy)
+			if err != nil {
+				return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+
+			if err = shortTermRetentionFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+			}
+		}
+	}
+
 	return resourceArmMsSqlDatabaseRead(d, meta)
 }
 
@@ -443,6 +493,8 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
+	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -470,6 +522,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	}
 	d.Set("server_id", serverResp.ID)
 
+	skuName := ""
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("auto_pause_delay_in_minutes", props.AutoPauseDelay)
 		d.Set("collation", props.Collation)
@@ -484,6 +537,9 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 			d.Set("read_scale", true)
 		} else if props.ReadScale == sql.DatabaseReadScaleDisabled {
 			d.Set("read_scale", false)
+		}
+		if props.CurrentServiceObjectiveName != nil {
+			skuName = *props.CurrentServiceObjectiveName
 		}
 		d.Set("sku_name", props.CurrentServiceObjectiveName)
 		d.Set("zone_redundant", props.ZoneRedundant)
@@ -504,6 +560,33 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	flattenBlobAuditing := helper.FlattenAzureRmMsSqlDBBlobAuditingPolicies(&auditingResp, d)
 	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
 		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
+	}
+
+	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
+	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
+		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		}
+		flattenlongTermPolicy := helper.FlattenLongTermRetentionPolicy(&longTermPolicy, d)
+		if err := d.Set("long_term_retention_policy", flattenlongTermPolicy); err != nil {
+			return fmt.Errorf("failure in setting `long_term_retention_policy`: %+v", err)
+		}
+
+		shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+		}
+
+		flattenShortTermPolicy := helper.FlattenShortTermRetentionPolicy(&shortTermPolicy, d)
+		if err := d.Set("short_term_retention_policy", flattenShortTermPolicy); err != nil {
+			return fmt.Errorf("failure in setting `short_term_retention_policy`: %+v", err)
+		}
+	} else {
+		// HS and DW SKUs need the retention policies zeroing for state consistency
+		zero := make([]interface{}, 0)
+		d.Set("long_term_retention_policy", zero)
+		d.Set("short_term_retention_policy", zero)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

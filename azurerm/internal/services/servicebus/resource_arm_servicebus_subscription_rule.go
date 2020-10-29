@@ -126,6 +126,13 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"properties": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -295,8 +302,9 @@ func expandAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) (*serviceb
 	replyToSessionID := config["reply_to_session_id"].(string)
 	sessionID := config["session_id"].(string)
 	to := config["to"].(string)
+	properties := utils.ExpandMapStringPtrString(config["properties"].(map[string]interface{}))
 
-	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" {
+	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" && len(properties) == 0 {
 		return nil, fmt.Errorf("At least one property must be set in the `correlation_filter` block")
 	}
 
@@ -332,6 +340,10 @@ func expandAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) (*serviceb
 
 	if contentType != "" {
 		correlationFilter.ContentType = utils.String(contentType)
+	}
+
+	if len(properties) > 0 {
+		correlationFilter.Properties = properties
 	}
 
 	return &correlationFilter, nil
@@ -374,6 +386,10 @@ func flattenAzureRmServiceBusCorrelationFilter(input *servicebus.CorrelationFilt
 
 	if input.ContentType != nil {
 		filter["content_type"] = *input.ContentType
+	}
+
+	if input.Properties != nil {
+		filter["properties"] = utils.FlattenMapStringPtrString(input.Properties)
 	}
 
 	return []interface{}{filter}

@@ -347,7 +347,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -395,7 +395,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -410,7 +410,7 @@ resource "azurerm_subnet" "test_mgmt" {
   name                 = "AzureFirewallManagementSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_public_ip" "test_mgmt" {
@@ -465,7 +465,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -545,7 +545,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -597,7 +597,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -649,7 +649,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -698,7 +698,7 @@ resource "azurerm_subnet" "test" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_public_ip" "test" {

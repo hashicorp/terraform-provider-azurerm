@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -158,12 +158,36 @@ func resourceArmApiManagementService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"location": azure.SchemaLocation(),
 
+						"virtual_network_configuration": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"subnet_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+								},
+							},
+						},
+
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"public_ip_addresses": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Computed: true,
+						},
+
+						"private_ip_addresses": {
 							Type: schema.TypeList,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -503,7 +527,11 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	properties.Identity = identity
 
 	if _, ok := d.GetOk("additional_location"); ok {
-		properties.ServiceProperties.AdditionalLocations = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		var err error
+		properties.ServiceProperties.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
+		if err != nil {
+			return err
+		}
 	}
 
 	if notificationSenderEmail != "" {
@@ -905,8 +933,9 @@ func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanage
 	return &results
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) *[]apimanagement.AdditionalLocation {
+func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) (*[]apimanagement.AdditionalLocation, error) {
 	inputLocations := d.Get("additional_location").([]interface{})
+	parentVnetConfig := d.Get("virtual_network_configuration").([]interface{})
 
 	additionalLocations := make([]apimanagement.AdditionalLocation, 0)
 
@@ -919,10 +948,24 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *
 			Sku:      sku,
 		}
 
+		childVnetConfig := config["virtual_network_configuration"].([]interface{})
+		switch {
+		case len(childVnetConfig) == 0 && len(parentVnetConfig) > 0:
+			return nil, fmt.Errorf("`virtual_network_configuration` must be specified in any `additional_location` block when top-level `virtual_network_configuration` is supplied")
+		case len(childVnetConfig) > 0 && len(parentVnetConfig) == 0:
+			return nil, fmt.Errorf("`virtual_network_configuration` must be empty in all `additional_location` blocks when top-level `virtual_network_configuration` is not supplied")
+		case len(childVnetConfig) > 0 && len(parentVnetConfig) > 0:
+			v := childVnetConfig[0].(map[string]interface{})
+			subnetResourceId := v["subnet_id"].(string)
+			additionalLocation.VirtualNetworkConfiguration = &apimanagement.VirtualNetworkConfiguration{
+				SubnetResourceID: &subnetResourceId,
+			}
+		}
+
 		additionalLocations = append(additionalLocations, additionalLocation)
 	}
 
-	return &additionalLocations
+	return &additionalLocations, nil
 }
 
 func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLocation) []interface{} {
@@ -942,9 +985,15 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 			output["public_ip_addresses"] = *prop.PublicIPAddresses
 		}
 
+		if prop.PrivateIPAddresses != nil {
+			output["private_ip_addresses"] = *prop.PrivateIPAddresses
+		}
+
 		if prop.GatewayRegionalURL != nil {
 			output["gateway_regional_url"] = *prop.GatewayRegionalURL
 		}
+
+		output["virtual_network_configuration"] = flattenApiManagementVirtualNetworkConfiguration(prop.VirtualNetworkConfiguration)
 
 		results = append(results, output)
 	}

@@ -74,6 +74,7 @@ The following arguments are supported:
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported. Windows containers are not supported in virtual networks.
 
 ---
+* `dns_config` - (Optional) A `dns_config` block as documented below.
 
 * `diagnostics` - (Optional) A `diagnostics` block as documented below.
 
@@ -187,11 +188,23 @@ A `volume` block supports:
 
 * `read_only` - (Optional) Specify if the volume is to be mounted as read only or not. The default value is `false`. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Required) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
+* `storage_account_name` - (Optional) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
 
-* `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
+* `storage_account_key` - (Optional) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
 
-* `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
+* `share_name` - (Optional) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
+
+* `git_repo` - (Optional) A `git_repo` block as defined below.
+
+---
+
+The `git_repo` block supports:
+
+* `url` - (Required) Specifies the Git repository to be cloned. Changing this forces a new resource to be created.
+
+* `directory` - (Optional) Specifies the directory into which the repository should be cloned. Changing this forces a new resource to be created.
+
+* `revision` - (Optional) Specifies the commit hash of the revision to be cloned. If unspecified, the HEAD revision is cloned. Changing this forces a new resource to be created.
 
 ---
 
@@ -238,6 +251,14 @@ The `http_get` block supports:
 * `port` - (Optional) Number of the port to access on the container. Changing this forces a new resource to be created.
 
 * `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
+
+---
+
+The `dns_config` block supports:
+
+* `nameservers` - (Required) A list of nameservers the containers will search out to resolve requests.
+* `search_domains` - (Required) A list of search domains that DNS requests will search along.
+* `options` - (Required) A list of [resolver configuration options](https://man7.org/linux/man-pages/man5/resolv.conf.5.html).
 
 ## Attributes Reference
 

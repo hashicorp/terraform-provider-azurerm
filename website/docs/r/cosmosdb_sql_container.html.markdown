@@ -47,9 +47,9 @@ resource "azurerm_cosmosdb_sql_container" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Cosmos DB SQL Database. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Cosmos DB SQL Container. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB SQL Database is created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB SQL Container is created. Changing this forces a new resource to be created.
 
 * `account_name` - (Required) The name of the Cosmos DB Account to create the container within. Changing this forces a new resource to be created.
 
@@ -88,6 +88,8 @@ An `indexing_policy` block supports the following:
 
 * `excluded_path` - (Optional) One or more `excluded_path` blocks as defined below. Either `included_path` or `excluded_path` must contain the `path` `/*`
 
+* `composite_index` - (Optional) One or more `composite_index` blocks as defined below.
+
 An `included_path` block supports the following:
 
 * `path` - Path for which the indexing behavior applies to.
@@ -96,6 +98,15 @@ An `excluded_path` block supports the following:
 
 * `path` - Path that is excluded from indexing.
 
+A `composite_index` block supports the following:
+
+* `index` - One or more `index` blocks as defined below.
+
+An `index` block supports the following:
+
+* `path` - Path for which the indexing behavior applies to.
+
+* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
 
 ## Attributes Reference
 

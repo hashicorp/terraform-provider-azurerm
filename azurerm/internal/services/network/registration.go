@@ -26,6 +26,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_express_route_circuit":                     dataSourceArmExpressRouteCircuit(),
 		"azurerm_firewall":                                  dataSourceArmFirewall(),
 		"azurerm_firewall_policy":                           dataSourceArmFirewallPolicy(),
+		"azurerm_ip_group":                                  dataSourceArmIpGroup(),
 		"azurerm_lb":                                        dataSourceArmLoadBalancer(),
 		"azurerm_lb_backend_address_pool":                   dataSourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_lb_rule":                                   dataSourceArmLoadBalancerRule(),
@@ -67,6 +68,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_firewall_nat_rule_collection":         resourceArmFirewallNatRuleCollection(),
 		"azurerm_firewall_network_rule_collection":     resourceArmFirewallNetworkRuleCollection(),
 		"azurerm_firewall":                             resourceArmFirewall(),
+		"azurerm_ip_group":                             resourceArmIpGroup(),
 		"azurerm_local_network_gateway":                resourceArmLocalNetworkGateway(),
 		"azurerm_lb_backend_address_pool":              resourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_lb_nat_pool":                          resourceArmLoadBalancerNatPool(),
@@ -113,6 +115,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
 		"azurerm_vpn_gateway":                                                            resourceArmVPNGateway(),
 		"azurerm_vpn_server_configuration":                                               resourceArmVPNServerConfiguration(),
+		"azurerm_vpn_site":                                                               resourceArmVpnSite(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 }

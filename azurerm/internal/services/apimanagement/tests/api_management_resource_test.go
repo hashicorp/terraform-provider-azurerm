@@ -175,6 +175,29 @@ func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_type", "Internal"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_addresses.#"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_type", "Internal"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "private_ip_addresses.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "additional_location.0.private_ip_addresses.#"),
 				),
 			},
 			data.ImportStep(),
@@ -889,6 +912,74 @@ resource "azurerm_api_management" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test1" {
+  name     = "acctestRG1-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test1" {
+  name                = "acctestVNET1-%d"
+  location            = azurerm_resource_group.test1.location
+  resource_group_name = azurerm_resource_group.test1.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "acctestSNET1-%d"
+  resource_group_name  = azurerm_resource_group.test1.name
+  virtual_network_name = azurerm_virtual_network.test1.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctestVNET2-%d"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestSNET2-%d"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefix       = "10.1.1.0/24"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test1.location
+  resource_group_name = azurerm_resource_group.test1.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Premium_1"
+
+  additional_location {
+    location = azurerm_resource_group.test2.location
+    virtual_network_configuration {
+      subnet_id = azurerm_subnet.test2.id
+    }
+  }
+
+  virtual_network_type = "Internal"
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test1.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {

@@ -28,13 +28,15 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_cosmosdb_account":            resourceArmCosmosDbAccount(),
-		"azurerm_cosmosdb_cassandra_keyspace": resourceArmCosmosDbCassandraKeyspace(),
-		"azurerm_cosmosdb_gremlin_database":   resourceArmCosmosGremlinDatabase(),
-		"azurerm_cosmosdb_gremlin_graph":      resourceArmCosmosDbGremlinGraph(),
-		"azurerm_cosmosdb_mongo_collection":   resourceArmCosmosDbMongoCollection(),
-		"azurerm_cosmosdb_mongo_database":     resourceArmCosmosDbMongoDatabase(),
-		"azurerm_cosmosdb_sql_container":      resourceArmCosmosDbSQLContainer(),
-		"azurerm_cosmosdb_sql_database":       resourceArmCosmosDbSQLDatabase(),
-		"azurerm_cosmosdb_table":              resourceArmCosmosDbTable()}
+		"azurerm_cosmosdb_account":              resourceArmCosmosDbAccount(),
+		"azurerm_cosmosdb_cassandra_keyspace":   resourceArmCosmosDbCassandraKeyspace(),
+		"azurerm_cosmosdb_gremlin_database":     resourceArmCosmosGremlinDatabase(),
+		"azurerm_cosmosdb_gremlin_graph":        resourceArmCosmosDbGremlinGraph(),
+		"azurerm_cosmosdb_mongo_collection":     resourceArmCosmosDbMongoCollection(),
+		"azurerm_cosmosdb_mongo_database":       resourceArmCosmosDbMongoDatabase(),
+		"azurerm_cosmosdb_sql_container":        resourceArmCosmosDbSQLContainer(),
+		"azurerm_cosmosdb_sql_database":         resourceArmCosmosDbSQLDatabase(),
+		"azurerm_cosmosdb_sql_stored_procedure": resourceArmCosmosDbSQLStoredProcedure(),
+		"azurerm_cosmosdb_table":                resourceArmCosmosDbTable(),
+	}
 }
