@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+// lintignore:AT001
 func TestAccDataSourceAzureRMDatabaseMigrationProject_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
 
