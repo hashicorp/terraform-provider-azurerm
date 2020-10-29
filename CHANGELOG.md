@@ -30,6 +30,7 @@ BUG FIXES:
 * `azurerm_app_service` - fixing a crash when provisioning an app service inside an App Service Environment which doesn't exist [GH-8993]
 * `azurerm_cdn_endpoint` - disable persisting default value for `is_compression_enabled` to state file [GH-8610]
 * `azurerm_databricks_workspace` correctly validate the `name` property [GH-8997]
+* `azurerm_dev_test_policy` - now correctly deletes [GH-9077]
 * `azurerm_log_analytics_workspace` - support for the `daily_quota_gb` property [GH-8861]
 * `azurerm_local_network_gateway` - support for the `gateway_fqdn` property [GH-8998]
 * `azurerm_key_vault` - prevent unwanted diff due to inconsistent casing for the `sku_name` property [GH-8983]
