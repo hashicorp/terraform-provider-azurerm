@@ -12,7 +12,7 @@ type StorageSyncId struct {
 }
 
 func (id StorageSyncId) ID(subscriptionId string) string {
-	fmtString := ""
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.StorageSync/storageSyncServices/%s"
 	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
 }
 

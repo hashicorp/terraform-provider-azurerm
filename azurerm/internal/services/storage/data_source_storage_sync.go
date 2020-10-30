@@ -54,7 +54,7 @@ func dataSourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Storage Sync %q was not found in Resource Group %q", name, resourceGroup, err)
+			return fmt.Errorf("Storage Sync %q was not found in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("retrieving Storage Sync %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
