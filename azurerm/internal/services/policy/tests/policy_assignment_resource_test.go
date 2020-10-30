@@ -56,7 +56,7 @@ func TestAccAzureRMPolicyAssignment_basicBuiltInSet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_basicBuiltInSet(data),
+				Config:testAzureRMPolicyAssignment_basicBuiltInSet(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
@@ -259,7 +259,7 @@ provider "azurerm" {
 }
 
 data "azurerm_policy_set_definition" "test" {
-  display_name = "Audit Windows VMs with a pending reboot"
+  display_name = "Audit machines with insecure password security settings"
 }
 
 resource "azurerm_resource_group" "test" {

@@ -133,6 +133,9 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 							Type:       schema.TypeMap,
 							Optional:   true,
 							Computed:   true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 							Deprecated: "Deprecated in favour of `parameter_values`",
 						},
 
