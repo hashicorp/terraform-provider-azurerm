@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -221,26 +222,23 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ExpressRouteCircuitPeeringID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	circuitName := id.Path["expressRouteCircuits"]
-	peeringType := id.Path["peerings"]
 
-	resp, err := client.Get(ctx, resourceGroup, circuitName, peeringType)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.CircuitName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", id.Name, id.CircuitName, id.ResourceGroup, err)
 	}
 
-	d.Set("peering_type", peeringType)
-	d.Set("express_route_circuit_name", circuitName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("peering_type", id.Name)
+	d.Set("express_route_circuit_name", id.CircuitName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.ExpressRouteCircuitPeeringPropertiesFormat; props != nil {
 		d.Set("azure_asn", props.AzureASN)
@@ -271,31 +269,27 @@ func resourceArmExpressRouteCircuitPeeringDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ExpressRouteCircuitPeeringID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	circuitName := id.Path["expressRouteCircuits"]
-	peeringType := id.Path["peerings"]
+	locks.ByName(id.CircuitName, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(id.CircuitName, expressRouteCircuitResourceName)
 
-	locks.ByName(circuitName, expressRouteCircuitResourceName)
-	defer locks.UnlockByName(circuitName, expressRouteCircuitResourceName)
-
-	future, err := client.Delete(ctx, resourceGroup, circuitName, peeringType)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.CircuitName, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", peeringType, circuitName, resourceGroup, err)
+		return fmt.Errorf("Error issuing delete request for Express Route Circuit Peering %q (Circuit %q / Resource Group %q): %+v", id.Name, id.CircuitName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error waiting for Express Route Circuit Peering %q (Circuit %q / Resource Group %q) to be deleted: %+v", peeringType, circuitName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for Express Route Circuit Peering %q (Circuit %q / Resource Group %q) to be deleted: %+v", id.Name, id.CircuitName, id.ResourceGroup, err)
 	}
 
 	return err
