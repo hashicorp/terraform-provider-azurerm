@@ -50,8 +50,8 @@ resource "azurerm_security_center_automation" "example" {
       }
     }
   }
-  
-  scopes = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}" ]
+
+  scopes = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}"]
 }
 ```
 
