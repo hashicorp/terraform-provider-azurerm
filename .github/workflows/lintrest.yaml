@@ -21,6 +21,3 @@ jobs:
       - uses: golangci/golangci-lint-action@v2
         with:
           version: 'v1.32'
-      - run: bash scripts/gogetcookie.sh
-      - run: make tools
-      - run: make lint

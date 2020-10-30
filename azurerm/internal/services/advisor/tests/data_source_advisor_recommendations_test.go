@@ -76,9 +76,9 @@ provider "azurerm" {
 data "azurerm_advisor_recommendations" "test" { }
 `
 
-//Advisor genereate recommendations needs long time to take effects, sometimes up to one day or more,
-//Please refer to the issue https://github.com/Azure/azure-rest-api-specs/issues/9284
-//So here we get an empty list of recommendations
+// Advisor genereate recommendations needs long time to take effects, sometimes up to one day or more,
+// Please refer to the issue https://github.com/Azure/azure-rest-api-specs/issues/9284
+// So here we get an empty list of recommendations
 func testAccCheckArmAdvisorRecommendations_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
