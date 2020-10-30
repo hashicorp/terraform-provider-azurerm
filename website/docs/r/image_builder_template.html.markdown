@@ -76,13 +76,11 @@ resource "azurerm_image_builder_template" "example" {
 
 ## Arguments Reference
 
--> **Note** Update of this resource is currently not supported. Changing any property below except `identity` and `tags` forces a new resource to be created.
-
 The following arguments are supported:
 
-* `name` - (Required) The name of the image builder template resource. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Image Builder Template. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which the image builder template resource should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which the Image Builder Template should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region where the Image Builder Template should exist. Changing this forces a new resource to be created.
 
@@ -90,9 +88,11 @@ The following arguments are supported:
 
 ---
 
-* `build_timeout_minutes` - (Optional) Maximum duration to wait while building the image template. Defaults 4 hours. Changing this forces a new resource to be created.
+* `build_timeout_minutes` - (Optional) Maximum duration to wait while building the image template. Defaults to `240`. Changing this forces a new resource to be created.
 
 * `customizer` - (Optional) A `customizer` block as defined below. Changing this forces a new resource to be created.
+
+-> **Note** Azure Image Builder will run through the customizers in sequential order. Any failure in any customizer will fail the build process.
 
 * `disk_size_gb` - (Optional) Size of the OS disk in GB. Defaults to 0 to leave the same size as the source image. You can only increase the size of the OS Disk (Win and Linux) but cannot reduce the OS Disk size to smaller than the size from the source image. Changing this forces a new resource to be created.
 
@@ -114,9 +114,9 @@ The following arguments are supported:
 
 -> **NOTE** Exactly one of `source_managed_image_id`, `source_platform_image` and `source_shared_image_version_id` is required to specify.
 
-* `subnet_id` - (Optional) The ID of a pre-existing subnet that belongs to a virtual network in which the build VM you create is deployed. Changing this forces a new resource to be created.
+* `subnet_id` - (Optional) The ID of the subnet that the virtual machine used to build, customize and capture images. Changing this forces a new resource to be created.
 
--> **Note** If you specify a VNET, Azure Image Builder does not use a public IP address. Communication from Azure Image Builder Service to the build VM uses Azure Private Link technology. Private Link service requires an IP from the given VNET and subnet. Currently, Azure doesn’t support Network Policies on these IPs. Hence, network policies need to be disabled on the subnet, to do which, you need to ensure `enforce_private_link_service_network_policies` is set as true in your `azurerm_subnet` resource.
+-> **Note** If you specify a VNET, Azure Image Builder does not use a public IP address. Communication from Azure Image Builder Service to the build VM uses Azure Private Link technology. Private Link service requires an IP from the given VNET and subnet. Currently, Azure doesn’t support Network Policies on these IPs. Hence, network policies need to be disabled on the subnet, to do which, you need to ensure `enforce_private_link_service_network_policies` is set to `true` in your `azurerm_subnet` resource.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -124,33 +124,33 @@ The following arguments are supported:
 
 A `customizer` block supports the following:
 
--> **Note** Azure Image Builder will run through the customizers in sequential order. Any failure in any customizer will fail the build process.
+* `type` - (Required) The type of customization tool you want to use on the Image. Possible values are `File`, `PowerShell`, `Shell` `WindowsRestart` and `WindowsUpdate`. If you use `File` for example, you should only specify properties starting with `file_`, otherwise it will result into error
 
-* `type` - (Required) The type of customization tool you want to use on the Image. Possible values are "File", "PowerShell", "Shell" "WindowsRestart" and "WindowsUpdate". If you use "File" for example, you should only specify properties starting with "file_", and specifying properties not starting with "file_" will incur error. Changing this forces a new resource to be created.
+* `file_destination_path` - (Optional) The absolute path where the file will be downloaded to the VM. This must be specified when the customizer type is `File`. Changing this forces a new resource to be created.
 
--> **Note** "WindowsRestart" or "WindowsUpdate" customizers cannot be specified to Linux images. "Shell" customizers cannot be specified to Windows images.
+* `file_sha256_checksum` - (Optional) SHA256 checksum of the file provided in the `file_source_uri` field below. Changing this forces a new resource to be created.
 
-* `file_destination_path` - (Optional) The absolute path to a file (with nested directory structures already created) where the file (from sourceUri) will be uploaded to in the VM. This must be specified when the customizer type is File. Changing this forces a new resource to be created.
+* `file_source_uri` - (Optional) The URI of the file to be uploaded for customizing the VM. This must be specified when the customizer type is `File`. Changing this forces a new resource to be created.
 
-* `file_sha256_checksum` - (Optional) SHA256 checksum of the file provided in the sourceUri field above. Changing this forces a new resource to be created.
+* `name` - (Optional) The name of the customizer. Changing this forces a new resource to be created.
 
-* `file_source_uri` - (Optional) The URI of the file to be uploaded for customizing the VM. It can be a github link, SAS URI for Azure Storage, etc. This must be specified when the customizer type is File. Changing this forces a new resource to be created.
+* `powershell_commands` - (Optional) List of PowerShell commands to execute. Changing this forces a new resource to be created.
 
-* `name` - (Optional) Friendly Name to provide context on what this customization step does. Changing this forces a new resource to be created.
+* `powershell_run_elevated` - (Optional) Whether the PowerShell script will be run with elevated privileges? Changing this forces a new resource to be created.
 
-* `powershell_commands` - (Optional) List of PowerShell commands to execute. Exactly one of this and `powershell_script_uri` must be specified when the customizer type is PowerShell. Changing this forces a new resource to be created.
+* `powershell_script_uri` - (Optional) URI of the PowerShell script to be run for customizing. Changing this forces a new resource to be created.
 
-* `powershell_run_elevated` - (Optional) If specified to true, the PowerShell script will be run with elevated privileges. Changing this forces a new resource to be created.
-
-* `powershell_script_uri` - (Optional) URI of the PowerShell script to be run for customizing. It can be a github link, SAS URI for Azure Storage, etc. Exactly one of this and `powershell_commands` must be specified when the customizer type is PowerShell. Changing this forces a new resource to be created.
+-> **Note** Exactly one of `powershell_commands` and `powershell_script_uri` must be specified when the customizer type is `PowerShell`.
 
 * `powershell_sha256_checksum` - (Optional) SHA256 checksum of the power shell script provided in the `powershell_script_uri` above. Changing this forces a new resource to be created.
 
-* `powershell_valid_exit_codes` - (Optional) List of valid exit codes that can be returned from commands/scripts. This will avoid reported failure of the commands/scripts. Changing this forces a new resource to be created.
+* `powershell_valid_exit_codes` - (Optional) List of valid exit codes that can be returned from commands/scripts. Changing this forces a new resource to be created.
 
-* `shell_commands` - (Optional) List of shell commands to execute. Exactly one of this and `shell_script_uri` must be specified when the customizer type is Shell. Changing this forces a new resource to be created.
+* `shell_commands` - (Optional) List of shell commands to execute. Changing this forces a new resource to be created.
 
-* `shell_script_uri` - (Optional) URI of the shell script to be run for customizing. It can be a github link, SAS URI for Azure Storage, etc. Exactly one of this and `shell_commands` must be specified when the customizer type is Shell. Changing this forces a new resource to be created.
+* `shell_script_uri` - (Optional) URI of the shell script to be run for customizing. Changing this forces a new resource to be created.
+
+-> **Note** Exactly one of `shell_commands` and `shell_script_uri` must be specified when the customizer type is `Shell`.
 
 * `shell_sha256_checksum` - (Optional) SHA256 checksum of the shell script provided in the `shell_script_uri` above. Changing this forces a new resource to be created.
 
@@ -178,7 +178,7 @@ A `distribution_managed_image` block supports the following:
 
 * `run_output_name` - (Required) The name to be used for the associated RunOutput. Changing this forces a new resource to be created.
 
-* `artifact_tags` - (Optional) A mapping of tags to assign to the to be generated image. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the to be generated image. Changing this forces a new resource to be created.
 
 ---
 
@@ -194,7 +194,7 @@ A `distribution_shared_image` block supports the following:
 
 * `storage_account_type` - (Optional) The storage account type to store the to be created Image Version. Possible values are `Standard_LRS` and `Standard_ZRS`. Changing this forces a new resource to be created.
 
-* `artifact_tags` - (Optional) A mapping of tags to assign to the to be generated shared image version. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the to be generated shared image version. Changing this forces a new resource to be created.
 
 ---
 
@@ -202,13 +202,13 @@ A `distribution_vhd` block supports the following:
 
 * `run_output_name` - (Required) The name to be used for the associated RunOutput. Changing this forces a new resource to be created.
 
-* `artifact_tags` - (Optional) A mapping of tags to assign to the to be generated vhd. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the to be generated vhd. Changing this forces a new resource to be created.
 
 ---
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity which should be assigned to the image builder template. Currently only `UserAssigned` is supported. Changing this forces a new resource to be created.
+* `type` - (Required) The type of Managed Identity which should be assigned to the Image Builder Template. Currently only `UserAssigned` is supported. Changing this forces a new resource to be created.
 
 * `identity_ids` - (Required) The list of user assigned identities associated with the image template. Currently only 1 id is allowed. Changing this forces a new resource to be created.
 
@@ -216,23 +216,23 @@ An `identity` block supports the following:
 
 A `plan` block supports the following:
 
-* `name` - (Required) The name of the Marketplace Image this image builder template should be created from. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
 
-* `product` - (Required) The product of the Marketplace Image this image builder template should be created from. Changing this forces a new resource to be created.
+* `product` - (Required) The product of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
 
-* `publisher` - (Required) The publisher of the Marketplace Image this image builder template should be created from. Changing this forces a new resource to be created.
+* `publisher` - (Required) The publisher of the Marketplace Image this Image Builder Template should be created from. Changing this forces a new resource to be created.
 
 ---
 
 A `source_platform_image` block supports the following:
 
-* `publisher` - (Required) The publisher of the image used to create the image builder template. Changing this forces a new resource to be created.
+* `publisher` - (Required) The publisher of the image used to create the Image Builder Template. Changing this forces a new resource to be created.
 
-* `offer` - (Required) The offer of the image used to create the image builder template. Changing this forces a new resource to be created.
+* `offer` - (Required) The offer of the image used to create the Image Builder Template. Changing this forces a new resource to be created.
 
-* `sku` - (Required) The sku of the image used to create the image builder template. Changing this forces a new resource to be created.
+* `sku` - (Required) The sku of the image used to create the Image Builder Template. Changing this forces a new resource to be created.
 
-* `version` - (Required) The version of the image used to create the image builder template. Changing this forces a new resource to be created.
+* `version` - (Required) The version of the image used to create the Image Builder Template. Changing this forces a new resource to be created.
 
 * `plan` - (Optional) A `plan` block as defined above. Changing this forces a new resource to be created.
 

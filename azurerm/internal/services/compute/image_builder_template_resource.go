@@ -293,7 +293,7 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 
 						"run_output_name": distributionRunOutputNameSchema(),
 
-						"artifact_tags": tags.ForceNewSchema(),
+						"tags": tags.ForceNewSchema(),
 					},
 				},
 				AtLeastOneOf: []string{"distribution_managed_image", "distribution_shared_image", "distribution_vhd"},
@@ -351,7 +351,7 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 							}, false),
 						},
 
-						"artifact_tags": tags.ForceNewSchema(),
+						"tags": tags.ForceNewSchema(),
 					},
 				},
 				AtLeastOneOf: []string{"distribution_managed_image", "distribution_shared_image", "distribution_vhd"},
@@ -366,7 +366,7 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"run_output_name": distributionRunOutputNameSchema(),
 
-						"artifact_tags": tags.ForceNewSchema(),
+						"tags": tags.ForceNewSchema(),
 					},
 				},
 				AtLeastOneOf: []string{"distribution_managed_image", "distribution_shared_image", "distribution_vhd"},
@@ -920,7 +920,7 @@ func expandBasicImageTemplateDistributor(distributionManagedImages []interface{}
 						ImageID:       utils.String("/subscriptions/" + subscriptionId + "/resourceGroups/" + resourceGroupName + "/providers/Microsoft.Compute/images/" + distributionManagedImage["name"].(string)),
 						Location:      utils.String(distributionManagedImage["location"].(string)),
 						RunOutputName: utils.String(runOutputName),
-						ArtifactTags:  tags.Expand(distributionManagedImage["artifact_tags"].(map[string]interface{})),
+						ArtifactTags:  tags.Expand(distributionManagedImage["tags"].(map[string]interface{})),
 					})
 				}
 			}
@@ -940,7 +940,7 @@ func expandBasicImageTemplateDistributor(distributionManagedImages []interface{}
 					runOutputNameSet[runOutputName] = true
 					results = append(results, virtualmachineimagebuilder.ImageTemplateVhdDistributor{
 						RunOutputName: utils.String(distributionVhd["run_output_name"].(string)),
-						ArtifactTags:  tags.Expand(distributionVhd["artifact_tags"].(map[string]interface{})),
+						ArtifactTags:  tags.Expand(distributionVhd["tags"].(map[string]interface{})),
 					})
 				}
 			}
@@ -964,7 +964,7 @@ func expandBasicImageTemplateDistributor(distributionManagedImages []interface{}
 						RunOutputName:      utils.String(distributionSharedImage["run_output_name"].(string)),
 						ExcludeFromLatest:  utils.Bool(distributionSharedImage["exclude_from_latest"].(bool)),
 						StorageAccountType: virtualmachineimagebuilder.SharedImageStorageAccountType(distributionSharedImage["storage_account_type"].(string)),
-						ArtifactTags:       tags.Expand(distributionSharedImage["artifact_tags"].(map[string]interface{})),
+						ArtifactTags:       tags.Expand(distributionSharedImage["tags"].(map[string]interface{})),
 					})
 				}
 			}
@@ -1057,7 +1057,7 @@ func flattenDistributionManagedImage(input *virtualmachineimagebuilder.ImageTemp
 	}
 
 	if input.ArtifactTags != nil {
-		result["artifact_tags"] = tags.Flatten(input.ArtifactTags)
+		result["tags"] = tags.Flatten(input.ArtifactTags)
 	}
 
 	return result, nil
@@ -1088,7 +1088,7 @@ func flattenDistributionSharedImage(input *virtualmachineimagebuilder.ImageTempl
 	results["storage_account_type"] = string(input.StorageAccountType)
 
 	if input.ArtifactTags != nil {
-		results["artifact_tags"] = tags.Flatten(input.ArtifactTags)
+		results["tags"] = tags.Flatten(input.ArtifactTags)
 	}
 
 	return results
@@ -1105,7 +1105,7 @@ func flattenDistributionVhd(input *virtualmachineimagebuilder.ImageTemplateVhdDi
 	}
 
 	if input.ArtifactTags != nil {
-		results["artifact_tags"] = tags.Flatten(input.ArtifactTags)
+		results["tags"] = tags.Flatten(input.ArtifactTags)
 	}
 
 	return results

@@ -1105,7 +1105,7 @@ resource "azurerm_image_builder_template" "test" {
     resource_group_name = azurerm_resource_group.test.name
     location            = azurerm_resource_group.test.location
     run_output_name     = "acctest-managedImage-RunOutputName-%[1]d-1"
-    artifact_tags = {
+    tags = {
       ENV = "Test"
     }
   }
@@ -1120,7 +1120,7 @@ resource "azurerm_image_builder_template" "test" {
       name = azurerm_resource_group.test.location
     }
     run_output_name = "acctest-sharedImage-RunOutputName-%[1]d-1"
-    artifact_tags = {
+    tags = {
       ENV = "Test"
     }
   }
@@ -1389,7 +1389,7 @@ distribution_managed_image {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   run_output_name     = "acctest-managedImage-RunOutputName-%[1]d"
-  artifact_tags = {
+  tags = {
     ENV = "Test"
   }
 }
@@ -1400,7 +1400,7 @@ func testAccAzureRMImageBuilderTemplate_distributionVHDTemplate(data acceptance.
 	return fmt.Sprintf(`
 distribution_vhd {
   run_output_name = "acctest-vhd-RunOutputName-%[1]d"
-  artifact_tags = {
+  tags = {
     ENV = "Test"
   }
 }
@@ -1417,7 +1417,7 @@ distribution_shared_image {
   run_output_name      = "acctest-sharedImage-RunOutputName-%[1]d"
   storage_account_type = "Standard_ZRS"
   exclude_from_latest  = true
-  artifact_tags = {
+  tags = {
     ENV = "Test"
   }
 }
