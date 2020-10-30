@@ -112,8 +112,7 @@ func WebApplicationFirewallPolicyV0Schema() *schema.Resource {
 										Type:     schema.TypeList,
 										Required: true,
 										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validation.StringIsNotEmpty,
+											Type: schema.TypeString,
 										},
 									},
 
