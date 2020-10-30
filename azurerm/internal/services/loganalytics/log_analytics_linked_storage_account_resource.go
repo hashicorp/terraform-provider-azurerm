@@ -143,7 +143,7 @@ func resourceArmLogAnalyticsLinkedStorageAccountRead(d *schema.ResourceData, met
 		return fmt.Errorf("retrieving Log Analytics Linked Storage Account %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
 	}
 
-	d.Set("data_source_type", *resp.Name)
+	d.Set("data_source_type", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("workspace_resource_id", id.WorkspaceID)
 	if props := resp.LinkedStorageAccountsProperties; props != nil {

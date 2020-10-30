@@ -230,7 +230,7 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceD
 
 		if partition := props.PartitionKeyProperties; partition != nil && len(*partition) > 0 {
 			for _, v := range *partition {
-				d.Set("partition_key", *v.Name)
+				d.Set("partition_key", v.Name)
 			}
 		}
 	}
