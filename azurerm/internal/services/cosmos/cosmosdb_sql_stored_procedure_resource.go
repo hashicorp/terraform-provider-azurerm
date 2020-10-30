@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
-	`github.com/hashicorp/terraform-plugin-sdk/helper/validation`
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/hashicorp/go-azure-helpers/response"
 
