@@ -2,7 +2,7 @@
 name: Website checks
 on:
   pull_request:
-    types: ['opened', 'edited', 'reopened', 'synchronize']
+    types: ['opened', 'synchronize']
     paths:
       - 'website/**'
       - '.github/workflows/**'
