@@ -158,6 +158,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				},
 			},
 
+			// lintignore: S018
 			"dynamic_criteria": {
 				Type:     schema.TypeSet,
 				Optional: true,
