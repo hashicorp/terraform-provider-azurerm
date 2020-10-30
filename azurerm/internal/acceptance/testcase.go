@@ -38,9 +38,11 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 }
 
 func buildClient() *clients.Client {
-	if enableBinaryTesting {
-		// TODO: we can likely cache the built up auth object and return a new client instance
-	}
+	//if enableBinaryTesting {
+	// TODO: build up a client on demand
+	// NOTE: this'll want caching/a singleton, and likely RP registration etc disabled, since otherwise this'll become
+	// 		 extremely expensive - and this doesn't need access to the provider feature toggles
+	//}
 
 	return AzureProvider.Meta().(*clients.Client)
 }
