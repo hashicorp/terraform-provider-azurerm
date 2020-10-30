@@ -534,7 +534,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 		}
 
 		monitorMetricAlertCriteria := flattenMonitorMetricAlertCriteria(alert.Criteria)
-
+		// lintignore:R001
 		if err := d.Set(criteriaSchema, monitorMetricAlertCriteria); err != nil {
 			return fmt.Errorf("failed setting `%s`: %+v", criteriaSchema, err)
 		}
