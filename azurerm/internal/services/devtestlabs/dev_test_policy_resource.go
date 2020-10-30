@@ -218,8 +218,7 @@ func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) er
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF
-			log.Printf("[DEBUG] DevTest Policy %q was not found in Policy Set %q / Lab %q / Resource Group %q - assuming removed!", name, policySetName, labName, resourceGroup)
-			return nil
+			log.Printf("[DEBUG] DevTest Policy %q was not found in Policy Set %q / Lab %q / Resource Group %q", name, policySetName, labName, resourceGroup)
 		}
 
 		return fmt.Errorf("Error retrieving DevTest Policy %q (Policy Set %q / Lab %q / Resource Group %q): %+v", name, policySetName, labName, resourceGroup, err)

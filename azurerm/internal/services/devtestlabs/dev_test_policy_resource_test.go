@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -123,7 +124,7 @@ func testCheckDevTestPolicyExists(resourceName string) resource.TestCheckFunc {
 
 func testCheckDevTestPolicyDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
+		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -137,15 +138,24 @@ func testCheckDevTestPolicyDisappears(resourceName string) resource.TestCheckFun
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		// Ensure resource group exists in API
-
-		deleteFuture, err := client.Delete(ctx, resourceGroup, labName, policySetName, policyName)
+		resp, err := conn.Delete(ctx, resourceGroup, labName, policySetName, policyName)
 		if err != nil {
+			if resp.StatusCode == http.StatusNotFound {
+				return fmt.Errorf("Failed deleting policy - it wasn't found %q: %+v", resourceGroup, err)
+			}
 			return fmt.Errorf("Failed deleting policy %q: %+v", resourceGroup, err)
 		}
 
-		if deleteFuture.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Bad: DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q) does exist", policyName, policySetName, labName, resourceGroup)
+		// must be a better way
+		time.Sleep(15 * time.Second)
+
+		// check the policy is NOT there
+		resp1, err := conn.Get(ctx, resourceGroup, labName, policySetName, policyName, "")
+		if err != nil {
+			if resp1.StatusCode == http.StatusNotFound {
+				return nil
+			}
+			return fmt.Errorf("Bad: Get devTestPoliciesClient: %+v", err)
 		}
 
 		return nil
