@@ -76,23 +76,6 @@ func TestAccDevTestPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccDevTestPolicy_delete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckDevTestPolicyDestroy,
-		Steps: []resource.TestStep{
-			data.DisappearsStep(acceptance.DisappearsStepData{
-				Config:      testAccDevTestPolicy_basic,
-				CheckExists: testCheckDevTestPolicyExists,
-				Destroy:     testCheckDevTestPolicyDisappears,
-			}),
-		},
-	})
-}
-
 func testCheckDevTestPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
