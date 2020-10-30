@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
@@ -98,9 +100,12 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	// Synapse Endpoints
-	synapseAuth, err := builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
-	if err != nil {
-		return nil, err
+	var synapseAuth autorest.Authorizer
+	if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
+		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Key Vault Endpoints
