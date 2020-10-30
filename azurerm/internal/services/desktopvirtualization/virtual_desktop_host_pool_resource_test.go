@@ -155,7 +155,7 @@ func testCheckAzureRMDesktopVirtualizationHostPoolDestroy(s *terraform.State) er
 		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err == nil {
-			return fmt.Errorf("Virtual Desktop Application Group still exists:\n%#v", result)
+			return fmt.Errorf("Virtual Desktop Host Pool still exists:\n%#v", result)
 		}
 
 		if result.StatusCode != http.StatusNotFound {
