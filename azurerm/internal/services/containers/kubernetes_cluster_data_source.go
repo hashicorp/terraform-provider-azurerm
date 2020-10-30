@@ -242,13 +242,13 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"private_link_enabled": {
-				Type:          schema.TypeBool,
-				Computed:      true,
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 
 			"private_cluster_enabled": {
-				Type:          schema.TypeBool,
-				Computed:      true, // TODO -- remove this when deprecation resolves
+				Type:     schema.TypeBool,
+				Computed: true, // TODO -- remove this when deprecation resolves
 			},
 
 			"private_fqdn": {

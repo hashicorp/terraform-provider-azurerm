@@ -56,7 +56,7 @@ func TestAccAzureRMPolicyAssignment_basicBuiltInSet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:testAzureRMPolicyAssignment_basicBuiltInSet(data),
+				Config: testAzureRMPolicyAssignment_basicBuiltInSet(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
