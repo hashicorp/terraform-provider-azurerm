@@ -24,7 +24,7 @@ resource "azurerm_security_center_auto_provisioning" "example" {
 
 The following arguments are supported:
 
-* `auto_provision` - (Required) Either "On" or "Off" to enable or disable Auto Provisioning. This is not case sensitive.
+* `auto_provision` - (Required) Should the security agent be automatically provisioned on Virtual Machines in this subscription? Possible values are `On` (to install the security agent automatically, if it's missing) or `Off` (to not install the security agent automatically).
 
 ## Attributes Reference
 
