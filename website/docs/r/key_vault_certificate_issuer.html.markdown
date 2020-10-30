@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `provider_name` - (Required) The name of the third-party Certificate Issuer. Possible values are: `DigiCert`, `GlobalSign`, `OneCertV2-PrivateCA`, `OneCertV2-PublicCA` and `SslAdminV2`.
 
-* `org_id` - (Optional) The ID of the organization as provided to the issuer. 
+* `org_id` - (Required) The ID of the organization as provided to the issuer. 
 
 * `account_id` - (Optional) The account number with the third-party Certificate Issuer.
 
