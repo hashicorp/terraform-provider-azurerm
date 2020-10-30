@@ -19,8 +19,8 @@ jobs:
         with:
           go-version: '1.14.5'
       - uses: golangci/golangci-lint-action@v2
-          with:
-            version: 1.32
+        with:
+          version: '1.32'
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make lint
