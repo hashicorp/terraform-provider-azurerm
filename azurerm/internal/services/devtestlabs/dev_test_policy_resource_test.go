@@ -75,6 +75,23 @@ func TestAccDevTestPolicy_complete(t *testing.T) {
 	})
 }
 
+func TestAccDevTestPolicy_delete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckDevTestPolicyDestroy,
+		Steps: []resource.TestStep{
+			data.DisappearsStep(acceptance.DisappearsStepData{
+				Config:      testAccDevTestPolicy_basic,
+				CheckExists: testCheckDevTestPolicyExists,
+				Destroy:     testCheckDevTestPolicyDisappears,
+			}),
+		},
+	})
+}
+
 func testCheckDevTestPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
@@ -98,6 +115,37 @@ func testCheckDevTestPolicyExists(resourceName string) resource.TestCheckFunc {
 
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Bad: DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q) does not exist", policyName, policySetName, labName, resourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func testCheckDevTestPolicyDisappears(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		policyName := rs.Primary.Attributes["name"]
+		policySetName := rs.Primary.Attributes["policy_set_name"]
+		labName := rs.Primary.Attributes["lab_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		// Ensure resource group exists in API
+
+		deleteFuture, err := client.Delete(ctx, resourceGroup, labName, policySetName, policyName)
+		if err != nil {
+			return fmt.Errorf("Failed deleting policy %q: %+v", resourceGroup, err)
+		}
+
+		if deleteFuture.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Bad: DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q) does exist", policyName, policySetName, labName, resourceGroup)
 		}
 
 		return nil
