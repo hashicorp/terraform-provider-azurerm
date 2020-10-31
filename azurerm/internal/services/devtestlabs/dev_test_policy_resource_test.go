@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -99,46 +98,6 @@ func testCheckDevTestPolicyExists(resourceName string) resource.TestCheckFunc {
 
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Bad: DevTest Policy %q (Policy Set %q / Lab %q / Resource Group: %q) does not exist", policyName, policySetName, labName, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckDevTestPolicyDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.PoliciesClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		policyName := rs.Primary.Attributes["name"]
-		policySetName := rs.Primary.Attributes["policy_set_name"]
-		labName := rs.Primary.Attributes["lab_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Delete(ctx, resourceGroup, labName, policySetName, policyName)
-		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Failed deleting policy - it wasn't found %q: %+v", resourceGroup, err)
-			}
-			return fmt.Errorf("Failed deleting policy %q: %+v", resourceGroup, err)
-		}
-
-		// must be a better way
-		time.Sleep(15 * time.Second)
-
-		// check the policy is NOT there
-		resp1, err := conn.Get(ctx, resourceGroup, labName, policySetName, policyName, "")
-		if err != nil {
-			if resp1.StatusCode == http.StatusNotFound {
-				return nil
-			}
-			return fmt.Errorf("Bad: Get devTestPoliciesClient: %+v", err)
 		}
 
 		return nil
