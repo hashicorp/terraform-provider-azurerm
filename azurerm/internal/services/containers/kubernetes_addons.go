@@ -327,7 +327,7 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 
 	kubeDashboards := make([]interface{}, 0)
 	if kubeDashboard := kubernetesAddonProfileLocate(profile, kubernetesDashboardKey); kubeDashboard != nil {
-		enabled := true
+		enabled := false
 		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
 			enabled = *enabledVal
 		}
