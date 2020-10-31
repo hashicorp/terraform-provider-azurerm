@@ -59,21 +59,29 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 			},
 
 			"use_managed_identity": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"service_principal_key", "service_principal_id"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity"},
 			},
 
 			"service_principal_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsUUID,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.IsUUID,
+				RequiredWith:  []string{"service_principal_key"},
+				ConflictsWith: []string{"use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity"},
 			},
 
 			"service_principal_key": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				RequiredWith:  []string{"service_principal_id"},
+				ConflictsWith: []string{"use_managed_identity"},
+				AtLeastOneOf:  []string{"service_principal_key", "service_principal_id", "use_managed_identity"},
 			},
 
 			"tenant": {
@@ -146,24 +154,11 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schem
 	var datalakeStorageGen2Properties *datafactory.AzureBlobFSLinkedServiceTypeProperties
 
 	if d.Get("use_managed_identity").(bool) {
-		for _, k := range []string{"service_principal_key", "service_principal_name"} {
-			if _, ok := d.GetOk(k); ok {
-				return fmt.Errorf("Error %s cannont be defined when use_managed_identity = true", k)
-			}
-		}
-
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
 			URL:    utils.String(d.Get("url").(string)),
 			Tenant: utils.String(d.Get("tenant").(string)),
 		}
 	} else {
-		_, key_ok := d.GetOk("service_principal_key")
-		_, id_ok := d.GetOk("service_principal_id")
-
-		if !key_ok || !id_ok {
-			return fmt.Errorf("service_principal_key and service_principal_id must be provided when use_managed_identity = false")
-		}
-
 		secureString := datafactory.SecureString{
 			Value: utils.String(d.Get("service_principal_key").(string)),
 			Type:  datafactory.TypeSecureString,
@@ -261,6 +256,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.Resour
 
 	if dataLakeStorageGen2.ServicePrincipalID != nil {
 		d.Set("service_principal_id", dataLakeStorageGen2.ServicePrincipalID)
+		d.Set("use_managed_identity", false)
 	} else {
 		d.Set("use_managed_identity", true)
 	}
