@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_images` [GH-8629]
 * **New Resource:** `azurerm_firewall_policy_rule_collection_group` [GH-8603]
 
 ## 2.34.0 (October 29, 2020)
