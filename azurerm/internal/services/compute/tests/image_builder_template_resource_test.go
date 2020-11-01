@@ -214,9 +214,9 @@ func TestAccAzureRMImageBuilderTemplate_windowsPlatformSource(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_windowsPlatformSource(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "build_timeout_minutes", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "size", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "build_timeout_minutes", "240"),
+					resource.TestCheckResourceAttr(data.ResourceName, "size", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "Standard_D1_v2"),
 
 					resource.TestCheckResourceAttr(data.ResourceName, "customizer.#", "5"),
 					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.type", "PowerShell"),
@@ -271,7 +271,7 @@ func TestAccAzureRMImageBuilderTemplate_managedImageSource(t *testing.T) {
 				),
 			},
 			{
-				/// then create an image builder template by consuming the image id as source after generalizing the original VM
+				// then create an image builder template by consuming the image id as source after generalizing the original VM
 				Config: testLinuxVirtualMachine_imageBuilderTemplateFromImage(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
@@ -362,7 +362,7 @@ func TestAccAzureRMImageBuilderTemplate_sharedImageDistribution(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "distribution_shared_image.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "replica_regions.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "distribution_shared_image.0.replica_regions.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_account_type", "Standard_ZRS"),
 					resource.TestCheckResourceAttr(data.ResourceName, "exclude_from_latest", "true"),
 				),
@@ -902,7 +902,6 @@ resource "azurerm_image_builder_template" "test" {
 
 func testAccAzureRMImageBuilderTemplate_vhdDistribution(data acceptance.TestData) string {
 	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	customizerTemplate := testAccAzureRMImageBuilderTemplate_linuxCustomizerTemplate()
 	distributionVHDTemplate := testAccAzureRMImageBuilderTemplate_distributionVHDTemplate(data)
 
 	return fmt.Sprintf(`
@@ -945,9 +944,8 @@ resource "azurerm_image_builder_template" "test" {
 
 %[4]s
 
-%[5]s
 }
-`, data.RandomInteger, data.Locations.Primary, roleTemplate, customizerTemplate, distributionVHDTemplate)
+`, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionVHDTemplate)
 }
 
 func testAccAzureRMImageBuilderTemplate_sharedImageDistribution(data acceptance.TestData) string {
@@ -1161,7 +1159,6 @@ func testLinuxVirtualMachine_imageBuilderTemplateFromImage(data acceptance.TestD
 	template := testLinuxVirtualMachine_imageFromExistingMachinePrep(data)
 
 	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	customizerTemplate := testAccAzureRMImageBuilderTemplate_linuxCustomizerTemplate()
 	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
@@ -1194,9 +1191,8 @@ resource "azurerm_image_builder_template" "test" {
 
 %s
 
-%s
 }
-`, template, roleTemplate, data.RandomInteger, customizerTemplate, distributionManagedImageTemplate)
+`, template, roleTemplate, data.RandomInteger, distributionManagedImageTemplate)
 }
 
 func testLinuxVirtualMachine_imageBuilderTemplateFromSharedImageGallery(data acceptance.TestData) string {
@@ -1413,6 +1409,9 @@ distribution_shared_image {
   id = azurerm_shared_image.test.id
   replica_regions {
     name = azurerm_resource_group.test.location
+  }
+  replica_regions {
+    name = "westus2"
   }
   run_output_name      = "acctest-sharedImage-RunOutputName-%[1]d"
   storage_account_type = "Standard_ZRS"
