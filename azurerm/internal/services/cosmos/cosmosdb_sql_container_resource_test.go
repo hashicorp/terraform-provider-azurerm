@@ -259,6 +259,27 @@ resource "azurerm_cosmosdb_sql_container" "test" {
     excluded_path {
       path = "/testing/id2/*"
     }
+    composite_index {
+      index {
+        path  = "/path1"
+        order = "Descending"
+      }
+      index {
+        path  = "/path2"
+        order = "Ascending"
+      }
+    }
+
+    composite_index {
+      index {
+        path  = "/path3"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path4"
+        order = "Descending"
+      }
+    }
   }
 }
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
@@ -292,6 +313,28 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 
     excluded_path {
       path = "/testing/id1/*"
+    }
+
+    composite_index {
+      index {
+        path  = "/path1"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path2"
+        order = "Descending"
+      }
+    }
+
+    composite_index {
+      index {
+        path  = "/path3"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path4"
+        order = "Descending"
+      }
     }
   }
 }
@@ -337,6 +380,28 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 
     excluded_path {
       path = "%s"
+    }
+
+    composite_index {
+      index {
+        path  = "/path1"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path2"
+        order = "Descending"
+      }
+    }
+
+    composite_index {
+      index {
+        path  = "/path3"
+        order = "Ascending"
+      }
+      index {
+        path  = "/path4"
+        order = "Descending"
+      }
     }
   }
 }

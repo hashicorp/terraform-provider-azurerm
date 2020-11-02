@@ -1,21 +1,19 @@
-package storage
+package hpccache
 
 import (
 	"fmt"
 	"log"
 	"time"
 
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
-
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
-	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -44,7 +42,7 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.HPCCacheTargetName,
+				ValidateFunc: validate.HPCCacheTargetName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -67,18 +65,18 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 						"namespace_path": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: storageValidate.HPCCacheNamespacePath,
+							ValidateFunc: validate.HPCCacheNamespacePath,
 						},
 						"nfs_export": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: storageValidate.HPCCacheNFSExport,
+							ValidateFunc: validate.HPCCacheNFSExport,
 						},
 						"target_path": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "",
-							ValidateFunc: storageValidate.HPCCacheNFSTargetPath,
+							ValidateFunc: validate.HPCCacheNFSTargetPath,
 						},
 					},
 				},
@@ -105,7 +103,7 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 }
 
 func resourceArmHPCCacheNFSTargetCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageTargetsClient
+	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -163,7 +161,7 @@ func resourceArmHPCCacheNFSTargetCreateOrUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmHPCCacheNFSTargetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageTargetsClient
+	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -204,7 +202,7 @@ func resourceArmHPCCacheNFSTargetRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmHPCCacheNFSTargetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageTargetsClient
+	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
