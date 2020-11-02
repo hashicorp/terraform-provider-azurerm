@@ -156,7 +156,6 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_id", resp.ID)
 
 	if resp.ServiceProperties != nil && resp.ServiceProperties.HostnameConfigurations != nil {
