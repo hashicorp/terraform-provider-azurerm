@@ -61,7 +61,10 @@ func testCheckAzureRMSynapseRoleAssignmentExists(resourceName string) resource.T
 		if err != nil {
 			return err
 		}
-		client := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+		client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+		if err != nil {
+			return nil
+		}
 		if resp, err := client.GetRoleAssignmentByID(ctx, id.Id); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Synapse role assignment %q does not exist", id.Id)
@@ -93,7 +96,10 @@ func testCheckAzureRMSynapseRoleAssignmentDestroy(s *terraform.State) error {
 			return nil
 		}
 
-		client := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+		client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+		if err != nil {
+			return err
+		}
 		resp, err := client.GetRoleAssignmentByID(ctx, id.Id)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {

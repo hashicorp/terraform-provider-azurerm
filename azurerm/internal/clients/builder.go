@@ -100,7 +100,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	// Synapse Endpoints
-	var synapseAuth autorest.Authorizer
+	var synapseAuth autorest.Authorizer = nil
 	if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
 		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
 		if err != nil {
