@@ -991,17 +991,19 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 		secret := expandSecrets(volumeConfig["secret"].(map[string]interface{}))
 
 		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{}))
-		if gitRepoVolume != nil {
+
+		switch {
+		case gitRepoVolume != nil:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" || secret != nil {
 				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
 			cv.GitRepo = gitRepoVolume
-		} else if secret != nil {
+		case secret != nil:
 			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
 				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			}
 			cv.Secret = secret
-		} else {
+		default:
 			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
 				return nil, nil, fmt.Errorf("only one of `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) can be specified")
 			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
@@ -1039,7 +1041,7 @@ func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
 }
 
 func expandSecrets(secretsMap map[string]interface{}) map[string]*string {
-	if secretsMap == nil || len(secretsMap) == 0 {
+	if len(secretsMap) == 0 {
 		return nil
 	}
 	output := make(map[string]*string, len(secretsMap))
