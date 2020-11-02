@@ -240,7 +240,6 @@ func flattenRetryPolicy(r *datafactory.RetryPolicy) []interface{} {
 }
 
 func expandRetryPolicy(d *schema.ResourceData) *datafactory.RetryPolicy {
-
 	policy := &datafactory.RetryPolicy{}
 	if v, ok := d.GetOk("retry.0.count"); ok {
 		policy.Count = utils.Int32(int32(v.(int)))
@@ -382,7 +381,6 @@ func resourceArmDataFactoryTriggerTumblingWindowRead(d *schema.ResourceData, met
 
 	if tumblingTrigger != nil {
 		if tumblingTriggerProps := tumblingTrigger.TumblingWindowTriggerTypeProperties; tumblingTriggerProps != nil {
-
 			if v := tumblingTriggerProps.StartTime; v != nil {
 				d.Set("start_time", v.Format(time.RFC3339))
 			}

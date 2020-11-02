@@ -38,6 +38,5 @@ func TriggerDelayTimespan() schema.SchemaValidateFunc {
 		}
 
 		return warnings, errors
-
 	}
 }

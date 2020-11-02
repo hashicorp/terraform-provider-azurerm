@@ -47,7 +47,6 @@ func TestAccAzureRMDataFactoryTriggerTumblingWindow_trigger_dependency(t *testin
 }
 
 func TestAccAzureRMDataFactoryTriggerTumblingWindow_complete(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_trigger_tumbling_window", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
