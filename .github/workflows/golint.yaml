@@ -9,7 +9,7 @@ on:
       - '.github/workflows/**'
 
 jobs:
-  lintrest:
+  golint:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
