@@ -1003,7 +1003,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-        %s
+            %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1840,9 +1840,9 @@ resource "azurerm_storage_account" "test" {
     restore_policy {
       days = 5
     }
-container_delete_retention_policy{
-days = 7
-}
+    container_delete_retention_policy {
+      days = 7
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -1884,9 +1884,9 @@ resource "azurerm_storage_account" "test" {
     restore_policy {
       days = 5
     }
-container_delete_retention_policy{
-days = 3
-}
+    container_delete_retention_policy {
+      days = 3
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
