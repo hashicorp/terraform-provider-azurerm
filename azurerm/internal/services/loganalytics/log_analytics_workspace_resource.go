@@ -73,6 +73,13 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
 			},
 
+			"daily_quota_gb": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      -1.0,
+				ValidateFunc: validation.Any(validation.FloatBetween(-1, -1), validation.FloatAtLeast(0)),
+			},
+
 			"workspace_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -130,6 +137,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	retentionInDays := int32(d.Get("retention_in_days").(int))
+	dailyQuotaGb := d.Get("daily_quota_gb").(float64)
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -140,6 +148,9 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
 			Sku:             sku,
 			RetentionInDays: &retentionInDays,
+			WorkspaceCapping: &operationalinsights.WorkspaceCapping{
+				DailyQuotaGb: &dailyQuotaGb,
+			},
 		},
 	}
 
@@ -197,6 +208,11 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
+	if workspaceCapping := resp.WorkspaceCapping; workspaceCapping != nil {
+		d.Set("daily_quota_gb", resp.WorkspaceCapping.DailyQuotaGb)
+	} else {
+		d.Set("daily_quota_gb", utils.Float(-1))
+	}
 
 	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
