@@ -363,9 +363,11 @@ func accessPolicyRefreshFunc(ctx context.Context, client *keyvault.VaultsClient,
 			}
 		}
 
-		policy, _ := FindKeyVaultAccessPolicy(read.Properties.AccessPolicies, objectId, applicationId)
-		if policy != nil {
-			return "found", "found", nil
+		if read.Properties != nil && read.Properties.AccessPolicies != nil {
+			policy, _ := FindKeyVaultAccessPolicy(read.Properties.AccessPolicies, objectId, applicationId)
+			if policy != nil {
+				return "found", "found", nil
+			}
 		}
 
 		return "notfound", "notfound", nil
