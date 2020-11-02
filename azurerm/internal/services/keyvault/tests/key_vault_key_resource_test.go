@@ -1111,21 +1111,21 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-    key_permissions = [
-      "create",
-      "delete",
-      "get",
-      "update",
-    ]
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "update",
+  ]
 
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -1139,7 +1139,7 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 
-  depends_on   = [azurerm_key_vault_access_policy.test]
+  depends_on = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
@@ -1173,22 +1173,22 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-    key_permissions = [
-      "create",
-      "delete",
-      "encrypt",
-      "get",
-      "update",
-    ]
+  key_permissions = [
+    "create",
+    "delete",
+    "encrypt",
+    "get",
+    "update",
+  ]
 
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -1202,7 +1202,7 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
   ]
 
-  depends_on   = [azurerm_key_vault_access_policy.test]
+  depends_on = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

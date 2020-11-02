@@ -1224,8 +1224,8 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
   certificate_permissions = [
     "create",
     "delete",
@@ -1290,7 +1290,7 @@ resource "azurerm_key_vault_certificate" "test" {
       validity_in_months = 12
     }
   }
-  depends_on   = [azurerm_key_vault_access_policy.test]
+  depends_on = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
@@ -1321,8 +1321,8 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
   certificate_permissions = [
     "backup",
     "create",
@@ -1389,7 +1389,7 @@ resource "azurerm_key_vault_certificate" "test" {
       validity_in_months = 12
     }
   }
-  depends_on   = [azurerm_key_vault_access_policy.test]
+  depends_on = [azurerm_key_vault_access_policy.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
