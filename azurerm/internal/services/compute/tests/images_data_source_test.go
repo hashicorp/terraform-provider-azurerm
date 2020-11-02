@@ -80,7 +80,7 @@ func TestAccDataSourceAzureRMImages_tagsFilterError(t *testing.T) {
 			},
 			{
 				Config:      testAccDataSourceImages_tagsFilterError(data, userName, password, hostName, storageType),
-				ExpectError: regexp.MustCompile("unable to find any images"),
+				ExpectError: regexp.MustCompile("no images were found that match the specified tags"),
 			},
 		},
 	})
