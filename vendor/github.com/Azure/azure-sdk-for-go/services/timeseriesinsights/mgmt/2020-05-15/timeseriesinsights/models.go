@@ -30,7 +30,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/timeseriesinsights/mgmt/2018-08-15-preview/timeseriesinsights"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
 
 // AccessPolicyCreateOrUpdateParameters ...
 type AccessPolicyCreateOrUpdateParameters struct {
@@ -275,16 +275,16 @@ func (coutrp CreateOrUpdateTrackedResourceProperties) MarshalJSON() ([]byte, err
 
 // BasicEnvironmentCreateOrUpdateParameters parameters supplied to the CreateOrUpdate Environment operation.
 type BasicEnvironmentCreateOrUpdateParameters interface {
-	AsStandardEnvironmentCreateOrUpdateParameters() (*StandardEnvironmentCreateOrUpdateParameters, bool)
-	AsLongTermEnvironmentCreateOrUpdateParameters() (*LongTermEnvironmentCreateOrUpdateParameters, bool)
+	AsGen1EnvironmentCreateOrUpdateParameters() (*Gen1EnvironmentCreateOrUpdateParameters, bool)
+	AsGen2EnvironmentCreateOrUpdateParameters() (*Gen2EnvironmentCreateOrUpdateParameters, bool)
 	AsEnvironmentCreateOrUpdateParameters() (*EnvironmentCreateOrUpdateParameters, bool)
 }
 
 // EnvironmentCreateOrUpdateParameters parameters supplied to the CreateOrUpdate Environment operation.
 type EnvironmentCreateOrUpdateParameters struct {
-	// Sku - The sku determines the type of environment, either standard (S1 or S2) or long-term (L1). For standard environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
+	// Sku - The sku determines the type of environment, either Gen1 (S1 or S2) or Gen2 (L1). For Gen1 environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
 	Sku *Sku `json:"sku,omitempty"`
-	// Kind - Possible values include: 'KindEnvironmentCreateOrUpdateParameters', 'KindStandard', 'KindLongTerm'
+	// Kind - Possible values include: 'KindEnvironmentCreateOrUpdateParameters', 'KindGen1', 'KindGen2'
 	Kind Kind `json:"kind,omitempty"`
 	// Location - The location of the resource.
 	Location *string `json:"location,omitempty"`
@@ -300,14 +300,14 @@ func unmarshalBasicEnvironmentCreateOrUpdateParameters(body []byte) (BasicEnviro
 	}
 
 	switch m["kind"] {
-	case string(KindStandard):
-		var secoup StandardEnvironmentCreateOrUpdateParameters
-		err := json.Unmarshal(body, &secoup)
-		return secoup, err
-	case string(KindLongTerm):
-		var ltecoup LongTermEnvironmentCreateOrUpdateParameters
-		err := json.Unmarshal(body, &ltecoup)
-		return ltecoup, err
+	case string(KindGen1):
+		var g1ecoup Gen1EnvironmentCreateOrUpdateParameters
+		err := json.Unmarshal(body, &g1ecoup)
+		return g1ecoup, err
+	case string(KindGen2):
+		var g2ecoup Gen2EnvironmentCreateOrUpdateParameters
+		err := json.Unmarshal(body, &g2ecoup)
+		return g2ecoup, err
 	default:
 		var ecoup EnvironmentCreateOrUpdateParameters
 		err := json.Unmarshal(body, &ecoup)
@@ -352,13 +352,13 @@ func (ecoup EnvironmentCreateOrUpdateParameters) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AsStandardEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for EnvironmentCreateOrUpdateParameters.
-func (ecoup EnvironmentCreateOrUpdateParameters) AsStandardEnvironmentCreateOrUpdateParameters() (*StandardEnvironmentCreateOrUpdateParameters, bool) {
+// AsGen1EnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for EnvironmentCreateOrUpdateParameters.
+func (ecoup EnvironmentCreateOrUpdateParameters) AsGen1EnvironmentCreateOrUpdateParameters() (*Gen1EnvironmentCreateOrUpdateParameters, bool) {
 	return nil, false
 }
 
-// AsLongTermEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for EnvironmentCreateOrUpdateParameters.
-func (ecoup EnvironmentCreateOrUpdateParameters) AsLongTermEnvironmentCreateOrUpdateParameters() (*LongTermEnvironmentCreateOrUpdateParameters, bool) {
+// AsGen2EnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for EnvironmentCreateOrUpdateParameters.
+func (ecoup EnvironmentCreateOrUpdateParameters) AsGen2EnvironmentCreateOrUpdateParameters() (*Gen2EnvironmentCreateOrUpdateParameters, bool) {
 	return nil, false
 }
 
@@ -405,8 +405,8 @@ func (elr *EnvironmentListResponse) UnmarshalJSON(body []byte) error {
 // BasicEnvironmentResource an environment is a set of time-series data available for query, and is the top level Azure
 // Time Series Insights resource.
 type BasicEnvironmentResource interface {
-	AsStandardEnvironmentResource() (*StandardEnvironmentResource, bool)
-	AsLongTermEnvironmentResource() (*LongTermEnvironmentResource, bool)
+	AsGen1EnvironmentResource() (*Gen1EnvironmentResource, bool)
+	AsGen2EnvironmentResource() (*Gen2EnvironmentResource, bool)
 	AsEnvironmentResource() (*EnvironmentResource, bool)
 }
 
@@ -414,9 +414,9 @@ type BasicEnvironmentResource interface {
 // Azure Time Series Insights resource.
 type EnvironmentResource struct {
 	autorest.Response `json:"-"`
-	// Sku - The sku determines the type of environment, either standard (S1 or S2) or long-term (L1). For standard environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
+	// Sku - The sku determines the type of environment, either Gen1 (S1 or S2) or Gen2 (L1). For Gen1 environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
 	Sku *Sku `json:"sku,omitempty"`
-	// Kind - Possible values include: 'KindBasicEnvironmentResourceKindEnvironmentResource', 'KindBasicEnvironmentResourceKindStandard', 'KindBasicEnvironmentResourceKindLongTerm'
+	// Kind - Possible values include: 'KindBasicEnvironmentResourceKindEnvironmentResource', 'KindBasicEnvironmentResourceKindGen1', 'KindBasicEnvironmentResourceKindGen2'
 	Kind KindBasicEnvironmentResource `json:"kind,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
@@ -438,14 +438,14 @@ func unmarshalBasicEnvironmentResource(body []byte) (BasicEnvironmentResource, e
 	}
 
 	switch m["kind"] {
-	case string(KindBasicEnvironmentResourceKindStandard):
-		var ser StandardEnvironmentResource
-		err := json.Unmarshal(body, &ser)
-		return ser, err
-	case string(KindBasicEnvironmentResourceKindLongTerm):
-		var lter LongTermEnvironmentResource
-		err := json.Unmarshal(body, &lter)
-		return lter, err
+	case string(KindBasicEnvironmentResourceKindGen1):
+		var g1er Gen1EnvironmentResource
+		err := json.Unmarshal(body, &g1er)
+		return g1er, err
+	case string(KindBasicEnvironmentResourceKindGen2):
+		var g2er Gen2EnvironmentResource
+		err := json.Unmarshal(body, &g2er)
+		return g2er, err
 	default:
 		var er EnvironmentResource
 		err := json.Unmarshal(body, &er)
@@ -490,13 +490,13 @@ func (er EnvironmentResource) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AsStandardEnvironmentResource is the BasicEnvironmentResource implementation for EnvironmentResource.
-func (er EnvironmentResource) AsStandardEnvironmentResource() (*StandardEnvironmentResource, bool) {
+// AsGen1EnvironmentResource is the BasicEnvironmentResource implementation for EnvironmentResource.
+func (er EnvironmentResource) AsGen1EnvironmentResource() (*Gen1EnvironmentResource, bool) {
 	return nil, false
 }
 
-// AsLongTermEnvironmentResource is the BasicEnvironmentResource implementation for EnvironmentResource.
-func (er EnvironmentResource) AsLongTermEnvironmentResource() (*LongTermEnvironmentResource, bool) {
+// AsGen2EnvironmentResource is the BasicEnvironmentResource implementation for EnvironmentResource.
+func (er EnvironmentResource) AsGen2EnvironmentResource() (*Gen2EnvironmentResource, bool) {
 	return nil, false
 }
 
@@ -1401,6 +1401,803 @@ func (esup EventSourceUpdateParameters) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// Gen1EnvironmentCreateOrUpdateParameters parameters supplied to the Create or Update Environment operation
+// for a Gen1 environment.
+type Gen1EnvironmentCreateOrUpdateParameters struct {
+	*Gen1EnvironmentCreationProperties `json:"properties,omitempty"`
+	// Sku - The sku determines the type of environment, either Gen1 (S1 or S2) or Gen2 (L1). For Gen1 environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
+	Sku *Sku `json:"sku,omitempty"`
+	// Kind - Possible values include: 'KindEnvironmentCreateOrUpdateParameters', 'KindGen1', 'KindGen2'
+	Kind Kind `json:"kind,omitempty"`
+	// Location - The location of the resource.
+	Location *string `json:"location,omitempty"`
+	// Tags - Key-value pairs of additional properties for the resource.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Gen1EnvironmentCreateOrUpdateParameters.
+func (g1ecoup Gen1EnvironmentCreateOrUpdateParameters) MarshalJSON() ([]byte, error) {
+	g1ecoup.Kind = KindGen1
+	objectMap := make(map[string]interface{})
+	if g1ecoup.Gen1EnvironmentCreationProperties != nil {
+		objectMap["properties"] = g1ecoup.Gen1EnvironmentCreationProperties
+	}
+	if g1ecoup.Sku != nil {
+		objectMap["sku"] = g1ecoup.Sku
+	}
+	if g1ecoup.Kind != "" {
+		objectMap["kind"] = g1ecoup.Kind
+	}
+	if g1ecoup.Location != nil {
+		objectMap["location"] = g1ecoup.Location
+	}
+	if g1ecoup.Tags != nil {
+		objectMap["tags"] = g1ecoup.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsGen1EnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for Gen1EnvironmentCreateOrUpdateParameters.
+func (g1ecoup Gen1EnvironmentCreateOrUpdateParameters) AsGen1EnvironmentCreateOrUpdateParameters() (*Gen1EnvironmentCreateOrUpdateParameters, bool) {
+	return &g1ecoup, true
+}
+
+// AsGen2EnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for Gen1EnvironmentCreateOrUpdateParameters.
+func (g1ecoup Gen1EnvironmentCreateOrUpdateParameters) AsGen2EnvironmentCreateOrUpdateParameters() (*Gen2EnvironmentCreateOrUpdateParameters, bool) {
+	return nil, false
+}
+
+// AsEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for Gen1EnvironmentCreateOrUpdateParameters.
+func (g1ecoup Gen1EnvironmentCreateOrUpdateParameters) AsEnvironmentCreateOrUpdateParameters() (*EnvironmentCreateOrUpdateParameters, bool) {
+	return nil, false
+}
+
+// AsBasicEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for Gen1EnvironmentCreateOrUpdateParameters.
+func (g1ecoup Gen1EnvironmentCreateOrUpdateParameters) AsBasicEnvironmentCreateOrUpdateParameters() (BasicEnvironmentCreateOrUpdateParameters, bool) {
+	return &g1ecoup, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for Gen1EnvironmentCreateOrUpdateParameters struct.
+func (g1ecoup *Gen1EnvironmentCreateOrUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var gen1EnvironmentCreationProperties Gen1EnvironmentCreationProperties
+				err = json.Unmarshal(*v, &gen1EnvironmentCreationProperties)
+				if err != nil {
+					return err
+				}
+				g1ecoup.Gen1EnvironmentCreationProperties = &gen1EnvironmentCreationProperties
+			}
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				g1ecoup.Sku = &sku
+			}
+		case "kind":
+			if v != nil {
+				var kind Kind
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				g1ecoup.Kind = kind
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				g1ecoup.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				g1ecoup.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// Gen1EnvironmentCreationProperties properties used to create a Gen1 environment.
+type Gen1EnvironmentCreationProperties struct {
+	// DataRetentionTime - ISO8601 timespan specifying the minimum number of days the environment's events will be available for query.
+	DataRetentionTime *string `json:"dataRetentionTime,omitempty"`
+	// StorageLimitExceededBehavior - The behavior the Time Series Insights service should take when the environment's capacity has been exceeded. If "PauseIngress" is specified, new events will not be read from the event source. If "PurgeOldData" is specified, new events will continue to be read and old events will be deleted from the environment. The default behavior is PurgeOldData. Possible values include: 'PurgeOldData', 'PauseIngress'
+	StorageLimitExceededBehavior StorageLimitExceededBehavior `json:"storageLimitExceededBehavior,omitempty"`
+	// PartitionKeyProperties - The list of event properties which will be used to partition data in the environment. Currently, only a single partition key property is supported.
+	PartitionKeyProperties *[]TimeSeriesIDProperty `json:"partitionKeyProperties,omitempty"`
+}
+
+// Gen1EnvironmentMutableProperties an object that represents a set of mutable Gen1 environment resource
+// properties.
+type Gen1EnvironmentMutableProperties struct {
+	// DataRetentionTime - ISO8601 timespan specifying the minimum number of days the environment's events will be available for query.
+	DataRetentionTime *string `json:"dataRetentionTime,omitempty"`
+	// StorageLimitExceededBehavior - The behavior the Time Series Insights service should take when the environment's capacity has been exceeded. If "PauseIngress" is specified, new events will not be read from the event source. If "PurgeOldData" is specified, new events will continue to be read and old events will be deleted from the environment. The default behavior is PurgeOldData. Possible values include: 'PurgeOldData', 'PauseIngress'
+	StorageLimitExceededBehavior StorageLimitExceededBehavior `json:"storageLimitExceededBehavior,omitempty"`
+}
+
+// Gen1EnvironmentResource an environment is a set of time-series data available for query, and is the top
+// level Azure Time Series Insights resource. Gen1 environments have data retention limits.
+type Gen1EnvironmentResource struct {
+	*Gen1EnvironmentResourceProperties `json:"properties,omitempty"`
+	// Sku - The sku determines the type of environment, either Gen1 (S1 or S2) or Gen2 (L1). For Gen1 environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
+	Sku *Sku `json:"sku,omitempty"`
+	// Kind - Possible values include: 'KindBasicEnvironmentResourceKindEnvironmentResource', 'KindBasicEnvironmentResourceKindGen1', 'KindBasicEnvironmentResourceKindGen2'
+	Kind KindBasicEnvironmentResource `json:"kind,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Gen1EnvironmentResource.
+func (g1er Gen1EnvironmentResource) MarshalJSON() ([]byte, error) {
+	g1er.Kind = KindBasicEnvironmentResourceKindGen1
+	objectMap := make(map[string]interface{})
+	if g1er.Gen1EnvironmentResourceProperties != nil {
+		objectMap["properties"] = g1er.Gen1EnvironmentResourceProperties
+	}
+	if g1er.Sku != nil {
+		objectMap["sku"] = g1er.Sku
+	}
+	if g1er.Kind != "" {
+		objectMap["kind"] = g1er.Kind
+	}
+	if g1er.Location != nil {
+		objectMap["location"] = g1er.Location
+	}
+	if g1er.Tags != nil {
+		objectMap["tags"] = g1er.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsGen1EnvironmentResource is the BasicEnvironmentResource implementation for Gen1EnvironmentResource.
+func (g1er Gen1EnvironmentResource) AsGen1EnvironmentResource() (*Gen1EnvironmentResource, bool) {
+	return &g1er, true
+}
+
+// AsGen2EnvironmentResource is the BasicEnvironmentResource implementation for Gen1EnvironmentResource.
+func (g1er Gen1EnvironmentResource) AsGen2EnvironmentResource() (*Gen2EnvironmentResource, bool) {
+	return nil, false
+}
+
+// AsEnvironmentResource is the BasicEnvironmentResource implementation for Gen1EnvironmentResource.
+func (g1er Gen1EnvironmentResource) AsEnvironmentResource() (*EnvironmentResource, bool) {
+	return nil, false
+}
+
+// AsBasicEnvironmentResource is the BasicEnvironmentResource implementation for Gen1EnvironmentResource.
+func (g1er Gen1EnvironmentResource) AsBasicEnvironmentResource() (BasicEnvironmentResource, bool) {
+	return &g1er, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for Gen1EnvironmentResource struct.
+func (g1er *Gen1EnvironmentResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var gen1EnvironmentResourceProperties Gen1EnvironmentResourceProperties
+				err = json.Unmarshal(*v, &gen1EnvironmentResourceProperties)
+				if err != nil {
+					return err
+				}
+				g1er.Gen1EnvironmentResourceProperties = &gen1EnvironmentResourceProperties
+			}
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				g1er.Sku = &sku
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicEnvironmentResource
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				g1er.Kind = kind
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				g1er.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				g1er.Tags = tags
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				g1er.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				g1er.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				g1er.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// Gen1EnvironmentResourceProperties properties of the Gen1 environment.
+type Gen1EnvironmentResourceProperties struct {
+	// DataRetentionTime - ISO8601 timespan specifying the minimum number of days the environment's events will be available for query.
+	DataRetentionTime *string `json:"dataRetentionTime,omitempty"`
+	// StorageLimitExceededBehavior - The behavior the Time Series Insights service should take when the environment's capacity has been exceeded. If "PauseIngress" is specified, new events will not be read from the event source. If "PurgeOldData" is specified, new events will continue to be read and old events will be deleted from the environment. The default behavior is PurgeOldData. Possible values include: 'PurgeOldData', 'PauseIngress'
+	StorageLimitExceededBehavior StorageLimitExceededBehavior `json:"storageLimitExceededBehavior,omitempty"`
+	// PartitionKeyProperties - The list of event properties which will be used to partition data in the environment. Currently, only a single partition key property is supported.
+	PartitionKeyProperties *[]TimeSeriesIDProperty `json:"partitionKeyProperties,omitempty"`
+	// DataAccessID - READ-ONLY; An id used to access the environment data, e.g. to query the environment's events or upload reference data for the environment.
+	DataAccessID *uuid.UUID `json:"dataAccessId,omitempty"`
+	// DataAccessFqdn - READ-ONLY; The fully qualified domain name used to access the environment data, e.g. to query the environment's events or upload reference data for the environment.
+	DataAccessFqdn *string `json:"dataAccessFqdn,omitempty"`
+	// Status - An object that represents the status of the environment, and its internal state in the Time Series Insights service.
+	Status *EnvironmentStatus `json:"status,omitempty"`
+	// ProvisioningState - Provisioning state of the resource. Possible values include: 'Accepted', 'Creating', 'Updating', 'Succeeded', 'Failed', 'Deleting'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// CreationTime - READ-ONLY; The time the resource was created.
+	CreationTime *date.Time `json:"creationTime,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Gen1EnvironmentResourceProperties.
+func (g1erp Gen1EnvironmentResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if g1erp.DataRetentionTime != nil {
+		objectMap["dataRetentionTime"] = g1erp.DataRetentionTime
+	}
+	if g1erp.StorageLimitExceededBehavior != "" {
+		objectMap["storageLimitExceededBehavior"] = g1erp.StorageLimitExceededBehavior
+	}
+	if g1erp.PartitionKeyProperties != nil {
+		objectMap["partitionKeyProperties"] = g1erp.PartitionKeyProperties
+	}
+	if g1erp.Status != nil {
+		objectMap["status"] = g1erp.Status
+	}
+	if g1erp.ProvisioningState != "" {
+		objectMap["provisioningState"] = g1erp.ProvisioningState
+	}
+	return json.Marshal(objectMap)
+}
+
+// Gen1EnvironmentUpdateParameters parameters supplied to the Update Environment operation to update a Gen1
+// environment.
+type Gen1EnvironmentUpdateParameters struct {
+	// Sku - The sku of the environment.
+	Sku *Sku `json:"sku,omitempty"`
+	// Gen1EnvironmentMutableProperties - Properties of the Gen1 environment.
+	*Gen1EnvironmentMutableProperties `json:"properties,omitempty"`
+	// Tags - Key-value pairs of additional properties for the environment.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Gen1EnvironmentUpdateParameters.
+func (g1eup Gen1EnvironmentUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if g1eup.Sku != nil {
+		objectMap["sku"] = g1eup.Sku
+	}
+	if g1eup.Gen1EnvironmentMutableProperties != nil {
+		objectMap["properties"] = g1eup.Gen1EnvironmentMutableProperties
+	}
+	if g1eup.Tags != nil {
+		objectMap["tags"] = g1eup.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Gen1EnvironmentUpdateParameters struct.
+func (g1eup *Gen1EnvironmentUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				g1eup.Sku = &sku
+			}
+		case "properties":
+			if v != nil {
+				var gen1EnvironmentMutableProperties Gen1EnvironmentMutableProperties
+				err = json.Unmarshal(*v, &gen1EnvironmentMutableProperties)
+				if err != nil {
+					return err
+				}
+				g1eup.Gen1EnvironmentMutableProperties = &gen1EnvironmentMutableProperties
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				g1eup.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// Gen2EnvironmentCreateOrUpdateParameters parameters supplied to the Create or Update Environment operation
+// for a Gen2 environment.
+type Gen2EnvironmentCreateOrUpdateParameters struct {
+	*Gen2EnvironmentCreationProperties `json:"properties,omitempty"`
+	// Sku - The sku determines the type of environment, either Gen1 (S1 or S2) or Gen2 (L1). For Gen1 environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
+	Sku *Sku `json:"sku,omitempty"`
+	// Kind - Possible values include: 'KindEnvironmentCreateOrUpdateParameters', 'KindGen1', 'KindGen2'
+	Kind Kind `json:"kind,omitempty"`
+	// Location - The location of the resource.
+	Location *string `json:"location,omitempty"`
+	// Tags - Key-value pairs of additional properties for the resource.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Gen2EnvironmentCreateOrUpdateParameters.
+func (g2ecoup Gen2EnvironmentCreateOrUpdateParameters) MarshalJSON() ([]byte, error) {
+	g2ecoup.Kind = KindGen2
+	objectMap := make(map[string]interface{})
+	if g2ecoup.Gen2EnvironmentCreationProperties != nil {
+		objectMap["properties"] = g2ecoup.Gen2EnvironmentCreationProperties
+	}
+	if g2ecoup.Sku != nil {
+		objectMap["sku"] = g2ecoup.Sku
+	}
+	if g2ecoup.Kind != "" {
+		objectMap["kind"] = g2ecoup.Kind
+	}
+	if g2ecoup.Location != nil {
+		objectMap["location"] = g2ecoup.Location
+	}
+	if g2ecoup.Tags != nil {
+		objectMap["tags"] = g2ecoup.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsGen1EnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for Gen2EnvironmentCreateOrUpdateParameters.
+func (g2ecoup Gen2EnvironmentCreateOrUpdateParameters) AsGen1EnvironmentCreateOrUpdateParameters() (*Gen1EnvironmentCreateOrUpdateParameters, bool) {
+	return nil, false
+}
+
+// AsGen2EnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for Gen2EnvironmentCreateOrUpdateParameters.
+func (g2ecoup Gen2EnvironmentCreateOrUpdateParameters) AsGen2EnvironmentCreateOrUpdateParameters() (*Gen2EnvironmentCreateOrUpdateParameters, bool) {
+	return &g2ecoup, true
+}
+
+// AsEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for Gen2EnvironmentCreateOrUpdateParameters.
+func (g2ecoup Gen2EnvironmentCreateOrUpdateParameters) AsEnvironmentCreateOrUpdateParameters() (*EnvironmentCreateOrUpdateParameters, bool) {
+	return nil, false
+}
+
+// AsBasicEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for Gen2EnvironmentCreateOrUpdateParameters.
+func (g2ecoup Gen2EnvironmentCreateOrUpdateParameters) AsBasicEnvironmentCreateOrUpdateParameters() (BasicEnvironmentCreateOrUpdateParameters, bool) {
+	return &g2ecoup, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for Gen2EnvironmentCreateOrUpdateParameters struct.
+func (g2ecoup *Gen2EnvironmentCreateOrUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var gen2EnvironmentCreationProperties Gen2EnvironmentCreationProperties
+				err = json.Unmarshal(*v, &gen2EnvironmentCreationProperties)
+				if err != nil {
+					return err
+				}
+				g2ecoup.Gen2EnvironmentCreationProperties = &gen2EnvironmentCreationProperties
+			}
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				g2ecoup.Sku = &sku
+			}
+		case "kind":
+			if v != nil {
+				var kind Kind
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				g2ecoup.Kind = kind
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				g2ecoup.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				g2ecoup.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// Gen2EnvironmentCreationProperties properties used to create a Gen2 environment.
+type Gen2EnvironmentCreationProperties struct {
+	// TimeSeriesIDProperties - The list of event properties which will be used to define the environment's time series id.
+	TimeSeriesIDProperties *[]TimeSeriesIDProperty `json:"timeSeriesIdProperties,omitempty"`
+	// StorageConfiguration - The storage configuration provides the connection details that allows the Time Series Insights service to connect to the customer storage account that is used to store the environment's data.
+	StorageConfiguration *Gen2StorageConfigurationInput `json:"storageConfiguration,omitempty"`
+	// WarmStoreConfiguration - The warm store configuration provides the details to create a warm store cache that will retain a copy of the environment's data available for faster query.
+	WarmStoreConfiguration *WarmStoreConfigurationProperties `json:"warmStoreConfiguration,omitempty"`
+}
+
+// Gen2EnvironmentMutableProperties an object that represents a set of mutable Gen2 environment resource
+// properties.
+type Gen2EnvironmentMutableProperties struct {
+	// StorageConfiguration - The storage configuration provides the connection details that allows the Time Series Insights service to connect to the customer storage account that is used to store the environment's data.
+	StorageConfiguration *Gen2StorageConfigurationMutableProperties `json:"storageConfiguration,omitempty"`
+	// WarmStoreConfiguration - The warm store configuration provides the details to create a warm store cache that will retain a copy of the environment's data available for faster query.
+	WarmStoreConfiguration *WarmStoreConfigurationProperties `json:"warmStoreConfiguration,omitempty"`
+}
+
+// Gen2EnvironmentResource an environment is a set of time-series data available for query, and is the top
+// level Azure Time Series Insights resource. Gen2 environments do not have set data retention limits.
+type Gen2EnvironmentResource struct {
+	*Gen2EnvironmentResourceProperties `json:"properties,omitempty"`
+	// Sku - The sku determines the type of environment, either Gen1 (S1 or S2) or Gen2 (L1). For Gen1 environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
+	Sku *Sku `json:"sku,omitempty"`
+	// Kind - Possible values include: 'KindBasicEnvironmentResourceKindEnvironmentResource', 'KindBasicEnvironmentResourceKindGen1', 'KindBasicEnvironmentResourceKindGen2'
+	Kind KindBasicEnvironmentResource `json:"kind,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Gen2EnvironmentResource.
+func (g2er Gen2EnvironmentResource) MarshalJSON() ([]byte, error) {
+	g2er.Kind = KindBasicEnvironmentResourceKindGen2
+	objectMap := make(map[string]interface{})
+	if g2er.Gen2EnvironmentResourceProperties != nil {
+		objectMap["properties"] = g2er.Gen2EnvironmentResourceProperties
+	}
+	if g2er.Sku != nil {
+		objectMap["sku"] = g2er.Sku
+	}
+	if g2er.Kind != "" {
+		objectMap["kind"] = g2er.Kind
+	}
+	if g2er.Location != nil {
+		objectMap["location"] = g2er.Location
+	}
+	if g2er.Tags != nil {
+		objectMap["tags"] = g2er.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsGen1EnvironmentResource is the BasicEnvironmentResource implementation for Gen2EnvironmentResource.
+func (g2er Gen2EnvironmentResource) AsGen1EnvironmentResource() (*Gen1EnvironmentResource, bool) {
+	return nil, false
+}
+
+// AsGen2EnvironmentResource is the BasicEnvironmentResource implementation for Gen2EnvironmentResource.
+func (g2er Gen2EnvironmentResource) AsGen2EnvironmentResource() (*Gen2EnvironmentResource, bool) {
+	return &g2er, true
+}
+
+// AsEnvironmentResource is the BasicEnvironmentResource implementation for Gen2EnvironmentResource.
+func (g2er Gen2EnvironmentResource) AsEnvironmentResource() (*EnvironmentResource, bool) {
+	return nil, false
+}
+
+// AsBasicEnvironmentResource is the BasicEnvironmentResource implementation for Gen2EnvironmentResource.
+func (g2er Gen2EnvironmentResource) AsBasicEnvironmentResource() (BasicEnvironmentResource, bool) {
+	return &g2er, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for Gen2EnvironmentResource struct.
+func (g2er *Gen2EnvironmentResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var gen2EnvironmentResourceProperties Gen2EnvironmentResourceProperties
+				err = json.Unmarshal(*v, &gen2EnvironmentResourceProperties)
+				if err != nil {
+					return err
+				}
+				g2er.Gen2EnvironmentResourceProperties = &gen2EnvironmentResourceProperties
+			}
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				g2er.Sku = &sku
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicEnvironmentResource
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				g2er.Kind = kind
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				g2er.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				g2er.Tags = tags
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				g2er.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				g2er.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				g2er.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// Gen2EnvironmentResourceProperties properties of the Gen2 environment.
+type Gen2EnvironmentResourceProperties struct {
+	// DataAccessID - READ-ONLY; An id used to access the environment data, e.g. to query the environment's events or upload reference data for the environment.
+	DataAccessID *uuid.UUID `json:"dataAccessId,omitempty"`
+	// DataAccessFqdn - READ-ONLY; The fully qualified domain name used to access the environment data, e.g. to query the environment's events or upload reference data for the environment.
+	DataAccessFqdn *string `json:"dataAccessFqdn,omitempty"`
+	// Status - An object that represents the status of the environment, and its internal state in the Time Series Insights service.
+	Status *EnvironmentStatus `json:"status,omitempty"`
+	// ProvisioningState - Provisioning state of the resource. Possible values include: 'Accepted', 'Creating', 'Updating', 'Succeeded', 'Failed', 'Deleting'
+	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// CreationTime - READ-ONLY; The time the resource was created.
+	CreationTime *date.Time `json:"creationTime,omitempty"`
+	// TimeSeriesIDProperties - The list of event properties which will be used to define the environment's time series id.
+	TimeSeriesIDProperties *[]TimeSeriesIDProperty `json:"timeSeriesIdProperties,omitempty"`
+	// StorageConfiguration - The storage configuration provides the connection details that allows the Time Series Insights service to connect to the customer storage account that is used to store the environment's data.
+	StorageConfiguration *Gen2StorageConfigurationOutput `json:"storageConfiguration,omitempty"`
+	// WarmStoreConfiguration - The warm store configuration provides the details to create a warm store cache that will retain a copy of the environment's data available for faster query.
+	WarmStoreConfiguration *WarmStoreConfigurationProperties `json:"warmStoreConfiguration,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Gen2EnvironmentResourceProperties.
+func (g2erp Gen2EnvironmentResourceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if g2erp.Status != nil {
+		objectMap["status"] = g2erp.Status
+	}
+	if g2erp.ProvisioningState != "" {
+		objectMap["provisioningState"] = g2erp.ProvisioningState
+	}
+	if g2erp.TimeSeriesIDProperties != nil {
+		objectMap["timeSeriesIdProperties"] = g2erp.TimeSeriesIDProperties
+	}
+	if g2erp.StorageConfiguration != nil {
+		objectMap["storageConfiguration"] = g2erp.StorageConfiguration
+	}
+	if g2erp.WarmStoreConfiguration != nil {
+		objectMap["warmStoreConfiguration"] = g2erp.WarmStoreConfiguration
+	}
+	return json.Marshal(objectMap)
+}
+
+// Gen2EnvironmentUpdateParameters parameters supplied to the Update Environment operation to update a Gen2
+// environment.
+type Gen2EnvironmentUpdateParameters struct {
+	// Gen2EnvironmentMutableProperties - Properties of the Gen2 environment.
+	*Gen2EnvironmentMutableProperties `json:"properties,omitempty"`
+	// Tags - Key-value pairs of additional properties for the environment.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Gen2EnvironmentUpdateParameters.
+func (g2eup Gen2EnvironmentUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if g2eup.Gen2EnvironmentMutableProperties != nil {
+		objectMap["properties"] = g2eup.Gen2EnvironmentMutableProperties
+	}
+	if g2eup.Tags != nil {
+		objectMap["tags"] = g2eup.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Gen2EnvironmentUpdateParameters struct.
+func (g2eup *Gen2EnvironmentUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var gen2EnvironmentMutableProperties Gen2EnvironmentMutableProperties
+				err = json.Unmarshal(*v, &gen2EnvironmentMutableProperties)
+				if err != nil {
+					return err
+				}
+				g2eup.Gen2EnvironmentMutableProperties = &gen2EnvironmentMutableProperties
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				g2eup.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// Gen2StorageConfigurationInput the storage configuration provides the connection details that allows the Time
+// Series Insights service to connect to the customer storage account that is used to store the environment's
+// data.
+type Gen2StorageConfigurationInput struct {
+	// AccountName - The name of the storage account that will hold the environment's Gen2 data.
+	AccountName *string `json:"accountName,omitempty"`
+	// ManagementKey - The value of the management key that grants the Time Series Insights service write access to the storage account. This property is not shown in environment responses.
+	ManagementKey *string `json:"managementKey,omitempty"`
+}
+
+// Gen2StorageConfigurationMutableProperties the storage configuration provides the connection details that
+// allows the Time Series Insights service to connect to the customer storage account that is used to store the
+// environment's data.
+type Gen2StorageConfigurationMutableProperties struct {
+	// ManagementKey - The value of the management key that grants the Time Series Insights service write access to the storage account. This property is not shown in environment responses.
+	ManagementKey *string `json:"managementKey,omitempty"`
+}
+
+// Gen2StorageConfigurationOutput the storage configuration provides the non-secret connection details about
+// the customer storage account that is used to store the environment's data.
+type Gen2StorageConfigurationOutput struct {
+	// AccountName - The name of the storage account that will hold the environment's Gen2 data.
+	AccountName *string `json:"accountName,omitempty"`
+}
+
 // IngressEnvironmentStatus an object that represents the status of ingress on an environment.
 type IngressEnvironmentStatus struct {
 	// State - This string represents the state of ingress operations on an environment. It can be "Disabled", "Ready", "Running", "Paused" or "Unknown". Possible values include: 'Disabled', 'Ready', 'Running', 'Paused', 'Unknown'
@@ -1873,410 +2670,6 @@ type LocalTimestampTimeZoneOffset struct {
 	PropertyName *string `json:"propertyName,omitempty"`
 }
 
-// LongTermEnvironmentCreateOrUpdateParameters parameters supplied to the Create or Update Environment
-// operation for a long-term environment.
-type LongTermEnvironmentCreateOrUpdateParameters struct {
-	*LongTermEnvironmentCreationProperties `json:"properties,omitempty"`
-	// Sku - The sku determines the type of environment, either standard (S1 or S2) or long-term (L1). For standard environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
-	Sku *Sku `json:"sku,omitempty"`
-	// Kind - Possible values include: 'KindEnvironmentCreateOrUpdateParameters', 'KindStandard', 'KindLongTerm'
-	Kind Kind `json:"kind,omitempty"`
-	// Location - The location of the resource.
-	Location *string `json:"location,omitempty"`
-	// Tags - Key-value pairs of additional properties for the resource.
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for LongTermEnvironmentCreateOrUpdateParameters.
-func (ltecoup LongTermEnvironmentCreateOrUpdateParameters) MarshalJSON() ([]byte, error) {
-	ltecoup.Kind = KindLongTerm
-	objectMap := make(map[string]interface{})
-	if ltecoup.LongTermEnvironmentCreationProperties != nil {
-		objectMap["properties"] = ltecoup.LongTermEnvironmentCreationProperties
-	}
-	if ltecoup.Sku != nil {
-		objectMap["sku"] = ltecoup.Sku
-	}
-	if ltecoup.Kind != "" {
-		objectMap["kind"] = ltecoup.Kind
-	}
-	if ltecoup.Location != nil {
-		objectMap["location"] = ltecoup.Location
-	}
-	if ltecoup.Tags != nil {
-		objectMap["tags"] = ltecoup.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsStandardEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for LongTermEnvironmentCreateOrUpdateParameters.
-func (ltecoup LongTermEnvironmentCreateOrUpdateParameters) AsStandardEnvironmentCreateOrUpdateParameters() (*StandardEnvironmentCreateOrUpdateParameters, bool) {
-	return nil, false
-}
-
-// AsLongTermEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for LongTermEnvironmentCreateOrUpdateParameters.
-func (ltecoup LongTermEnvironmentCreateOrUpdateParameters) AsLongTermEnvironmentCreateOrUpdateParameters() (*LongTermEnvironmentCreateOrUpdateParameters, bool) {
-	return &ltecoup, true
-}
-
-// AsEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for LongTermEnvironmentCreateOrUpdateParameters.
-func (ltecoup LongTermEnvironmentCreateOrUpdateParameters) AsEnvironmentCreateOrUpdateParameters() (*EnvironmentCreateOrUpdateParameters, bool) {
-	return nil, false
-}
-
-// AsBasicEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for LongTermEnvironmentCreateOrUpdateParameters.
-func (ltecoup LongTermEnvironmentCreateOrUpdateParameters) AsBasicEnvironmentCreateOrUpdateParameters() (BasicEnvironmentCreateOrUpdateParameters, bool) {
-	return &ltecoup, true
-}
-
-// UnmarshalJSON is the custom unmarshaler for LongTermEnvironmentCreateOrUpdateParameters struct.
-func (ltecoup *LongTermEnvironmentCreateOrUpdateParameters) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var longTermEnvironmentCreationProperties LongTermEnvironmentCreationProperties
-				err = json.Unmarshal(*v, &longTermEnvironmentCreationProperties)
-				if err != nil {
-					return err
-				}
-				ltecoup.LongTermEnvironmentCreationProperties = &longTermEnvironmentCreationProperties
-			}
-		case "sku":
-			if v != nil {
-				var sku Sku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				ltecoup.Sku = &sku
-			}
-		case "kind":
-			if v != nil {
-				var kind Kind
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				ltecoup.Kind = kind
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				ltecoup.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				ltecoup.Tags = tags
-			}
-		}
-	}
-
-	return nil
-}
-
-// LongTermEnvironmentCreationProperties properties used to create a long-term environment.
-type LongTermEnvironmentCreationProperties struct {
-	// TimeSeriesIDProperties - The list of event properties which will be used to define the environment's time series id.
-	TimeSeriesIDProperties *[]TimeSeriesIDProperty `json:"timeSeriesIdProperties,omitempty"`
-	// StorageConfiguration - The storage configuration provides the connection details that allows the Time Series Insights service to connect to the customer storage account that is used to store the environment's data.
-	StorageConfiguration *LongTermStorageConfigurationInput `json:"storageConfiguration,omitempty"`
-	// WarmStoreConfiguration - The warm store configuration provides the details to create a warm store cache that will retain a copy of the environment's data available for faster query.
-	WarmStoreConfiguration *WarmStoreConfigurationProperties `json:"warmStoreConfiguration,omitempty"`
-}
-
-// LongTermEnvironmentMutableProperties an object that represents a set of mutable long-term environment
-// resource properties.
-type LongTermEnvironmentMutableProperties struct {
-	// StorageConfiguration - The storage configuration provides the connection details that allows the Time Series Insights service to connect to the customer storage account that is used to store the environment's data.
-	StorageConfiguration *LongTermStorageConfigurationMutableProperties `json:"storageConfiguration,omitempty"`
-	// WarmStoreConfiguration - The warm store configuration provides the details to create a warm store cache that will retain a copy of the environment's data available for faster query.
-	WarmStoreConfiguration *WarmStoreConfigurationProperties `json:"warmStoreConfiguration,omitempty"`
-}
-
-// LongTermEnvironmentResource an environment is a set of time-series data available for query, and is the top
-// level Azure Time Series Insights resource. LongTerm environments do not have set data retention limits.
-type LongTermEnvironmentResource struct {
-	*LongTermEnvironmentResourceProperties `json:"properties,omitempty"`
-	// Sku - The sku determines the type of environment, either standard (S1 or S2) or long-term (L1). For standard environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
-	Sku *Sku `json:"sku,omitempty"`
-	// Kind - Possible values include: 'KindBasicEnvironmentResourceKindEnvironmentResource', 'KindBasicEnvironmentResourceKindStandard', 'KindBasicEnvironmentResourceKindLongTerm'
-	Kind KindBasicEnvironmentResource `json:"kind,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags map[string]*string `json:"tags"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for LongTermEnvironmentResource.
-func (lter LongTermEnvironmentResource) MarshalJSON() ([]byte, error) {
-	lter.Kind = KindBasicEnvironmentResourceKindLongTerm
-	objectMap := make(map[string]interface{})
-	if lter.LongTermEnvironmentResourceProperties != nil {
-		objectMap["properties"] = lter.LongTermEnvironmentResourceProperties
-	}
-	if lter.Sku != nil {
-		objectMap["sku"] = lter.Sku
-	}
-	if lter.Kind != "" {
-		objectMap["kind"] = lter.Kind
-	}
-	if lter.Location != nil {
-		objectMap["location"] = lter.Location
-	}
-	if lter.Tags != nil {
-		objectMap["tags"] = lter.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsStandardEnvironmentResource is the BasicEnvironmentResource implementation for LongTermEnvironmentResource.
-func (lter LongTermEnvironmentResource) AsStandardEnvironmentResource() (*StandardEnvironmentResource, bool) {
-	return nil, false
-}
-
-// AsLongTermEnvironmentResource is the BasicEnvironmentResource implementation for LongTermEnvironmentResource.
-func (lter LongTermEnvironmentResource) AsLongTermEnvironmentResource() (*LongTermEnvironmentResource, bool) {
-	return &lter, true
-}
-
-// AsEnvironmentResource is the BasicEnvironmentResource implementation for LongTermEnvironmentResource.
-func (lter LongTermEnvironmentResource) AsEnvironmentResource() (*EnvironmentResource, bool) {
-	return nil, false
-}
-
-// AsBasicEnvironmentResource is the BasicEnvironmentResource implementation for LongTermEnvironmentResource.
-func (lter LongTermEnvironmentResource) AsBasicEnvironmentResource() (BasicEnvironmentResource, bool) {
-	return &lter, true
-}
-
-// UnmarshalJSON is the custom unmarshaler for LongTermEnvironmentResource struct.
-func (lter *LongTermEnvironmentResource) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var longTermEnvironmentResourceProperties LongTermEnvironmentResourceProperties
-				err = json.Unmarshal(*v, &longTermEnvironmentResourceProperties)
-				if err != nil {
-					return err
-				}
-				lter.LongTermEnvironmentResourceProperties = &longTermEnvironmentResourceProperties
-			}
-		case "sku":
-			if v != nil {
-				var sku Sku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				lter.Sku = &sku
-			}
-		case "kind":
-			if v != nil {
-				var kind KindBasicEnvironmentResource
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				lter.Kind = kind
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				lter.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				lter.Tags = tags
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				lter.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				lter.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				lter.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// LongTermEnvironmentResourceProperties properties of the long-term environment.
-type LongTermEnvironmentResourceProperties struct {
-	// DataAccessID - READ-ONLY; An id used to access the environment data, e.g. to query the environment's events or upload reference data for the environment.
-	DataAccessID *uuid.UUID `json:"dataAccessId,omitempty"`
-	// DataAccessFqdn - READ-ONLY; The fully qualified domain name used to access the environment data, e.g. to query the environment's events or upload reference data for the environment.
-	DataAccessFqdn *string `json:"dataAccessFqdn,omitempty"`
-	// Status - An object that represents the status of the environment, and its internal state in the Time Series Insights service.
-	Status *EnvironmentStatus `json:"status,omitempty"`
-	// ProvisioningState - Provisioning state of the resource. Possible values include: 'Accepted', 'Creating', 'Updating', 'Succeeded', 'Failed', 'Deleting'
-	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// CreationTime - READ-ONLY; The time the resource was created.
-	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// TimeSeriesIDProperties - The list of event properties which will be used to define the environment's time series id.
-	TimeSeriesIDProperties *[]TimeSeriesIDProperty `json:"timeSeriesIdProperties,omitempty"`
-	// StorageConfiguration - The storage configuration provides the connection details that allows the Time Series Insights service to connect to the customer storage account that is used to store the environment's data.
-	StorageConfiguration *LongTermStorageConfigurationOutput `json:"storageConfiguration,omitempty"`
-	// WarmStoreConfiguration - The warm store configuration provides the details to create a warm store cache that will retain a copy of the environment's data available for faster query.
-	WarmStoreConfiguration *WarmStoreConfigurationProperties `json:"warmStoreConfiguration,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for LongTermEnvironmentResourceProperties.
-func (lterp LongTermEnvironmentResourceProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if lterp.Status != nil {
-		objectMap["status"] = lterp.Status
-	}
-	if lterp.ProvisioningState != "" {
-		objectMap["provisioningState"] = lterp.ProvisioningState
-	}
-	if lterp.TimeSeriesIDProperties != nil {
-		objectMap["timeSeriesIdProperties"] = lterp.TimeSeriesIDProperties
-	}
-	if lterp.StorageConfiguration != nil {
-		objectMap["storageConfiguration"] = lterp.StorageConfiguration
-	}
-	if lterp.WarmStoreConfiguration != nil {
-		objectMap["warmStoreConfiguration"] = lterp.WarmStoreConfiguration
-	}
-	return json.Marshal(objectMap)
-}
-
-// LongTermEnvironmentUpdateParameters parameters supplied to the Update Environment operation to update a
-// long-term environment.
-type LongTermEnvironmentUpdateParameters struct {
-	// LongTermEnvironmentMutableProperties - Properties of the long-term environment.
-	*LongTermEnvironmentMutableProperties `json:"properties,omitempty"`
-	// Tags - Key-value pairs of additional properties for the environment.
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for LongTermEnvironmentUpdateParameters.
-func (lteup LongTermEnvironmentUpdateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if lteup.LongTermEnvironmentMutableProperties != nil {
-		objectMap["properties"] = lteup.LongTermEnvironmentMutableProperties
-	}
-	if lteup.Tags != nil {
-		objectMap["tags"] = lteup.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for LongTermEnvironmentUpdateParameters struct.
-func (lteup *LongTermEnvironmentUpdateParameters) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var longTermEnvironmentMutableProperties LongTermEnvironmentMutableProperties
-				err = json.Unmarshal(*v, &longTermEnvironmentMutableProperties)
-				if err != nil {
-					return err
-				}
-				lteup.LongTermEnvironmentMutableProperties = &longTermEnvironmentMutableProperties
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				lteup.Tags = tags
-			}
-		}
-	}
-
-	return nil
-}
-
-// LongTermStorageConfigurationInput the storage configuration provides the connection details that allows the
-// Time Series Insights service to connect to the customer storage account that is used to store the
-// environment's data.
-type LongTermStorageConfigurationInput struct {
-	// AccountName - The name of the storage account that will hold the environment's long term data.
-	AccountName *string `json:"accountName,omitempty"`
-	// ManagementKey - The value of the management key that grants the Time Series Insights service write access to the storage account. This property is not shown in environment responses.
-	ManagementKey *string `json:"managementKey,omitempty"`
-}
-
-// LongTermStorageConfigurationMutableProperties the storage configuration provides the connection details that
-// allows the Time Series Insights service to connect to the customer storage account that is used to store the
-// environment's data.
-type LongTermStorageConfigurationMutableProperties struct {
-	// ManagementKey - The value of the management key that grants the Time Series Insights service write access to the storage account. This property is not shown in environment responses.
-	ManagementKey *string `json:"managementKey,omitempty"`
-}
-
-// LongTermStorageConfigurationOutput the storage configuration provides the non-secret connection details
-// about the customer storage account that is used to store the environment's data.
-type LongTermStorageConfigurationOutput struct {
-	// AccountName - The name of the storage account that will hold the environment's long term data.
-	AccountName *string `json:"accountName,omitempty"`
-}
-
 // Operation a Time Series Insights REST API operation
 type Operation struct {
 	// Name - READ-ONLY; The name of the operation being performed on this particular object.
@@ -2715,406 +3108,13 @@ func (rp ResourceProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Sku the sku determines the type of environment, either standard (S1 or S2) or long-term (L1). For standard
-// environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
+// Sku the sku determines the type of environment, either Gen1 (S1 or S2) or Gen2 (L1). For Gen1 environments
+// the sku determines the capacity of the environment, the ingress rate, and the billing rate.
 type Sku struct {
 	// Name - The name of this SKU. Possible values include: 'S1', 'S2', 'P1', 'L1'
 	Name SkuName `json:"name,omitempty"`
-	// Capacity - The capacity of the sku. For standard environments, this value can be changed to support scale out of environments after they have been created.
+	// Capacity - The capacity of the sku. For Gen1 environments, this value can be changed to support scale out of environments after they have been created.
 	Capacity *int32 `json:"capacity,omitempty"`
-}
-
-// StandardEnvironmentCreateOrUpdateParameters parameters supplied to the Create or Update Environment
-// operation for a standard environment.
-type StandardEnvironmentCreateOrUpdateParameters struct {
-	*StandardEnvironmentCreationProperties `json:"properties,omitempty"`
-	// Sku - The sku determines the type of environment, either standard (S1 or S2) or long-term (L1). For standard environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
-	Sku *Sku `json:"sku,omitempty"`
-	// Kind - Possible values include: 'KindEnvironmentCreateOrUpdateParameters', 'KindStandard', 'KindLongTerm'
-	Kind Kind `json:"kind,omitempty"`
-	// Location - The location of the resource.
-	Location *string `json:"location,omitempty"`
-	// Tags - Key-value pairs of additional properties for the resource.
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for StandardEnvironmentCreateOrUpdateParameters.
-func (secoup StandardEnvironmentCreateOrUpdateParameters) MarshalJSON() ([]byte, error) {
-	secoup.Kind = KindStandard
-	objectMap := make(map[string]interface{})
-	if secoup.StandardEnvironmentCreationProperties != nil {
-		objectMap["properties"] = secoup.StandardEnvironmentCreationProperties
-	}
-	if secoup.Sku != nil {
-		objectMap["sku"] = secoup.Sku
-	}
-	if secoup.Kind != "" {
-		objectMap["kind"] = secoup.Kind
-	}
-	if secoup.Location != nil {
-		objectMap["location"] = secoup.Location
-	}
-	if secoup.Tags != nil {
-		objectMap["tags"] = secoup.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsStandardEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for StandardEnvironmentCreateOrUpdateParameters.
-func (secoup StandardEnvironmentCreateOrUpdateParameters) AsStandardEnvironmentCreateOrUpdateParameters() (*StandardEnvironmentCreateOrUpdateParameters, bool) {
-	return &secoup, true
-}
-
-// AsLongTermEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for StandardEnvironmentCreateOrUpdateParameters.
-func (secoup StandardEnvironmentCreateOrUpdateParameters) AsLongTermEnvironmentCreateOrUpdateParameters() (*LongTermEnvironmentCreateOrUpdateParameters, bool) {
-	return nil, false
-}
-
-// AsEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for StandardEnvironmentCreateOrUpdateParameters.
-func (secoup StandardEnvironmentCreateOrUpdateParameters) AsEnvironmentCreateOrUpdateParameters() (*EnvironmentCreateOrUpdateParameters, bool) {
-	return nil, false
-}
-
-// AsBasicEnvironmentCreateOrUpdateParameters is the BasicEnvironmentCreateOrUpdateParameters implementation for StandardEnvironmentCreateOrUpdateParameters.
-func (secoup StandardEnvironmentCreateOrUpdateParameters) AsBasicEnvironmentCreateOrUpdateParameters() (BasicEnvironmentCreateOrUpdateParameters, bool) {
-	return &secoup, true
-}
-
-// UnmarshalJSON is the custom unmarshaler for StandardEnvironmentCreateOrUpdateParameters struct.
-func (secoup *StandardEnvironmentCreateOrUpdateParameters) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var standardEnvironmentCreationProperties StandardEnvironmentCreationProperties
-				err = json.Unmarshal(*v, &standardEnvironmentCreationProperties)
-				if err != nil {
-					return err
-				}
-				secoup.StandardEnvironmentCreationProperties = &standardEnvironmentCreationProperties
-			}
-		case "sku":
-			if v != nil {
-				var sku Sku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				secoup.Sku = &sku
-			}
-		case "kind":
-			if v != nil {
-				var kind Kind
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				secoup.Kind = kind
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				secoup.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				secoup.Tags = tags
-			}
-		}
-	}
-
-	return nil
-}
-
-// StandardEnvironmentCreationProperties properties used to create a standard environment.
-type StandardEnvironmentCreationProperties struct {
-	// DataRetentionTime - ISO8601 timespan specifying the minimum number of days the environment's events will be available for query.
-	DataRetentionTime *string `json:"dataRetentionTime,omitempty"`
-	// StorageLimitExceededBehavior - The behavior the Time Series Insights service should take when the environment's capacity has been exceeded. If "PauseIngress" is specified, new events will not be read from the event source. If "PurgeOldData" is specified, new events will continue to be read and old events will be deleted from the environment. The default behavior is PurgeOldData. Possible values include: 'PurgeOldData', 'PauseIngress'
-	StorageLimitExceededBehavior StorageLimitExceededBehavior `json:"storageLimitExceededBehavior,omitempty"`
-	// PartitionKeyProperties - The list of event properties which will be used to partition data in the environment. Currently, only a single partition key property is supported.
-	PartitionKeyProperties *[]TimeSeriesIDProperty `json:"partitionKeyProperties,omitempty"`
-}
-
-// StandardEnvironmentMutableProperties an object that represents a set of mutable standard environment
-// resource properties.
-type StandardEnvironmentMutableProperties struct {
-	// DataRetentionTime - ISO8601 timespan specifying the minimum number of days the environment's events will be available for query.
-	DataRetentionTime *string `json:"dataRetentionTime,omitempty"`
-	// StorageLimitExceededBehavior - The behavior the Time Series Insights service should take when the environment's capacity has been exceeded. If "PauseIngress" is specified, new events will not be read from the event source. If "PurgeOldData" is specified, new events will continue to be read and old events will be deleted from the environment. The default behavior is PurgeOldData. Possible values include: 'PurgeOldData', 'PauseIngress'
-	StorageLimitExceededBehavior StorageLimitExceededBehavior `json:"storageLimitExceededBehavior,omitempty"`
-}
-
-// StandardEnvironmentResource an environment is a set of time-series data available for query, and is the top
-// level Azure Time Series Insights resource. Standard environments have data retention limits.
-type StandardEnvironmentResource struct {
-	*StandardEnvironmentResourceProperties `json:"properties,omitempty"`
-	// Sku - The sku determines the type of environment, either standard (S1 or S2) or long-term (L1). For standard environments the sku determines the capacity of the environment, the ingress rate, and the billing rate.
-	Sku *Sku `json:"sku,omitempty"`
-	// Kind - Possible values include: 'KindBasicEnvironmentResourceKindEnvironmentResource', 'KindBasicEnvironmentResourceKindStandard', 'KindBasicEnvironmentResourceKindLongTerm'
-	Kind KindBasicEnvironmentResource `json:"kind,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags map[string]*string `json:"tags"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for StandardEnvironmentResource.
-func (ser StandardEnvironmentResource) MarshalJSON() ([]byte, error) {
-	ser.Kind = KindBasicEnvironmentResourceKindStandard
-	objectMap := make(map[string]interface{})
-	if ser.StandardEnvironmentResourceProperties != nil {
-		objectMap["properties"] = ser.StandardEnvironmentResourceProperties
-	}
-	if ser.Sku != nil {
-		objectMap["sku"] = ser.Sku
-	}
-	if ser.Kind != "" {
-		objectMap["kind"] = ser.Kind
-	}
-	if ser.Location != nil {
-		objectMap["location"] = ser.Location
-	}
-	if ser.Tags != nil {
-		objectMap["tags"] = ser.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsStandardEnvironmentResource is the BasicEnvironmentResource implementation for StandardEnvironmentResource.
-func (ser StandardEnvironmentResource) AsStandardEnvironmentResource() (*StandardEnvironmentResource, bool) {
-	return &ser, true
-}
-
-// AsLongTermEnvironmentResource is the BasicEnvironmentResource implementation for StandardEnvironmentResource.
-func (ser StandardEnvironmentResource) AsLongTermEnvironmentResource() (*LongTermEnvironmentResource, bool) {
-	return nil, false
-}
-
-// AsEnvironmentResource is the BasicEnvironmentResource implementation for StandardEnvironmentResource.
-func (ser StandardEnvironmentResource) AsEnvironmentResource() (*EnvironmentResource, bool) {
-	return nil, false
-}
-
-// AsBasicEnvironmentResource is the BasicEnvironmentResource implementation for StandardEnvironmentResource.
-func (ser StandardEnvironmentResource) AsBasicEnvironmentResource() (BasicEnvironmentResource, bool) {
-	return &ser, true
-}
-
-// UnmarshalJSON is the custom unmarshaler for StandardEnvironmentResource struct.
-func (ser *StandardEnvironmentResource) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var standardEnvironmentResourceProperties StandardEnvironmentResourceProperties
-				err = json.Unmarshal(*v, &standardEnvironmentResourceProperties)
-				if err != nil {
-					return err
-				}
-				ser.StandardEnvironmentResourceProperties = &standardEnvironmentResourceProperties
-			}
-		case "sku":
-			if v != nil {
-				var sku Sku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				ser.Sku = &sku
-			}
-		case "kind":
-			if v != nil {
-				var kind KindBasicEnvironmentResource
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				ser.Kind = kind
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				ser.Location = &location
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				ser.Tags = tags
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ser.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ser.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ser.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// StandardEnvironmentResourceProperties properties of the standard environment.
-type StandardEnvironmentResourceProperties struct {
-	// DataRetentionTime - ISO8601 timespan specifying the minimum number of days the environment's events will be available for query.
-	DataRetentionTime *string `json:"dataRetentionTime,omitempty"`
-	// StorageLimitExceededBehavior - The behavior the Time Series Insights service should take when the environment's capacity has been exceeded. If "PauseIngress" is specified, new events will not be read from the event source. If "PurgeOldData" is specified, new events will continue to be read and old events will be deleted from the environment. The default behavior is PurgeOldData. Possible values include: 'PurgeOldData', 'PauseIngress'
-	StorageLimitExceededBehavior StorageLimitExceededBehavior `json:"storageLimitExceededBehavior,omitempty"`
-	// PartitionKeyProperties - The list of event properties which will be used to partition data in the environment. Currently, only a single partition key property is supported.
-	PartitionKeyProperties *[]TimeSeriesIDProperty `json:"partitionKeyProperties,omitempty"`
-	// DataAccessID - READ-ONLY; An id used to access the environment data, e.g. to query the environment's events or upload reference data for the environment.
-	DataAccessID *uuid.UUID `json:"dataAccessId,omitempty"`
-	// DataAccessFqdn - READ-ONLY; The fully qualified domain name used to access the environment data, e.g. to query the environment's events or upload reference data for the environment.
-	DataAccessFqdn *string `json:"dataAccessFqdn,omitempty"`
-	// Status - An object that represents the status of the environment, and its internal state in the Time Series Insights service.
-	Status *EnvironmentStatus `json:"status,omitempty"`
-	// ProvisioningState - Provisioning state of the resource. Possible values include: 'Accepted', 'Creating', 'Updating', 'Succeeded', 'Failed', 'Deleting'
-	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// CreationTime - READ-ONLY; The time the resource was created.
-	CreationTime *date.Time `json:"creationTime,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for StandardEnvironmentResourceProperties.
-func (serp StandardEnvironmentResourceProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if serp.DataRetentionTime != nil {
-		objectMap["dataRetentionTime"] = serp.DataRetentionTime
-	}
-	if serp.StorageLimitExceededBehavior != "" {
-		objectMap["storageLimitExceededBehavior"] = serp.StorageLimitExceededBehavior
-	}
-	if serp.PartitionKeyProperties != nil {
-		objectMap["partitionKeyProperties"] = serp.PartitionKeyProperties
-	}
-	if serp.Status != nil {
-		objectMap["status"] = serp.Status
-	}
-	if serp.ProvisioningState != "" {
-		objectMap["provisioningState"] = serp.ProvisioningState
-	}
-	return json.Marshal(objectMap)
-}
-
-// StandardEnvironmentUpdateParameters parameters supplied to the Update Environment operation to update a
-// standard environment.
-type StandardEnvironmentUpdateParameters struct {
-	// Sku - The sku of the environment.
-	Sku *Sku `json:"sku,omitempty"`
-	// StandardEnvironmentMutableProperties - Properties of the standard environment.
-	*StandardEnvironmentMutableProperties `json:"properties,omitempty"`
-	// Tags - Key-value pairs of additional properties for the environment.
-	Tags map[string]*string `json:"tags"`
-}
-
-// MarshalJSON is the custom marshaler for StandardEnvironmentUpdateParameters.
-func (seup StandardEnvironmentUpdateParameters) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if seup.Sku != nil {
-		objectMap["sku"] = seup.Sku
-	}
-	if seup.StandardEnvironmentMutableProperties != nil {
-		objectMap["properties"] = seup.StandardEnvironmentMutableProperties
-	}
-	if seup.Tags != nil {
-		objectMap["tags"] = seup.Tags
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for StandardEnvironmentUpdateParameters struct.
-func (seup *StandardEnvironmentUpdateParameters) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "sku":
-			if v != nil {
-				var sku Sku
-				err = json.Unmarshal(*v, &sku)
-				if err != nil {
-					return err
-				}
-				seup.Sku = &sku
-			}
-		case "properties":
-			if v != nil {
-				var standardEnvironmentMutableProperties StandardEnvironmentMutableProperties
-				err = json.Unmarshal(*v, &standardEnvironmentMutableProperties)
-				if err != nil {
-					return err
-				}
-				seup.StandardEnvironmentMutableProperties = &standardEnvironmentMutableProperties
-			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				seup.Tags = tags
-			}
-		}
-	}
-
-	return nil
 }
 
 // TimeSeriesIDProperty the structure of the property that a time series id can have. An environment can have

@@ -1,4 +1,4 @@
-// Package timeseriesinsights implements the Azure ARM Timeseriesinsights service API version 2018-08-15-preview.
+// Package timeseriesinsights implements the Azure ARM Timeseriesinsights service API version 2020-05-15.
 //
 // Time Series Insights client
 package timeseriesinsights

@@ -102,7 +102,7 @@ func (client ReferenceDataSetsClient) CreateOrUpdatePreparer(ctx context.Context
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-08-15-preview"
+	const APIVersion = "2020-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -184,7 +184,7 @@ func (client ReferenceDataSetsClient) DeletePreparer(ctx context.Context, resour
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-08-15-preview"
+	const APIVersion = "2020-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -262,7 +262,7 @@ func (client ReferenceDataSetsClient) GetPreparer(ctx context.Context, resourceG
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-08-15-preview"
+	const APIVersion = "2020-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -339,7 +339,7 @@ func (client ReferenceDataSetsClient) ListByEnvironmentPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-08-15-preview"
+	const APIVersion = "2020-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -421,7 +421,7 @@ func (client ReferenceDataSetsClient) UpdatePreparer(ctx context.Context, resour
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-08-15-preview"
+	const APIVersion = "2020-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

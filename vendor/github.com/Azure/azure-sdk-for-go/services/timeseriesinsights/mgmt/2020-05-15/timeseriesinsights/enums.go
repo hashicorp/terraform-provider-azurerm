@@ -74,15 +74,15 @@ type Kind string
 const (
 	// KindEnvironmentCreateOrUpdateParameters ...
 	KindEnvironmentCreateOrUpdateParameters Kind = "EnvironmentCreateOrUpdateParameters"
-	// KindLongTerm ...
-	KindLongTerm Kind = "LongTerm"
-	// KindStandard ...
-	KindStandard Kind = "Standard"
+	// KindGen1 ...
+	KindGen1 Kind = "Gen1"
+	// KindGen2 ...
+	KindGen2 Kind = "Gen2"
 )
 
 // PossibleKindValues returns an array of possible values for the Kind const type.
 func PossibleKindValues() []Kind {
-	return []Kind{KindEnvironmentCreateOrUpdateParameters, KindLongTerm, KindStandard}
+	return []Kind{KindEnvironmentCreateOrUpdateParameters, KindGen1, KindGen2}
 }
 
 // KindBasicEnvironmentResource enumerates the values for kind basic environment resource.
@@ -91,15 +91,15 @@ type KindBasicEnvironmentResource string
 const (
 	// KindBasicEnvironmentResourceKindEnvironmentResource ...
 	KindBasicEnvironmentResourceKindEnvironmentResource KindBasicEnvironmentResource = "EnvironmentResource"
-	// KindBasicEnvironmentResourceKindLongTerm ...
-	KindBasicEnvironmentResourceKindLongTerm KindBasicEnvironmentResource = "LongTerm"
-	// KindBasicEnvironmentResourceKindStandard ...
-	KindBasicEnvironmentResourceKindStandard KindBasicEnvironmentResource = "Standard"
+	// KindBasicEnvironmentResourceKindGen1 ...
+	KindBasicEnvironmentResourceKindGen1 KindBasicEnvironmentResource = "Gen1"
+	// KindBasicEnvironmentResourceKindGen2 ...
+	KindBasicEnvironmentResourceKindGen2 KindBasicEnvironmentResource = "Gen2"
 )
 
 // PossibleKindBasicEnvironmentResourceValues returns an array of possible values for the KindBasicEnvironmentResource const type.
 func PossibleKindBasicEnvironmentResourceValues() []KindBasicEnvironmentResource {
-	return []KindBasicEnvironmentResource{KindBasicEnvironmentResourceKindEnvironmentResource, KindBasicEnvironmentResourceKindLongTerm, KindBasicEnvironmentResourceKindStandard}
+	return []KindBasicEnvironmentResource{KindBasicEnvironmentResourceKindEnvironmentResource, KindBasicEnvironmentResourceKindGen1, KindBasicEnvironmentResourceKindGen2}
 }
 
 // KindBasicEventSourceCreateOrUpdateParameters enumerates the values for kind basic event source create or
