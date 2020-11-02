@@ -171,6 +171,8 @@ An `endpoint` block supports the following:
 
 * `file_name_format` - (Optional) File name format for the blob. Default format is ``{iothub}/{partition}/{YYYY}/{MM}/{DD}/{HH}/{mm}``. All parameters are mandatory but can be reordered. This attribute is mandatory for endpoint type `AzureIotHub.StorageContainer`.
 
+* `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
+
 ---
 
 An `ip_filter_rule` block supports the following:
