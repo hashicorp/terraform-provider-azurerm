@@ -128,6 +128,8 @@ The following arguments are supported:
     `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
     Defaults to `false`.
 
+* `enable_private_ip_address` - (Optional) Whether private IP needs to be enabled on this gateway for connections or not. Changing this forces a new resource to be created.
+
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
     gateway is created will be routed (*forced tunnelling*). Refer to the
@@ -231,6 +233,10 @@ The `bgp_settings` block supports:
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
+
+An `custom_route` block exports the following:
+
+* `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
 
 The `root_certificate` block supports:
 
