@@ -332,10 +332,6 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
 
-	if upgradeMode == compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
-		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
-	}
-
 	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
@@ -402,13 +398,18 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 		},
 	}
 
+	hasHealthExtension := false
 	if features.VMSSExtensionsBeta() {
 		if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-			virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+			virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
 			if err != nil {
 				return err
 			}
 		}
+	}
+
+	if upgradeMode == compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 && (healthProbeId == "" || !hasHealthExtension) {
+		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
 	}
 
 	if adminPassword, ok := d.GetOk("admin_password"); ok {
@@ -774,7 +775,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		if d.HasChange("extension") {
 			updateInstances = true
 
-			extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+			extensionProfile, _, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
 			if err != nil {
 				return err
 			}

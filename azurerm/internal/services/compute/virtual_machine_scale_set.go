@@ -1367,25 +1367,31 @@ func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	}
 }
 
-func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.VirtualMachineScaleSetExtensionProfile, error) {
+func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.VirtualMachineScaleSetExtensionProfile, bool, error) {
 	result := &compute.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
-		return result, nil
+		return result, false, nil
 	}
 
 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
+	hasHealthExtension := false
 	for _, v := range input {
 		extensionRaw := v.(map[string]interface{})
 		extension := compute.VirtualMachineScaleSetExtension{
 			Name: utils.String(extensionRaw["name"].(string)),
 		}
+		extensionType := extensionRaw["type"].(string)
 
 		extensionProps := compute.VirtualMachineScaleSetExtensionProperties{
 			Publisher:                utils.String(extensionRaw["publisher"].(string)),
-			Type:                     utils.String(extensionRaw["type"].(string)),
+			Type:                     &extensionType,
 			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
 			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version"].(bool)),
 			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
+		}
+
+		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
+			hasHealthExtension = true
 		}
 
 		if forceUpdateTag := extensionRaw["force_update_tag"]; forceUpdateTag != nil {
@@ -1396,7 +1402,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		if ok && settings != "" {
 			settings, err := structure.ExpandJsonFromString(settings)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
 			extensionProps.Settings = settings
 		}
@@ -1405,7 +1411,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		if ok && protectedSettings != "" {
 			protectedSettings, err := structure.ExpandJsonFromString(protectedSettings)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+				return nil, false, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
 			}
 			extensionProps.ProtectedSettings = protectedSettings
 		}
@@ -1415,7 +1421,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 	}
 	result.Extensions = &extensions
 
-	return result, nil
+	return result, hasHealthExtension, nil
 }
 
 func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {

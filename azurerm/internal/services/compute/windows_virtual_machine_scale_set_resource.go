@@ -350,7 +350,7 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	}
 
 	if upgradeMode == compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
-		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
+		return fmt.Errorf("`health_probe_id` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
 	}
 
 	shouldHaveRollingUpgradePolicy := upgradeMode == compute.UpgradeModeAutomatic || upgradeMode == compute.UpgradeModeRolling
@@ -419,13 +419,18 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		},
 	}
 
+	hasHealthExtension := false
 	if features.VMSSExtensionsBeta() {
 		if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-			virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+			virtualMachineProfile.ExtensionProfile, hasHealthExtension, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
 			if err != nil {
 				return err
 			}
 		}
+	}
+
+	if upgradeMode == compute.UpgradeModeAutomatic && len(automaticOSUpgradePolicyRaw) > 0 && (healthProbeId == "" || !hasHealthExtension) {
+		return fmt.Errorf("`health_probe_id` must be set or a health extension must be specified when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
 	}
 
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
@@ -804,7 +809,7 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 
 	if features.VMSSExtensionsBeta() {
 		if d.HasChange("extension") {
-			extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+			extensionProfile, _, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
 			if err != nil {
 				return err
 			}
