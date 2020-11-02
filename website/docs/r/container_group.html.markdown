@@ -196,6 +196,10 @@ A `volume` block supports:
 
 * `git_repo` - (Optional) A `git_repo` block as defined below.
 
+* `secret` - (Optional) A mapping of secrets mounted as files in the volume. Changing this forces a new resource to be created.
+
+~> **Note:** The secret values must be **Base64-encoded** in the template. However, the secret values appear in plaintext within the files in the container.
+
 ---
 
 The `git_repo` block supports:
