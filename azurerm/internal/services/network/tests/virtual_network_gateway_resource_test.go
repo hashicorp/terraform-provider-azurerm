@@ -1001,7 +1001,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 func testAccAzureRMVirtualNetworkGateway_enablePrivateIpAddress(data acceptance.TestData) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
 }
@@ -1056,11 +1056,11 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = azurerm_subnet.test.id
   }
 }
-  `, data.RandomInteger, data.Locations.Primary)  
+  `, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMVirtualNetworkGateway_disablePrivateIpAddress(data acceptance.TestData) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
 }
@@ -1115,5 +1115,5 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = azurerm_subnet.test.id
   }
 }
-  `, data.RandomInteger, data.Locations.Primary)  
+  `, data.RandomInteger, data.Locations.Primary)
 }
