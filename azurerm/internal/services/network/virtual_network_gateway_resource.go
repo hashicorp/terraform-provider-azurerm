@@ -81,6 +81,12 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				Computed: true,
 			},
 
+			"enable_private_ip_address": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"active_active": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -321,6 +327,25 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				},
 			},
 
+			"custom_route": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"address_prefixes": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"default_local_network_gateway_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -420,6 +445,7 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
+		d.Set("enable_private_ip_address", gw.EnablePrivateIPAddress)
 		d.Set("active_active", gw.ActiveActive)
 		d.Set("generation", string(gw.VpnGatewayGeneration))
 
@@ -445,6 +471,10 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 
 		if err := d.Set("bgp_settings", flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+		}
+
+		if err := d.Set("custom_route", flattenArmVirtualNetworkGatewayAddressSpace(gw.CustomRoutes)); err != nil {
+			return fmt.Errorf("setting `custom_route`: %+v", err)
 		}
 	}
 
@@ -477,17 +507,21 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 	gatewayType := network.VirtualNetworkGatewayType(d.Get("type").(string))
 	vpnType := network.VpnType(d.Get("vpn_type").(string))
 	enableBgp := d.Get("enable_bgp").(bool)
+	enablePrivateIpAddress := d.Get("enable_private_ip_address").(bool)
 	activeActive := d.Get("active_active").(bool)
 	generation := network.VpnGatewayGeneration(d.Get("generation").(string))
+	customRoute := d.Get("custom_route").([]interface{})
 
 	props := &network.VirtualNetworkGatewayPropertiesFormat{
-		GatewayType:          gatewayType,
-		VpnType:              vpnType,
-		EnableBgp:            &enableBgp,
-		ActiveActive:         &activeActive,
-		VpnGatewayGeneration: generation,
-		Sku:                  expandArmVirtualNetworkGatewaySku(d),
-		IPConfigurations:     expandArmVirtualNetworkGatewayIPConfigurations(d),
+		GatewayType:            gatewayType,
+		VpnType:                vpnType,
+		EnableBgp:              &enableBgp,
+		EnablePrivateIPAddress: utils.Bool(enablePrivateIpAddress),
+		ActiveActive:           &activeActive,
+		VpnGatewayGeneration:   generation,
+		Sku:                    expandArmVirtualNetworkGatewaySku(d),
+		IPConfigurations:       expandArmVirtualNetworkGatewayIPConfigurations(d),
+		CustomRoutes:           expandArmVirtualNetworkGatewayAddressSpace(customRoute),
 	}
 
 	if gatewayDefaultSiteID := d.Get("default_local_network_gateway_id").(string); gatewayDefaultSiteID != "" {
@@ -663,6 +697,16 @@ func expandArmVirtualNetworkGatewaySku(d *schema.ResourceData) *network.VirtualN
 	return &network.VirtualNetworkGatewaySku{
 		Name: network.VirtualNetworkGatewaySkuName(sku),
 		Tier: network.VirtualNetworkGatewaySkuTier(sku),
+	}
+}
+
+func expandArmVirtualNetworkGatewayAddressSpace(input []interface{}) *network.AddressSpace {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &network.AddressSpace{
+		AddressPrefixes: utils.ExpandStringSlice(v["address_prefixes"].(*schema.Set).List()),
 	}
 }
 
@@ -917,4 +961,16 @@ func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, _ 
 		}
 	}
 	return nil
+}
+
+func flattenArmVirtualNetworkGatewayAddressSpace(input *network.AddressSpace) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"address_prefixes": utils.FlattenStringSlice(input.AddressPrefixes),
+		},
+	}
 }
