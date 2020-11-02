@@ -862,9 +862,9 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type     = "Vpn"
-  vpn_type = "RouteBased"
-  sku      = "VpnGw1"
+  type                      = "Vpn"
+  vpn_type                  = "RouteBased"
+  sku                       = "VpnGw1"
   enable_private_ip_address = true
   ip_configuration {
     name                          = "vnetGatewayConfig"
@@ -884,9 +884,9 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                = "acctest-${var.random}"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                       = "acctest-${var.random}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
   use_local_azure_ip_address = true
 
   type                       = "IPsec"
@@ -961,11 +961,11 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type                       = "IPsec"
-  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
-  local_network_gateway_id   = azurerm_local_network_gateway.test.id
-  use_local_azure_ip_address = false
-  dpd_timeout_seconds = 30
+  type                               = "IPsec"
+  virtual_network_gateway_id         = azurerm_virtual_network_gateway.test.id
+  local_network_gateway_id           = azurerm_local_network_gateway.test.id
+  use_local_azure_ip_address         = false
+  dpd_timeout_seconds                = 30
   use_policy_based_traffic_selectors = true
   routing_weight                     = 20
 
