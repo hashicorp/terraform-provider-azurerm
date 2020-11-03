@@ -139,7 +139,6 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 						"file_source_uri": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -168,7 +167,6 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 						"powershell_script_uri": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
@@ -201,7 +199,6 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 
 						"shell_script_uri": {
 							Type:         schema.TypeString,
-							Computed:     true,
 							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,

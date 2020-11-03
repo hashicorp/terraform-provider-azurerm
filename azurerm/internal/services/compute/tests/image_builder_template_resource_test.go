@@ -23,9 +23,6 @@ func TestAccAzureRMImageBuilderTemplate_basic(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "build_timeout_minutes", "240"),
-					resource.TestCheckResourceAttr(data.ResourceName, "size", "Standard_D1_v2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -64,38 +61,9 @@ func TestAccAzureRMImageBuilderTemplate_complete(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "build_timeout_minutes", "60"),
-					resource.TestCheckResourceAttr(data.ResourceName, "size", "Standard_D2_v2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "10"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-
-					resource.TestCheckResourceAttr(data.ResourceName, "source_platform_image.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_managed_image.#", "1"),
-
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.#", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.type", "Shell"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.name", "RunScriptFromSource"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.shell_script_uri", "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/customizeScript.sh"),
 					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.shell_sha256_checksum", "2c6ff6902a4a52deee69e8db26d0036a53388651008aaf31795bb20dabd21fd8"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.type", "Shell"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.name", "CheckSumCompareShellScript"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.shell_script_uri", "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/customizeScript2.sh"),
 					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.shell_sha256_checksum", "ade4c5214c3c675e92c66e2d067a870c5b81b9844b3de3cc72c49ff36425fc93"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.type", "File"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.name", "downloadBuildArtifacts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.file_destination_path", "/tmp/index.html"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.file_source_uri", "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"),
 					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.file_sha256_checksum", "d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.type", "Shell"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.name", "setupBuildPath"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.shell_commands.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.shell_commands.0", "sudo mkdir -p /buildArtifacts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.shell_commands.1", "sudo cp /tmp/index.html /buildArtifacts/index.html"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.type", "Shell"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.name", "InstallUpgrades"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.shell_commands.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.shell_commands.0", "sudo apt install unattended-upgrades"),
 				),
 			},
 			data.ImportStep(),
@@ -115,8 +83,6 @@ func TestAccAzureRMImageBuilderTemplate_tags_update(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
 			},
 			data.ImportStep(),
@@ -124,9 +90,6 @@ func TestAccAzureRMImageBuilderTemplate_tags_update(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_tags_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost-center", "Ops"),
 				),
 			},
 			data.ImportStep(),
@@ -134,8 +97,6 @@ func TestAccAzureRMImageBuilderTemplate_tags_update(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
 			},
 			data.ImportStep(),
@@ -155,8 +116,6 @@ func TestAccAzureRMImageBuilderTemplate_identity_update(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
 				),
 			},
 			data.ImportStep(),
@@ -164,8 +123,6 @@ func TestAccAzureRMImageBuilderTemplate_identity_update(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_identity_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
 				),
 			},
 			data.ImportStep(),
@@ -173,8 +130,6 @@ func TestAccAzureRMImageBuilderTemplate_identity_update(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "UserAssigned"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "1"),
 				),
 			},
 			data.ImportStep(),
@@ -194,7 +149,6 @@ func TestAccAzureRMImageBuilderTemplate_vnet(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_vnet(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 				),
 			},
 			data.ImportStep(),
@@ -214,39 +168,8 @@ func TestAccAzureRMImageBuilderTemplate_windowsPlatformSource(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_windowsPlatformSource(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "build_timeout_minutes", "240"),
-					resource.TestCheckResourceAttr(data.ResourceName, "size", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "disk_size_gb", "Standard_D1_v2"),
-
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.#", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.type", "PowerShell"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.name", "CreateBuildPath"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.powershell_script_uri", "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/testPsScript.ps1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.powershell_sha256_checksum", "0607c084bdde8ef843cd8b7668e54a37ed07446bb642fe791ba79307a0828ea5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.0.powershell_run_elevated", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.type", "WindowsRestart"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.name", "winRestart"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.windows_restart_command", "shutdown /r /f /t 0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.windows_restart_check_command", "echo Azure-Image-Builder-Restarted-the-VM > c:\\buildArtifacts\\azureImageBuilderRestart.txt"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.1.windows_restart_timeout", "5m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.type", "File"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.name", "downloadBuildArtifacts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.file_destination_path", "c:\\buildArtifacts\\index.html"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.file_source_uri", "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"),
 					resource.TestCheckResourceAttr(data.ResourceName, "customizer.2.file_sha256_checksum", "d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.type", "PowerShell"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.name", "settingUpMgmtAgtPath"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.powershell_commands.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.powershell_commands.0", "mkdir c:\\buildActions"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.powershell_commands.1", "echo Azure-Image-Builder-Was-Here > c:\\buildActions\\buildActionsOutput.txt"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.3.powershell_run_elevated", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.type", "WindowsUpdate"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.name", "winUpdate"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.windows_update_search_criteria", "IsInstalled=0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.windows_update_limit", "20"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.windows_update_filters.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.windows_update_filters.0", "exclude:$_.Title -like '*Preview*'"),
-					resource.TestCheckResourceAttr(data.ResourceName, "customizer.4.windows_update_filters.1", "include:$true"),
 				),
 			},
 			data.ImportStep(),
@@ -341,7 +264,6 @@ func TestAccAzureRMImageBuilderTemplate_vhdDistribution(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_vhdDistribution(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_vhd.#", "1"),
 				),
 			},
 			data.ImportStep(),
@@ -361,10 +283,6 @@ func TestAccAzureRMImageBuilderTemplate_sharedImageDistribution(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_sharedImageDistribution(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_shared_image.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_shared_image.0.replica_regions.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_shared_image.0.storage_account_type", "Standard_ZRS"),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_shared_image.0.exclude_from_latest", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -384,9 +302,6 @@ func TestAccAzureRMImageBuilderTemplate_multipleDistribution(t *testing.T) {
 				Config: testAccAzureRMImageBuilderTemplate_multipleDistribution(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageBuilderTemplateExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_managed_image.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_vhd.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "distribution_shared_image.#", "2"),
 				),
 			},
 			data.ImportStep(),
@@ -691,6 +606,11 @@ resource "azurerm_network_security_rule" "test1" {
   network_security_group_name = azurerm_network_security_group.test1.name
 }
 
+resource "azurerm_subnet_network_security_group_association" "test1" {
+  subnet_id                 = azurerm_subnet.test1.id
+  network_security_group_id = azurerm_network_security_group.test1.id
+}
+
 %[3]s
 
 resource "azurerm_role_definition" "test1" {
@@ -746,7 +666,6 @@ resource "azurerm_image_builder_template" "test" {
 
 func testAccAzureRMImageBuilderTemplate_complete(data acceptance.TestData) string {
 	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	customizerTemplate := testAccAzureRMImageBuilderTemplate_linuxCustomizerTemplate()
 	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
@@ -791,11 +710,42 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
-%[4]s
+  customizer {
+    type                  = "Shell"
+    name                  = "RunScriptFromSource"
+    shell_script_uri      = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/4afbd7858fb8918edc459a7f09ace43b570d027e/quickquickstarts/customizeScript.sh"
+    shell_sha256_checksum = "2c6ff6902a4a52deee69e8db26d0036a53388651008aaf31795bb20dabd21fd8"
+  }
 
-%[5]s
+  customizer {
+    type             = "Shell"
+    name             = "CheckSumCompareShellScript"
+    shell_script_uri = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/4afbd7858fb8918edc459a7f09ace43b570d027e/quickquickstarts/customizeScript2.sh"
+  }
+
+  customizer {
+    type                  = "File"
+    name                  = "downloadBuildArtifacts"
+    file_source_uri       = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/4afbd7858fb8918edc459a7f09ace43b570d027e/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"
+    file_destination_path = "/tmp/index.html"
+    file_sha256_checksum  = "d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"
+  }
+
+  customizer {
+    type           = "Shell"
+    name           = "setupBuildPath"
+    shell_commands = ["sudo mkdir -p /buildArtifacts", "sudo cp /tmp/index.html /buildArtifacts/index.html"]
+  }
+
+  customizer {
+    type           = "Shell"
+    name           = "InstallUpgrades"
+    shell_commands = ["sudo apt install unattended-upgrades"]
+  }
+
+%[4]s
 }
-`, data.RandomInteger, data.Locations.Primary, roleTemplate, customizerTemplate, distributionManagedImageTemplate)
+`, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
 
 func testAccAzureRMImageBuilderTemplate_purchasePlanSource(data acceptance.TestData) string {
@@ -852,7 +802,6 @@ resource "azurerm_image_builder_template" "test" {
 
 func testAccAzureRMImageBuilderTemplate_windowsPlatformSource(data acceptance.TestData) string {
 	roleTemplate := testAccAzureRMImageBuilderTemplate_roleTemplate(data)
-	customizerTemplate := testAccAzureRMImageBuilderTemplate_windowsCustomizerTemplate()
 	distributionManagedImageTemplate := testAccAzureRMImageBuilderTemplate_distributionMamagedImageTemplate(data)
 
 	return fmt.Sprintf(`
@@ -893,11 +842,46 @@ resource "azurerm_image_builder_template" "test" {
     ENV = "Test"
   }
 
-%[4]s
+  customizer {
+    type                    = "PowerShell"
+    name                    = "CreateBuildPath"
+    powershell_run_elevated = false
+    powershell_script_uri   = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/testPsScript.ps1"
+  }
 
-%[5]s
+  customizer {
+    type                          = "WindowsRestart"
+    name                          = "winRestart"
+    windows_restart_command       = "shutdown /r /f /t 0"
+    windows_restart_timeout       = "5m"
+    windows_restart_check_command = "echo Azure-Image-Builder-Restarted-the-VM > c:\\buildArtifacts\\azureImageBuilderRestart.txt"
+  }
+
+  customizer {
+    type                  = "File"
+    name                  = "downloadBuildArtifacts"
+    file_source_uri       = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"
+    file_destination_path = "c:\\buildArtifacts\\index.html"
+  }
+
+  customizer {
+    type                    = "PowerShell"
+    name                    = "settingUpMgmtAgtPath"
+    powershell_run_elevated = false
+    powershell_commands     = ["mkdir c:\\buildActions", "echo Azure-Image-Builder-Was-Here > c:\\buildActions\\buildActionsOutput.txt"]
+  }
+
+  customizer {
+    type                           = "WindowsUpdate"
+    name                           = "winUpdate"
+    windows_update_filters         = ["exclude:$_.Title -like '*Preview*'", "include:$true"]
+    windows_update_search_criteria = "IsInstalled=0"
+    windows_update_limit           = 20
+  }
+
+%[4]s
 }
-`, data.RandomInteger, data.Locations.Primary, roleTemplate, customizerTemplate, distributionManagedImageTemplate)
+`, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
 
 func testAccAzureRMImageBuilderTemplate_vhdDistribution(data acceptance.TestData) string {
@@ -1261,83 +1245,6 @@ resource "azurerm_image_builder_template" "test" {
 %s
 }
 `, template, roleTemplate, data.RandomInteger, distributionManagedImageTemplate)
-}
-
-func testAccAzureRMImageBuilderTemplate_linuxCustomizerTemplate() string {
-	return `
-  customizer {
-    type = "Shell"
-    name = "RunScriptFromSource"
-    shell_script_uri = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/customizeScript.sh"
-	shell_sha256_checksum = "2c6ff6902a4a52deee69e8db26d0036a53388651008aaf31795bb20dabd21fd8"
-  }
-
-  customizer {
-    type = "Shell"
-    name = "CheckSumCompareShellScript"
-    shell_script_uri = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/customizeScript2.sh"
-  }
-
-  customizer {
-    type = "File"
-    name = "downloadBuildArtifacts"
-    file_source_uri = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"
-    file_destination_path = "/tmp/index.html"
-	file_sha256_checksum = "d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"
-  }
-
-  customizer {
-    type = "Shell"
-    name = "setupBuildPath"
-    shell_commands = ["sudo mkdir -p /buildArtifacts", "sudo cp /tmp/index.html /buildArtifacts/index.html"]
-  }
-
-  customizer {
-    type = "Shell"
-    name = "InstallUpgrades"
-    shell_commands = ["sudo apt install unattended-upgrades"]
-  }
-`
-}
-
-func testAccAzureRMImageBuilderTemplate_windowsCustomizerTemplate() string {
-	return `customizer {
-    type = "PowerShell"
-    name = "CreateBuildPath"
-    powershell_run_elevated = false
-    powershell_script_uri = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/testPsScript.ps1"
-  }
-
-  customizer {
-    type = "WindowsRestart"
-	name = "winRestart"
-    windows_restart_command = "shutdown /r /f /t 0" 
-    windows_restart_timeout = "5m"
-    windows_restart_check_command = "echo Azure-Image-Builder-Restarted-the-VM > c:\\buildArtifacts\\azureImageBuilderRestart.txt"
-  }
-
-  customizer {
-    type = "File"
-    name = "downloadBuildArtifacts"
-    file_source_uri = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"
-    file_destination_path = "c:\\buildArtifacts\\index.html"
-  }
-
- customizer {
-    type = "PowerShell"
-    name = "settingUpMgmtAgtPath"
-    powershell_run_elevated = false
-    powershell_commands = ["mkdir c:\\buildActions","echo Azure-Image-Builder-Was-Here > c:\\buildActions\\buildActionsOutput.txt"]
-  }
-
-  customizer {
-    type = "WindowsUpdate"
-	name = "winUpdate"
-    windows_update_filters = ["exclude:$_.Title -like '*Preview*'","include:$true"]
-    windows_update_search_criteria = "IsInstalled=0"
-    windows_update_limit = 20
-  }
-`
 }
 
 func testAccAzureRMImageBuilderTemplate_roleTemplate(data acceptance.TestData) string {
