@@ -64,6 +64,8 @@ The following arguments are supported:
 
 * `plan` - (Required) A `plan` block as documented below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `plan` block includes:

@@ -6,13 +6,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
-
 	"github.com/hashicorp/go-azure-helpers/response"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-
-	azuread "github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
-
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -45,7 +41,7 @@ func resourceArmCosmosDbSQLStoredProcedure() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azuread.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -60,7 +56,7 @@ func resourceArmCosmosDbSQLStoredProcedure() *schema.Resource {
 			"body": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azuread.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"container_name": {

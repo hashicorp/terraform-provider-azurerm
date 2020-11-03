@@ -33,6 +33,39 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBackupProtectionPolicyVM_withInstantRestoreRetentionRangeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentionRange(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
@@ -531,6 +564,28 @@ resource "azurerm_backup_policy_vm" "test" {
     weekdays = ["Sunday"]
     weeks    = ["Last"]
     months   = ["January"]
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMBackupProtectionPolicyVM_basicDailyWithInstantRestoreRetentionRange(data acceptance.TestData) string {
+	template := testAccAzureRMBackupProtectionPolicyVM_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                           = "acctest-BPVM-%d"
+  resource_group_name            = azurerm_resource_group.test.name
+  recovery_vault_name            = azurerm_recovery_services_vault.test.name
+  instant_restore_retention_days = 5
+  backup {
+    frequency = "Daily"
+    time      = "23:00"
+  }
+
+  retention_daily {
+    count = 10
   }
 }
 `, template, data.RandomInteger)
