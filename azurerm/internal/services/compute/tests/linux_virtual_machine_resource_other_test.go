@@ -761,7 +761,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     public_key = local.first_public_key
   }
 
-  managed_boot_diagnostics_enabled = true
+  boot_diagnostics {}
 
   os_disk {
     caching              = "ReadWrite"

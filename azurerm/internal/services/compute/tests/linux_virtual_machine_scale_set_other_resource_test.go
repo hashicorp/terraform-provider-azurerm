@@ -924,7 +924,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 
-  managed_boot_diagnostics_enabled = true
+  boot_diagnostics {}
 }
 `, template, data.RandomString, data.RandomInteger)
 }

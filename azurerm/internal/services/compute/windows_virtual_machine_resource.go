@@ -121,12 +121,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				},
 			},
 
-			"managed_boot_diagnostics_enabled": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"boot_diagnostics"},
-			},
-
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			"computer_name": {
@@ -343,8 +337,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	allowExtensionOperations := d.Get("allow_extension_operations").(bool)
 
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-	managedBootDiagnosticsEnabled := d.Get("managed_boot_diagnostics_enabled").(bool)
-	bootDiagnostics := expandBootDiagnosticsManaged(bootDiagnosticsRaw, managedBootDiagnosticsEnabled)
+	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
 
 	var computerName string
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
@@ -581,11 +574,6 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	}
 	d.Set("availability_set_id", availabilitySetId)
 
-	managedBootDiagnosticsEnabled := false
-	if props.DiagnosticsProfile != nil && props.DiagnosticsProfile.BootDiagnostics != nil && props.DiagnosticsProfile.BootDiagnostics.Enabled != nil {
-		managedBootDiagnosticsEnabled = *props.DiagnosticsProfile.BootDiagnostics.Enabled && (props.DiagnosticsProfile.BootDiagnostics.StorageURI == nil || *props.DiagnosticsProfile.BootDiagnostics.StorageURI == "")
-	}
-	d.Set("managed_boot_diagnostics_enabled", managedBootDiagnosticsEnabled)
 	if err := d.Set("boot_diagnostics", flattenBootDiagnostics(props.DiagnosticsProfile)); err != nil {
 		return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 	}
@@ -755,12 +743,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		VirtualMachineProperties: &compute.VirtualMachineProperties{},
 	}
 
-	if d.HasChange("boot_diagnostics") || d.HasChange("managed_boot_diagnostics_enabled") {
+	if d.HasChange("boot_diagnostics") {
 		shouldUpdate = true
 
-		managedBootDiagnosticsEnabled := d.Get("managed_boot_diagnostics_enabled").(bool)
 		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-		update.VirtualMachineProperties.DiagnosticsProfile = expandBootDiagnosticsManaged(bootDiagnosticsRaw, managedBootDiagnosticsEnabled)
+		update.VirtualMachineProperties.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
 	if d.HasChange("secret") {

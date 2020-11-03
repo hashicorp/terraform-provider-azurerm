@@ -99,12 +99,6 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 
 			"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
-			"managed_boot_diagnostics_enabled": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ConflictsWith: []string{"boot_diagnostics"},
-			},
-
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			"computer_name_prefix": {
@@ -314,8 +308,7 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
 
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-	managedBootDiagnosticsEnabled := d.Get("managed_boot_diagnostics_enabled").(bool)
-	bootDiagnostics := expandBootDiagnosticsManaged(bootDiagnosticsRaw, managedBootDiagnosticsEnabled)
+	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
 
 	dataDisksRaw := d.Get("data_disk").([]interface{})
 	dataDisks := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
@@ -740,12 +733,11 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	if d.HasChange("boot_diagnostics") || d.HasChange("managed_boot_diagnostics_enabled") {
+	if d.HasChange("boot_diagnostics") {
 		updateInstances = true
 
-		managedBootDiagnosticsEnabled := d.Get("managed_boot_diagnostics_enabled").(bool)
 		bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
-		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnosticsManaged(bootDiagnosticsRaw, managedBootDiagnosticsEnabled)
+		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
 	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
@@ -938,11 +930,6 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 	d.Set("scale_in_policy", rule)
 
 	if profile := props.VirtualMachineProfile; profile != nil {
-		managedBootDiagnosticsEnabled := false
-		if profile.DiagnosticsProfile != nil && profile.DiagnosticsProfile.BootDiagnostics != nil && profile.DiagnosticsProfile.BootDiagnostics.Enabled != nil {
-			managedBootDiagnosticsEnabled = *profile.DiagnosticsProfile.BootDiagnostics.Enabled && (profile.DiagnosticsProfile.BootDiagnostics.StorageURI == nil || *profile.DiagnosticsProfile.BootDiagnostics.StorageURI == "")
-		}
-		d.Set("managed_boot_diagnostics_enabled", managedBootDiagnosticsEnabled)
 		if err := d.Set("boot_diagnostics", flattenBootDiagnostics(profile.DiagnosticsProfile)); err != nil {
 			return fmt.Errorf("Error setting `boot_diagnostics`: %+v", err)
 		}

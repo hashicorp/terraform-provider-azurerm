@@ -1071,7 +1071,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     azurerm_network_interface.test.id,
   ]
 
-  managed_boot_diagnostics_enabled = true
+  boot_diagnostics {}
 
   os_disk {
     caching              = "ReadWrite"
