@@ -2,7 +2,6 @@ package clients
 
 import (
 	"context"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -15,6 +14,7 @@ import (
 	attestation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/client"
 	authorization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization/client"
 	automation "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/client"
+	azureStackHCI "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci/client"
 	batch "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/client"
 	blueprints "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/client"
 	bot "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot/client"
@@ -105,6 +105,7 @@ type Client struct {
 	Attestation           *attestation.Client
 	Authorization         *authorization.Client
 	Automation            *automation.Client
+	AzureStackHCI         *azureStackHCI.Client
 	Batch                 *batch.Client
 	Blueprints            *blueprints.Client
 	Bot                   *bot.Client
@@ -196,6 +197,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Attestation = attestation.NewClient(o)
 	client.Authorization = authorization.NewClient(o)
 	client.Automation = automation.NewClient(o)
+	client.AzureStackHCI = azureStackHCI.NewClient(o)
 	client.Batch = batch.NewClient(o)
 	client.Blueprints = blueprints.NewClient(o)
 	client.Bot = bot.NewClient(o)

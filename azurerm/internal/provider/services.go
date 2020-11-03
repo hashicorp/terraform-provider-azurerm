@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
@@ -98,6 +99,7 @@ func SupportedServices() []common.ServiceRegistration {
 		attestation.Registration{},
 		authorization.Registration{},
 		automation.Registration{},
+		azurestackhci.Registration{},
 		batch.Registration{},
 		blueprints.Registration{},
 		bot.Registration{},
