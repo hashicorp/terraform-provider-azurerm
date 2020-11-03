@@ -41,7 +41,8 @@ func resourceArmVirtualHubIP() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
+				ForceNew:     true,
+				ValidateFunc: azuread.NoEmptyStrings,
 			},
 
 			"virtual_hub_id": {
