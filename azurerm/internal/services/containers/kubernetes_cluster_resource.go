@@ -161,6 +161,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ValidateFunc: computeValidate.DiskEncryptionSetID,
 			},
 
+			"enable_pod_security_policy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -724,6 +729,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
+	if d.Get("enable_pod_security_policy").(bool) {
+		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	}
+
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 
@@ -943,6 +952,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.AutoScalerProfile = autoScalerProfile
 	}
 
+	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
+		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	}
+
 	if d.HasChange("linux_profile") {
 		updateCluster = true
 		linuxProfileRaw := d.Get("linux_profile").([]interface{})
@@ -1155,6 +1168,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
+		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
 		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
 		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {

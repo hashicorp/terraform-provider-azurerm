@@ -102,6 +102,15 @@ func SchemaDefaultNodePool() *schema.Schema {
 					},
 				},
 
+				"node_taints": {
+					Type:     schema.TypeList,
+					ForceNew: true,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
 				"tags": tags.Schema(),
 
 				"os_disk_size_gb": {
@@ -165,6 +174,13 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
 	nodeLabelsRaw := raw["node_labels"].(map[string]interface{})
 	nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw)
+	nodeTaintsRaw := raw["node_taints"].([]interface{})
+	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
+
+	if len(*nodeTaints) != 0 {
+		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one")
+	}
+
 	t := raw["tags"].(map[string]interface{})
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{

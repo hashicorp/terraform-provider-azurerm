@@ -204,6 +204,12 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							},
 						},
 
+						"node_taints": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+
 						"enable_node_public_ip": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -904,6 +910,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.NodeLabels != nil {
 			agentPoolProfile["node_labels"] = profile.NodeLabels
+		}
+
+		if profile.NodeTaints != nil {
+			agentPoolProfile["node_taints"] = *profile.NodeTaints
 		}
 
 		if profile.EnableNodePublicIP != nil {
