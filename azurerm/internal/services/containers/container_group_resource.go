@@ -325,24 +325,52 @@ func resourceArmContainerGroup() *schema.Resource {
 
 									"share_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"storage_account_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"storage_account_key": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										Sensitive:    true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"git_repo": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"url": {
+													Type:     schema.TypeString,
+													Required: true,
+													ForceNew: true,
+												},
+
+												"directory": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+
+												"revision": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -488,7 +516,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
 	dnsConfig := d.Get("dns_config").([]interface{})
-	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
+	containers, containerGroupPorts, containerGroupVolumes, err := expandContainerGroupContainers(d)
+	if err != nil {
+		return err
+	}
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
@@ -726,7 +757,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 	}
 }
 
-func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
+func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume, error) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
 	containerGroupPorts := make([]containerinstance.Port, 0)
@@ -819,7 +850,10 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, ok := data["volume"]; ok {
-			volumeMounts, containerGroupVolumesPartial := expandContainerVolumes(v)
+			volumeMounts, containerGroupVolumesPartial, err := expandContainerVolumes(v)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 			container.VolumeMounts = volumeMounts
 			if containerGroupVolumesPartial != nil {
 				containerGroupVolumes = append(containerGroupVolumes, *containerGroupVolumesPartial...)
@@ -837,7 +871,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		containers = append(containers, container)
 	}
 
-	return &containers, &containerGroupPorts, &containerGroupVolumes
+	return &containers, &containerGroupPorts, &containerGroupVolumes, nil
 }
 
 func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
@@ -912,11 +946,11 @@ func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containe
 	return &output
 }
 
-func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume) {
+func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume, error) {
 	volumesRaw := input.([]interface{})
 
 	if len(volumesRaw) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	volumeMounts := make([]containerinstance.VolumeMount, 0)
@@ -942,18 +976,49 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 
 		cv := containerinstance.Volume{
 			Name: utils.String(name),
-			AzureFile: &containerinstance.AzureFileVolume{
+		}
+
+		gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{}))
+		if gitRepoVolume != nil {
+			if shareName != "" || storageAccountName != "" || storageAccountKey != "" {
+				return nil, nil, fmt.Errorf("only one of `git_repo` volume or `share_name`, `storage_account_name`, and `storage_account_key` can be specified")
+			}
+			cv.GitRepo = gitRepoVolume
+		} else {
+			if shareName == "" && storageAccountName == "" && storageAccountKey == "" {
+				return nil, nil, fmt.Errorf("one of `git_repo` or `share_name`, `storage_account_name`, and `storage_account_key` must be specified")
+			} else if shareName == "" || storageAccountName == "" || storageAccountKey == "" {
+				return nil, nil, fmt.Errorf("when using a storage account volume, all of `share_name`, `storage_account_name`, `storage_account_key` must be specified")
+			}
+			cv.AzureFile = &containerinstance.AzureFileVolume{
 				ShareName:          utils.String(shareName),
 				ReadOnly:           utils.Bool(readOnly),
 				StorageAccountName: utils.String(storageAccountName),
 				StorageAccountKey:  utils.String(storageAccountKey),
-			},
+			}
 		}
 
 		containerGroupVolumes = append(containerGroupVolumes, cv)
 	}
 
-	return &volumeMounts, &containerGroupVolumes
+	return &volumeMounts, &containerGroupVolumes, nil
+}
+
+func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	gitRepoVolume := &containerinstance.GitRepoVolume{
+		Repository: utils.String(v["url"].(string)),
+	}
+	if directory := v["directory"].(string); directory != "" {
+		gitRepoVolume.Directory = utils.String(directory)
+	}
+	if revision := v["revision"].(string); revision != "" {
+		gitRepoVolume.Revision = utils.String(revision)
+	}
+	return gitRepoVolume
 }
 
 func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
@@ -1243,6 +1308,8 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 						}
 						// skip storage_account_key, is always nil
 					}
+
+					volumeConfig["git_repo"] = flattenGitRepoVolume(cgv.GitRepo)
 				}
 			}
 		}
@@ -1264,6 +1331,29 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func flattenGitRepoVolume(input *containerinstance.GitRepoVolume) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	var revision, directory, repository string
+	if input.Directory != nil {
+		directory = *input.Directory
+	}
+	if input.Revision != nil {
+		revision = *input.Revision
+	}
+	if input.Repository != nil {
+		repository = *input.Repository
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"url":       repository,
+			"directory": directory,
+			"revision":  revision,
+		},
+	}
 }
 
 func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface{} {
@@ -1419,21 +1509,21 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 		return make([]interface{}, 0)
 	}
 
-	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var searchDomains []string
 	if input.SearchDomains != nil {
 		searchDomains = strings.Split(*input.SearchDomains, " ")
 	}
 	output["search_domains"] = searchDomains
 
-	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var options []string
 	if input.Options != nil {
 		options = strings.Split(*input.Options, " ")
 	}
 	output["options"] = options
 
-	//Nameservers is already an array from the API
+	// Nameservers is already an array from the API
 	var nameservers []string
 	if input.NameServers != nil {
 		nameservers = *input.NameServers

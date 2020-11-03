@@ -1,4 +1,4 @@
-package storage
+package hpccache
 
 import (
 	"fmt"
@@ -11,7 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -42,7 +43,7 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: storageValidate.HPCCacheTargetName,
+				ValidateFunc: validate.HPCCacheTargetName,
 			},
 
 			"cache_name": {
@@ -57,7 +58,7 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 			"namespace_path": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.HPCCacheNamespacePath,
+				ValidateFunc: validate.HPCCacheNamespacePath,
 			},
 
 			"storage_container_id": {
@@ -71,7 +72,7 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 }
 
 func resourceArmHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageTargetsClient
+	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -137,7 +138,7 @@ func resourceArmHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageTargetsClient
+	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +187,7 @@ func resourceArmHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmHPCCacheBlobTargetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageTargetsClient
+	client := meta.(*clients.Client).HPCCache.StorageTargetsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

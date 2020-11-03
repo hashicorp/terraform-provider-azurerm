@@ -159,14 +159,14 @@ resource "azurerm_virtual_network" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "acctestzone%d.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                  = "acctest%d"
-  private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-  virtual_network_id    = "${azurerm_virtual_network.test.id}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  name                  = "acctestVnetZone%d.com"
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.test.name
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -215,10 +215,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                  = "acctest%d"
-  private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-  virtual_network_id    = "${azurerm_virtual_network.test.id}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  name                  = "acctestVnetZone%d.com"
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.test.name
 
   tags = {
     environment = "Production"
@@ -257,10 +257,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                  = "acctestzone%d.com"
-  private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-  virtual_network_id    = "${azurerm_virtual_network.test.id}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  name                  = "acctestVnetZone%d.com"
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = azurerm_virtual_network.test.id
+  resource_group_name   = azurerm_resource_group.test.name
 
   tags = {
     environment = "staging"
