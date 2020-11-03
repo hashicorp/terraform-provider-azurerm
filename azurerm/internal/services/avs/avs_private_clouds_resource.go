@@ -318,7 +318,7 @@ func resourceArmAvsPrivateCloudUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	if d.HasChange("internet_connected") {
 		internet := avs.Disabled
-		if d.Get("internet").(bool) {
+		if d.Get("internet_connected").(bool) {
 			internet = avs.Enabled
 		}
 		privateCloudUpdate.PrivateCloudUpdateProperties.Internet = internet
