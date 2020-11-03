@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `kind` - The Kind of the CosmosDB account.
 
-* `key_vault_key_uri` - The Key Vault URI for encryption
+* `key_vault_key_uri` - The Key Vault key URI for CMK encryption.
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
