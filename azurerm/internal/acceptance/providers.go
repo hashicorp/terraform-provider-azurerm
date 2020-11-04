@@ -27,7 +27,7 @@ func EnsureProvidersAreInitialised() {
 
 		// NOTE: (@tombuildsstuff) - intentionally not calling these as Binary Testing
 		// is Disabled
-		//binarytestfuntime.UseBinaryDriver("azurerm", provider.TestAzureProvider)
-		//binarytestfuntime.UseBinaryDriver("azuread", azuread.Provider)
+		// binarytestfuntime.UseBinaryDriver("azurerm", provider.TestAzureProvider)
+		// binarytestfuntime.UseBinaryDriver("azuread", azuread.Provider)
 	})
 }
