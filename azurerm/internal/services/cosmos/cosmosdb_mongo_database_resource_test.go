@@ -211,5 +211,5 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
 }
-`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.MongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "MongoDBv3.4"}), data.RandomInteger)
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.MongoDB, []string{"EnableServerless", "mongoEnableDocLevelTTL", "EnableMongo"}), data.RandomInteger)
 }
