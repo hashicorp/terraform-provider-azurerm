@@ -212,11 +212,13 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	for syncIterator.NotDone() {
 		item, ok := syncIterator.Value().AsScheduledSynchronizationSetting()
-		if !ok || item == nil {
-			continue
+		if ok && item != nil {
+			settings = append(settings, *item)
 		}
 
-		settings = append(settings, *item)
+		if err := syncIterator.NextWithContext(ctx); err != nil {
+			return fmt.Errorf("retrieving next Snapshot Schedule: %+v", err)
+		}
 	}
 	if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(settings)); err != nil {
 		return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
