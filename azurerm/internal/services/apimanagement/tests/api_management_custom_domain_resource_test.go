@@ -308,6 +308,7 @@ resource "azurerm_key_vault" "test" {
 
     key_permissions = [
       "create",
+      "get",
     ]
 
     secret_permissions = [
