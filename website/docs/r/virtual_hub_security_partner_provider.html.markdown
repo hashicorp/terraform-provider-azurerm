@@ -1,14 +1,14 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_security_partner_provider"
+page_title: "Azure Resource Manager: azurerm_virtual_hub_security_partner_provider"
 description: |-
-  Manages a Security Partner Provider.
+  Manages a Security Partner Provider which could be associated to virtual hub.
 ---
 
-# azurerm_security_partner_provider
+# azurerm_virtual_hub_security_partner_provider
 
-Manages a Security Partner Provider.
+Manages a Security Partner Provider which could be associated to virtual hub.
 
 ## Example Usage
 
@@ -39,12 +39,12 @@ resource "azurerm_vpn_gateway" "example" {
   virtual_hub_id      = azurerm_virtual_hub.example.id
 }
 
-resource "azurerm_security_partner_provider" "example" {
+resource "azurerm_virtual_hub_security_partner_provider" "example" {
   name                   = "example-spp"
   resource_group_name    = azurerm_resource_group.example.name
   location               = azurerm_resource_group.example.location
   virtual_hub_id         = azurerm_virtual_hub.example.id
-  security_provider_type = "IBoss"
+  security_provider_name = "IBoss"
 
   tags = {
     ENV = "Prod"
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Security Partner Provider should exist. Changing this forces a new resource to be created.
 
-* `security_provider_type` - (Required) The security provider name. Possible values are `ZScaler`, `IBoss` and `Checkpoint` is allowed. Changing this forces a new resource to be created.
+* `security_provider_name` - (Required) The security provider name. Possible values are `ZScaler`, `IBoss` and `Checkpoint` is allowed. Changing this forces a new resource to be created.
 
 * `virtual_hub_id` - (Optional) The ID of the Virtual Hub within which this Security Partner Provider should be created. Changing this forces a new resource to be created.
 
@@ -90,5 +90,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Security Partner Providers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_security_partner_provider.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/securityPartnerProviders/securityPartnerProvider1
+terraform import azurerm_virtual_hub_security_partner_provider.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/securityPartnerProviders/securityPartnerProvider1
 ```

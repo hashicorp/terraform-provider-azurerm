@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSecurityPartnerProvider() *schema.Resource {
+func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSecurityPartnerProviderCreate,
-		Read:   resourceArmSecurityPartnerProviderRead,
-		Update: resourceArmSecurityPartnerProviderUpdate,
-		Delete: resourceArmSecurityPartnerProviderDelete,
+		Create: resourceArmVirtualHubSecurityPartnerProviderCreate,
+		Read:   resourceArmVirtualHubSecurityPartnerProviderRead,
+		Update: resourceArmVirtualHubSecurityPartnerProviderUpdate,
+		Delete: resourceArmVirtualHubSecurityPartnerProviderDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +35,7 @@ func resourceArmSecurityPartnerProvider() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SecurityPartnerProviderID(id)
+			_, err := parse.VirtualHubSecurityPartnerProviderID(id)
 			return err
 		}),
 
@@ -50,7 +50,7 @@ func resourceArmSecurityPartnerProvider() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"security_provider_type": {
+			"security_provider_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -72,7 +72,7 @@ func resourceArmSecurityPartnerProvider() *schema.Resource {
 		},
 	}
 }
-func resourceArmSecurityPartnerProviderCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualHubSecurityPartnerProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -88,13 +88,13 @@ func resourceArmSecurityPartnerProviderCreate(d *schema.ResourceData, meta inter
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_security_partner_provider", *existing.ID)
+		return tf.ImportAsExistsError("azurerm_virtual_hub_security_partner_provider", *existing.ID)
 	}
 
 	parameters := network.SecurityPartnerProvider{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		SecurityPartnerProviderPropertiesFormat: &network.SecurityPartnerProviderPropertiesFormat{
-			SecurityProviderName: network.SecurityProviderName(d.Get("security_provider_type").(string)),
+			SecurityProviderName: network.SecurityProviderName(d.Get("security_provider_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -125,15 +125,15 @@ func resourceArmSecurityPartnerProviderCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSecurityPartnerProviderRead(d, meta)
+	return resourceArmVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
-func resourceArmSecurityPartnerProviderRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualHubSecurityPartnerProviderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SecurityPartnerProviderID(d.Id())
+	id, err := parse.VirtualHubSecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -153,7 +153,7 @@ func resourceArmSecurityPartnerProviderRead(d *schema.ResourceData, meta interfa
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.SecurityPartnerProviderPropertiesFormat; props != nil {
-		d.Set("security_provider_type", props.SecurityProviderName)
+		d.Set("security_provider_name", props.SecurityProviderName)
 
 		if props.VirtualHub != nil && props.VirtualHub.ID != nil {
 			d.Set("virtual_hub_id", props.VirtualHub.ID)
@@ -163,12 +163,12 @@ func resourceArmSecurityPartnerProviderRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSecurityPartnerProviderUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualHubSecurityPartnerProviderUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SecurityPartnerProviderID(d.Id())
+	id, err := parse.VirtualHubSecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,15 +183,15 @@ func resourceArmSecurityPartnerProviderUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("updating Security Partner Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmSecurityPartnerProviderRead(d, meta)
+	return resourceArmVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
-func resourceArmSecurityPartnerProviderDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualHubSecurityPartnerProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SecurityPartnerProviderID(d.Id())
+	id, err := parse.VirtualHubSecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}

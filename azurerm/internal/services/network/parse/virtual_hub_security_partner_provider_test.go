@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestSecurityPartnerProviderID(t *testing.T) {
+func TestVirtualHubSecurityPartnerProviderID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SecurityPartnerProviderId
+		Expected *VirtualHubSecurityPartnerProviderId
 	}{
 		{
 			Name:     "Empty",
@@ -31,14 +31,14 @@ func TestSecurityPartnerProviderID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing SecurityPartnerProvider Value",
+			Name:     "Missing VirtualHubSecurityPartnerProvider Value",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/securityPartnerProviders",
 			Expected: nil,
 		},
 		{
-			Name:  "SecurityPartnerProvider ID",
+			Name:  "VirtualHubSecurityPartnerProvider ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/securityPartnerProviders/securityPartnerProvider1",
-			Expected: &SecurityPartnerProviderId{
+			Expected: &VirtualHubSecurityPartnerProviderId{
 				ResourceGroup: "resourceGroup1",
 				Name:          "securityPartnerProvider1",
 			},
@@ -53,7 +53,7 @@ func TestSecurityPartnerProviderID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := SecurityPartnerProviderID(v.Input)
+		actual, err := VirtualHubSecurityPartnerProviderID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
