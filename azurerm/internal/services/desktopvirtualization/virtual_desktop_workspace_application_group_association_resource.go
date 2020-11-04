@@ -3,6 +3,7 @@ package desktopvirtualization
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -131,7 +132,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema
 	applicationGroupId := id.ApplicationGroup.ID(subscriptionId)
 	if props := workspace.WorkspaceProperties; props != nil && props.ApplicationGroupReferences != nil {
 		for _, reference := range *props.ApplicationGroupReferences {
-			exists = reference == applicationGroupId
+			exists = strings.EqualFold(reference, applicationGroupId)
 			if exists {
 				break
 			}

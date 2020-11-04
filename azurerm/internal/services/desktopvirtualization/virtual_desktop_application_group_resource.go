@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -70,8 +71,9 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 			},
 
 			"host_pool_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.VirtualDesktopHostPoolID,
 			},
 
 			"friendly_name": {
@@ -145,6 +147,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 
 func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -174,8 +177,18 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 	if props := resp.ApplicationGroupProperties; props != nil {
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("description", props.Description)
-		d.Set("host_pool_id", props.HostPoolArmPath)
 		d.Set("type", string(props.ApplicationGroupType))
+
+		hostPoolIdStr := ""
+		if props.HostPoolArmPath != nil {
+			hostPoolId, err := parse.VirtualDesktopHostPoolID(*props.HostPoolArmPath)
+			if err != nil {
+				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)
+			}
+
+			hostPoolIdStr = hostPoolId.ID(subscriptionId)
+		}
+		d.Set("host_pool_id", hostPoolIdStr)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

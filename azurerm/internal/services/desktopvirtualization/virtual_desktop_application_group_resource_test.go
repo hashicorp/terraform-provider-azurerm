@@ -190,7 +190,6 @@ resource "azurerm_virtual_desktop_application_group" "test" {
   type                = "Desktop"
   host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
 
