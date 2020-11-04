@@ -282,10 +282,7 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on Azure KeyVault %q (Resource Group %q): %+v", vaultName, resGroup, err)
 	}
 
-	policy, err := FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
-	if err != nil {
-		return fmt.Errorf("Error locating Access Policy (Object ID %q / Application ID %q) in Key Vault %q (Resource Group %q)", objectId, applicationId, vaultName, resGroup)
-	}
+	policy := FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
 
 	if policy == nil {
 		log.Printf("[ERROR] Access Policy (Object ID %q / Application ID %q) was not found in Key Vault %q (Resource Group %q) - removing from state", objectId, applicationId, vaultName, resGroup)
@@ -329,9 +326,9 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func FindKeyVaultAccessPolicy(policies *[]keyvault.AccessPolicyEntry, objectId string, applicationId string) (*keyvault.AccessPolicyEntry, error) {
+func FindKeyVaultAccessPolicy(policies *[]keyvault.AccessPolicyEntry, objectId string, applicationId string) *keyvault.AccessPolicyEntry {
 	if policies == nil {
-		return nil, nil
+		return nil
 	}
 
 	for _, policy := range *policies {
@@ -343,13 +340,13 @@ func FindKeyVaultAccessPolicy(policies *[]keyvault.AccessPolicyEntry, objectId s
 				}
 
 				if strings.EqualFold(aid, applicationId) {
-					return &policy, nil
+					return &policy
 				}
 			}
 		}
 	}
 
-	return nil, nil
+	return nil
 }
 
 func accessPolicyRefreshFunc(ctx context.Context, client *keyvault.VaultsClient, resourceGroup string, vaultName string, objectId string, applicationId string) resource.StateRefreshFunc {
@@ -364,7 +361,7 @@ func accessPolicyRefreshFunc(ctx context.Context, client *keyvault.VaultsClient,
 		}
 
 		if read.Properties != nil && read.Properties.AccessPolicies != nil {
-			policy, _ := FindKeyVaultAccessPolicy(read.Properties.AccessPolicies, objectId, applicationId)
+			policy := FindKeyVaultAccessPolicy(read.Properties.AccessPolicies, objectId, applicationId)
 			if policy != nil {
 				return "found", "found", nil
 			}
