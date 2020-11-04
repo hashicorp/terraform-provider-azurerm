@@ -499,11 +499,6 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy(t *testin
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
-					// === RUN   TestAccAzureRMKubernetes_all/datasource/addOnProfileAzurePolicy
-					//    testing.go:684: Step 0 error: Check failed: Check 4/4 error: azurerm_kubernetes_cluster.test: Attribute 'addon_profile.0.azure_policy.0.version' not found
-					// It seems like it doesn't return version property anymore?
-					//
-					// resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.version", "v2"),
 				),
 			},
 		},
