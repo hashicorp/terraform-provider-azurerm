@@ -367,6 +367,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"name":                  name,
 			"node_count":            count,
 			"node_labels":           nodeLabels,
+			"node_taints":           []string{},
 			"os_disk_size_gb":       osDiskSizeGB,
 			"tags":                  tags.Flatten(agentPool.Tags),
 			"type":                  string(agentPool.Type),
