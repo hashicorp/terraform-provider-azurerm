@@ -16,6 +16,9 @@ import (
 var enableBinaryTesting = false
 
 func (td TestData) DataSourceTest(t *testing.T, steps []resource.TestStep) {
+	// DataSources don't need a check destroy - however since this is a wrapper function
+	// and not matching the ignore pattern `XXX_data_source_test.go`, this needs to be explicitly opted out
+	//lintignore:AT001
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		Steps:    steps,
@@ -38,11 +41,11 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 }
 
 func buildClient() *clients.Client {
-	//if enableBinaryTesting {
-	// TODO: build up a client on demand
-	// NOTE: this'll want caching/a singleton, and likely RP registration etc disabled, since otherwise this'll become
-	// 		 extremely expensive - and this doesn't need access to the provider feature toggles
-	//}
+	// if enableBinaryTesting {
+	//   TODO: build up a client on demand
+	//   NOTE: this'll want caching/a singleton, and likely RP registration etc disabled, since otherwise this'll become
+	//   		 extremely expensive - and this doesn't need access to the provider feature toggles
+	// }
 
 	return AzureProvider.Meta().(*clients.Client)
 }
