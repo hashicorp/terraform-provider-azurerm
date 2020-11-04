@@ -212,7 +212,7 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	for syncIterator.NotDone() {
 		item, ok := syncIterator.Value().AsScheduledSynchronizationSetting()
-		if !ok {
+		if !ok || item == nil {
 			continue
 		}
 
