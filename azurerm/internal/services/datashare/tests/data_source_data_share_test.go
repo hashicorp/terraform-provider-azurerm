@@ -58,6 +58,7 @@ func testAccDataSourceDataShare_basic(data acceptance.TestData) string {
 data "azurerm_data_share" "test" {
   name       = azurerm_data_share.test.name
   account_id = azurerm_data_share_account.test.id
+  depends_on = [azurerm_data_share.test]
 }
 `, config)
 }
@@ -70,6 +71,7 @@ func testAccDataSourceAzureRMDataShare_snapshotSchedule(data acceptance.TestData
 data "azurerm_data_share" "test" {
   name       = azurerm_data_share.test.name
   account_id = azurerm_data_share_account.test.id
+  depends_on = [azurerm_data_share.test]
 }
 `, config)
 }

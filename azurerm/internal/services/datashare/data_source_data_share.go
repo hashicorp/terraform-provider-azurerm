@@ -120,34 +120,34 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 
 		settings = append(settings, *item)
 	}
-	if len(settings) == 0 {
-		return fmt.Errorf("expected 1 Snapshot Schedule but got %d", len(settings))
-	}
 
-	setting := settings[0]
-	if err := d.Set("snapshot_schedule", flattenDataShareDataSourceSnapshotSchedule(setting)); err != nil {
+	if err := d.Set("snapshot_schedule", flattenDataShareDataSourceSnapshotSchedule(settings)); err != nil {
 		return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
 	}
 
 	return nil
 }
 
-func flattenDataShareDataSourceSnapshotSchedule(sync datashare.ScheduledSynchronizationSetting) []interface{} {
-	name := ""
-	if sync.Name != nil {
-		name = *sync.Name
-	}
+func flattenDataShareDataSourceSnapshotSchedule(input []datashare.ScheduledSynchronizationSetting) []interface{} {
+	output := make([]interface{}, 0)
 
-	startTime := ""
-	if sync.SynchronizationTime != nil && !sync.SynchronizationTime.IsZero() {
-		startTime = sync.SynchronizationTime.Format(time.RFC3339)
-	}
+	for _, sync := range input {
+		name := ""
+		if sync.Name != nil {
+			name = *sync.Name
+		}
 
-	return []interface{}{
-		map[string]interface{}{
+		startTime := ""
+		if sync.SynchronizationTime != nil && !sync.SynchronizationTime.IsZero() {
+			startTime = sync.SynchronizationTime.Format(time.RFC3339)
+		}
+
+		output = append(output, map[string]interface{}{
 			"name":       name,
 			"recurrence": string(sync.RecurrenceInterval),
 			"start_time": startTime,
-		},
+		})
 	}
+
+	return output
 }
