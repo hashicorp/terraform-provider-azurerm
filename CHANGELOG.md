@@ -11,6 +11,9 @@ IMPROVEMENTS:
 * `azurerm_data_factory_linked_service_data_lake_storage_gen2` - Supports managed identity auth through `use_managed_identity ` [GH-8938]
 * `azurerm_virtual_hub_connection` - support for the `routing` block [GH-8950]
 
+BUG FIXES:
+* `azurerm_key_vault_access_policy` - check access policy consistency before committing to state [GH-9125]
+
 ## 2.34.0 (October 29, 2020)
 
 UPGRADE NOTES
