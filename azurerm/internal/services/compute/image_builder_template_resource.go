@@ -613,7 +613,7 @@ func resourceArmImageBuilderTemplateRead(d *schema.ResourceData, meta interface{
 			}
 		}
 
-		if managedImageId != "" {
+		if sharedImageVersionId != "" {
 			if err := d.Set("source_shared_image_version_id", sharedImageVersionId); err != nil {
 				return fmt.Errorf("setting image template shared image version source: %+v", err)
 			}

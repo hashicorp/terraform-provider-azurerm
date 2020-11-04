@@ -377,6 +377,10 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %[4]s
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
@@ -458,6 +462,10 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %s
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, data.RandomInteger, distributionManagedImageTemplate)
 }
@@ -539,6 +547,10 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %s
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, data.RandomInteger, data.RandomInteger, data.RandomInteger, distributionManagedImageTemplate)
 }
@@ -660,6 +672,12 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %[4]s
+
+  depends_on = [
+    azurerm_role_assignment.test,
+    azurerm_role_assignment.test1
+  ]
+
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
@@ -711,10 +729,9 @@ resource "azurerm_image_builder_template" "test" {
   }
 
   customizer {
-    type                  = "Shell"
-    name                  = "RunScriptFromSource"
-    shell_script_uri      = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/4afbd7858fb8918edc459a7f09ace43b570d027e/quickquickstarts/customizeScript.sh"
-    shell_sha256_checksum = "2c6ff6902a4a52deee69e8db26d0036a53388651008aaf31795bb20dabd21fd8"
+    type             = "Shell"
+    name             = "RunScriptFromSource"
+    shell_script_uri = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/4afbd7858fb8918edc459a7f09ace43b570d027e/quickquickstarts/customizeScript.sh"
   }
 
   customizer {
@@ -728,7 +745,6 @@ resource "azurerm_image_builder_template" "test" {
     name                  = "downloadBuildArtifacts"
     file_source_uri       = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/4afbd7858fb8918edc459a7f09ace43b570d027e/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"
     file_destination_path = "/tmp/index.html"
-    file_sha256_checksum  = "d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"
   }
 
   customizer {
@@ -744,6 +760,10 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %[4]s
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
@@ -796,6 +816,10 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %[4]s
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
@@ -843,10 +867,11 @@ resource "azurerm_image_builder_template" "test" {
   }
 
   customizer {
-    type                    = "PowerShell"
-    name                    = "CreateBuildPath"
-    powershell_run_elevated = false
-    powershell_script_uri   = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/testPsScript.ps1"
+    type                       = "PowerShell"
+    name                       = "CreateBuildPath"
+    powershell_run_elevated    = false
+    powershell_script_uri      = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/4afbd7858fb8918edc459a7f09ace43b570d027e/testPsScript.ps1"
+    powershell_sha256_checksum = "0607c084bdde8ef843cd8b7668e54a37ed07446bb642fe791ba79307a0828ea5"
   }
 
   customizer {
@@ -860,8 +885,9 @@ resource "azurerm_image_builder_template" "test" {
   customizer {
     type                  = "File"
     name                  = "downloadBuildArtifacts"
-    file_source_uri       = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/master/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"
+    file_source_uri       = "https://raw.githubusercontent.com/danielsollondon/azvmimagebuilder/4afbd7858fb8918edc459a7f09ace43b570d027e/quickquickstarts/exampleArtifacts/buildArtifacts/index.html"
     file_destination_path = "c:\\buildArtifacts\\index.html"
+    file_sha256_checksum  = "d9715d72889fb1a0463d06ce9e89d1d2bd33b2c5e5362a736db6f5a25e601a58"
   }
 
   customizer {
@@ -880,6 +906,10 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %[4]s
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate)
 }
@@ -928,6 +958,9 @@ resource "azurerm_image_builder_template" "test" {
 
 %[4]s
 
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionVHDTemplate)
 }
@@ -994,6 +1027,10 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %[4]s
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionSharedImageTemplate)
 }
@@ -1106,6 +1143,10 @@ resource "azurerm_image_builder_template" "test" {
       ENV = "Test"
     }
   }
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, roleTemplate, distributionManagedImageTemplate, distributionVHDTemplate, distributionSharedImageTemplate)
 }
@@ -1175,6 +1216,9 @@ resource "azurerm_image_builder_template" "test" {
 
 %s
 
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, template, roleTemplate, data.RandomInteger, distributionManagedImageTemplate)
 }
@@ -1243,6 +1287,10 @@ resource "azurerm_image_builder_template" "test" {
   }
 
 %s
+
+  depends_on = [
+    azurerm_role_assignment.test
+  ]
 }
 `, template, roleTemplate, data.RandomInteger, distributionManagedImageTemplate)
 }
