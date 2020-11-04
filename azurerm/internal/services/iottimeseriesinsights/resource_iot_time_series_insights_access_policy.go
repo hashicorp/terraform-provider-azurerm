@@ -36,6 +36,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
+		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			migration.TimeSeriesInsightsAccessPolicyV0(),
 		},
