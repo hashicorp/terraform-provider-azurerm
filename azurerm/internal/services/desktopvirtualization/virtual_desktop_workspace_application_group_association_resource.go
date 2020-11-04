@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -91,7 +92,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 	}
 
 	applicationGroupIdStr := applicationGroupId.ID(subscriptionId)
-	if utils.SliceContainsValue(applicationGroupAssociations, applicationGroupIdStr) {
+	if associationExists(workspace.WorkspaceProperties, applicationGroupIdStr) {
 		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId.ID(subscriptionId))
 	}
 	applicationGroupAssociations = append(applicationGroupAssociations, applicationGroupIdStr)
@@ -128,16 +129,8 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema
 		return fmt.Errorf("retrieving Virtual Desktop Desktop Workspace %q (Resource Group %q): %+v", id.Workspace.Name, id.Workspace.ResourceGroup, err)
 	}
 
-	exists := false
 	applicationGroupId := id.ApplicationGroup.ID(subscriptionId)
-	if props := workspace.WorkspaceProperties; props != nil && props.ApplicationGroupReferences != nil {
-		for _, reference := range *props.ApplicationGroupReferences {
-			exists = strings.EqualFold(reference, applicationGroupId)
-			if exists {
-				break
-			}
-		}
-	}
+	exists := associationExists(workspace.WorkspaceProperties, applicationGroupId)
 	if !exists {
 		log.Printf("[DEBUG] Association between Virtual Desktop Workspace %q (Resource Group %q) and Application Group %q (Resource Group %q) was not found - removing from state!", id.Workspace.Name, id.Workspace.ResourceGroup, id.ApplicationGroup.Name, id.ApplicationGroup.ResourceGroup)
 		d.SetId("")
@@ -177,12 +170,16 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 	}
 
 	applicationGroupReferences := []string{}
-	if workspace.WorkspaceProperties != nil && workspace.WorkspaceProperties.ApplicationGroupReferences != nil {
-		applicationGroupReferences = *workspace.WorkspaceProperties.ApplicationGroupReferences
-	}
-
 	applicationGroupId := id.ApplicationGroup.ID(subscriptionId)
-	applicationGroupReferences = utils.RemoveFromStringArray(applicationGroupReferences, applicationGroupId)
+	if workspace.WorkspaceProperties != nil && workspace.WorkspaceProperties.ApplicationGroupReferences != nil {
+		for _, referenceId := range *workspace.WorkspaceProperties.ApplicationGroupReferences {
+			if strings.EqualFold(referenceId, applicationGroupId) {
+				continue
+			}
+
+			applicationGroupReferences = append(applicationGroupReferences, referenceId)
+		}
+	}
 
 	workspace.WorkspaceProperties.ApplicationGroupReferences = &applicationGroupReferences
 
@@ -191,4 +188,18 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 	}
 
 	return nil
+}
+
+func associationExists(props *desktopvirtualization.WorkspaceProperties, applicationGroupId string) bool {
+	if props == nil || props.ApplicationGroupReferences == nil {
+		return false
+	}
+
+	for _, id := range *props.ApplicationGroupReferences {
+		if strings.EqualFold(id, applicationGroupId) {
+			return true
+		}
+	}
+
+	return false
 }
