@@ -278,26 +278,25 @@ func expandAzureRmDataShareSnapshotSchedule(input []interface{}) *datashare.Sche
 }
 
 func flattenAzureRmDataShareSnapshotSchedule(input []datashare.ScheduledSynchronizationSetting) []interface{} {
-	if len(input) == 0 {
-		return []interface{}{}
-	}
+	output := make([]interface{}, 0)
 
-	setting := input[0]
-	name := ""
-	if setting.Name != nil {
-		name = *setting.Name
-	}
+	for _, setting := range input {
+		name := ""
+		if setting.Name != nil {
+			name = *setting.Name
+		}
 
-	startTime := ""
-	if setting.SynchronizationTime != nil && !setting.SynchronizationTime.IsZero() {
-		startTime = setting.SynchronizationTime.Format(time.RFC3339)
-	}
+		startTime := ""
+		if setting.SynchronizationTime != nil && !setting.SynchronizationTime.IsZero() {
+			startTime = setting.SynchronizationTime.Format(time.RFC3339)
+		}
 
-	return []interface{}{
-		map[string]interface{}{
+		output = append(output, map[string]interface{}{
 			"name":       name,
 			"recurrence": string(setting.RecurrenceInterval),
 			"start_time": startTime,
-		},
+		})
 	}
+
+	return output
 }
