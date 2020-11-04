@@ -13,7 +13,12 @@ IMPROVEMENTS:
 * `azurerm_virtual_hub_connection` - support for the `routing` block [GH-8950]
 
 BUG FIXES:
+
 * `azurerm_key_vault_access_policy` - check access policy consistency before committing to state [GH-9125]
+* `azurerm_virtual_desktop_application_group` - adding validation to the `host_pool_id` field [GH-9057]
+* `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `application_group_id` field [GH-9057]
+* `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `workspace_id` field [GH-9057]
+* `azurerm_virtual_desktop_workspace_application_group_association` - validating the ID during import is a Workspace Application Group Association ID [GH-9057]
 
 ## 2.34.0 (October 29, 2020)
 
