@@ -101,6 +101,7 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", name)
 	d.Set("account_id", accountId.ID(subscriptionId))
+
 	if props := resp.ShareProperties; props != nil {
 		d.Set("description", props.Description)
 		d.Set("kind", string(props.ShareKind))
