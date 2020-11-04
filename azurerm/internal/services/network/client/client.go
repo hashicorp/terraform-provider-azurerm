@@ -19,6 +19,7 @@ type Client struct {
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
 	FirewallPolicyClient                 *network.FirewallPoliciesClient
 	FirewallPolicyRuleGroupClient        *network.FirewallPolicyRuleCollectionGroupsClient
+	HubRouteTableClient                  *network.HubRouteTablesClient
 	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
 	IPGroupsClient                       *network.IPGroupsClient
@@ -93,6 +94,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	FirewallPolicyRuleGroupClient := network.NewFirewallPolicyRuleCollectionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FirewallPolicyRuleGroupClient.Client, o.ResourceManagerAuthorizer)
+
+	HubRouteTableClient := network.NewHubRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HubRouteTableClient.Client, o.ResourceManagerAuthorizer)
 
 	HubVirtualNetworkConnectionClient := network.NewHubVirtualNetworkConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HubVirtualNetworkConnectionClient.Client, o.ResourceManagerAuthorizer)
@@ -215,6 +219,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
 		FirewallPolicyClient:                 &FirewallPolicyClient,
 		FirewallPolicyRuleGroupClient:        &FirewallPolicyRuleGroupClient,
+		HubRouteTableClient:                  &HubRouteTableClient,
 		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
 		IPGroupsClient:                       &IpGroupsClient,
