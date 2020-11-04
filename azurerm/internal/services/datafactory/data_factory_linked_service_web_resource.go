@@ -258,7 +258,7 @@ func resourceArmDataFactoryLinkedServiceWebRead(d *schema.ResourceData, meta int
 			d.Set("authentication_type", basicProps.AuthenticationType)
 			d.Set("url", basicProps.URL)
 			d.Set("username", basicProps.Username)
-			//d.Set("password", basicProps.Password)
+			// d.Set("password", basicProps.Password)
 		}
 	}
 

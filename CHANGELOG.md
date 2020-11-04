@@ -2,7 +2,14 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_images` [GH-8629]
 * **New Resource:** `azurerm_firewall_policy_rule_collection_group` [GH-8603]
+* **New Resource:** `azurerm_virtual_hub_ip_configuration` [GH-8912]
+
+IMPROVEMENTS:
+
+* `azurerm_data_factory_linked_service_data_lake_storage_gen2` - Supports managed identity auth through `use_managed_identity ` [GH-8938]
+* `azurerm_virtual_hub_connection` - support for the `routing` block [GH-8950]
 
 ## 2.34.0 (October 29, 2020)
 
