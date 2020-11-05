@@ -13,7 +13,7 @@ type Client struct {
 	SavedSearchesClient        *operationalinsights.SavedSearchesClient
 	SharedKeysClient           *operationalinsights.SharedKeysClient
 	SolutionsClient            *operationsmanagement.SolutionsClient
-	StorageInsightConfigClient *operationalinsights.StorageInsightConfigsClient
+	StorageInsightsClient *operationalinsights.StorageInsightConfigsClient
 	WorkspacesClient           *operationalinsights.WorkspacesClient
 }
 
