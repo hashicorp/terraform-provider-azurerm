@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDigitaltwinsEndpoint() *schema.Resource {
+func resourceArmDigitalTwinsEndpointEventGrid() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDigitaltwinsEndpointCreateUpdate,
-		Read:   resourceArmDigitaltwinsEndpointRead,
-		Update: resourceArmDigitaltwinsEndpointCreateUpdate,
-		Delete: resourceArmDigitaltwinsEndpointDelete,
+		Create: resourceArmDigitalTwinsEndpointEventGridCreateUpdate,
+		Read:   resourceArmDigitalTwinsEndpointEventGridRead,
+		Update: resourceArmDigitalTwinsEndpointEventGridCreateUpdate,
+		Delete: resourceArmDigitalTwinsEndpointEventGridDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -69,7 +69,7 @@ func resourceArmDigitaltwinsEndpoint() *schema.Resource {
 		},
 	}
 }
-func resourceArmDigitaltwinsEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDigitalTwinsEndpointEventGridCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Digitaltwins.EndpointClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -123,10 +123,10 @@ func resourceArmDigitaltwinsEndpointCreateUpdate(d *schema.ResourceData, meta in
 	}
 	d.SetId(id.ID(subscriptionId))
 
-	return resourceArmDigitaltwinsEndpointRead(d, meta)
+	return resourceArmDigitalTwinsEndpointEventGridRead(d, meta)
 }
 
-func resourceArmDigitaltwinsEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDigitalTwinsEndpointEventGridRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Digitaltwins.EndpointClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -155,7 +155,7 @@ func resourceArmDigitaltwinsEndpointRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func resourceArmDigitaltwinsEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDigitalTwinsEndpointEventGridDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Digitaltwins.EndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()

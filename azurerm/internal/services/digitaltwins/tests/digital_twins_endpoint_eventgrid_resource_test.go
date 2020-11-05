@@ -12,17 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMdigitaltwinsEndpoint_basic(t *testing.T) {
+func TestAccAzureRMDigitalTwinsEndpointEventGrid_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMdigitaltwinsEndpointDestroy,
+		CheckDestroy: testCheckAzureRMDigitalTwinsEndpointEventGridDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMdigitaltwinsEndpoint_basic(data),
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMdigitaltwinsEndpointExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
@@ -30,49 +30,49 @@ func TestAccAzureRMdigitaltwinsEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMdigitaltwinsEndpoint_requiresImport(t *testing.T) {
+func TestAccAzureRMDigitalTwinsEndpointEventGrid_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMdigitaltwinsEndpointDestroy,
+		CheckDestroy: testCheckAzureRMDigitalTwinsEndpointEventGridDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMdigitaltwinsEndpoint_basic(data),
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMdigitaltwinsEndpointExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMdigitaltwinsEndpoint_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMDigitalTwinsEndpointEventGrid_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMdigitaltwinsEndpoint_update(t *testing.T) {
+func TestAccAzureRMDigitalTwinsEndpointEventGrid_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMdigitaltwinsEndpointDestroy,
+		CheckDestroy: testCheckAzureRMDigitalTwinsEndpointEventGridDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMdigitaltwinsEndpoint_basic(data),
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMdigitaltwinsEndpointExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
 			{
-				Config: testAccAzureRMdigitaltwinsEndpoint_update(data),
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMdigitaltwinsEndpointExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
 			{
-				Config: testAccAzureRMdigitaltwinsEndpoint_basic(data),
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMdigitaltwinsEndpointExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
@@ -80,7 +80,7 @@ func TestAccAzureRMdigitaltwinsEndpoint_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMdigitaltwinsEndpointExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMDigitalTwinsEndpointEventGridExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Digitaltwins.EndpointClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -102,7 +102,7 @@ func testCheckAzureRMdigitaltwinsEndpointExists(resourceName string) resource.Te
 	}
 }
 
-func testCheckAzureRMdigitaltwinsEndpointDestroy(s *terraform.State) error {
+func testCheckAzureRMDigitalTwinsEndpointEventGridDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Digitaltwins.EndpointClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -123,7 +123,7 @@ func testCheckAzureRMdigitaltwinsEndpointDestroy(s *terraform.State) error {
 	}
 	return nil
 }
-func testAccAzureRMdigitaltwinsEndpoint_template(data acceptance.TestData) string {
+func testAccAzureRMDigitalTwinsEndpointEventGrid_template(data acceptance.TestData) string {
 	digitalTwins := testAccAzureRMDigitalTwins_basic(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -143,8 +143,8 @@ resource "azurerm_eventgrid_topic" "test_alt" {
 `, digitalTwins, data.RandomInteger)
 }
 
-func testAccAzureRMdigitaltwinsEndpoint_basic(data acceptance.TestData) string {
-	template := testAccAzureRMdigitaltwinsEndpoint_template(data)
+func testAccAzureRMDigitalTwinsEndpointEventGrid_basic(data acceptance.TestData) string {
+	template := testAccAzureRMDigitalTwinsEndpointEventGrid_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -158,8 +158,8 @@ resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMdigitaltwinsEndpoint_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMdigitaltwinsEndpoint_basic(data)
+func testAccAzureRMDigitalTwinsEndpointEventGrid_requiresImport(data acceptance.TestData) string {
+	config := testAccAzureRMDigitalTwinsEndpointEventGrid_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -173,8 +173,8 @@ resource "azurerm_digital_twins_endpoint_eventgrid" "import" {
 `, config)
 }
 
-func testAccAzureRMdigitaltwinsEndpoint_update(data acceptance.TestData) string {
-	template := testAccAzureRMdigitaltwinsEndpoint_template(data)
+func testAccAzureRMDigitalTwinsEndpointEventGrid_update(data acceptance.TestData) string {
+	template := testAccAzureRMDigitalTwinsEndpointEventGrid_template(data)
 	return fmt.Sprintf(`
 %s
 
