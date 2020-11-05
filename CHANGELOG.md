@@ -1,5 +1,9 @@
 ## 2.35.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_kubernetes_cluster` - the field `enable_pod_security_policy` and `node_taints` (within the `default_node_pool` block) can no longer be configured - see below for more details [GH-8982]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_images` [GH-8629]
@@ -9,6 +13,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: updating `containerservice` to API version `2020-09-01` [GH-8982]
 * dependencies: updating `iottimeseriesinsights` to API Version `2020-05-15` [GH-9129]
 * `azurerm_data_factory_linked_service_data_lake_storage_gen2` - Supports managed identity auth through `use_managed_identity ` [GH-8938]
 * `azurerm_firewall` - support the `dns_servers` property [GH-8878]
@@ -20,6 +25,8 @@ BUG FIXES:
 * Fixed regression that prevented Synapse client registering in all Azure environments [GH-9100]
 * `azurerm_cosmosdb_mongo_database` no longer attempts to get throughput settings when cosmos account is serverless [GH-8673]
 * `azurerm_key_vault_access_policy` - check access policy consistency before committing to state [GH-9125]
+* `azurerm_kubernetes_cluster` - the field `enable_pod_security_policy` can no longer be set, due to this functionality being removed from AKS as of `2020-10-15` [GH-8982]
+* `azurerm_kubernetes_cluster` - the field `node_taints` can no longer be set on the `default_node_pool` block, to match the behaviour of AKS [GH-8982]
 * `azurerm_virtual_desktop_application_group` - adding validation to the `host_pool_id` field [GH-9057]
 * `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `application_group_id` field [GH-9057]
 * `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `workspace_id` field [GH-9057]
