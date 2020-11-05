@@ -268,8 +268,9 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 												},
 
 												"value": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 										},
@@ -410,10 +411,10 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				},
 			},
 
+			// API accepts any value including empty string.
 			"notes": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"output_workspace_resource_ids": {

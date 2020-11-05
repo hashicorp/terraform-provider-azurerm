@@ -16,32 +16,32 @@ Manages a Network Connection Monitor.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-watcher-resources"
-  location = "eastus2"
+  name     = "example-Watcher-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_network_watcher" "example" {
-  name                = "example-watcher"
+  name                = "example-Watcher"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_virtual_network" "example" {
-  name                = "example-vnet"
+  name                = "example-Vnet"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
+  name                 = "example-Subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_network_interface" "example" {
-  name                = "example-nic"
+  name                = "example-Nic"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
@@ -53,7 +53,7 @@ resource "azurerm_network_interface" "example" {
 }
 
 resource "azurerm_virtual_machine" "example" {
-  name                  = "example-vm"
+  name                  = "example-VM"
   location              = azurerm_resource_group.example.location
   resource_group_name   = azurerm_resource_group.example.name
   network_interface_ids = [azurerm_network_interface.example.id]
@@ -85,7 +85,7 @@ resource "azurerm_virtual_machine" "example" {
 }
 
 resource "azurerm_virtual_machine_extension" "example" {
-  name                       = "example-vmextension"
+  name                       = "example-VMExtension"
   virtual_machine_id         = azurerm_virtual_machine.example.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
@@ -94,14 +94,14 @@ resource "azurerm_virtual_machine_extension" "example" {
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
-  name                = "example-workspace"
+  name                = "example-Workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "pergb2018"
 }
 
 resource "azurerm_network_connection_monitor" "example" {
-  name                 = "example-monitor"
+  name                 = "example-Monitor"
   network_watcher_name = azurerm_network_watcher.example.name
   resource_group_name  = azurerm_resource_group.example.name
   location             = azurerm_network_watcher.example.location
