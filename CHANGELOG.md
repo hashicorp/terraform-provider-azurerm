@@ -23,6 +23,7 @@ BUG FIXES:
 * `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `application_group_id` field [GH-9057]
 * `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `workspace_id` field [GH-9057]
 * `azurerm_virtual_desktop_workspace_application_group_association` - validating the ID during import is a Workspace Application Group Association ID [GH-9057]
+* `azurerm_postgresql_firewall_rule` - add validation for `start_ip_address` and `end_ip_address` properties [GH-8963]
 
 ## 2.34.0 (October 29, 2020)
 
