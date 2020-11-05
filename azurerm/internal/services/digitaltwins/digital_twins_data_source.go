@@ -44,7 +44,7 @@ func dataSourceDigitalTwins() *schema.Resource {
 }
 
 func dataSourceArmDigitalTwinsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
+	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

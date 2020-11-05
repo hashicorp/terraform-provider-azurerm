@@ -114,13 +114,13 @@ func TestAccAzureRMDigitalTwins_update(t *testing.T) {
 
 func testCheckAzureRMDigitalTwinsExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Digitaltwins.DigitalTwinClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Digitaltwins.DigitalTwinsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("digital Twins not found: %s", resourceName)
 		}
-		id, err := parse.DigitalTwinID(rs.Primary.ID)
+		id, err := parse.DigitalTwinsID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -135,20 +135,20 @@ func testCheckAzureRMDigitalTwinsExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDigitalTwinsDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Digitaltwins.DigitalTwinClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Digitaltwins.DigitalTwinsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_digital_twins" {
 			continue
 		}
-		id, err := parse.DigitalTwinID(rs.Primary.ID)
+		id, err := parse.DigitalTwinsID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Digitaltwins.DigitalTwinClient: %+v", err)
+				return fmt.Errorf("bad: Get on Digitaltwins.DigitalTwinsClient: %+v", err)
 			}
 		}
 		return nil
