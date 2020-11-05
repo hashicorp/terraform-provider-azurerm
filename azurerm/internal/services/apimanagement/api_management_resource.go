@@ -1,7 +1,9 @@
 package apimanagement
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"strconv"
 	"strings"
@@ -749,6 +751,31 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 	}
 
 	return nil
+}
+
+func apiManagementRefreshFunc(ctx context.Context, client *apimanagement.ServiceClient, serviceName, resourceGroup string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if API Management Service %q (Resource Group: %q) is available..", serviceName, resourceGroup)
+
+		resp, err := client.Get(ctx, resourceGroup, serviceName)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				log.Printf("[DEBUG] Retrieving API Management %q (Resource Group: %q) returned 404.", serviceName, resourceGroup)
+				return nil, "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("Error polling for the state of the API Management Service %q (Resource Group: %q): %+v", serviceName, resourceGroup, err)
+		}
+
+		state := ""
+		if props := resp.ServiceProperties; props != nil {
+			if props.ProvisioningState != nil {
+				state = *props.ProvisioningState
+			}
+		}
+
+		return resp, state, nil
+	}
 }
 
 func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[]apimanagement.HostnameConfiguration {

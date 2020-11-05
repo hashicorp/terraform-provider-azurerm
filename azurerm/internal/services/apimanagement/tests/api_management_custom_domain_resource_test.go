@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -98,10 +99,13 @@ func testCheckAzureRMApiManagementCustomDomainDestroy(s *terraform.State) error 
 			continue
 		}
 
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		customDomainId := rs.Primary.ID
+		id, err := parse.ApiManagementCustomDomainID(customDomainId)
+		if err != nil {
+			return fmt.Errorf("Error parsing ID %q for API Management Custom Domain: %+v", customDomainId, err)
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, serviceName)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -131,17 +135,20 @@ func testCheckAzureRMApiManagementCustomDomainExists(name string) resource.TestC
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		serviceName := rs.Primary.Attributes["api_management_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		customDomainId := rs.Primary.ID
+		id, err := parse.ApiManagementCustomDomainID(customDomainId)
+		if err != nil {
+			return fmt.Errorf("Error parsing ID %q for API Management Custom Domain: %+v", customDomainId, err)
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, serviceName)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Custom Domains on API Management Service %q / Resource Group: %q does not exist (because API Management Service %q does not exist)", serviceName, resourceGroup, serviceName)
+				return fmt.Errorf("Bad: Custom Domains on API Management Service %q / Resource Group: %q does not exist (because API Management Service %q does not exist)", id.ServiceName, id.ResourceGroup, id.ServiceName)
 			}
 
 			if resp.ServiceProperties == nil || resp.ServiceProperties.HostnameConfigurations == nil || len(*resp.ServiceProperties.HostnameConfigurations) == 0 {
-				return fmt.Errorf("Bad: Expected there to be Custom Domains defined in the hostname_configurations field for API Management Service %q / Resource Group: %q", serviceName, resourceGroup)
+				return fmt.Errorf("Bad: Expected there to be Custom Domains defined in the hostname_configurations field for API Management Service %q / Resource Group: %q", id.ServiceName, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on apiManagementCustomDomainsClient: %+v", err)
@@ -182,8 +189,7 @@ func testAccAzureRMApiManagementCustomDomain_proxyOnly(data acceptance.TestData)
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  api_management_id = azurerm_api_management.test.id
 
   proxy {
     host_name = "${azurerm_api_management.test.name}.azure-api.net"
@@ -203,8 +209,7 @@ func testAccAzureRMApiManagementCustomDomain_developerPortalOnly(data acceptance
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  api_management_id = azurerm_api_management.test.id
 
   proxy {
     host_name = "${azurerm_api_management.test.name}.azure-api.net"
@@ -224,8 +229,7 @@ func testAccAzureRMApiManagementCustomDomain_builtinProxyOnly(data acceptance.Te
 %s
 
 resource "azurerm_api_management_custom_domain" "test" {
-  api_management_name = azurerm_api_management.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  api_management_id = azurerm_api_management.test.id
 
   proxy {
     host_name = "${azurerm_api_management.test.name}.azure-api.net"
@@ -240,8 +244,7 @@ func testAccAzureRMApiManagementCustomDomain_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_api_management_custom_domain" "import" {
-  api_management_name = azurerm_api_management_custom_domain.test.api_management_name
-  resource_group_name = azurerm_api_management_custom_domain.test.resource_group_name
+  api_management_id = azurerm_api_management_custom_domain.test.api_management_id
 
   proxy {
     host_name = "${azurerm_api_management.test.name}.azure-api.net"

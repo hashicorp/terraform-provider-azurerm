@@ -2,6 +2,7 @@ package apimanagement
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"strings"
 	"time"
@@ -115,6 +116,25 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 
 	existing.ServiceProperties.HostnameConfigurations = expandApiManagementCustomDomains(d)
 
+	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
+	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Updating", "Unknown"},
+		Target:                    []string{"Succeeded", "Ready"},
+		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
+		MinTimeout:                1 * time.Minute,
+		ContinuousTargetOccurence: 5,
+	}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, existing); err != nil {
 		return fmt.Errorf("creating/updating Custom Domain (API Management %q / Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
@@ -195,12 +215,42 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
-	log.Printf("[DEBUG] Deleting API Management Custom domain (API Management %q / Resource Group %q)", serviceName, resourceGroup)
+	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
+	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Updating", "Unknown"},
+		Target:                    []string{"Succeeded", "Ready"},
+		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
+		MinTimeout:                1 * time.Minute,
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
+	}
+
+	log.Printf("[DEBUG] Deleting API Management Custom Domain (API Management %q / Resource Group %q)", serviceName, resourceGroup)
 
 	resp.ServiceProperties.HostnameConfigurations = nil
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, resp); err != nil {
 		return fmt.Errorf("deleting Custom Domain (API Management %q / Resource Group %q): %+v", serviceName, resourceGroup, err)
+	}
+
+	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
+	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
+	stateConf = &resource.StateChangeConf{
+		Pending:                   []string{"Updating", "Unknown"},
+		Target:                    []string{"Succeeded", "Ready"},
+		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
+		MinTimeout:                1 * time.Minute,
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
 
 	return nil
