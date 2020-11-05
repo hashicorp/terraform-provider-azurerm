@@ -14,9 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceDigitaltwinsDigitalTwin() *schema.Resource {
+func dataSourceDigitalTwins() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDigitaltwinsDigitalTwinRead,
+		Read: dataSourceArmDigitalTwinsRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -43,7 +43,7 @@ func dataSourceDigitaltwinsDigitalTwin() *schema.Resource {
 	}
 }
 
-func dataSourceArmDigitaltwinsDigitalTwinRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmDigitalTwinsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -54,12 +54,12 @@ func dataSourceArmDigitaltwinsDigitalTwinRead(d *schema.ResourceData, meta inter
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Digitaltwins DigitalTwin %q does not exist", name)
+			return fmt.Errorf("digital twins %q does not exist", name)
 		}
-		return fmt.Errorf("retrieving Digitaltwins DigitalTwin %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Digital Twins %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Digitaltwins DigitalTwin %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Digital Twins %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

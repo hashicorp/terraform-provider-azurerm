@@ -19,13 +19,13 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_digital_twins": dataSourceDigitaltwinsDigitalTwin(),
+		"azurerm_digital_twins": dataSourceDigitalTwins(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_digital_twins": resourceArmDigitaltwinsDigitalTwin(),
+		"azurerm_digital_twins": resourceArmDigitalTwins(),
 	}
 }

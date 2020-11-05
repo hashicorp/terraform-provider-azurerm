@@ -8,17 +8,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMdigitaltwinsDigitalTwin_basic(t *testing.T) {
+func TestAccDataSourceAzureRMDigitalTwins_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_digital_twins", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMdigitaltwinsDigitalTwinDestroy,
+		CheckDestroy: testCheckAzureRMDigitalTwinsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourcedigitaltwinsDigitalTwin_basic(data),
+				Config: testAccDataSourceDigitalTwins_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMdigitaltwinsDigitalTwinExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
 				),
 			},
@@ -26,8 +26,8 @@ func TestAccDataSourceAzureRMdigitaltwinsDigitalTwin_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourcedigitaltwinsDigitalTwin_basic(data acceptance.TestData) string {
-	config := testAccAzureRMdigitaltwinsDigitalTwin_basic(data)
+func testAccDataSourceDigitalTwins_basic(data acceptance.TestData) string {
+	config := testAccAzureRMDigitalTwins_basic(data)
 	return fmt.Sprintf(`
 %s
 

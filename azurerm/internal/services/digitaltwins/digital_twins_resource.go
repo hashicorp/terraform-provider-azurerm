@@ -19,12 +19,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDigitaltwinsDigitalTwin() *schema.Resource {
+func resourceArmDigitalTwins() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDigitaltwinsDigitalTwinCreate,
-		Read:   resourceArmDigitaltwinsDigitalTwinRead,
-		Update: resourceArmDigitaltwinsDigitalTwinUpdate,
-		Delete: resourceArmDigitaltwinsDigitalTwinDelete,
+		Create: resourceArmDigitalTwinsCreate,
+		Read:   resourceArmDigitalTwinsRead,
+		Update: resourceArmDigitalTwinsUpdate,
+		Delete: resourceArmDigitalTwinsDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,7 +34,7 @@ func resourceArmDigitaltwinsDigitalTwin() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DigitaltwinsDigitalTwinID(id)
+			_, err := parse.DigitalTwinID(id)
 			return err
 		}),
 
@@ -59,7 +59,7 @@ func resourceArmDigitaltwinsDigitalTwin() *schema.Resource {
 		},
 	}
 }
-func resourceArmDigitaltwinsDigitalTwinCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -71,7 +71,7 @@ func resourceArmDigitaltwinsDigitalTwinCreate(d *schema.ResourceData, meta inter
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Digitaltwins DigitalTwin %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing Digital Twins %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
@@ -85,37 +85,37 @@ func resourceArmDigitaltwinsDigitalTwinCreate(d *schema.ResourceData, meta inter
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, digitalTwinsCreate)
 	if err != nil {
-		return fmt.Errorf("creating Digitaltwins DigitalTwin %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Digital Twins %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Digitaltwins DigitalTwin %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting on creating future for Digital Twins %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Digitaltwins DigitalTwin %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Digital Twins %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Digitaltwins DigitalTwin %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Digital Twins %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	id, err := parse.DigitaltwinsDigitalTwinID(*resp.ID)
+	id, err := parse.DigitalTwinID(*resp.ID)
 	if err != nil {
 		return err
 	}
 	d.SetId(id.ID(subscriptionId))
 
-	return resourceArmDigitaltwinsDigitalTwinRead(d, meta)
+	return resourceArmDigitalTwinsRead(d, meta)
 }
 
-func resourceArmDigitaltwinsDigitalTwinRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDigitalTwinsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitaltwinsDigitalTwinID(d.Id())
+	id, err := parse.DigitalTwinID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func resourceArmDigitaltwinsDigitalTwinRead(d *schema.ResourceData, meta interfa
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Digitaltwins DigitalTwin %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Digital Twins %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -138,12 +138,12 @@ func resourceArmDigitaltwinsDigitalTwinRead(d *schema.ResourceData, meta interfa
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDigitaltwinsDigitalTwinUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDigitalTwinsUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitaltwinsDigitalTwinID(d.Id())
+	id, err := parse.DigitalTwinID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -155,28 +155,28 @@ func resourceArmDigitaltwinsDigitalTwinUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, digitalTwinsPatchDescription); err != nil {
-		return fmt.Errorf("updating Digitaltwins DigitalTwin %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating Digital Twins %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	return resourceArmDigitaltwinsDigitalTwinRead(d, meta)
+	return resourceArmDigitalTwinsRead(d, meta)
 }
 
-func resourceArmDigitaltwinsDigitalTwinDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDigitalTwinsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitaltwinsDigitalTwinID(d.Id())
+	id, err := parse.DigitalTwinID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Digitaltwins DigitalTwin %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Digital Twins %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Digitaltwins DigitalTwin %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting on deleting future for Digital Twins %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	return nil
 }

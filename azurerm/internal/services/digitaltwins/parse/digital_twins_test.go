@@ -6,11 +6,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = DigitaltwinsDigitalTwinId{}
+var _ resourceid.Formatter = DigitalTwinId{}
 
-func TestDigitaltwinsDigitalTwinIDFormatter(t *testing.T) {
+func TestDigitalTwinsIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	id := NewDigitaltwinsDigitalTwinID("resourceGroup1", "resource1")
+	id := NewDigitalTwinID("resourceGroup1", "resource1")
 	actual := id.ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/resource1"
 	if actual != expected {
@@ -18,11 +18,11 @@ func TestDigitaltwinsDigitalTwinIDFormatter(t *testing.T) {
 	}
 }
 
-func TestDigitaltwinsDigitalTwinID(t *testing.T) {
+func TestDigitalTwinsID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DigitaltwinsDigitalTwinId
+		Expected *DigitalTwinId
 	}{
 		{
 			Name:     "Empty",
@@ -50,9 +50,9 @@ func TestDigitaltwinsDigitalTwinID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "digitaltwins DigitalTwin ID",
+			Name:  "digitaltwins DigitalTwins ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/resource1",
-			Expected: &DigitaltwinsDigitalTwinId{
+			Expected: &DigitalTwinId{
 				ResourceGroup: "resourceGroup1",
 				Name:          "resource1",
 			},
@@ -67,7 +67,7 @@ func TestDigitaltwinsDigitalTwinID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := DigitaltwinsDigitalTwinID(v.Input)
+		actual, err := DigitalTwinID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
