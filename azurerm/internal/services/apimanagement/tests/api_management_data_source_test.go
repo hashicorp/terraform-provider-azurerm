@@ -44,7 +44,7 @@ func TestAccDataSourceAzureRMApiManagement_identitySystemAssigned(t *testing.T) 
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Developer_1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
 				),
 			},

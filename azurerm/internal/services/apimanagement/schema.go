@@ -3,15 +3,18 @@ package apimanagement
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
 func apiManagementResourceHostnameSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"host_name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:             schema.TypeString,
+			Required:         true,
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     validation.StringIsNotEmpty,
 		},
 
 		"key_vault_id": {
