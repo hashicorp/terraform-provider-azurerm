@@ -57,6 +57,7 @@ The following arguments are supported:
 
 * `eventgrid_topic_secondary_access_key` - (Required) The secondary accesskey of the EventGrid Topic.
 
+* `dead_letter_storage_secret` - (Optional) The storage secret of the dead-lettering, whose format is `https://<storageAccountname>.blob.core.windows.net/<containerName>?<SASToken>`. When an endpoint can't deliver an event within a certain time period or after trying to deliver the event a certain number of times, it can send the undelivered event to a storage account. This process is known as dead-lettering.
 
 ## Attributes Reference
 

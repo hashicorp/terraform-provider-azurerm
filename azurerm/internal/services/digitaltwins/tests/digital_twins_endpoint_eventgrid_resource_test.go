@@ -48,7 +48,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDigitalTwinsEndpointEventGrid_update(t *testing.T) {
+func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGrid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -63,12 +63,30 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_update(t *testing.T) {
 			},
 			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
 			{
-				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_update(data),
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGrid(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
+			{
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGridRestore(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
+		},
+	})
+}
+
+func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDigitalTwinsEndpointEventGridDestroy,
+		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -76,6 +94,20 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_update(t *testing.T) {
 				),
 			},
 			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
+			{
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetter(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key", "dead_letter_storage_secret"),
+			{
+				Config: testAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetterRestore(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDigitalTwinsEndpointEventGridExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key", "dead_letter_storage_secret"),
 		},
 	})
 }
@@ -133,13 +165,6 @@ resource "azurerm_eventgrid_topic" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-
-resource "azurerm_eventgrid_topic" "test_alt" {
-  name                = "acctesteg-alt-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 `, digitalTwins, data.RandomInteger)
 }
 
@@ -173,17 +198,105 @@ resource "azurerm_digital_twins_endpoint_eventgrid" "import" {
 `, config)
 }
 
-func testAccAzureRMDigitalTwinsEndpointEventGrid_update(data acceptance.TestData) string {
+func testAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGrid(data acceptance.TestData) string {
 	template := testAccAzureRMDigitalTwinsEndpointEventGrid_template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+resource "azurerm_eventgrid_topic" "test_alt" {
+  name                = "acctesteg-alt-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
 
 resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
-  name                                 = "acctest-EG-%d"
+  name                                 = "acctest-EG-%[2]d"
   digital_twins_id                     = azurerm_digital_twins.test.id
   eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test_alt.endpoint
   eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test_alt.primary_access_key
   eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test_alt.secondary_access_key
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGridRestore(data acceptance.TestData) string {
+	template := testAccAzureRMDigitalTwinsEndpointEventGrid_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_topic" "test_alt" {
+  name                = "acctesteg-alt-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
+  name                                 = "acctest-EG-%[2]d"
+  digital_twins_id                     = azurerm_digital_twins.test.id
+  eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test.endpoint
+  eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test.primary_access_key
+  eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test.secondary_access_key
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetter(data acceptance.TestData) string {
+	template := testAccAzureRMDigitalTwinsEndpointEventGrid_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
+  name                                 = "acctest-EG-%[3]d"
+  digital_twins_id                     = azurerm_digital_twins.test.id
+  eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test.endpoint
+  eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test.primary_access_key
+  eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test.secondary_access_key
+  dead_letter_storage_secret           = "${azurerm_storage_container.test.id}?${azurerm_storage_account.test.primary_access_key}"
+
+}
+`, template, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetterRestore(data acceptance.TestData) string {
+	template := testAccAzureRMDigitalTwinsEndpointEventGrid_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
+  name                                 = "acctest-EG-%[3]d"
+  digital_twins_id                     = azurerm_digital_twins.test.id
+  eventgrid_topic_endpoint             = azurerm_eventgrid_topic.test.endpoint
+  eventgrid_topic_primary_access_key   = azurerm_eventgrid_topic.test.primary_access_key
+  eventgrid_topic_secondary_access_key = azurerm_eventgrid_topic.test.secondary_access_key
+
+}
+`, template, data.RandomString, data.RandomInteger)
 }

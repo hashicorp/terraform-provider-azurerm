@@ -66,6 +66,11 @@ func resourceArmDigitalTwinsEndpointEventGrid() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+
+			"dead_letter_storage_secret": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -92,10 +97,11 @@ func resourceArmDigitalTwinsEndpointEventGridCreateUpdate(d *schema.ResourceData
 
 	endpointDescription := digitaltwins.EndpointResource{
 		Properties: &digitaltwins.EventGrid{
-			EndpointType:  digitaltwins.EndpointTypeEventGrid,
-			TopicEndpoint: utils.String(d.Get("eventgrid_topic_endpoint").(string)),
-			AccessKey1:    utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
-			AccessKey2:    utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
+			EndpointType:     digitaltwins.EndpointTypeEventGrid,
+			TopicEndpoint:    utils.String(d.Get("eventgrid_topic_endpoint").(string)),
+			AccessKey1:       utils.String(d.Get("eventgrid_topic_primary_access_key").(string)),
+			AccessKey2:       utils.String(d.Get("eventgrid_topic_secondary_access_key").(string)),
+			DeadLetterSecret: utils.String(d.Get("dead_letter_storage_secret").(string)),
 		},
 	}
 
