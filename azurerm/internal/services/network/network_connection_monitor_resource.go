@@ -47,13 +47,91 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"location": azure.SchemaLocation(),
-
 			"network_watcher_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: networkValidate.NetworkWatcherID,
+			},
+
+			"location": azure.SchemaLocation(),
+
+			"auto_start": {
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+			},
+
+			"interval_in_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(30),
+				Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+			},
+
+			"source": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"virtual_machine_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceID,
+							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						},
+
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.PortNumberOrZero,
+							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						},
+					},
+				},
+			},
+
+			"destination": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"virtual_machine_id": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Computed:      true,
+							ValidateFunc:  azure.ValidateResourceID,
+							ConflictsWith: []string{"destination.0.address"},
+							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						},
+
+						"address": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							Computed:      true,
+							ConflictsWith: []string{"destination.0.virtual_machine_id"},
+							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						},
+
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.PortNumber,
+							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+						},
+					},
+				},
 			},
 
 			"endpoint": {
@@ -62,13 +140,15 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"address": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsIPv4Address,
 						},
 
 						"filter": {
@@ -83,8 +163,9 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"address": {
-													Type:     schema.TypeString,
-													Optional: true,
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: azure.ValidateResourceID,
 												},
 
 												"type": {
@@ -126,8 +207,9 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"protocol": {
@@ -180,8 +262,9 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 
 												"value": {
@@ -210,7 +293,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"disable_trace_route": {
+									"trace_route_disabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  false,
@@ -261,7 +344,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 										ValidateFunc: validate.PortNumber,
 									},
 
-									"disable_trace_route": {
+									"trace_route_disabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  false,
@@ -270,7 +353,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
-						"test_frequency_sec": {
+						"test_frequency_iin_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      60,
@@ -286,15 +369,17 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"destinations": {
+						"destination_endpoints": {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -302,7 +387,8 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -310,7 +396,8 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -323,60 +410,10 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				},
 			},
 
-			"auto_start": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-			},
-
-			"destination": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"address": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"destination.0.virtual_machine_id"},
-							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						},
-
-						"port": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.PortNumber,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						},
-
-						"virtual_machine_id": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ValidateFunc:  azure.ValidateResourceID,
-							ConflictsWith: []string{"destination.0.address"},
-							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						},
-					},
-				},
-			},
-
-			"interval_in_seconds": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(30),
-				Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-			},
-
 			"notes": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"output_workspace_resource_ids": {
@@ -387,33 +424,6 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: logAnalyticsValidate.LogAnalyticsWorkspaceID,
-				},
-			},
-
-			"source": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Computed:   true,
-				MaxItems:   1,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"port": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validate.PortNumberOrZero,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						},
-
-						"virtual_machine_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
-						},
-					},
 				},
 			},
 
@@ -637,7 +647,7 @@ func expandArmNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]
 			Protocol:          network.ConnectionMonitorTestConfigurationProtocol(v["protocol"].(string)),
 			SuccessThreshold:  expandArmNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
 			TCPConfiguration:  expandArmNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
-			TestFrequencySec:  utils.Int32(int32(v["test_frequency_sec"].(int))),
+			TestFrequencySec:  utils.Int32(int32(v["test_frequency_iin_seconds"].(int))),
 		}
 
 		if preferredIPVersion := v["preferred_ip_version"]; preferredIPVersion != "" {
@@ -687,7 +697,7 @@ func expandArmNetworkConnectionMonitorTCPConfiguration(input []interface{}) *net
 
 	return &network.ConnectionMonitorTCPConfiguration{
 		Port:              utils.Int32(int32(v["port"].(int))),
-		DisableTraceRoute: utils.Bool(v["disable_trace_route"].(bool)),
+		DisableTraceRoute: utils.Bool(v["trace_route_disabled"].(bool)),
 	}
 }
 
@@ -699,7 +709,7 @@ func expandArmNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *ne
 	v := input[0].(map[string]interface{})
 
 	return &network.ConnectionMonitorIcmpConfiguration{
-		DisableTraceRoute: utils.Bool(v["disable_trace_route"].(bool)),
+		DisableTraceRoute: utils.Bool(v["trace_route_disabled"].(bool)),
 	}
 }
 
@@ -745,7 +755,7 @@ func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) *[]network.
 
 		result := network.ConnectionMonitorTestGroup{
 			Name:               utils.String(v["name"].(string)),
-			Destinations:       utils.ExpandStringSlice(v["destinations"].(*schema.Set).List()),
+			Destinations:       utils.ExpandStringSlice(v["destination_endpoints"].(*schema.Set).List()),
 			Disable:            utils.Bool(!v["enabled"].(bool)),
 			Sources:            utils.ExpandStringSlice(v["sources"].(*schema.Set).List()),
 			TestConfigurations: utils.ExpandStringSlice(v["test_configurations"].(*schema.Set).List()),
@@ -881,14 +891,14 @@ func flattenArmNetworkConnectionMonitorTestConfiguration(input *[]network.Connec
 		}
 
 		v := map[string]interface{}{
-			"name":                 name,
-			"protocol":             protocol,
-			"http_configuration":   flattenArmNetworkConnectionMonitorHTTPConfiguration(item.HTTPConfiguration),
-			"icmp_configuration":   flattenArmNetworkConnectionMonitorIcmpConfiguration(item.IcmpConfiguration),
-			"preferred_ip_version": preferredIpVersion,
-			"success_threshold":    flattenArmNetworkConnectionMonitorSuccessThreshold(item.SuccessThreshold),
-			"tcp_configuration":    flattenArmNetworkConnectionMonitorTCPConfiguration(item.TCPConfiguration),
-			"test_frequency_sec":   testFrequencySec,
+			"name":                       name,
+			"protocol":                   protocol,
+			"http_configuration":         flattenArmNetworkConnectionMonitorHTTPConfiguration(item.HTTPConfiguration),
+			"icmp_configuration":         flattenArmNetworkConnectionMonitorIcmpConfiguration(item.IcmpConfiguration),
+			"preferred_ip_version":       preferredIpVersion,
+			"success_threshold":          flattenArmNetworkConnectionMonitorSuccessThreshold(item.SuccessThreshold),
+			"tcp_configuration":          flattenArmNetworkConnectionMonitorTCPConfiguration(item.TCPConfiguration),
+			"test_frequency_iin_seconds": testFrequencySec,
 		}
 
 		results = append(results, v)
@@ -946,7 +956,7 @@ func flattenArmNetworkConnectionMonitorIcmpConfiguration(input *network.Connecti
 
 	return []interface{}{
 		map[string]interface{}{
-			"disable_trace_route": disableTraceRoute,
+			"trace_route_disabled": disableTraceRoute,
 		},
 	}
 }
@@ -991,8 +1001,8 @@ func flattenArmNetworkConnectionMonitorTCPConfiguration(input *network.Connectio
 
 	return []interface{}{
 		map[string]interface{}{
-			"disable_trace_route": disableTraceRoute,
-			"port":                port,
+			"trace_route_disabled": disableTraceRoute,
+			"port":                 port,
 		},
 	}
 }
@@ -1043,11 +1053,11 @@ func flattenArmNetworkConnectionMonitorTestGroup(input *[]network.ConnectionMoni
 		}
 
 		v := map[string]interface{}{
-			"name":                name,
-			"destinations":        utils.FlattenStringSlice(item.Destinations),
-			"sources":             utils.FlattenStringSlice(item.Sources),
-			"test_configurations": utils.FlattenStringSlice(item.TestConfigurations),
-			"enabled":             !disable,
+			"name":                  name,
+			"destination_endpoints": utils.FlattenStringSlice(item.Destinations),
+			"sources":               utils.FlattenStringSlice(item.Sources),
+			"test_configurations":   utils.FlattenStringSlice(item.TestConfigurations),
+			"enabled":               !disable,
 		}
 
 		results = append(results, v)

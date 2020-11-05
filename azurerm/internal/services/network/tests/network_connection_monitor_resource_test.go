@@ -504,10 +504,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -552,10 +552,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_configuration {
-    name                 = "tcp"
-    protocol             = "Tcp"
-    test_frequency_sec   = 40
-    preferred_ip_version = "IPv4"
+    name                       = "tcp"
+    protocol                   = "Tcp"
+    test_frequency_iin_seconds = 40
+    preferred_ip_version       = "IPv4"
 
     tcp_configuration {
       port = 80
@@ -568,11 +568,11 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
-    enabled             = true
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
+    enabled               = true
   }
 
   notes = "testnote"
@@ -618,10 +618,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -660,10 +660,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -701,9 +701,9 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_configuration {
-    name               = "tcp"
-    protocol           = "Tcp"
-    test_frequency_sec = 40
+    name                       = "tcp"
+    protocol                   = "Tcp"
+    test_frequency_iin_seconds = 40
 
     tcp_configuration {
       port = 80
@@ -711,11 +711,11 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
-    enabled             = true
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
+    enabled               = true
   }
 
   tags = {
@@ -752,10 +752,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -793,10 +793,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -834,10 +834,10 @@ resource "azurerm_network_connection_monitor" "import" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -884,10 +884,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -920,15 +920,15 @@ resource "azurerm_network_connection_monitor" "test" {
     protocol = "Icmp"
 
     icmp_configuration {
-      disable_trace_route = false
+      trace_route_disabled = false
     }
   }
 
   test_group {
-    name                = "testtg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcp"]
+    name                  = "testtg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcp"]
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]

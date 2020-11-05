@@ -10,7 +10,7 @@ description: |-
 
 Manages a Network Connection Monitor.
 
-~> **NOTE:** The resource created via API version 2019-06-01 or lower is now deprecated and not compatible to this version.
+~> **NOTE:** Any Network Connection Monitor resource created with API versions 2019-06-01 or earlier (v1) are now incompatible with terraform which now only supports v2.
 
 ## Example Usage
 
@@ -126,9 +126,9 @@ resource "azurerm_network_connection_monitor" "example" {
   }
 
   test_configuration {
-    name               = "tcpName"
-    protocol           = "Tcp"
-    test_frequency_sec = 60
+    name                       = "tcpName"
+    protocol                   = "Tcp"
+    test_frequency_iin_seconds = 60
 
     tcp_configuration {
       port = 80
@@ -136,11 +136,11 @@ resource "azurerm_network_connection_monitor" "example" {
   }
 
   test_group {
-    name                = "exampletg"
-    destinations        = ["destination"]
-    sources             = ["source"]
-    test_configurations = ["tcpName"]
-    disable             = false
+    name                  = "exampletg"
+    destination_endpoints = ["destination"]
+    sources               = ["source"]
+    test_configurations   = ["tcpName"]
+    disable               = false
   }
 
   notes = "examplenote"
@@ -169,9 +169,9 @@ The following arguments are supported:
 
 ---
 
-* `notes` - (Optional) The notes to be associated with the connection monitor.
+* `notes` - (Optional) Any notes about the Network Connection Monitor.
 
-* `output_workspace_resource_ids` - (Optional) A list of the log analytics workspace id.
+* `output_workspace_resource_ids` - (Optional) A list of the log analytics workspace id that should be used for producing output into a log analytics.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Connection Monitor.
 
@@ -185,13 +185,13 @@ A `endpoint` block supports the following:
 
 * `filter` - (Optional) A `filter` block as defined below.
 
-* `virtual_machine_id` - (Optional) The ID of the virtual machine used as the endpoint by connection monitor.
+* `virtual_machine_id` - (Optional) The ID of the virtual machine which is used as the endpoint by connection monitor.
 
 ---
 
 A `filter` block supports the following:
 
-* `type` - (Optional) The behavior of the endpoint filter. Possible value is `Include`. Defaults to `Include`.
+* `type` - (Optional) The behavior type of this endpoint filter. Currently the only allowed value is `Include`. Defaults to `Include`.
 
 * `item` - (Optional) A `item` block as defined below.
 
@@ -199,7 +199,7 @@ A `filter` block supports the following:
 
 A `item` block supports the following:
 
-* `type` - (Optional) The type of item included in the filter. Possible value is `AgentAddress`. Defaults to `AgentAddress`.
+* `type` - (Optional) The type of items included in the filter. Possible values are `AgentAddress`. Defaults to `AgentAddress`.
 
 * `address` - (Optional) The address of the filter item.
 
@@ -209,15 +209,15 @@ A `test_configuration` block supports the following:
 
 * `name` - (Required) The name of the connection monitor test configuration.
 
-* `protocol` - (Required) The protocol to use in test evaluation. Possible values are `Tcp`, `Http` and `Icmp`.
+* `protocol` - (Required) The protocol used to evaluate tests. Possible values are `Tcp`, `Http` and `Icmp`.
 
-* `test_frequency_sec` - (Optional) The frequency of test evaluation, in seconds. Defaults to `60`.
+* `test_frequency_iin_seconds` - (Optional) The frequency of test evaluation, in seconds. Defaults to `60`.
 
 * `http_configuration` - (Optional) A `http_configuration` block as defined below.
 
 * `icmp_configuration` - (Optional) A `icmp_configuration` block as defined below.
 
-* `preferred_ip_version` - (Optional) The preferred IP version to use in test evaluation. Possible values are `IPv4` and `IPv6`. 
+* `preferred_ip_version` - (Optional) The preferred IP version which is used in test evaluation. Possible values are `IPv4` and `IPv6`. 
 
 * `success_threshold` - (Optional) A `success_threshold` block as defined below.
 
@@ -231,35 +231,35 @@ A `http_configuration` block supports the following:
 
 * `port` - (Optional) The port to connect to.
 
-* `path` - (Optional) The path component of the URI. For instance, "/dir1/dir2".
+* `path` - (Optional) The path component of the URI. For instance, `/dir1/dir2`.
 
 * `prefer_https` - (Optional) Will https be preferred over http in cases where the choice is not explicit? Defaults to `false`.
 
 * `request_header` - (Optional) A `request_header` block as defined below.
 
-* `valid_status_code_ranges` - (Optional) The http status codes to consider successful. For instance, "2xx, 301-304, 418".
+* `valid_status_code_ranges` - (Optional) The http status codes to consider successful. For instance, `2xx`, `301-304` and `418`.
 
 ---
 
 A `request_header` block supports the following:
 
-* `name` - (Required) The name in HTTP header.
+* `name` - (Required) The name of the HTTP header.
 
-* `value` - (Required) The value in HTTP header.
+* `value` - (Required) The value of the HTTP header.
 
 ---
 
 A `icmp_configuration` block supports the following:
 
-* `disable_trace_route` - (Optional) Will path evaluation with trace route be disabled? Defaults to `false`.
+* `trace_route_disabled` - (Optional) Will path evaluation with trace route be disabled? Defaults to `false`.
 
 ---
 
 A `success_threshold` block supports the following:
 
-* `checks_failed_percent` - (Optional) The maximum percentage of failed checks permitted for a test to evaluate as successful.
+* `checks_failed_percent` - (Optional) The maximum percentage of failed checks permitted for a test to be successful.
 
-* `round_trip_time_ms` - (Optional) The maximum round-trip time in milliseconds permitted for a test to evaluate as successful.
+* `round_trip_time_ms` - (Optional) The maximum round-trip time in milliseconds permitted for a test to be successful.
 
 ---
 
@@ -267,7 +267,7 @@ A `tcp_configuration` block supports the following:
 
 * `port` - (Required) The port to connect to.
 
-* `disable_trace_route` - (Optional) Should path evaluation with trace route be disabled? Defaults to `false`.
+* `trace_route_disabled` - (Optional) Should path evaluation with trace route be disabled? Defaults to `false`.
 
 ---
 
@@ -275,7 +275,7 @@ A `test_group` block supports the following:
 
 * `name` - (Required) The name of the connection monitor test group.
 
-* `destinations` - (Required) A list of destination endpoint names.
+* `destination_endpoints` - (Required) A list of destination endpoint names.
 
 * `sources` - (Required) A list of source endpoint names.
 
