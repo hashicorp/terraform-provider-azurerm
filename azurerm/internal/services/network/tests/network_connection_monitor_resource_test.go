@@ -344,18 +344,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-watcher-%d"
+  name     = "acctestRG-Watcher-%d"
   location = "%s"
 }
 
 resource "azurerm_network_watcher" "test" {
-  name                = "acctnw-%d"
+  name                = "acctest-Watcher-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctest-Vnet-%d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -369,7 +369,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "src" {
-  name                = "acctni-src%d"
+  name                = "acctest-SrcNIC-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -381,7 +381,7 @@ resource "azurerm_network_interface" "src" {
 }
 
 resource "azurerm_virtual_machine" "src" {
-  name                  = "acctvm-src%d"
+  name                  = "acctest-SrcVM-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.src.id]
@@ -413,7 +413,7 @@ resource "azurerm_virtual_machine" "src" {
 }
 
 resource "azurerm_virtual_machine_extension" "src" {
-  name                       = "network-watcher"
+  name                       = "acctest-VMExtension"
   virtual_machine_id         = azurerm_virtual_machine.src.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
@@ -429,7 +429,7 @@ func testAccAzureRMNetworkConnectionMonitor_baseWithDestConfig(data acceptance.T
 %s
 
 resource "azurerm_network_interface" "dest" {
-  name                = "acctni-dest%d"
+  name                = "acctest-DestNic-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -441,7 +441,7 @@ resource "azurerm_network_interface" "dest" {
 }
 
 resource "azurerm_virtual_machine" "dest" {
-  name                  = "acctvm-dest%d"
+  name                  = "acctest-DestVM-%d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   network_interface_ids = [azurerm_network_interface.dest.id]
@@ -480,7 +480,7 @@ func testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data acceptance.T
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
@@ -521,14 +521,14 @@ func testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data acceptanc
 %s
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-law-%d"
+  name                = "acctest-LAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "pergb2018"
 }
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
@@ -575,12 +575,12 @@ resource "azurerm_network_connection_monitor" "test" {
     enabled               = true
   }
 
-  notes = "testnote"
+  notes = "testNote"
 
   output_workspace_resource_ids = [azurerm_log_analytics_workspace.test.id]
 
   tags = {
-    env = "test"
+    ENv = "Test"
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -594,7 +594,7 @@ func testAccAzureRMNetworkConnectionMonitor_basicVmConfig(data acceptance.TestDa
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
@@ -635,7 +635,7 @@ func testAccAzureRMNetworkConnectionMonitor_withAddressAndVirtualMachineIdConfig
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
@@ -677,7 +677,7 @@ func testAccAzureRMNetworkConnectionMonitor_completeVmConfig(data acceptance.Tes
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
@@ -719,7 +719,7 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   tags = {
-    env = "test"
+    ENv = "Test"
   }
 
   depends_on = [azurerm_virtual_machine_extension.src]
@@ -733,7 +733,7 @@ func testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data accept
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
@@ -769,7 +769,7 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data a
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
@@ -851,7 +851,7 @@ func testAccAzureRMNetworkConnectionMonitor_httpConfigurationConfig(data accepta
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
@@ -901,7 +901,7 @@ func testAccAzureRMNetworkConnectionMonitor_icmpConfigurationConfig(data accepta
 %s
 
 resource "azurerm_network_connection_monitor" "test" {
-  name               = "acctestcm-%d"
+  name               = "acctest-CM-%d"
   network_watcher_id = azurerm_network_watcher.test.id
   location           = azurerm_network_watcher.test.location
 
