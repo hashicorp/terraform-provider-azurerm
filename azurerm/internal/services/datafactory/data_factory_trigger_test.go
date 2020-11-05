@@ -11,31 +11,84 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func findTriggerByName(name string, s *terraform.State) (*string, *string, *string, error) {
+	// Ensure we have enough information in state to look up in API
+	rs, ok := s.RootModule().Resources[name]
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("Not found: %s", name)
+	}
+
+	triggerName := rs.Primary.Attributes["name"]
+	resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+	dataFactoryName := rs.Primary.Attributes["data_factory_name"]
+	if !hasResourceGroup {
+		return nil, nil, nil, fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
+	}
+
+	return &triggerName, &dataFactoryName, &resourceGroup, nil
+}
+
+func testCheckAzureRMDataFactoryTriggerStarts(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.TriggersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		name, dataFactoryName, resourceGroup, err := findTriggerByName(name, s)
+		if err != nil {
+			return err
+		}
+
+		future, err := client.Start(ctx, *resourceGroup, *dataFactoryName, *name)
+		if err != nil {
+			return err
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMDataFactoryTriggerStops(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.TriggersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		name, dataFactoryName, resourceGroup, err := findTriggerByName(name, s)
+		if err != nil {
+			return err
+		}
+
+		future, err := client.Stop(ctx, *resourceGroup, *dataFactoryName, *name)
+		if err != nil {
+			return err
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return err
+		}
+
+		return nil
+	}
+}
+
 func testCheckAzureRMDataFactoryTriggerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.TriggersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+		name, dataFactoryName, resourceGroup, err := findTriggerByName(name, s)
+		if err != nil {
+			return err
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
-		}
-
-		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
+		resp, err := client.Get(ctx, *resourceGroup, *dataFactoryName, *name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on dataFactory.TriggersClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Trigger %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Trigger %q (data factory name: %q / resource group: %q) does not exist", *name, *dataFactoryName, *resourceGroup)
 		}
 
 		return nil

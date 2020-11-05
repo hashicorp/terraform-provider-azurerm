@@ -77,9 +77,8 @@ func resourceArmDataFactoryTriggerTumblingWindow() *schema.Resource {
 
 			"frequency": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
-				Default:  string(datafactory.Minute),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(datafactory.Minute),
 					string(datafactory.Hour),
@@ -91,9 +90,8 @@ func resourceArmDataFactoryTriggerTumblingWindow() *schema.Resource {
 
 			"interval": {
 				Type:         schema.TypeInt,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
-				Default:      1,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
@@ -132,18 +130,15 @@ func resourceArmDataFactoryTriggerTumblingWindow() *schema.Resource {
 						"size": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      nil,
 							ValidateFunc: validate.TriggerDelayTimespan(),
 						},
 						"offset": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      nil,
 							ValidateFunc: validate.TriggerDelayTimespan(),
 						},
 						"trigger": {
 							Type:     schema.TypeString,
-							Default:  nil,
 							Optional: true,
 						},
 					},
@@ -188,24 +183,39 @@ func expandTriggerDependencies(d *schema.ResourceData) []datafactory.BasicDepend
 
 	for _, k := range dependencies {
 		dep := k.(map[string]interface{})
+		var trigger interface{}
 
-		var trigger datafactory.BasicDependencyReference
-		if target, ok := dep["trigger"]; ok {
-			trigger = datafactory.TumblingWindowTriggerDependencyReference{
-				Offset: utils.String(dep["offset"].(string)),
-				Size:   utils.String(dep["size"].(string)),
+		if target := dep["trigger"].(string); target != "" {
+			trigger = &datafactory.TumblingWindowTriggerDependencyReference{
 				ReferenceTrigger: &datafactory.TriggerReference{
-					ReferenceName: utils.String(target.(string)),
+					ReferenceName: utils.String(target),
+					Type:          utils.String("TriggerReference"),
 				},
 			}
 		} else {
-			trigger = datafactory.SelfDependencyTumblingWindowTriggerReference{
-				Offset: utils.String(dep["offset"].(string)),
-				Size:   utils.String(dep["size"].(string)),
-			}
+			trigger = &datafactory.SelfDependencyTumblingWindowTriggerReference{}
 		}
 
-		expandedDependencies = append(expandedDependencies, trigger)
+		var offset, size *string
+		if v := dep["offset"].(string); v != "" {
+			offset = utils.String(v)
+		}
+		if v := dep["size"].(string); v != "" {
+			size = utils.String(v)
+		}
+
+		var basicDependency datafactory.BasicDependencyReference
+		switch trigger := trigger.(type) {
+		case *datafactory.TumblingWindowTriggerDependencyReference:
+			trigger.Offset = offset
+			trigger.Size = size
+			basicDependency, _ = trigger.AsBasicDependencyReference()
+		case *datafactory.SelfDependencyTumblingWindowTriggerReference:
+			trigger.Offset = offset
+			trigger.Size = size
+			basicDependency, _ = trigger.AsBasicDependencyReference()
+		}
+		expandedDependencies = append(expandedDependencies, basicDependency)
 	}
 
 	return expandedDependencies
@@ -214,27 +224,58 @@ func expandTriggerDependencies(d *schema.ResourceData) []datafactory.BasicDepend
 func flattenTriggerrDependencies(depRefs *[]datafactory.BasicDependencyReference) []interface{} {
 	outputs := make([]interface{}, 0)
 	for _, v := range *depRefs {
+		var size, offset, trigger = "", "", ""
+		var p_size, p_offset *string
 		if t, ok := v.AsSelfDependencyTumblingWindowTriggerReference(); ok {
-			outputs = append(outputs, map[string]interface{}{
-				"size":   t.Size,
-				"offset": t.Offset,
-			})
+			p_size = t.Size
+			p_offset = t.Offset
+			trigger = ""
 		} else if t, ok := v.AsTumblingWindowTriggerDependencyReference(); ok {
-			outputs = append(outputs, map[string]interface{}{
-				"size":    t.Size,
-				"offset":  t.Offset,
-				"trigger": t.ReferenceTrigger.ReferenceName,
-			})
+			p_size = t.Size
+			p_offset = t.Offset
+			trigger = *t.ReferenceTrigger.ReferenceName
 		}
+
+		if p_size != nil {
+			size = *p_size
+		}
+
+		if p_offset != nil {
+			offset = *p_offset
+		}
+		outputs = append(outputs, map[string]interface{}{
+			"size":    size,
+			"offset":  offset,
+			"trigger": trigger,
+		})
 	}
 
 	return outputs
 }
 
 func flattenRetryPolicy(r *datafactory.RetryPolicy) []interface{} {
+	/*
+		Sometimes the API returns RetryPolicy = nil sometimes it
+		returns RetryPolicy = RetryPolicy{Count=nil, IntervalInSeconds=nil}
+		in either case leaver retry as nil
+	*/
+	if r.Count == nil && r.IntervalInSeconds == nil {
+		return nil
+	}
+
+	var count float64 = 0
+	if r.Count != nil {
+		count = r.Count.(float64)
+	}
+
+	var interval int32 = 0
+	if r.IntervalInSeconds != nil {
+		interval = *r.IntervalInSeconds
+	}
+
 	retry := map[string]interface{}{
-		"count":    r.Count,
-		"interval": r.IntervalInSeconds,
+		"count":    int(count),
+		"interval": interval,
 	}
 	return []interface{}{retry}
 }
