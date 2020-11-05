@@ -181,11 +181,20 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   virtual_hub_id              = azurerm_virtual_hub.test.id
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
   scale_unit                  = 2
+  custom_dns_servers          = ["3.3.3.3"]
 
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
       address_prefixes = ["172.100.0.0/14", "10.100.0.0/14"]
+    }
+
+    route_config {
+      associated_route_table_id = azurerm_virtual_hub_route_table.test.id
+      propagated_route_table {
+        ids    = [azurerm_virtual_hub_route_table.test.id]
+        labels = ["label1", "label2"]
+      }
     }
   }
 }
@@ -267,6 +276,11 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 }
 
+resource "azurerm_virtual_hub_route_table" "test" {
+  name           = "acctest-RouteTable-%d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+}
+
 resource "azurerm_vpn_server_configuration" "test" {
   name                     = "acctestvpnsc-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -300,5 +314,5 @@ M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
