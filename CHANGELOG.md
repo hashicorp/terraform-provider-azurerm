@@ -11,6 +11,8 @@ IMPROVEMENTS:
 
 * dependencies: updating `iottimeseriesinsights` to API Version `2020-05-15` [GH-9129]
 * `azurerm_data_factory_linked_service_data_lake_storage_gen2` - Supports managed identity auth through `use_managed_identity ` [GH-8938]
+* `azurerm_firewall` - support the `dns_servers` property [GH-8878]
+* `azurerm_firewall_network_rule_collection` - support the `destination_fqdns` property in the `rule` block [GH-8878]
 * `azurerm_virtual_hub_connection` - support for the `routing` block [GH-8950]
 
 BUG FIXES:
