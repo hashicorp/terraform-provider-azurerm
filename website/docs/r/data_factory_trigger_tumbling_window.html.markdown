@@ -8,18 +8,51 @@ description: |-
 
 # azurerm_data_factory_trigger_tumbling_window
 
-Manages a Tumbling Window Trigger inside an Azure Data Factory.
+Manages a Tumbling Window Trigger inside an Azure Data Factory. 
+
+Datafactory triggers are created in the "Stopped" state and must be manually enabled to start triggering.  The API prevents updates to triggers in the "Started" state, so they must be manually paused before running terraform apply. 
 
 ## Example Usage
 
 ```hcl
+
 resource "azurerm_data_factory_trigger_tumbling_window" "example" {
   name                = "example"
-  resource_group_name = "example"
-  start_time          = "TODO"
-  pipeline_name       = "example"
   data_factory_name   = "example"
+  resource_group_name = "example"
+
+  pipeline_parameters = {
+    example = "@{formatDateTime(trigger().outputs.windowStartTime,'yyyy-MM-dd')}"
+  }
+
+  pipeline_name = "example"
+
+  interval        = 24
+  frequency       = "Hour"
+  max_concurrency = 3
+  start_time      = "2020-09-21T00:00:00Z"
+  end_time        = "2020-10-21T00:00:00Z"
+  delay           = "16:00:00"
+
+  // Self dependency
+  trigger_dependency {
+    size   = "24:00:00"
+    offset = "-24:00:00"
+  }
+
+  trigger_dependency {
+    size   = "06:00:00"
+    offset = "06:00:00"
+    trigger = "anotherTrigger"
+  }
+
+  retry {
+    count    = 3
+    interval = 60
+  }
+
 }
+
 ```
 
 ## Arguments Reference
@@ -36,9 +69,9 @@ The following arguments are supported:
 
 * `start_time` - (Required) The first occurrence, which can be in the past. The first trigger interval is (startTime, startTime + interval). Changing this forces a new Tumbling Window Trigger to be created. Must be in RFC3339 format eg "2020-09-21T00:00:00Z"
 
-* `frequency` - (Required) TODO. Changing this forces a new Tumbling Window Trigger to be created.
+* `frequency` - (Required) The trigger freqency. Valid values include `Minute`, `Hour`, `Day`, `Week`, `Month`. Defaults to `Minute`. Changing this forces a new Tumbling Window Trigger to be created.
 
-* `interval` - (Required) TODO. Changing this forces a new Tumbling Window Trigger to be created.
+* `interval` - (Required) The interval of the tumbling window. Changing this forces a new Tumbling Window Trigger to be created.
 
 ---
 
@@ -48,9 +81,9 @@ The following arguments are supported:
 
 * `end_time` - (Optional) The last occurrence, which can be in the past. Must be in RFC3339 format eg "2020-09-21T00:00:00Z".
 
-* `max_concurrency` - (Optional) TODO.
+* `max_concurrency` - (Optional) The number of simultaneous trigger runs that are fired for windows that are ready. .
 
-* `pipeline_parameters` - (Optional) Specifies a list of TODO.
+* `pipeline_parameters` - (Optional) The pipeline parameters that the trigger will act upon.
 
 * `retry` - (Optional) A `retry` block as defined below.
 
@@ -60,19 +93,21 @@ The following arguments are supported:
 
 A `retry` block supports the following:
 
-* `count` - (Required) TODO.
+* `count` - (Required) The number of retries before the pipeline run is marked as "Failed.".
 
-* `interval` - (Optional) TODO.
+* `interval` - (Optional) The delay between retry attempts specified in seconds.
 
 ---
 
 A `trigger_dependency` block supports the following:
 
-* `offset` - (Optional) TODO.
+* `offset` - (Optional) The offset of the dependency trigger. Must be in Timespan format (±hh:mm:ss) and must be a negative offset for a self dependency.
 
-* `size` - (Optional) TODO.
+* `size` - (Optional) The size of the dependency tumbling window. Must be in Timespan format (hh:mm:ss).
 
-* `trigger` - (Optional) TODO.
+* `trigger` - (Optional) The trigger name to depend on. If not provided creates a SelfDependencyTumblingWindowTriggerReference, in which case `offset` must be negative.
+
+Up to 5 trigger_dependency blocks may be specified total, with 1 self dependency.
 
 ## Attributes Reference
 

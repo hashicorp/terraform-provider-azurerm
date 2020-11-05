@@ -62,7 +62,7 @@ func resourceArmDataFactoryTriggerTumblingWindow() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
+				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
 			// This time can only be  represented in UTC.
@@ -72,7 +72,7 @@ func resourceArmDataFactoryTriggerTumblingWindow() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validation.IsRFC3339Time, // times in the past just start immediately
+				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
 			"frequency": {

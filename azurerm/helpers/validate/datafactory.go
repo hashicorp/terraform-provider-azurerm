@@ -31,7 +31,6 @@ func DataFactoryName() schema.SchemaValidateFunc {
 
 func TriggerDelayTimespan() schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
-
 		value := i.(string)
 		if !regexp.MustCompile(`^\-?((\d+)\.)?(\d\d):(60|([0-5][0-9])):(60|([0-5][0-9]))`).MatchString(value) {
 			errors = append(errors, fmt.Errorf("invalid timespan, must be of format hh:mm:ss %q: %q", k, value))
