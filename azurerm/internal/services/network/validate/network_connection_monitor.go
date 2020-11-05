@@ -88,3 +88,20 @@ func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (war
 
 	return warnings, errors
 }
+
+func NetworkConnectionMonitorEndpointAddressWithDomainName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if len(value) == 0 {
+		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, value))
+		return warnings, errors
+	}
+
+	if !regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z
+ ]{2,3})$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%s could be domain name", k))
+		return warnings, errors
+	}
+
+	return warnings, errors
+}

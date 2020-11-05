@@ -202,7 +202,7 @@ func testAccAzureRMNetworkConnectionMonitor_missingDestination(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMNetworkConnectionMonitor_missingDestinationConfig(data),
-				ExpectError: regexp.MustCompile("must have at least 2 endpoints"),
+				ExpectError: regexp.MustCompile("should have at least one destination"),
 			},
 		},
 	})
@@ -753,7 +753,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   test_group {
     name                  = "testtg"
-    destination_endpoints = ["destination"]
+    destination_endpoints = []
     sources               = ["source"]
     test_configurations   = ["tcp"]
   }

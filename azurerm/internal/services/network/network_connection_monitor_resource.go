@@ -146,9 +146,12 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 						},
 
 						"address": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.IsIPv4Address,
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.IsIPv4Address,
+								networkValidate.NetworkConnectionMonitorEndpointAddressWithDomainName,
+							),
 						},
 
 						"filter": {
