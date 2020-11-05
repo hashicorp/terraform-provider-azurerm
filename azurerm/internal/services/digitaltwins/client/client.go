@@ -6,14 +6,14 @@ import (
 )
 
 type Client struct {
-	DigitalTwinClient *digitaltwins.Client
+	DigitalTwinsClient *digitaltwins.Client
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	digitalTwinClient := digitaltwins.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&digitalTwinClient.Client, o.ResourceManagerAuthorizer)
+	digitalTwinsClient := digitaltwins.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&digitalTwinsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DigitalTwinClient: &digitalTwinClient,
+		DigitalTwinsClient: &digitalTwinsClient,
 	}
 }

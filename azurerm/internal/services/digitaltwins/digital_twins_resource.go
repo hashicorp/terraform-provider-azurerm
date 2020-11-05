@@ -34,7 +34,7 @@ func resourceArmDigitalTwins() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DigitalTwinID(id)
+			_, err := parse.DigitalTwinsID(id)
 			return err
 		}),
 
@@ -61,7 +61,7 @@ func resourceArmDigitalTwins() *schema.Resource {
 }
 func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
+	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -101,7 +101,7 @@ func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("empty or nil ID returned for Digital Twins %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	id, err := parse.DigitalTwinID(*resp.ID)
+	id, err := parse.DigitalTwinsID(*resp.ID)
 	if err != nil {
 		return err
 	}
@@ -111,11 +111,11 @@ func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmDigitalTwinsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
+	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitalTwinID(d.Id())
+	id, err := parse.DigitalTwinsID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -139,11 +139,11 @@ func resourceArmDigitalTwinsRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmDigitalTwinsUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
+	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitalTwinID(d.Id())
+	id, err := parse.DigitalTwinsID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -161,11 +161,11 @@ func resourceArmDigitalTwinsUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmDigitalTwinsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinClient
+	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DigitalTwinID(d.Id())
+	id, err := parse.DigitalTwinsID(d.Id())
 	if err != nil {
 		return err
 	}
