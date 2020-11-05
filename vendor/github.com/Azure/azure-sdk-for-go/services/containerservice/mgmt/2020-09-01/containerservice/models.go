@@ -471,6 +471,35 @@ func (future *AgentPoolsDeleteFuture) Result(client AgentPoolsClient) (ar autore
 	return
 }
 
+// AgentPoolsUpgradeNodeImageVersionFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type AgentPoolsUpgradeNodeImageVersionFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AgentPoolsUpgradeNodeImageVersionFuture) Result(client AgentPoolsClient) (ap AgentPool, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsUpgradeNodeImageVersionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerservice.AgentPoolsUpgradeNodeImageVersionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ap.Response.Response, err = future.GetResult(sender); err == nil && ap.Response.Response.StatusCode != http.StatusNoContent {
+		ap, err = client.UpgradeNodeImageVersionResponder(ap.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsUpgradeNodeImageVersionFuture", "Result", ap.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // AgentPoolUpgradeProfile the list of available upgrades for an agent pool.
 type AgentPoolUpgradeProfile struct {
 	autorest.Response `json:"-"`
@@ -2098,35 +2127,6 @@ func (future *ManagedClustersUpdateTagsFuture) Result(client ManagedClustersClie
 		mc, err = client.UpdateTagsResponder(mc.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersUpdateTagsFuture", "Result", mc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ManagedClustersUpgradeNodeImageVersionFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type ManagedClustersUpgradeNodeImageVersionFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ManagedClustersUpgradeNodeImageVersionFuture) Result(client ManagedClustersClient) (ap AgentPool, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersUpgradeNodeImageVersionFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersUpgradeNodeImageVersionFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if ap.Response.Response, err = future.GetResult(sender); err == nil && ap.Response.Response.StatusCode != http.StatusNoContent {
-		ap, err = client.UpgradeNodeImageVersionResponder(ap.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersUpgradeNodeImageVersionFuture", "Result", ap.Response.Response, "Failure responding to request")
 		}
 	}
 	return
