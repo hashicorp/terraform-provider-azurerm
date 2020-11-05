@@ -52,9 +52,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Log Analytics Storage Insights should exist. Changing this forces a new Log Analytics Storage Insights to be created.
 
-* `workspace_id` - (Required) The resource ID of the workspace to create the Log Analytics Storage Insights within. Changing this forces a new Log Analytics Storage Insights to be created.
+* `workspace_id` - (Required) The ID of the Log Analytics Workspace within which the Storage Insights should exist. Changing this forces a new Log Analytics Storage Insights to be created.
 
-* `storage_account_id` - (Required) The resource ID of the storage account to be used by this Log Analytics Storage Insights.
+* `storage_account_id` - (Required) The ID of the Storage Account used by this Log Analytics Storage Insights.
 
 * `storage_account_key` - (Required) The storage access key to be used to connect to the storage account.
 
@@ -84,5 +84,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Log Analytics Storage Insight Configs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_storage_insights.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1
+terraform import azurerm_log_analytics_storage_insights.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1
 ```

@@ -3,14 +3,12 @@ package loganalytics
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
@@ -51,14 +49,13 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 
 			// must ignore case since API lowercases all returned data
 			// IssueP https://github.com/Azure/azure-sdk-for-go/issues/13268
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"workspace_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.LogAnalyticsWorkspaceID,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.LogAnalyticsWorkspaceID,
 			},
 
 			"storage_account_id": {
@@ -69,18 +66,20 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 
 			"storage_account_key": {
 				Type:      schema.TypeString,
-				Optional:  true,
-				Computed:  true,
+				Required:  true,
 				Sensitive: true,
-				// TODO -
-				ValidateFunc: validate.IsBase64Encoded,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validate.IsBase64Encoded,
+				),
 			},
 
 			"blob_container_names": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
 				},
 			},
 
@@ -108,9 +107,6 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 	resourceGroup := d.Get("resource_group_name").(string)
 	storageAccountId := d.Get("storage_account_id").(string)
 	storageAccountKey := d.Get("storage_account_key").(string)
-	if len(strings.TrimSpace(storageAccountKey)) < 1 {
-		return fmt.Errorf("The argument 'storage_account_key' is required, but no definition was found.")
-	}
 
 	workspaceId := d.Get("workspace_id").(string)
 	id := parse.NewLogAnalyticsStorageInsightsId(resourceGroup, workspaceId, name)
@@ -179,7 +175,11 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 
 	if props := resp.StorageInsightProperties; props != nil {
 		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))
-		d.Set("storage_account_id", props.StorageAccount.ID)
+		storageAccountId := ""
+		if props.StorageAccount != nil && props.StorageAccount.ID != nil {
+			storageAccountId = *props.StorageAccount.ID
+		}
+		d.Set("storage_account_id", storageAccountId)
 		d.Set("storage_account_key", storageAccountKey)
 		d.Set("table_names", utils.FlattenStringSlice(props.Tables))
 	}
