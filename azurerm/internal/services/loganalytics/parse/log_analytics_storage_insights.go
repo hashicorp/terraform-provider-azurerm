@@ -38,15 +38,16 @@ func LogAnalyticsStorageInsightsID(input string) (*LogAnalyticsStorageInsightsId
 	logAnalyticsStorageInsight := LogAnalyticsStorageInsightsId{
 		ResourceGroup: id.ResourceGroup,
 	}
+
 	if logAnalyticsStorageInsight.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
+
 	logAnalyticsStorageInsight.WorkspaceID = NewLogAnalyticsWorkspaceID(logAnalyticsStorageInsight.WorkspaceName, id.ResourceGroup).ID(id.SubscriptionID)
 	if logAnalyticsStorageInsight.Name, err = id.PopSegment("storageInsightConfigs"); err != nil {
-		if logAnalyticsStorageInsight.Name, err = id.PopSegment("storageinsightconfigs"); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
