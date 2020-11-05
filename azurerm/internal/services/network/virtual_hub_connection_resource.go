@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"log"
 	"time"
 
@@ -115,7 +116,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: azure.ValidateResourceID,
+											ValidateFunc: validate.VirtualHubRouteTableID,
 										},
 									},
 								},
