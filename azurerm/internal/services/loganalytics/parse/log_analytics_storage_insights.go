@@ -13,6 +13,26 @@ type LogAnalyticsStorageInsightsId struct {
 	Name          string
 }
 
+// Note - this API currently lower-cases all return values
+// Issue tracked here - https://github.com/Azure/azure-sdk-for-go/issues/13268
+const fmtWorkspaceId = "/subscriptions/%s/resourcegroups/%s/providers/%s/workspaces/%s"
+
+func (id LogAnalyticsStorageInsightsId) ID(subscriptionId string) string {
+	fmtString := "/subscriptions/%s/resourcegroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s/storageInsightConfigs/%s"
+	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.WorkspaceName, id.Name)
+}
+
+func NewLogAnalyticsStorageInsightsId(resourceGroup, workspaceId, name string) LogAnalyticsStorageInsightsId {
+	// (@jackofallops) ignoring error here as already passed through validation in schema
+	workspace, _ := LogAnalyticsWorkspaceID(workspaceId)
+	return LogAnalyticsStorageInsightsId{
+		ResourceGroup: resourceGroup,
+		WorkspaceName: workspace.Name,
+		WorkspaceID:   workspaceId,
+		Name:          name,
+	}
+}
+
 func LogAnalyticsStorageInsightsID(input string) (*LogAnalyticsStorageInsightsId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -25,7 +45,7 @@ func LogAnalyticsStorageInsightsID(input string) (*LogAnalyticsStorageInsightsId
 	if logAnalyticsStorageInsight.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if logAnalyticsStorageInsight.WorkspaceID = fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/%s/workspaces/%s", id.SubscriptionID, id.ResourceGroup, id.Provider, logAnalyticsStorageInsight.WorkspaceName); err != nil {
+	if logAnalyticsStorageInsight.WorkspaceID = fmt.Sprintf(fmtWorkspaceId, id.SubscriptionID, id.ResourceGroup, id.Provider, logAnalyticsStorageInsight.WorkspaceName); err != nil {
 		return nil, fmt.Errorf("formatting Log Analytics Storage Insights workspace ID %q", input)
 	}
 	if logAnalyticsStorageInsight.Name, err = id.PopSegment("storageInsightConfigs"); err != nil {

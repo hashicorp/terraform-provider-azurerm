@@ -58,7 +58,7 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
+				ValidateFunc:     validate.LogAnalyticsWorkspaceID,
 			},
 
 			"storage_account_id": {
@@ -68,10 +68,11 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 			},
 
 			"storage_account_key": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Sensitive:    true,
+				Type:      schema.TypeString,
+				Optional:  true,
+				Computed:  true,
+				Sensitive: true,
+				// TODO -
 				ValidateFunc: validate.IsBase64Encoded,
 			},
 
@@ -99,6 +100,7 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 }
 func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -110,16 +112,14 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 		return fmt.Errorf("The argument 'storage_account_key' is required, but no definition was found.")
 	}
 
-	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
-	if err != nil {
-		return err
-	}
+	workspaceId := d.Get("workspace_id").(string)
+	id := parse.NewLogAnalyticsStorageInsightsId(resourceGroup, workspaceId, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, workspace.Name, name)
+		existing, err := client.Get(ctx, resourceGroup, id.WorkspaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+				return fmt.Errorf("checking for present of existing Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -142,20 +142,11 @@ func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, 
 		parameters.StorageInsightProperties.Containers = utils.ExpandStringSlice(d.Get("blob_container_names").(*schema.Set).List())
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, id.WorkspaceName, name, parameters); err != nil {
+		return fmt.Errorf("creating/updating Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, id.WorkspaceName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, workspace.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.Name)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(id.ID(subscriptionId))
 	return resourceArmLogAnalyticsStorageInsightsRead(d, meta)
 }
 
