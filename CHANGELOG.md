@@ -17,6 +17,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Fixed regression that prevented Synapse client registering in all Azure environments [GH-9100]
 * `azurerm_cosmosdb_mongo_database` no longer attempts to get throughput settings when cosmos account is serverless [GH-8673]
 * `azurerm_key_vault_access_policy` - check access policy consistency before committing to state [GH-9125]
 * `azurerm_virtual_desktop_application_group` - adding validation to the `host_pool_id` field [GH-9057]
@@ -24,6 +25,7 @@ BUG FIXES:
 * `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `workspace_id` field [GH-9057]
 * `azurerm_virtual_desktop_workspace_application_group_association` - validating the ID during import is a Workspace Application Group Association ID [GH-9057]
 * `azurerm_postgresql_firewall_rule` - add validation for `start_ip_address` and `end_ip_address` properties [GH-8963]
+
 
 ## 2.34.0 (October 29, 2020)
 
