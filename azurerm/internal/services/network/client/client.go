@@ -18,6 +18,8 @@ type Client struct {
 	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
 	FirewallPolicyClient                 *network.FirewallPoliciesClient
+	FirewallPolicyRuleGroupClient        *network.FirewallPolicyRuleCollectionGroupsClient
+	HubRouteTableClient                  *network.HubRouteTablesClient
 	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
 	IPGroupsClient                       *network.IPGroupsClient
@@ -38,6 +40,7 @@ type Client struct {
 	ServiceTagsClient                    *network.ServiceTagsClient
 	SubnetsClient                        *network.SubnetsClient
 	NatGatewayClient                     *network.NatGatewaysClient
+	VirtualHubIPClient                   *network.VirtualHubIPConfigurationClient
 	VnetGatewayConnectionsClient         *network.VirtualNetworkGatewayConnectionsClient
 	VnetGatewayClient                    *network.VirtualNetworkGatewaysClient
 	VnetClient                           *network.VirtualNetworksClient
@@ -89,6 +92,12 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	FirewallPolicyClient := network.NewFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FirewallPolicyClient.Client, o.ResourceManagerAuthorizer)
+
+	FirewallPolicyRuleGroupClient := network.NewFirewallPolicyRuleCollectionGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FirewallPolicyRuleGroupClient.Client, o.ResourceManagerAuthorizer)
+
+	HubRouteTableClient := network.NewHubRouteTablesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HubRouteTableClient.Client, o.ResourceManagerAuthorizer)
 
 	HubVirtualNetworkConnectionClient := network.NewHubVirtualNetworkConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HubVirtualNetworkConnectionClient.Client, o.ResourceManagerAuthorizer)
@@ -162,6 +171,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
 
+	VirtualHubIPClient := network.NewVirtualHubIPConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualHubIPClient.Client, o.ResourceManagerAuthorizer)
+
 	VnetGatewayClient := network.NewVirtualNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayClient.Client, o.ResourceManagerAuthorizer)
 
@@ -210,6 +222,8 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
 		FirewallPolicyClient:                 &FirewallPolicyClient,
+		FirewallPolicyRuleGroupClient:        &FirewallPolicyRuleGroupClient,
+		HubRouteTableClient:                  &HubRouteTableClient,
 		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
 		IPGroupsClient:                       &IpGroupsClient,
@@ -230,6 +244,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServiceTagsClient:                    &ServiceTagsClient,
 		SubnetsClient:                        &SubnetsClient,
 		NatGatewayClient:                     &NatGatewayClient,
+		VirtualHubIPClient:                   &VirtualHubIPClient,
 		VnetGatewayConnectionsClient:         &VnetGatewayConnectionsClient,
 		VnetGatewayClient:                    &VnetGatewayClient,
 		VnetClient:                           &VnetClient,

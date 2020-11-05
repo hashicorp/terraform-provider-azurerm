@@ -8,12 +8,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -288,6 +287,32 @@ func TestAccAzureRMKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T)
 				),
 				ExpectNonEmptyPlan: true,
 			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultKey_withExternalAccessPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultKey_withExternalAccessPolicy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("key_size"),
+			{
+				Config: testAccAzureRMKeyVaultKey_withExternalAccessPolicyUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("key_size"),
 		},
 	})
 }
@@ -1055,4 +1080,129 @@ resource "azurerm_key_vault_key" "test" {
   }
 }
 `, purge, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultKey_withExternalAccessPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "premium"
+
+  tags = {
+    environment = "accTest"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "update",
+  ]
+
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.test]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultKey_withExternalAccessPolicyUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "premium"
+
+  tags = {
+    environment = "accTest"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "create",
+    "delete",
+    "encrypt",
+    "get",
+    "update",
+  ]
+
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "EC"
+  key_size     = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.test]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

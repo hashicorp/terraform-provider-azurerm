@@ -1,18 +1,19 @@
 package acceptance
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/helpers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/types"
+)
 
 type DisappearsStepData struct {
 	// Config is a function which returns the Terraform Configuration which should be used for this step
 	Config func(data TestData) string
 
-	// CheckExists is a function which confirms that the given Resource in
-	// the state exists
-	CheckExists func(resourceName string) resource.TestCheckFunc
-
-	// Destroy is a function which looks up the given Resource in the State
-	// and then ensures that it's deleted
-	Destroy func(resourceName string) resource.TestCheckFunc
+	// TestResource is a reference to a TestResource which can destroy the resource
+	// to enable a Disappears step
+	TestResource types.TestResourceVerifyingRemoved
 }
 
 // DisappearsStep returns a Test Step which first confirms the resource exists
@@ -23,8 +24,14 @@ func (td TestData) DisappearsStep(data DisappearsStepData) resource.TestStep {
 	return resource.TestStep{
 		Config: config,
 		Check: resource.ComposeTestCheckFunc(
-			data.CheckExists(td.ResourceName),
-			data.Destroy(td.ResourceName),
+			func(state *terraform.State) error {
+				client := buildClient()
+				return helpers.ExistsInAzure(client, data.TestResource, td.ResourceName)(state)
+			},
+			func(state *terraform.State) error {
+				client := buildClient()
+				return helpers.DeleteResourceFunc(client, data.TestResource, td.ResourceName)(state)
+			},
 		),
 		ExpectNonEmptyPlan: true,
 	}

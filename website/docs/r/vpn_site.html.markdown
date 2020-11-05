@@ -87,7 +87,7 @@ A `link` block supports the following:
 
 -> **NOTE**: Either `fqdn` or `ip_address` should be specified.
 
-* `provider_name` - (Optional) The name of the physical link at the VPN Site. Example: ATT, Verizon.
+* `provider_name` - (Optional) The name of the physical link at the VPN Site. Example: `ATT`, `Verizon`.
 
 * `speed_in_mbps` - (Optional) The speed of the VPN device at the branch location in unit of mbps.
 

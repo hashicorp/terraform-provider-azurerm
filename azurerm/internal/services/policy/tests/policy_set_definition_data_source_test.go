@@ -17,14 +17,14 @@ func TestAccDataSourceAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMPolicySetDefinition_builtIn("Audit Windows VMs with a pending reboot"),
+				Config: testAccDataSourceAzureRMPolicySetDefinition_builtIn("Audit machines with insecure password security settings"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "c96b2a9c-6fab-4ac2-ae21-502143491cd4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Audit Windows VMs with a pending reboot"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "095e4ed9-c835-4ab6-9439-b5644362a06c"),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Audit machines with insecure password security settings"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_type", "BuiltIn"),
-					resource.TestCheckResourceAttr(data.ResourceName, "parameters", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "parameters", "{\"IncludeArcMachines\":{\"type\":\"String\",\"allowedValues\":[\"true\",\"false\"],\"defaultValue\":\"false\",\"metadata\":{\"description\":\"By selecting this option, you agree to be charged monthly per Arc connected machine.\",\"displayName\":\"Include Arc connected servers\"}}}"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "policy_definitions"),
-					resource.TestCheckResourceAttr(data.ResourceName, "policy_definition_reference.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_definition_reference.#", "9"),
 				),
 			},
 		},

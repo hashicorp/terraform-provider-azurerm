@@ -450,7 +450,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		if longTermRetentionProps != nil {
 			longTermRetentionPolicy := sql.BackupLongTermRetentionPolicy{}
 
-			if !strings.HasPrefix(skuName.(string), "HS") {
+			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
 				longTermRetentionPolicy.LongTermRetentionPolicyProperties = longTermRetentionProps
 			}
 
@@ -471,7 +471,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		if backupShortTermPolicyProps != nil {
 			backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{}
 
-			if !strings.HasPrefix(skuName.(string), "HS") {
+			if !strings.HasPrefix(skuName.(string), "HS") && !strings.HasPrefix(skuName.(string), "DW") {
 				backupShortTermPolicy.BackupShortTermRetentionPolicyProperties = backupShortTermPolicyProps
 			}
 
@@ -563,7 +563,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	// Hyper Scale SKU's do not currently support LRP and do not honour normal SRP operations
-	if !strings.HasPrefix(skuName, "HS") {
+	if !strings.HasPrefix(skuName, "HS") && !strings.HasPrefix(skuName, "DW") {
 		longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
 		if err != nil {
 			return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
@@ -583,7 +583,7 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("failure in setting `short_term_retention_policy`: %+v", err)
 		}
 	} else {
-		// HS SKUs need the retention policies zeroing for state consistency
+		// HS and DW SKUs need the retention policies zeroing for state consistency
 		zero := make([]interface{}, 0)
 		d.Set("long_term_retention_policy", zero)
 		d.Set("short_term_retention_policy", zero)

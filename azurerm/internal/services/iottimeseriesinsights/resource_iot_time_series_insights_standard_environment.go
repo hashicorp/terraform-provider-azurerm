@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/timeseriesinsights/mgmt/2018-08-15-preview/timeseriesinsights"
+	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -134,7 +134,7 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.R
 		}
 
 		if existing.Value != nil {
-			environment, ok := existing.Value.AsStandardEnvironmentResource()
+			environment, ok := existing.Value.AsGen1EnvironmentResource()
 			if !ok {
 				return fmt.Errorf("exisiting resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
 			}
@@ -145,11 +145,11 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.R
 		}
 	}
 
-	environment := timeseriesinsights.StandardEnvironmentCreateOrUpdateParameters{
+	environment := timeseriesinsights.Gen1EnvironmentCreateOrUpdateParameters{
 		Location: &location,
 		Tags:     tags.Expand(t),
 		Sku:      sku,
-		StandardEnvironmentCreationProperties: &timeseriesinsights.StandardEnvironmentCreationProperties{
+		Gen1EnvironmentCreationProperties: &timeseriesinsights.Gen1EnvironmentCreationProperties{
 			StorageLimitExceededBehavior: timeseriesinsights.StorageLimitExceededBehavior(d.Get("storage_limit_exceeded_behavior").(string)),
 			DataRetentionTime:            utils.String(d.Get("data_retention_time").(string)),
 		},
@@ -161,7 +161,7 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.R
 			Name: utils.String(v.(string)),
 			Type: timeseriesinsights.String,
 		}
-		environment.StandardEnvironmentCreationProperties.PartitionKeyProperties = &partition
+		environment.Gen1EnvironmentCreationProperties.PartitionKeyProperties = &partition
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, environment)
@@ -178,7 +178,7 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.R
 		return fmt.Errorf("retrieving IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resource, ok := resp.Value.AsStandardEnvironmentResource()
+	resource, ok := resp.Value.AsGen1EnvironmentResource()
 	if !ok {
 		return fmt.Errorf("resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
 	}
@@ -212,7 +212,7 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceD
 		return fmt.Errorf("retrieving IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	environment, ok := resp.Value.AsStandardEnvironmentResource()
+	environment, ok := resp.Value.AsGen1EnvironmentResource()
 	if !ok {
 		return fmt.Errorf("exisiting resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", id.Name, id.ResourceGroup)
 	}
@@ -224,13 +224,13 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceD
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if props := environment.StandardEnvironmentResourceProperties; props != nil {
+	if props := environment.Gen1EnvironmentResourceProperties; props != nil {
 		d.Set("storage_limit_exceeded_behavior", string(props.StorageLimitExceededBehavior))
 		d.Set("data_retention_time", props.DataRetentionTime)
 
 		if partition := props.PartitionKeyProperties; partition != nil && len(*partition) > 0 {
 			for _, v := range *partition {
-				d.Set("partition_key", *v.Name)
+				d.Set("partition_key", v.Name)
 			}
 		}
 	}

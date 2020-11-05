@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -51,13 +52,19 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 			"start_ip_address": {
 				Type:     schema.TypeString,
 				Required: true,
-				// TODO: validation?
+				ValidateFunc: validation.All(
+					validation.IsIPAddress,
+					validation.StringIsNotEmpty,
+				),
 			},
 
 			"end_ip_address": {
 				Type:     schema.TypeString,
 				Required: true,
-				// TODO: validation?
+				ValidateFunc: validation.All(
+					validation.IsIPAddress,
+					validation.StringIsNotEmpty,
+				),
 			},
 		},
 	}
