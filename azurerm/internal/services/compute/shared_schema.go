@@ -2,7 +2,6 @@ package compute
 
 import (
 	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -113,10 +112,20 @@ func bootDiagnosticsSchema() *schema.Schema {
 }
 
 func expandBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
-	if len(input) == 0 || input[0] == nil {
+	if len(input) == 0 {
 		return &compute.DiagnosticsProfile{
 			BootDiagnostics: &compute.BootDiagnostics{
 				Enabled:    utils.Bool(false),
+				StorageURI: utils.String(""),
+			},
+		}
+	}
+
+	// this serves the managed boot diagnostics, in this case we only have this empty block without `storage_account_uri` set
+	if input[0] == nil {
+		return &compute.DiagnosticsProfile{
+			BootDiagnostics: &compute.BootDiagnostics{
+				Enabled: utils.Bool(true),
 				StorageURI: utils.String(""),
 			},
 		}
