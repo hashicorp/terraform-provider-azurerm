@@ -171,7 +171,7 @@ func resourceArmSynapseRoleAssignmentDelete(d *schema.ResourceData, meta interfa
 
 	client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
 	if err != nil {
-		return nil
+		return err
 	}
 	if _, err := client.DeleteRoleAssignmentByID(ctx, id.Id); err != nil {
 		return fmt.Errorf("deleting Synapse RoleAssignment %q (workspace %q): %+v", id, id.Workspace.Name, err)

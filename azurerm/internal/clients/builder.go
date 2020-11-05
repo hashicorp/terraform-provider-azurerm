@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -106,6 +107,8 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
 	}
 
 	// Key Vault Endpoints

@@ -54,7 +54,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 func (client Client) AccessControlClient(workspaceName, synapseEndpointSuffix string) (*accesscontrol.BaseClient, error) {
 	if client.synapseAuthorizer == nil {
-		return nil, fmt.Errorf("synapse service is not supported in current environment")
+		return nil, fmt.Errorf("Synapse is not supported in this Azure Environment")
 	}
 	endpoint := fmt.Sprintf("https://%s.%s", workspaceName, synapseEndpointSuffix)
 	accessControlClient := accesscontrol.New(endpoint)

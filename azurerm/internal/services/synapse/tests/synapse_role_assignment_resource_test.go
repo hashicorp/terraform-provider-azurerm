@@ -63,7 +63,7 @@ func testCheckAzureRMSynapseRoleAssignmentExists(resourceName string) resource.T
 		}
 		client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
 		if err != nil {
-			return nil
+			return err
 		}
 		if resp, err := client.GetRoleAssignmentByID(ctx, id.Id); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
