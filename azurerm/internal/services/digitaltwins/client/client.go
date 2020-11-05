@@ -7,13 +7,18 @@ import (
 
 type Client struct {
 	DigitalTwinsClient *digitaltwins.Client
+	EndpointClient     *digitaltwins.EndpointClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	digitalTwinsClient := digitaltwins.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&digitalTwinsClient.Client, o.ResourceManagerAuthorizer)
 
+	endpointClient := digitaltwins.NewEndpointClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&endpointClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		DigitalTwinsClient: &digitalTwinsClient,
+		EndpointClient:     &endpointClient,
 	}
 }
