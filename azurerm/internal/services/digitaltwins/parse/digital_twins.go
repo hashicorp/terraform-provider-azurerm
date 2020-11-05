@@ -6,37 +6,37 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DigitaltwinsDigitalTwinId struct {
+type DigitalTwinId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func NewDigitaltwinsDigitalTwinID(resourcegroup string, name string) DigitaltwinsDigitalTwinId {
-	return DigitaltwinsDigitalTwinId{
+func NewDigitalTwinID(resourcegroup string, name string) DigitalTwinId {
+	return DigitalTwinId{
 		ResourceGroup: resourcegroup,
 		Name:          name,
 	}
 }
 
-func (id DigitaltwinsDigitalTwinId) ID(subscriptionId string) string {
+func (id DigitalTwinId) ID(subscriptionId string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s", subscriptionId, id.ResourceGroup, id.Name)
 }
 
-func DigitaltwinsDigitalTwinID(input string) (*DigitaltwinsDigitalTwinId, error) {
+func DigitalTwinID(input string) (*DigitalTwinId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing digitaltwinsDigitalTwin ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing DigitalTwin ID %q: %+v", input, err)
 	}
 
-	digitaltwinsDigitalTwin := DigitaltwinsDigitalTwinId{
+	digitalTwins := DigitalTwinId{
 		ResourceGroup: id.ResourceGroup,
 	}
-	if digitaltwinsDigitalTwin.Name, err = id.PopSegment("digitalTwinsInstances"); err != nil {
+	if digitalTwins.Name, err = id.PopSegment("digitalTwinsInstances"); err != nil {
 		return nil, err
 	}
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &digitaltwinsDigitalTwin, nil
+	return &digitalTwins, nil
 }
