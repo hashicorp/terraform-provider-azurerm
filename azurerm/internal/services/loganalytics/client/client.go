@@ -7,21 +7,22 @@ import (
 )
 
 type Client struct {
-	ClusterClient        *operationalinsights.ClustersClient
-	DataExportClient     *operationalinsights.DataExportsClient
-	DataSourcesClient    *operationalinsights.DataSourcesClient
-	LinkedServicesClient *operationalinsights.LinkedServicesClient
-	SavedSearchesClient  *operationalinsights.SavedSearchesClient
-	SharedKeysClient     *operationalinsights.SharedKeysClient
-	SolutionsClient      *operationsmanagement.SolutionsClient
-	WorkspacesClient     *operationalinsights.WorkspacesClient
+	ClusterClient              *operationalinsights.ClustersClient
+	DataExportClient           *operationalinsights.DataExportsClient
+	DataSourcesClient          *operationalinsights.DataSourcesClient
+	LinkedServicesClient       *operationalinsights.LinkedServicesClient
+	LinkedStorageAccountClient *operationalinsights.LinkedStorageAccountsClient
+	SavedSearchesClient        *operationalinsights.SavedSearchesClient
+	SharedKeysClient           *operationalinsights.SharedKeysClient
+	SolutionsClient            *operationsmanagement.SolutionsClient
+	WorkspacesClient           *operationalinsights.WorkspacesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	ClusterClient := operationalinsights.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ClusterClient.Client, o.ResourceManagerAuthorizer)
 
-  DataExportClient := operationalinsights.NewDataExportsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	DataExportClient := operationalinsights.NewDataExportsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DataExportClient.Client, o.ResourceManagerAuthorizer)
 
 	DataSourcesClient := operationalinsights.NewDataSourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -42,14 +43,18 @@ func NewClient(o *common.ClientOptions) *Client {
 	LinkedServicesClient := operationalinsights.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LinkedServicesClient.Client, o.ResourceManagerAuthorizer)
 
+	LinkedStorageAccountClient := operationalinsights.NewLinkedStorageAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LinkedStorageAccountClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		ClusterClient:        &ClusterClient,
-		DataExportClient:     &DataExportClient,
-		DataSourcesClient:    &DataSourcesClient,
-		LinkedServicesClient: &LinkedServicesClient,
-		SavedSearchesClient:  &SavedSearchesClient,
-		SharedKeysClient:     &SharedKeysClient,
-		SolutionsClient:      &SolutionsClient,
-		WorkspacesClient:     &WorkspacesClient,
+		ClusterClient:              &ClusterClient,
+		DataExportClient:           &DataExportClient,
+		DataSourcesClient:          &DataSourcesClient,
+		LinkedServicesClient:       &LinkedServicesClient,
+		LinkedStorageAccountClient: &LinkedStorageAccountClient,
+		SavedSearchesClient:        &SavedSearchesClient,
+		SharedKeysClient:           &SharedKeysClient,
+		SolutionsClient:            &SolutionsClient,
+		WorkspacesClient:           &WorkspacesClient,
 	}
 }

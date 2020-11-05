@@ -55,6 +55,13 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"instant_restore_retention_days": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 5),
+			},
+
 			"recovery_vault_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -319,21 +326,28 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("The Azure API has recently changed behaviour so that provisioning a `count` for the `retention_daily` field can no longer be less than 7 days for new/updates to existing Backup Policies. Please ensure that `count` is less than 7, currently %d", d.Get("retention_daily.0.count").(int))
 	}
 
-	policy := backup.ProtectionPolicyResource{
-		Tags: tags.Expand(t),
-		Properties: &backup.AzureIaaSVMProtectionPolicy{
-			TimeZone:             utils.String(d.Get("timezone").(string)),
-			BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
-			SchedulePolicy:       expandArmBackupProtectionPolicyVMSchedule(d, times),
-			RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
-				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
-				DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
-				WeeklySchedule:      expandArmBackupProtectionPolicyVMRetentionWeekly(d, times),
-				MonthlySchedule:     expandArmBackupProtectionPolicyVMRetentionMonthly(d, times),
-				YearlySchedule:      expandArmBackupProtectionPolicyVMRetentionYearly(d, times),
-			},
+	vmProtectionPolicyProperties := &backup.AzureIaaSVMProtectionPolicy{
+		TimeZone:             utils.String(d.Get("timezone").(string)),
+		BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
+		SchedulePolicy:       expandArmBackupProtectionPolicyVMSchedule(d, times),
+		RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
+			RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
+			DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
+			WeeklySchedule:      expandArmBackupProtectionPolicyVMRetentionWeekly(d, times),
+			MonthlySchedule:     expandArmBackupProtectionPolicyVMRetentionMonthly(d, times),
+			YearlySchedule:      expandArmBackupProtectionPolicyVMRetentionYearly(d, times),
 		},
 	}
+
+	if d.HasChange("instant_restore_retention_days") {
+		vmProtectionPolicyProperties.InstantRpRetentionRangeInDays = utils.Int32(int32(d.Get("instant_restore_retention_days").(int)))
+	}
+
+	policy := backup.ProtectionPolicyResource{
+		Tags:       tags.Expand(t),
+		Properties: vmProtectionPolicyProperties,
+	}
+
 	if _, err = client.CreateOrUpdate(ctx, vaultName, resourceGroup, policyName, policy); err != nil {
 		return fmt.Errorf("Error creating/updating Azure Backup Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
@@ -381,6 +395,7 @@ func resourceArmBackupProtectionPolicyVMRead(d *schema.ResourceData, meta interf
 
 	if properties, ok := resp.Properties.AsAzureIaaSVMProtectionPolicy(); ok && properties != nil {
 		d.Set("timezone", properties.TimeZone)
+		d.Set("instant_restore_retention_days", properties.InstantRpRetentionRangeInDays)
 
 		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
 			if err := d.Set("backup", flattenArmBackupProtectionPolicyVMSchedule(schedule)); err != nil {

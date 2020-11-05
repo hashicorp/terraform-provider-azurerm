@@ -26,6 +26,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/satori/go.uuid"
+	"io"
 	"net/http"
 )
 
@@ -872,7 +873,8 @@ func (atps *AdvancedThreatProtectionSetting) UnmarshalJSON(body []byte) error {
 // Alert security alert
 type Alert struct {
 	autorest.Response `json:"-"`
-	*AlertProperties  `json:"properties,omitempty"`
+	// AlertProperties - describes security alert properties.
+	*AlertProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
@@ -941,14 +943,6 @@ func (a *Alert) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// AlertConfidenceReason factors that increase our confidence that the alert is a true positive
-type AlertConfidenceReason struct {
-	// Type - READ-ONLY; Type of confidence factor
-	Type *string `json:"type,omitempty"`
-	// Reason - READ-ONLY; description of the confidence reason
-	Reason *string `json:"reason,omitempty"`
-}
-
 // AlertEntity changing set of properties depending on the entity type.
 type AlertEntity struct {
 	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
@@ -1005,7 +999,8 @@ func (ae *AlertEntity) UnmarshalJSON(body []byte) error {
 // AlertList list of security alerts
 type AlertList struct {
 	autorest.Response `json:"-"`
-	Value             *[]Alert `json:"value,omitempty"`
+	// Value - describes security alert properties.
+	Value *[]Alert `json:"value,omitempty"`
 	// NextLink - READ-ONLY; The URI to fetch the next page.
 	NextLink *string `json:"nextLink,omitempty"`
 }
@@ -1168,51 +1163,52 @@ func NewAlertListPage(getNextPage func(context.Context, AlertList) (AlertList, e
 
 // AlertProperties describes security alert properties.
 type AlertProperties struct {
-	// State - READ-ONLY; State of the alert (Active, Dismissed etc.)
-	State *string `json:"state,omitempty"`
-	// ReportedTimeUtc - READ-ONLY; The time the incident was reported to Microsoft.Security in UTC
-	ReportedTimeUtc *date.Time `json:"reportedTimeUtc,omitempty"`
-	// VendorName - READ-ONLY; Name of the vendor that discovered the incident
-	VendorName *string `json:"vendorName,omitempty"`
-	// AlertName - READ-ONLY; Name of the alert type
-	AlertName *string `json:"alertName,omitempty"`
-	// AlertDisplayName - READ-ONLY; Display name of the alert type
+	// AlertType - READ-ONLY; Unique identifier for the detection logic (all alert instances from the same detection logic will have the same alertType).
+	AlertType *string `json:"alertType,omitempty"`
+	// SystemAlertID - READ-ONLY; Unique identifier for the alert.
+	SystemAlertID *string `json:"systemAlertId,omitempty"`
+	// ProductComponentName - READ-ONLY; The name of Azure Security Center pricing tier which powering this alert. Learn more: https://docs.microsoft.com/en-us/azure/security-center/security-center-pricing
+	ProductComponentName *string `json:"productComponentName,omitempty"`
+	// AlertDisplayName - READ-ONLY; The display name of the alert.
 	AlertDisplayName *string `json:"alertDisplayName,omitempty"`
-	// DetectedTimeUtc - READ-ONLY; The time the incident was detected by the vendor
-	DetectedTimeUtc *date.Time `json:"detectedTimeUtc,omitempty"`
-	// Description - READ-ONLY; Description of the incident and what it means
+	// Description - READ-ONLY; Description of the suspicious activity that was detected.
 	Description *string `json:"description,omitempty"`
-	// RemediationSteps - READ-ONLY; Recommended steps to reradiate the incident
-	RemediationSteps *string `json:"remediationSteps,omitempty"`
-	// ActionTaken - READ-ONLY; The action that was taken as a response to the alert (Active, Blocked etc.)
-	ActionTaken *string `json:"actionTaken,omitempty"`
-	// ReportedSeverity - READ-ONLY; Estimated severity of this alert. Possible values include: 'ReportedSeverityInformational', 'ReportedSeverityLow', 'ReportedSeverityMedium', 'ReportedSeverityHigh'
-	ReportedSeverity ReportedSeverity `json:"reportedSeverity,omitempty"`
-	// CompromisedEntity - READ-ONLY; The entity that the incident happened on
-	CompromisedEntity *string `json:"compromisedEntity,omitempty"`
-	// AssociatedResource - READ-ONLY; Azure resource ID of the associated resource
-	AssociatedResource *string                `json:"associatedResource,omitempty"`
-	ExtendedProperties map[string]interface{} `json:"extendedProperties"`
-	// SystemSource - READ-ONLY; The type of the alerted resource (Azure, Non-Azure)
-	SystemSource *string `json:"systemSource,omitempty"`
-	// CanBeInvestigated - READ-ONLY; Whether this alert can be investigated with Azure Security Center
-	CanBeInvestigated *bool `json:"canBeInvestigated,omitempty"`
-	// IsIncident - READ-ONLY; Whether this alert is for incident type or not (otherwise - single alert)
-	IsIncident *bool `json:"isIncident,omitempty"`
-	// Entities - objects that are related to this alerts
+	// Severity - READ-ONLY; The risk level of the threat that was detected. Learn more: https://docs.microsoft.com/en-us/azure/security-center/security-center-alerts-overview#how-are-alerts-classified. Possible values include: 'Informational', 'Low', 'Medium', 'High'
+	Severity AlertSeverity `json:"severity,omitempty"`
+	// Intent - READ-ONLY; The kill chain related intent behind the alert. For list of supported values, and explanations of Azure Security Center's supported kill chain intents. Possible values include: 'IntentUnknown', 'IntentPreAttack', 'IntentInitialAccess', 'IntentPersistence', 'IntentPrivilegeEscalation', 'IntentDefenseEvasion', 'IntentCredentialAccess', 'IntentDiscovery', 'IntentLateralMovement', 'IntentExecution', 'IntentCollection', 'IntentExfiltration', 'IntentCommandAndControl', 'IntentImpact', 'IntentProbing', 'IntentExploitation'
+	Intent Intent `json:"intent,omitempty"`
+	// StartTimeUtc - READ-ONLY; The UTC time of the first event or activity included in the alert in ISO8601 format.
+	StartTimeUtc *date.Time `json:"startTimeUtc,omitempty"`
+	// EndTimeUtc - READ-ONLY; The UTC time of the last event or activity included in the alert in ISO8601 format.
+	EndTimeUtc *date.Time `json:"endTimeUtc,omitempty"`
+	// ResourceIdentifiers - READ-ONLY; The resource identifiers that can be used to direct the alert to the right product exposure group (tenant, workspace, subscription etc.). There can be multiple identifiers of different type per alert.
+	ResourceIdentifiers *[]BasicResourceIdentifier `json:"resourceIdentifiers,omitempty"`
+	// RemediationSteps - READ-ONLY; Manual action items to take to remediate the alert.
+	RemediationSteps *[]string `json:"remediationSteps,omitempty"`
+	// VendorName - READ-ONLY; The name of the vendor that raises the alert.
+	VendorName *string `json:"vendorName,omitempty"`
+	// Status - READ-ONLY; The life cycle status of the alert. Possible values include: 'Active', 'Resolved', 'Dismissed'
+	Status AlertStatus `json:"status,omitempty"`
+	// ExtendedLinks - READ-ONLY; Links related to the alert
+	ExtendedLinks *[]map[string]*string `json:"extendedLinks,omitempty"`
+	// AlertURI - READ-ONLY; A direct link to the alert page in Azure Portal.
+	AlertURI *string `json:"alertUri,omitempty"`
+	// TimeGeneratedUtc - READ-ONLY; The UTC time the alert was generated in ISO8601 format.
+	TimeGeneratedUtc *date.Time `json:"timeGeneratedUtc,omitempty"`
+	// ProductName - READ-ONLY; The name of the product which published this alert (Azure Security Center, Azure ATP, Microsoft Defender ATP, O365 ATP, MCAS, and so on).
+	ProductName *string `json:"productName,omitempty"`
+	// ProcessingEndTimeUtc - READ-ONLY; The UTC processing end time of the alert in ISO8601 format.
+	ProcessingEndTimeUtc *date.Time `json:"processingEndTimeUtc,omitempty"`
+	// Entities - READ-ONLY; A list of entities related to the alert.
 	Entities *[]AlertEntity `json:"entities,omitempty"`
-	// ConfidenceScore - READ-ONLY; level of confidence we have on the alert
-	ConfidenceScore *float64 `json:"confidenceScore,omitempty"`
-	// ConfidenceReasons - reasons the alert got the confidenceScore value
-	ConfidenceReasons *[]AlertConfidenceReason `json:"confidenceReasons,omitempty"`
-	// SubscriptionID - READ-ONLY; Azure subscription ID of the resource that had the security alert or the subscription ID of the workspace that this resource reports to
-	SubscriptionID *string `json:"subscriptionId,omitempty"`
-	// InstanceID - READ-ONLY; Instance ID of the alert.
-	InstanceID *string `json:"instanceId,omitempty"`
-	// WorkspaceArmID - READ-ONLY; Azure resource ID of the workspace that the alert was reported to.
-	WorkspaceArmID *string `json:"workspaceArmId,omitempty"`
-	// CorrelationKey - READ-ONLY; Alerts with the same CorrelationKey will be grouped together in Ibiza.
+	// IsIncident - READ-ONLY; This field determines whether the alert is an incident (a compound grouping of several alerts) or a single alert.
+	IsIncident *bool `json:"isIncident,omitempty"`
+	// CorrelationKey - READ-ONLY; Key for corelating related alerts. Alerts with the same correlation key considered to be related.
 	CorrelationKey *string `json:"correlationKey,omitempty"`
+	// ExtendedProperties - Custom properties for the alert.
+	ExtendedProperties map[string]*string `json:"extendedProperties"`
+	// CompromisedEntity - READ-ONLY; The display name of the resource most related to this alert.
+	CompromisedEntity *string `json:"compromisedEntity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for AlertProperties.
@@ -1221,13 +1217,228 @@ func (ap AlertProperties) MarshalJSON() ([]byte, error) {
 	if ap.ExtendedProperties != nil {
 		objectMap["extendedProperties"] = ap.ExtendedProperties
 	}
-	if ap.Entities != nil {
-		objectMap["entities"] = ap.Entities
-	}
-	if ap.ConfidenceReasons != nil {
-		objectMap["confidenceReasons"] = ap.ConfidenceReasons
-	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AlertProperties struct.
+func (ap *AlertProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "alertType":
+			if v != nil {
+				var alertType string
+				err = json.Unmarshal(*v, &alertType)
+				if err != nil {
+					return err
+				}
+				ap.AlertType = &alertType
+			}
+		case "systemAlertId":
+			if v != nil {
+				var systemAlertID string
+				err = json.Unmarshal(*v, &systemAlertID)
+				if err != nil {
+					return err
+				}
+				ap.SystemAlertID = &systemAlertID
+			}
+		case "productComponentName":
+			if v != nil {
+				var productComponentName string
+				err = json.Unmarshal(*v, &productComponentName)
+				if err != nil {
+					return err
+				}
+				ap.ProductComponentName = &productComponentName
+			}
+		case "alertDisplayName":
+			if v != nil {
+				var alertDisplayName string
+				err = json.Unmarshal(*v, &alertDisplayName)
+				if err != nil {
+					return err
+				}
+				ap.AlertDisplayName = &alertDisplayName
+			}
+		case "description":
+			if v != nil {
+				var description string
+				err = json.Unmarshal(*v, &description)
+				if err != nil {
+					return err
+				}
+				ap.Description = &description
+			}
+		case "severity":
+			if v != nil {
+				var severity AlertSeverity
+				err = json.Unmarshal(*v, &severity)
+				if err != nil {
+					return err
+				}
+				ap.Severity = severity
+			}
+		case "intent":
+			if v != nil {
+				var intent Intent
+				err = json.Unmarshal(*v, &intent)
+				if err != nil {
+					return err
+				}
+				ap.Intent = intent
+			}
+		case "startTimeUtc":
+			if v != nil {
+				var startTimeUtc date.Time
+				err = json.Unmarshal(*v, &startTimeUtc)
+				if err != nil {
+					return err
+				}
+				ap.StartTimeUtc = &startTimeUtc
+			}
+		case "endTimeUtc":
+			if v != nil {
+				var endTimeUtc date.Time
+				err = json.Unmarshal(*v, &endTimeUtc)
+				if err != nil {
+					return err
+				}
+				ap.EndTimeUtc = &endTimeUtc
+			}
+		case "resourceIdentifiers":
+			if v != nil {
+				resourceIdentifiers, err := unmarshalBasicResourceIdentifierArray(*v)
+				if err != nil {
+					return err
+				}
+				ap.ResourceIdentifiers = &resourceIdentifiers
+			}
+		case "remediationSteps":
+			if v != nil {
+				var remediationSteps []string
+				err = json.Unmarshal(*v, &remediationSteps)
+				if err != nil {
+					return err
+				}
+				ap.RemediationSteps = &remediationSteps
+			}
+		case "vendorName":
+			if v != nil {
+				var vendorName string
+				err = json.Unmarshal(*v, &vendorName)
+				if err != nil {
+					return err
+				}
+				ap.VendorName = &vendorName
+			}
+		case "status":
+			if v != nil {
+				var status AlertStatus
+				err = json.Unmarshal(*v, &status)
+				if err != nil {
+					return err
+				}
+				ap.Status = status
+			}
+		case "extendedLinks":
+			if v != nil {
+				var extendedLinks []map[string]*string
+				err = json.Unmarshal(*v, &extendedLinks)
+				if err != nil {
+					return err
+				}
+				ap.ExtendedLinks = &extendedLinks
+			}
+		case "alertUri":
+			if v != nil {
+				var alertURI string
+				err = json.Unmarshal(*v, &alertURI)
+				if err != nil {
+					return err
+				}
+				ap.AlertURI = &alertURI
+			}
+		case "timeGeneratedUtc":
+			if v != nil {
+				var timeGeneratedUtc date.Time
+				err = json.Unmarshal(*v, &timeGeneratedUtc)
+				if err != nil {
+					return err
+				}
+				ap.TimeGeneratedUtc = &timeGeneratedUtc
+			}
+		case "productName":
+			if v != nil {
+				var productName string
+				err = json.Unmarshal(*v, &productName)
+				if err != nil {
+					return err
+				}
+				ap.ProductName = &productName
+			}
+		case "processingEndTimeUtc":
+			if v != nil {
+				var processingEndTimeUtc date.Time
+				err = json.Unmarshal(*v, &processingEndTimeUtc)
+				if err != nil {
+					return err
+				}
+				ap.ProcessingEndTimeUtc = &processingEndTimeUtc
+			}
+		case "entities":
+			if v != nil {
+				var entities []AlertEntity
+				err = json.Unmarshal(*v, &entities)
+				if err != nil {
+					return err
+				}
+				ap.Entities = &entities
+			}
+		case "isIncident":
+			if v != nil {
+				var isIncident bool
+				err = json.Unmarshal(*v, &isIncident)
+				if err != nil {
+					return err
+				}
+				ap.IsIncident = &isIncident
+			}
+		case "correlationKey":
+			if v != nil {
+				var correlationKey string
+				err = json.Unmarshal(*v, &correlationKey)
+				if err != nil {
+					return err
+				}
+				ap.CorrelationKey = &correlationKey
+			}
+		case "extendedProperties":
+			if v != nil {
+				var extendedProperties map[string]*string
+				err = json.Unmarshal(*v, &extendedProperties)
+				if err != nil {
+					return err
+				}
+				ap.ExtendedProperties = extendedProperties
+			}
+		case "compromisedEntity":
+			if v != nil {
+				var compromisedEntity string
+				err = json.Unmarshal(*v, &compromisedEntity)
+				if err != nil {
+					return err
+				}
+				ap.CompromisedEntity = &compromisedEntity
+			}
+		}
+	}
+
+	return nil
 }
 
 // AlertsSuppressionRule describes the suppression rule
@@ -3661,7 +3872,7 @@ type Automation struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - READ-ONLY; Location where the resource is stored
+	// Location - Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Kind of the resource
 	Kind *string `json:"kind,omitempty"`
@@ -3676,6 +3887,9 @@ func (a Automation) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if a.AutomationProperties != nil {
 		objectMap["properties"] = a.AutomationProperties
+	}
+	if a.Location != nil {
+		objectMap["location"] = a.Location
 	}
 	if a.Kind != nil {
 		objectMap["kind"] = a.Kind
@@ -4285,7 +4499,7 @@ type AutomationScope struct {
 // security alerts and security assessments. To learn more about the supported security events data models
 // schemas - please visit https://aka.ms/ASCAutomationSchemas.
 type AutomationSource struct {
-	// EventSource - A valid event source type. Possible values include: 'Assessments', 'Alerts'
+	// EventSource - A valid event source type. Possible values include: 'Assessments', 'SubAssessments', 'Alerts'
 	EventSource EventSource `json:"eventSource,omitempty"`
 	// RuleSets - A set of rules which evaluate upon event interception. A logical disjunction is applied between defined rule sets (logical 'or').
 	RuleSets *[]AutomationRuleSet `json:"ruleSets,omitempty"`
@@ -4726,10 +4940,54 @@ func (ard AzureResourceDetails) AsBasicResourceDetails() (BasicResourceDetails, 
 	return &ard, true
 }
 
+// AzureResourceIdentifier azure resource identifier.
+type AzureResourceIdentifier struct {
+	// AzureResourceID - READ-ONLY; ARM resource identifier for the cloud resource being alerted on
+	AzureResourceID *string `json:"azureResourceId,omitempty"`
+	// Type - Possible values include: 'TypeResourceIdentifier', 'TypeAzureResource', 'TypeLogAnalytics'
+	Type TypeBasicResourceIdentifier `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureResourceIdentifier.
+func (ari AzureResourceIdentifier) MarshalJSON() ([]byte, error) {
+	ari.Type = TypeAzureResource
+	objectMap := make(map[string]interface{})
+	if ari.Type != "" {
+		objectMap["type"] = ari.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAzureResourceIdentifier is the BasicResourceIdentifier implementation for AzureResourceIdentifier.
+func (ari AzureResourceIdentifier) AsAzureResourceIdentifier() (*AzureResourceIdentifier, bool) {
+	return &ari, true
+}
+
+// AsLogAnalyticsIdentifier is the BasicResourceIdentifier implementation for AzureResourceIdentifier.
+func (ari AzureResourceIdentifier) AsLogAnalyticsIdentifier() (*LogAnalyticsIdentifier, bool) {
+	return nil, false
+}
+
+// AsResourceIdentifier is the BasicResourceIdentifier implementation for AzureResourceIdentifier.
+func (ari AzureResourceIdentifier) AsResourceIdentifier() (*ResourceIdentifier, bool) {
+	return nil, false
+}
+
+// AsBasicResourceIdentifier is the BasicResourceIdentifier implementation for AzureResourceIdentifier.
+func (ari AzureResourceIdentifier) AsBasicResourceIdentifier() (BasicResourceIdentifier, bool) {
+	return &ari, true
+}
+
 // AzureResourceLink describes an Azure resource with kind
 type AzureResourceLink struct {
 	// ID - READ-ONLY; Azure resource Id
 	ID *string `json:"id,omitempty"`
+}
+
+// AzureTrackedResourceLocation describes an Azure resource with location
+type AzureTrackedResourceLocation struct {
+	// Location - Location where the resource is stored
+	Location *string `json:"location,omitempty"`
 }
 
 // CefExternalSecuritySolution represents a security solution which sends CEF logs to an OMS workspace
@@ -9772,6 +10030,94 @@ type IotAlertTypeProperties struct {
 	RemediationSteps *[]string `json:"remediationSteps,omitempty"`
 }
 
+// IotDefenderSettingsList list of IoT Defender settings
+type IotDefenderSettingsList struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List data
+	Value *[]IotDefenderSettingsModel `json:"value,omitempty"`
+}
+
+// IotDefenderSettingsModel ioT Defender settings
+type IotDefenderSettingsModel struct {
+	autorest.Response `json:"-"`
+	// IotDefenderSettingsProperties - IoT Defender settings properties
+	*IotDefenderSettingsProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotDefenderSettingsModel.
+func (idsm IotDefenderSettingsModel) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if idsm.IotDefenderSettingsProperties != nil {
+		objectMap["properties"] = idsm.IotDefenderSettingsProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for IotDefenderSettingsModel struct.
+func (idsm *IotDefenderSettingsModel) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var iotDefenderSettingsProperties IotDefenderSettingsProperties
+				err = json.Unmarshal(*v, &iotDefenderSettingsProperties)
+				if err != nil {
+					return err
+				}
+				idsm.IotDefenderSettingsProperties = &iotDefenderSettingsProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				idsm.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				idsm.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				idsm.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// IotDefenderSettingsProperties ioT Defender settings properties
+type IotDefenderSettingsProperties struct {
+	// DeviceQuota - Size of the device quota (as a opposed to a Pay as You Go billing model). Value is required to be in multiples of 1000.
+	DeviceQuota *int32 `json:"deviceQuota,omitempty"`
+	// SentinelWorkspaceResourceIds - Sentinel Workspace Resource Ids
+	SentinelWorkspaceResourceIds *[]string `json:"sentinelWorkspaceResourceIds,omitempty"`
+}
+
 // IotRecommendation ioT recommendation
 type IotRecommendation struct {
 	autorest.Response `json:"-"`
@@ -11187,6 +11533,35 @@ func NewIoTSecuritySolutionsListPage(getNextPage func(context.Context, IoTSecuri
 	return IoTSecuritySolutionsListPage{fn: getNextPage}
 }
 
+// IotSensor ioT sensor
+type IotSensor struct {
+	autorest.Response `json:"-"`
+	// Properties - IoT sensor properties
+	Properties interface{} `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotSensor.
+func (is IotSensor) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if is.Properties != nil {
+		objectMap["properties"] = is.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// IotSensorsList list of IoT sensors
+type IotSensorsList struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List data
+	Value *[]IotSensor `json:"value,omitempty"`
+}
+
 // IoTSeverityMetrics ioT Security solution analytics severity metrics.
 type IoTSeverityMetrics struct {
 	// High - Count of high severity alerts/recommendations.
@@ -11999,6 +12374,50 @@ type Location struct {
 	Location *string `json:"location,omitempty"`
 }
 
+// LogAnalyticsIdentifier represents a Log Analytics workspace scope identifier.
+type LogAnalyticsIdentifier struct {
+	// WorkspaceID - READ-ONLY; The LogAnalytics workspace id that stores this alert.
+	WorkspaceID *string `json:"workspaceId,omitempty"`
+	// WorkspaceSubscriptionID - READ-ONLY; The azure subscription id for the LogAnalytics workspace storing this alert.
+	WorkspaceSubscriptionID *string `json:"workspaceSubscriptionId,omitempty"`
+	// WorkspaceResourceGroup - READ-ONLY; The azure resource group for the LogAnalytics workspace storing this alert
+	WorkspaceResourceGroup *string `json:"workspaceResourceGroup,omitempty"`
+	// AgentID - READ-ONLY; (optional) The LogAnalytics agent id reporting the event that this alert is based on.
+	AgentID *string `json:"agentId,omitempty"`
+	// Type - Possible values include: 'TypeResourceIdentifier', 'TypeAzureResource', 'TypeLogAnalytics'
+	Type TypeBasicResourceIdentifier `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for LogAnalyticsIdentifier.
+func (lai LogAnalyticsIdentifier) MarshalJSON() ([]byte, error) {
+	lai.Type = TypeLogAnalytics
+	objectMap := make(map[string]interface{})
+	if lai.Type != "" {
+		objectMap["type"] = lai.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAzureResourceIdentifier is the BasicResourceIdentifier implementation for LogAnalyticsIdentifier.
+func (lai LogAnalyticsIdentifier) AsAzureResourceIdentifier() (*AzureResourceIdentifier, bool) {
+	return nil, false
+}
+
+// AsLogAnalyticsIdentifier is the BasicResourceIdentifier implementation for LogAnalyticsIdentifier.
+func (lai LogAnalyticsIdentifier) AsLogAnalyticsIdentifier() (*LogAnalyticsIdentifier, bool) {
+	return &lai, true
+}
+
+// AsResourceIdentifier is the BasicResourceIdentifier implementation for LogAnalyticsIdentifier.
+func (lai LogAnalyticsIdentifier) AsResourceIdentifier() (*ResourceIdentifier, bool) {
+	return nil, false
+}
+
+// AsBasicResourceIdentifier is the BasicResourceIdentifier implementation for LogAnalyticsIdentifier.
+func (lai LogAnalyticsIdentifier) AsBasicResourceIdentifier() (BasicResourceIdentifier, bool) {
+	return &lai, true
+}
+
 // MqttC2DMessagesNotInAllowedRange number of cloud to device messages (MQTT protocol) is not in allowed range.
 type MqttC2DMessagesNotInAllowedRange struct {
 	// TimeWindowSize - The time window size in iso8601 format.
@@ -12570,6 +12989,35 @@ func (mdmniar MqttD2CMessagesNotInAllowedRange) AsBasicCustomAlertRule() (BasicC
 	return &mdmniar, true
 }
 
+// OnPremiseIotSensor on-premise IoT sensor
+type OnPremiseIotSensor struct {
+	autorest.Response `json:"-"`
+	// Properties - On-premise IoT sensor properties
+	Properties interface{} `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for OnPremiseIotSensor.
+func (opis OnPremiseIotSensor) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if opis.Properties != nil {
+		objectMap["properties"] = opis.Properties
+	}
+	return json.Marshal(objectMap)
+}
+
+// OnPremiseIotSensorsList list of on-premise IoT sensors
+type OnPremiseIotSensorsList struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List data
+	Value *[]OnPremiseIotSensor `json:"value,omitempty"`
+}
+
 // BasicOnPremiseResourceDetails details of the On Premise resource that was assessed
 type BasicOnPremiseResourceDetails interface {
 	AsOnPremiseSQLResourceDetails() (*OnPremiseSQLResourceDetails, bool)
@@ -12948,6 +13396,115 @@ func (page OperationListPage) Values() []Operation {
 // Creates a new instance of the OperationListPage type.
 func NewOperationListPage(getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
 	return OperationListPage{fn: getNextPage}
+}
+
+// PackageDownloadInfo information on a specific package download
+type PackageDownloadInfo struct {
+	// Version - READ-ONLY; Version number
+	Version *string `json:"version,omitempty"`
+	// Link - Download link
+	Link *string `json:"link,omitempty"`
+	// VersionKind - READ-ONLY; Kind of the version. Possible values include: 'Latest', 'Previous', 'Preview'
+	VersionKind VersionKind `json:"versionKind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PackageDownloadInfo.
+func (pdi PackageDownloadInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pdi.Link != nil {
+		objectMap["link"] = pdi.Link
+	}
+	return json.Marshal(objectMap)
+}
+
+// PackageDownloads information about package downloads
+type PackageDownloads struct {
+	autorest.Response `json:"-"`
+	// Sensor - READ-ONLY; Contains all Sensor binary downloads
+	Sensor *PackageDownloadsSensor `json:"sensor,omitempty"`
+	// CentralManager - READ-ONLY; All downloads for Central Manager
+	CentralManager *PackageDownloadsCentralManager `json:"centralManager,omitempty"`
+	// ThreatIntelligence - READ-ONLY; All downloads for threat intelligence
+	ThreatIntelligence *PackageDownloadsThreatIntelligence `json:"threatIntelligence,omitempty"`
+}
+
+// PackageDownloadsCentralManager all downloads for Central Manager
+type PackageDownloadsCentralManager struct {
+	// Full - READ-ONLY; Contains full package downloads
+	Full *PackageDownloadsCentralManagerFull `json:"full,omitempty"`
+	// Upgrade - READ-ONLY; Central Manager upgrade package downloads (on existing installations)
+	Upgrade *[]PackageDownloadInfo `json:"upgrade,omitempty"`
+}
+
+// PackageDownloadsCentralManagerFull contains full package downloads
+type PackageDownloadsCentralManagerFull struct {
+	// Iso - READ-ONLY; Contains all ISO full versions of the Central Manager
+	Iso *[]PackageDownloadInfo `json:"iso,omitempty"`
+	// Ovf - READ-ONLY; Contains all OVF (virtual machine) full versions of the Central Manager
+	Ovf *PackageDownloadsCentralManagerFullOvf `json:"ovf,omitempty"`
+}
+
+// PackageDownloadsCentralManagerFullOvf contains all OVF (virtual machine) full versions of the Central
+// Manager
+type PackageDownloadsCentralManagerFullOvf struct {
+	// Enterprise - READ-ONLY; The Enterprise package type
+	Enterprise *[]PackageDownloadInfo `json:"enterprise,omitempty"`
+	// EnterpriseHighAvailability - READ-ONLY; The EnterpriseHighAvailability package type
+	EnterpriseHighAvailability *[]PackageDownloadInfo `json:"enterpriseHighAvailability,omitempty"`
+	// Medium - READ-ONLY; The Medium package type
+	Medium *[]PackageDownloadInfo `json:"medium,omitempty"`
+	// MediumHighAvailability - READ-ONLY; The MediumHighAvailability package type
+	MediumHighAvailability *[]PackageDownloadInfo `json:"mediumHighAvailability,omitempty"`
+}
+
+// PackageDownloadsSensor contains all Sensor binary downloads
+type PackageDownloadsSensor struct {
+	// Full - READ-ONLY; Contains full package downloads
+	Full *PackageDownloadsSensorFull `json:"full,omitempty"`
+	// Upgrade - Sensor upgrade package downloads (on existing installations)
+	Upgrade *[]PackageDownloadInfo `json:"upgrade,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PackageDownloadsSensor.
+func (pd PackageDownloadsSensor) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pd.Upgrade != nil {
+		objectMap["upgrade"] = pd.Upgrade
+	}
+	return json.Marshal(objectMap)
+}
+
+// PackageDownloadsSensorFull contains full package downloads
+type PackageDownloadsSensorFull struct {
+	// Iso - READ-ONLY; Contains all ISO full versions for the sensor
+	Iso *[]PackageDownloadInfo `json:"iso,omitempty"`
+	// Ovf - Contains all OVF (virtual machine) full versions for the sensor
+	Ovf *PackageDownloadsSensorFullOvf `json:"ovf,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PackageDownloadsSensorFull.
+func (pd PackageDownloadsSensorFull) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pd.Ovf != nil {
+		objectMap["ovf"] = pd.Ovf
+	}
+	return json.Marshal(objectMap)
+}
+
+// PackageDownloadsSensorFullOvf contains all OVF (virtual machine) full versions for the sensor
+type PackageDownloadsSensorFullOvf struct {
+	// Enterprise - READ-ONLY; Enterprise package type
+	Enterprise *[]PackageDownloadInfo `json:"enterprise,omitempty"`
+	// Medium - READ-ONLY; Medium package type
+	Medium *[]PackageDownloadInfo `json:"medium,omitempty"`
+	// Line - READ-ONLY; Line package type
+	Line *[]PackageDownloadInfo `json:"line,omitempty"`
+}
+
+// PackageDownloadsThreatIntelligence all downloads for threat intelligence
+type PackageDownloadsThreatIntelligence struct {
+	// Link - Download link
+	Link *string `json:"link,omitempty"`
 }
 
 // PathRecommendation represents a path that is recommended to be allowed and its properties
@@ -13472,6 +14029,12 @@ func (qpniar QueuePurgesNotInAllowedRange) AsCustomAlertRule() (*CustomAlertRule
 // AsBasicCustomAlertRule is the BasicCustomAlertRule implementation for QueuePurgesNotInAllowedRange.
 func (qpniar QueuePurgesNotInAllowedRange) AsBasicCustomAlertRule() (BasicCustomAlertRule, bool) {
 	return &qpniar, true
+}
+
+// ReadCloser ...
+type ReadCloser struct {
+	autorest.Response `json:"-"`
+	Value             *io.ReadCloser `json:"value,omitempty"`
 }
 
 // RecommendationConfigurationProperties the type of IoT Security recommendation.
@@ -14396,6 +14959,92 @@ func (rd ResourceDetails) AsBasicResourceDetails() (BasicResourceDetails, bool) 
 	return &rd, true
 }
 
+// BasicResourceIdentifier a resource identifier for an alert which can be used to direct the alert to the right
+// product exposure group (tenant, workspace, subscription etc.).
+type BasicResourceIdentifier interface {
+	AsAzureResourceIdentifier() (*AzureResourceIdentifier, bool)
+	AsLogAnalyticsIdentifier() (*LogAnalyticsIdentifier, bool)
+	AsResourceIdentifier() (*ResourceIdentifier, bool)
+}
+
+// ResourceIdentifier a resource identifier for an alert which can be used to direct the alert to the right
+// product exposure group (tenant, workspace, subscription etc.).
+type ResourceIdentifier struct {
+	// Type - Possible values include: 'TypeResourceIdentifier', 'TypeAzureResource', 'TypeLogAnalytics'
+	Type TypeBasicResourceIdentifier `json:"type,omitempty"`
+}
+
+func unmarshalBasicResourceIdentifier(body []byte) (BasicResourceIdentifier, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["type"] {
+	case string(TypeAzureResource):
+		var ari AzureResourceIdentifier
+		err := json.Unmarshal(body, &ari)
+		return ari, err
+	case string(TypeLogAnalytics):
+		var lai LogAnalyticsIdentifier
+		err := json.Unmarshal(body, &lai)
+		return lai, err
+	default:
+		var ri ResourceIdentifier
+		err := json.Unmarshal(body, &ri)
+		return ri, err
+	}
+}
+func unmarshalBasicResourceIdentifierArray(body []byte) ([]BasicResourceIdentifier, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	riArray := make([]BasicResourceIdentifier, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		ri, err := unmarshalBasicResourceIdentifier(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		riArray[index] = ri
+	}
+	return riArray, nil
+}
+
+// MarshalJSON is the custom marshaler for ResourceIdentifier.
+func (ri ResourceIdentifier) MarshalJSON() ([]byte, error) {
+	ri.Type = TypeResourceIdentifier
+	objectMap := make(map[string]interface{})
+	if ri.Type != "" {
+		objectMap["type"] = ri.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsAzureResourceIdentifier is the BasicResourceIdentifier implementation for ResourceIdentifier.
+func (ri ResourceIdentifier) AsAzureResourceIdentifier() (*AzureResourceIdentifier, bool) {
+	return nil, false
+}
+
+// AsLogAnalyticsIdentifier is the BasicResourceIdentifier implementation for ResourceIdentifier.
+func (ri ResourceIdentifier) AsLogAnalyticsIdentifier() (*LogAnalyticsIdentifier, bool) {
+	return nil, false
+}
+
+// AsResourceIdentifier is the BasicResourceIdentifier implementation for ResourceIdentifier.
+func (ri ResourceIdentifier) AsResourceIdentifier() (*ResourceIdentifier, bool) {
+	return &ri, true
+}
+
+// AsBasicResourceIdentifier is the BasicResourceIdentifier implementation for ResourceIdentifier.
+func (ri ResourceIdentifier) AsBasicResourceIdentifier() (BasicResourceIdentifier, bool) {
+	return &ri, true
+}
+
 // Rule describes remote addresses that is recommended to communicate with the Azure resource on some
 // (Protocol, Port, Direction). All other remote addresses are recommended to be blocked
 type Rule struct {
@@ -14473,6 +15122,8 @@ type ScoreDetails struct {
 	Max *int32 `json:"max,omitempty"`
 	// Current - READ-ONLY; Current score
 	Current *float64 `json:"current,omitempty"`
+	// Percentage - READ-ONLY; Ratio of the current score divided by the maximum. Rounded to 4 digits after the decimal point
+	Percentage *float64 `json:"percentage,omitempty"`
 }
 
 // SecureScoreControlDefinitionItem information about the security control.
@@ -14957,6 +15608,8 @@ type SecureScoreControlScore struct {
 	Max *int32 `json:"max,omitempty"`
 	// Current - READ-ONLY; Actual score for the control = (achieved points / total points) * max score. if total points is zeroed, the return number is 0.00
 	Current *float64 `json:"current,omitempty"`
+	// Percentage - READ-ONLY; Ratio of the current score divided by the maximum. Rounded to 4 digits after the decimal point
+	Percentage *float64 `json:"percentage,omitempty"`
 }
 
 // SecureScoreControlScoreDetails calculation result data in control level
@@ -14970,8 +15623,10 @@ type SecureScoreControlScoreDetails struct {
 	// UnhealthyResourceCount - READ-ONLY; Number of unhealthy resources in the control
 	UnhealthyResourceCount *int32 `json:"unhealthyResourceCount,omitempty"`
 	// NotApplicableResourceCount - READ-ONLY; Number of not applicable resources in the control
-	NotApplicableResourceCount *int32                            `json:"notApplicableResourceCount,omitempty"`
-	Definition                 *SecureScoreControlDefinitionItem `json:"definition,omitempty"`
+	NotApplicableResourceCount *int32 `json:"notApplicableResourceCount,omitempty"`
+	// Weight - READ-ONLY; The relative weight for this specific control in each of your subscriptions. Used when calculating an aggregated score for this control across all of your subscriptions.
+	Weight     *int64                            `json:"weight,omitempty"`
+	Definition *SecureScoreControlDefinitionItem `json:"definition,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SecureScoreControlScoreDetails.
@@ -15039,6 +15694,15 @@ func (sscsd *SecureScoreControlScoreDetails) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				sscsd.NotApplicableResourceCount = &notApplicableResourceCount
+			}
+		case "weight":
+			if v != nil {
+				var weight int64
+				err = json.Unmarshal(*v, &weight)
+				if err != nil {
+					return err
+				}
+				sscsd.Weight = &weight
 			}
 		case "definition":
 			if v != nil {
@@ -15131,6 +15795,8 @@ type SecureScoreItemProperties struct {
 	DisplayName *string `json:"displayName,omitempty"`
 	// ScoreDetails - READ-ONLY; score object
 	*ScoreDetails `json:"score,omitempty"`
+	// Weight - READ-ONLY; The relative weight for each subscription. Used when calculating an aggregated secure score for multiple subscriptions.
+	Weight *int64 `json:"weight,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SecureScoreItemProperties.
@@ -15165,6 +15831,15 @@ func (ssip *SecureScoreItemProperties) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ssip.ScoreDetails = &scoreDetails
+			}
+		case "weight":
+			if v != nil {
+				var weight int64
+				err = json.Unmarshal(*v, &weight)
+				if err != nil {
+					return err
+				}
+				ssip.Weight = &weight
 			}
 		}
 	}
@@ -17903,7 +18578,7 @@ type TrackedResource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - READ-ONLY; Location where the resource is stored
+	// Location - Location where the resource is stored
 	Location *string `json:"location,omitempty"`
 	// Kind - Kind of the resource
 	Kind *string `json:"kind,omitempty"`
@@ -17916,6 +18591,9 @@ type TrackedResource struct {
 // MarshalJSON is the custom marshaler for TrackedResource.
 func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
 	if tr.Kind != nil {
 		objectMap["kind"] = tr.Kind
 	}
