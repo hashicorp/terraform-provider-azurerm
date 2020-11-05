@@ -1,37 +1,37 @@
-## 2.35.0 (Unreleased)
+## 2.35.0 (November 05, 2020)
 
 UPGRADE NOTES:
 
-* `azurerm_kubernetes_cluster` - the field `enable_pod_security_policy` and `node_taints` (within the `default_node_pool` block) can no longer be configured - see below for more details [GH-8982]
+* `azurerm_kubernetes_cluster` - the field `enable_pod_security_policy` and `node_taints` (within the `default_node_pool` block) can no longer be configured - see below for more details ([#8982](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8982))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_images` [GH-8629]
-* **New Resource:** `azurerm_firewall_policy_rule_collection_group` [GH-8603]
-* **New Resource:** `azurerm_virtual_hub_ip_configuration` [GH-8912]
-* **New Resource:** `azurerm_virtual_hub_route_table` [GH-8939]
+* **New Data Source:** `azurerm_images` ([#8629](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8629))
+* **New Resource:** `azurerm_firewall_policy_rule_collection_group` ([#8603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8603))
+* **New Resource:** `azurerm_virtual_hub_ip_configuration` ([#8912](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8912))
+* **New Resource:** `azurerm_virtual_hub_route_table` ([#8939](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8939))
 
 IMPROVEMENTS:
 
-* dependencies: updating `containerservice` to API version `2020-09-01` [GH-8982]
-* dependencies: updating `iottimeseriesinsights` to API Version `2020-05-15` [GH-9129]
-* `azurerm_data_factory_linked_service_data_lake_storage_gen2` - Supports managed identity auth through `use_managed_identity ` [GH-8938]
-* `azurerm_firewall` - support the `dns_servers` property [GH-8878]
-* `azurerm_firewall_network_rule_collection` - support the `destination_fqdns` property in the `rule` block [GH-8878]
-* `azurerm_virtual_hub_connection` - support for the `routing` block [GH-8950]
+* dependencies: updating `containerservice` to API version `2020-09-01` ([#8982](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8982))
+* dependencies: updating `iottimeseriesinsights` to API Version `2020-05-15` ([#9129](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9129))
+* `azurerm_data_factory_linked_service_data_lake_storage_gen2` - Supports managed identity auth through `use_managed_identity ` ([#8938](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8938))
+* `azurerm_firewall` - support the `dns_servers` property ([#8878](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8878))
+* `azurerm_firewall_network_rule_collection` - support the `destination_fqdns` property in the `rule` block ([#8878](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8878))
+* `azurerm_virtual_hub_connection` - support for the `routing` block ([#8950](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8950))
 
 BUG FIXES:
 
-* Fixed regression that prevented Synapse client registering in all Azure environments [GH-9100]
-* `azurerm_cosmosdb_mongo_database` no longer attempts to get throughput settings when cosmos account is serverless [GH-8673]
-* `azurerm_key_vault_access_policy` - check access policy consistency before committing to state [GH-9125]
-* `azurerm_kubernetes_cluster` - the field `enable_pod_security_policy` can no longer be set, due to this functionality being removed from AKS as of `2020-10-15` [GH-8982]
-* `azurerm_kubernetes_cluster` - the field `node_taints` can no longer be set on the `default_node_pool` block, to match the behaviour of AKS [GH-8982]
-* `azurerm_virtual_desktop_application_group` - adding validation to the `host_pool_id` field [GH-9057]
-* `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `application_group_id` field [GH-9057]
-* `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `workspace_id` field [GH-9057]
-* `azurerm_virtual_desktop_workspace_application_group_association` - validating the ID during import is a Workspace Application Group Association ID [GH-9057]
-* `azurerm_postgresql_firewall_rule` - add validation for `start_ip_address` and `end_ip_address` properties [GH-8963]
+* Fixed regression that prevented Synapse client registering in all Azure environments ([#9100](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9100))
+* `azurerm_cosmosdb_mongo_database` no longer attempts to get throughput settings when cosmos account is serverless ([#8673](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8673))
+* `azurerm_key_vault_access_policy` - check access policy consistency before committing to state ([#9125](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9125))
+* `azurerm_kubernetes_cluster` - the field `enable_pod_security_policy` can no longer be set, due to this functionality being removed from AKS as of `2020-10-15` ([#8982](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8982))
+* `azurerm_kubernetes_cluster` - the field `node_taints` can no longer be set on the `default_node_pool` block, to match the behaviour of AKS ([#8982](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8982))
+* `azurerm_virtual_desktop_application_group` - adding validation to the `host_pool_id` field ([#9057](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9057))
+* `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `application_group_id` field ([#9057](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9057))
+* `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `workspace_id` field ([#9057](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9057))
+* `azurerm_virtual_desktop_workspace_application_group_association` - validating the ID during import is a Workspace Application Group Association ID ([#9057](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9057))
+* `azurerm_postgresql_firewall_rule` - add validation for `start_ip_address` and `end_ip_address` properties ([#8963](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8963))
 
 
 ## 2.34.0 (October 29, 2020)
