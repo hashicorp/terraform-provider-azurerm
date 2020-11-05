@@ -84,6 +84,32 @@ func TestAccAzureRMVpnGatewayConnection_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVpnGatewayConnection_customRouteTable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVpnGatewayConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVpnGatewayConnection_customRouteTable(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVpnGatewayConnection_customRouteTableUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVpnGatewayConnectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMVpnGatewayConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vpn_gateway_connection", "test")
 
@@ -186,6 +212,89 @@ resource "azurerm_vpn_gateway_connection" "test" {
   name               = "acctest-VpnGwConn-%[2]d"
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
+  vpn_link_connection {
+    name             = "link1"
+    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
+  }
+  vpn_link_connection {
+    name             = "link2"
+    vpn_site_link_id = azurerm_vpn_site.test.link[1].id
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMVpnGatewayConnection_customRouteTable(data acceptance.TestData) string {
+	template := testAccAzureRMVpnGatewayConnection_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_route_table" "test" {
+  name           = "acctest-RouteTable-%[2]d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+}
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctest-VpnGwConn-%[2]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+  routing_configuration {
+    associated_route_table  = azurerm_virtual_hub_route_table.test.id
+    propagated_route_tables = [azurerm_virtual_hub_route_table.test.id]
+  }
+  vpn_link_connection {
+    name             = "link1"
+    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
+    ipsec_policy {
+      sa_lifetime_sec            = 300
+      sa_data_size_kb            = 1024
+      ipsec_encryption_algorithm = "AES256"
+      ipsec_integrity_algorithm  = "SHA256"
+      ike_encryption_algorithm   = "AES128"
+      ike_integrity_algorithm    = "SHA256"
+      dh_group                   = "DHGroup14"
+      pfs_group                  = "PFS14"
+    }
+    bandwidth_mbps                    = 30
+    protocol                          = "IKEv2"
+    ratelimit_enabled                 = true
+    route_weight                      = 2
+    shared_key                        = "secret"
+    use_local_azure_ip_address        = true
+    use_policy_based_traffic_selector = true
+  }
+
+  vpn_link_connection {
+    name             = "link3"
+    vpn_site_link_id = azurerm_vpn_site.test.link[1].id
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMVpnGatewayConnection_customRouteTableUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMVpnGatewayConnection_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_route_table" "test" {
+  name           = "acctest-RouteTable-%[2]d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+}
+
+resource "azurerm_virtual_hub_route_table" "test2" {
+  name           = "acctest-RouteTable-%[2]d-2"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+}
+
+resource "azurerm_vpn_gateway_connection" "test" {
+  name               = "acctest-VpnGwConn-%[2]d"
+  vpn_gateway_id     = azurerm_vpn_gateway.test.id
+  remote_vpn_site_id = azurerm_vpn_site.test.id
+  routing_configuration {
+    associated_route_table  = azurerm_virtual_hub_route_table.test2.id
+    propagated_route_tables = [azurerm_virtual_hub_route_table.test2.id]
+  }
   vpn_link_connection {
     name             = "link1"
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id

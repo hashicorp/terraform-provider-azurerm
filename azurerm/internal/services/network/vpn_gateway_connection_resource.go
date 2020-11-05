@@ -72,22 +72,24 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 				Default:  false,
 			},
 
-			// TODO: make it settable once the routetable PR is ready
-			// https://github.com/terraform-providers/terraform-provider-azurerm/pull/8939
+			// Service will create a route table for the user if this is not specified.
 			"routing_configuration": {
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"associated_route_table": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.VirtualHubRouteTableID,
 						},
 						"propagated_route_tables": {
 							Type:     schema.TypeList,
-							Computed: true,
+							Required: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validate.VirtualHubRouteTableID,
 							},
 						},
 					},
@@ -314,8 +316,7 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 			EnableInternetSecurity: utils.Bool(d.Get("internet_security_enabled").(bool)),
 			RemoteVpnSite:          &network.SubResource{ID: utils.String(d.Get("remote_vpn_site_id").(string))},
 			VpnLinkConnections:     expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link_connection").([]interface{})),
-			// TODO:
-			//RoutingConfiguration:           &network.RoutingConfiguration{...},
+			RoutingConfiguration:   expandArmVpnGatewayConnectionRoutingConfiguration(d.Get("routing_configuration").([]interface{})),
 		},
 	}
 
@@ -594,6 +595,19 @@ func flattenArmVpnGatewayConnectionIpSecPolicies(input *[]network.IpsecPolicy) [
 		}
 
 		output = append(output, v)
+	}
+
+	return output
+}
+
+func expandArmVpnGatewayConnectionRoutingConfiguration(input []interface{}) *network.RoutingConfiguration {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	raw := input[0].(map[string]interface{})
+	output := &network.RoutingConfiguration{
+		AssociatedRouteTable:  &network.SubResource{ID: utils.String(raw["associated_route_table"].(string))},
+		PropagatedRouteTables: &network.PropagatedRouteTable{Ids: expandNetworkSubResourceID(raw["propagated_route_tables"].([]interface{}))},
 	}
 
 	return output

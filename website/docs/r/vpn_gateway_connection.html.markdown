@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `internet_security_enabled` - (Optional) Whether Internet Security is enabled for this VPN Connection. Defaults to `false`.
 
+* `routing_configuration` - (Optional) A `routing_configuration` block as defined below. If this is not specified, there will be a default route table created implicitly.
+
 ---
 
 A `ipsec_policy` block supports the following:
@@ -131,21 +133,19 @@ A `vpn_link_connection` block supports the following:
 
 * `use_policy_based_traffic_selector` - (Optional) Whether to enable policy-based traffic selectors? Defaults to `false`.
 
+---
+
+A `routing_configuration` block supports the following:
+
+* `associated_route_table` - The ID of the Route Table associated with this VPN Connection.
+
+* `propagated_route_tables` - The list IDs of Route Tables to advertise the routes of this VPN Connection.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the VPN Gateway Connection.
-
-* `routing_configuration` - A `routing_configuration` block as defined below.
-
----
-
-A `routing_configuration` block exports the following:
-
-* `associated_route_table` - The ID of the Route Table associated with this VPN Connection.
-
-* `propagated_route_tables` - The list IDs of Route Tables to advertise the routes of this VPN Connection to.
 
 ## Timeouts
 
