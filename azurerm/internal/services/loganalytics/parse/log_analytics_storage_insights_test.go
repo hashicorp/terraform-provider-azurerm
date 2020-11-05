@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsDataExportID(t *testing.T) {
+func TestLogAnalyticsStorageInsightsID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *LogAnalyticsDataExportId
+		Expected *LogAnalyticsStorageInsightsId
 	}{
 		{
 			Name:     "Empty",
@@ -31,23 +31,23 @@ func TestLogAnalyticsDataExportID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing DataExport Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataExports",
+			Name:     "Missing StorageInsightConfig Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs",
 			Expected: nil,
 		},
 		{
-			Name:  "operationalinsights DataExport ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/dataExports/dataExport1",
-			Expected: &LogAnalyticsDataExportId{
+			Name:  "operationalinsights StorageInsightConfig ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1",
+			Expected: &LogAnalyticsStorageInsightsId{
 				ResourceGroup: "resourceGroup1",
 				WorkspaceName: "workspace1",
 				WorkspaceID:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1",
-				Name:          "dataExport1",
+				Name:          "storageInsight1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/DataExports/dataExport1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/StorageInsightConfigs/storageInsight1",
 			Expected: nil,
 		},
 	}
@@ -55,7 +55,7 @@ func TestLogAnalyticsDataExportID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := LogAnalyticsDataExportID(v.Input)
+		actual, err := LogAnalyticsStorageInsightsID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

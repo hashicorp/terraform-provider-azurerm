@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsDataExportName(t *testing.T) {
+func TestLogAnalyticsStorageInsightsWorkspaceName(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Input    string
@@ -22,37 +22,37 @@ func TestLogAnalyticsDataExportName(t *testing.T) {
 		},
 		{
 			Name:     "Invalid characters space",
-			Input:    "invalid Exports Name",
+			Input:    "invalid Storage Insight Config Name Name",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name starts with hyphen",
-			Input:    "-invalidExportsName",
+			Input:    "-invalidStorageInsightConfigName",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name ends with hyphen",
-			Input:    "invalidExportsName-",
+			Input:    "invalidStorageInsightConfigName-",
 			Expected: false,
 		},
 		{
 			Name:     "Invalid name too long",
-			Input:    "thisIsToLooooooooooooooooooooooooooooooooooooooongForAExportName",
+			Input:    "thisIsToLoooooooooooooooooooooongestForAStorageInsightConfigName",
 			Expected: false,
 		},
 		{
 			Name:     "Valid name",
-			Input:    "validExportsName",
+			Input:    "validStorageInsightConfigName",
 			Expected: true,
 		},
 		{
 			Name:     "Valid name with hyphen",
-			Input:    "validExportsName-2",
+			Input:    "validStorageInsightConfigName-2",
 			Expected: true,
 		},
 		{
 			Name:     "Valid name max length",
-			Input:    "thisIsTheLoooooooooooooooooooooooooongestValidExportNameThereIs",
+			Input:    "thisIsTheLoooooooooooongestValidStorageInsightConfigNameThereIs",
 			Expected: true,
 		},
 		{
@@ -64,7 +64,7 @@ func TestLogAnalyticsDataExportName(t *testing.T) {
 	for _, v := range testCases {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		_, errors := LogAnalyticsDataExportName(v.Input, "name")
+		_, errors := LogAnalyticsStorageInsightsWorkspaceName(v.Input, "workspace_name")
 		result := len(errors) == 0
 		if result != v.Expected {
 			t.Fatalf("Expected the result to be %v but got %v (and %d errors)", v.Expected, result, len(errors))

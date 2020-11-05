@@ -35,6 +35,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_log_analytics_linked_storage_account":                 resourceArmLogAnalyticsLinkedStorageAccount(),
 		"azurerm_log_analytics_saved_search":                           resourceArmLogAnalyticsSavedSearch(),
 		"azurerm_log_analytics_solution":                               resourceArmLogAnalyticsSolution(),
+		"azurerm_log_analytics_storage_insights":                       resourceArmLogAnalyticsStorageInsights(),
 		"azurerm_log_analytics_workspace":                              resourceArmLogAnalyticsWorkspace(),
 	}
 }
