@@ -15,6 +15,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cosmosdb_mongo_database` no longer attempts to get throughput settings when cosmos account is serverless [GH-8673]
 * `azurerm_key_vault_access_policy` - check access policy consistency before committing to state [GH-9125]
 * `azurerm_virtual_desktop_application_group` - adding validation to the `host_pool_id` field [GH-9057]
 * `azurerm_virtual_desktop_workspace_application_group_association` - adding validation to the `application_group_id` field [GH-9057]
