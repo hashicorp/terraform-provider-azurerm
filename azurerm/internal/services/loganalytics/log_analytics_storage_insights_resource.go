@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
+func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsStorageInsightConfigCreateUpdate,
-		Read:   resourceArmLogAnalyticsStorageInsightConfigRead,
-		Update: resourceArmLogAnalyticsStorageInsightConfigCreateUpdate,
-		Delete: resourceArmLogAnalyticsStorageInsightConfigDelete,
+		Create: resourceArmLogAnalyticsStorageInsightsCreateUpdate,
+		Read:   resourceArmLogAnalyticsStorageInsightsRead,
+		Update: resourceArmLogAnalyticsStorageInsightsCreateUpdate,
+		Delete: resourceArmLogAnalyticsStorageInsightsDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -36,7 +36,7 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.LogAnalyticsStorageInsightConfigID(id)
+			_, err := parse.LogAnalyticsStorageInsightsID(id)
 			return err
 		}),
 
@@ -45,13 +45,14 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogAnalyticsStorageInsightConfigName,
+				ValidateFunc: validate.LogAnalyticsStorageInsightsName,
 			},
 
 			// must ignore case since API lowercases all returned data
+			// IssueP https://github.com/Azure/azure-sdk-for-go/issues/13268
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"workspace_resource_id": {
+			"workspace_id": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
@@ -59,7 +60,7 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 				ValidateFunc:     azure.ValidateResourceID,
 			},
 
-			"storage_account_resource_id": {
+			"storage_account_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
@@ -95,20 +96,20 @@ func resourceArmLogAnalyticsStorageInsightConfig() *schema.Resource {
 		},
 	}
 }
-func resourceArmLogAnalyticsStorageInsightConfigCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.StorageInsightConfigClient
+func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	storageAccountId := d.Get("storage_account_resource_id").(string)
+	storageAccountId := d.Get("storage_account_id").(string)
 	storageAccountKey := d.Get("storage_account_key").(string)
 	if len(strings.TrimSpace(storageAccountKey)) < 1 {
 		return fmt.Errorf("The argument 'storage_account_key' is required, but no definition was found.")
 	}
 
-	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_resource_id").(string))
+	workspace, err := parse.LogAnalyticsWorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err
 	}
@@ -117,11 +118,11 @@ func resourceArmLogAnalyticsStorageInsightConfigCreateUpdate(d *schema.ResourceD
 		existing, err := client.Get(ctx, resourceGroup, workspace.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+				return fmt.Errorf("checking for present of existing Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insight_config", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_log_analytics_storage_insights", *existing.ID)
 		}
 	}
 
@@ -141,28 +142,28 @@ func resourceArmLogAnalyticsStorageInsightConfigCreateUpdate(d *schema.ResourceD
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, workspace.Name, name, parameters); err != nil {
-		return fmt.Errorf("creating/updating Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+		return fmt.Errorf("creating/updating Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, workspace.Name, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
+		return fmt.Errorf("retrieving Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", name, resourceGroup, workspace.Name, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.Name)
+		return fmt.Errorf("empty or nil ID returned for Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q) ID", name, resourceGroup, workspace.Name)
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmLogAnalyticsStorageInsightConfigRead(d, meta)
+	return resourceArmLogAnalyticsStorageInsightsRead(d, meta)
 }
 
-func resourceArmLogAnalyticsStorageInsightConfigRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.StorageInsightConfigClient
+func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsStorageInsightConfigID(d.Id())
+	id, err := parse.LogAnalyticsStorageInsightsID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -173,20 +174,20 @@ func resourceArmLogAnalyticsStorageInsightConfigRead(d *schema.ResourceData, met
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Log Analytics Storage Insight Config %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Log Analytics Storage Insights %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Log Analytics Storage Insight Config %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Log Analytics Storage Insights %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
 	}
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("workspace_resource_id", id.WorkspaceID)
+	d.Set("workspace_id", id.WorkspaceID)
 
 	if props := resp.StorageInsightProperties; props != nil {
 		d.Set("blob_container_names", utils.FlattenStringSlice(props.Containers))
-		d.Set("storage_account_resource_id", props.StorageAccount.ID)
+		d.Set("storage_account_id", props.StorageAccount.ID)
 		d.Set("storage_account_key", storageAccountKey)
 		d.Set("table_names", utils.FlattenStringSlice(props.Tables))
 	}
@@ -194,12 +195,12 @@ func resourceArmLogAnalyticsStorageInsightConfigRead(d *schema.ResourceData, met
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmLogAnalyticsStorageInsightConfigDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).LogAnalytics.StorageInsightConfigClient
+func resourceArmLogAnalyticsStorageInsightsDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogAnalyticsStorageInsightConfigID(d.Id())
+	id, err := parse.LogAnalyticsStorageInsightsID(d.Id())
 	if err != nil {
 		return err
 	}

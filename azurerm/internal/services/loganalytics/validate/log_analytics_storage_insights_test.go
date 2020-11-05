@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsStorageInsightConfigWorkspaceName(t *testing.T) {
+func TestLogAnalyticsStorageInsightsWorkspaceName(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Input    string
@@ -64,7 +64,7 @@ func TestLogAnalyticsStorageInsightConfigWorkspaceName(t *testing.T) {
 	for _, v := range testCases {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		_, errors := LogAnalyticsStorageInsightConfigWorkspaceName(v.Input, "workspace_name")
+		_, errors := LogAnalyticsStorageInsightsWorkspaceName(v.Input, "workspace_name")
 		result := len(errors) == 0
 		if result != v.Expected {
 			t.Fatalf("Expected the result to be %v but got %v (and %d errors)", v.Expected, result, len(errors))

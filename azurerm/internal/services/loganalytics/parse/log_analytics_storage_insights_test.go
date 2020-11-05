@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsStorageInsightConfigID(t *testing.T) {
+func TestLogAnalyticsStorageInsightsID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *LogAnalyticsStorageInsightConfigId
+		Expected *LogAnalyticsStorageInsightsId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestLogAnalyticsStorageInsightConfigID(t *testing.T) {
 		{
 			Name:  "operationalinsights StorageInsightConfig ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/storageInsightConfigs/storageInsight1",
-			Expected: &LogAnalyticsStorageInsightConfigId{
+			Expected: &LogAnalyticsStorageInsightsId{
 				ResourceGroup: "resourceGroup1",
 				WorkspaceName: "workspace1",
 				WorkspaceID:   "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resourceGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1",
@@ -55,7 +55,7 @@ func TestLogAnalyticsStorageInsightConfigID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := LogAnalyticsStorageInsightConfigID(v.Input)
+		actual, err := LogAnalyticsStorageInsightsID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
