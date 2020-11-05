@@ -2840,6 +2840,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     settings = jsonencode({
       protocol     = "https"
       port         = 443
+	  requestPath  = "/"
     })
   }
 }
@@ -2904,6 +2905,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     settings = jsonencode({
       protocol     = "https"
       port         = 443
+	  requestPath  = "/"
     })
   }
 }
