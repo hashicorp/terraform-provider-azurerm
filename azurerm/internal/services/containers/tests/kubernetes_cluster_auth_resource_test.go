@@ -10,7 +10,6 @@ import (
 
 var kubernetesAuthTests = map[string]func(t *testing.T){
 	"apiServerAuthorizedIPRanges": testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
-	"enablePodSecurityPolicy":     testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
 	"managedClusterIdentity":      testAccAzureRMKubernetesCluster_managedClusterIdentity,
 	"userAssignedIdentity":        testAccAzureRMKubernetesCluster_userAssignedIdentity,
 	"roleBasedAccessControl":      testAccAzureRMKubernetesCluster_roleBasedAccessControl,
@@ -51,31 +50,6 @@ func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "default_node_pool.0.max_pods"),
 					resource.TestCheckResourceAttr(data.ResourceName, "api_server_authorized_ip_ranges.#", "3"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t)
-}
-
-func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_enablePodSecurityPolicyConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_pod_security_policy", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -500,41 +474,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMKubernetesCluster_enablePodSecurityPolicyConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                       = "acctestaks%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  dns_prefix                 = "acctestaks%d"
-  enable_pod_security_policy = true
-
-  role_based_access_control {
-    enabled = true
-  }
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_managedClusterIdentityConfig(data acceptance.TestData) string {

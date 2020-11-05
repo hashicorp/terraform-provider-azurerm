@@ -80,6 +80,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"ImmersiveReader",
 					"LUIS",
 					"LUIS.Authoring",
+					"Personalizer",
 					"QnAMaker",
 					"Recommendations",
 					"SpeakerRecognition",

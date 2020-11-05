@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -39,6 +38,9 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
 
+		// (@jackofallops - lintignore needed as we need to make sure the JSON is usable in `output_content`)
+
+		//lintignore:S033
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -52,7 +54,7 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 			"template_content": {
 				Type:      schema.TypeString,
 				Required:  true,
-				StateFunc: azure.NormalizeJson,
+				StateFunc: utils.NormalizeJson,
 			},
 
 			// Optional
@@ -66,7 +68,7 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: azure.NormalizeJson,
+				StateFunc: utils.NormalizeJson,
 			},
 
 			"tags": tags.Schema(),
@@ -75,7 +77,7 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 			"output_content": {
 				Type:      schema.TypeString,
 				Computed:  true,
-				StateFunc: azure.NormalizeJson,
+				StateFunc: utils.NormalizeJson,
 				// NOTE:  outputs can be strings, ints, objects etc - whilst using a nested object was considered
 				// parsing the JSON using `jsondecode` allows the users to interact with/map objects as required
 			},

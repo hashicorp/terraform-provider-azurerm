@@ -51,7 +51,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: azure.NormalizeJson,
+				StateFunc: utils.NormalizeJson,
 			},
 
 			"parameters": {
@@ -66,7 +66,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 			"parameters_body": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				StateFunc:     azure.NormalizeJson,
+				StateFunc:     utils.NormalizeJson,
 				ConflictsWith: []string{"parameters"},
 			},
 

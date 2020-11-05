@@ -10,10 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -109,6 +109,12 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 						"destination_ports": {
 							Type:     schema.TypeSet,
 							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+						"destination_fqdns": {
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
@@ -412,8 +418,13 @@ func expandArmFirewallNetworkRules(input *schema.Set) (*[]network.AzureFirewallN
 			destinationIpGroups = append(destinationIpGroups, v.(string))
 		}
 
-		if len(destinationAddresses) == 0 && len(destinationIpGroups) == 0 {
-			return nil, fmt.Errorf("at least one of %q and %q must be specified for each rule", "destination_addresses", "destination_ip_groups")
+		destinationFqdns := make([]string, 0)
+		for _, v := range rule["destination_fqdns"].(*schema.Set).List() {
+			destinationFqdns = append(destinationFqdns, v.(string))
+		}
+
+		if len(destinationAddresses) == 0 && len(destinationIpGroups) == 0 && len(destinationFqdns) == 0 {
+			return nil, fmt.Errorf("at least one of %q, %q and %q must be specified for each rule", "destination_addresses", "destination_ip_groups", "destination_fqdns")
 		}
 
 		destinationPorts := make([]string, 0)
@@ -429,6 +440,7 @@ func expandArmFirewallNetworkRules(input *schema.Set) (*[]network.AzureFirewallN
 			DestinationAddresses: &destinationAddresses,
 			DestinationIPGroups:  &destinationIpGroups,
 			DestinationPorts:     &destinationPorts,
+			DestinationFqdns:     &destinationFqdns,
 		}
 
 		nrProtocols := make([]network.AzureFirewallNetworkRuleProtocol, 0)
@@ -451,27 +463,40 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]network.AzureFirewallNet
 	}
 
 	for _, rule := range *rules {
-		output := make(map[string]interface{})
+		var (
+			name            string
+			description     string
+			sourceAddresses *schema.Set
+			sourceIPGroups  *schema.Set
+			destAddresses   *schema.Set
+			destIPGroups    *schema.Set
+			destPorts       *schema.Set
+			destFqdns       *schema.Set
+		)
+
 		if rule.Name != nil {
-			output["name"] = *rule.Name
+			name = *rule.Name
 		}
 		if rule.Description != nil {
-			output["description"] = *rule.Description
+			description = *rule.Description
 		}
 		if rule.SourceAddresses != nil {
-			output["source_addresses"] = set.FromStringSlice(*rule.SourceAddresses)
+			sourceAddresses = set.FromStringSlice(*rule.SourceAddresses)
 		}
 		if rule.SourceIPGroups != nil {
-			output["source_ip_groups"] = set.FromStringSlice(*rule.SourceIPGroups)
+			sourceIPGroups = set.FromStringSlice(*rule.SourceIPGroups)
 		}
 		if rule.DestinationAddresses != nil {
-			output["destination_addresses"] = set.FromStringSlice(*rule.DestinationAddresses)
+			destAddresses = set.FromStringSlice(*rule.DestinationAddresses)
 		}
 		if rule.DestinationIPGroups != nil {
-			output["destination_ip_groups"] = set.FromStringSlice(*rule.DestinationIPGroups)
+			destIPGroups = set.FromStringSlice(*rule.DestinationIPGroups)
 		}
 		if rule.DestinationPorts != nil {
-			output["destination_ports"] = set.FromStringSlice(*rule.DestinationPorts)
+			destPorts = set.FromStringSlice(*rule.DestinationPorts)
+		}
+		if rule.DestinationFqdns != nil {
+			destFqdns = set.FromStringSlice(*rule.DestinationFqdns)
 		}
 		protocols := make([]string, 0)
 		if rule.Protocols != nil {
@@ -479,8 +504,17 @@ func flattenFirewallNetworkRuleCollectionRules(rules *[]network.AzureFirewallNet
 				protocols = append(protocols, string(protocol))
 			}
 		}
-		output["protocols"] = set.FromStringSlice(protocols)
-		outputs = append(outputs, output)
+		outputs = append(outputs, map[string]interface{}{
+			"name":                  name,
+			"description":           description,
+			"source_addresses":      sourceAddresses,
+			"source_ip_groups":      sourceIPGroups,
+			"destination_addresses": destAddresses,
+			"destination_ip_groups": destIPGroups,
+			"destination_ports":     destPorts,
+			"destination_fqdns":     destFqdns,
+			"protocols":             set.FromStringSlice(protocols),
+		})
 	}
 	return outputs
 }
