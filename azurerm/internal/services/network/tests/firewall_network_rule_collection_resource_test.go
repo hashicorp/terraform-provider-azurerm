@@ -324,6 +324,25 @@ func TestAccAzureRMFirewallNetworkRuleCollection_ipGroup(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFirewallNetworkRuleCollection_fqdns(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewallNetworkRuleCollection_fqdns(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallNetworkRuleCollectionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMFirewallNetworkRuleCollection_noSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
@@ -350,7 +369,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_noDestination(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMFirewallNetworkRuleCollection_noDestination(data),
-				ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q and %q must be specified", "destination_addresses", "destination_ip_groups")),
+				ExpectError: regexp.MustCompile(fmt.Sprintf("at least one of %q, %q and %q must be specified", "destination_addresses", "destination_ip_groups", "destination_fqdns")),
 			},
 		},
 	})
@@ -859,6 +878,41 @@ resource "azurerm_firewall_network_rule_collection" "test" {
 
     destination_ip_groups = [
       azurerm_ip_group.test_destination.id,
+    ]
+
+    protocols = [
+      "Any",
+    ]
+  }
+}
+`, template)
+}
+
+func testAccAzureRMFirewallNetworkRuleCollection_fqdns(data acceptance.TestData) string {
+	template := testAccAzureRMFirewall_enableDNS(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_firewall_network_rule_collection" "test" {
+  name                = "acctestnrc"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name = "rule1"
+
+    source_addresses = [
+      "10.0.0.0/16",
+    ]
+
+    destination_fqdns = [
+      "time.windows.com"
+    ]
+
+    destination_ports = [
+      "8080",
     ]
 
     protocols = [
