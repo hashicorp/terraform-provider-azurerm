@@ -41,8 +41,8 @@ resource "azurerm_data_factory_trigger_tumbling_window" "example" {
   }
 
   trigger_dependency {
-    size   = "06:00:00"
-    offset = "06:00:00"
+    size    = "06:00:00"
+    offset  = "06:00:00"
     trigger = "anotherTrigger"
   }
 
