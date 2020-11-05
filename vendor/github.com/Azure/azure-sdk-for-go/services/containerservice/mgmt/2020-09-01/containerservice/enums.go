@@ -47,6 +47,57 @@ func PossibleAgentPoolTypeValues() []AgentPoolType {
 	return []AgentPoolType{AvailabilitySet, VirtualMachineScaleSets}
 }
 
+// Code enumerates the values for code.
+type Code string
+
+const (
+	// Running ...
+	Running Code = "Running"
+	// Stopped ...
+	Stopped Code = "Stopped"
+)
+
+// PossibleCodeValues returns an array of possible values for the Code const type.
+func PossibleCodeValues() []Code {
+	return []Code{Running, Stopped}
+}
+
+// ConnectionStatus enumerates the values for connection status.
+type ConnectionStatus string
+
+const (
+	// Approved ...
+	Approved ConnectionStatus = "Approved"
+	// Disconnected ...
+	Disconnected ConnectionStatus = "Disconnected"
+	// Pending ...
+	Pending ConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected ConnectionStatus = "Rejected"
+)
+
+// PossibleConnectionStatusValues returns an array of possible values for the ConnectionStatus const type.
+func PossibleConnectionStatusValues() []ConnectionStatus {
+	return []ConnectionStatus{Approved, Disconnected, Pending, Rejected}
+}
+
+// Expander enumerates the values for expander.
+type Expander string
+
+const (
+	// LeastWaste ...
+	LeastWaste Expander = "least-waste"
+	// MostPods ...
+	MostPods Expander = "most-pods"
+	// Random ...
+	Random Expander = "random"
+)
+
+// PossibleExpanderValues returns an array of possible values for the Expander const type.
+func PossibleExpanderValues() []Expander {
+	return []Expander{LeastWaste, MostPods, Random}
+}
+
 // Kind enumerates the values for kind.
 type Kind string
 
@@ -60,6 +111,21 @@ const (
 // PossibleKindValues returns an array of possible values for the Kind const type.
 func PossibleKindValues() []Kind {
 	return []Kind{KindAADIdentityProvider, KindOpenShiftManagedClusterBaseIdentityProvider}
+}
+
+// LicenseType enumerates the values for license type.
+type LicenseType string
+
+const (
+	// None ...
+	None LicenseType = "None"
+	// WindowsServer ...
+	WindowsServer LicenseType = "Windows_Server"
+)
+
+// PossibleLicenseTypeValues returns an array of possible values for the LicenseType const type.
+func PossibleLicenseTypeValues() []LicenseType {
+	return []LicenseType{None, WindowsServer}
 }
 
 // LoadBalancerSku enumerates the values for load balancer sku.
@@ -263,6 +329,21 @@ func PossibleOrchestratorTypesValues() []OrchestratorTypes {
 	return []OrchestratorTypes{Custom, DCOS, DockerCE, Kubernetes, Swarm}
 }
 
+// OSDiskType enumerates the values for os disk type.
+type OSDiskType string
+
+const (
+	// Ephemeral ...
+	Ephemeral OSDiskType = "Ephemeral"
+	// Managed ...
+	Managed OSDiskType = "Managed"
+)
+
+// PossibleOSDiskTypeValues returns an array of possible values for the OSDiskType const type.
+func PossibleOSDiskTypeValues() []OSDiskType {
+	return []OSDiskType{Ephemeral, Managed}
+}
+
 // OSType enumerates the values for os type.
 type OSType string
 
@@ -293,19 +374,41 @@ func PossibleOutboundTypeValues() []OutboundType {
 	return []OutboundType{LoadBalancer, UserDefinedRouting}
 }
 
+// PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
+// provisioning state.
+type PrivateEndpointConnectionProvisioningState string
+
+const (
+	// Creating ...
+	Creating PrivateEndpointConnectionProvisioningState = "Creating"
+	// Deleting ...
+	Deleting PrivateEndpointConnectionProvisioningState = "Deleting"
+	// Failed ...
+	Failed PrivateEndpointConnectionProvisioningState = "Failed"
+	// Succeeded ...
+	Succeeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+)
+
+// PossiblePrivateEndpointConnectionProvisioningStateValues returns an array of possible values for the PrivateEndpointConnectionProvisioningState const type.
+func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpointConnectionProvisioningState {
+	return []PrivateEndpointConnectionProvisioningState{Creating, Deleting, Failed, Succeeded}
+}
+
 // ResourceIdentityType enumerates the values for resource identity type.
 type ResourceIdentityType string
 
 const (
-	// None ...
-	None ResourceIdentityType = "None"
-	// SystemAssigned ...
-	SystemAssigned ResourceIdentityType = "SystemAssigned"
+	// ResourceIdentityTypeNone ...
+	ResourceIdentityTypeNone ResourceIdentityType = "None"
+	// ResourceIdentityTypeSystemAssigned ...
+	ResourceIdentityTypeSystemAssigned ResourceIdentityType = "SystemAssigned"
+	// ResourceIdentityTypeUserAssigned ...
+	ResourceIdentityTypeUserAssigned ResourceIdentityType = "UserAssigned"
 )
 
 // PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
 func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{None, SystemAssigned}
+	return []ResourceIdentityType{ResourceIdentityTypeNone, ResourceIdentityTypeSystemAssigned, ResourceIdentityTypeUserAssigned}
 }
 
 // ScaleSetEvictionPolicy enumerates the values for scale set eviction policy.

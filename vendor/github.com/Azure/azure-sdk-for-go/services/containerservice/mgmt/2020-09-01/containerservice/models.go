@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 
 // AccessProfile profile for enabling a user to access a managed cluster.
 type AccessProfile struct {
@@ -1084,6 +1084,8 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 type ManagedClusterAADProfile struct {
 	// Managed - Whether to enable managed AAD.
 	Managed *bool `json:"managed,omitempty"`
+	// EnableAzureRBAC - Whether to enable Azure RBAC for Kubernetes authorization.
+	EnableAzureRBAC *bool `json:"enableAzureRBAC,omitempty"`
 	// AdminGroupObjectIDs - AAD group object IDs that will have admin role of the cluster.
 	AdminGroupObjectIDs *[]string `json:"adminGroupObjectIDs,omitempty"`
 	// ClientAppID - The client AAD application ID.
@@ -1239,6 +1241,8 @@ type ManagedClusterAgentPoolProfile struct {
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
 	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
+	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. Defaults to 'Managed'. May not be changed after creation. Possible values include: 'Managed', 'Ephemeral'
+	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
 	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier.
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
 	// MaxPods - Maximum number of pods that can run on a node.
@@ -1257,12 +1261,14 @@ type ManagedClusterAgentPoolProfile struct {
 	Mode AgentPoolMode `json:"mode,omitempty"`
 	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// NodeImageVersion - Version of node image
+	// NodeImageVersion - READ-ONLY; Version of node image
 	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
 	// UpgradeSettings - Settings for upgrading the agentpool
 	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// PowerState - READ-ONLY; Describes whether the Agent Pool is Running or Stopped
+	PowerState *PowerState `json:"powerState,omitempty"`
 	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
@@ -1279,6 +1285,8 @@ type ManagedClusterAgentPoolProfile struct {
 	NodeLabels map[string]*string `json:"nodeLabels"`
 	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
+	// ProximityPlacementGroupID - The ID for Proximity Placement Group.
+	ProximityPlacementGroupID *string `json:"proximityPlacementGroupID,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfile.
@@ -1295,6 +1303,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	}
 	if mcapp.OsDiskSizeGB != nil {
 		objectMap["osDiskSizeGB"] = mcapp.OsDiskSizeGB
+	}
+	if mcapp.OsDiskType != "" {
+		objectMap["osDiskType"] = mcapp.OsDiskType
 	}
 	if mcapp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcapp.VnetSubnetID
@@ -1323,9 +1334,6 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcapp.OrchestratorVersion
 	}
-	if mcapp.NodeImageVersion != nil {
-		objectMap["nodeImageVersion"] = mcapp.NodeImageVersion
-	}
 	if mcapp.UpgradeSettings != nil {
 		objectMap["upgradeSettings"] = mcapp.UpgradeSettings
 	}
@@ -1353,6 +1361,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.NodeTaints != nil {
 		objectMap["nodeTaints"] = mcapp.NodeTaints
 	}
+	if mcapp.ProximityPlacementGroupID != nil {
+		objectMap["proximityPlacementGroupID"] = mcapp.ProximityPlacementGroupID
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1364,6 +1375,8 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
 	// OsDiskSizeGB - OS Disk Size in GB to be used to specify the disk size for every machine in this master/agent pool. If you specify 0, it will apply the default osDisk size according to the vmSize specified.
 	OsDiskSizeGB *int32 `json:"osDiskSizeGB,omitempty"`
+	// OsDiskType - OS disk type to be used for machines in a given agent pool. Allowed values are 'Ephemeral' and 'Managed'. Defaults to 'Managed'. May not be changed after creation. Possible values include: 'Managed', 'Ephemeral'
+	OsDiskType OSDiskType `json:"osDiskType,omitempty"`
 	// VnetSubnetID - VNet SubnetID specifies the VNet's subnet identifier.
 	VnetSubnetID *string `json:"vnetSubnetID,omitempty"`
 	// MaxPods - Maximum number of pods that can run on a node.
@@ -1382,12 +1395,14 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	Mode AgentPoolMode `json:"mode,omitempty"`
 	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
-	// NodeImageVersion - Version of node image
+	// NodeImageVersion - READ-ONLY; Version of node image
 	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
 	// UpgradeSettings - Settings for upgrading the agentpool
 	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// PowerState - READ-ONLY; Describes whether the Agent Pool is Running or Stopped
+	PowerState *PowerState `json:"powerState,omitempty"`
 	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
@@ -1404,6 +1419,8 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	NodeLabels map[string]*string `json:"nodeLabels"`
 	// NodeTaints - Taints added to new nodes during node pool create and scale. For example, key=value:NoSchedule.
 	NodeTaints *[]string `json:"nodeTaints,omitempty"`
+	// ProximityPlacementGroupID - The ID for Proximity Placement Group.
+	ProximityPlacementGroupID *string `json:"proximityPlacementGroupID,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterAgentPoolProfileProperties.
@@ -1417,6 +1434,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.OsDiskSizeGB != nil {
 		objectMap["osDiskSizeGB"] = mcappp.OsDiskSizeGB
+	}
+	if mcappp.OsDiskType != "" {
+		objectMap["osDiskType"] = mcappp.OsDiskType
 	}
 	if mcappp.VnetSubnetID != nil {
 		objectMap["vnetSubnetID"] = mcappp.VnetSubnetID
@@ -1445,9 +1465,6 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcappp.OrchestratorVersion
 	}
-	if mcappp.NodeImageVersion != nil {
-		objectMap["nodeImageVersion"] = mcappp.NodeImageVersion
-	}
 	if mcappp.UpgradeSettings != nil {
 		objectMap["upgradeSettings"] = mcappp.UpgradeSettings
 	}
@@ -1475,6 +1492,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	if mcappp.NodeTaints != nil {
 		objectMap["nodeTaints"] = mcappp.NodeTaints
 	}
+	if mcappp.ProximityPlacementGroupID != nil {
+		objectMap["proximityPlacementGroupID"] = mcappp.ProximityPlacementGroupID
+	}
 	return json.Marshal(objectMap)
 }
 
@@ -1492,8 +1512,10 @@ type ManagedClusterIdentity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant id of the system assigned identity which is used by master components.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The type of identity used for the managed cluster. Type 'SystemAssigned' will use an implicitly created identity in master components and an auto-created user assigned identity in MC_ resource group in agent nodes. Type 'None' will not use MSI for the managed cluster, service principal will be used instead. Possible values include: 'SystemAssigned', 'None'
+	// Type - The type of identity used for the managed cluster. Type 'SystemAssigned' will use an implicitly created identity in master components and an auto-created user assigned identity in MC_ resource group in agent nodes. Type 'None' will not use MSI for the managed cluster, service principal will be used instead. Possible values include: 'ResourceIdentityTypeSystemAssigned', 'ResourceIdentityTypeUserAssigned', 'ResourceIdentityTypeNone'
 	Type ResourceIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The user identity associated with the managed cluster. This identity will be used in control plane and only one user assigned identity is allowed. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	UserAssignedIdentities map[string]*ManagedClusterIdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
 }
 
 // MarshalJSON is the custom marshaler for ManagedClusterIdentity.
@@ -1502,7 +1524,18 @@ func (mci ManagedClusterIdentity) MarshalJSON() ([]byte, error) {
 	if mci.Type != "" {
 		objectMap["type"] = mci.Type
 	}
+	if mci.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = mci.UserAssignedIdentities
+	}
 	return json.Marshal(objectMap)
+}
+
+// ManagedClusterIdentityUserAssignedIdentitiesValue ...
+type ManagedClusterIdentityUserAssignedIdentitiesValue struct {
+	// PrincipalID - READ-ONLY; The principal id of user assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; The client id of user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
 }
 
 // ManagedClusterListResult the response from the List Managed Clusters operation.
@@ -1730,6 +1763,8 @@ type ManagedClusterPoolUpgradeProfileUpgradesItem struct {
 type ManagedClusterProperties struct {
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// PowerState - READ-ONLY; Represents the Power State of the cluster
+	PowerState *PowerState `json:"powerState,omitempty"`
 	// MaxAgentPools - READ-ONLY; The max number of agent pools for the managed cluster.
 	MaxAgentPools *int32 `json:"maxAgentPools,omitempty"`
 	// KubernetesVersion - Version of Kubernetes specified when creating the managed cluster.
@@ -1754,7 +1789,7 @@ type ManagedClusterProperties struct {
 	NodeResourceGroup *string `json:"nodeResourceGroup,omitempty"`
 	// EnableRBAC - Whether to enable Kubernetes Role-Based Access Control.
 	EnableRBAC *bool `json:"enableRBAC,omitempty"`
-	// EnablePodSecurityPolicy - (PREVIEW) Whether to enable Kubernetes Pod security policy.
+	// EnablePodSecurityPolicy - (DEPRECATING) Whether to enable Kubernetes pod security policy (preview). This feature is set for removal on October 15th, 2020. Learn more at aka.ms/aks/azpodpolicy.
 	EnablePodSecurityPolicy *bool `json:"enablePodSecurityPolicy,omitempty"`
 	// NetworkProfile - Profile of network configuration.
 	NetworkProfile *NetworkProfileType `json:"networkProfile,omitempty"`
@@ -1826,15 +1861,23 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 
 // ManagedClusterPropertiesAutoScalerProfile parameters to be applied to the cluster-autoscaler when enabled
 type ManagedClusterPropertiesAutoScalerProfile struct {
-	BalanceSimilarNodeGroups      *string `json:"balance-similar-node-groups,omitempty"`
-	ScanInterval                  *string `json:"scan-interval,omitempty"`
-	ScaleDownDelayAfterAdd        *string `json:"scale-down-delay-after-add,omitempty"`
-	ScaleDownDelayAfterDelete     *string `json:"scale-down-delay-after-delete,omitempty"`
-	ScaleDownDelayAfterFailure    *string `json:"scale-down-delay-after-failure,omitempty"`
-	ScaleDownUnneededTime         *string `json:"scale-down-unneeded-time,omitempty"`
-	ScaleDownUnreadyTime          *string `json:"scale-down-unready-time,omitempty"`
-	ScaleDownUtilizationThreshold *string `json:"scale-down-utilization-threshold,omitempty"`
-	MaxGracefulTerminationSec     *string `json:"max-graceful-termination-sec,omitempty"`
+	BalanceSimilarNodeGroups *string `json:"balance-similar-node-groups,omitempty"`
+	// Expander - Possible values include: 'LeastWaste', 'MostPods', 'Random'
+	Expander                      Expander `json:"expander,omitempty"`
+	MaxEmptyBulkDelete            *string  `json:"max-empty-bulk-delete,omitempty"`
+	MaxGracefulTerminationSec     *string  `json:"max-graceful-termination-sec,omitempty"`
+	MaxTotalUnreadyPercentage     *string  `json:"max-total-unready-percentage,omitempty"`
+	NewPodScaleUpDelay            *string  `json:"new-pod-scale-up-delay,omitempty"`
+	OkTotalUnreadyCount           *string  `json:"ok-total-unready-count,omitempty"`
+	ScanInterval                  *string  `json:"scan-interval,omitempty"`
+	ScaleDownDelayAfterAdd        *string  `json:"scale-down-delay-after-add,omitempty"`
+	ScaleDownDelayAfterDelete     *string  `json:"scale-down-delay-after-delete,omitempty"`
+	ScaleDownDelayAfterFailure    *string  `json:"scale-down-delay-after-failure,omitempty"`
+	ScaleDownUnneededTime         *string  `json:"scale-down-unneeded-time,omitempty"`
+	ScaleDownUnreadyTime          *string  `json:"scale-down-unready-time,omitempty"`
+	ScaleDownUtilizationThreshold *string  `json:"scale-down-utilization-threshold,omitempty"`
+	SkipNodesWithLocalStorage     *string  `json:"skip-nodes-with-local-storage,omitempty"`
+	SkipNodesWithSystemPods       *string  `json:"skip-nodes-with-system-pods,omitempty"`
 }
 
 // ManagedClusterPropertiesIdentityProfileValue ...
@@ -1985,6 +2028,52 @@ func (future *ManagedClustersRotateClusterCertificatesFuture) Result(client Mana
 	return
 }
 
+// ManagedClustersStartFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ManagedClustersStartFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedClustersStartFuture) Result(client ManagedClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersStartFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersStartFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ManagedClustersStopFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ManagedClustersStopFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedClustersStopFuture) Result(client ManagedClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersStopFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersStopFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ManagedClustersUpdateTagsFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ManagedClustersUpdateTagsFuture struct {
@@ -2009,6 +2098,35 @@ func (future *ManagedClustersUpdateTagsFuture) Result(client ManagedClustersClie
 		mc, err = client.UpdateTagsResponder(mc.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersUpdateTagsFuture", "Result", mc.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ManagedClustersUpgradeNodeImageVersionFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ManagedClustersUpgradeNodeImageVersionFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedClustersUpgradeNodeImageVersionFuture) Result(client ManagedClustersClient) (ap AgentPool, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersUpgradeNodeImageVersionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerservice.ManagedClustersUpgradeNodeImageVersionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if ap.Response.Response, err = future.GetResult(sender); err == nil && ap.Response.Response.StatusCode != http.StatusNoContent {
+		ap, err = client.UpgradeNodeImageVersionResponder(ap.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersUpgradeNodeImageVersionFuture", "Result", ap.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -2101,6 +2219,8 @@ type ManagedClusterWindowsProfile struct {
 	AdminUsername *string `json:"adminUsername,omitempty"`
 	// AdminPassword - The administrator password to use for Windows VMs.
 	AdminPassword *string `json:"adminPassword,omitempty"`
+	// LicenseType - The licenseType to use for Windows VMs. Windows_Server is used to enable Azure Hybrid User Benefits for Windows VMs. Possible values include: 'None', 'WindowsServer'
+	LicenseType LicenseType `json:"licenseType,omitempty"`
 }
 
 // MasterProfile profile for the container service master.
@@ -3005,6 +3125,196 @@ func (ovplr *OrchestratorVersionProfileListResult) UnmarshalJSON(body []byte) er
 type OrchestratorVersionProfileProperties struct {
 	// Orchestrators - List of orchestrator version profiles.
 	Orchestrators *[]OrchestratorVersionProfile `json:"orchestrators,omitempty"`
+}
+
+// PowerState describes the Power State of the cluster
+type PowerState struct {
+	// Code - Tells whether the cluster is Running or Stopped. Possible values include: 'Running', 'Stopped'
+	Code Code `json:"code,omitempty"`
+}
+
+// PrivateEndpoint private endpoint which a connection belongs to.
+type PrivateEndpoint struct {
+	// ID - The resource Id for private endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection a private endpoint connection
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; The ID of the private endpoint connection.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the private endpoint connection.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type *string `json:"type,omitempty"`
+	// PrivateEndpointConnectionProperties - The properties of a private endpoint connection.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionListResult a list of private endpoint connections
+type PrivateEndpointConnectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The collection value.
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
+}
+
+// PrivateEndpointConnectionProperties properties of a private endpoint connection.
+type PrivateEndpointConnectionProperties struct {
+	// ProvisioningState - READ-ONLY; The current provisioning state. Possible values include: 'Succeeded', 'Creating', 'Deleting', 'Failed'
+	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+	// PrivateEndpoint - The resource of private endpoint.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionProperties.
+func (pecp PrivateEndpointConnectionProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pecp.PrivateEndpoint != nil {
+		objectMap["privateEndpoint"] = pecp.PrivateEndpoint
+	}
+	if pecp.PrivateLinkServiceConnectionState != nil {
+		objectMap["privateLinkServiceConnectionState"] = pecp.PrivateLinkServiceConnectionState
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PrivateEndpointConnectionsDeleteFuture) Result(client PrivateEndpointConnectionsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerservice.PrivateEndpointConnectionsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	autorest.Response `json:"-"`
+	// ID - The ID of the private link resource.
+	ID *string `json:"id,omitempty"`
+	// Name - The name of the private link resource.
+	Name *string `json:"name,omitempty"`
+	// Type - The resource type.
+	Type *string `json:"type,omitempty"`
+	// GroupID - The group ID of the resource.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - RequiredMembers of the resource
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// PrivateLinkServiceID - READ-ONLY; The private link service ID of the resource, this field is exposed only to NRP internally.
+	PrivateLinkServiceID *string `json:"privateLinkServiceID,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.ID != nil {
+		objectMap["id"] = plr.ID
+	}
+	if plr.Name != nil {
+		objectMap["name"] = plr.Name
+	}
+	if plr.Type != nil {
+		objectMap["type"] = plr.Type
+	}
+	if plr.GroupID != nil {
+		objectMap["groupId"] = plr.GroupID
+	}
+	if plr.RequiredMembers != nil {
+		objectMap["requiredMembers"] = plr.RequiredMembers
+	}
+	return json.Marshal(objectMap)
+}
+
+// PrivateLinkResourcesListResult a list of private link resources
+type PrivateLinkResourcesListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The collection value.
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkServiceConnectionState the state of a private link service connection.
+type PrivateLinkServiceConnectionState struct {
+	// Status - The private link service connection status. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	Status ConnectionStatus `json:"status,omitempty"`
+	// Description - The private link service connection description.
+	Description *string `json:"description,omitempty"`
 }
 
 // Properties properties of the container service.
