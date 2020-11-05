@@ -2500,8 +2500,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = jsonencode({
-      protocol     = "https"
-      port         = 443
+      protocol = "https"
+      port     = 443
     })
   }
 
@@ -2577,8 +2577,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = jsonencode({
-      protocol     = "https"
-      port         = 443
+      protocol = "https"
+      port     = 443
     })
   }
 

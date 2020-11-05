@@ -2838,9 +2838,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = jsonencode({
-      protocol     = "https"
-      port         = 443
-	  requestPath  = "/"
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
     })
   }
 }
@@ -2903,9 +2903,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
 
     settings = jsonencode({
-      protocol     = "https"
-      port         = 443
-	  requestPath  = "/"
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
     })
   }
 }
