@@ -147,6 +147,12 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("cannot read ID for Custom Domain (API Management %q / Resource Group %q)", serviceName, resourceGroup)
 	}
 
+	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
+	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
+	if _, err = stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
+	}
+
 	customDomainsID := fmt.Sprintf("%s/customDomains/default", *read.ID)
 	d.SetId(customDomainsID)
 
@@ -240,15 +246,6 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 
 	// Wait for the ProvisioningState to become "Succeeded" before attempting to update
 	log.Printf("[DEBUG] Waiting for API Management Service %q (Resource Group: %q) to become ready", serviceName, resourceGroup)
-	stateConf = &resource.StateChangeConf{
-		Pending:                   []string{"Updating", "Unknown"},
-		Target:                    []string{"Succeeded", "Ready"},
-		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
-		MinTimeout:                1 * time.Minute,
-		Timeout:                   d.Timeout(schema.TimeoutDelete),
-		ContinuousTargetOccurence: 5,
-	}
-
 	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for API Management Service %q (Resource Group: %q) to become ready: %+v", serviceName, resourceGroup, err)
 	}
