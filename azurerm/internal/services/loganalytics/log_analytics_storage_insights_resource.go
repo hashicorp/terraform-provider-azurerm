@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,10 +33,9 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.LogAnalyticsStorageInsightsID(id)
-			return err
-		}),
+		Importer: &schema.ResourceImporter{
+			State: logAnalyticsStorageInsightsImporter,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -47,8 +45,6 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 				ValidateFunc: validate.LogAnalyticsStorageInsightsName,
 			},
 
-			// must ignore case since API lowercases all returned data
-			// IssueP https://github.com/Azure/azure-sdk-for-go/issues/13268
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"workspace_id": {
@@ -156,9 +152,6 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 		return err
 	}
 
-	// Need to pull this from the config since the API does not return this value
-	storageAccountKey := d.Get("storage_account_key").(string)
-
 	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -180,7 +173,6 @@ func resourceArmLogAnalyticsStorageInsightsRead(d *schema.ResourceData, meta int
 			storageAccountId = *props.StorageAccount.ID
 		}
 		d.Set("storage_account_id", storageAccountId)
-		d.Set("storage_account_key", storageAccountKey)
 		d.Set("table_names", utils.FlattenStringSlice(props.Tables))
 	}
 
