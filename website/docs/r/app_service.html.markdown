@@ -141,6 +141,10 @@ A `logs` block supports the following:
 
 * `http_logs` - (Optional) An `http_logs` block as defined below.
 
+* `detailed_error_messages_enabled` - (Optional) Is `Detailed error messages` enabled on this App Service? Defaults to false.
+
+* `failed_request_tracing_enabled` - (Optional) Is `Failed request tracing` enabled on this App Service? Defaults to false.
+
 ---
 
 An `application_logs` block supports the following:
