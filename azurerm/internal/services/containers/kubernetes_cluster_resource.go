@@ -179,10 +179,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.ResourceIdentityTypeSystemAssigned),
-<<<<<<< HEAD
 								string(containerservice.ResourceIdentityTypeUserAssigned),
-=======
->>>>>>> master
 							}, false),
 						},
 						"user_assigned_identity_id": {
