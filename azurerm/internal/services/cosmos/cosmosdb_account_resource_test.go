@@ -1035,7 +1035,7 @@ data "azuread_service_principal" "cosmosdb" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%d"
+  name                = "acctestkv-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -1086,10 +1086,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name          = "examplekey%d"
-  key_vault_uri = azurerm_key_vault.test.id
-  key_type      = "RSA"
-  key_size      = 2048
+  name         = "key-%s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
   key_opts = [
     "decrypt",
@@ -1107,7 +1107,7 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
-  key_vault_key_uri   = "${azurerm_key_vault.test.vault_uri}keys/${azurerm_key_vault_key.test.name}/"
+  key_vault_key_id    = azurerm_key_vault_key.test.id
 
   consistency_policy {
     consistency_level = "%s"
@@ -1118,5 +1118,5 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, string(kind), string(consistency))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, string(kind), string(consistency))
 }
