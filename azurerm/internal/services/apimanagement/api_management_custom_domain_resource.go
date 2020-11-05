@@ -2,13 +2,14 @@ package apimanagement
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -123,7 +124,7 @@ func apiManagementCustomDomainCreateUpdate(d *schema.ResourceData, meta interfac
 		Target:                    []string{"Succeeded", "Ready"},
 		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
 		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 5,
+		ContinuousTargetOccurence: 6,
 	}
 	if d.IsNewResource() {
 		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
@@ -229,7 +230,7 @@ func apiManagementCustomDomainDelete(d *schema.ResourceData, meta interface{}) e
 		Refresh:                   apiManagementRefreshFunc(ctx, client, serviceName, resourceGroup),
 		MinTimeout:                1 * time.Minute,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
-		ContinuousTargetOccurence: 5,
+		ContinuousTargetOccurence: 6,
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
