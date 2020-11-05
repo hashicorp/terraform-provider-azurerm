@@ -1257,13 +1257,13 @@ resource "azurerm_shared_image_version" "test" {
   name                = "0.0.1"
   gallery_name        = azurerm_shared_image.test.gallery_name
   image_name          = azurerm_shared_image.test.name
-  resource_group_name = azurerm_shared_image.test.resource_group_name
-  location            = azurerm_shared_image.test.location
+  resource_group_name = azurerm_resource_group.test.resource_group_name
+  location            = azurerm_resource_group.test.location
   managed_image_id    = azurerm_image.test.id
 
   target_region {
-    name                   = azurerm_shared_image.test.location
-    regional_replica_count = "5"
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = "1"
     storage_account_type   = "Standard_LRS"
   }
 }
