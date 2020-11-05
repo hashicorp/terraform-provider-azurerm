@@ -9,11 +9,19 @@ func TestNetworkConnectionMonitorHttpPath(t *testing.T) {
 	}{
 		{
 			Value:  "",
-			Errors: 0,
+			Errors: 1,
 		},
 		{
 			Value:  "a/b",
 			Errors: 1,
+		},
+		{
+			Value:  "///",
+			Errors: 1,
+		},
+		{
+			Value:  "/ab/b1/",
+			Errors: 0,
 		},
 		{
 			Value:  "/a/b",

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Network Connection Monitor.
 
-~> **NOTE:** Any Network Connection Monitor resource created with API versions 2019-06-01 or earlier (v1) are now incompatible with terraform which now only supports v2.
+~> **NOTE:** Any Network Connection Monitor resource created with API versions 2019-06-01 or earlier (v1) are now incompatible with Terraform, which now only supports v2.
 
 ## Example Usage
 
@@ -126,9 +126,9 @@ resource "azurerm_network_connection_monitor" "example" {
   }
 
   test_configuration {
-    name                       = "tcpName"
-    protocol                   = "Tcp"
-    test_frequency_iin_seconds = 60
+    name                      = "tcpName"
+    protocol                  = "Tcp"
+    test_frequency_in_seconds = 60
 
     tcp_configuration {
       port = 80
@@ -155,11 +155,11 @@ resource "azurerm_network_connection_monitor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Network Connection Monitor. Changing this forces a new Network Connection Monitor to be created.
+* `name` - (Required) The name which should be used for this Network Connection Monitor. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the Network Connection Monitor should exist. Changing this forces a new Network Connection Monitor to be created.
+* `location` - (Required) The Azure Region where the Network Connection Monitor should exist. Changing this forces a new resource to be created.
 
-* `network_watcher_id` - (Required) The ID of the Network Watcher. Changing this forces a new Network Connection Monitor to be created.
+* `network_watcher_id` - (Required) The ID of the Network Watcher. Changing this forces a new resource to be created.
 
 * `endpoint` - (Required) A `endpoint` block as defined below.
 
@@ -171,7 +171,7 @@ The following arguments are supported:
 
 * `notes` - (Optional) Any notes about the Network Connection Monitor.
 
-* `output_workspace_resource_ids` - (Optional) A list of the log analytics workspace id that should be used for producing output into a log analytics.
+* `output_workspace_resource_ids` - (Optional) A list of the Log Analytics Workspace id that should be used for producing output into a Log Analytics for the Network Connection Monitor.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Connection Monitor.
 
@@ -179,13 +179,13 @@ The following arguments are supported:
 
 A `endpoint` block supports the following:
 
-* `name` - (Required) The name of the connection monitor endpoint.
+* `name` - (Required) The name of the endpoint for the Network Connection Monitor .
 
-* `address` - (Optional) The address of the connection monitor endpoint (IP or domain name).
+* `address` - (Optional) The IP address or domain name of the Network Connection Monitor endpoint.
 
 * `filter` - (Optional) A `filter` block as defined below.
 
-* `virtual_machine_id` - (Optional) The ID of the virtual machine which is used as the endpoint by connection monitor.
+* `virtual_machine_id` - (Optional) The ID of the Virtual Machine which is used as the endpoint by the Network Connection Monitor.
 
 ---
 
@@ -207,11 +207,11 @@ A `item` block supports the following:
 
 A `test_configuration` block supports the following:
 
-* `name` - (Required) The name of the connection monitor test configuration.
+* `name` - (Required) The name of test configuration for the Network Connection Monitor.
 
 * `protocol` - (Required) The protocol used to evaluate tests. Possible values are `Tcp`, `Http` and `Icmp`.
 
-* `test_frequency_iin_seconds` - (Optional) The frequency of test evaluation, in seconds. Defaults to `60`.
+* `test_frequency_in_seconds` - (Optional) The time interval in seconds at which the test evaluation will happen. Defaults to `60`.
 
 * `http_configuration` - (Optional) A `http_configuration` block as defined below.
 
@@ -229,7 +229,7 @@ A `http_configuration` block supports the following:
 
 * `method` - (Optional) The HTTP method to use. Possible values are `Get` and `Post`. Defaults to `Get`.
 
-* `port` - (Optional) The port to connect to.
+* `port` - (Optional) The port for the Http connection.
 
 * `path` - (Optional) The path component of the URI. For instance, `/dir1/dir2`.
 
@@ -265,7 +265,7 @@ A `success_threshold` block supports the following:
 
 A `tcp_configuration` block supports the following:
 
-* `port` - (Required) The port to connect to.
+* `port` - (Required) The port for the Tcp connection.
 
 * `trace_route_disabled` - (Optional) Should path evaluation with trace route be disabled? Defaults to `false`.
 
@@ -273,7 +273,7 @@ A `tcp_configuration` block supports the following:
 
 A `test_group` block supports the following:
 
-* `name` - (Required) The name of the connection monitor test group.
+* `name` - (Required) The name of the test group for the Network Connection Monitor.
 
 * `destination_endpoints` - (Required) A list of destination endpoint names.
 

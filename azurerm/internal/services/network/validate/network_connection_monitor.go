@@ -27,8 +27,14 @@ func NetworkConnectionMonitorID(i interface{}, k string) (warnings []string, err
 func NetworkConnectionMonitorHttpPath(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile(`^(/.*)?$`).MatchString(value) {
+	if len(value) == 0 {
+		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, value))
+		return warnings, errors
+	}
+
+	if !regexp.MustCompile(`^((/[^/]+)+[/]?|/)$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf("The Network Connection Monitor Http Path must start with a slash."))
+		return warnings, errors
 	}
 
 	return warnings, errors

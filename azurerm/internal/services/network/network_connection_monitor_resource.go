@@ -354,7 +354,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
-						"test_frequency_iin_seconds": {
+						"test_frequency_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      60,
@@ -498,6 +498,7 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.ConnectionMonitorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -521,7 +522,10 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("name", id.Name)
-	d.Set("network_watcher_id", id.WatcherId)
+
+	networkWatcherId := parse.NewNetworkWatcherID(id.ResourceGroup, id.WatcherName)
+	d.Set("network_watcher_id", networkWatcherId.ID(subscriptionId))
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -648,7 +652,7 @@ func expandArmNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]
 			Protocol:          network.ConnectionMonitorTestConfigurationProtocol(v["protocol"].(string)),
 			SuccessThreshold:  expandArmNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
 			TCPConfiguration:  expandArmNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
-			TestFrequencySec:  utils.Int32(int32(v["test_frequency_iin_seconds"].(int))),
+			TestFrequencySec:  utils.Int32(int32(v["test_frequency_in_seconds"].(int))),
 		}
 
 		if preferredIPVersion := v["preferred_ip_version"]; preferredIPVersion != "" {
@@ -892,14 +896,14 @@ func flattenArmNetworkConnectionMonitorTestConfiguration(input *[]network.Connec
 		}
 
 		v := map[string]interface{}{
-			"name":                       name,
-			"protocol":                   protocol,
-			"http_configuration":         flattenArmNetworkConnectionMonitorHTTPConfiguration(item.HTTPConfiguration),
-			"icmp_configuration":         flattenArmNetworkConnectionMonitorIcmpConfiguration(item.IcmpConfiguration),
-			"preferred_ip_version":       preferredIpVersion,
-			"success_threshold":          flattenArmNetworkConnectionMonitorSuccessThreshold(item.SuccessThreshold),
-			"tcp_configuration":          flattenArmNetworkConnectionMonitorTCPConfiguration(item.TCPConfiguration),
-			"test_frequency_iin_seconds": testFrequencySec,
+			"name":                      name,
+			"protocol":                  protocol,
+			"http_configuration":        flattenArmNetworkConnectionMonitorHTTPConfiguration(item.HTTPConfiguration),
+			"icmp_configuration":        flattenArmNetworkConnectionMonitorIcmpConfiguration(item.IcmpConfiguration),
+			"preferred_ip_version":      preferredIpVersion,
+			"success_threshold":         flattenArmNetworkConnectionMonitorSuccessThreshold(item.SuccessThreshold),
+			"tcp_configuration":         flattenArmNetworkConnectionMonitorTCPConfiguration(item.TCPConfiguration),
+			"test_frequency_in_seconds": testFrequencySec,
 		}
 
 		results = append(results, v)

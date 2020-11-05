@@ -552,10 +552,10 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_configuration {
-    name                       = "tcp"
-    protocol                   = "Tcp"
-    test_frequency_iin_seconds = 40
-    preferred_ip_version       = "IPv4"
+    name                      = "tcp"
+    protocol                  = "Tcp"
+    test_frequency_in_seconds = 40
+    preferred_ip_version      = "IPv4"
 
     tcp_configuration {
       port = 80
@@ -701,9 +701,9 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   test_configuration {
-    name                       = "tcp"
-    protocol                   = "Tcp"
-    test_frequency_iin_seconds = 40
+    name                      = "tcp"
+    protocol                  = "Tcp"
+    test_frequency_in_seconds = 40
 
     tcp_configuration {
       port = 80
