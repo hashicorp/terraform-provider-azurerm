@@ -724,6 +724,25 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsRollingUpgradeWi
 	})
 }
 
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName)),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
 func TestAccAzureRMLinuxVirtualMachineScaleSet_otherEncryptionAtHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
@@ -2483,7 +2502,76 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     settings = jsonencode({
       protocol     = "https"
       port         = 443
-      request_path = "/"
+    })
+  }
+
+  tags = {
+    accTest = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  upgrade_mode = "Automatic"
+
+  automatic_os_upgrade_policy {
+    disable_automatic_rollback  = true
+    enable_automatic_os_upgrade = true
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthLinux"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      protocol     = "https"
+      port         = 443
     })
   }
 

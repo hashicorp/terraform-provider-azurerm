@@ -1367,14 +1367,13 @@ func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	}
 }
 
-func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.VirtualMachineScaleSetExtensionProfile, bool, error) {
-	result := &compute.VirtualMachineScaleSetExtensionProfile{}
+func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfile *compute.VirtualMachineScaleSetExtensionProfile, hasHealthExtension bool, err error) {
+	extensionProfile = &compute.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
-		return result, false, nil
+		return nil, false, nil
 	}
 
 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
-	hasHealthExtension := false
 	for _, v := range input {
 		extensionRaw := v.(map[string]interface{})
 		extension := compute.VirtualMachineScaleSetExtension{
@@ -1419,9 +1418,9 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.Virtu
 		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
 		extensions = append(extensions, extension)
 	}
-	result.Extensions = &extensions
+	extensionProfile.Extensions = &extensions
 
-	return result, hasHealthExtension, nil
+	return extensionProfile, hasHealthExtension, nil
 }
 
 func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {

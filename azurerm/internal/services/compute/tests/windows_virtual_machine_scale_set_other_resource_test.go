@@ -884,6 +884,26 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsRollingUpgrade
 	})
 }
 
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			// TODO - extension should be changed to extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "extension"),
+		},
+	})
+}
+
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherEncryptionAtHostEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
@@ -2820,7 +2840,70 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     settings = jsonencode({
       protocol     = "https"
       port         = 443
-      request_path = "/"
+    })
+  }
+}
+`, template)
+}
+
+func testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsAutomaticUpgradeWithHealthExtension(data acceptance.TestData) string {
+	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  upgrade_mode = "Automatic"
+
+  automatic_os_upgrade_policy {
+    disable_automatic_rollback  = true
+    enable_automatic_os_upgrade = true
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+
+    settings = jsonencode({
+      protocol     = "https"
+      port         = 443
     })
   }
 }
