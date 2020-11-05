@@ -90,7 +90,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.VirtualHubRouteTableID,
 						},
 
 						"propagated_route_table": {
