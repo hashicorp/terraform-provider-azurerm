@@ -139,7 +139,7 @@ func testCheckAzureRMLogAnalyticsStorageInsightsExists(resourceName string) reso
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Log Analytics Storage Insights %q does not exist", id.Name)
 			}
-			return fmt.Errorf("bad: Get on LogAnalytics.StorageInsightConfigClient: %+v", err)
+			return fmt.Errorf("bad: Get on LogAnalytics.StorageInsightsClient: %+v", err)
 		}
 		return nil
 	}
@@ -159,7 +159,7 @@ func testCheckAzureRMLogAnalyticsStorageInsightsDestroy(s *terraform.State) erro
 		}
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on LogAnalytics.StorageInsightConfigClient: %+v", err)
+				return fmt.Errorf("bad: Get on LogAnalytics.StorageInsightsClient: %+v", err)
 			}
 		}
 		return nil
@@ -202,9 +202,9 @@ func testAccAzureRMLogAnalyticsStorageInsights_basic(data acceptance.TestData) s
 %s
 
 resource "azurerm_log_analytics_storage_insights" "test" {
-  name                  = "acctest-la-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_id          = azurerm_log_analytics_workspace.test.id
+  name                = "acctest-la-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 
   storage_account_id  = azurerm_storage_account.test.id
   storage_account_key = azurerm_storage_account.test.primary_access_key
@@ -218,9 +218,9 @@ func testAccAzureRMLogAnalyticsStorageInsights_requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_log_analytics_storage_insights" "import" {
-  name                  = azurerm_log_analytics_storage_insights.test.name
-  resource_group_name   = azurerm_log_analytics_storage_insights.test.resource_group_name
-  workspace_id          = azurerm_log_analytics_storage_insights.test.workspace_id
+  name                = azurerm_log_analytics_storage_insights.test.name
+  resource_group_name = azurerm_log_analytics_storage_insights.test.resource_group_name
+  workspace_id        = azurerm_log_analytics_storage_insights.test.workspace_id
 
   storage_account_id  = azurerm_storage_account.test.id
   storage_account_key = azurerm_storage_account.test.primary_access_key
@@ -234,9 +234,9 @@ func testAccAzureRMLogAnalyticsStorageInsights_complete(data acceptance.TestData
 %s
 
 resource "azurerm_log_analytics_storage_insights" "test" {
-  name                  = "acctest-LA-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_id          = azurerm_log_analytics_workspace.test.id
+  name                = "acctest-LA-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 
   blob_container_names = ["wad-iis-logfiles"]
   table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
@@ -262,9 +262,9 @@ resource "azurerm_storage_account" "test2" {
 }
 
 resource "azurerm_log_analytics_storage_insights" "test" {
-  name                  = "acctest-la-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_id          = azurerm_log_analytics_workspace.test.id
+  name                = "acctest-la-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
 
   blob_container_names = ["wad-iis-logfiles"]
   table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
