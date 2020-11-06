@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -59,6 +60,81 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validate.ApiManagementLoggerID,
 			},
+
+			"sampling_percentage": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.FloatBetween(0.0, 100.0),
+			},
+
+			"always_log_errors": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"verbosity": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.Verbose),
+					string(apimanagement.Information),
+					string(apimanagement.Error),
+				}, false),
+			},
+
+			"log_client_ip": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"http_correlation_protocol": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(apimanagement.HTTPCorrelationProtocolNone),
+					string(apimanagement.HTTPCorrelationProtocolLegacy),
+					string(apimanagement.HTTPCorrelationProtocolW3C),
+				}, false),
+			},
+
+			"frontend_request": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"frontend_response": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"backend_request": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+
+			"backend_response": resourceArmApiManagementApiDiagnosticAdditionalContentSchema(),
+		},
+	}
+}
+
+func resourceArmApiManagementApiDiagnosticAdditionalContentSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		MaxItems: 1,
+		Optional: true,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"body_bytes": {
+					Type:         schema.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 8192),
+				},
+				"headers_to_log": {
+					Type:     schema.TypeSet,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+					Set: schema.HashString,
+				},
+			},
 		},
 	}
 }
@@ -90,6 +166,61 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{
 			LoggerID: utils.String(d.Get("api_management_logger_id").(string)),
 		},
+	}
+
+	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+		parameters.Sampling = &apimanagement.SamplingSettings{
+			SamplingType: apimanagement.Fixed,
+			Percentage:   utils.Float(samplingPercentage.(float64)),
+		}
+	} else {
+		parameters.Sampling = nil
+	}
+
+	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
+		parameters.AlwaysLog = apimanagement.AllErrors
+	}
+
+	if verbosity, ok := d.GetOk("verbosity"); ok {
+		switch verbosity.(string) {
+		case string(apimanagement.Verbose):
+			parameters.Verbosity = apimanagement.Verbose
+		case string(apimanagement.Information):
+			parameters.Verbosity = apimanagement.Information
+		case string(apimanagement.Error):
+			parameters.Verbosity = apimanagement.Error
+		}
+	}
+
+	if logClientIP, ok := d.GetOk("log_client_ip"); ok {
+		parameters.LogClientIP = utils.Bool(logClientIP.(bool))
+	}
+
+	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
+		switch httpCorrelationProtocol.(string) {
+		case string(apimanagement.HTTPCorrelationProtocolNone):
+			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolNone
+		case string(apimanagement.HTTPCorrelationProtocolLegacy):
+			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolLegacy
+		case string(apimanagement.HTTPCorrelationProtocolW3C):
+			parameters.HTTPCorrelationProtocol = apimanagement.HTTPCorrelationProtocolW3C
+		}
+	}
+
+	if frontendRequest, ok := d.GetOk("frontend_request"); ok {
+		parameters.Frontend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
+	}
+
+	if frontendResponse, ok := d.GetOk("frontend_response"); ok {
+		parameters.Frontend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
+	}
+
+	if backendRequest, ok := d.GetOk("backend_request"); ok {
+		parameters.Backend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
+	}
+
+	if backendResponse, ok := d.GetOk("backend_response"); ok {
+		parameters.Backend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, diagnosticId, parameters, ""); err != nil {
@@ -135,6 +266,27 @@ func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta inte
 	d.Set("api_management_name", diagnosticId.ServiceName)
 	if props := resp.DiagnosticContractProperties; props != nil {
 		d.Set("api_management_logger_id", props.LoggerID)
+		if props.Sampling != nil && props.Sampling.Percentage != nil {
+			d.Set("sampling_percentage", props.Sampling.Percentage)
+		}
+		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AllErrors)
+		d.Set("verbosity", props.Verbosity)
+		d.Set("log_client_ip", props.LogClientIP)
+		d.Set("http_correlation_protocol", props.HTTPCorrelationProtocol)
+		if frontend := props.Frontend; frontend != nil {
+			d.Set("frontend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Request))
+			d.Set("frontend_response", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(frontend.Response))
+		} else {
+			d.Set("frontend_request", nil)
+			d.Set("frontend_response", nil)
+		}
+		if backend := props.Backend; backend != nil {
+			d.Set("backend_request", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(backend.Request))
+			d.Set("backend_response", flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(backend.Response))
+		} else {
+			d.Set("backend_request", nil)
+			d.Set("backend_response", nil)
+		}
 	}
 
 	return nil
@@ -157,4 +309,49 @@ func resourceArmApiManagementApiDiagnosticDelete(d *schema.ResourceData, meta in
 	}
 
 	return nil
+}
+
+func expandApiManagementApiDiagnosticHTTPMessageDiagnostic(input []interface{}) *apimanagement.HTTPMessageDiagnostic {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+
+	result := &apimanagement.HTTPMessageDiagnostic{
+		Body: &apimanagement.BodyDiagnosticSettings{
+			Bytes: utils.Int32(v["body_bytes"].(int32)),
+		},
+	}
+	if headersSetRaw, ok := v["headers_to_log"]; ok {
+		headersSet := headersSetRaw.(*schema.Set).List()
+		headers := []string{}
+		for _, header := range headersSet {
+			headers = append(headers, header.(string))
+		}
+		result.Headers = &headers
+	}
+
+	return result
+}
+
+func flattenApiManagementApiDiagnosticHTTPMessageDiagnostic(input *apimanagement.HTTPMessageDiagnostic) []interface{} {
+	result := make([]interface{}, 0)
+
+	if input == nil {
+		return result
+	}
+
+	diagnostic := map[string]interface{}{}
+
+	if input.Body != nil && input.Body.Bytes != nil {
+		diagnostic["body_bytes"] = input.Body.Bytes
+	}
+
+	if input.Headers != nil {
+		diagnostic["headers_to_log"] = set.FromStringSlice(*input.Headers)
+	}
+	result = append(result, diagnostic)
+
+	return result
 }
