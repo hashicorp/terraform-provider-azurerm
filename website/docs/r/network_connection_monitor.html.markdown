@@ -169,7 +169,7 @@ The following arguments are supported:
 
 ---
 
-* `notes` - (Optional) Any notes about the Network Connection Monitor.
+* `notes` - (Optional) The description of the Network Connection Monitor.
 
 * `output_workspace_resource_ids` - (Optional) A list of the Log Analytics Workspace id that should be used for producing output into a Log Analytics for the Network Connection Monitor.
 
