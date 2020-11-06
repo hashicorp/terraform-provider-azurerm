@@ -113,7 +113,7 @@ func dataSourceKubernetesClusterNodePool() *schema.Resource {
 				Computed: true,
 			},
 
-			"os_disk_type_gb": {
+			"os_disk_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
