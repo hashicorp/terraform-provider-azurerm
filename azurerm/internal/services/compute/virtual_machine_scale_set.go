@@ -922,7 +922,7 @@ func VirtualMachineScaleSetOSDiskSchema() *schema.Schema {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 2048),
+					ValidateFunc: validation.IntBetween(0, 4095),
 				},
 
 				"write_accelerator_enabled": {
