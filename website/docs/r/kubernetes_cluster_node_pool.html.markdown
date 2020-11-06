@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 
-* `os_disk_type` - (Optional) The Agent Operating System disk type. Can be `Managed` or `Ephemeral`. Defaults to `Managed`. Changing this forces a new resource to be created.
+* `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. Changing this forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
