@@ -225,13 +225,13 @@ func TestAccAzureRMVirtualNetwork_bgpCommunity(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			data.ImportStep(),
 			{
 				Config: testAccAzureRMVirtualNetwork_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -576,7 +576,7 @@ resource "azurerm_virtual_network" "test" {
     address_prefix = "10.0.1.0/24"
   }
 
-  bgp_community = [12076, 20000]
+  bgp_community = "12076:20000"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

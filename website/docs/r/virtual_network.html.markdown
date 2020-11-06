@@ -81,9 +81,9 @@ The following arguments are supported:
 
 * `location` - (Required) The location/region where the virtual network is created. Changing this forces a new resource to be created.
 
-* `bgp_community` - (Optional) A List of two integer consisting the BGP community attribute as defined in [RFC1997](https://tools.ietf.org/html/rfc1997).
+* `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
 
--> **NOTE** The first element is the Microsoft ASN, which is always `12076` for now.
+-> **NOTE** The `as-number` segment is the Microsoft ASN, which is always `12076` for now.
 
 * `ddos_protection_plan` - (Optional) A `ddos_protection_plan` block as documented below.
 
