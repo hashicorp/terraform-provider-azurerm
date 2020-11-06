@@ -31,12 +31,12 @@ func TestVirtualHubBgpConnectionID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing BgpConnection Value",
+			Name:     "Missing VirtualHubBgpConnection Value",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/bgpConnections",
 			Expected: nil,
 		},
 		{
-			Name:  "network VirtualHubBgpConnection ID",
+			Name:  "VirtualHubBgpConnection ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/bgpConnections/connection1",
 			Expected: &VirtualHubBgpConnectionId{
 				ResourceGroup:  "resourceGroup1",
