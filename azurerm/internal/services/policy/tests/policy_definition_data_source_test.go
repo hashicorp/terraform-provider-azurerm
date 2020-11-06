@@ -29,6 +29,27 @@ func TestAccDataSourceAzureRMPolicyDefinition_builtIn(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMPolicyDefinition_builtIn_byName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceBuiltInPolicyDefinitionByName("a08ec900-254a-4555-9bf5-e42af04b5c5c"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "a08ec900-254a-4555-9bf5-e42af04b5c5c"),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Allowed resource types"),
+					resource.TestCheckResourceAttr(data.ResourceName, "type", "Microsoft.Authorization/policyDefinitions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "This policy enables you to specify the resource types that your organization can deploy. Only resource types that support 'tags' and 'location' will be affected by this policy. To restrict all resources please duplicate this policy and change the 'mode' to 'All'."),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMPolicyDefinition_builtIn_AtManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_policy_definition", "test")
 
@@ -100,6 +121,18 @@ provider "azurerm" {
 
 data "azurerm_policy_definition" "test" {
   display_name = "%s"
+}
+`, name)
+}
+
+func testAccDataSourceBuiltInPolicyDefinitionByName(name string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_policy_definition" "test" {
+  name = "%s"
 }
 `, name)
 }

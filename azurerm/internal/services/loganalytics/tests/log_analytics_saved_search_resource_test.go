@@ -50,6 +50,25 @@ func TestAccAzureRMLogAnalyticsSavedSearch_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsSavedSearch_withTag(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsSavedSearchDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsSavedSearch_withTag(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsSavedSearchExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsSavedSearch_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
 
@@ -202,6 +221,39 @@ resource "azurerm_log_analytics_saved_search" "test" {
 
   function_alias      = "heartbeat_func"
   function_parameters = ["a:int=1"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsSavedSearch_withTag(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_saved_search" "test" {
+  name                       = "acctestLASS-%d"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  category     = "Saved Search Test Category"
+  display_name = "Create or Update Saved Search Test"
+  query        = "Heartbeat | summarize Count() by Computer | take a"
+
+  tags = {
+    "Environment" = "Test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

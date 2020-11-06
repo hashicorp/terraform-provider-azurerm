@@ -177,10 +177,8 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: Get on keyVaultClient: %+v", err)
 		}
 
-		policy, err := keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
-		if err != nil {
-			return fmt.Errorf("Error finding Key Vault Access Policy %q : %+v", vaultName, err)
-		}
+		policy := keyvault.FindKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
+
 		if policy == nil {
 			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) does not exist", vaultName, resGroup, objectId)
 		}
