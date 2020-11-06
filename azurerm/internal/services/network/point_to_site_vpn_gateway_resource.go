@@ -231,9 +231,12 @@ func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta i
 				ID: utils.String(virtualHubId),
 			},
 			VpnGatewayScaleUnit: utils.Int32(int32(scaleUnit)),
-			CustomDNSServers:    utils.ExpandStringSlice(d.Get("custom_dns_servers").([]interface{})),
 		},
 		Tags: tags.Expand(t),
+	}
+	customDNSServers := utils.ExpandStringSlice(d.Get("custom_dns_servers").([]interface{}))
+	if len(*customDNSServers) != 0 {
+		parameters.P2SVpnGatewayProperties.CustomDNSServers = customDNSServers
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)

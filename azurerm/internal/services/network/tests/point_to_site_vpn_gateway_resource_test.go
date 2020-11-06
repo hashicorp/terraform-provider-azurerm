@@ -174,6 +174,11 @@ func testAccAzureRMAzureRMPointToSiteVPNGateway_updated(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_virtual_hub_route_table" "test" {
+  name           = "acctest-RouteTable-%d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+}
+
 resource "azurerm_point_to_site_vpn_gateway" "test" {
   name                        = "acctestp2sVPNG-%d"
   location                    = azurerm_resource_group.test.location
@@ -191,6 +196,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
 
     route_config {
       associated_route_table_id = azurerm_virtual_hub_route_table.test.id
+
       propagated_route_table {
         ids    = [azurerm_virtual_hub_route_table.test.id]
         labels = ["label1", "label2"]
@@ -198,7 +204,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     }
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMAzureRMPointToSiteVPNGateway_requiresImport(data acceptance.TestData) string {
@@ -276,11 +282,6 @@ resource "azurerm_virtual_hub" "test" {
   address_prefix      = "10.0.1.0/24"
 }
 
-resource "azurerm_virtual_hub_route_table" "test" {
-  name           = "acctest-RouteTable-%d"
-  virtual_hub_id = azurerm_virtual_hub.test.id
-}
-
 resource "azurerm_vpn_server_configuration" "test" {
   name                     = "acctestvpnsc-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -314,5 +315,5 @@ M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
