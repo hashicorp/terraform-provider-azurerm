@@ -506,7 +506,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
   }
 
@@ -570,7 +570,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
     enabled               = true
   }
@@ -620,7 +620,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
   }
 
@@ -662,7 +662,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
   }
 
@@ -713,7 +713,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
     enabled               = true
   }
@@ -754,7 +754,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = []
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
   }
 
@@ -795,7 +795,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
   }
 
@@ -836,7 +836,7 @@ resource "azurerm_network_connection_monitor" "import" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
   }
 
@@ -886,7 +886,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
   }
 
@@ -927,7 +927,7 @@ resource "azurerm_network_connection_monitor" "test" {
   test_group {
     name                  = "testtg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcp"]
   }
 

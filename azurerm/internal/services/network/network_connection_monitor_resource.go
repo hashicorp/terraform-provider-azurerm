@@ -387,7 +387,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
-						"sources": {
+						"source_endpoints": {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem: &schema.Schema{
@@ -765,7 +765,7 @@ func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) *[]network.
 			Name:               utils.String(v["name"].(string)),
 			Destinations:       utils.ExpandStringSlice(v["destination_endpoints"].(*schema.Set).List()),
 			Disable:            utils.Bool(!v["enabled"].(bool)),
-			Sources:            utils.ExpandStringSlice(v["sources"].(*schema.Set).List()),
+			Sources:            utils.ExpandStringSlice(v["source_endpoints"].(*schema.Set).List()),
 			TestConfigurations: utils.ExpandStringSlice(v["test_configurations"].(*schema.Set).List()),
 		}
 
@@ -1063,7 +1063,7 @@ func flattenArmNetworkConnectionMonitorTestGroup(input *[]network.ConnectionMoni
 		v := map[string]interface{}{
 			"name":                  name,
 			"destination_endpoints": utils.FlattenStringSlice(item.Destinations),
-			"sources":               utils.FlattenStringSlice(item.Sources),
+			"source_endpoints":      utils.FlattenStringSlice(item.Sources),
 			"test_configurations":   utils.FlattenStringSlice(item.TestConfigurations),
 			"enabled":               !disable,
 		}

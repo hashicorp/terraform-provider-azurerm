@@ -227,13 +227,13 @@ A `test_configuration` block supports the following:
 
 A `http_configuration` block supports the following:
 
-* `method` - (Optional) The HTTP method to use. Possible values are `Get` and `Post`. Defaults to `Get`.
+* `method` - (Optional) The HTTP method for the HTTP request. Possible values are `Get` and `Post`. Defaults to `Get`.
 
 * `port` - (Optional) The port for the Http connection.
 
 * `path` - (Optional) The path component of the URI. For instance, `/dir1/dir2`.
 
-* `prefer_https` - (Optional) Will https be preferred over http in cases where the choice is not explicit? Defaults to `false`.
+* `prefer_https` - (Optional) Should https be preferred over http in cases where the choice is not explicit? Defaults to `false`.
 
 * `request_header` - (Optional) A `request_header` block as defined below.
 
@@ -251,7 +251,7 @@ A `request_header` block supports the following:
 
 A `icmp_configuration` block supports the following:
 
-* `trace_route_disabled` - (Optional) Will path evaluation with trace route be disabled? Defaults to `false`.
+* `trace_route_disabled` - (Optional) Should path evaluation with trace route be disabled? Defaults to `false`.
 
 ---
 
@@ -285,7 +285,7 @@ A `test_group` block supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+The following attributes are exported:
 
 * `id` - The ID of the Network Connection Monitor.
 
