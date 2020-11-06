@@ -317,8 +317,8 @@ func TestAccAzureRMFirewall_inVirtualHub(t *testing.T) {
 				Config: testAccAzureRMFirewall_inVirtualHub(data, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub_setting.0.public_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub_setting.0.private_ip_address"),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
 				),
 			},
 			data.ImportStep(),
@@ -326,8 +326,8 @@ func TestAccAzureRMFirewall_inVirtualHub(t *testing.T) {
 				Config: testAccAzureRMFirewall_inVirtualHub(data, 2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub_setting.0.public_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub_setting.0.private_ip_address"),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "2"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
 				),
 			},
 			data.ImportStep(),
@@ -335,8 +335,8 @@ func TestAccAzureRMFirewall_inVirtualHub(t *testing.T) {
 				Config: testAccAzureRMFirewall_inVirtualHub(data, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub_setting.0.public_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub_setting.0.private_ip_address"),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
 				),
 			},
 			data.ImportStep(),
@@ -437,7 +437,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -539,7 +539,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -609,7 +609,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -689,7 +689,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -741,7 +741,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -793,7 +793,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -842,7 +842,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -891,7 +891,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -950,7 +950,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-fw-%[1]d"
   location = "%s"
 }
 
@@ -981,7 +981,7 @@ resource "azurerm_firewall" "test" {
 
   sku_name = "AZFW_Hub"
 
-  virtual_hub_setting {
+  virtual_hub {
     virtual_hub_id  = azurerm_virtual_hub.test.id
     public_ip_count = %[3]d
   }

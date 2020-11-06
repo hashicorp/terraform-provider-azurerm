@@ -164,7 +164,7 @@ func resourceArmFirewall() *schema.Resource {
 					ValidateFunc: validation.IsIPAddress,
 				},
 			},
-			"virtual_hub_setting": {
+			"virtual_hub": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -281,7 +281,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.FirewallPolicy = &network.SubResource{ID: &policyId}
 	}
 
-	vhub, hubIpAddresses, ok := expandArmFirewallVirtualHubSetting(existing, d.Get("virtual_hub_setting").([]interface{}))
+	vhub, hubIpAddresses, ok := expandArmFirewallVirtualHubSetting(existing, d.Get("virtual_hub").([]interface{}))
 	if ok {
 		parameters.AzureFirewallPropertiesFormat.VirtualHub = vhub
 		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
@@ -410,8 +410,8 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("sku_tier", string(sku.Tier))
 		}
 
-		if err := d.Set("virtual_hub_setting", flattenArmFirewallVirtualHubSetting(props)); err != nil {
-			return fmt.Errorf("Error setting `virtual_hub_setting`: %+v", err)
+		if err := d.Set("virtual_hub", flattenArmFirewallVirtualHubSetting(props)); err != nil {
+			return fmt.Errorf("Error setting `virtual_hub`: %+v", err)
 		}
 	}
 

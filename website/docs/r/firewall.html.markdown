@@ -80,7 +80,7 @@ The following arguments are supported:
 
 -> **NOTE**: If `virtual_hub_settting` is specified, the `threat_intel_mode` has to be explicitly set as `""`.
 
-* `virtual_hub_setting` - (Optional) A `virtual_hub_setting` block as documented below.
+* `virtual_hub` - (Optional) A `virtual_hub` block as documented below.
 
 * `zones` - (Optional) Specifies the availability zones in which the Azure Firewall should be created. Changing this forces a new resource to be created.
 
@@ -120,15 +120,15 @@ A `management_ip_configuration` block supports the following:
 
 ---
 
-A `virtual_hub_setting` block supports the following:
+A `virtual_hub` block supports the following:
 
 * `virtual_hub_id` - (Required) Specifies the ID of the Virtual Hub where the Firewall resides in.
 
-* `public_ip_count` - (Optional) Specifies the amount of public IP to assign for the Firewall. Defaults to `1`.
+* `public_ip_count` - (Optional) Specifies the number of public IPs to assign to the Firewall. Defaults to `1`.
 
-* `public_ip_addresses` - (Optional) A list of public IP addresses associated with the Firewall.
+* `public_ip_addresses` - (Optional) A list of public IP addresses to associate with the Firewall.
 
--> **NOTE** In most cases, users do not need to specify this argument, except when scaling down the public IPs (by changing the `public_ip_count`), this argument allows users to specify the existing IPs to be retained. Otherwise, the first existing `public_ip_count` public ip addresses will be retained.
+-> **NOTE** In most cases, users do not need to specify this argument, except when scaling down the public IPs (by changing the `public_ip_count`). This argument allows users to specify the existing IPs to be retained, otherwise, the first existing `public_ip_count` public ip addresses will be retained.
 
 ## Attributes Reference
 
@@ -146,7 +146,7 @@ A `ip_configuration` block exports the following:
 
 ---
 
-A `virtual_hub_setting` block exports the following:
+A `virtual_hub` block exports the following:
 
 * `private_ip_address` - The private IP address associated with the Firewall.
 
