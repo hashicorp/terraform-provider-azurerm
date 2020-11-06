@@ -164,6 +164,7 @@ func resourceArmFirewall() *schema.Resource {
 					ValidateFunc: validation.IsIPAddress,
 				},
 			},
+
 			"virtual_hub": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -598,9 +599,7 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 
 func expandArmFirewallDNSServers(input []interface{}) map[string]*string {
 	if len(input) == 0 {
-		return map[string]*string{
-			"Network.DNS.EnableProxy": utils.String("false"),
-		}
+		return nil
 	}
 
 	var servers []string
