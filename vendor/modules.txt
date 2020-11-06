@@ -369,15 +369,15 @@ github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate
 github.com/terraform-providers/terraform-provider-azuread/version
 # github.com/tombuildsstuff/giovanni v0.14.0
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities
-github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/tables
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
