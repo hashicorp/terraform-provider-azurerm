@@ -19,7 +19,6 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
 	github.com/sergi/go-diff v1.1.0
-	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/terraform-providers/terraform-provider-azuread v0.9.0
 	github.com/tombuildsstuff/giovanni v0.14.0
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
