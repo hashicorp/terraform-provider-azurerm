@@ -1412,7 +1412,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupIdConfig(data acceptance.TestData) string {
-	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1442,7 +1441,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 resource "azurerm_proximity_placement_group" "test" {
-  name                = "acctestPPG-aks-%"
+  name                = "acctestPPG-aks-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1459,7 +1458,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 }
 
-`, template)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_spotConfig(data acceptance.TestData) string {
