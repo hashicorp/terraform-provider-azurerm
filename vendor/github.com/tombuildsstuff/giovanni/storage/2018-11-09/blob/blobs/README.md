@@ -33,7 +33,7 @@ func Example() error {
     
     ctx := context.TODO()
     copyInput := blobs.CopyInput{
-        CopySource: "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-desktop-amd64.iso",
+        CopySource: "http://releases.ubuntu.com/14.04/ubuntu-14.04.6-desktop-amd64.iso",
     }
     refreshInterval := 5 * time.Second
     if err := blobClient.CopyAndWait(ctx, accountName, containerName, fileName, copyInput, refreshInterval); err != nil {
