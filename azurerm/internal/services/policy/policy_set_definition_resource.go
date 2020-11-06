@@ -130,9 +130,12 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 						},
 
 						"parameters": { // TODO -- remove this attribute after the deprecation
-							Type:       schema.TypeMap,
-							Optional:   true,
-							Computed:   true,
+							Type:     schema.TypeMap,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 							Deprecated: "Deprecated in favour of `parameter_values`",
 						},
 

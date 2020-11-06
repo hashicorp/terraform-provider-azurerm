@@ -2,7 +2,7 @@
 name: Terraform Schema Linting
 on:
   pull_request:
-    types: ['opened', 'edited', 'reopened', 'synchronize']
+    types: ['opened', 'synchronize']
     paths:
       - '**.go'
       - 'vendor/**'

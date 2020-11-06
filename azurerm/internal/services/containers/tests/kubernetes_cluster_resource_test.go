@@ -12,8 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var olderKubernetesVersion = "1.16.9"
-var currentKubernetesVersion = "1.17.5"
+var olderKubernetesVersion = "1.16.15"
+var currentKubernetesVersion = "1.17.11"
 
 func TestAccAzureRMKubernetes_all(t *testing.T) {
 	// we can conditionally run tests tests individually, or combined
