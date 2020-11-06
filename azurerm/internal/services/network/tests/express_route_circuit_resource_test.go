@@ -17,37 +17,37 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being happy about provisioning a couple at a time
 	testCases := map[string]map[string]func(t *testing.T){
-		//"basic": {
-		//	"metered":                      testAccAzureRMExpressRouteCircuit_basicMetered,
-		//	"unlimited":                    testAccAzureRMExpressRouteCircuit_basicUnlimited,
-		//	"update":                       testAccAzureRMExpressRouteCircuit_update,
-		//	"updateTags":                   testAccAzureRMExpressRouteCircuit_updateTags,
-		//	"tierUpdate":                   testAccAzureRMExpressRouteCircuit_tierUpdate,
-		//	"premiumMetered":               testAccAzureRMExpressRouteCircuit_premiumMetered,
-		//	"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
-		//	"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
-		//	"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
-		//	"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
-		//	"bandwidthReduction":           testAccAzureRMExpressRouteCircuit_bandwidthReduction,
-		//},
-		//"PrivatePeering": {
-		//	"azurePrivatePeering":           testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
-		//	"azurePrivatePeeringWithUpdate": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
-		//	"requiresImport":                testAccAzureRMExpressRouteCircuitPeering_requiresImport,
-		//},
+		"basic": {
+			"metered":                      testAccAzureRMExpressRouteCircuit_basicMetered,
+			"unlimited":                    testAccAzureRMExpressRouteCircuit_basicUnlimited,
+			"update":                       testAccAzureRMExpressRouteCircuit_update,
+			"updateTags":                   testAccAzureRMExpressRouteCircuit_updateTags,
+			"tierUpdate":                   testAccAzureRMExpressRouteCircuit_tierUpdate,
+			"premiumMetered":               testAccAzureRMExpressRouteCircuit_premiumMetered,
+			"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
+			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
+			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
+			"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
+			"bandwidthReduction":           testAccAzureRMExpressRouteCircuit_bandwidthReduction,
+		},
+		"PrivatePeering": {
+			"azurePrivatePeering":           testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
+			"azurePrivatePeeringWithUpdate": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
+			"requiresImport":                testAccAzureRMExpressRouteCircuitPeering_requiresImport,
+		},
 		"MicrosoftPeering": {
-			//"microsoftPeering":                    testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
-			//"microsoftPeeringCustomerRouting":     testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
-			//"microsoftPeeringWithRouteFilter":     testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
+			"microsoftPeering":                    testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
+			"microsoftPeeringCustomerRouting":     testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
+			"microsoftPeeringWithRouteFilter":     testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter,
 			"microsoftPeeringIpv6":                testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6,
 			"microsoftPeeringIpv6CustomerRouting": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRouting,
 			"microsoftPeeringIpv6WithRouteFilter": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilter,
 		},
-		//"authorization": {
-		//	"basic":          testAccAzureRMExpressRouteCircuitAuthorization_basic,
-		//	"multiple":       testAccAzureRMExpressRouteCircuitAuthorization_multiple,
-		//	"requiresImport": testAccAzureRMExpressRouteCircuitAuthorization_requiresImport,
-		//},
+		"authorization": {
+			"basic":          testAccAzureRMExpressRouteCircuitAuthorization_basic,
+			"multiple":       testAccAzureRMExpressRouteCircuitAuthorization_multiple,
+			"requiresImport": testAccAzureRMExpressRouteCircuitAuthorization_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {
