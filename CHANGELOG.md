@@ -1,5 +1,9 @@
 ## 2.36.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_virtual_hub_security_partner_provider` [GH-8978]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v47.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-9163]
