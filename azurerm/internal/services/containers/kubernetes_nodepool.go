@@ -131,7 +131,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"Ephemeral",
 						"Managed",
-					}, true),
+					}, false),
 				},
 
 				"vnet_subnet_id": {
