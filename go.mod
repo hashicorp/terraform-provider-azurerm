@@ -8,7 +8,7 @@ require (
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.1.1
-	github.com/hashicorp/go-azure-helpers v0.12.0
+	github.com/hashicorp/go-azure-helpers v0.13.0
 	github.com/hashicorp/go-getter v1.4.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-uuid v1.0.1

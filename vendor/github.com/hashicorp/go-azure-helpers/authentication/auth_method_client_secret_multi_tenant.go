@@ -13,6 +13,7 @@ type servicePrincipalClientSecretMultiTenantAuth struct {
 	clientSecret       string
 	subscriptionId     string
 	tenantId           string
+	tenantOnly         bool
 	auxiliaryTenantIDs []string
 }
 
@@ -22,6 +23,7 @@ func (a servicePrincipalClientSecretMultiTenantAuth) build(b Builder) (authMetho
 		clientSecret:       b.ClientSecret,
 		subscriptionId:     b.SubscriptionID,
 		tenantId:           b.TenantID,
+		tenantOnly:         b.TenantOnly,
 		auxiliaryTenantIDs: b.AuxiliaryTenantIDs,
 	}
 	return method, nil
@@ -65,7 +67,7 @@ func (a servicePrincipalClientSecretMultiTenantAuth) validate() error {
 
 	fmtErrorMessage := "A %s must be configured when authenticating as a Service Principal using a Multi Tenant Client Secret."
 
-	if a.subscriptionId == "" {
+	if !a.tenantOnly && a.subscriptionId == "" {
 		err = multierror.Append(err, fmt.Errorf(fmtErrorMessage, "Subscription ID"))
 	}
 	if a.clientId == "" {
