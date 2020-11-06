@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to `v0.4.2` of `github.com/Azure/go-autorest/autorest/azure/cli` [GH-9168]
 * dependencies: upgrading to `v48.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-9167]
 * `azurerm_linux_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_windows_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
