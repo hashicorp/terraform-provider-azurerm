@@ -18,4 +18,4 @@ package version
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 // Number contains the semantic version of this SDK.
-const Number = "v47.0.0"
+const Number = "v47.1.0"
