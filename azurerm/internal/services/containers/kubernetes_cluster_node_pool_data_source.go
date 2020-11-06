@@ -259,7 +259,6 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 		}
 		d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
-
 		spotMaxPrice := -1.0
 		if props.SpotMaxPrice != nil {
 			spotMaxPrice = *props.SpotMaxPrice
