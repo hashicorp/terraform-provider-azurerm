@@ -16,16 +16,16 @@ func TestNetworkConnectionMonitorHttpPath(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Value:  "///",
-			Errors: 1,
-		},
-		{
 			Value:  "/ab/b1/",
 			Errors: 0,
 		},
 		{
 			Value:  "/a/b",
 			Errors: 0,
+		},
+		{
+			Value:  "http://www.terraform.io",
+			Errors: 1,
 		},
 		{
 			Value:  "/a/b/",
@@ -128,12 +128,8 @@ func TestNetworkConnectionMonitorEndpointAddressWithDomainName(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Value:  "/a/b",
-			Errors: 1,
-		},
-		{
 			Value:  "a-b",
-			Errors: 1,
+			Errors: 0,
 		},
 		{
 			Value:  "terraform.io",
@@ -143,11 +139,19 @@ func TestNetworkConnectionMonitorEndpointAddressWithDomainName(t *testing.T) {
 			Value:  "www.google.com",
 			Errors: 0,
 		},
+		{
+			Value:  "http://www.google.com",
+			Errors: 1,
+		},
+		{
+			Value:  "www.google.com/a/b?a=1",
+			Errors: 1,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.Value, func(t *testing.T) {
-			_, errors := NetworkConnectionMonitorEndpointAddressWithDomainName(tc.Value, "address")
+			_, errors := NetworkConnectionMonitorEndpointAddress(tc.Value, "address")
 
 			if len(errors) != tc.Errors {
 				t.Fatalf("Expected address to return %d error(s) not %d", tc.Errors, len(errors))

@@ -1,8 +1,6 @@
 package parse
 
 import (
-	"fmt"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -35,16 +33,4 @@ func NetworkConnectionMonitorID(input string) (*NetworkConnectionMonitorId, erro
 	}
 
 	return &connectionMonitor, nil
-}
-
-func (id NetworkWatcherId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/networkWatchers/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewNetworkWatcherID(resourceGroup, name string) NetworkWatcherId {
-	return NetworkWatcherId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
-	}
 }

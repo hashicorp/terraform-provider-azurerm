@@ -150,7 +150,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							Optional: true,
 							ValidateFunc: validation.Any(
 								validation.IsIPv4Address,
-								networkValidate.NetworkConnectionMonitorEndpointAddressWithDomainName,
+								networkValidate.NetworkConnectionMonitorEndpointAddress,
 							),
 						},
 
@@ -297,10 +297,10 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"trace_route_disabled": {
+									"trace_route_enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  false,
+										Default:  true,
 									},
 								},
 							},
@@ -348,10 +348,10 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 										ValidateFunc: validate.PortNumber,
 									},
 
-									"trace_route_disabled": {
+									"trace_route_enabled": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  false,
+										Default:  true,
 									},
 								},
 							},
@@ -396,7 +396,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							},
 						},
 
-						"test_configurations": {
+						"test_configuration_names": {
 							Type:     schema.TypeSet,
 							Required: true,
 							Elem: &schema.Schema{
@@ -705,7 +705,7 @@ func expandArmNetworkConnectionMonitorTCPConfiguration(input []interface{}) *net
 
 	return &network.ConnectionMonitorTCPConfiguration{
 		Port:              utils.Int32(int32(v["port"].(int))),
-		DisableTraceRoute: utils.Bool(v["trace_route_disabled"].(bool)),
+		DisableTraceRoute: utils.Bool(!v["trace_route_enabled"].(bool)),
 	}
 }
 
@@ -717,7 +717,7 @@ func expandArmNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *ne
 	v := input[0].(map[string]interface{})
 
 	return &network.ConnectionMonitorIcmpConfiguration{
-		DisableTraceRoute: utils.Bool(v["trace_route_disabled"].(bool)),
+		DisableTraceRoute: utils.Bool(!v["trace_route_enabled"].(bool)),
 	}
 }
 
@@ -766,7 +766,7 @@ func expandArmNetworkConnectionMonitorTestGroup(input []interface{}) *[]network.
 			Destinations:       utils.ExpandStringSlice(v["destination_endpoints"].(*schema.Set).List()),
 			Disable:            utils.Bool(!v["enabled"].(bool)),
 			Sources:            utils.ExpandStringSlice(v["source_endpoints"].(*schema.Set).List()),
-			TestConfigurations: utils.ExpandStringSlice(v["test_configurations"].(*schema.Set).List()),
+			TestConfigurations: utils.ExpandStringSlice(v["test_configuration_names"].(*schema.Set).List()),
 		}
 
 		results = append(results, result)
@@ -957,14 +957,14 @@ func flattenArmNetworkConnectionMonitorIcmpConfiguration(input *network.Connecti
 		return make([]interface{}, 0)
 	}
 
-	var disableTraceRoute bool
+	var enableTraceRoute bool
 	if input.DisableTraceRoute != nil {
-		disableTraceRoute = *input.DisableTraceRoute
+		enableTraceRoute = !*input.DisableTraceRoute
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"trace_route_disabled": disableTraceRoute,
+			"trace_route_enabled": enableTraceRoute,
 		},
 	}
 }
@@ -997,9 +997,9 @@ func flattenArmNetworkConnectionMonitorTCPConfiguration(input *network.Connectio
 		return make([]interface{}, 0)
 	}
 
-	var disableTraceRoute bool
+	var enableTraceRoute bool
 	if input.DisableTraceRoute != nil {
-		disableTraceRoute = *input.DisableTraceRoute
+		enableTraceRoute = !*input.DisableTraceRoute
 	}
 
 	var port int32
@@ -1009,8 +1009,8 @@ func flattenArmNetworkConnectionMonitorTCPConfiguration(input *network.Connectio
 
 	return []interface{}{
 		map[string]interface{}{
-			"trace_route_disabled": disableTraceRoute,
-			"port":                 port,
+			"trace_route_enabled": enableTraceRoute,
+			"port":                port,
 		},
 	}
 }
@@ -1061,11 +1061,11 @@ func flattenArmNetworkConnectionMonitorTestGroup(input *[]network.ConnectionMoni
 		}
 
 		v := map[string]interface{}{
-			"name":                  name,
-			"destination_endpoints": utils.FlattenStringSlice(item.Destinations),
-			"source_endpoints":      utils.FlattenStringSlice(item.Sources),
-			"test_configurations":   utils.FlattenStringSlice(item.TestConfigurations),
-			"enabled":               !disable,
+			"name":                     name,
+			"destination_endpoints":    utils.FlattenStringSlice(item.Destinations),
+			"source_endpoints":         utils.FlattenStringSlice(item.Sources),
+			"test_configuration_names": utils.FlattenStringSlice(item.TestConfigurations),
+			"enabled":                  !disable,
 		}
 
 		results = append(results, v)

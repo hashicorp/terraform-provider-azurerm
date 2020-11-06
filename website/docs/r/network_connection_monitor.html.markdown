@@ -136,11 +136,11 @@ resource "azurerm_network_connection_monitor" "example" {
   }
 
   test_group {
-    name                  = "exampletg"
-    destination_endpoints = ["destination"]
-    source_endpoints      = ["source"]
-    test_configurations   = ["tcpName"]
-    disable               = false
+    name                     = "exampletg"
+    destination_endpoints    = ["destination"]
+    source_endpoints         = ["source"]
+    test_configuration_names = ["tcpName"]
+    disable                  = false
   }
 
   notes = "examplenote"
@@ -171,7 +171,7 @@ The following arguments are supported:
 
 * `notes` - (Optional) The description of the Network Connection Monitor.
 
-* `output_workspace_resource_ids` - (Optional) A list of the Log Analytics Workspace id that should be used for producing output into a Log Analytics for the Network Connection Monitor.
+* `output_workspace_resource_ids` - (Optional) A list of IDs of the Log Analytics Workspace which will accept the output from the Network Connection Monitor.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Connection Monitor.
 
@@ -217,7 +217,7 @@ A `test_configuration` block supports the following:
 
 * `icmp_configuration` - (Optional) A `icmp_configuration` block as defined below.
 
-* `preferred_ip_version` - (Optional) The preferred IP version which is used in test evaluation. Possible values are `IPv4` and `IPv6`. 
+* `preferred_ip_version` - (Optional) The preferred IP version which is used in the test evaluation. Possible values are `IPv4` and `IPv6`. 
 
 * `success_threshold` - (Optional) A `success_threshold` block as defined below.
 
@@ -229,15 +229,15 @@ A `http_configuration` block supports the following:
 
 * `method` - (Optional) The HTTP method for the HTTP request. Possible values are `Get` and `Post`. Defaults to `Get`.
 
-* `port` - (Optional) The port for the Http connection.
+* `port` - (Optional) The port for the HTTP connection.
 
-* `path` - (Optional) The path component of the URI. For instance, `/dir1/dir2`.
+* `path` - (Optional) The path component of the URI. It only accepts the absolute path.
 
-* `prefer_https` - (Optional) Should https be preferred over http in cases where the choice is not explicit? Defaults to `false`.
+* `prefer_https` - (Optional) Should HTTPS be preferred over HTTP in cases where the choice is not explicit? Defaults to `false`.
 
 * `request_header` - (Optional) A `request_header` block as defined below.
 
-* `valid_status_code_ranges` - (Optional) The http status codes to consider successful. For instance, `2xx`, `301-304` and `418`.
+* `valid_status_code_ranges` - (Optional) The HTTP status codes to consider successful. For instance, `2xx`, `301-304` and `418`.
 
 ---
 
@@ -251,7 +251,7 @@ A `request_header` block supports the following:
 
 A `icmp_configuration` block supports the following:
 
-* `trace_route_disabled` - (Optional) Should path evaluation with trace route be disabled? Defaults to `false`.
+* `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
 
 ---
 
@@ -267,7 +267,7 @@ A `tcp_configuration` block supports the following:
 
 * `port` - (Required) The port for the Tcp connection.
 
-* `trace_route_disabled` - (Optional) Should path evaluation with trace route be disabled? Defaults to `false`.
+* `trace_route_enabled` - (Optional) Should path evaluation with trace route be enabled? Defaults to `true`.
 
 ---
 
@@ -279,7 +279,7 @@ A `test_group` block supports the following:
 
 * `source_endpoints` - (Required) A list of source endpoint names.
 
-* `test_configurations` - (Required) A list of test configuration names.
+* `test_configuration_names` - (Required) A list of test configuration names.
 
 * `enabled` - (Optional) Should the test group be enabled? Defaults to `true`.
 

@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -32,8 +33,14 @@ func NetworkConnectionMonitorHttpPath(v interface{}, k string) (warnings []strin
 		return warnings, errors
 	}
 
-	if !regexp.MustCompile(`^((/[^/]+)+[/]?|/)$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("The Network Connection Monitor Http Path must start with a slash."))
+	path, err := url.ParseRequestURI(value)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("parsing %q: %q", k, value))
+		return warnings, errors
+	}
+
+	if path.IsAbs() {
+		errors = append(errors, fmt.Errorf("%q only accepts the absolute path: %q", k, value))
 		return warnings, errors
 	}
 
@@ -53,6 +60,7 @@ func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (war
 		return warnings, errors
 	}
 
+	// Here the format of the expected code range is `301-304`
 	if len(value) == 7 {
 		if !regexp.MustCompile(`^([1-5][0-9][0-9]-([1-5][0-9][0-9]|600))$`).MatchString(value) {
 			errors = append(errors, fmt.Errorf("%q can contain hyphen: %q", k, value))
@@ -79,6 +87,7 @@ func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (war
 		}
 	}
 
+	// Here the format of the expected code ranges are `2xx` and `418`
 	if len(value) == 3 {
 		if !regexp.MustCompile(`^([1-5][0-9x][0-9x]|600)$`).MatchString(value) {
 			errors = append(errors, fmt.Errorf("%q can contain number with x or pure number: %q", k, value))
@@ -89,7 +98,7 @@ func NetworkConnectionMonitorValidStatusCodeRanges(v interface{}, k string) (war
 	return warnings, errors
 }
 
-func NetworkConnectionMonitorEndpointAddressWithDomainName(v interface{}, k string) (warnings []string, errors []error) {
+func NetworkConnectionMonitorEndpointAddress(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) == 0 {
@@ -97,9 +106,14 @@ func NetworkConnectionMonitorEndpointAddressWithDomainName(v interface{}, k stri
 		return warnings, errors
 	}
 
-	if !regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z
- ]{2,3})$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s could be domain name", k))
+	url, err := url.Parse(value)
+	if err != nil {
+		errors = append(errors, fmt.Errorf("parsing %q: %q", k, value))
+		return warnings, errors
+	}
+
+	if url.Scheme != "" || url.RawQuery != "" {
+		errors = append(errors, fmt.Errorf("%q cannot contain scheme and query parameter: %q", k, value))
 		return warnings, errors
 	}
 
