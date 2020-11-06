@@ -117,10 +117,11 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 			},
 
 			"key_vault_key_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsURLWithHTTPS,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: diffSuppressIgnoreKeyVaultKeyVersion,
+				ValidateFunc:     azure.ValidateKeyVaultChildIdVersionOptional,
 			},
 
 			"consistency_policy": {
@@ -413,8 +414,13 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Tags: tags.Expand(t),
 	}
 
-	if keyVaultKeyURI, ok := d.GetOk("key_vault_key_id"); ok && keyVaultKeyURI.(string) != "" {
-		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKeyURI.(string))
+	if keyVaultKeyIDRaw, ok := d.GetOk("key_vault_key_id"); ok {
+		keyVaultKey, err := azure.ParseKeyVaultChildIDVersionOptional(keyVaultKeyIDRaw.(string))
+		if err != nil {
+			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+		}
+		keyVaultKeyURI := fmt.Sprintf("%skeys/%s", keyVaultKey.KeyVaultBaseUrl, keyVaultKey.Name)
+		account.DatabaseAccountCreateUpdateProperties.KeyVaultKeyURI = utils.String(keyVaultKeyURI)
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
@@ -1033,4 +1039,17 @@ func resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash(v interface{}) int {
 	}
 
 	return hashcode.String(buf.String())
+}
+
+func diffSuppressIgnoreKeyVaultKeyVersion(k, old, new string, d *schema.ResourceData) bool {
+	oldKey, err := azure.ParseKeyVaultChildIDVersionOptional(old)
+	if err != nil {
+		return false
+	}
+	newKey, err := azure.ParseKeyVaultChildIDVersionOptional(new)
+	if err != nil {
+		return false
+	}
+
+	return (oldKey.KeyVaultBaseUrl == newKey.KeyVaultBaseUrl) && (oldKey.Name == newKey.Name)
 }

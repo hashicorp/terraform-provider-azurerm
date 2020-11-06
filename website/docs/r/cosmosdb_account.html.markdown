@@ -92,7 +92,9 @@ The following arguments are supported:
 
 * `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
 
-* `key_vault_key_uri` - (Optional) A Key Vault key URI for CMK encryption in the format of `https://<vault-name>.vault.azure.net/keys/<key-name>`.
+* `key_vault_key_id` - (Optional) A Key Vault Key ID for CMK encryption.
+
+~> **NOTE:** The CosmosDB service always uses the latest version of the specified key, so terraform ignores the version specified in the Key Vault Key ID.
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
 
