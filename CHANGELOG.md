@@ -6,7 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to `v47.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-9165]
+* dependencies: upgrading to `v48.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-9167]
 * `azurerm_linux_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_windows_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_linux_virtual_machine_scale_set` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
