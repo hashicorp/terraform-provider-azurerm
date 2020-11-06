@@ -161,7 +161,7 @@ resource "azurerm_virtual_hub_bgp_connection" "test" {
   virtual_hub_id = azurerm_virtual_hub.test.id
   peer_asn       = 65514
   peer_ip        = "169.254.21.5"
-  
+
   depends_on = [azurerm_virtual_hub_ip.test]
 }
 `, template, data.RandomInteger)
