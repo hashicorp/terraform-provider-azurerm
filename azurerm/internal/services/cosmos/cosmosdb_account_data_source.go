@@ -138,7 +138,7 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 				},
 			},
 
-			"key_vault_key_uri": {
+			"key_vault_key_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -259,7 +259,7 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 
 		if v := props.KeyVaultKeyURI; v != nil {
-			d.Set("key_vault_key_uri", resp.KeyVaultKeyURI)
+			d.Set("key_vault_key_id", resp.KeyVaultKeyURI)
 		}
 
 		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {

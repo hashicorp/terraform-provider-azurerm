@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
 
-* `key_vault_key_id` - (Optional) A Key Vault Key ID for CMK encryption.
+* `key_vault_key_id` - (Optional) A Key Vault Key ID for CMK encryption. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The CosmosDB service always uses the latest version of the specified key, so terraform ignores the version specified in the Key Vault Key ID.
 
