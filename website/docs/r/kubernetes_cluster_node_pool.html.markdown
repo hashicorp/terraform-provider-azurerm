@@ -69,7 +69,7 @@ The following arguments are supported:
 
 ---
 
-* `availability_zones` - (Optional) A list of Availability Zones where the Nodes in this Node Pool should be created in.
+* `availability_zones` - (Optional) A list of Availability Zones where the Nodes in this Node Pool should be created in. Changing this forces a new resource to be created.
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Defaults to `false`.
 
