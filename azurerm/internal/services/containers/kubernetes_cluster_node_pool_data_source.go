@@ -255,7 +255,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 
 		proximityPlacementGroupId := ""
 		if props.ProximityPlacementGroupID != nil {
-			proximityPlacementGroupId = string(*props.ProximityPlacementGroupID)
+			proximityPlacementGroupId = *props.ProximityPlacementGroupID
 		}
 		d.Set("proximity_placement_group_id", proximityPlacementGroupId)
 
