@@ -31,6 +31,25 @@ func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_basic(t *testing.
 	})
 }
 
+func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_managed_id(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_managed_id(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_data_lake_storage_gen2", "test")
 
@@ -150,6 +169,39 @@ resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
   service_principal_key = "testkey"
   tenant                = "11111111-1111-1111-1111-111111111111"
   url                   = "https://test.azure.com"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMDataFactoryLinkedServiceDataLakeStorageGen2_managed_id(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "test" {
+  name                 = "acctestDataLake%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  data_factory_name    = azurerm_data_factory.test.name
+  use_managed_identity = true
+  url                  = "https://test.azure.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -112,7 +112,6 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			"traffic_selector_policy": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"local_address_cidrs": {

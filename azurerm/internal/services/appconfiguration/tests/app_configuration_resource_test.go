@@ -90,6 +90,61 @@ func TestAccAppConfigurationResource_complete(t *testing.T) {
 	})
 }
 
+func TestAccAppConfigurationResource_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAppConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAppConfigurationResource_identity(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAppConfigurationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAppConfigurationResource_identityUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAppConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAppConfigurationResource_standard(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAppConfigurationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAppConfigurationResource_identity(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAppConfigurationResource_standard(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAppConfigurationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAppConfigurationResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
 
@@ -240,6 +295,34 @@ resource "azurerm_app_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "free"
+
+  tags = {
+    environment = "development"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAppConfigurationResource_identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testaccappconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "standard"
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   tags = {
     environment = "development"

@@ -443,7 +443,9 @@ func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) 
 	privateDnsZoneGroup := make(map[string]interface{})
 	if dnsRaw != nil {
 		for _, v := range dnsRaw.([]interface{}) {
-			privateDnsZoneGroup = v.(map[string]interface{})
+			if v != nil {
+				privateDnsZoneGroup = v.(map[string]interface{})
+			}
 		}
 	}
 

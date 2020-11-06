@@ -75,7 +75,7 @@ resource "azurerm_frontdoor" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Front Door service. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Front Door service. Must be globally unique. Changing this forces a new resource to be created. 
 
 * `location` -  (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created
 
@@ -139,7 +139,7 @@ The `frontend_endpoint` block supports the following:
 
 * `name` - (Required) Specifies the name of the `frontend_endpoint`.
 
-* `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name.
+* `host_name` - (Required) Specifies the host name of the `frontend_endpoint`. Must be a domain name. In order to use a name.azurefd.net domain, the name value must match the Front Door name.
 
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 

@@ -137,9 +137,10 @@ func (client IotRecommendationsClient) GetResponder(resp *http.Response) (result
 // insensitive.
 // solutionName - the name of the IoT Security solution.
 // recommendationType - filter by recommendation type
+// deviceID - filter by device id
 // limit - limit the number of items returned in a single page
 // skipToken - skip token used for pagination
-func (client IotRecommendationsClient) List(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, limit *int32, skipToken string) (result IotRecommendationListPage, err error) {
+func (client IotRecommendationsClient) List(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, deviceID string, limit *int32, skipToken string) (result IotRecommendationListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.List")
 		defer func() {
@@ -161,7 +162,7 @@ func (client IotRecommendationsClient) List(ctx context.Context, resourceGroupNa
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, resourceGroupName, solutionName, recommendationType, limit, skipToken)
+	req, err := client.ListPreparer(ctx, resourceGroupName, solutionName, recommendationType, deviceID, limit, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotRecommendationsClient", "List", nil, "Failure preparing request")
 		return
@@ -186,7 +187,7 @@ func (client IotRecommendationsClient) List(ctx context.Context, resourceGroupNa
 }
 
 // ListPreparer prepares the List request.
-func (client IotRecommendationsClient) ListPreparer(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, limit *int32, skipToken string) (*http.Request, error) {
+func (client IotRecommendationsClient) ListPreparer(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, deviceID string, limit *int32, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"solutionName":      autorest.Encode("path", solutionName),
@@ -199,6 +200,9 @@ func (client IotRecommendationsClient) ListPreparer(ctx context.Context, resourc
 	}
 	if len(recommendationType) > 0 {
 		queryParameters["recommendationType"] = autorest.Encode("query", recommendationType)
+	}
+	if len(deviceID) > 0 {
+		queryParameters["deviceId"] = autorest.Encode("query", deviceID)
 	}
 	if limit != nil {
 		queryParameters["$limit"] = autorest.Encode("query", *limit)
@@ -255,7 +259,7 @@ func (client IotRecommendationsClient) listNextResults(ctx context.Context, last
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client IotRecommendationsClient) ListComplete(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, limit *int32, skipToken string) (result IotRecommendationListIterator, err error) {
+func (client IotRecommendationsClient) ListComplete(ctx context.Context, resourceGroupName string, solutionName string, recommendationType string, deviceID string, limit *int32, skipToken string) (result IotRecommendationListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotRecommendationsClient.List")
 		defer func() {
@@ -266,6 +270,6 @@ func (client IotRecommendationsClient) ListComplete(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, resourceGroupName, solutionName, recommendationType, limit, skipToken)
+	result.page, err = client.List(ctx, resourceGroupName, solutionName, recommendationType, deviceID, limit, skipToken)
 	return
 }
