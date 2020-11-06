@@ -140,34 +140,19 @@ func PossibleOSTypeValues() []OSType {
 	return []OSType{Linux, Windows}
 }
 
-// OutboundOnlyPublicNetworkAccessType enumerates the values for outbound only public network access type.
-type OutboundOnlyPublicNetworkAccessType string
+// PrivateLink enumerates the values for private link.
+type PrivateLink string
 
 const (
-	// PublicLoadBalancer ...
-	PublicLoadBalancer OutboundOnlyPublicNetworkAccessType = "PublicLoadBalancer"
-	// UDR ...
-	UDR OutboundOnlyPublicNetworkAccessType = "UDR"
+	// Disabled ...
+	Disabled PrivateLink = "Disabled"
+	// Enabled ...
+	Enabled PrivateLink = "Enabled"
 )
 
-// PossibleOutboundOnlyPublicNetworkAccessTypeValues returns an array of possible values for the OutboundOnlyPublicNetworkAccessType const type.
-func PossibleOutboundOnlyPublicNetworkAccessTypeValues() []OutboundOnlyPublicNetworkAccessType {
-	return []OutboundOnlyPublicNetworkAccessType{PublicLoadBalancer, UDR}
-}
-
-// PublicNetworkAccess enumerates the values for public network access.
-type PublicNetworkAccess string
-
-const (
-	// InboundAndOutbound ...
-	InboundAndOutbound PublicNetworkAccess = "InboundAndOutbound"
-	// OutboundOnly ...
-	OutboundOnly PublicNetworkAccess = "OutboundOnly"
-)
-
-// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
-func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
-	return []PublicNetworkAccess{InboundAndOutbound, OutboundOnly}
+// PossiblePrivateLinkValues returns an array of possible values for the PrivateLink const type.
+func PossiblePrivateLinkValues() []PrivateLink {
+	return []PrivateLink{Disabled, Enabled}
 }
 
 // ResourceIdentityType enumerates the values for resource identity type.
@@ -187,6 +172,21 @@ const (
 // PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
 func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
 	return []ResourceIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
+}
+
+// ResourceProviderConnection enumerates the values for resource provider connection.
+type ResourceProviderConnection string
+
+const (
+	// Inbound ...
+	Inbound ResourceProviderConnection = "Inbound"
+	// Outbound ...
+	Outbound ResourceProviderConnection = "Outbound"
+)
+
+// PossibleResourceProviderConnectionValues returns an array of possible values for the ResourceProviderConnection const type.
+func PossibleResourceProviderConnectionValues() []ResourceProviderConnection {
+	return []ResourceProviderConnection{Inbound, Outbound}
 }
 
 // Tier enumerates the values for tier.
