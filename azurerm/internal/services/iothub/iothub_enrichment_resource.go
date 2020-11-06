@@ -59,8 +59,7 @@ func resourceArmIotHubEnrichment() *schema.Resource {
 			
 			"endpoint_names": {
 				Type: schema.TypeList,
-				// Currently only one endpoint is allowed. With that comment from Microsoft, we'll leave this open to enhancement when they add multiple endpoint support.
-				MaxItems: 1,
+				MaxItems: 100,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
