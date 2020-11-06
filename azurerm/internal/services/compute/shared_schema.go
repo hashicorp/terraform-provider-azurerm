@@ -2,6 +2,7 @@ package compute
 
 import (
 	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -125,7 +126,7 @@ func expandBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
 	if input[0] == nil {
 		return &compute.DiagnosticsProfile{
 			BootDiagnostics: &compute.BootDiagnostics{
-				Enabled: utils.Bool(true),
+				Enabled:    utils.Bool(true),
 				StorageURI: utils.String(""),
 			},
 		}
