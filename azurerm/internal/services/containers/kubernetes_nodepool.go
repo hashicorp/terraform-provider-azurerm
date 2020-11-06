@@ -136,7 +136,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"proximity_placement_group_id": {
 					Type:         schema.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: computeValidate.ProximityPlacementGroupID,
 				},
 			},
 		},
