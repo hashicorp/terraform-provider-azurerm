@@ -97,7 +97,10 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_storage_share_directory", id)
 	}
 
-	if _, err := client.Create(ctx, accountName, shareName, directoryName, metaData); err != nil {
+	input := directories.CreateDirectoryInput{
+		MetaData: metaData,
+	}
+	if _, err := client.Create(ctx, accountName, shareName, directoryName, input); err != nil {
 		return fmt.Errorf("Error creating Directory %q (File Share %q / Account %q): %+v", directoryName, shareName, accountName, err)
 	}
 
