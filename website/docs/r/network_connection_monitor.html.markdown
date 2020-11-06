@@ -138,7 +138,7 @@ resource "azurerm_network_connection_monitor" "example" {
   test_group {
     name                  = "exampletg"
     destination_endpoints = ["destination"]
-    sources               = ["source"]
+    source_endpoints      = ["source"]
     test_configurations   = ["tcpName"]
     disable               = false
   }
@@ -277,7 +277,7 @@ A `test_group` block supports the following:
 
 * `destination_endpoints` - (Required) A list of destination endpoint names.
 
-* `sources` - (Required) A list of source endpoint names.
+* `source_endpoints` - (Required) A list of source endpoint names.
 
 * `test_configurations` - (Required) A list of test configuration names.
 
