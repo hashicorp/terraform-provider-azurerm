@@ -23,19 +23,22 @@ const pollingInterval = time.Second * 15
 type BlobUpload struct {
 	Client *blobs.Client
 
-	AccountName   string
-	BlobName      string
-	ContainerName string
-
-	BlobType      string
-	ContentType   string
-	ContentMD5    string
-	MetaData      map[string]string
-	Parallelism   int
-	Size          int
-	Source        string
-	SourceContent string
-	SourceUri     string
+	AccountName        string
+	BlobName           string
+	ContainerName      string
+	CacheControl       string
+	ContentType        string
+	ContentDisposition string
+	ContentEncoding    string
+	ContentLanguage    string
+	BlobType           string
+	ContentMD5         string
+	MetaData           map[string]string
+	Parallelism        int
+	Size               int
+	Source             string
+	SourceContent      string
+	SourceUri          string
 }
 
 func (sbu BlobUpload) Create(ctx context.Context) error {
@@ -102,8 +105,12 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 	input := blobs.PutAppendBlobInput{
-		ContentType: utils.String(sbu.ContentType),
-		MetaData:    sbu.MetaData,
+		CacheControl:       utils.String(sbu.CacheControl),
+		ContentType:        utils.String(sbu.ContentType),
+		ContentDisposition: utils.String(sbu.ContentDisposition),
+		ContentEncoding:    utils.String(sbu.ContentEncoding),
+		ContentLanguage:    utils.String(sbu.ContentLanguage),
+		MetaData:           sbu.MetaData,
 	}
 	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("Error PutAppendBlob: %s", err)
@@ -118,8 +125,12 @@ func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	}
 
 	input := blobs.PutBlockBlobInput{
-		ContentType: utils.String(sbu.ContentType),
-		MetaData:    sbu.MetaData,
+		CacheControl:       utils.String(sbu.CacheControl),
+		ContentType:        utils.String(sbu.ContentType),
+		ContentDisposition: utils.String(sbu.ContentDisposition),
+		ContentEncoding:    utils.String(sbu.ContentEncoding),
+		ContentLanguage:    utils.String(sbu.ContentLanguage),
+		MetaData:           sbu.MetaData,
 	}
 	if _, err := sbu.Client.PutBlockBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("Error PutBlockBlob: %s", err)
@@ -152,8 +163,12 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 	defer file.Close()
 
 	input := blobs.PutBlockBlobInput{
-		ContentType: utils.String(sbu.ContentType),
-		MetaData:    sbu.MetaData,
+		CacheControl:       utils.String(sbu.CacheControl),
+		ContentType:        utils.String(sbu.ContentType),
+		ContentDisposition: utils.String(sbu.ContentDisposition),
+		ContentEncoding:    utils.String(sbu.ContentEncoding),
+		ContentLanguage:    utils.String(sbu.ContentLanguage),
+		MetaData:           sbu.MetaData,
 	}
 	if sbu.ContentMD5 != "" {
 		input.ContentMD5 = utils.String(sbu.ContentMD5)
@@ -171,8 +186,12 @@ func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 	}
 
 	input := blobs.PutPageBlobInput{
-		BlobContentLengthBytes: int64(sbu.Size),
+		CacheControl:           utils.String(sbu.CacheControl),
 		ContentType:            utils.String(sbu.ContentType),
+		ContentDisposition:     utils.String(sbu.ContentDisposition),
+		ContentEncoding:        utils.String(sbu.ContentEncoding),
+		ContentLanguage:        utils.String(sbu.ContentLanguage),
+		BlobContentLengthBytes: int64(sbu.Size),
 		MetaData:               sbu.MetaData,
 	}
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
@@ -205,8 +224,12 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 
 	// first let's create a file of the specified file size
 	input := blobs.PutPageBlobInput{
-		BlobContentLengthBytes: fileSize,
+		CacheControl:           utils.String(sbu.CacheControl),
 		ContentType:            utils.String(sbu.ContentType),
+		ContentDisposition:     utils.String(sbu.ContentDisposition),
+		ContentEncoding:        utils.String(sbu.ContentEncoding),
+		ContentLanguage:        utils.String(sbu.ContentLanguage),
+		BlobContentLengthBytes: fileSize,
 		MetaData:               sbu.MetaData,
 	}
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {

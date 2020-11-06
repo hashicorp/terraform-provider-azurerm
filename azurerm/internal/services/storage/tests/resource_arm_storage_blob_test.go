@@ -15,6 +15,14 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
+type testChangeableSetPropertiesInput struct {
+	CacheControl       string
+	ContentType        string
+	ContentEncoding    string
+	ContentLanguage    string
+	ContentDisposition string
+}
+
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 
@@ -398,6 +406,246 @@ func TestAccAzureRMStorageBlob_contentTypePremium(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageBlob_contentTypePremium(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_blobContentPropertiesCacheControl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "identity",
+					ContentLanguage:    "en",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=500",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "identity",
+					ContentLanguage:    "en",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_blobContentPropertiesContentType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "identity",
+					ContentLanguage:    "en",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "text/plain",
+					ContentEncoding:    "deflate",
+					ContentLanguage:    "en",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_blobContentPropertiesContentEncoding(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "identity",
+					ContentLanguage:    "en",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "deflate",
+					ContentLanguage:    "en",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_blobContentPropertiesContentLanguage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "identity",
+					ContentLanguage:    "en",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "identity",
+					ContentLanguage:    "fr",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_blobContentPropertiesContentDisposition(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "identity",
+					ContentLanguage:    "en",
+					ContentDisposition: "attachment",
+				}),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+				),
+			},
+			{
+				ResourceName:            data.ResourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"parallelism", "size", "type"},
+			},
+			{
+				Config: testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data, testChangeableSetPropertiesInput{
+					CacheControl:       "max-age=5",
+					ContentType:        "application/octet-stream",
+					ContentEncoding:    "identity",
+					ContentLanguage:    "en",
+					ContentDisposition: "inline",
+				}),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(data.ResourceName),
 				),
@@ -1091,6 +1339,30 @@ resource "azurerm_storage_blob" "test" {
   content_type           = "image/gif"
 }
 `, template)
+}
+
+func testAccAzureRMStorageBlob_blobContentPropertiesUpdated(data acceptance.TestData, changeable testChangeableSetPropertiesInput) string {
+	template := testAccAzureRMStorageBlob_template(data, "private")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.ext"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Page"
+  size                   = 1024
+  cache_control          = "%s"
+  content_type           = "%s"
+  content_encoding       = "%s"
+  content_language       = "%s"
+  content_disposition    = "%s"
+}
+`, template, changeable.CacheControl, changeable.ContentType, changeable.ContentEncoding, changeable.ContentLanguage, changeable.ContentDisposition)
 }
 
 func testAccAzureRMStorageBlob_pageEmpty(data acceptance.TestData) string {

@@ -57,6 +57,32 @@ func resourceArmStorageBlob() *schema.Resource {
 				ValidateFunc: validate.StorageContainerName,
 			},
 
+			"cache_control": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"content_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "application/octet-stream",
+			},
+
+			"content_disposition": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"content_encoding": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"content_language": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -85,12 +111,6 @@ func resourceArmStorageBlob() *schema.Resource {
 					string(blobs.Cool),
 					string(blobs.Hot),
 				}, false),
-			},
-
-			"content_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "application/octet-stream",
 			},
 
 			"source": {
@@ -189,20 +209,23 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	blobInput := BlobUpload{
-		AccountName:   accountName,
-		ContainerName: containerName,
-		BlobName:      name,
-		Client:        blobsClient,
-
-		BlobType:      d.Get("type").(string),
-		ContentType:   d.Get("content_type").(string),
-		ContentMD5:    contentMD5,
-		MetaData:      ExpandMetaData(metaDataRaw),
-		Parallelism:   d.Get("parallelism").(int),
-		Size:          d.Get("size").(int),
-		Source:        d.Get("source").(string),
-		SourceContent: d.Get("source_content").(string),
-		SourceUri:     d.Get("source_uri").(string),
+		AccountName:        accountName,
+		ContainerName:      containerName,
+		BlobName:           name,
+		Client:             blobsClient,
+		BlobType:           d.Get("type").(string),
+		CacheControl:       d.Get("cache_control").(string),
+		ContentType:        d.Get("content_type").(string),
+		ContentDisposition: d.Get("content_disposition").(string),
+		ContentEncoding:    d.Get("content_encoding").(string),
+		ContentLanguage:    d.Get("content_language").(string),
+		ContentMD5:         contentMD5,
+		MetaData:           ExpandMetaData(metaDataRaw),
+		Parallelism:        d.Get("parallelism").(int),
+		Size:               d.Get("size").(int),
+		Source:             d.Get("source").(string),
+		SourceContent:      d.Get("source_content").(string),
+		SourceUri:          d.Get("source_uri").(string),
 	}
 	if err := blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
@@ -249,20 +272,11 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
-	if d.HasChange("content_type") {
+	if hasChangedForSetPropertiesInput(d) {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
-		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload or it will be zeroed on the blob.
-		input := blobs.SetPropertiesInput{
-			ContentType: utils.String(d.Get("content_type").(string)),
-		}
-
-		if contentMD5 := d.Get("content_md5").(string); contentMD5 != "" {
-			data, err := convertHexToBase64Encoding(contentMD5)
-			if err != nil {
-				return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
-			}
-
-			input.ContentMD5 = utils.String(data)
+		input, err := createSetPropertiesInput(d)
+		if err != nil {
+			return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
 		}
 
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
@@ -329,6 +343,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("storage_account_name", id.AccountName)
 
 	d.Set("access_tier", string(props.AccessTier))
+	d.Set("cache_control", props.CacheControl)
 	d.Set("content_type", props.ContentType)
 
 	// Set the ContentMD5 value to md5 hash in hex
@@ -341,6 +356,9 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	}
 	d.Set("content_md5", contentMD5)
 
+	d.Set("content_disposition", props.ContentDisposition)
+	d.Set("content_encoding", props.ContentEncoding)
+	d.Set("content_language", props.ContentLanguage)
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 	d.Set("url", d.Id())
 
@@ -388,4 +406,42 @@ func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func hasChangedForSetPropertiesInput(d *schema.ResourceData) bool {
+	changeableSetPropertiesInput := []string{
+		"cache_control",
+		"content_type",
+		"content_disposition",
+		"content_encoding",
+		"content_language",
+		"content_md5",
+	}
+
+	for _, property := range changeableSetPropertiesInput {
+		if d.HasChange(property) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func createSetPropertiesInput(d *schema.ResourceData) (properties blobs.SetPropertiesInput, err error) {
+	contentMD5 := d.Get("content_md5").(string)
+	if contentMD5 != "" {
+		contentMD5, err = convertHexToBase64Encoding(contentMD5)
+		if err != nil {
+			return
+		}
+	}
+	properties = blobs.SetPropertiesInput{
+		CacheControl:       utils.String(d.Get("cache_control").(string)),
+		ContentType:        utils.String(d.Get("content_type").(string)),
+		ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+		ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
+		ContentLanguage:    utils.String(d.Get("content_language").(string)),
+		ContentMD5:         utils.String(contentMD5),
+	}
+	return
 }
