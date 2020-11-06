@@ -100,7 +100,7 @@ func (client Client) GetSender(req *http.Request) (*http.Response, error) {
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client Client) GetResponder(resp *http.Response) (result GetResult, err error) {
-	if resp != nil {
+	if resp != nil && int(resp.ContentLength) > 0 {
 		result.Contents = make([]byte, resp.ContentLength)
 	}
 

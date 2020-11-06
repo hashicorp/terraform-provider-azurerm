@@ -13,10 +13,17 @@ type StorageServiceProperties struct {
 	DefaultServiceVersion *string `xml:"DefaultServiceVersion,omitempty"`
 	// DeleteRetentionPolicy - The blob service properties for soft delete.
 	DeleteRetentionPolicy *DeleteRetentionPolicy `xml:"DeleteRetentionPolicy,omitempty"`
+	// Logging - The blob service properties for logging access
+	Logging *Logging `xml:"Logging,omitempty"`
+	// HourMetrics - The blob service properties for hour metrics
+	HourMetrics *MetricsConfig `xml:"HourMetrics,omitempty"`
+	// HourMetrics - The blob service properties for minute metrics
+	MinuteMetrics *MetricsConfig `xml:"MinuteMetrics,omitempty"`
 	// StaticWebsite - Optional
 	StaticWebsite *StaticWebsite `xml:"StaticWebsite,omitempty"`
 }
 
+// StaticWebsite sets the static website support properties on the Blob service.
 type StaticWebsite struct {
 	// Enabled - Required. Indicates whether static website support is enabled for the given account.
 	Enabled bool `xml:"Enabled"`
@@ -52,4 +59,22 @@ type CorsRule struct {
 	ExposedHeaders []string `xml:"ExposedHeaders,omitempty"`
 	// AllowedHeaders - Required if CorsRule element is present. A list of headers allowed to be part of the cross-origin request.
 	AllowedHeaders []string `xml:"AllowedHeaders,omitempty"`
+}
+
+// Logging specifies the access logging options for the Blob service.
+type Logging struct {
+	Version         string                `xml:"Version"`
+	Delete          bool                  `xml:"Delete"`
+	Read            bool                  `xml:"Read"`
+	Write           bool                  `xml:"Write"`
+	RetentionPolicy DeleteRetentionPolicy `xml:"RetentionPolicy"`
+}
+
+// MetricsConfig specifies the hour and/or minute metrics options for the Blob service.
+// Elements are all expected
+type MetricsConfig struct {
+	Version         string                `xml:"Version"`
+	Enabled         bool                  `xml:"Enabled"`
+	RetentionPolicy DeleteRetentionPolicy `xml:"RetentionPolicy"`
+	IncludeAPIs     bool                  `xml:"IncludeAPIs"`
 }

@@ -11,6 +11,7 @@ github.com/Azure/azure-sdk-for-go v35.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9mo
 github.com/Azure/azure-sdk-for-go v42.1.0+incompatible h1:ZNliGuvGKIHedRdz8W9BTMSrxBv9Nzz5BjeobotQTAI=
 github.com/Azure/azure-sdk-for-go v42.1.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go v45.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
+github.com/Azure/azure-sdk-for-go v47.1.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go v48.0.0+incompatible h1:adRBpSbkY3IAgqBA83nSDN8yXDsy48zJNPqSwZabDNQ=
 github.com/Azure/azure-sdk-for-go v48.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/go-autorest v14.2.0+incompatible h1:V5VMDjClD3GiElqLWO7mz2MxNAK/vTfRHdAubSIPRgs=
@@ -259,8 +260,8 @@ github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJy
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/terraform-providers/terraform-provider-azuread v0.9.0 h1:XLzFgVHakq6qjJ2L0o/tN2yHu/hT4vIW9sKtejr7gPs=
 github.com/terraform-providers/terraform-provider-azuread v0.9.0/go.mod h1:sSDzB/8CD639+yWo5lZf+NJvGSYQBSS6z+GoET9IrzE=
-github.com/tombuildsstuff/giovanni v0.13.0 h1:k9TRL6REzv+M2ZCCh4XsFjsK2mVWKzzxjFxnnn9ccLc=
-github.com/tombuildsstuff/giovanni v0.13.0/go.mod h1:qJ5dpiYWkRsuOSXO8wHbee7+wElkLNfWVolcf59N84E=
+github.com/tombuildsstuff/giovanni v0.14.0 h1:vBgZJHNs8p42Nj4GaffPe7nzs2Z2qIyKUN+7793UggA=
+github.com/tombuildsstuff/giovanni v0.14.0/go.mod h1:0TZugJPEtqzPlMpuJHYfXY6Dq2uLPrXf98D2XQSxNbA=
 github.com/ulikunitz/xz v0.5.5 h1:pFrO0lVpTBXLpYw+pnLj6TbvHuyjXMfjGeCwSqCVwok=
 github.com/ulikunitz/xz v0.5.5/go.mod h1:2bypXElzHzzJZwzH67Y6wb67pO62Rzfn7BSiF4ABRW8=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
