@@ -123,6 +123,11 @@ func dataSourceKubernetesClusterNodePool() *schema.Resource {
 				Computed: true,
 			},
 
+			"proximity_placement_group_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"spot_max_price": {
 				Type:     schema.TypeFloat,
 				Computed: true,
@@ -247,6 +252,14 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 			priority = string(props.ScaleSetPriority)
 		}
 		d.Set("priority", priority)
+
+		proximityPlacementGroupId := ""
+		if props.ProximityPlacementGroupID != nil {
+			proximityPlacementGroupId = string(*props.ProximityPlacementGroupID)
+		}
+		d.Set("proximity_placement_group_id", proximityPlacementGroupId)
+
+		d.Set("min_count", minCount)
 
 		spotMaxPrice := -1.0
 		if props.SpotMaxPrice != nil {

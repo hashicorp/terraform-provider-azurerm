@@ -33,6 +33,7 @@ var kubernetesNodePoolTests = map[string]func(t *testing.T){
 	"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,
 	"spot":                           testAccAzureRMKubernetesClusterNodePool_spot,
 	"osDiskSizeGB":                   testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB,
+	"proximityPlacementGroupId":      testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupId,
 	"modeSystem":                     testAccAzureRMKubernetesClusterNodePool_modeSystem,
 	"modeUpdate":                     testAccAzureRMKubernetesClusterNodePool_modeUpdate,
 	"virtualNetworkAutomatic":        testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic,
@@ -563,6 +564,30 @@ func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesClusterNodePool_osDiskSizeGBConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupId(t)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupIdConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
 				),
@@ -1383,6 +1408,57 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_disk_size_gb       = 100
 }
+`, template)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_proximityPlacementGroupIdConfig(data acceptance.TestData) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    type       = "AvailabilitySet"
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_proximity_placement_group" "test" {
+  name                = "acctestPPG-aks-%"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                         = "internal"
+  kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
+  vm_size                      = "Standard_DS2_v2"
+  node_count                   = 1
+  proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+}
+
 `, template)
 }
 
