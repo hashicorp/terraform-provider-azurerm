@@ -346,6 +346,36 @@ func resourceIotHub() *schema.Resource {
 				},
 			},
 
+			"enrichment": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
+								"Enrichment Key name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
+							),
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Required: true
+						},
+						"endpoint_names": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Required: true,
+						}
+					},
+				},
+			},
+
 			"fallback_route": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -509,6 +539,10 @@ func resourceIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error 
 		routingProperties.Routes = expandIoTHubRoutes(d)
 	}
 
+	if _, ok := d.GetOk("enrichment"); ok {
+		routingProperties.Enrichments = expandIoTHubEnrichments(d)
+	}
+
 	if _, ok := d.GetOk("fallback_route"); ok {
 		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
 	}
@@ -646,6 +680,11 @@ func resourceIotHubRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `route` in IoTHub %q: %+v", id.Name, err)
 		}
 
+		enrichments := flattenIoTHubEnrichment(properties.Routing)
+		if err := d.Set("enrichment", enrichments); err != nil {
+			return fmt.Errorf("setting `enrichment` in IoTHub %q: %+v", id.Name, err)
+		}
+
 		fallbackRoute := flattenIoTHubFallbackRoute(properties.Routing)
 		if err := d.Set("fallback_route", fallbackRoute); err != nil {
 			return fmt.Errorf("setting `fallbackRoute` in IoTHub %q: %+v", id.Name, err)
@@ -765,6 +804,29 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 	}
 
 	return &routeProperties
+}
+
+func expandIoTHubEnrichments(d *schema.ResourceData) *[]devices.EnrichmentProperties {
+	enrichmentList := d.Get("enrichments").([]interface{})
+
+	enrichmentProperties := make([]devices.EnrichmentProperties, 0)
+
+	for _, enrichmentRaw := range enrichmentList {
+		enrichment := enrichmentRaw.(map[string]interface{})
+
+		key := enrichment["key"].(string)
+		value := devices.RoutingSource(enrichment["value"].(string))
+
+		endpointNamesRaw := enrichment["endpoint_names"].([]interface{})
+
+		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
+			Key:          &key,
+			Value:        value,
+			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
+		})
+	}
+
+	return &enrichmentProperties
 }
 
 func expandIoTHubFileUpload(d *schema.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool) {
@@ -1102,6 +1164,30 @@ func flattenIoTHubRoute(input *devices.RoutingProperties) []interface{} {
 				output["enabled"] = *isEnabled
 			}
 			output["source"] = route.Source
+
+			results = append(results, output)
+		}
+	}
+
+	return results
+}
+
+func flattenIoTHubEnrichment(input *devices.RoutingProperties) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input != nil && input.Enrichments != nil {
+		for _, enrichment := range *input.Enrichments {
+			output := make(map[string]interface{})
+
+			if key := enrichment.Key; key != nil {
+				output["key"] = *key
+			}
+			if value := enrichment.Value; value != nil {
+				output["Value"] = *value
+			}
+			if endpointNames := enrichment.EndpointNames; endpointNames != nil {
+				output["endpoint_names"] = *endpointNames
+			}
 
 			results = append(results, output)
 		}
