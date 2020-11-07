@@ -205,6 +205,9 @@ func TestAccAzureRMImageBuilderTemplate_managedImageSource(t *testing.T) {
 	})
 }
 
+// This test case could pass in testing functionality but failed in the end due to conflict happened in resource deletion:
+// shared image could not be deleted due to its nested shared image version still exist, while the latter declared deletion succeeded already.
+// Issue filed to Azure service team: https://github.com/Azure/azure-rest-api-specs/issues/11559.
 func TestAccAzureRMImageBuilderTemplate_sharedImageGallerySource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_image_builder_template", "test")
 
