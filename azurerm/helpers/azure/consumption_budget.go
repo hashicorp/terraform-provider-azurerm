@@ -256,3 +256,11 @@ func FlattenAzureConsumptionBudgetFilter(input *consumption.Filters) []interface
 
 	return filters
 }
+
+// DiffSuppressFuncs
+func DiffSuppressFuncAzureConsumptionBudgetTimePeriodEndDate(k, old, new string, d *schema.ResourceData) bool {
+	// If the end date is not set by the user, Azure defaults this to 10 years
+	// from the start date. Therefore, the diff is suppressed if the user didn't
+	// set the value previously or in the current config
+	return new == ""
+}
