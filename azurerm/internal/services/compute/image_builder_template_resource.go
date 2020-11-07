@@ -144,9 +144,10 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 						},
 
 						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"powershell_commands": {
@@ -154,7 +155,8 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -193,7 +195,8 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -238,7 +241,8 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -322,6 +326,7 @@ func resourceArmImageBuilderTemplate() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ForceNew:         true,
+										ValidateFunc:     location.EnhancedValidate,
 										StateFunc:        location.StateFunc,
 										DiffSuppressFunc: location.DiffSuppressFunc,
 									},
