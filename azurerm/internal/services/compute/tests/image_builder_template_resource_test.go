@@ -346,11 +346,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %[3]s
@@ -430,11 +425,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %s
@@ -482,11 +472,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %s
@@ -567,20 +552,11 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-vnet-%[1]d"
   location = "%[2]s"
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 resource "azurerm_virtual_network" "test1" {
@@ -694,11 +670,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %[3]s
@@ -780,11 +751,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %[3]s
@@ -836,11 +802,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %[3]s
@@ -926,11 +887,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %[3]s
@@ -977,11 +933,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %[3]s
@@ -1049,11 +1000,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
-
-  tags = {
-    "StorageType" = "Standard_LRS"
-    "type"        = "test"
-  }
 }
 
 %[3]s
