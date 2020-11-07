@@ -1,5 +1,7 @@
 package utils
 
+import uuid "github.com/satori/go.uuid"
+
 func ExpandStringSlice(input []interface{}) *[]string {
 	result := make([]string, 0)
 	for _, item := range input {
@@ -39,6 +41,15 @@ func ExpandInt32Slice(input []interface{}) *[]int32 {
 	return &result
 }
 
+func ExpandUUIDSlice(input []interface{}) *[]uuid.UUID {
+	result := make([]uuid.UUID, len(input))
+	for i, item := range input {
+		result[i] = uuid.FromStringOrNil(item.(string))
+	}
+
+	return &result
+}
+
 func FlattenStringSlice(input *[]string) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
@@ -72,6 +83,16 @@ func FlattenMapStringPtrString(input map[string]*string) map[string]interface{} 
 }
 
 func FlattenInt32Slice(input *[]int32) []interface{} {
+	result := make([]interface{}, 0)
+	if input != nil {
+		for _, item := range *input {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+func FlattenUUIDSlice(input *[]uuid.UUID) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {
