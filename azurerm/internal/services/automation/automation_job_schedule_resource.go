@@ -127,9 +127,9 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	//fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
-	//When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
-	//We need to delete the job schedule id if exists to recreate the job schedule
+	// fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
+	// When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
+	// We need to delete the job schedule id if exists to recreate the job schedule
 	for jsIterator, err := client.ListByAutomationAccountComplete(ctx, resourceGroup, accountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
 		if err != nil {
 			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountName, err)

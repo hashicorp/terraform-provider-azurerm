@@ -31,5 +31,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_security_center_setting":              resourceArmSecurityCenterSetting(),
 		"azurerm_security_center_subscription_pricing": resourceArmSecurityCenterSubscriptionPricing(),
 		"azurerm_security_center_workspace":            resourceArmSecurityCenterWorkspace(),
+		"azurerm_security_center_auto_provisioning":    resourceArmSecurityCenterAutoProvisioning(),
 	}
 }
