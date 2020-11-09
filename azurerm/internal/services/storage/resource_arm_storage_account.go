@@ -823,10 +823,9 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("table_properties"); ok {
-
 		if (accountKind == string(storage.Storage) || accountKind == string(storage.StorageV2)) && accountTier == string(storage.Standard) {
-			tableClient := meta.(*clients.Client).Storage.TableServicesClient
 
+			tableClient := meta.(*clients.Client).Storage.TableServicesClient
 			tableProperties := expandTableProperties(val.([]interface{}))
 
 			if _, err = tableClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, tableProperties); err != nil {
