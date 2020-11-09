@@ -158,7 +158,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 
 func resourceArmKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
 	clusterClient := meta.(*clients.Client).Kusto.ClustersClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	vaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -208,13 +208,16 @@ func resourceArmKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta 
 	}
 
 	// now we have the key vault uri we can look up the ID
-	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultURI)
+	vault, err := vaultsClient.FindKeyVault(ctx, keyVaultURI)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+		return fmt.Errorf("retrieving the Key Vault ID from the Key Vault at URL %q: %s", keyVaultURI, err)
+	}
+	if vault == nil {
+		return fmt.Errorf("retrieving key vault %q", keyVaultURI)
 	}
 
 	d.Set("cluster_id", d.Id())
-	d.Set("key_vault_id", keyVaultID)
+	d.Set("key_vault_id", vault.ID)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
 

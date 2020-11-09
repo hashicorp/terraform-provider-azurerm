@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2020-01-01/mysql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
@@ -57,16 +57,19 @@ func resourceArmMySQLServerKey() *schema.Resource {
 	}
 }
 
-func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (*string, error) {
+func getMySQLServerKeyName(ctx context.Context, client *keyvault.Client, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := azure.ParseKeyVaultChildID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultIDRaw, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultKeyID.KeyVaultBaseUrl)
+	keyVault, err := client.FindKeyVault(ctx, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
+	if keyVault == nil {
+		return nil, fmt.Errorf("cannot get the key vault from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
+	}
+	keyVaultID, err := keyVaultParse.KeyVaultID(keyVault.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +78,7 @@ func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsCli
 
 func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).MySQL.ServerKeysClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	vaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

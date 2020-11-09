@@ -6,13 +6,13 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
@@ -57,20 +57,19 @@ func resourceArmPostgreSQLServerKey() *schema.Resource {
 	}
 }
 
-func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (*string, error) {
+func getPostgreSQLServerKeyName(ctx context.Context, client *keyvault.Client, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := azure.ParseKeyVaultChildID(keyVaultKeyURI)
 	if err != nil {
 		return nil, err
 	}
-	keyVaultIDRaw, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultKeyID.KeyVaultBaseUrl)
+	keyVault, err := client.FindKeyVault(ctx, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, err
 	}
-	// function azure.GetKeyVaultIDFromBaseUrl returns nil with nil error when it does not find the keyvault by the keyvault URL
-	if keyVaultIDRaw == nil {
-		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
+	if keyVault == nil {
+		return nil, fmt.Errorf("cannot get the key vault from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
 	}
-	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
+	keyVaultID, err := keyVaultParse.KeyVaultID(keyVault.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +78,7 @@ func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.Vaul
 
 func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	keysClient := meta.(*clients.Client).Postgres.ServerKeysClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	vaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
