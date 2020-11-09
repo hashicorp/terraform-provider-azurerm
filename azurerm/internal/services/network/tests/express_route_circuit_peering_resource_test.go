@@ -429,7 +429,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
   microsoft_peering_config_ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
-  
+
     microsoft_peering_config {
       advertised_public_prefixes = ["2002:db01::/126"]
     }
@@ -483,11 +483,11 @@ resource "azurerm_express_route_circuit_peering" "test" {
   microsoft_peering_config_ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
-  
+
     microsoft_peering_config {
       advertised_public_prefixes = ["2002:db01::/126"]
-	  customer_asn          = 64511
-      routing_registry_name = "ARIN"
+      customer_asn               = 64511
+      routing_registry_name      = "ARIN"
     }
   }
 }
@@ -554,11 +554,11 @@ resource "azurerm_express_route_circuit_peering" "test" {
   microsoft_peering_config_ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
-  
+
     microsoft_peering_config {
       advertised_public_prefixes = ["2002:db01::/126"]
-	  customer_asn          = 64511
-      routing_registry_name = "ARIN"
+      customer_asn               = 64511
+      routing_registry_name      = "ARIN"
     }
   }
 }
