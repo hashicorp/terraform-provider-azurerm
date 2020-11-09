@@ -153,6 +153,14 @@ The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Service.
 
+* `outbound_ips` - An `outbound_ips` block as defined below.
+
+---
+
+A `outbound_ips` block exports the following:
+
+* `public_ips` - A list of public IP addresses for Azure Spring Cloud instance.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
