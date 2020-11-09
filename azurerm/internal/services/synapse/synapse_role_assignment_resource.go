@@ -78,7 +78,10 @@ func resourceArmSynapseRoleAssignmentCreate(d *schema.ResourceData, meta interfa
 	principalID := d.Get("principal_id").(string)
 	roleName := d.Get("role_name").(string)
 
-	client := synapseClient.AccessControlClient(workspaceId.Name, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.AccessControlClient(workspaceId.Name, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return err
+	}
 	roleId, err := getRoleIdByName(ctx, client, roleName)
 	if err != nil {
 		return err
@@ -128,7 +131,10 @@ func resourceArmSynapseRoleAssignmentRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	client := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return err
+	}
 	resp, err := client.GetRoleAssignmentByID(ctx, id.Id)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -163,7 +169,10 @@ func resourceArmSynapseRoleAssignmentDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	client := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	client, err := synapseClient.AccessControlClient(id.Workspace.Name, environment.SynapseEndpointSuffix)
+	if err != nil {
+		return err
+	}
 	if _, err := client.DeleteRoleAssignmentByID(ctx, id.Id); err != nil {
 		return fmt.Errorf("deleting Synapse RoleAssignment %q (workspace %q): %+v", id, id.Workspace.Name, err)
 	}

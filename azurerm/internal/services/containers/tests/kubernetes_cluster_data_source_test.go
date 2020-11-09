@@ -29,7 +29,6 @@ var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"autoscalingNoAvailabilityZones":              testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones,
 	"autoscalingWithAvailabilityZones":            testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones,
 	"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
-	"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
 	"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
 	"privateCluster":                              testAccDataSourceAzureRMKubernetesCluster_privateCluster,
 }
@@ -500,7 +499,6 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy(t *testin
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.version", "v2"),
 				),
 			},
 		},
@@ -611,30 +609,6 @@ func testAccDataSourceAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "agent_pool_profile.0.node_labels.key", "value"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccDataSourceAzureRMKubernetesCluster_nodeTaints(t)
-}
-
-func testAccDataSourceAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMKubernetesCluster_nodeTaintsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "agent_pool_profile.1.node_taints.0", "key=value:NoSchedule"),
 				),
 			},
 		},
@@ -883,18 +857,6 @@ data "azurerm_kubernetes_cluster" "test" {
 
 func testAccDataSourceAzureRMKubernetesCluster_nodeLabelsConfig(data acceptance.TestData, labels map[string]string) string {
 	r := testAccAzureRMKubernetesCluster_nodeLabelsConfig(data, labels)
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_cluster" "test" {
-  name                = azurerm_kubernetes_cluster.test.name
-  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
-}
-`, r)
-}
-
-func testAccDataSourceAzureRMKubernetesCluster_nodeTaintsConfig(data acceptance.TestData) string {
-	r := testAccAzureRMKubernetesCluster_nodeTaintsConfig(data)
 	return fmt.Sprintf(`
 %s
 

@@ -6,80 +6,68 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
 
-func TestAccDataSourceAzureRMAdvisorRecommendations_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+type AdvisorRecommendationsDataSourceTests struct{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckArmAdvisorRecommendations_basic,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.#"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.category"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.description"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.impact"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.recommendation_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.recommendation_type_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.resource_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.resource_type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.updated_time"),
-				),
-			},
+func TestAdvisorRecommendationsDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AdvisorRecommendationsDataSourceTests{}.basicConfig(),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("recommendations.#").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.category").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.description").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.impact").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.recommendation_name").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.recommendation_type_id").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.resource_name").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.resource_type").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.updated_time").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMAdvisorRecommendations_complete(t *testing.T) {
+func TestAdvisorRecommendationsDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckArmAdvisorRecommendations_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.#"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AdvisorRecommendationsDataSourceTests{}.completeConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("recommendations.#").Exists(),
+			),
 		},
 	})
 }
 
-func TestAccDataSourceAzureRMAdvisorRecommendations_categoriesFilter(t *testing.T) {
+func TestAdvisorRecommendationsDataSource_categoriesFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckArmAdvisorRecommendations_categoriesFilter,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.#"),
-					resource.TestCheckResourceAttr(data.ResourceName, "recommendations.0.category", "Cost"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AdvisorRecommendationsDataSourceTests{}.categoriesFilterConfig(),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("recommendations.#").Exists(),
+				check.That(data.ResourceName).Key("recommendations.0.category").HasValue("Cost"),
+			),
 		},
 	})
 }
 
-const testAccCheckArmAdvisorRecommendations_basic = `
-provider "azurerm" {
+func (AdvisorRecommendationsDataSourceTests) basicConfig() string {
+	return `provider "azurerm" {
   features {}
 }
 
-data "azurerm_advisor_recommendations" "test" { }
-`
+data "azurerm_advisor_recommendations" "test" {}`
+}
 
-// Advisor genereate recommendations needs long time to take effects, sometimes up to one day or more,
+// Advisor generated recommendations needs long time to take effects, sometimes up to one day or more,
 // Please refer to the issue https://github.com/Azure/azure-rest-api-specs/issues/9284
 // So here we get an empty list of recommendations
-func testAccCheckArmAdvisorRecommendations_complete(data acceptance.TestData) string {
+func (AdvisorRecommendationsDataSourceTests) completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -106,12 +94,13 @@ data "azurerm_advisor_recommendations" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-const testAccCheckArmAdvisorRecommendations_categoriesFilter = `
+func (AdvisorRecommendationsDataSourceTests) categoriesFilterConfig() string {
+	return `
 provider "azurerm" {
   features {}
 }
 
 data "azurerm_advisor_recommendations" "test" {
-  filter_by_category           = ["cost"]
+  filter_by_category = ["cost"]
+}`
 }
-`
