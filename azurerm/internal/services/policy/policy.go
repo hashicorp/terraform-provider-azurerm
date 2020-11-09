@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2020-03-01-preview/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, subscriptionId, managementGroupName string) (policy.Definition, error) {
@@ -50,6 +51,9 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsClient, name, subscriptionId, managementGroupName string) (res policy.Definition, err error) {
 	if managementGroupName == "" {
 		res, err = client.Get(ctx, name, subscriptionId)
+		if utils.ResponseWasNotFound(res.Response) {
+			res, err = client.GetBuiltIn(ctx, name)
+		}
 	} else {
 		res, err = client.GetAtManagementGroup(ctx, name, managementGroupName)
 	}
@@ -60,6 +64,9 @@ func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsCl
 func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name, subscriptionId, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name, subscriptionId)
+		if utils.ResponseWasNotFound(res.Response) {
+			res, err = client.GetBuiltIn(ctx, name)
+		}
 	} else {
 		res, err = client.GetAtManagementGroup(ctx, name, managementGroupID)
 	}

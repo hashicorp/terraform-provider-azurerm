@@ -35,6 +35,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
@@ -119,6 +120,7 @@ func SupportedServices() []common.ServiceRegistration {
 		eventgrid.Registration{},
 		eventhub.Registration{},
 		frontdoor.Registration{},
+		hpccache.Registration{},
 		hsm.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},

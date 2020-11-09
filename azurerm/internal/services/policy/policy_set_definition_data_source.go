@@ -75,6 +75,9 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 						"parameters": { // TODO -- remove this attribute in the next major version
 							Type:     schema.TypeMap,
 							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"parameter_values": {

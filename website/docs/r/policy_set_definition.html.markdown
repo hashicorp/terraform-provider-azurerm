@@ -76,7 +76,7 @@ A `policy_definition_reference` block supports the following:
 
 * `policy_definition_id` - (Required) The ID of the policy definition or policy set definition that will be included in this policy set definition.
 
-* `parameter_values` - (Optional) Parameter values for the referenced policy rule. This field is a json object that allows you to assign parameters to this policy rule. 
+* `parameter_values` - (Optional) Parameter values for the referenced policy rule. This field is a JSON string that allows you to assign parameters to this policy rule. 
 
 * `reference_id` - (Optional) A unique ID within this policy set definition for this policy definition reference.
 

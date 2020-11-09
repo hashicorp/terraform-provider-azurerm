@@ -38,6 +38,9 @@ func subscriptionTemplateDeploymentResource() *schema.Resource {
 			Delete: schema.DefaultTimeout(180 * time.Minute),
 		},
 
+		// (@jackofallops - lintignore needed as we need to make sure the JSON is usable in `output_content`)
+
+		//lintignore:S033
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,

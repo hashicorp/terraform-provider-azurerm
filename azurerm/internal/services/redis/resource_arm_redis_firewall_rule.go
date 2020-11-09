@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -52,11 +53,19 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 			"start_ip": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.All(
+					validation.IsIPAddress,
+					validation.StringIsNotEmpty,
+				),
 			},
 
 			"end_ip": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.All(
+					validation.IsIPAddress,
+					validation.StringIsNotEmpty,
+				),
 			},
 		},
 	}
