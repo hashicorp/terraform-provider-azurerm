@@ -198,7 +198,7 @@ A `admin_ssh_key` block supports the following:
 
 A `boot_diagnostics` block supports the following:
 
-* `storage_account_uri` - (Required) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
+* `storage_account_uri` - (Optional) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
 
 ---
 
