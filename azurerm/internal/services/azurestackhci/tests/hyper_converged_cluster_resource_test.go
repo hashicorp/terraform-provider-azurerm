@@ -12,17 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMHCICluster_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
+func TestAccAzureRMHyperConvergedCluster_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hyper_converged_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHCIClusterDestroy,
+		CheckDestroy: testCheckAzureRMHyperConvergedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHCICluster_basic(data),
+				Config: testAccAzureRMHyperConvergedCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckAzureRMHyperConvergedClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -30,35 +30,35 @@ func TestAccAzureRMHCICluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHCICluster_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
+func TestAccAzureRMHyperConvergedCluster_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hyper_converged_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHCIClusterDestroy,
+		CheckDestroy: testCheckAzureRMHyperConvergedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHCICluster_basic(data),
+				Config: testAccAzureRMHyperConvergedCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckAzureRMHyperConvergedClusterExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMHCICluster_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMHyperConvergedCluster_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMHCICluster_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
+func TestAccAzureRMHyperConvergedCluster_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hyper_converged_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHCIClusterDestroy,
+		CheckDestroy: testCheckAzureRMHyperConvergedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHCICluster_complete(data),
+				Config: testAccAzureRMHyperConvergedCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckAzureRMHyperConvergedClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -66,24 +66,24 @@ func TestAccAzureRMHCICluster_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHCICluster_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_hci_cluster", "test")
+func TestAccAzureRMHyperConvergedCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hyper_converged_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMHCIClusterDestroy,
+		CheckDestroy: testCheckAzureRMHyperConvergedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHCICluster_basic(data),
+				Config: testAccAzureRMHyperConvergedCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckAzureRMHyperConvergedClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMHCICluster_complete(data),
+				Config: testAccAzureRMHyperConvergedCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHCIClusterExists(data.ResourceName),
+					testCheckAzureRMHyperConvergedClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -91,24 +91,24 @@ func TestAccAzureRMHCICluster_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMHCIClusterExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMHyperConvergedClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).AzureStackHCI.ClusterClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("AzureStackHCI Cluster not found: %s", resourceName)
+			return fmt.Errorf("Hyper Converged Cluster not found: %s", resourceName)
 		}
 
-		id, err := parse.HCIClusterID(rs.Primary.ID)
+		id, err := parse.HyperConvergedClusterID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: AzureStackHCI Cluster %q does not exist", id.Name)
+				return fmt.Errorf("bad: Hyper Converged Cluster %q does not exist", id.Name)
 			}
 
 			return fmt.Errorf("bad: Get on AzureStackHCI.ClusterClient: %+v", err)
@@ -118,16 +118,16 @@ func testCheckAzureRMHCIClusterExists(resourceName string) resource.TestCheckFun
 	}
 }
 
-func testCheckAzureRMHCIClusterDestroy(s *terraform.State) error {
+func testCheckAzureRMHyperConvergedClusterDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).AzureStackHCI.ClusterClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_hci_cluster" {
+		if rs.Type != "azurerm_hyper_converged_cluster" {
 			continue
 		}
 
-		id, err := parse.HCIClusterID(rs.Primary.ID)
+		id, err := parse.HyperConvergedClusterID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -144,7 +144,7 @@ func testCheckAzureRMHCIClusterDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMHCICluster_template(data acceptance.TestData) string {
+func testAccAzureRMHyperConvergedCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -159,13 +159,13 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMHCICluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMHCICluster_template(data)
+func testAccAzureRMHyperConvergedCluster_basic(data acceptance.TestData) string {
+	template := testAccAzureRMHyperConvergedCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hci_cluster" "test" {
-  name                = "acctest-hci-%d"
+resource "azurerm_hyper_converged_cluster" "test" {
+  name                = "acctest-HyperConvergedCluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   aad_client_id       = data.azurerm_client_config.current.client_id
@@ -174,28 +174,28 @@ resource "azurerm_hci_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMHCICluster_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMHCICluster_basic(data)
+func testAccAzureRMHyperConvergedCluster_requiresImport(data acceptance.TestData) string {
+	config := testAccAzureRMHyperConvergedCluster_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hci_cluster" "import" {
-  name                = azurerm_hci_cluster.test.name
-  resource_group_name = azurerm_hci_cluster.test.resource_group_name
-  location            = azurerm_hci_cluster.test.location
-  aad_client_id       = azurerm_hci_cluster.test.aad_client_id
-  aad_tenant_id       = azurerm_hci_cluster.test.aad_tenant_id
+resource "azurerm_hyper_converged_cluster" "import" {
+  name                = azurerm_hyper_converged_cluster.test.name
+  resource_group_name = azurerm_hyper_converged_cluster.test.resource_group_name
+  location            = azurerm_hyper_converged_cluster.test.location
+  aad_client_id       = azurerm_hyper_converged_cluster.test.aad_client_id
+  aad_tenant_id       = azurerm_hyper_converged_cluster.test.aad_tenant_id
 }
 `, config)
 }
 
-func testAccAzureRMHCICluster_complete(data acceptance.TestData) string {
-	template := testAccAzureRMHCICluster_template(data)
+func testAccAzureRMHyperConvergedCluster_complete(data acceptance.TestData) string {
+	template := testAccAzureRMHyperConvergedCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_hci_cluster" "test" {
-  name                = "acctest-hci-%d"
+resource "azurerm_hyper_converged_cluster" "test" {
+  name                = "acctest-HyperConvergedCluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   aad_client_id       = data.azurerm_client_config.current.client_id

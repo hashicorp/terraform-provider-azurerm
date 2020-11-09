@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestHCIClusterID(t *testing.T) {
+func TestHyperConvergedClusterID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *HCIClusterId
+		Expected *HyperConvergedClusterId
 	}{
 		{
 			Name:     "Empty",
@@ -31,14 +31,14 @@ func TestHCIClusterID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing HCI Cluster Value",
+			Name:     "Missing Hyper Converged Cluster Value",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AzureStackHCI/clusters",
 			Expected: nil,
 		},
 		{
-			Name:  "HCI Cluster ID",
+			Name:  "Hyper Converged Cluster ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.AzureStackHCI/clusters/cluster1",
-			Expected: &HCIClusterId{
+			Expected: &HyperConvergedClusterId{
 				ResourceGroup: "resourceGroup1",
 				Name:          "cluster1",
 			},
@@ -53,7 +53,7 @@ func TestHCIClusterID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := HCIClusterID(v.Input)
+		actual, err := HyperConvergedClusterID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
