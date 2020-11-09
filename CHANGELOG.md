@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * storage: upgrading the Data Plane API's to API Version `2019-12-12` [GH-9192]
 * `azurerm_linux_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_linux_virtual_machine_scale_set` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
+* `azurerm_policy_remediation` - support for the `resource_discovery_mode` property [GH-9210]
 * `azurerm_virtual_network` - support for the `bgp_community` and `vnet_protection_enabled` [GH-8979]
 * `azurerm_windows_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_windows_virtual_machine_scale_set` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
