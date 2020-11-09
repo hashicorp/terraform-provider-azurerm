@@ -2,7 +2,6 @@ package parse
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -21,8 +20,7 @@ func NewLogAnalyticsWorkspaceID(name, resourceGroup string) LogAnalyticsWorkspac
 
 func (id LogAnalyticsWorkspaceId) ID(subscriptionId string) string {
 	// Log Analytics ID ignores casing
-	// Issue tracked here - https://github.com/Azure/azure-sdk-for-go/issues/13268
-	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/microsoft.operationalinsights/workspaces/%s", subscriptionId, strings.ToLower(id.ResourceGroup), strings.ToLower(id.Name))
+	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/microsoft.operationalinsights/workspaces/%s", subscriptionId, id.ResourceGroup, id.Name)
 }
 
 func LogAnalyticsWorkspaceID(input string) (*LogAnalyticsWorkspaceId, error) {
