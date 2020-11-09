@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-05-05/alertsmanagement"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-06-01-preview/alertsmanagement"
 
 // ActionGroup action rule with action group configuration
 type ActionGroup struct {
@@ -102,6 +102,16 @@ func (ag ActionGroup) AsActionRuleProperties() (*ActionRuleProperties, bool) {
 // AsBasicActionRuleProperties is the BasicActionRuleProperties implementation for ActionGroup.
 func (ag ActionGroup) AsBasicActionRuleProperties() (BasicActionRuleProperties, bool) {
 	return &ag, true
+}
+
+// ActionGroupsInformation the Action Groups information, used by the alert rule.
+type ActionGroupsInformation struct {
+	// CustomEmailSubject - An optional custom email subject to use in email notifications.
+	CustomEmailSubject *string `json:"customEmailSubject,omitempty"`
+	// CustomWebhookPayload - An optional custom web-hook payload to use in web-hook notifications.
+	CustomWebhookPayload *string `json:"customWebhookPayload,omitempty"`
+	// GroupIds - The Action Group resource IDs.
+	GroupIds *[]string `json:"groupIds,omitempty"`
 }
 
 // ActionRule action rule object containing target scope, conditions and suppression logic
@@ -564,6 +574,385 @@ type AlertProperties struct {
 	EgressConfig interface{} `json:"egressConfig,omitempty"`
 }
 
+// AlertRule the alert rule information
+type AlertRule struct {
+	autorest.Response `json:"-"`
+	// AlertRuleProperties - The properties of the alert rule.
+	*AlertRuleProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The resource ID.
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type *string `json:"type,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Location - The resource location.
+	Location *string `json:"location,omitempty"`
+	// Tags - The resource tags.
+	Tags interface{} `json:"tags,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AlertRule.
+func (ar AlertRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ar.AlertRuleProperties != nil {
+		objectMap["properties"] = ar.AlertRuleProperties
+	}
+	if ar.Location != nil {
+		objectMap["location"] = ar.Location
+	}
+	if ar.Tags != nil {
+		objectMap["tags"] = ar.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AlertRule struct.
+func (ar *AlertRule) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var alertRuleProperties AlertRuleProperties
+				err = json.Unmarshal(*v, &alertRuleProperties)
+				if err != nil {
+					return err
+				}
+				ar.AlertRuleProperties = &alertRuleProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ar.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ar.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ar.Name = &name
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ar.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags interface{}
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				ar.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// AlertRulePatchObject the alert rule patch information
+type AlertRulePatchObject struct {
+	// ID - READ-ONLY; The resource ID.
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type *string `json:"type,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Tags - The resource tags.
+	Tags interface{} `json:"tags,omitempty"`
+	// AlertRulePatchProperties - The properties of the alert rule.
+	*AlertRulePatchProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AlertRulePatchObject.
+func (arpo AlertRulePatchObject) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if arpo.Tags != nil {
+		objectMap["tags"] = arpo.Tags
+	}
+	if arpo.AlertRulePatchProperties != nil {
+		objectMap["properties"] = arpo.AlertRulePatchProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AlertRulePatchObject struct.
+func (arpo *AlertRulePatchObject) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				arpo.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				arpo.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				arpo.Name = &name
+			}
+		case "tags":
+			if v != nil {
+				var tags interface{}
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				arpo.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var alertRulePatchProperties AlertRulePatchProperties
+				err = json.Unmarshal(*v, &alertRulePatchProperties)
+				if err != nil {
+					return err
+				}
+				arpo.AlertRulePatchProperties = &alertRulePatchProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// AlertRulePatchProperties the alert rule properties.
+type AlertRulePatchProperties struct {
+	// Description - The alert rule description.
+	Description *string `json:"description,omitempty"`
+	// State - The alert rule state. Possible values include: 'AlertRuleStateEnabled', 'AlertRuleStateDisabled'
+	State AlertRuleState `json:"state,omitempty"`
+	// Severity - The alert rule severity. Possible values include: 'Sev0', 'Sev1', 'Sev2', 'Sev3', 'Sev4'
+	Severity Severity `json:"severity,omitempty"`
+	// Frequency - The alert rule frequency in ISO8601 format. The time granularity must be in minutes and minimum value is 5 minutes.
+	Frequency *string `json:"frequency,omitempty"`
+	// ActionGroups - The alert rule actions.
+	ActionGroups *ActionGroupsInformation `json:"actionGroups,omitempty"`
+	// Throttling - The alert rule throttling information.
+	Throttling *ThrottlingInformation `json:"throttling,omitempty"`
+}
+
+// AlertRuleProperties the alert rule properties.
+type AlertRuleProperties struct {
+	// Description - The alert rule description.
+	Description *string `json:"description,omitempty"`
+	// State - The alert rule state. Possible values include: 'AlertRuleStateEnabled', 'AlertRuleStateDisabled'
+	State AlertRuleState `json:"state,omitempty"`
+	// Severity - The alert rule severity. Possible values include: 'Sev0', 'Sev1', 'Sev2', 'Sev3', 'Sev4'
+	Severity Severity `json:"severity,omitempty"`
+	// Frequency - The alert rule frequency in ISO8601 format. The time granularity must be in minutes and minimum value is 5 minutes.
+	Frequency *string `json:"frequency,omitempty"`
+	// Detector - The alert rule's detector.
+	Detector *Detector `json:"detector,omitempty"`
+	// Scope - The alert rule resources scope.
+	Scope *[]string `json:"scope,omitempty"`
+	// ActionGroups - The alert rule actions.
+	ActionGroups *ActionGroupsInformation `json:"actionGroups,omitempty"`
+	// Throttling - The alert rule throttling information.
+	Throttling *ThrottlingInformation `json:"throttling,omitempty"`
+}
+
+// AlertRulesList list of Smart Detector alert rules.
+type AlertRulesList struct {
+	autorest.Response `json:"-"`
+	// Value - List of Smart Detector alert rules.
+	Value *[]AlertRule `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// AlertRulesListIterator provides access to a complete listing of AlertRule values.
+type AlertRulesListIterator struct {
+	i    int
+	page AlertRulesListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *AlertRulesListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *AlertRulesListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter AlertRulesListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter AlertRulesListIterator) Response() AlertRulesList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter AlertRulesListIterator) Value() AlertRule {
+	if !iter.page.NotDone() {
+		return AlertRule{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the AlertRulesListIterator type.
+func NewAlertRulesListIterator(page AlertRulesListPage) AlertRulesListIterator {
+	return AlertRulesListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (arl AlertRulesList) IsEmpty() bool {
+	return arl.Value == nil || len(*arl.Value) == 0
+}
+
+// hasNextLink returns true if the NextLink is not empty.
+func (arl AlertRulesList) hasNextLink() bool {
+	return arl.NextLink != nil && len(*arl.NextLink) != 0
+}
+
+// alertRulesListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (arl AlertRulesList) alertRulesListPreparer(ctx context.Context) (*http.Request, error) {
+	if !arl.hasNextLink() {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(arl.NextLink)))
+}
+
+// AlertRulesListPage contains a page of AlertRule values.
+type AlertRulesListPage struct {
+	fn  func(context.Context, AlertRulesList) (AlertRulesList, error)
+	arl AlertRulesList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *AlertRulesListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	for {
+		next, err := page.fn(ctx, page.arl)
+		if err != nil {
+			return err
+		}
+		page.arl = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
+	}
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *AlertRulesListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page AlertRulesListPage) NotDone() bool {
+	return !page.arl.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page AlertRulesListPage) Response() AlertRulesList {
+	return page.arl
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page AlertRulesListPage) Values() []AlertRule {
+	if page.arl.IsEmpty() {
+		return nil
+	}
+	return *page.arl.Value
+}
+
+// Creates a new instance of the AlertRulesListPage type.
+func NewAlertRulesListPage(getNextPage func(context.Context, AlertRulesList) (AlertRulesList, error)) AlertRulesListPage {
+	return AlertRulesListPage{fn: getNextPage}
+}
+
 // AlertsList list the alerts.
 type AlertsList struct {
 	autorest.Response `json:"-"`
@@ -868,6 +1257,32 @@ type AlertsSummaryGroupItem struct {
 	Values *[]AlertsSummaryGroupItem `json:"values,omitempty"`
 }
 
+// AzureResource an Azure resource object
+type AzureResource struct {
+	// ID - READ-ONLY; The resource ID.
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; The resource type.
+	Type *string `json:"type,omitempty"`
+	// Name - READ-ONLY; The resource name.
+	Name *string `json:"name,omitempty"`
+	// Location - The resource location.
+	Location *string `json:"location,omitempty"`
+	// Tags - The resource tags.
+	Tags interface{} `json:"tags,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AzureResource.
+func (ar AzureResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ar.Location != nil {
+		objectMap["location"] = ar.Location
+	}
+	if ar.Tags != nil {
+		objectMap["tags"] = ar.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
 // Bool ...
 type Bool struct {
 	autorest.Response `json:"-"`
@@ -899,6 +1314,46 @@ type Conditions struct {
 	Description *Condition `json:"description,omitempty"`
 	// AlertContext - filter alerts by alert context (payload)
 	AlertContext *Condition `json:"alertContext,omitempty"`
+}
+
+// Detector the detector information. By default this is not populated, unless it's specified in expandDetector
+type Detector struct {
+	// ID - The detector id.
+	ID *string `json:"id,omitempty"`
+	// Parameters - The detector's parameters.'
+	Parameters map[string]interface{} `json:"parameters"`
+	// Name - The Smart Detector name. By default this is not populated, unless it's specified in expandDetector
+	Name *string `json:"name,omitempty"`
+	// Description - The Smart Detector description. By default this is not populated, unless it's specified in expandDetector
+	Description *string `json:"description,omitempty"`
+	// SupportedResourceTypes - The Smart Detector supported resource types. By default this is not populated, unless it's specified in expandDetector
+	SupportedResourceTypes *[]string `json:"supportedResourceTypes,omitempty"`
+	// ImagePaths - The Smart Detector image path. By default this is not populated, unless it's specified in expandDetector
+	ImagePaths *[]string `json:"imagePaths,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Detector.
+func (d Detector) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if d.ID != nil {
+		objectMap["id"] = d.ID
+	}
+	if d.Parameters != nil {
+		objectMap["parameters"] = d.Parameters
+	}
+	if d.Name != nil {
+		objectMap["name"] = d.Name
+	}
+	if d.Description != nil {
+		objectMap["description"] = d.Description
+	}
+	if d.SupportedResourceTypes != nil {
+		objectMap["supportedResourceTypes"] = d.SupportedResourceTypes
+	}
+	if d.ImagePaths != nil {
+		objectMap["imagePaths"] = d.ImagePaths
+	}
+	return json.Marshal(objectMap)
 }
 
 // Diagnostics action rule with diagnostics configuration
@@ -1367,6 +1822,14 @@ type Scope struct {
 	Values *[]string `json:"values,omitempty"`
 }
 
+// SmartDetectorErrorResponse describe the format of an Error response.
+type SmartDetectorErrorResponse struct {
+	// Code - Error code
+	Code *string `json:"code,omitempty"`
+	// Message - Error message indicating why the operation failed.
+	Message *string `json:"message,omitempty"`
+}
+
 // SmartGroup set of related alerts grouped together smartly by AMS.
 type SmartGroup struct {
 	autorest.Response     `json:"-"`
@@ -1823,4 +2286,10 @@ type SuppressionSchedule struct {
 	EndTime *string `json:"endTime,omitempty"`
 	// RecurrenceValues - Specifies the values for recurrence pattern
 	RecurrenceValues *[]int32 `json:"recurrenceValues,omitempty"`
+}
+
+// ThrottlingInformation optional throttling information for the alert rule.
+type ThrottlingInformation struct {
+	// Duration - The required duration (in ISO8601 format) to wait before notifying on the alert rule again. The time granularity must be in minutes and minimum value is 0 minutes
+	Duration *string `json:"duration,omitempty"`
 }

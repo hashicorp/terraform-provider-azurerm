@@ -61,6 +61,21 @@ func PossibleAlertModificationEventValues() []AlertModificationEvent {
 	return []AlertModificationEvent{ActionRuleSuppressed, ActionRuleTriggered, ActionsFailed, ActionsSuppressed, ActionsTriggered, AlertCreated, MonitorConditionChange, SeverityChange, StateChange}
 }
 
+// AlertRuleState enumerates the values for alert rule state.
+type AlertRuleState string
+
+const (
+	// AlertRuleStateDisabled ...
+	AlertRuleStateDisabled AlertRuleState = "Disabled"
+	// AlertRuleStateEnabled ...
+	AlertRuleStateEnabled AlertRuleState = "Enabled"
+)
+
+// PossibleAlertRuleStateValues returns an array of possible values for the AlertRuleState const type.
+func PossibleAlertRuleStateValues() []AlertRuleState {
+	return []AlertRuleState{AlertRuleStateDisabled, AlertRuleStateEnabled}
+}
+
 // AlertsSortByFields enumerates the values for alerts sort by fields.
 type AlertsSortByFields string
 
