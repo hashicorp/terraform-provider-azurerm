@@ -153,11 +153,11 @@ The following attributes are exported:
 
 * `id` - The ID of the Spring Cloud Service.
 
-* `outbound_ips` - An `outbound_ips` block as defined below.
+* `outbound_ip` - An `outbound_ip` block as defined below.
 
 ---
 
-A `outbound_ips` block exports the following:
+A `outbound_ip` block exports the following:
 
 * `public_ips` - A list of public IP addresses for Azure Spring Cloud instance.
 

@@ -111,7 +111,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 							ForceNew: true,
 						},
 
-						"outbound_ips": {
+						"outbound_ip": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -820,7 +820,7 @@ func flattenArmSpringCloudNetwork(input *appplatform.NetworkProfile) []interface
 			"cidr_ranges":                            cidrRanges,
 			"app_network_resource_group":             appNetworkResourceGroup,
 			"service_runtime_network_resource_group": serviceRuntimeNetworkResourceGroup,
-			"outbound_ips":                           flattenArmSpringCloudNetworkOutboundIPs(input.OutboundIPs),
+			"outbound_ip":                            flattenArmSpringCloudNetworkOutboundIPs(input.OutboundIPs),
 		},
 	}
 }
