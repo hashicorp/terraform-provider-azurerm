@@ -43,6 +43,5 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_iothub_endpoint_servicebus_queue":  resourceArmIotHubEndpointServiceBusQueue(),
 		"azurerm_iothub_endpoint_servicebus_topic":  resourceArmIotHubEndpointServiceBusTopic(),
 		"azurerm_iothub_endpoint_storage_container": resourceArmIotHubEndpointStorageContainer(),
-		"azurerm_iothub_shared_access_policy":       resourceArmIotHubSharedAccessPolicy(),
-	}
+		"azurerm_iothub_shared_access_policy":       resourceArmIotHubSharedAccessPolicy()}
 }
