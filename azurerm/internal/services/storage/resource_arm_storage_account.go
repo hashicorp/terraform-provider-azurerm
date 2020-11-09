@@ -1012,7 +1012,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("network_rules") {
+	if d.HasChange("network_rules.0.bypass") || d.HasChange("network_rules.0.ip_rules") || d.HasChange("network_rules.0.virtual_network_subnet_ids") || d.HasChange("network_rules.0.default_action") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				NetworkRuleSet: expandStorageAccountNetworkRules(d),
