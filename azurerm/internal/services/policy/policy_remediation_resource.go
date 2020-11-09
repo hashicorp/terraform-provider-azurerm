@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/policyinsights/mgmt/2019-10-01-preview/policyinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -220,6 +222,21 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 		if err := cancelRemediation(ctx, client, id.Name, id.PolicyScopeId); err != nil {
 			return fmt.Errorf("cancelling Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
 		}
+
+		log.Printf("[DEBUG] waiting for the Policy Remediation %q (Scope %q) to be canceled", id.Name, id.ScopeId())
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"Cancelling"},
+			Target: []string{
+				"Succeeded", "Canceled", "Failed",
+			},
+			Refresh:    policyRemediationCancellationRefreshFunc(ctx, client, id.Name, id.PolicyScopeId),
+			MinTimeout: 10 * time.Second,
+			Timeout:    d.Timeout(schema.TimeoutDelete),
+		}
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("waiting for Policy Remediation %q to be canceled: %+v", id.Name, err)
+		}
 	}
 
 	switch scope := id.PolicyScopeId.(type) {
@@ -257,6 +274,23 @@ func cancelRemediation(ctx context.Context, client *policyinsights.RemediationsC
 		return err
 	default:
 		return fmt.Errorf("nvalid scope type")
+	}
+}
+
+func policyRemediationCancellationRefreshFunc(ctx context.Context, client *policyinsights.RemediationsClient, name string, scopeId parse.PolicyScopeId) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := RemediationGetAtScope(ctx, client, name, scopeId)
+		if err != nil {
+			return nil, "", fmt.Errorf("issuing read request in policyRemediationCancellationRefreshFunc for Policy Remediation %q (Scope %q): %+v", name, scopeId.ScopeId(), err)
+		}
+
+		if resp.RemediationProperties == nil {
+			return nil, "", fmt.Errorf("`properties` was nil", name, scopeId.ScopeId())
+		}
+		if resp.RemediationProperties.ProvisioningState == nil {
+			return nil, "", fmt.Errorf("`properties.ProvisioningState` was nil", name, scopeId.ScopeId())
+		}
+		return resp, *resp.RemediationProperties.ProvisioningState, nil
 	}
 }
 
