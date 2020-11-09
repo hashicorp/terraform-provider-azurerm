@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the resource group in which the Monitor Smart Detector Alert Rule should exist. Changing this forces a new resource to be created.
 
-* `detector_id` - (Required) Specifies the Smart Detector id that this alert rule will use.
+* `detector_id` - (Required) Specifies the Built-In Smart Detector id that this alert rule will use. Currently possible values are `FailureAnomaliesDetector`.
 
 * `scope` - (Required) Specifies the scopes of this Smart Detector Alert Rule.
 
