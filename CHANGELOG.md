@@ -2,6 +2,8 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_data_share_dataset_kusto_database` [GH-8544]
+* **New Resource:** `azurerm_data_share_dataset_kusto_database` [GH-8544]
 * **New Resource:** `azurerm_virtual_hub_security_partner_provider` [GH-8978]
 
 IMPROVEMENTS:
