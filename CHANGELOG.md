@@ -11,9 +11,9 @@ IMPROVEMENTS:
 * dependencies: upgrading to `v0.13.0` of `github.com/hashicorp/go-azure-helpers` [GH-9191]
 * dependencies: upgrading to `v0.14.0` of `github.com/tombuildsstuff/giovanni` [GH-9189]
 * storage: upgrading the Data Plane API's to API Version `2019-12-12` [GH-9192]
-* `azurerm_virtual_network` - support for the `bgp_community` and `vnet_protection_enabled` properties [GH-8979]
 * `azurerm_linux_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_linux_virtual_machine_scale_set` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
+* `azurerm_virtual_network` - support for the `bgp_community` and `vnet_protection_enabled` [GH-8979]
 * `azurerm_windows_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_windows_virtual_machine_scale_set` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 
@@ -23,6 +23,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster_node_pool` - changing the field `availability_zones` now requires recreating the resource to match the behaviour of the Azure API [GH-8814]
 * `azurerm_linux_virtual_machine` - the field `disk_size_gb` within the `os_disk` block can now be configured up to `4095` [GH-9202]
 * `azurerm_linux_virtual_machine_scale_set` - the field `disk_size_gb` within the `os_disk` block can now be configured up to `4095` [GH-9202]
+* `azurerm_linux_virtual_machine_scale_set` - the field `computer_name_prefix` can now end with a dash [GH-9182]
 * `azurerm_windows_virtual_machine` - the field `disk_size_gb` within the `os_disk` block can now be configured up to `4095` [GH-9202]
 * `azurerm_windows_virtual_machine_scale_set` - the field `disk_size_gb` within the `os_disk` block can now be configured up to `4095` [GH-9202]
 
