@@ -70,9 +70,9 @@ The following arguments are supported:
 * `secondary_peer_address_prefix` - (Required) A `/30` subnet for the secondary link.
 * `vlan_id` - (Required) A valid VLAN ID to establish this peering on.
 * `shared_key` - (Optional) The shared key. Can be a maximum of 25 characters.
-* `peer_asn` - (Optional) The Either a 16-bit or a 32-bit ASN. Can either be public or private..
+* `peer_asn` - (Optional) The Either a 16-bit or a 32-bit ASN. Can either be public or private.
 * `microsoft_peering_config` - (Optional) A `microsoft_peering_config` block as defined below. Required when `peering_type` is set to `MicrosoftPeering`.
-* `microsoft_peering_config_ipv6` - (Optional) A `microsoft_peering_config_ipv6` block as defined below. Required when `peering_type` is set to `MicrosoftPeering`.
+* `microsoft_peering_config_ipv6` - (Optional) A `microsoft_peering_config_ipv6` block as defined below.
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
 
 ---
@@ -85,7 +85,7 @@ A `microsoft_peering_config` block contains:
 
 A `microsoft_peering_config_ipv6` block contains:
 
-* `microsoft_peering_config` - (Optional)  A `microsoft_peering_config` block as defined above.
+* `microsoft_peering_config` - (Required)  A `microsoft_peering_config` block as defined above.
 * `primary_peer_address_prefix` - (Required) A subnet for the primary link.
 * `secondary_peer_address_prefix` - (Required) A subnet for the secondary link.
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
