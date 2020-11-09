@@ -7,7 +7,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: upgrading to `v0.4.2` of `github.com/Azure/go-autorest/autorest/azure/cli` [GH-9168]
-* dependencies: upgrading to `v48.0.0` of `github.com/Azure/azure-sdk-for-go` [GH-9167]
+* dependencies: upgrading to `v48.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-9213]
 * dependencies: upgrading to `v0.13.0` of `github.com/hashicorp/go-azure-helpers` [GH-9191]
 * dependencies: upgrading to `v0.14.0` of `github.com/tombuildsstuff/giovanni` [GH-9189]
 * storage: upgrading the Data Plane API's to API Version `2019-12-12` [GH-9192]
