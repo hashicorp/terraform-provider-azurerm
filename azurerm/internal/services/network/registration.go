@@ -109,6 +109,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_subnet_nat_gateway_association":                                         resourceArmSubnetNatGatewayAssociation(),
 		"azurerm_subnet":                                                                 resourceArmSubnet(),
 		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
+		"azurerm_virtual_hub_bgp_connection":                                             resourceArmVirtualHubBgpConnection(),
 		"azurerm_virtual_hub_connection":                                                 resourceArmVirtualHubConnection(),
 		"azurerm_virtual_hub_ip":                                                         resourceArmVirtualHubIP(),
 		"azurerm_virtual_hub_route_table":                                                resourceArmVirtualHubRouteTable(),
