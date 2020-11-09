@@ -61,17 +61,7 @@ The following attributes are exported:
 
 * `secondary_shared_key` - The Secondary shared key for the Log Analytics Workspace.
 
-* `private_link_scoped_resource` - One or more `private_link_scoped_resource` blocks as defined below.
-
 * `workspace_id` - The Workspace (or Customer) ID for the Log Analytics Workspace.
-
----
-
-A `private_link_scoped_resource` block exports the following:
-
-* `resource_id` - The ID of the resource.
-
-* `scope_id` - The ID of the scope.
 
 ## Timeouts
 
