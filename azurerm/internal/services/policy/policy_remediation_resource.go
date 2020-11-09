@@ -284,10 +284,10 @@ func policyRemediationCancellationRefreshFunc(ctx context.Context, client *polic
 		}
 
 		if resp.RemediationProperties == nil {
-			return nil, "", fmt.Errorf("`properties` was nil", name, scopeId.ScopeId())
+			return nil, "", fmt.Errorf("`properties` was nil")
 		}
 		if resp.RemediationProperties.ProvisioningState == nil {
-			return nil, "", fmt.Errorf("`properties.ProvisioningState` was nil", name, scopeId.ScopeId())
+			return nil, "", fmt.Errorf("`properties.ProvisioningState` was nil")
 		}
 		return resp, *resp.RemediationProperties.ProvisioningState, nil
 	}
