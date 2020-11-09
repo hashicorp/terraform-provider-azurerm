@@ -450,7 +450,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 		if _, ok := d.GetOk("is_compression_enabled"); ok {
 			if compressionEnabled := props.IsCompressionEnabled; compressionEnabled != nil {
-				d.Set("is_compression_enabled", *compressionEnabled)
+				d.Set("is_compression_enabled", compressionEnabled)
 			}
 		}
 

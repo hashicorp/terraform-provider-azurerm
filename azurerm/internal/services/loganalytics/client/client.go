@@ -7,13 +7,14 @@ import (
 )
 
 type Client struct {
-	DataExportClient     *operationalinsights.DataExportsClient
-	DataSourcesClient    *operationalinsights.DataSourcesClient
-	LinkedServicesClient *operationalinsights.LinkedServicesClient
-	SavedSearchesClient  *operationalinsights.SavedSearchesClient
-	SharedKeysClient     *operationalinsights.SharedKeysClient
-	SolutionsClient      *operationsmanagement.SolutionsClient
-	WorkspacesClient     *operationalinsights.WorkspacesClient
+	DataExportClient           *operationalinsights.DataExportsClient
+	DataSourcesClient          *operationalinsights.DataSourcesClient
+	LinkedServicesClient       *operationalinsights.LinkedServicesClient
+	LinkedStorageAccountClient *operationalinsights.LinkedStorageAccountsClient
+	SavedSearchesClient        *operationalinsights.SavedSearchesClient
+	SharedKeysClient           *operationalinsights.SharedKeysClient
+	SolutionsClient            *operationsmanagement.SolutionsClient
+	WorkspacesClient           *operationalinsights.WorkspacesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -38,13 +39,17 @@ func NewClient(o *common.ClientOptions) *Client {
 	LinkedServicesClient := operationalinsights.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LinkedServicesClient.Client, o.ResourceManagerAuthorizer)
 
+	LinkedStorageAccountClient := operationalinsights.NewLinkedStorageAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LinkedStorageAccountClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		DataExportClient:     &DataExportClient,
-		DataSourcesClient:    &DataSourcesClient,
-		LinkedServicesClient: &LinkedServicesClient,
-		SavedSearchesClient:  &SavedSearchesClient,
-		SharedKeysClient:     &SharedKeysClient,
-		SolutionsClient:      &SolutionsClient,
-		WorkspacesClient:     &WorkspacesClient,
+		DataExportClient:           &DataExportClient,
+		DataSourcesClient:          &DataSourcesClient,
+		LinkedServicesClient:       &LinkedServicesClient,
+		LinkedStorageAccountClient: &LinkedStorageAccountClient,
+		SavedSearchesClient:        &SavedSearchesClient,
+		SharedKeysClient:           &SharedKeysClient,
+		SolutionsClient:            &SolutionsClient,
+		WorkspacesClient:           &WorkspacesClient,
 	}
 }

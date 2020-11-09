@@ -72,7 +72,7 @@ A `catalog_info` block supports the following:
 
 * `administrator_password` - (Required) Administrator login password for the SQL Server.
 
-* `pricing_tier` - (Required) Pricing tier for the database that will be created for the SSIS catalog. Valid values are: `Basic`, `Standard`, `Premium` and `PremiumRS`.
+* `pricing_tier` - (Optional) Pricing tier for the database that will be created for the SSIS catalog. Valid values are: `Basic`, `Standard`, `Premium` and `PremiumRS`.
 
 ---
 
