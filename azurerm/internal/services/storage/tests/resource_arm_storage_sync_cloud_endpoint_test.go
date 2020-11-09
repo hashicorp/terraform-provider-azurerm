@@ -140,6 +140,19 @@ resource "azurerm_storage_share" "test" {
   }
 }
 
+data "azurerm_subscription" "primary" {
+}
+
+data "azuread_service_principal" "test" {
+  display_name = "Microsoft.StorageSync"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Reader and Data Access"
+  principal_id         = data.azuread_service_principal.test.object_id
+}
+
 resource "azurerm_storage_sync_cloud_endpoint" "test" {
   name                      = "acctest-CEP-%[1]d"
   storage_sync_group_id     = azurerm_storage_sync_group.test.id
