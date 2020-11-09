@@ -43,9 +43,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Hyper Converged Cluster should exist. Changing this forces a new resource to be created.
 
-* `aad_client_id` - (Required) The ID of the AAD client. Changing this forces a new resource to be created.
+* `aad_client_id` - (Required) The Client ID of the Azure Active Directory which is used by the Hyper Converged Cluster. Changing this forces a new resource to be created.
 
-* `aad_tenant_id` - (Required) The ID of the AAD tenant. Changing this forces a new resource to be created.
+* `aad_tenant_id` - (Required) The Tenant ID of the Azure Active Directory which is used by the Hyper Converged Cluster. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Hyper Converged Cluster.
 
