@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -92,7 +93,7 @@ func resourceArmDiskEncryptionSet() *schema.Resource {
 
 func resourceArmDiskEncryptionSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	vaultClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -263,15 +264,13 @@ type diskEncryptionSetKeyVault struct {
 	softDeleteEnabled      bool
 }
 
-func diskEncryptionSetRetrieveKeyVault(ctx context.Context, meta interface{}, id string) (*diskEncryptionSetKeyVault, error) {
-	vaultClient := meta.(*clients.Client).KeyVault
-
+func diskEncryptionSetRetrieveKeyVault(ctx context.Context, client *keyvault.Client, id string) (*diskEncryptionSetKeyVault, error) {
 	keyVaultKeyId, err := azure.ParseKeyVaultChildID(id)
 	if err != nil {
 		return nil, err
 	}
 
-	vault, err := vaultClient.FindKeyVault(ctx, keyVaultKeyId.KeyVaultBaseUrl)
+	vault, err := client.FindKeyVault(ctx, keyVaultKeyId.KeyVaultBaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
 	}

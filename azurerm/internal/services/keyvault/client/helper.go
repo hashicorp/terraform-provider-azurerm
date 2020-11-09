@@ -85,25 +85,25 @@ func (client Client) FindKeyVault(ctx context.Context, keyVaultUrl string) (*key
 	return nil, nil
 }
 
-func populateKeyVaultDetails(props keyvault.Vault) (*keyVaultDetails, error) {
-	if props.ID == nil || *props.ID == "" {
-		return nil, fmt.Errorf("`id` was nil or empty for Account %q", props.Name)
+func populateKeyVaultDetails(vault keyvault.Vault) (*keyVaultDetails, error) {
+	if vault.ID == nil || *vault.ID == "" {
+		return nil, fmt.Errorf("`id` was nil or empty for Account %+v", vault)
 	}
 
-	id, err := parse.KeyVaultID(*props.ID)
+	id, err := parse.KeyVaultID(*vault.ID)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as key vault ID: %+v", *props.ID, err)
+		return nil, fmt.Errorf("parsing %q as key vault ID: %+v", *vault.ID, err)
 	}
 
-	if props.Properties == nil || props.Properties.VaultURI == nil {
+	if vault.Properties == nil || vault.Properties.VaultURI == nil {
 		return nil, fmt.Errorf("KeyVault %q (Resource Group %q) has nil ID, properties or vault URI", id.Name, id.ResourceGroup)
 	}
 
 	return &keyVaultDetails{
-		ID:            *props.ID,
+		ID:            *vault.ID,
 		Name:          id.Name,
 		ResourceGroup: id.ResourceGroup,
-		Properties:    props.Properties,
-		Tags:          props.Tags,
+		Properties:    vault.Properties,
+		Tags:          vault.Tags,
 	}, nil
 }
