@@ -168,8 +168,8 @@ resource "azurerm_hyper_converged_cluster" "test" {
   name                = "acctest-HyperConvergedCluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  aad_client_id       = data.azurerm_client_config.current.client_id
-  aad_tenant_id       = data.azurerm_client_config.current.tenant_id
+  client_id           = data.azurerm_client_config.current.client_id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger)
 }
@@ -183,8 +183,8 @@ resource "azurerm_hyper_converged_cluster" "import" {
   name                = azurerm_hyper_converged_cluster.test.name
   resource_group_name = azurerm_hyper_converged_cluster.test.resource_group_name
   location            = azurerm_hyper_converged_cluster.test.location
-  aad_client_id       = azurerm_hyper_converged_cluster.test.aad_client_id
-  aad_tenant_id       = azurerm_hyper_converged_cluster.test.aad_tenant_id
+  client_id           = azurerm_hyper_converged_cluster.test.client_id
+  tenant_id           = azurerm_hyper_converged_cluster.test.tenant_id
 }
 `, config)
 }
@@ -198,8 +198,8 @@ resource "azurerm_hyper_converged_cluster" "test" {
   name                = "acctest-HyperConvergedCluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  aad_client_id       = data.azurerm_client_config.current.client_id
-  aad_tenant_id       = data.azurerm_client_config.current.tenant_id
+  client_id           = data.azurerm_client_config.current.client_id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = {
     ENV = "Test"

@@ -24,8 +24,8 @@ resource "azurerm_hyper_converged_cluster" "example" {
   name                = "example-cluster"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  aad_client_id       = data.azurerm_client_config.current.client_id
-  aad_tenant_id       = data.azurerm_client_config.current.tenant_id
+  client_id           = data.azurerm_client_config.current.client_id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = {
     ENV = "Prod"
@@ -43,9 +43,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Hyper Converged Cluster should exist. Changing this forces a new resource to be created.
 
-* `aad_client_id` - (Required) The Client ID of the Azure Active Directory which is used by the Hyper Converged Cluster. Changing this forces a new resource to be created.
+* `client_id` - (Required) The Client ID of the Azure Active Directory which is used by the Hyper Converged Cluster. Changing this forces a new resource to be created.
 
-* `aad_tenant_id` - (Required) The Tenant ID of the Azure Active Directory which is used by the Hyper Converged Cluster. Changing this forces a new resource to be created.
+* `tenant_id` - (Required) The Tenant ID of the Azure Active Directory which is used by the Hyper Converged Cluster. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Hyper Converged Cluster.
 

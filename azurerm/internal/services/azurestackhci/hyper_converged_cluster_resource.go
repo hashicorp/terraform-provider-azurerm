@@ -51,14 +51,14 @@ func resourceArmHyperConvergedCluster() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"aad_client_id": {
+			"client_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"aad_tenant_id": {
+			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -91,8 +91,8 @@ func resourceArmHyperConvergedClusterCreate(d *schema.ResourceData, meta interfa
 	cluster := azurestackhci.Cluster{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		ClusterProperties: &azurestackhci.ClusterProperties{
-			AadClientID: utils.String(d.Get("aad_client_id").(string)),
-			AadTenantID: utils.String(d.Get("aad_tenant_id").(string)),
+			AadClientID: utils.String(d.Get("client_id").(string)),
+			AadTenantID: utils.String(d.Get("tenant_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -141,8 +141,8 @@ func resourceArmHyperConvergedClusterRead(d *schema.ResourceData, meta interface
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.ClusterProperties; props != nil {
-		d.Set("aad_client_id", props.AadClientID)
-		d.Set("aad_tenant_id", props.AadTenantID)
+		d.Set("client_id", props.AadClientID)
+		d.Set("tenant_id", props.AadTenantID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
