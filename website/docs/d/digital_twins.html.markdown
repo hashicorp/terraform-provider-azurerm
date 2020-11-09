@@ -1,12 +1,12 @@
 ---
-subcategory: "DigitalTwins"
+subcategory: "IoT Hub"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_digital_twins"
+page_title: "Azure Resource Manager: Data Source: azurerm_iothub_digital_twins"
 description: |-
   Gets information about an existing Digital Twins.
 ---
 
-# Data Source: azurerm_digital_twins
+# Data Source: azurerm_iothub_digital_twins
 
 Use this data source to access information about an existing Digital Twins.
 
@@ -17,13 +17,13 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_digital_twins" "example" {
+data "azurerm_iothub_digital_twins" "example" {
   name                = "existing-digital-twins"
   resource_group_name = "existing-resgroup"
 }
 
 output "id" {
-  value = data.azurerm_digital_twins.example.id
+  value = data.azurerm_iothub_digital_twins.example.id
 }
 ```
 

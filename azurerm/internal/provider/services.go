@@ -29,7 +29,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
@@ -117,7 +116,6 @@ func SupportedServices() []common.ServiceRegistration {
 		desktopvirtualization.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
-		digitaltwins.Registration{},
 		dns.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},

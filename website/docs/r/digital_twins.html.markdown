@@ -1,12 +1,12 @@
 ---
-subcategory: "DigitalTwins"
+subcategory: "IoT Hub"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_digital_twins"
+page_title: "Azure Resource Manager: azurerm_iothub_digital_twins"
 description: |-
   Manages a Digital Twins.
 ---
 
-# azurerm_digital_twins
+# azurerm_iothub_digital_twins
 
 Manages a Digital Twins.
 
@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_digital_twins" "example" {
+resource "azurerm_iothub_digital_twins" "example" {
   name                = "example-DT"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -66,5 +66,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Digital Twinss can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_digital_twins.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt1
+terraform import azurerm_iothub_digital_twins.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt1
 ```

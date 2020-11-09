@@ -21,6 +21,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
+		"azurerm_iothub_digital_twins":            dataSourceDigitalTwins(),
 		"azurerm_iothub_dps":                      dataSourceArmIotHubDPS(),
 		"azurerm_iothub_dps_shared_access_policy": dataSourceIotHubDPSSharedAccessPolicy(),
 		"azurerm_iothub_shared_access_policy":     dataSourceArmIotHubSharedAccessPolicy(),
@@ -30,6 +31,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
+		"azurerm_iothub_digital_twins":              resourceArmDigitalTwins(),
 		"azurerm_iothub_dps":                        resourceArmIotHubDPS(),
 		"azurerm_iothub_dps_certificate":            resourceArmIotHubDPSCertificate(),
 		"azurerm_iothub_dps_shared_access_policy":   resourceArmIotHubDPSSharedAccessPolicy(),
@@ -41,5 +43,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_iothub_endpoint_servicebus_queue":  resourceArmIotHubEndpointServiceBusQueue(),
 		"azurerm_iothub_endpoint_servicebus_topic":  resourceArmIotHubEndpointServiceBusTopic(),
 		"azurerm_iothub_endpoint_storage_container": resourceArmIotHubEndpointStorageContainer(),
-		"azurerm_iothub_shared_access_policy":       resourceArmIotHubSharedAccessPolicy()}
+		"azurerm_iothub_shared_access_policy":       resourceArmIotHubSharedAccessPolicy(),
+	}
 }

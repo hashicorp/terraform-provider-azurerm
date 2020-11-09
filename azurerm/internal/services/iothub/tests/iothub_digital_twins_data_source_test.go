@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMDigitalTwins_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_digital_twins", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_iothub_digital_twins", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -31,9 +31,9 @@ func testAccDataSourceDigitalTwins_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_digital_twins" "test" {
-  name                = azurerm_digital_twins.test.name
-  resource_group_name = azurerm_digital_twins.test.resource_group_name
+data "azurerm_iothub_digital_twins" "test" {
+  name                = azurerm_iothub_digital_twins.test.name
+  resource_group_name = azurerm_iothub_digital_twins.test.resource_group_name
 }
 `, config)
 }

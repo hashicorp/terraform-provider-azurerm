@@ -1,4 +1,4 @@
-package digitaltwins
+package iothub
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -61,7 +61,7 @@ func resourceArmDigitalTwins() *schema.Resource {
 }
 func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
+	client := meta.(*clients.Client).IoTHub.DigitalTwinsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -75,7 +75,7 @@ func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_digital_twins", *existing.ID)
+		return tf.ImportAsExistsError("azurerm_iothub_digital_twins", *existing.ID)
 	}
 
 	digitalTwinsCreate := digitaltwins.Description{
@@ -111,7 +111,7 @@ func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmDigitalTwinsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
+	client := meta.(*clients.Client).IoTHub.DigitalTwinsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -139,7 +139,7 @@ func resourceArmDigitalTwinsRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmDigitalTwinsUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
+	client := meta.(*clients.Client).IoTHub.DigitalTwinsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -161,7 +161,7 @@ func resourceArmDigitalTwinsUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmDigitalTwinsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
+	client := meta.(*clients.Client).IoTHub.DigitalTwinsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -1,4 +1,4 @@
-package digitaltwins
+package iothub
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -44,7 +44,7 @@ func dataSourceDigitalTwins() *schema.Resource {
 }
 
 func dataSourceArmDigitalTwinsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Digitaltwins.DigitalTwinsClient
+	client := meta.(*clients.Client).IoTHub.DigitalTwinsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

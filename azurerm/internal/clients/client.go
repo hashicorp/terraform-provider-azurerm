@@ -33,7 +33,6 @@ import (
 	desktopvirtualization "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/client"
 	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
-	digitaltwins "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/client"
 	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
 	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
 	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
@@ -124,7 +123,6 @@ type Client struct {
 	DesktopVirtualization *desktopvirtualization.Client
 	DevSpace              *devspace.Client
 	DevTestLabs           *devtestlabs.Client
-	Digitaltwins          *digitaltwins.Client
 	Dns                   *dns.Client
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
@@ -216,7 +214,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
-	client.Digitaltwins = digitaltwins.NewClient(o)
 	client.Dns = dns.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
