@@ -127,6 +127,10 @@ The following arguments are supported:
 
 * `large_file_share_enabled` - (Optional) Is Large File Share Enabled?
 
+* `table_properties` - (Optional) A `table_properties` block as defined below.
+
+~> **NOTE:** `table_properties` cannot be set when the `account_kind` is set to `Storage` or `StorageV2` and `access_tier` is `Standard`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -248,6 +252,12 @@ A `static_website` block supports the following:
 * `index_document` - (Optional) The webpage that Azure Storage serves for requests to the root of a website or any subfolder. For example, index.html. The value is case-sensitive.
 
 * `error_404_document` - (Optional) The absolute path to a custom webpage that should be used when a request is made which does not correspond to an existing file.
+
+---
+
+A `table_properties` block supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
 ## Attributes Reference
 

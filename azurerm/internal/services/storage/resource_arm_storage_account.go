@@ -823,12 +823,21 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("table_properties"); ok {
-		tableClient := meta.(*clients.Client).Storage.TableServicesClient
 
-		tableProperties := expandTableProperties(val.([]interface{}))
+		if (accountKind == string(storage.Storage) || accountKind == string(storage.StorageV2)) && accountTier == string(storage.Standard) {
+			tableClient := meta.(*clients.Client).Storage.TableServicesClient
 
-		if _, err = tableClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, tableProperties); err != nil {
-			return fmt.Errorf("updating Azure Storage Account `table_properties` %q: %+v", storageAccountName, err)
+			tableProperties := expandTableProperties(val.([]interface{}))
+
+			if _, err = tableClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, tableProperties); err != nil {
+				return fmt.Errorf("updating Azure Storage Account `table_properties` %q: %+v", storageAccountName, err)
+			}
+
+			// The service team has confirmed that it's by design that we'll need to wait 30 secs to ensure the data is correctly set. Else, it may return the table service before update.
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/11319
+			time.Sleep(30 * time.Second)
+		} else {
+			return fmt.Errorf("`table_properties` are only supported for Storage/ Storage V2 Standard Storage accounts")
 		}
 	}
 
@@ -1087,11 +1096,19 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("table_properties") {
-		tableClient := meta.(*clients.Client).Storage.TableServicesClient
-		tableProps := expandTableProperties(d.Get("table_properties").([]interface{}))
+		if (accountKind == string(storage.Storage) || accountKind == string(storage.StorageV2)) && accountTier == string(storage.Standard) {
+			tableClient := meta.(*clients.Client).Storage.TableServicesClient
+			tableProps := expandTableProperties(d.Get("table_properties").([]interface{}))
 
-		if _, err = tableClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, tableProps); err != nil {
-			return fmt.Errorf("updating Azure Storage Account `table_properties` %q: %+v", storageAccountName, err)
+			if _, err = tableClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, tableProps); err != nil {
+				return fmt.Errorf("updating Azure Storage Account `table_properties` %q: %+v", storageAccountName, err)
+			}
+
+			// The service team has confirmed that it's by design that we'll need to wait 30 secs to ensure the data is correctly set. Else, it returns the table service before update.
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/11319
+			time.Sleep(30 * time.Second)
+		} else {
+			return fmt.Errorf("`table_properties` are only supported for Storage/ Storage V2 Standard Storage accounts")
 		}
 	}
 
@@ -1292,6 +1309,18 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
 				return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
 			}
+
+			tableClient := storageClient.TableServicesClient
+			tableProps, err := tableClient.GetServiceProperties(ctx, resGroup, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(tableProps.Response) {
+					return fmt.Errorf("reading table properties for AzureRM Storage Account %q: %+v", name, err)
+				}
+			}
+
+			if err := d.Set("table_properties", flattenTableProperties(tableProps)); err != nil {
+				return fmt.Errorf("setting `table_properties `for AzureRM Storage Account %q: %+v", name, err)
+			}
 		}
 	}
 
@@ -1323,19 +1352,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	if err := d.Set("static_website", staticWebsite); err != nil {
 		return fmt.Errorf("Error setting `static_website `for AzureRM Storage Account %q: %+v", name, err)
-	}
-
-	tableClient := storageClient.TableServicesClient
-
-	tableProps, err := tableClient.GetServiceProperties(ctx, resGroup, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(tableProps.Response) {
-			return fmt.Errorf("reading table properties for AzureRM Storage Account %q: %+v", name, err)
-		}
-	}
-
-	if err := d.Set("table_properties", flattenTableProperties(tableProps)); err != nil {
-		return fmt.Errorf("setting `table_properties `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
