@@ -23,6 +23,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_cosmosdb_sql_database`  no longer attempts to get throughput settings when cosmos account is serverless [GH-9187]
 * `azurerm_kubernetes_cluster` - changing the field `availability_zones` within the `default_node_pool` block now requires recreating the resource to match the behaviour of the Azure API [GH-8814]
 * `azurerm_kubernetes_cluster_node_pool` - changing the field `availability_zones` now requires recreating the resource to match the behaviour of the Azure API [GH-8814]
 * `azurerm_linux_virtual_machine` - the field `disk_size_gb` within the `os_disk` block can now be configured up to `4095` [GH-9202]
