@@ -8,7 +8,7 @@ description: |-
 
 # Azure Provider: Migrating to a renamed resource
 
-This guide shows how to migrate from a resource which has been deprecated to its replacement. The complete list of resources that have been deprecated in favor of others can be found below.
+This guide shows how to migrate from a resource which has been deprecated to its replacement. The complete list of resources that have been deprecated in favour of others can be found below.
 
 ~> **Note:** The following resources have been Deprecated and will be removed in version 2.0 of the Azure Provider
 
