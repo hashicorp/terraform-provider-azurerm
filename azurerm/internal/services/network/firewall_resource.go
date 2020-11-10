@@ -132,6 +132,33 @@ func resourceArmFirewall() *schema.Resource {
 				},
 			},
 
+			"sku": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.AZFWHub),
+								string(network.AZFWVNet),
+							}, false),
+						},
+
+						"tier": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Standard),
+								string(network.Premium),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"zones": azure.SchemaZones(),
 
 			"tags": tags.Schema(),
@@ -185,6 +212,13 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 		Zones: zones,
 	}
+
+	s := d.Get("sku").([]interface{})
+	if len(s) == 1 {
+		sku := expandArmFirewallSku(s)
+		parameters.Sku = sku
+	}
+
 	m := d.Get("management_ip_configuration").([]interface{})
 	if len(m) == 1 {
 		mgmtIPConfig, mgmtSubnetName, mgmtVirtualNetworkName, err := expandArmFirewallIPConfigurations(m)
@@ -300,6 +334,10 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 
 		if err := d.Set("dns_servers", flattenArmFirewallDNSServers(props.AdditionalProperties)); err != nil {
 			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+		}
+
+		if err := d.Set("sku", flattenArmFirewallSku(props.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
 	}
 
@@ -522,6 +560,25 @@ func flattenArmFirewallDNSServers(input map[string]*string) []interface{} {
 		servers = strings.Split(*serversPtr, ",")
 	}
 	return utils.FlattenStringSlice(&servers)
+}
+
+func expandArmFirewallSku(input []interface{}) *network.AzureFirewallSku {
+	config := input[0].(map[string]interface{})
+
+	sku := &network.AzureFirewallSku{
+		Name: network.AzureFirewallSkuName(config["name"].(string)),
+		Tier: network.AzureFirewallSkuTier(config["tier"].(string)),
+	}
+
+	return sku
+}
+
+func flattenArmFirewallSku(sku *network.AzureFirewallSku) []interface{} {
+	result := make(map[string]interface{})
+	result["name"] = string(sku.Name)
+	result["tier"] = string(sku.Tier)
+
+	return []interface{}{result}
 }
 
 func ValidateAzureFirewallName(v interface{}, k string) (warnings []string, errors []error) {

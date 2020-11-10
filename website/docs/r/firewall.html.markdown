@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which allows force-tunnelling of traffic to be performed by the firewall. Adding or removing this block or changing the `subnet_id` in an existing block forces a new resource to be created.
 
+* `sku` - (Optional) An `sku` block as documented below.
+
 * `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`
 
 * `zones` - (Optional) Specifies the availability zones in which the Azure Firewall should be created. Changing this forces a new resource to be created.
@@ -107,6 +109,15 @@ A `management_ip_configuration` block supports the following:
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
 -> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
+
+---
+
+An `sku` block supports the following:
+
+* `name` - (Required) Specifies the name of the SKU. Possible values are: `AZFWVNet` and `AZFWHub`.
+
+* `tier` - (Required) Specifies the name of the tier. Possible values are: `Standard` and `Premium`.
+
 
 ## Attributes Reference
 
