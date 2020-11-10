@@ -51,7 +51,7 @@ resource "azurerm_express_route_circuit_peering" "example" {
     advertised_public_prefixes = ["123.1.0.0/24"]
   }
 
-  microsoft_peering_config_ipv6 {
+  ipv6_peering {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
 
@@ -81,7 +81,7 @@ The following arguments are supported:
 * `shared_key` - (Optional) The shared key. Can be a maximum of 25 characters.
 * `peer_asn` - (Optional) The Either a 16-bit or a 32-bit ASN. Can either be public or private.
 * `microsoft_peering_config` - (Optional) A `microsoft_peering_config` block as defined below. Required when `peering_type` is set to `MicrosoftPeering`.
-* `microsoft_peering_config_ipv6` - (Optional) A `microsoft_peering_config_ipv6` block as defined below.
+* `ipv6_peering` - (Optional) A `ipv6_peering` block as defined below.
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
 
 ---
@@ -92,7 +92,7 @@ A `microsoft_peering_config` block contains:
 * `customer_asn` - (Optional) The CustomerASN of the peering
 * `routing_registry_name` - (Optional) The RoutingRegistryName of the configuration
 
-A `microsoft_peering_config_ipv6` block contains:
+A `ipv6_peering` block contains:
 
 * `microsoft_peering_config` - (Required)  A `microsoft_peering_config` block as defined above.
 * `primary_peer_address_prefix` - (Required) A subnet for the primary link.

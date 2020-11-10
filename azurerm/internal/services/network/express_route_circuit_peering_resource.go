@@ -108,7 +108,7 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 				},
 			},
 
-			"microsoft_peering_config_ipv6": {
+			"ipv6_peering": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -242,8 +242,8 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 			}
 		}
 
-		msIpv6Peering := d.Get("microsoft_peering_config_ipv6").([]interface{})
-		parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = expandExpressRouteCircuitMSIpv6PeeringConfig(msIpv6Peering)
+		ipv6Peering := d.Get("ipv6_peering").([]interface{})
+		parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = expandExpressRouteCircuitIpv6PeeringConfig(ipv6Peering)
 	} else if route_filter_id != "" {
 		return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 	}
@@ -312,8 +312,8 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 		if err := d.Set("microsoft_peering_config", config); err != nil {
 			return fmt.Errorf("setting `microsoft_peering_config`: %+v", err)
 		}
-		if err := d.Set("microsoft_peering_config_ipv6", flattenExpressRouteCircuitMSIpv6PeeringConfig(props.Ipv6PeeringConfig)); err != nil {
-			return fmt.Errorf("setting `microsoft_peering_config_ipv6`: %+v", err)
+		if err := d.Set("ipv6_peering", flattenExpressRouteCircuitIpv6PeeringConfig(props.Ipv6PeeringConfig)); err != nil {
+			return fmt.Errorf("setting `ipv6_peering`: %+v", err)
 		}
 	}
 
@@ -377,7 +377,7 @@ func expandExpressRouteCircuitPeeringMicrosoftConfig(input []interface{}) *netwo
 	}
 }
 
-func expandExpressRouteCircuitMSIpv6PeeringConfig(input []interface{}) *network.Ipv6ExpressRouteCircuitPeeringConfig {
+func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) *network.Ipv6ExpressRouteCircuitPeeringConfig {
 	if len(input) == 0 {
 		return nil
 	}
@@ -418,7 +418,7 @@ func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *network.ExpressRout
 	return []interface{}{config}
 }
 
-func flattenExpressRouteCircuitMSIpv6PeeringConfig(input *network.Ipv6ExpressRouteCircuitPeeringConfig) []interface{} {
+func flattenExpressRouteCircuitIpv6PeeringConfig(input *network.Ipv6ExpressRouteCircuitPeeringConfig) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

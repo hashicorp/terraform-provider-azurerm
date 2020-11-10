@@ -85,11 +85,6 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6(t *testing.T)
 				Config: testAccAzureRMExpressRouteCircuitPeering_msPeeringIpv6(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "MicrosoftPeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.0.microsoft_peering_config.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.0.primary_peer_address_prefix", "2002:db01::/126"),
 				),
 			},
 			data.ImportStep(),
@@ -109,11 +104,6 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6CustomerRoutin
 				Config: testAccAzureRMExpressRouteCircuitPeering_msPeeringIpv6CustomerRouting(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "MicrosoftPeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.0.microsoft_peering_config.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.0.microsoft_peering_config.0.customer_asn", "64511"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.0.microsoft_peering_config.0.routing_registry_name", "ARIN"),
 				),
 			},
 			data.ImportStep(),
@@ -133,11 +123,6 @@ func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringIpv6WithRouteFilte
 				Config: testAccAzureRMExpressRouteCircuitPeering_msPeeringIpv6WithRouteFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitPeeringExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "peering_type", "MicrosoftPeering"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.0.microsoft_peering_config.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.0.microsoft_peering_config.0.customer_asn", "64511"),
-					resource.TestCheckResourceAttr(data.ResourceName, "microsoft_peering_config_ipv6.0.microsoft_peering_config.0.routing_registry_name", "ARIN"),
 				),
 			},
 			data.ImportStep(),
@@ -408,8 +393,8 @@ resource "azurerm_express_route_circuit" "test" {
   }
 
   tags = {
-    Env = "Test"
-    Purpose     = "AcceptanceTests"
+    Env     = "Test"
+    Purpose = "AcceptanceTests"
   }
 }
 
@@ -426,7 +411,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
     advertised_public_prefixes = ["123.2.0.0/24"]
   }
 
-  microsoft_peering_config_ipv6 {
+  ipv6_peering {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
 
@@ -463,8 +448,8 @@ resource "azurerm_express_route_circuit" "test" {
   }
 
   tags = {
-    Env = "Test"
-    Purpose     = "AcceptanceTests"
+    Env     = "Test"
+    Purpose = "AcceptanceTests"
   }
 }
 
@@ -480,7 +465,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
   microsoft_peering_config {
     advertised_public_prefixes = ["123.2.0.0/24"]
   }
-  microsoft_peering_config_ipv6 {
+  ipv6_peering {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
 
@@ -532,8 +517,8 @@ resource "azurerm_express_route_circuit" "test" {
   }
 
   tags = {
-    Env = "Test"
-    Purpose     = "AcceptanceTests"
+    Env     = "Test"
+    Purpose = "AcceptanceTests"
   }
 }
 
@@ -551,7 +536,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
     advertised_public_prefixes = ["123.2.0.0/24"]
   }
 
-  microsoft_peering_config_ipv6 {
+  ipv6_peering {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
 
