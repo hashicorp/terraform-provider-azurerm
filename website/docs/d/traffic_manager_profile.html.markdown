@@ -15,7 +15,7 @@ Use this data source to access information about an existing Traffic Manager Pro
 
 ```hcl
 data "azurerm_traffic_manager_profile" "example" {
-  name = "test"
+  name                = "test"
   resource_group_name = "test"
 }
 
