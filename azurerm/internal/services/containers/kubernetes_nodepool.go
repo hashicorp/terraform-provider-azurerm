@@ -244,6 +244,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		profile.OsDiskSizeGB = utils.Int32(osDiskSizeGB)
 	}
 
+	profile.OsDiskType = containerservice.Managed
 	if osDiskType := raw["os_disk_type"].(string); osDiskType != "" {
 		profile.OsDiskType = containerservice.OSDiskType(raw["os_disk_type"].(string))
 	}
@@ -373,6 +374,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	osDiskSizeGB := 0
 	if agentPool.OsDiskSizeGB != nil {
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
+	}
+
+	osDiskType := containerservice.Managed
+	if agentPool.OsDiskType != "" {
+		osDiskType = agentPool.OsDiskType
 	}
 
 	vnetSubnetId := ""

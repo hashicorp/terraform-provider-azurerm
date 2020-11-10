@@ -249,7 +249,12 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 			osDiskSizeGB = int(*props.OsDiskSizeGB)
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
-		d.Set("os_disk_type", string(props.OsDiskType))
+
+		osDiskType := containerservice.Managed
+		if props.OsDiskType != "" {
+			osDiskType = props.OsDiskType
+		}
+		d.Set("os_disk_type", string(osDiskType))
 		d.Set("os_type", string(props.OsType))
 
 		// not returned from the API if not Spot
