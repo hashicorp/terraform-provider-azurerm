@@ -47,26 +47,12 @@ resource "azurerm_storage_share" "example" {
     }
   }
 }
-data "azurerm_subscription" "primary" {
-}
-
-data "azuread_service_principal" "example" {
-  display_name = "Microsoft.StorageSync"
-}
-
-resource "azurerm_role_assignment" "example" {
-  scope                = data.azurerm_subscription.primary.id
-  role_definition_name = "Reader and Data Access"
-  principal_id         = data.azuread_service_principal.example.object_id
-}
-
 
 resource "azurerm_storage_sync_cloud_endpoint" "example" {
   name                  = "example-ss-ce"
   storage_sync_group_id = azurerm_storage_sync_group.example.id
   file_share_name       = azurerm_storage_share.example.name
   storage_account_id    = azurerm_storage_account.example.id
-  depends_on            = [azurerm_role_assignment.example]
 
 }
 ```

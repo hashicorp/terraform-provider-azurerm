@@ -140,27 +140,12 @@ resource "azurerm_storage_share" "test" {
   }
 }
 
-data "azurerm_subscription" "primary" {
-}
-
-data "azuread_service_principal" "test" {
-  display_name = "Microsoft.StorageSync"
-}
-
-resource "azurerm_role_assignment" "test" {
-  scope                = data.azurerm_subscription.primary.id
-  role_definition_name = "Reader and Data Access"
-  principal_id         = data.azuread_service_principal.test.object_id
-}
-
 resource "azurerm_storage_sync_cloud_endpoint" "test" {
   name                      = "acctest-CEP-%[1]d"
   storage_sync_group_id     = azurerm_storage_sync_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
   storage_account_tenant_id = "%[4]s"
   file_share_name           = azurerm_storage_share.test.name
-
-  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, os.Getenv("ARM_TENANT_ID"))
 }
