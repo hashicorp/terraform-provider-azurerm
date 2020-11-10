@@ -394,6 +394,7 @@ func SchemaAzureConsumptionBudgetCommonResource() map[string]*schema.Schema {
 
 		"category": {
 			Type:     schema.TypeString,
+			Optional: true,
 			Default:  string(consumption.Cost),
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
@@ -453,6 +454,7 @@ func SchemaAzureConsumptionBudgetCommonResource() map[string]*schema.Schema {
 
 		"time_grain": {
 			Type:     schema.TypeString,
+			Optional: true,
 			Default:  string(consumption.TimeGrainTypeMonthly),
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
