@@ -2,6 +2,7 @@ package azure
 
 import (
 	"fmt"
+
 	"regexp"
 	"strings"
 	"time"
@@ -99,10 +100,10 @@ func ExpandAzureConsumptionBudgetTimePeriod(i []interface{}) (*consumption.Budge
 	input := i[0].(map[string]interface{})
 	timePeriod := consumption.BudgetTimePeriod{}
 
-	if startDateRaw, ok := input["start_date"]; ok {
-		startDate, err := date.ParseTime(time.RFC3339, startDateRaw.(string))
+	if startDateInput, ok := input["start_date"].(string); ok {
+		startDate, err := date.ParseTime(time.RFC3339, startDateInput)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("start_date '%s' was not in the correct format: %+v", startDateInput, err)
 		}
 
 		timePeriod.StartDate = &date.Time{
@@ -110,11 +111,12 @@ func ExpandAzureConsumptionBudgetTimePeriod(i []interface{}) (*consumption.Budge
 		}
 	}
 
-	if endDateRaw, ok := input["end_date"]; ok {
-		if endDateRaw.(string) != "" {
-			endDate, err := date.ParseTime(time.RFC3339, endDateRaw.(string))
+	if endDateInput, ok := input["end_date"].(string); ok {
+		if endDateInput != "" {
+			endDate, err := date.ParseTime(time.RFC3339, endDateInput)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("end_date '%s' was not in the correct format: %+v", endDateInput, err)
+
 			}
 
 			timePeriod.EndDate = &date.Time{
@@ -151,30 +153,15 @@ func ExpandAzureConsumptionBudgetNotifications(input []interface{}) map[string]*
 		notificationRaw := v.(map[string]interface{})
 		notification := consumption.Notification{}
 
-		if enabled, ok := notificationRaw["enabled"].(bool); ok {
-			notification.Enabled = utils.Bool(enabled)
-		}
+		notification.Enabled = utils.Bool(notificationRaw["enabled"].(bool))
+		notification.Operator = consumption.OperatorType(notificationRaw["operator"].(string))
 
-		if operator, ok := notificationRaw["operator"].(string); ok {
-			notification.Operator = consumption.OperatorType(operator)
-		}
+		thresholdDecimal := decimal.NewFromInt(int64(notificationRaw["threshold"].(int)))
+		notification.Threshold = &thresholdDecimal
 
-		if threshold, ok := notificationRaw["threshold"].(int); ok {
-			thresholdDecimal := decimal.NewFromInt(int64(threshold))
-			notification.Threshold = &thresholdDecimal
-		}
-
-		if contactEmails, ok := notificationRaw["contact_emails"].([]interface{}); ok {
-			notification.ContactEmails = utils.ExpandStringSlice(contactEmails)
-		}
-
-		if contactRoles, ok := notificationRaw["contact_roles"].([]interface{}); ok {
-			notification.ContactRoles = utils.ExpandStringSlice(contactRoles)
-		}
-
-		if contactGroups, ok := notificationRaw["contact_groups"].([]interface{}); ok {
-			notification.ContactGroups = utils.ExpandStringSlice(contactGroups)
-		}
+		notification.ContactEmails = utils.ExpandStringSlice(notificationRaw["contact_emails"].([]interface{}))
+		notification.ContactRoles = utils.ExpandStringSlice(notificationRaw["contact_roles"].([]interface{}))
+		notification.ContactGroups = utils.ExpandStringSlice(notificationRaw["contact_groups"].([]interface{}))
 
 		notificationKey := fmt.Sprintf("actual_%s_%s_Percent", string(notification.Operator), notification.Threshold.StringFixed(0))
 		notifications[notificationKey] = &notification
@@ -193,13 +180,13 @@ func FlattenAzureConsumptionBudgetNotifications(input map[string]*consumption.No
 	for _, v := range input {
 		notificationBlock := make(map[string]interface{})
 
-		notificationBlock["enabled"] = v.Enabled
-		notificationBlock["operator"] = utils.String(string(v.Operator))
+		notificationBlock["enabled"] = *v.Enabled
+		notificationBlock["operator"] = string(v.Operator)
 		threshold, _ := v.Threshold.Float64()
-		notificationBlock["threshold"] = utils.Float(threshold)
-		notificationBlock["contact_emails"] = v.ContactEmails
-		notificationBlock["contact_roles"] = v.ContactRoles
-		notificationBlock["contact_groups"] = v.ContactGroups
+		notificationBlock["threshold"] = int(threshold)
+		notificationBlock["contact_emails"] = utils.FlattenStringSlice(v.ContactEmails)
+		notificationBlock["contact_roles"] = utils.FlattenStringSlice(v.ContactRoles)
+		notificationBlock["contact_groups"] = utils.FlattenStringSlice(v.ContactGroups)
 
 		notifications = append(notifications, notificationBlock)
 	}
@@ -207,26 +194,33 @@ func FlattenAzureConsumptionBudgetNotifications(input map[string]*consumption.No
 	return notifications
 }
 
-func ExpandAzureConsumptionBudgetFilterTags(input map[string]interface{}) map[string][]string {
+func ExpandAzureConsumptionBudgetFilterTags(input []interface{}) map[string][]string {
 	output := make(map[string][]string, len(input))
 
-	for i, v := range input {
-		value := utils.ExpandStringSlice(v.([]interface{}))
-		output[i] = *value
+	for _, v := range input {
+		tagInput := v.(map[string]interface{})
+
+		values := utils.ExpandStringSlice(tagInput["values"].([]interface{}))
+		output[tagInput["name"].(string)] = *values
 	}
 
 	return output
 }
 
-func FlattenAzureConsumptionBudgetFilterTags(input map[string][]string) map[string]interface{} {
-	output := make(map[string]interface{}, len(input))
+func FlattenAzureConsumptionBudgetFilterTags(input map[string][]string) []interface{} {
+	output := make([]interface{}, 0)
 
 	for i, v := range input {
 		if v == nil {
 			continue
 		}
 		value := utils.FlattenStringSlice(&v)
-		output[i] = value
+
+		tagBlock := make(map[string]interface{})
+		tagBlock["name"] = i
+		tagBlock["values"] = value
+
+		output = append(output, tagBlock)
 	}
 
 	return output
@@ -241,21 +235,10 @@ func ExpandAzureConsumptionBudgetFilter(i []interface{}) *consumption.Filters {
 
 	input := i[0].(map[string]interface{})
 
-	if resourceGroups, ok := input["resource_groups"].([]interface{}); ok {
-		filters.ResourceGroups = utils.ExpandStringSlice(resourceGroups)
-	}
-
-	if resources, ok := input["resources"].([]interface{}); ok {
-		filters.Resources = utils.ExpandStringSlice(resources)
-	}
-
-	if tags, ok := input["tags"].(map[string]interface{}); ok {
-		filters.Tags = ExpandAzureConsumptionBudgetFilterTags(tags)
-	}
-
-	if meters, ok := input["meters"].([]interface{}); ok {
-		filters.Meters = utils.ExpandUUIDSlice(meters)
-	}
+	filters.ResourceGroups = utils.ExpandStringSlice(input["resource_groups"].([]interface{}))
+	filters.Resources = utils.ExpandStringSlice(input["resources"].([]interface{}))
+	filters.Tags = ExpandAzureConsumptionBudgetFilterTags(input["tag"].(*schema.Set).List())
+	filters.Meters = utils.ExpandUUIDSlice(input["meters"].([]interface{}))
 
 	return &filters
 }
@@ -282,7 +265,7 @@ func FlattenAzureConsumptionBudgetFilter(input *consumption.Filters) []interface
 	}
 
 	if input.Tags != nil && len(input.Tags) != 0 {
-		filterBlock["tags"] = FlattenAzureConsumptionBudgetFilterTags(input.Tags)
+		filterBlock["tag"] = schema.NewSet(schema.HashResource(SchemaAzureConsumptionBudgetFilterTagElement()), FlattenAzureConsumptionBudgetFilterTags(input.Tags))
 	}
 
 	if len(filterBlock) != 0 {
@@ -298,4 +281,211 @@ func DiffSuppressFuncAzureConsumptionBudgetTimePeriodEndDate(k, old, new string,
 	// from the start date. Therefore, the diff is suppressed if the user didn't
 	// set the value previously or in the current config
 	return new == ""
+}
+
+// schema
+func SchemaAzureConsumptionBudgetResourceGroupResource() map[string]*schema.Schema {
+	resourceGroupNameSchema := map[string]*schema.Schema{
+		"resource_group_name": SchemaResourceGroupName(),
+	}
+
+	return MergeSchema(SchemaAzureConsumptionBudgetSubscriptionResource(), resourceGroupNameSchema)
+}
+
+func SchemaAzureConsumptionBudgetSubscriptionResource() map[string]*schema.Schema {
+	subscriptionIDSchema := map[string]*schema.Schema{
+		"subscription_id": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsUUID,
+		},
+	}
+
+	return MergeSchema(SchemaAzureConsumptionBudgetCommonResource(), subscriptionIDSchema)
+}
+
+func SchemaAzureConsumptionBudgetFilterTagElement() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"values": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaAzureConsumptionBudgetNotificationElement() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+			"threshold": {
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(0, 1000),
+			},
+			"operator": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(consumption.EqualTo),
+					string(consumption.GreaterThan),
+					string(consumption.GreaterThanOrEqualTo),
+				}, false),
+			},
+
+			"contact_emails": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"contact_groups": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
+			"contact_roles": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+func SchemaAzureConsumptionBudgetCommonResource() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: ValidateAzureConsumptionBudgetName(),
+		},
+
+		"amount": {
+			Type:         schema.TypeFloat,
+			Required:     true,
+			ValidateFunc: validation.FloatAtLeast(1.0),
+		},
+
+		"category": {
+			Type:     schema.TypeString,
+			Default:  string(consumption.Cost),
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(consumption.Cost),
+				string(consumption.Usage),
+			}, false),
+		},
+
+		"filter": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"resource_groups": {
+						Type:     schema.TypeList,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type:         schema.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+					"resources": {
+						Type:     schema.TypeList,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type:         schema.TypeString,
+							ValidateFunc: ValidateResourceID,
+						},
+					},
+					"meters": {
+						Type:     schema.TypeList,
+						Optional: true,
+						Elem: &schema.Schema{
+							Type:         schema.TypeString,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+					"tag": {
+						Type:     schema.TypeSet,
+						Optional: true,
+						Set:      schema.HashResource(SchemaAzureConsumptionBudgetFilterTagElement()),
+						Elem:     SchemaAzureConsumptionBudgetFilterTagElement(),
+					},
+				},
+			},
+		},
+
+		"notification": {
+			Type:     schema.TypeSet,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 5,
+			Set:      schema.HashResource(SchemaAzureConsumptionBudgetNotificationElement()),
+			Elem:     SchemaAzureConsumptionBudgetNotificationElement(),
+		},
+
+		"time_grain": {
+			Type:     schema.TypeString,
+			Default:  string(consumption.TimeGrainTypeMonthly),
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(consumption.TimeGrainTypeBillingAnnual),
+				string(consumption.TimeGrainTypeBillingMonth),
+				string(consumption.TimeGrainTypeBillingQuarter),
+				string(consumption.TimeGrainTypeAnnually),
+				string(consumption.TimeGrainTypeMonthly),
+				string(consumption.TimeGrainTypeQuarterly),
+			}, false),
+		},
+
+		"time_period": {
+			Type:     schema.TypeList,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"start_date": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: ValidateAzureConsumptionBudgetTimePeriodStartDate,
+						ForceNew:     true,
+					},
+					"end_date": {
+						Type:             schema.TypeString,
+						Optional:         true,
+						ValidateFunc:     validation.IsRFC3339Time,
+						DiffSuppressFunc: DiffSuppressFuncAzureConsumptionBudgetTimePeriodEndDate,
+					},
+				},
+			},
+		},
+	}
 }
