@@ -191,7 +191,7 @@ A `endpoint` block supports the following:
 
 A `filter` block supports the following:
 
-* `type` - (Optional) The behavior type of this endpoint filter. Currently the only allowed value is `Include`. Defaults to `Include`.
+* `type` - (Optional) The behaviour type of this endpoint filter. Currently the only allowed value is `Include`. Defaults to `Include`.
 
 * `item` - (Optional) A `item` block as defined below.
 

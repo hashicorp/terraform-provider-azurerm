@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the policy set definition.
 
-* `policy_definitions` - (Optional / **Deprecated in favor of `policy_definition_reference`**) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
+* `policy_definitions` - (Optional / **Deprecated in favour of `policy_definition_reference`**) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
 
 * `policy_definition_reference` - (Optional) One or more `policy_definition_reference` blocks as defined below.
 
