@@ -485,10 +485,6 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		props.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
 
-	if d.HasChange("proximity_placement_group_id") {
-		props.ProximityPlacementGroupID = utils.String(d.Get("proximity_placement_group_id").(string))
-	}
-
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
 		props.Tags = tags.Expand(t)
