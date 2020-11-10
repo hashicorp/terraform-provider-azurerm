@@ -8,7 +8,7 @@ description: |-
 
 # Azure Provider: Migrating to a renamed resource
 
-This guide shows how to migrate from a resource which have been deprecated to its replacement. The complete list of resources which have been deprecated in favour of others can be found below.
+This guide shows how to migrate from a resource which has been deprecated to its replacement. The complete list of resources that have been deprecated in favor of others can be found below.
 
 ~> **Note:** The following resources have been Deprecated and will be removed in version 2.0 of the Azure Provider
 
@@ -35,9 +35,9 @@ This guide shows how to migrate from a resource which have been deprecated to it
 
 ## Migrating to a renamed resource
 
-As the Schema's for each resource are the same at this time - it's possible to migrate between the resources by updating your Terraform Configuration and updating the Statefile.
+As the Schema's for each resource are the same at this time - it's possible to migrate between the resources by updating your Terraform Configuration and updating the statefile.
 
-In this guide we'll assume we're migrating from the `azurerm_autoscale_setting` resource to the new `azurerm_monitor_autoscale_setting` resource, but this should be applicable for any of the resources listed below.
+In this guide, we'll assume we're migrating from the `azurerm_autoscale_setting` resource to the new `azurerm_monitor_autoscale_setting` resource, but this should be applicable for any of the resources listed below.
 
 Assuming we have the following Terraform Configuration:
 
@@ -144,4 +144,4 @@ configuration and real physical resources that exist. As a result, no
 actions need to be performed.
 ```
 
-At this point you've switched over to using the newly renamed resource and should be able to continue using Terraform as normal.
+At this point, you've switched over to using the newly renamed resource and should be able to continue using Terraform as normal.
