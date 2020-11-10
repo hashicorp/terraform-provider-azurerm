@@ -229,6 +229,14 @@ resource "azurerm_api_management" "test" {
   sku_name            = "Developer_1"
 }
 
+resource "azurerm_api_management_named_value" "test" {
+  name                = "acctestnamedvalue-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "Test"
+  value               = "test"
+}
+
 resource "azurerm_api_management_policy" "test" {
   api_management_id = azurerm_api_management.test.id
 
@@ -236,11 +244,11 @@ resource "azurerm_api_management_policy" "test" {
 <policies>
   <inbound>
     <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
-    <find-and-replace from="xyz" to="abc" />
+    <find-and-replace from="xyz" to="{{${azurerm_api_management_named_value.test.name}}}" />
   </inbound>
 </policies>
 XML
 
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
