@@ -225,11 +225,11 @@ resource "azurerm_vpn_gateway" "test" {
     asn         = 65515
     peer_weight = 0
 
-    instance_bgp_peering_address {
+    instance_0_bgp_peering_address {
       custom_ips = ["169.254.21.5"]
     }
 
-    instance_bgp_peering_address {
+    instance_1_bgp_peering_address {
       custom_ips = ["169.254.21.10"]
     }
   }

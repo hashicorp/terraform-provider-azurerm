@@ -81,12 +81,51 @@ func resourceArmVPNGateway() *schema.Resource {
 							Computed: true,
 						},
 
-						"instance_bgp_peering_address": {
+						"instance_0_bgp_peering_address": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
-							MinItems: 2,
-							MaxItems: 2,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"custom_ips": {
+										Type:     schema.TypeSet,
+										Required: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: commonValidate.IPv4Address,
+										},
+									},
+
+									"ip_configuration_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"default_ips": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"tunnel_ips": {
+										Type:     schema.TypeSet,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
+
+						"instance_1_bgp_peering_address": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"custom_ips": {
@@ -190,12 +229,19 @@ func resourceArmVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error
 
 	// `vpnGatewayParameters.Properties.bgpSettings.bgpPeeringAddress` customer cannot provide this field during create. This will be set with default value once gateway is created.
 	// it could only be updated
-	if len(bgpSettingsRaw) > 0 {
+	if len(bgpSettingsRaw) > 0 && resp.VpnGatewayProperties != nil && resp.VpnGatewayProperties.BgpSettings != nil && resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses != nil {
 		val := bgpSettingsRaw[0].(map[string]interface{})
-		input := val["instance_bgp_peering_address"].([]interface{})
-		if len(input) > 0 {
-			if err := expandVPNGatewayIPConfigurationBgpPeeringAddress(resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses, input); err != nil {
-				return err
+		input0 := val["instance_0_bgp_peering_address"].([]interface{})
+		input1 := val["instance_1_bgp_peering_address"].([]interface{})
+
+		if len(input0) > 0 || len(input1) > 0 {
+			if len(input0) > 0 {
+				val := input0[0].(map[string]interface{})
+				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
+			}
+			if len(input1) > 0 {
+				val := input1[0].(map[string]interface{})
+				(*resp.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
 			}
 			if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, resp); err != nil {
 				return fmt.Errorf("creating VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -224,15 +270,27 @@ func resourceArmVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("retrieving for presence of existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if d.HasChange("scale_unit") {
+		existing.VpnGatewayScaleUnit = utils.Int32(int32(d.Get("scale_unit").(int)))
+	}
 	if d.HasChange("tags") {
 		existing.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
-	if d.HasChange("bgp_settings.0.instance_bgp_peering_address") {
-		bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
-		if len(bgpSettingsRaw) > 0 {
-			val := bgpSettingsRaw[0].(map[string]interface{})
-			if err := expandVPNGatewayIPConfigurationBgpPeeringAddress(existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses, val["instance_bgp_peering_address"].([]interface{})); err != nil {
-				return err
+
+	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
+	if len(bgpSettingsRaw) > 0 {
+		val := bgpSettingsRaw[0].(map[string]interface{})
+
+		if d.HasChange("bgp_settings.0.instance_0_bgp_peering_address") {
+			if input := val["instance_0_bgp_peering_address"].([]interface{}); len(input) > 0 {
+				val := input[0].(map[string]interface{})
+				(*existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[0].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
+			}
+		}
+		if d.HasChange("bgp_settings.0.instance_1_bgp_peering_address") {
+			if input := val["instance_1_bgp_peering_address"].([]interface{}); len(input) > 0 {
+				val := input[0].(map[string]interface{})
+				(*existing.VpnGatewayProperties.BgpSettings.BgpPeeringAddresses)[1].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
 			}
 		}
 	}
@@ -362,21 +420,6 @@ func expandVPNGatewayBGPSettings(input []interface{}) *network.BgpSettings {
 	}
 }
 
-func expandVPNGatewayIPConfigurationBgpPeeringAddress(ipConfigurationBgpPeeringAddress *[]network.IPConfigurationBgpPeeringAddress, input []interface{}) error {
-	if len(input) == 0 || ipConfigurationBgpPeeringAddress == nil {
-		return nil
-	}
-	if len(input) != 2 || len(*ipConfigurationBgpPeeringAddress) != 2 {
-		return fmt.Errorf("the size of block `instance_bgp_peering_address` must be 2")
-	}
-
-	for i, v := range input {
-		val := v.(map[string]interface{})
-		(*ipConfigurationBgpPeeringAddress)[i].CustomBgpIPAddresses = utils.ExpandStringSlice(val["custom_ips"].(*schema.Set).List())
-	}
-	return nil
-}
-
 func flattenVPNGatewayBGPSettings(input *network.BgpSettings) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -397,35 +440,39 @@ func flattenVPNGatewayBGPSettings(input *network.BgpSettings) []interface{} {
 		peerWeight = int(*input.PeerWeight)
 	}
 
+	var instance0BgpPeeringAddress, instance1BgpPeeringAddress []interface{}
+	if input.BgpPeeringAddresses != nil && len(*input.BgpPeeringAddresses) > 0 {
+		instance0BgpPeeringAddress = flattenVPNGatewayIPConfigurationBgpPeeringAddress((*input.BgpPeeringAddresses)[0])
+	}
+	if input.BgpPeeringAddresses != nil && len(*input.BgpPeeringAddresses) > 1 {
+		instance1BgpPeeringAddress = flattenVPNGatewayIPConfigurationBgpPeeringAddress((*input.BgpPeeringAddresses)[1])
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"asn":                          asn,
-			"bgp_peering_address":          bgpPeeringAddress,
-			"instance_bgp_peering_address": flattenVPNGatewayIPConfigurationBgpPeeringAddress(input.BgpPeeringAddresses),
-			"peer_weight":                  peerWeight,
+			"asn":                            asn,
+			"bgp_peering_address":            bgpPeeringAddress,
+			"instance_0_bgp_peering_address": instance0BgpPeeringAddress,
+			"instance_1_bgp_peering_address": instance1BgpPeeringAddress,
+			"peer_weight":                    peerWeight,
 		},
 	}
 }
 
-func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input *[]network.IPConfigurationBgpPeeringAddress) []interface{} {
-	if input == nil {
-		return []interface{}{}
+func flattenVPNGatewayIPConfigurationBgpPeeringAddress(input network.IPConfigurationBgpPeeringAddress) []interface{} {
+	ipConfigurationID := ""
+	if input.IpconfigurationID != nil {
+		ipConfigurationID = *input.IpconfigurationID
 	}
-	result := make([]interface{}, 0)
-	for _, v := range *input {
-		ipConfigurationID := ""
-		if v.IpconfigurationID != nil {
-			ipConfigurationID = *v.IpconfigurationID
-		}
 
-		result = append(result, map[string]interface{}{
+	return []interface{}{
+		map[string]interface{}{
 			"ip_configuration_id": ipConfigurationID,
-			"custom_ips":          utils.FlattenStringSlice(v.CustomBgpIPAddresses),
-			"default_ips":         utils.FlattenStringSlice(v.DefaultBgpIPAddresses),
-			"tunnel_ips":          utils.FlattenStringSlice(v.TunnelIPAddresses),
-		})
+			"custom_ips":          utils.FlattenStringSlice(input.CustomBgpIPAddresses),
+			"default_ips":         utils.FlattenStringSlice(input.DefaultBgpIPAddresses),
+			"tunnel_ips":          utils.FlattenStringSlice(input.TunnelIPAddresses),
+		},
 	}
-	return result
 }
 
 func vpnGatewayWaitForCreatedRefreshFunc(ctx context.Context, client *network.VpnGatewaysClient, resourceGroup, name string) resource.StateRefreshFunc {

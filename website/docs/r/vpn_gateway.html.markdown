@@ -75,13 +75,15 @@ A `bgp_settings` block supports the following:
 
 * `peer_weight` - (Required) The weight added to Routes learned from this BGP Speaker. Changing this forces a new resource to be created.
 
-* `instance_bgp_peering_address` - (Optional) One or more `instance_bgp_peering_address` block as defined below.
+* `instance_0_bgp_peering_address` - (Optional) An `instance_bgp_peering_address` block as defined below.
+
+* `instance_1_bgp_peering_address` - (Optional) An `instance_bgp_peering_address` block as defined below.
 
 ---
 
 A `instance_bgp_peering_address` block supports the following:
 
-* `custom_ips` - (Required) The list of custom BGP peering addresses which belong to pre-defined IP configuration.
+* `custom_ips` - (Required) A list of custom BGP peering addresses to assign to this instance.
 
 ## Attributes Reference
 
@@ -97,7 +99,9 @@ A `bgp_settings` block exports the following:
 
 * `bgp_peering_address` - The Address which should be used for the BGP Peering.
 
-* `instance_bgp_peering_address` - One or more `instance_bgp_peering_address` block as defined below.
+* `instance_0_bgp_peering_address` - an `instance_bgp_peering_address` block as defined below.
+
+* `instance_1_bgp_peering_address` - an `instance_bgp_peering_address` block as defined below.
 
 ---
 
