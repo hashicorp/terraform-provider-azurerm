@@ -165,6 +165,16 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"os_disk_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.Ephemeral),
+					string(containerservice.Managed),
+				}, false),
+			},
+
 			"os_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -337,6 +347,10 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	proximityPlacementGroupId := d.Get("proximity_placement_group_id").(string)
 	if proximityPlacementGroupId != "" {
 		profile.ProximityPlacementGroupID = &proximityPlacementGroupId
+	}
+
+	if osDiskType := d.Get("os_disk_type").(string); osDiskType != "" {
+		profile.OsDiskType = containerservice.OSDiskType(osDiskType)
 	}
 
 	if vnetSubnetID := d.Get("vnet_subnet_id").(string); vnetSubnetID != "" {
@@ -629,6 +643,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			osDiskSizeGB = int(*props.OsDiskSizeGB)
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
+		d.Set("os_disk_type", props.OsDiskType)
 		d.Set("os_type", string(props.OsType))
 
 		// not returned from the API if not Spot

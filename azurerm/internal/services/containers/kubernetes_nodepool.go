@@ -129,7 +129,6 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Optional: true,
 					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"Ephemeral",
 						string(containerservice.Ephemeral),
 						string(containerservice.Managed),
 					}, false),
