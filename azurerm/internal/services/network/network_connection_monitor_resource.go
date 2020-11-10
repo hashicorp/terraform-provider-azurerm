@@ -60,7 +60,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Type:       schema.TypeBool,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 			},
 
 			"interval_in_seconds": {
@@ -68,7 +68,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(30),
-				Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+				Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 			},
 
 			"source": {
@@ -76,7 +76,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"virtual_machine_id": {
@@ -84,7 +84,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: azure.ValidateResourceID,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 						},
 
 						"port": {
@@ -92,7 +92,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate.PortNumberOrZero,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 						},
 					},
 				},
@@ -103,7 +103,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Optional:   true,
 				Computed:   true,
 				MaxItems:   1,
-				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+				Deprecated: "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"virtual_machine_id": {
@@ -112,7 +112,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							Computed:      true,
 							ValidateFunc:  azure.ValidateResourceID,
 							ConflictsWith: []string{"destination.0.address"},
-							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 						},
 
 						"address": {
@@ -120,7 +120,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							Optional:      true,
 							Computed:      true,
 							ConflictsWith: []string{"destination.0.virtual_machine_id"},
-							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							Deprecated:    "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 						},
 
 						"port": {
@@ -128,7 +128,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validate.PortNumber,
-							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favor of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
+							Deprecated:   "The field belongs to the v1 network connection monitor, which is now deprecated in favour of v2 by Azure. Please check the document (https://www.terraform.io/docs/providers/azurerm/r/network_connection_monitor.html) for the v2 properties.",
 						},
 					},
 				},

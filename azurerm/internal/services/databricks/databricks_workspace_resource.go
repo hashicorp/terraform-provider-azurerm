@@ -360,7 +360,7 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 	// 1) Cannot be empty
 	if len(v) == 0 {
 		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
-		// Treating this as a special case and returning early to match Azure Portal behavior.
+		// Treating this as a special case and returning early to match Azure Portal behaviour.
 		return warnings, errors
 	}
 
