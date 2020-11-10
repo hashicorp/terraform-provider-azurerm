@@ -164,7 +164,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	dailyQuotaGb, ok := d.GetOk("daily_quota_gb")
 	if ok && skuName == "Free" {
 		return fmt.Errorf("`Free` tier SKU quota is not configurable and is hard set to 0.5GB")
-	} else {
+	} else if skuName != "Free" {
 		parameters.WorkspaceProperties.WorkspaceCapping = &operationalinsights.WorkspaceCapping{
 			DailyQuotaGb: utils.Float(dailyQuotaGb.(float64)),
 		}
