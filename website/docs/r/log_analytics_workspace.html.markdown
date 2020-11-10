@@ -43,7 +43,9 @@ The following arguments are supported:
 
 * `retention_in_days` - (Optional) The workspace data retention in days. Possible values are either 7 (Free Tier only) or range between 30 and 730.
 
-* `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited).
+* `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited) if omitted.
+
+~> **NOTE:** The `Free` tier SKU does not accept any value for this argument, and is always configured as `0.5` GB. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
