@@ -154,9 +154,9 @@ resource "azurerm_monitor_smart_detector_alert_rule" "test" {
   name                = "acctestSDAR-%d"
   resource_group_name = azurerm_resource_group.test.name
   severity            = "Sev0"
-  scope               = [azurerm_application_insights.test.id]
+  scope_resource_ids  = [azurerm_application_insights.test.id]
   frequency           = "PT1M"
-  detector_id         = "FailureAnomaliesDetector"
+  detector_type       = "FailureAnomaliesDetector"
 
   action_group {
     ids = [azurerm_monitor_action_group.test.id]
@@ -174,9 +174,9 @@ resource "azurerm_monitor_smart_detector_alert_rule" "import" {
   name                = azurerm_monitor_smart_detector_alert_rule.test.name
   resource_group_name = azurerm_monitor_smart_detector_alert_rule.test.resource_group_name
   severity            = azurerm_monitor_smart_detector_alert_rule.test.severity
-  scope               = azurerm_monitor_smart_detector_alert_rule.test.scope
+  scope_resource_ids  = azurerm_monitor_smart_detector_alert_rule.test.scope_resource_ids
   frequency           = azurerm_monitor_smart_detector_alert_rule.test.frequency
-  detector_id         = azurerm_monitor_smart_detector_alert_rule.test.detector_id
+  detector_type       = azurerm_monitor_smart_detector_alert_rule.test.detector_type
 
   action_group {
     ids = [azurerm_monitor_action_group.test.id]
@@ -194,26 +194,24 @@ resource "azurerm_monitor_smart_detector_alert_rule" "test" {
   name                = "acctestSDAR-%d"
   resource_group_name = azurerm_resource_group.test.name
   severity            = "Sev0"
-  scope               = [azurerm_application_insights.test.id]
+  scope_resource_ids  = [azurerm_application_insights.test.id]
   frequency           = "PT1M"
-  detector_id         = "FailureAnomaliesDetector"
+  detector_type       = "FailureAnomaliesDetector"
 
   description = "acctest"
   enabled     = false
 
   action_group {
-    ids                    = [azurerm_monitor_action_group.test.id]
-    custom_email_subject   = "acctest email subject"
-    custom_webhook_payload = <<BODY
+    ids             = [azurerm_monitor_action_group.test.id]
+    email_subject   = "acctest email subject"
+    webhook_payload = <<BODY
 {
     "msg": "Acctest payload body"
 }
 BODY
   }
 
-  throttling {
-    duration = "PT20M"
-  }
+  throttling_duration = "PT20M"
 }
 `, template, data.RandomInteger)
 }

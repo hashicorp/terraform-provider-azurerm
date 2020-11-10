@@ -35,9 +35,9 @@ resource "azurerm_monitor_smart_detector_alert_rule" "example" {
   name                = "example-smart-detector-alert-rule"
   resource_group_name = azurerm_resource_group.example.name
   severity            = "Sev0"
-  scope               = [azurerm_application_insights.example.id]
+  scope_resource_ids  = [azurerm_application_insights.example.id]
   frequency           = "PT1M"
-  detector_id         = "FailureAnomaliesDetector"
+  detector_type       = "FailureAnomaliesDetector"
 
   action_group {
     ids = [azurerm_monitor_action_group.test.id]
@@ -53,9 +53,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the resource group in which the Monitor Smart Detector Alert Rule should exist. Changing this forces a new resource to be created.
 
-* `detector_id` - (Required) Specifies the Built-In Smart Detector id that this alert rule will use. Currently possible values are `FailureAnomaliesDetector`.
+* `detector_type` - (Required) Specifies the Built-In Smart Detector type that this alert rule will use. Currently the only possible value is `FailureAnomaliesDetector`.
 
-* `scope` - (Required) Specifies the scopes of this Smart Detector Alert Rule.
+* `scope_resource_ids` - (Required) Specifies the scopes of this Smart Detector Alert Rule.
 
 * `action_group` - (Required) An `action_group` block as defined below.
 
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Smart Detector Alert Rule enabled? Defaults to `true`.
 
-* `throttling` - (Optional) A `throttling` block as defined below.
+* `throttling_duration` - (Optional) Specifies the duration (in ISO8601 format) to wait before notifying on the alert rule again.
 
 ---
 
@@ -75,15 +75,9 @@ The `action_group` block supports the following:
 
 * `ids` - (Required) Specifies the action group ids.
 
-* `custom_email_subject` - (Optional) Specifies the custom email subject.
+* `email_subject` - (Optional) Specifies a custom email subject if Email Receiver is specified in Monitor Action Group resource.
 
-* `custom_webhook_payload` - (Optional) A JSON String which Specifies the custom webhook payload.
-
----
-
-The `throttling` block supports the following:
-
-* `duration` - (Required) Specifies the duration (in ISO8601 format) to wait before notifying on the alert rule again.
+* `webhook_payload` - (Optional) A JSON String which Specifies the custom webhook payload if Webhook Receiver is specified in Monitor Action Group resource.
 
 ## Attributes Reference
 
@@ -102,7 +96,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Monitor Action Rule can be imported using the `resource id`, e.g.
+Monitor Smart Detector Alert Rule can be imported using the `resource id`, e.g.
 
 ```shell
 $ terraform import azurerm_monitor_smart_detector_alert_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AlertsManagement/smartdetectoralertrules/rule1

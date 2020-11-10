@@ -52,7 +52,7 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"detector_id": {
+			"detector_type": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -60,7 +60,7 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 				}, false),
 			},
 
-			"scope": {
+			"scope_resource_ids": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Schema{
@@ -105,12 +105,12 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 							Set: set.HashStringIgnoreCase,
 						},
 
-						"custom_email_subject": {
+						"email_subject": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
 
-						"custom_webhook_payload": {
+						"webhook_payload": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ValidateFunc:     validation.StringIsJSON,
@@ -121,8 +121,9 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"enabled": {
@@ -131,19 +132,10 @@ func resourceArmMonitorSmartDetectorAlertRule() *schema.Resource {
 				Default:  true,
 			},
 
-			"throttling": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"duration": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: commonValidate.ISO8601Duration,
-						},
-					},
-				},
+			"throttling_duration": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: commonValidate.ISO8601Duration,
 			},
 		},
 	}
@@ -183,12 +175,17 @@ func resourceArmMonitorSmartDetectorAlertRuleCreateUpdate(d *schema.ResourceData
 			Severity:    alertsmanagement.Severity(d.Get("severity").(string)),
 			Frequency:   utils.String(d.Get("frequency").(string)),
 			Detector: &alertsmanagement.Detector{
-				ID: utils.String(d.Get("detector_id").(string)),
+				ID: utils.String(d.Get("detector_type").(string)),
 			},
-			Scope:        utils.ExpandStringSlice(d.Get("scope").(*schema.Set).List()),
+			Scope:        utils.ExpandStringSlice(d.Get("scope_resource_ids").(*schema.Set).List()),
 			ActionGroups: expandArmMonitorSmartDetectorAlertRuleActionGroup(d.Get("action_group").([]interface{})),
-			Throttling:   expandArmMonitorSmartDetectorAlertRuleThrottling(d.Get("throttling").([]interface{})),
 		},
+	}
+
+	if v, ok := d.GetOk("throttling_duration"); ok {
+		actionRule.AlertRuleProperties.Throttling = &alertsmanagement.ThrottlingInformation{
+			Duration: utils.String(v.(string)),
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, actionRule); err != nil {
@@ -235,17 +232,20 @@ func resourceArmMonitorSmartDetectorAlertRuleRead(d *schema.ResourceData, meta i
 		d.Set("enabled", props.State == alertsmanagement.AlertRuleStateEnabled)
 		d.Set("frequency", props.Frequency)
 		d.Set("severity", string(props.Severity))
-		d.Set("scope", utils.FlattenStringSlice(props.Scope))
+		d.Set("scope_resource_ids", utils.FlattenStringSlice(props.Scope))
 
 		if props.Detector != nil {
-			d.Set("detector_id", props.Detector.ID)
+			d.Set("detector_type", props.Detector.ID)
 		}
+
+		throttlingDuration := ""
+		if props.Throttling != nil && props.Throttling.Duration != nil {
+			throttlingDuration = *props.Throttling.Duration
+		}
+		d.Set("throttling_duration", throttlingDuration)
 
 		if err := d.Set("action_group", flattenArmMonitorSmartDetectorAlertRuleActionGroup(props.ActionGroups)); err != nil {
 			return fmt.Errorf("setting `action_group`: %+v", err)
-		}
-		if err := d.Set("throttling", flattenArmMonitorSmartDetectorAlertRuleThrottling(props.Throttling)); err != nil {
-			return fmt.Errorf("setting `throttling`: %+v", err)
 		}
 	}
 
@@ -274,19 +274,9 @@ func expandArmMonitorSmartDetectorAlertRuleActionGroup(input []interface{}) *ale
 	}
 	v := input[0].(map[string]interface{})
 	return &alertsmanagement.ActionGroupsInformation{
-		CustomEmailSubject:   utils.String(v["custom_email_subject"].(string)),
-		CustomWebhookPayload: utils.String(v["custom_webhook_payload"].(string)),
+		CustomEmailSubject:   utils.String(v["email_subject"].(string)),
+		CustomWebhookPayload: utils.String(v["webhook_payload"].(string)),
 		GroupIds:             utils.ExpandStringSlice(v["ids"].(*schema.Set).List()),
-	}
-}
-
-func expandArmMonitorSmartDetectorAlertRuleThrottling(input []interface{}) *alertsmanagement.ThrottlingInformation {
-	if len(input) == 0 || input[0] == nil {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &alertsmanagement.ThrottlingInformation{
-		Duration: utils.String(v["duration"].(string)),
 	}
 }
 
@@ -305,24 +295,9 @@ func flattenArmMonitorSmartDetectorAlertRuleActionGroup(input *alertsmanagement.
 
 	return []interface{}{
 		map[string]interface{}{
-			"ids":                    utils.FlattenStringSlice(input.GroupIds),
-			"custom_email_subject":   customEmailSubject,
-			"custom_webhook_payload": CustomWebhookPayload,
-		},
-	}
-}
-
-func flattenArmMonitorSmartDetectorAlertRuleThrottling(input *alertsmanagement.ThrottlingInformation) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-	var duration string
-	if input.Duration != nil {
-		duration = *input.Duration
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"duration": duration,
+			"ids":             utils.FlattenStringSlice(input.GroupIds),
+			"email_subject":   customEmailSubject,
+			"webhook_payload": CustomWebhookPayload,
 		},
 	}
 }
