@@ -195,6 +195,8 @@ func testAccAzureRMavsPrivateCloud_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+  # In Avs, we can't use client with the same x-ms-correlation-request-id for delete, else the delete will not be triggered
+  disable_correlation_request_id = true
 }
 
 resource "azurerm_resource_group" "test" {
@@ -256,7 +258,7 @@ resource "azurerm_avs_private_cloud" "test" {
   management_cluster {
     cluster_size = 3
   }
-  network_block = "192.168.48.0/22"
+  network_block      = "192.168.48.0/22"
   internet_connected = false
   nsxt_password      = "QazWsx13$Edc"
   vcenter_password   = "QazWsx13$Edc"
@@ -281,7 +283,7 @@ resource "azurerm_avs_private_cloud" "test" {
   management_cluster {
     cluster_size = 4
   }
-  network_block = "192.168.48.0/22"
+  network_block      = "192.168.48.0/22"
   internet_connected = true
   nsxt_password      = "QazWsx13$Edc"
   vcenter_password   = "QazWsx13$Edc"
