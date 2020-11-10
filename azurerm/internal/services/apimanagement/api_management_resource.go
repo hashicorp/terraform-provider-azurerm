@@ -891,17 +891,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			output["key_vault_id"] = *config.KeyVaultID
 		}
 
-		existingHostnames := d.Get("hostname_configuration").([]interface{})
-		if len(existingHostnames) > 0 {
-			v := existingHostnames[0].(map[string]interface{})
-
-			snakeCaseConfigType := azure.ToSnakeCase(string(config.Type))
-			if valsRaw, ok := v[snakeCaseConfigType]; ok {
-				vals := valsRaw.([]interface{})
-				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
-			}
-		}
-
+		var configType string
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
 			// only set SSL binding for proxy types
@@ -909,18 +899,33 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			proxyResults = append(proxyResults, output)
+			configType = "proxy"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
+			configType = "management"
 
 		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
+			configType = "portal"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeDeveloperPortal)):
 			developerPortalResults = append(developerPortalResults, output)
+			configType = "developer_portal"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
+			configType = "scm"
+		}
+
+		existingHostnames := d.Get("hostname_configuration").([]interface{})
+		if len(existingHostnames) > 0 && configType != "" {
+			v := existingHostnames[0].(map[string]interface{})
+
+			if valsRaw, ok := v[configType]; ok {
+				vals := valsRaw.([]interface{})
+				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
+			}
 		}
 	}
 
