@@ -159,6 +159,8 @@ resource "azurerm_storage_sync_cloud_endpoint" "test" {
   storage_account_id        = azurerm_storage_account.test.id
   storage_account_tenant_id = "%[4]s"
   file_share_name           = azurerm_storage_share.test.name
+
+  depends_on = [azurerm_role_assignment.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, os.Getenv("ARM_TENANT_ID"))
 }
