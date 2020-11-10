@@ -94,7 +94,7 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 							},
 						},
 
-						"route_config": {
+						"route": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Computed: true,
@@ -123,10 +123,11 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 												},
 
 												"labels": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													Elem: &schema.Schema{
-														Type: schema.TypeString,
+														Type:         schema.TypeString,
+														ValidateFunc: validation.StringIsNotEmpty,
 													},
 												},
 											},
@@ -145,43 +146,12 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
-			"custom_dns_servers": {
+			"dns_servers": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsIPv4Address,
-				},
-			},
-
-			"connection_health": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"total_ingress_bytes_transferred": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"total_egress_bytes_transferred": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"vpn_client_connections_count": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"allocated_ip_addresses": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
 				},
 			},
 
@@ -234,7 +204,7 @@ func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta i
 		},
 		Tags: tags.Expand(t),
 	}
-	customDNSServers := utils.ExpandStringSlice(d.Get("custom_dns_servers").([]interface{}))
+	customDNSServers := utils.ExpandStringSlice(d.Get("dns_servers").([]interface{}))
 	if len(*customDNSServers) != 0 {
 		parameters.P2SVpnGatewayProperties.CustomDNSServers = customDNSServers
 	}
@@ -287,10 +257,7 @@ func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface
 	}
 
 	if props := resp.P2SVpnGatewayProperties; props != nil {
-		d.Set("custom_dns_servers", utils.FlattenStringSlice(props.CustomDNSServers))
-		if err := d.Set("connection_health", flattenPointToSiteVPNGatewayConnectionHealth(props.VpnClientConnectionHealth)); err != nil {
-			return fmt.Errorf("setting `connection_health`: %+v", err)
-		}
+		d.Set("dns_servers", utils.FlattenStringSlice(props.CustomDNSServers))
 		flattenedConfigurations := flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)
 		if err := d.Set("connection_configuration", flattenedConfigurations); err != nil {
 			return fmt.Errorf("Error setting `connection_configuration`: %+v", err)
@@ -365,7 +332,7 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 				VpnClientAddressPool: &network.AddressSpace{
 					AddressPrefixes: &addressPrefixes,
 				},
-				RoutingConfiguration: expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route_config"].([]interface{})),
+				RoutingConfiguration: expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
 			},
 		})
 	}
@@ -399,35 +366,8 @@ func expandPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTable
 		}
 	}
 	return &network.PropagatedRouteTable{
-		Labels: utils.ExpandStringSlice(v["labels"].([]interface{})),
+		Labels: utils.ExpandStringSlice(v["labels"].(*schema.Set).List()),
 		Ids:    &ids,
-	}
-}
-
-func flattenPointToSiteVPNGatewayConnectionHealth(input *network.VpnClientConnectionHealth) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	var totalIngressBytesTransferred, totalEgressBytesTransferred int64
-	if input.TotalIngressBytesTransferred != nil {
-		totalIngressBytesTransferred = *input.TotalIngressBytesTransferred
-	}
-	if input.TotalEgressBytesTransferred != nil {
-		totalEgressBytesTransferred = *input.TotalEgressBytesTransferred
-	}
-	var vpnClientConnectionsCount int32
-	if input.VpnClientConnectionsCount != nil {
-		vpnClientConnectionsCount = *input.VpnClientConnectionsCount
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"total_ingress_bytes_transferred": totalIngressBytesTransferred,
-			"total_egress_bytes_transferred":  totalEgressBytesTransferred,
-			"vpn_client_connections_count":    vpnClientConnectionsCount,
-			"allocated_ip_addresses":          utils.FlattenStringSlice(input.AllocatedIPAddresses),
-		},
 	}
 }
 
@@ -464,7 +404,7 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SCon
 					"address_prefixes": addressPrefixes,
 				},
 			},
-			"route_config": flattenPointToSiteVPNGatewayConnectionRouteConfiguration(v.RoutingConfiguration),
+			"route": flattenPointToSiteVPNGatewayConnectionRouteConfiguration(v.RoutingConfiguration),
 		})
 	}
 
