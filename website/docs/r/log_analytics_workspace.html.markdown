@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `daily_quota_gb` - (Optional) The workspace daily quota for ingestion in GB.  Defaults to -1 (unlimited).
 
-* `enable_query_over_public_dns` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
+* `internet_ingestion_enabled ` - (Optional) Should the Log Analytics Workflow support ingestion over the Public Internet? Defaults to `true`.
 
 * `internet_query_enabled` - (Optional) Should the Log Analytics Workflow support querying over the Public Internet? Defaults to `true`.
 
