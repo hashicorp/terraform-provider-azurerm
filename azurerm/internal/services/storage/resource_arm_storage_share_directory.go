@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
 )
 
 func resourceArmStorageShareDirectory() *schema.Resource {
@@ -97,7 +97,10 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_storage_share_directory", id)
 	}
 
-	if _, err := client.Create(ctx, accountName, shareName, directoryName, metaData); err != nil {
+	input := directories.CreateDirectoryInput{
+		MetaData: metaData,
+	}
+	if _, err := client.Create(ctx, accountName, shareName, directoryName, input); err != nil {
 		return fmt.Errorf("Error creating Directory %q (File Share %q / Account %q): %+v", directoryName, shareName, accountName, err)
 	}
 

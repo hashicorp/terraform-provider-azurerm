@@ -1,184 +1,118 @@
 package tests
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMResourceGroup_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+type ResourceGroupResource struct {
+}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMResourceGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+func TestAccResourceGroup_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
+	testResource := ResourceGroupResource{}
+	data.ResourceTest(t, testResource, []resource.TestStep{
+		{
+			Config: testResource.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(testResource),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
+func TestAccResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMResourceGroup_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMResourceGroup_requiresImport),
+	testResource := ResourceGroupResource{}
+	data.ResourceTest(t, testResource, []resource.TestStep{
+		{
+			Config: testResource.basicConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(testResource),
+			),
 		},
+		data.RequiresImportErrorStep(testResource.requiresImportConfig),
 	})
 }
 
-func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
+func TestAccResourceGroup_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
-		Steps: []resource.TestStep{
-			data.DisappearsStep(acceptance.DisappearsStepData{
-				Config:      testAccAzureRMResourceGroup_basic,
-				CheckExists: testCheckAzureRMResourceGroupExists,
-				Destroy:     testCheckAzureRMResourceGroupDisappears,
-			}),
-		},
+	testResource := ResourceGroupResource{}
+	data.ResourceTest(t, testResource, []resource.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       testResource.basicConfig,
+			TestResource: testResource,
+		}),
 	})
 }
 
-func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
+func TestAccResourceGroup_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMResourceGroup_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMResourceGroup_withTagsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
-				),
-			},
-			data.ImportStep(),
+	testResource := ResourceGroupResource{}
+	assert := check.That(data.ResourceName)
+	data.ResourceTest(t, testResource, []resource.TestStep{
+		{
+			Config: testResource.withTagsConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				assert.ExistsInAzure(testResource),
+				assert.Key("tags.%").HasValue("2"),
+				assert.Key("tags.cost_center").HasValue("MSFT"),
+				assert.Key("tags.environment").HasValue("Production"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: testResource.withTagsUpdatedConfig(data),
+			Check: resource.ComposeTestCheckFunc(
+				assert.ExistsInAzure(testResource),
+				assert.Key("tags.%").HasValue("1"),
+				assert.Key("tags.environment").HasValue("staging"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	resourceGroup := state.Attributes["name"]
 
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["name"]
-
-		// Ensure resource group exists in API
-
-		resp, err := client.Get(ctx, resourceGroup)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on resourceGroupClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: resource group: %q does not exist", resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		resourceGroup := rs.Primary.Attributes["name"]
-
-		// Ensure resource group exists in API
-
-		deleteFuture, err := client.Delete(ctx, resourceGroup)
-		if err != nil {
-			return fmt.Errorf("Failed deleting Resource Group %q: %+v", resourceGroup, err)
-		}
-
-		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("Failed long polling for the deletion of Resource Group %q: %+v", resourceGroup, err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.GroupsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_resource_group" {
-			continue
-		}
-
-		resourceGroup := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, resourceGroup)
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Resource Group still exists:\n%#v", resp.Properties)
-		}
+	groupsClient := client.Resource.GroupsClient
+	deleteFuture, err := groupsClient.Delete(ctx, resourceGroup)
+	if err != nil {
+		return nil, fmt.Errorf("deleting Resource Group %q: %+v", resourceGroup, err)
 	}
 
-	return nil
+	err = deleteFuture.WaitForCompletionRef(ctx, groupsClient.Client)
+	if err != nil {
+		return nil, fmt.Errorf("waiting for deletion of Resource Group %q: %+v", resourceGroup, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
-func testAccAzureRMResourceGroup_basic(data acceptance.TestData) string {
+func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	name := state.Attributes["name"]
+
+	resp, err := client.Resource.GroupsClient.Get(ctx, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Resource Group %q: %+v", name, err)
+	}
+
+	return utils.Bool(resp.Properties != nil), nil
+}
+
+func (t ResourceGroupResource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -191,8 +125,8 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMResourceGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMResourceGroup_basic(data)
+func (t ResourceGroupResource) requiresImportConfig(data acceptance.TestData) string {
+	template := t.basicConfig(data)
 	return fmt.Sprintf(`
 %s
 
@@ -203,7 +137,7 @@ resource "azurerm_resource_group" "import" {
 `, template)
 }
 
-func testAccAzureRMResourceGroup_withTags(data acceptance.TestData) string {
+func (t ResourceGroupResource) withTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -221,7 +155,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMResourceGroup_withTagsUpdated(data acceptance.TestData) string {
+func (t ResourceGroupResource) withTagsUpdatedConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

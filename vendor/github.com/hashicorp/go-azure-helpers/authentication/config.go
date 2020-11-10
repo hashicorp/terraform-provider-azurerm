@@ -18,7 +18,7 @@ type Config struct {
 	TenantID           string
 	AuxiliaryTenantIDs []string
 	Environment        string
-	MetadataURL        string
+	MetadataHost       string
 
 	GetAuthenticatedObjectID         func(context.Context) (string, error)
 	AuthenticatedAsAServicePrincipal bool
