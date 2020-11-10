@@ -49,13 +49,13 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"enable_ingestion_over_public_dns": {
+			"internet_ingestion_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"enable_query_over_public_dns": {
+			"internet_query_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -148,13 +148,13 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
 	}
 
-	publicNetworkAccessForIngestion := operationalinsights.Disabled
-	if d.Get("enable_ingestion_over_public_dns").(bool) {
-		publicNetworkAccessForIngestion = operationalinsights.Enabled
+	internetIngestionEnabled := operationalinsights.Disabled
+	if d.Get("internet_ingestion_enabled").(bool) {
+		internetIngestionEnabled = operationalinsights.Enabled
 	}
-	publicNetworkAccessForQuery := operationalinsights.Disabled
-	if d.Get("enable_query_over_public_dns").(bool) {
-		publicNetworkAccessForQuery = operationalinsights.Enabled
+	internetQueryEnabled := operationalinsights.Disabled
+	if d.Get("internet_query_enabled").(bool) {
+		internetQueryEnabled = operationalinsights.Enabled
 	}
 
 	retentionInDays := int32(d.Get("retention_in_days").(int))
@@ -168,8 +168,8 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Tags:     tags.Expand(t),
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
 			Sku:                             sku,
-			PublicNetworkAccessForIngestion: publicNetworkAccessForIngestion,
-			PublicNetworkAccessForQuery:     publicNetworkAccessForQuery,
+			PublicNetworkAccessForIngestion: internetIngestionEnabled,
+			PublicNetworkAccessForQuery:     internetQueryEnabled,
 			RetentionInDays:                 &retentionInDays,
 			WorkspaceCapping: &operationalinsights.WorkspaceCapping{
 				DailyQuotaGb: &dailyQuotaGb,
@@ -225,8 +225,8 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("enable_ingestion_over_public_dns", resp.PublicNetworkAccessForIngestion == operationalinsights.Enabled)
-	d.Set("enable_query_over_public_dns", resp.PublicNetworkAccessForQuery == operationalinsights.Enabled)
+	d.Set("internet_ingestion_enabled", resp.PublicNetworkAccessForIngestion == operationalinsights.Enabled)
+	d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == operationalinsights.Enabled)
 
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", "")
