@@ -121,7 +121,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 
 				"health_check_path": {
 					Type:     schema.TypeString,
-					Computed: true,
+					Optional: true,
 				},
 			},
 		},
