@@ -220,19 +220,19 @@ data "azurerm_subscription" "current" {}
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
   subscription_id = data.azurerm_subscription.current.subscription_id
-  
+
   // Changed the amount from 1000 to 2000
   amount     = 3000
   category   = "Cost"
   time_grain = "Monthly"
-  
+
   // Add end_date
   time_period {
     start_date = "2020-11-01T00:00:00Z"
     end_date   = "2020-12-01T00:00:00Z"
   }
 
-   // Changed threshold and operator
+  // Changed threshold and operator
   notification {
     enabled   = true
     threshold = 95.0
@@ -280,11 +280,11 @@ resource "azurerm_consumption_budget_subscription" "test" {
   }
 
   filter {
-	resource_groups = [
+    resource_groups = [
       azurerm_resource_group.test.name,
     ]
     resources = [
-	  azurerm_monitor_action_group.test.id,
+      azurerm_monitor_action_group.test.id,
     ]
     meters = [
       "00000000-0000-0000-0000-000000000000",
@@ -292,8 +292,8 @@ resource "azurerm_consumption_budget_subscription" "test" {
     tag {
       name = "foo"
       values = [
-		"bar",
-		"baz",
+        "bar",
+        "baz",
       ]
     }
   }
@@ -308,11 +308,11 @@ resource "azurerm_consumption_budget_subscription" "test" {
       "bar@example.com",
     ]
 
-	contact_groups = [
-	  azurerm_monitor_action_group.test.id,
-	]
+    contact_groups = [
+      azurerm_monitor_action_group.test.id,
+    ]
 
-	contact_roles = [
+    contact_roles = [
       "Owner",
     ]
   }
@@ -353,19 +353,19 @@ resource "azurerm_monitor_action_group" "test" {
 resource "azurerm_consumption_budget_subscription" "test" {
   name            = "acctestconsumptionbudgetsubscription-%d"
   subscription_id = data.azurerm_subscription.current.subscription_id
-  
+
   // Changed the amount from 1000 to 2000
   amount     = 2000
   category   = "Cost"
   time_grain = "Monthly"
-  
+
   // Removed end_date
   time_period {
     start_date = "2020-11-01T00:00:00Z"
   }
 
   filter {
-	resource_groups = [
+    resource_groups = [
       azurerm_resource_group.test.name,
     ]
     // Removed resources
@@ -375,16 +375,16 @@ resource "azurerm_consumption_budget_subscription" "test" {
     tag {
       name = "foo"
       values = [
-		"bar",
-		"baz",
+        "bar",
+        "baz",
       ]
     }
     // Added tag: zip
-	tag {
+    tag {
       name = "zip"
       values = [
-		"zap",
-		"zop",
+        "zap",
+        "zop",
       ]
     }
   }
@@ -401,10 +401,10 @@ resource "azurerm_consumption_budget_subscription" "test" {
       "bar@example.com",
     ]
 
-	contact_groups = [
-	  azurerm_monitor_action_group.test.id,
-	]
-	// Removed contact_roles
+    contact_groups = [
+      azurerm_monitor_action_group.test.id,
+    ]
+    // Removed contact_roles
   }
 
   notification {
@@ -412,7 +412,7 @@ resource "azurerm_consumption_budget_subscription" "test" {
     enabled   = true
     threshold = 100.0
     // Changed from EqualTo to GreaterThanOrEqualTo 
-    operator  = "GreaterThanOrEqualTo"
+    operator = "GreaterThanOrEqualTo"
 
     contact_emails = [
       "foo@example.com",
@@ -421,8 +421,8 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
     // Added contact_groups
     contact_groups = [
-	  azurerm_monitor_action_group.test.id,
-	]
+      azurerm_monitor_action_group.test.id,
+    ]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
