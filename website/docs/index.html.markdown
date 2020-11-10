@@ -85,7 +85,7 @@ If you have configuration questions, or general questions about using the provid
 
 The following arguments are supported:
 
-* `features` - (Required) A `features` block as defined below which can be used to customize the behavior of certain Azure Provider resources.
+* `features` - (Required) A `features` block as defined below which can be used to customize the behaviour of certain Azure Provider resources.
 
 * `client_id` - (Optional) The Client ID which should be used. This can also be sourced from the `ARM_CLIENT_ID` Environment Variable.
 
