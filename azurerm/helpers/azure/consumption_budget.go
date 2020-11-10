@@ -116,7 +116,6 @@ func ExpandAzureConsumptionBudgetTimePeriod(i []interface{}) (*consumption.Budge
 			endDate, err := date.ParseTime(time.RFC3339, endDateInput)
 			if err != nil {
 				return nil, fmt.Errorf("end_date '%s' was not in the correct format: %+v", endDateInput, err)
-
 			}
 
 			timePeriod.EndDate = &date.Time{
