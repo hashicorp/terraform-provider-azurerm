@@ -1,5 +1,9 @@
 ## 2.36.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_network_connection_monitor` - has been updated to onlt work with v2 of the resource as the service team is deprecating v1 - all v1 properties have been deprecated and will be removed in version `3.0` of the provider and v2 propeties added. [GH-8640]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_data_share_dataset_kusto_database` [GH-8544]
