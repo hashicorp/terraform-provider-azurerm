@@ -111,6 +111,12 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"enable_automatic_failover": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -389,6 +395,11 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
 
+	publicNetworkAccess := documentdb.Enabled
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		publicNetworkAccess = documentdb.Disabled
+	}
+
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
@@ -403,6 +414,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
+			PublicNetworkAccess:           publicNetworkAccess,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -477,6 +489,11 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		oldLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
 	}
 
+	publicNetworkAccess := documentdb.Enabled
+	if enabled := d.Get("public_network_access_enabled").(bool); !enabled {
+		publicNetworkAccess = documentdb.Disabled
+	}
+
 	// cannot update properties and add/remove replication locations or updating enabling of multiple
 	// write locations at the same time. so first just update any changed properties
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
@@ -493,6 +510,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
+			PublicNetworkAccess:           publicNetworkAccess,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -587,6 +605,8 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("endpoint", resp.DocumentEndpoint)
 
 	d.Set("enable_free_tier", resp.EnableFreeTier)
+
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == documentdb.Enabled)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)

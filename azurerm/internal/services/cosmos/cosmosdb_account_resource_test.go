@@ -74,6 +74,29 @@ func TestAccAzureRMCosmosDBAccount_basic_parse_strong(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_basicWith(t, documentdb.MongoDB, documentdb.Strong)
 }
 
+func TestAccAzureRMCosmosDBAccount_public_network_access_enabled(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_public_network_access_enabled(t, documentdb.MongoDB, documentdb.Strong)
+}
+
+func testAccAzureRMCosmosDBAccount_public_network_access_enabled(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: checkAccAzureRMCosmosDBAccount_network_access_enabled(data, kind, consistency),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(data, consistency, 1),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMCosmosDBAccount_basicWith(t *testing.T, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
@@ -992,4 +1015,35 @@ func checkAccAzureRMCosmosDBAccount_basic(data acceptance.TestData, consistency 
 		resource.TestCheckResourceAttrSet(data.ResourceName, "primary_readonly_key"),
 		resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_readonly_key"),
 	)
+}
+
+func checkAccAzureRMCosmosDBAccount_network_access_enabled(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                          = "acctest-ca-%d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  offer_type                    = "Standard"
+  kind                          = "%s"
+  public_network_access_enabled = true
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
