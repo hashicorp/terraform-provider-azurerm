@@ -641,7 +641,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		}
 		d.Set("priority", priority)
 
-		d.Set("proximity_placement_group_id", *props.ProximityPlacementGroupID)
+		d.Set("proximity_placement_group_id", props.ProximityPlacementGroupID)
 
 		spotMaxPrice := -1.0
 		if props.SpotMaxPrice != nil {
