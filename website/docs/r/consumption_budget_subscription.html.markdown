@@ -3,12 +3,12 @@ subcategory: "Consumption"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_consumption_budget_subscription"
 description: |-
-  Manages a Consumption Budget Subscription.
+  Manages a Subscription Consumption Budget.
 ---
 
 # azurerm_consumption_budget_subscription
 
-Manages a Consumption Budget Subscription.
+Manages a Subscription Consumption Budget.
 
 ## Example Usage
 
@@ -94,9 +94,9 @@ resource "azurerm_consumption_budget_subscription" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Consumption Budget Subscription. Changing this forces a new Consumption Budget Subscription to be created.
+* `name` - (Required) The name which should be used for this Subscription Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
 
-* `subscription_id` - (Required) The ID of the Consumption Budget. Changing this forces a new Consumption Budget Subscription to be created.
+* `subscription_id` - (Required) The ID of the Consumption Budget. Changing this forces a new Subscription Consumption Budget to be created.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
@@ -150,7 +150,7 @@ A `tag` block supports the following:
 
 A `time_period` block supports the following:
 
-* `start_date` - (Required) The start date for the budget. The start date must be first of the month and should be less than the end date. Budget start date must be on or after June 1, 2017. Future start date should not be more than twelve months. Past start date should be selected within the timegrain period. Changing this forces a new Consumption Budget Subscription to be created.
+* `start_date` - (Required) The start date for the budget. The start date must be first of the month and should be less than the end date. Budget start date must be on or after June 1, 2017. Future start date should not be more than twelve months. Past start date should be selected within the timegrain period. Changing this forces a new Subscription Consumption Budget to be created.
 
 * `end_date` - (Optional) The end date for the budget. If not set this will be 10 years after the start date.
 
@@ -158,20 +158,20 @@ A `time_period` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Consumption Budget Subscription.
+* `id` - The ID of the Subscription Consumption Budget.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Consumption Budget Subscription.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Consumption Budget Subscription.
-* `update` - (Defaults to 30 minutes) Used when updating the Consumption Budget Subscription.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Consumption Budget Subscription.
+* `create` - (Defaults to 30 minutes) Used when creating the Subscription Consumption Budget.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Subscription Consumption Budget.
+* `update` - (Defaults to 30 minutes) Used when updating the Subscription Consumption Budget.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Subscription Consumption Budget.
 
 ## Import
 
-Consumption Budget Subscriptions can be imported using the `resource id`, e.g.
+Subscription Consumption Budgets can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_consumption_budget_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/subscription1
