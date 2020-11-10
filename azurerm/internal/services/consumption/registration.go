@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	consumptionBudgetSubscriptionName = "azurerm_consumption_budget_subscription"
+	consumptionBudgetResourceGroupName = "azurerm_consumption_budget_resource_group"
+	consumptionBudgetSubscriptionName  = "azurerm_consumption_budget_subscription"
 )
 
 type Registration struct{}
@@ -30,6 +31,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		consumptionBudgetSubscriptionName: resourceArmConsumptionBudgetSubscription(),
+		consumptionBudgetResourceGroupName: resourceArmConsumptionBudgetResourceGroup(),
+		consumptionBudgetSubscriptionName:  resourceArmConsumptionBudgetSubscription(),
 	}
 }
