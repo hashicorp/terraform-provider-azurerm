@@ -169,6 +169,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  containerservice.Managed,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.Ephemeral),
 					string(containerservice.Managed),
