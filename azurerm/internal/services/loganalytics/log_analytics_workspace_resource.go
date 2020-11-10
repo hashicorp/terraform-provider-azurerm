@@ -162,9 +162,9 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	dailyQuotaGb, ok := d.GetOk("daily_quota_gb")
-	if ok && skuName == "Free" {
+	if ok && strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		return fmt.Errorf("`Free` tier SKU quota is not configurable and is hard set to 0.5GB")
-	} else if skuName != "Free" {
+	} else if !strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		parameters.WorkspaceProperties.WorkspaceCapping = &operationalinsights.WorkspaceCapping{
 			DailyQuotaGb: utils.Float(dailyQuotaGb.(float64)),
 		}
@@ -215,7 +215,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
-	if resp.WorkspaceProperties != nil && resp.WorkspaceProperties.Sku != nil && strings.EqualFold(string(resp.WorkspaceProperties.Sku.Name), "free") {
+	if resp.WorkspaceProperties != nil && resp.WorkspaceProperties.Sku != nil && strings.EqualFold(string(resp.WorkspaceProperties.Sku.Name), string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		// Special case for "Free" tier
 		d.Set("daily_quota_gb", utils.Float(0.5))
 	} else if workspaceCapping := resp.WorkspaceCapping; workspaceCapping != nil {
@@ -276,7 +276,7 @@ func ValidateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings
 
 func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *schema.ResourceData) bool {
 	// (@jackofallops) - 'free' is a legacy special case that is always set to 0.5GB
-	if skuName := d.Get("sku").(string); strings.EqualFold(skuName, "free") {
+	if skuName := d.Get("sku").(string); strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
 		return true
 	}
 
