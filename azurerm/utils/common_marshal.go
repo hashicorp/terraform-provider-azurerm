@@ -96,7 +96,7 @@ func FlattenUUIDSlice(input *[]uuid.UUID) []interface{} {
 	result := make([]interface{}, 0)
 	if input != nil {
 		for _, item := range *input {
-			result = append(result, item)
+			result = append(result, item.String())
 		}
 	}
 	return result
