@@ -153,7 +153,7 @@ It's also possible to use multiple Provider blocks within a single Terraform con
 
 ## Features
 
-It's possible to configure the behavior of certain resources using the `features` block - more details can be found below.
+It's possible to configure the behaviour of certain resources using the `features` block - more details can be found below.
 
 ## Features
 
