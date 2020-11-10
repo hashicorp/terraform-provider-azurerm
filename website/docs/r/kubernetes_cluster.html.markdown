@@ -253,17 +253,17 @@ A `default_node_pool` block supports the following:
 
 If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
 
-* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
-* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
-* `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100` and between `min_count` and `max_count`.
+* `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000` and between `min_count` and `max_count`.
 
 -> **NOTE:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
 
 If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
 
-* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000`.
 
 -> **NOTE:** If `enable_auto_scaling` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 

@@ -247,6 +247,25 @@ func testAccAzureRMKubernetesCluster_autoScalingErrorMax(t *testing.T) {
 	})
 }
 
+func testAccAzureRMKubernetesCluster_autoScalingWithMaxCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_autoScalingWithMaxCountConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_autoScalingErrorMin(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_autoScalingErrorMin(t)
@@ -669,6 +688,39 @@ resource "azurerm_kubernetes_cluster" "test" {
     enable_auto_scaling = true
     max_count           = 10
     min_count           = 1
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMKubernetesCluster_autoScalingWithMaxCountConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-AKS-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestAKS%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestAKS%d"
+
+  default_node_pool {
+    name                = "default"
+    vm_size             = "Standard_DS2_v2"
+    enable_auto_scaling = true
+    min_count           = 1
+    max_count           = 1000
+    node_count          = 1
   }
 
   identity {

@@ -15,6 +15,7 @@ var kubernetesScalingTests = map[string]func(t *testing.T){
 	"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
 	"autoScalingEnabledErrorMax":       testAccAzureRMKubernetesCluster_autoScalingErrorMax,
 	"autoScalingEnabledErrorMin":       testAccAzureRMKubernetesCluster_autoScalingErrorMin,
+	"autoScalingEnabledWithMaxCount":   testAccAzureRMKubernetesCluster_autoScalingWithMaxCount,
 	"autoScalingNodeCountUnset":        testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset,
 	"autoScalingNoAvailabilityZones":   testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones,
 	"autoScalingWithAvailabilityZones": testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones,
