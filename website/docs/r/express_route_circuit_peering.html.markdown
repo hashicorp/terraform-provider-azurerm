@@ -50,6 +50,15 @@ resource "azurerm_express_route_circuit_peering" "example" {
   microsoft_peering_config {
     advertised_public_prefixes = ["123.1.0.0/24"]
   }
+
+  microsoft_peering_config_ipv6 {
+    primary_peer_address_prefix   = "2002:db01::/126"
+    secondary_peer_address_prefix = "2003:db01::/126"
+
+    microsoft_peering_config {
+      advertised_public_prefixes = ["2002:db01::/126"]
+    }
+  }
 }
 ```
 

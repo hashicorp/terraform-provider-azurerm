@@ -131,9 +131,10 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 										Default:  0,
 									},
 									"routing_registry_name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "NONE",
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "NONE",
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -242,9 +243,7 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 		}
 
 		msIpv6Peering := d.Get("microsoft_peering_config_ipv6").([]interface{})
-		if len(msIpv6Peering) != 0 {
-			parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = expandExpressRouteCircuitMSIpv6PeeringConfig(msIpv6Peering)
-		}
+		parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = expandExpressRouteCircuitMSIpv6PeeringConfig(msIpv6Peering)
 	} else if route_filter_id != "" {
 		return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 	}
@@ -311,10 +310,10 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 
 		config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
 		if err := d.Set("microsoft_peering_config", config); err != nil {
-			return fmt.Errorf("Error setting `microsoft_peering_config`: %+v", err)
+			return fmt.Errorf("setting `microsoft_peering_config`: %+v", err)
 		}
 		if err := d.Set("microsoft_peering_config_ipv6", flattenExpressRouteCircuitMSIpv6PeeringConfig(props.Ipv6PeeringConfig)); err != nil {
-			return fmt.Errorf("Error setting `microsoft_peering_config_ipv6`: %+v", err)
+			return fmt.Errorf("setting `microsoft_peering_config_ipv6`: %+v", err)
 		}
 	}
 

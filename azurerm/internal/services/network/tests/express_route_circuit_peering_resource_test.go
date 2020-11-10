@@ -408,7 +408,7 @@ resource "azurerm_express_route_circuit" "test" {
   }
 
   tags = {
-    Environment = "production"
+    Env = "Test"
     Purpose     = "AcceptanceTests"
   }
 }
@@ -463,7 +463,7 @@ resource "azurerm_express_route_circuit" "test" {
   }
 
   tags = {
-    Environment = "production"
+    Env = "Test"
     Purpose     = "AcceptanceTests"
   }
 }
@@ -532,7 +532,7 @@ resource "azurerm_express_route_circuit" "test" {
   }
 
   tags = {
-    Environment = "production"
+    Env = "Test"
     Purpose     = "AcceptanceTests"
   }
 }
