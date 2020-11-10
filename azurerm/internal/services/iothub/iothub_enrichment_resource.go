@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2020-03-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -36,10 +37,13 @@ func resourceArmIotHubEnrichment() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"key": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.IoTHubEndpointName, // TODO Change to own validation function
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
+					"Enrichment Key name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters, and must be unique.",
+				),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -52,20 +56,20 @@ func resourceArmIotHubEnrichment() *schema.Resource {
 			},
 
 			"value": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringIsNotEmpty, // TODO Change to own validation function
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			
+
 			"endpoint_names": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
 				MaxItems: 100,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				Required: true,
-			}
+			},
 		},
 	}
 }
@@ -95,9 +99,9 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *schema.ResourceData, meta interf
 	resourceId := fmt.Sprintf("%s/Enrichments/%s", *iothub.ID, enrichmentKey)
 	endpointNamesRaw := d.Get("endpoint_names").([]interface{})
 
-	enrichment := devices.EnrichmentProperties {
-		Key:              &enrichmentKey,
-		Value:            &enrichmentValue,
+	enrichment := devices.EnrichmentProperties{
+		Key:           &enrichmentKey,
+		Value:         &enrichmentValue,
 		EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
 	}
 
@@ -107,7 +111,8 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if routing.Enrichments == nil {
-		routing.Enrichments = &devices.EnrichmentProperties {}
+		enrichments := make([]devices.EnrichmentProperties, 0)
+		routing.Enrichments = &enrichments
 	}
 
 	enrichments := make([]devices.EnrichmentProperties, 0)
@@ -115,7 +120,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *schema.ResourceData, meta interf
 	alreadyExists := false
 	for _, existingEnrichment := range *routing.Enrichments {
 		if existingEnrichment.Key != nil {
-			if strings.EqualFold(*existingEnrichment, enrichmentKey) {
+			if strings.EqualFold(*existingEnrichment.Key, enrichmentKey) {
 				if d.IsNewResource() {
 					return tf.ImportAsExistsError("azurerm_iothub_enrichment", resourceId)
 				}
@@ -161,12 +166,12 @@ func resourceArmIotHubEnrichmentRead(d *schema.ResourceData, meta interface{}) e
 	resourceGroup := parsedEnrichmentId.ResourceGroup
 	iothubName := parsedEnrichmentId.Path["IotHubs"]
 	enrichmentKey := parsedEnrichmentId.Path["Enrichments"]
-	
+
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
 		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
-	
+
 	d.Set("key", enrichmentKey)
 	d.Set("iothub_name", iothubName)
 	d.Set("resource_group_name", resourceGroup)
@@ -174,7 +179,7 @@ func resourceArmIotHubEnrichmentRead(d *schema.ResourceData, meta interface{}) e
 	if iothub.Properties == nil || iothub.Properties.Routing == nil {
 		return nil
 	}
-	
+
 	if enrichments := iothub.Properties.Routing.Enrichments; enrichments != nil {
 		for _, enrichment := range *enrichments {
 			if enrichment.Key != nil {
@@ -185,7 +190,7 @@ func resourceArmIotHubEnrichmentRead(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -193,14 +198,14 @@ func resourceArmIotHubEnrichmentDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	
-	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
+
+	parsedEnrichmentId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	
-	resourceGroup := parsedIothubEndpointId.ResourceGroup
-	iothubName := parsedIothubEndpointId.Path["IotHubs"]
+
+	resourceGroup := parsedEnrichmentId.ResourceGroup
+	iothubName := parsedEnrichmentId.Path["IotHubs"]
 	enrichmentKey := parsedEnrichmentId.Path["Enrichments"]
 
 	locks.ByName(iothubName, IothubResourceName)

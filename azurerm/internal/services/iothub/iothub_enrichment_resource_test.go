@@ -160,13 +160,12 @@ func testCheckAzureRMIotHubEnrichmentExists(resourceName string) resource.TestCh
 			}
 		}
 
-		return fmt.Errorf("Bad: No cdm-gl02-k-aks-cdmdev %s defined for IotHub %s", enrichmentKey, iothubName)
+		return fmt.Errorf("Bad: No enrichment %s defined for IotHub %s", enrichmentKey, iothubName)
 	}
 }
 
 func testAccAzureRMIotHubEnrichment_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMIotHubEnrichment_basic(data)
-	//TODO Change This
 	return fmt.Sprintf(`
 %s
 
@@ -175,7 +174,7 @@ resource "azurerm_iothub_enrichment" "import" {
   iothub_name         = azurerm_iothub.test.name
   key                 = "acctest"
 
-  value          = "DeviceMessages"
+  value          = "$twin.tags.DeviceType"
   endpoint_names = [azurerm_iothub_endpoint_storage_container.test.name]
 }
 `, template)
@@ -234,7 +233,7 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
 }
 
-resource "azurerm_iothub_enrichment" "import" {
+resource "azurerm_iothub_enrichment" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
   key                 = "acctest"
@@ -298,7 +297,7 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
 }
 
-resource "azurerm_iothub_enrichment" "import" {
+resource "azurerm_iothub_enrichment" "test" {
   resource_group_name = azurerm_resource_group.test.name
   iothub_name         = azurerm_iothub.test.name
   key                 = "acctest"

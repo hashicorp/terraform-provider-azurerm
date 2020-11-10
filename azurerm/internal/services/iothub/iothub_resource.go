@@ -347,7 +347,9 @@ func resourceIotHub() *schema.Resource {
 			},
 
 			"enrichment": {
-				Type:       schema.TypeList,
+				Type: schema.TypeList,
+				// Currently only 10 enrichments is allowed for standard or basic tier, 2 for Free tier.
+				MaxItems:   10,
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: schema.SchemaConfigModeAttr,
@@ -363,7 +365,7 @@ func resourceIotHub() *schema.Resource {
 						},
 						"value": {
 							Type:     schema.TypeString,
-							Required: true
+							Required: true,
 						},
 						"endpoint_names": {
 							Type: schema.TypeList,
@@ -371,7 +373,7 @@ func resourceIotHub() *schema.Resource {
 								Type: schema.TypeString,
 							},
 							Required: true,
-						}
+						},
 					},
 				},
 			},
@@ -807,7 +809,7 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 }
 
 func expandIoTHubEnrichments(d *schema.ResourceData) *[]devices.EnrichmentProperties {
-	enrichmentList := d.Get("enrichments").([]interface{})
+	enrichmentList := d.Get("enrichment").([]interface{})
 
 	enrichmentProperties := make([]devices.EnrichmentProperties, 0)
 
@@ -815,13 +817,13 @@ func expandIoTHubEnrichments(d *schema.ResourceData) *[]devices.EnrichmentProper
 		enrichment := enrichmentRaw.(map[string]interface{})
 
 		key := enrichment["key"].(string)
-		value := devices.RoutingSource(enrichment["value"].(string))
+		value := enrichment["value"].(string)
 
 		endpointNamesRaw := enrichment["endpoint_names"].([]interface{})
 
 		enrichmentProperties = append(enrichmentProperties, devices.EnrichmentProperties{
-			Key:          &key,
-			Value:        value,
+			Key:           &key,
+			Value:         &value,
 			EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
 		})
 	}
@@ -1183,7 +1185,7 @@ func flattenIoTHubEnrichment(input *devices.RoutingProperties) []interface{} {
 				output["key"] = *key
 			}
 			if value := enrichment.Value; value != nil {
-				output["Value"] = *value
+				output["value"] = *value
 			}
 			if endpointNames := enrichment.EndpointNames; endpointNames != nil {
 				output["endpoint_names"] = *endpointNames
