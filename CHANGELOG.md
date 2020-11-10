@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_linux_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_linux_virtual_machine_scale_set` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_policy_remediation` - support for the `resource_discovery_mode` property [GH-9210]
+* `azurerm_point_to_site_vpn_gateway` - support for the `route` block [GH-9158]
 * `azurerm_virtual_network` - support for the `bgp_community` and `vnet_protection_enabled` [GH-8979]
 * `azurerm_vpn_gateway` - support for the `instance_0_bgp_peering_addresses` and `instance_1_bgp_peering_addresses` blocks [GH-9035]
 * `azurerm_windows_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
