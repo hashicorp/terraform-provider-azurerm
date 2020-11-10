@@ -1,4 +1,4 @@
-// Package alertsmanagement implements the Azure ARM Alertsmanagement service API version 2019-05-05-preview.
+// Package alertsmanagement implements the Azure ARM Alertsmanagement service API version .
 //
 // AlertsManagement Client
 package alertsmanagement

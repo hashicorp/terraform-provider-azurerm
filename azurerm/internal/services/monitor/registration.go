@@ -40,5 +40,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_monitor_log_profile":                 resourceArmMonitorLogProfile(),
 		"azurerm_monitor_metric_alert":                resourceArmMonitorMetricAlert(),
 		"azurerm_monitor_scheduled_query_rules_alert": resourceArmMonitorScheduledQueryRulesAlert(),
-		"azurerm_monitor_scheduled_query_rules_log":   resourceArmMonitorScheduledQueryRulesLog()}
+		"azurerm_monitor_scheduled_query_rules_log":   resourceArmMonitorScheduledQueryRulesLog(),
+		"azurerm_monitor_smart_detector_alert_rule":   resourceArmMonitorSmartDetectorAlertRule(),
+	}
 }
