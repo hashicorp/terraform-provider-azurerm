@@ -565,12 +565,10 @@ func flattenArmFirewallDNSServers(input map[string]*string) []interface{} {
 func expandArmFirewallSku(input []interface{}) *network.AzureFirewallSku {
 	config := input[0].(map[string]interface{})
 
-	sku := &network.AzureFirewallSku{
+	return &network.AzureFirewallSku{
 		Name: network.AzureFirewallSkuName(config["name"].(string)),
 		Tier: network.AzureFirewallSkuTier(config["tier"].(string)),
 	}
-
-	return sku
 }
 
 func flattenArmFirewallSku(sku *network.AzureFirewallSku) []interface{} {
