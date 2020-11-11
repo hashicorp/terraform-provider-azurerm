@@ -196,6 +196,17 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				ValidateFunc: validation.FloatAtLeast(-1.0),
 			},
 
+			"patch_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.AutomaticByOS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.AutomaticByOS),
+					string(compute.AutomaticByPlatform),
+					string(compute.Manual),
+				}, false),
+			},
+
 			"plan": planSchema(),
 
 			"priority": {
@@ -477,6 +488,12 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	if v, ok := d.GetOk("patch_mode"); ok {
+		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(v.(string)),
+		}
+	}
+
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		params.ProximityPlacementGroup = &compute.SubResource{
 			ID: utils.String(v.(string)),
@@ -622,6 +639,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
 
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+
+			if patchSettings := config.PatchSettings; patchSettings != nil {
+				d.Set("patch_mode", patchSettings.PatchMode)
+			}
+
 			d.Set("timezone", config.TimeZone)
 
 			if err := d.Set("winrm_listener", flattenWinRMListener(config.WinRM)); err != nil {
