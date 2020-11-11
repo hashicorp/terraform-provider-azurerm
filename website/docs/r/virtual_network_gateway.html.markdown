@@ -128,7 +128,7 @@ The following arguments are supported:
     `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
     Defaults to `false`.
 
-* `enable_private_ip_address` - (Optional) Whether private IP needs to be enabled on this gateway for connections or not. Changing this forces a new resource to be created.
+* `private_ip_address_enabled` - (Optional) Should private IP be enabled on this gateway for connections? Changing this forces a new resource to be created.
 
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
