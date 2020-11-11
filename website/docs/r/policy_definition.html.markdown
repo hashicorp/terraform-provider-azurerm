@@ -83,15 +83,15 @@ The following arguments are supported:
 ~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
 
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
-    is a json object representing the rule that contains an if and
+    is a JSON string representing the rule that contains an if and
     a then block.
 
 * `metadata` - (Optional) The metadata for the policy definition. This
-    is a json object representing additional metadata that should be stored
+    is a JSON string representing additional metadata that should be stored
     with the policy definition.
 
 * `parameters` - (Optional) Parameters for the policy definition. This field
-    is a json object that allows you to parameterize your policy definition.
+    is a JSON string that allows you to parameterize your policy definition.
 
 ## Attributes Reference
 

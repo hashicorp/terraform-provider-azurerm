@@ -39,6 +39,7 @@ import (
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
+	hpccache "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/client"
 	hsm "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm/client"
 	iotcentral "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
@@ -126,6 +127,7 @@ type Client struct {
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
 	Frontdoor             *frontdoor.Client
+	HPCCache              *hpccache.Client
 	HSM                   *hsm.Client
 	HDInsight             *hdinsight.Client
 	HealthCare            *healthcare.Client
@@ -216,6 +218,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)
 	client.Frontdoor = frontdoor.NewClient(o)
+	client.HPCCache = hpccache.NewClient(o)
 	client.HSM = hsm.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)

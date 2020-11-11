@@ -312,8 +312,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	adminUsername := d.Get("admin_username").(string)
 	allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
+
 	var computerName string
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)

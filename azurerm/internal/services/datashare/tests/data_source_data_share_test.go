@@ -12,9 +12,8 @@ import (
 func TestAccDataSourceAzureRMDataShare_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share", "test")
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDataShare_basic(data),
@@ -33,9 +32,8 @@ func TestAccDataSourceAzureRMDataShare_snapshotSchedule(t *testing.T) {
 	startTime := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataShareDestroy,
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceAzureRMDataShare_snapshotSchedule(data, startTime),

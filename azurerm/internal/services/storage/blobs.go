@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
 const pollingInterval = time.Second * 15

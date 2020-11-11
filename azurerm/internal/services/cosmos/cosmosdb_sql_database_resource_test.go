@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/preview/cosmos-db/mgmt/2020-04-01-preview/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -93,6 +93,25 @@ func TestAccAzureRMCosmosDbSqlDatabase_autoscale(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "autoscale_settings.0.max_throughput", "4000"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDbSqlDatabase_serverless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbSqlDatabase_serverless(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlDatabaseExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -194,4 +213,15 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.GlobalDocumentDB, documentdb.Strong), data.RandomInteger, maxThroughput)
+}
+
+func testAccAzureRMCosmosDbSqlDatabase_serverless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+`, testAccAzureRMCosmosDBAccount_capabilities(data, documentdb.GlobalDocumentDB, []string{"EnableServerless"}), data.RandomInteger)
 }

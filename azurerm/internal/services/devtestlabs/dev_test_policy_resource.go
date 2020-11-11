@@ -214,7 +214,7 @@ func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) er
 	policySetName := id.Path["policysets"]
 	name := id.Path["policies"]
 
-	read, err := client.Get(ctx, resourceGroup, policySetName, labName, name, "")
+	read, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			// deleted outside of TF

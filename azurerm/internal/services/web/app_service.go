@@ -299,6 +299,7 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"v2.0",
 						"v4.0",
+						"v5.0",
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
