@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
@@ -16,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,9 +28,15 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 		Read:   resourceArmLogAnalyticsWorkspaceRead,
 		Update: resourceArmLogAnalyticsWorkspaceCreateUpdate,
 		Delete: resourceArmLogAnalyticsWorkspaceDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.LogAnalyticsWorkspaceID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+
+		MigrateState: WorkspaceMigrateState,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -73,6 +81,14 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
 			},
 
+			"daily_quota_gb": {
+				Type:             schema.TypeFloat,
+				Optional:         true,
+				Default:          -1.0,
+				DiffSuppressFunc: dailyQuotaGbDiffSuppressFunc,
+				ValidateFunc:     validation.FloatAtLeast(0),
+			},
+
 			"workspace_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -103,18 +119,20 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	id := parse.NewLogAnalyticsWorkspaceID(name, resourceGroup)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Log Analytics Workspace %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Log Analytics Workspace %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -143,7 +161,16 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	dailyQuotaGb, ok := d.GetOk("daily_quota_gb")
+	if ok && strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
+		return fmt.Errorf("`Free` tier SKU quota is not configurable and is hard set to 0.5GB")
+	} else if !strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
+		parameters.WorkspaceProperties.WorkspaceCapping = &operationalinsights.WorkspaceCapping{
+			DailyQuotaGb: utils.Float(dailyQuotaGb.(float64)),
+		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
 	}
@@ -152,16 +179,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Log Analytics Workspace '%s' (resource group %s) ID", name, resGroup)
-	}
-
-	d.SetId(*read.ID)
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
 }
@@ -197,6 +215,14 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
+	if resp.WorkspaceProperties != nil && resp.WorkspaceProperties.Sku != nil && strings.EqualFold(string(resp.WorkspaceProperties.Sku.Name), string(operationalinsights.WorkspaceSkuNameEnumFree)) {
+		// Special case for "Free" tier
+		d.Set("daily_quota_gb", utils.Float(0.5))
+	} else if workspaceCapping := resp.WorkspaceCapping; workspaceCapping != nil {
+		d.Set("daily_quota_gb", resp.WorkspaceCapping.DailyQuotaGb)
+	} else {
+		d.Set("daily_quota_gb", utils.Float(-1))
+	}
 
 	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
@@ -246,4 +272,13 @@ func ValidateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings
 	}
 
 	return warnings, errors
+}
+
+func dailyQuotaGbDiffSuppressFunc(_, _, _ string, d *schema.ResourceData) bool {
+	// (@jackofallops) - 'free' is a legacy special case that is always set to 0.5GB
+	if skuName := d.Get("sku").(string); strings.EqualFold(skuName, string(operationalinsights.WorkspaceSkuNameEnumFree)) {
+		return true
+	}
+
+	return false
 }

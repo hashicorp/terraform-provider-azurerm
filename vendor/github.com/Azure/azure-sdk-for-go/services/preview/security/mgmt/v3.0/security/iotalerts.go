@@ -138,9 +138,10 @@ func (client IotAlertsClient) GetResponder(resp *http.Response) (result IotAlert
 // minStartTimeUtc - filter by minimum startTimeUtc (ISO 8601 format)
 // maxStartTimeUtc - filter by maximum startTimeUtc (ISO 8601 format)
 // alertType - filter by alert type
+// compromisedEntity - filter by compromised device
 // limit - limit the number of items returned in a single page
 // skipToken - skip token used for pagination
-func (client IotAlertsClient) List(ctx context.Context, resourceGroupName string, solutionName string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, limit *int32, skipToken string) (result IotAlertListPage, err error) {
+func (client IotAlertsClient) List(ctx context.Context, resourceGroupName string, solutionName string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, compromisedEntity string, limit *int32, skipToken string) (result IotAlertListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertsClient.List")
 		defer func() {
@@ -162,7 +163,7 @@ func (client IotAlertsClient) List(ctx context.Context, resourceGroupName string
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, resourceGroupName, solutionName, minStartTimeUtc, maxStartTimeUtc, alertType, limit, skipToken)
+	req, err := client.ListPreparer(ctx, resourceGroupName, solutionName, minStartTimeUtc, maxStartTimeUtc, alertType, compromisedEntity, limit, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "security.IotAlertsClient", "List", nil, "Failure preparing request")
 		return
@@ -187,7 +188,7 @@ func (client IotAlertsClient) List(ctx context.Context, resourceGroupName string
 }
 
 // ListPreparer prepares the List request.
-func (client IotAlertsClient) ListPreparer(ctx context.Context, resourceGroupName string, solutionName string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, limit *int32, skipToken string) (*http.Request, error) {
+func (client IotAlertsClient) ListPreparer(ctx context.Context, resourceGroupName string, solutionName string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, compromisedEntity string, limit *int32, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"solutionName":      autorest.Encode("path", solutionName),
@@ -206,6 +207,9 @@ func (client IotAlertsClient) ListPreparer(ctx context.Context, resourceGroupNam
 	}
 	if len(alertType) > 0 {
 		queryParameters["alertType"] = autorest.Encode("query", alertType)
+	}
+	if len(compromisedEntity) > 0 {
+		queryParameters["compromisedEntity"] = autorest.Encode("query", compromisedEntity)
 	}
 	if limit != nil {
 		queryParameters["$limit"] = autorest.Encode("query", *limit)
@@ -262,7 +266,7 @@ func (client IotAlertsClient) listNextResults(ctx context.Context, lastResults I
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client IotAlertsClient) ListComplete(ctx context.Context, resourceGroupName string, solutionName string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, limit *int32, skipToken string) (result IotAlertListIterator, err error) {
+func (client IotAlertsClient) ListComplete(ctx context.Context, resourceGroupName string, solutionName string, minStartTimeUtc string, maxStartTimeUtc string, alertType string, compromisedEntity string, limit *int32, skipToken string) (result IotAlertListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/IotAlertsClient.List")
 		defer func() {
@@ -273,6 +277,6 @@ func (client IotAlertsClient) ListComplete(ctx context.Context, resourceGroupNam
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, resourceGroupName, solutionName, minStartTimeUtc, maxStartTimeUtc, alertType, limit, skipToken)
+	result.page, err = client.List(ctx, resourceGroupName, solutionName, minStartTimeUtc, maxStartTimeUtc, alertType, compromisedEntity, limit, skipToken)
 	return
 }
