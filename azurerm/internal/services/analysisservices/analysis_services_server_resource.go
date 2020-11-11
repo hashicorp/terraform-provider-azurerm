@@ -264,7 +264,7 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if serverResp.State != analysisservices.StateSucceeded && serverResp.State != analysisservices.StatePaused {
-		return fmt.Errorf("Error updating Analysis Services Server %q (Resource Group %q): CheckState must be either Succeeded or Paused but got %q", id.Name, id.ResourceGroup, serverResp.State)
+		return fmt.Errorf("Error updating Analysis Services Server %q (Resource Group %q): State must be either Succeeded or Paused but got %q", id.Name, id.ResourceGroup, serverResp.State)
 	}
 
 	isPaused := serverResp.State == analysisservices.StatePaused
