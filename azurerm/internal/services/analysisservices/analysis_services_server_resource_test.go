@@ -192,8 +192,8 @@ func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
 			Config: r.basic(data),
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				r.suspend(data.ResourceName),
-				r.checkState(data.ResourceName, analysisservices.StatePaused),
+				data.CheckWithClient(r.suspend),
+				data.CheckWithClient(r.checkState(analysisservices.StatePaused)),
 			),
 		},
 		data.ImportStep(),
@@ -202,7 +202,7 @@ func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("S1"),
-				r.checkState(data.ResourceName, analysisservices.StatePaused),
+				data.CheckWithClient(r.checkState(analysisservices.StatePaused)),
 			),
 		},
 		data.ImportStep(),
@@ -510,46 +510,32 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 	return utils.Bool(resp.ServerProperties != nil), nil
 }
 
-func (t AnalysisServicesServerResource) suspend(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+	client := clients.AnalysisServices.ServerClient
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.AnalysisServicesServerID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Suspend on analysisServicesServerClient: %+v", err)
-		}
-
-		err = suspendFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("Bad: Wait for Suspend completion on analysisServicesServerClient: %+v", err)
-		}
-
-		return nil
+	id, err := parse.AnalysisServicesServerID(state.ID)
+	if err != nil {
+		return err
 	}
+
+	suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("suspending Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	err = suspendFuture.WaitForCompletionRef(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Wait for Suspend on Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return nil
 }
 
-func (t AnalysisServicesServerResource) checkState(resourceName string, state analysisservices.State) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t AnalysisServicesServerResource) checkState(serverState analysisservices.State) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+		client := clients.AnalysisServices.ServerClient
 
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.AnalysisServicesServerID(rs.Primary.ID)
+		id, err := parse.AnalysisServicesServerID(state.ID)
 		if err != nil {
 			return err
 		}
@@ -559,7 +545,7 @@ func (t AnalysisServicesServerResource) checkState(resourceName string, state an
 			return fmt.Errorf("Bad: Get on analysisServicesServerClient: %+v", err)
 		}
 
-		if resp.State != state {
+		if resp.State != serverState {
 			return fmt.Errorf("Unexpected state. Expected %s but is %s", state, resp.State)
 		}
 
