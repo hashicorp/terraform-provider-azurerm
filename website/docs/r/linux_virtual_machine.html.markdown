@@ -134,8 +134,6 @@ The following arguments are supported:
 
 * `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on.
 
-* `dedicated_host_group_id` - (Optional) The ID of a Dedicated Host Group where this machine should be run on.
-
 * `disable_password_authentication` - (Optional) Should Password Authentication be disabled on this Virtual Machine? Defaults to `true`. Changing this forces a new resource to be created.
 
 -> In general we'd recommend using SSH Keys for authentication rather than Passwords - but there's tradeoff's to each - please [see this thread for more information](https://security.stackexchange.com/questions/69407/why-is-using-an-ssh-key-more-secure-than-using-passwords).

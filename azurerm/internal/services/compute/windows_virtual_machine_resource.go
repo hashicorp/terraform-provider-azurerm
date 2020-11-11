@@ -147,12 +147,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/TOM-MANUAL/providers/Microsoft.Compute/hostGroups/tom-hostgroup/hosts/tom-manual-host
 			},
 
-			"dedicated_host_group_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: computeValidate.DedicatedHostGroupID,
-			},
-
 			"enable_automatic_updates": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -461,12 +455,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if v, ok := d.GetOk("dedicated_host_group_id"); ok {
-		params.HostGroup = &compute.SubResource{
-			ID: utils.String(v.(string)),
-		}
-	}
-
 	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		params.VirtualMachineProperties.SecurityProfile = &compute.SecurityProfile{
 			EncryptionAtHost: utils.Bool(encryptionAtHostEnabled.(bool)),
@@ -628,12 +616,6 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		dedicatedHostId = *props.Host.ID
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
-
-	dedicatedHostGroupId := ""
-	if props.HostGroup != nil && props.HostGroup.ID != nil {
-		dedicatedHostGroupId = *props.HostGroup.ID
-	}
-	d.Set("dedicated_host_group_id", dedicatedHostGroupId)
 
 	virtualMachineScaleSetId := ""
 	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
@@ -832,17 +814,6 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			}
 		} else {
 			update.Host = &compute.SubResource{}
-		}
-	}
-
-	if d.HasChange("dedicated_host_group_id") {
-		shouldUpdate = true
-		if v, ok := d.GetOk("dedicated_host_group_id"); ok {
-			update.HostGroup = &compute.SubResource{
-				ID: utils.String(v.(string)),
-			}
-		} else {
-			update.HostGroup = &compute.SubResource{}
 		}
 	}
 

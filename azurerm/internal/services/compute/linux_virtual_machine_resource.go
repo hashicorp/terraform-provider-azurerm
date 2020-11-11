@@ -145,12 +145,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/TOM-MANUAL/providers/Microsoft.Compute/hostGroups/tom-hostgroup/hosts/tom-manual-host
 			},
 
-			"dedicated_host_group_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: computeValidate.DedicatedHostGroupID,
-			},
-
 			"disable_password_authentication": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -433,12 +427,6 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if v, ok := d.GetOk("dedicated_host_group_id"); ok {
-		params.HostGroup = &compute.SubResource{
-			ID: utils.String(v.(string)),
-		}
-	}
-
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Priority != compute.Spot {
 			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
@@ -597,12 +585,6 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		dedicatedHostId = *props.Host.ID
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
-
-	dedicatedHostGroupId := ""
-	if props.HostGroup != nil && props.HostGroup.ID != nil {
-		dedicatedHostGroupId = *props.HostGroup.ID
-	}
-	d.Set("dedicated_host_group_id", dedicatedHostGroupId)
 
 	virtualMachineScaleSetId := ""
 	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
@@ -782,13 +764,6 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		shouldUpdate = true
 		update.Host = &compute.SubResource{
 			ID: utils.String(d.Get("dedicated_host_id").(string)),
-		}
-	}
-
-	if d.HasChange("dedicated_host_group_id") {
-		shouldUpdate = true
-		update.HostGroup = &compute.SubResource{
-			ID: utils.String(d.Get("dedicated_host_group_id").(string)),
 		}
 	}
 
