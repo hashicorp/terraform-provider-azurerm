@@ -14,7 +14,7 @@ Use this data source to access information about an existing ServiceBus Namespac
 
 ```hcl
 data "azurerm_servicebus_subscription" "example" {
-  name                = "examplesubscription'
+  name                = "examplesubscription"
   resource_group_name = "exampleresources"
   namespace_name      = "examplenamespace"
   topic_name          = "exampletopic"
