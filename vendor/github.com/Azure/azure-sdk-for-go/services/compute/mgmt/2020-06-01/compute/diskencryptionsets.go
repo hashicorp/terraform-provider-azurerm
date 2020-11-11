@@ -96,7 +96,7 @@ func (client DiskEncryptionSetsClient) CreateOrUpdatePreparer(ctx context.Contex
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-30"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -175,7 +175,7 @@ func (client DiskEncryptionSetsClient) DeletePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-30"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -257,7 +257,7 @@ func (client DiskEncryptionSetsClient) GetPreparer(ctx context.Context, resource
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-30"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -331,7 +331,7 @@ func (client DiskEncryptionSetsClient) ListPreparer(ctx context.Context) (*http.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-30"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -399,124 +399,6 @@ func (client DiskEncryptionSetsClient) ListComplete(ctx context.Context) (result
 	return
 }
 
-// ListAssociatedResources lists all resources that are encrypted with this disk encryption set.
-// Parameters:
-// resourceGroupName - the name of the resource group.
-// diskEncryptionSetName - the name of the disk encryption set that is being created. The name can't be changed
-// after the disk encryption set is created. Supported characters for the name are a-z, A-Z, 0-9 and _. The
-// maximum name length is 80 characters.
-func (client DiskEncryptionSetsClient) ListAssociatedResources(ctx context.Context, resourceGroupName string, diskEncryptionSetName string) (result ResourceURIListPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DiskEncryptionSetsClient.ListAssociatedResources")
-		defer func() {
-			sc := -1
-			if result.rul.Response.Response != nil {
-				sc = result.rul.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.fn = client.listAssociatedResourcesNextResults
-	req, err := client.ListAssociatedResourcesPreparer(ctx, resourceGroupName, diskEncryptionSetName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "ListAssociatedResources", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListAssociatedResourcesSender(req)
-	if err != nil {
-		result.rul.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "ListAssociatedResources", resp, "Failure sending request")
-		return
-	}
-
-	result.rul, err = client.ListAssociatedResourcesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "ListAssociatedResources", resp, "Failure responding to request")
-	}
-	if result.rul.hasNextLink() && result.rul.IsEmpty() {
-		err = result.NextWithContext(ctx)
-	}
-
-	return
-}
-
-// ListAssociatedResourcesPreparer prepares the ListAssociatedResources request.
-func (client DiskEncryptionSetsClient) ListAssociatedResourcesPreparer(ctx context.Context, resourceGroupName string, diskEncryptionSetName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"diskEncryptionSetName": autorest.Encode("path", diskEncryptionSetName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
-		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2020-06-30"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/diskEncryptionSets/{diskEncryptionSetName}/associatedResources", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListAssociatedResourcesSender sends the ListAssociatedResources request. The method will close the
-// http.Response Body if it receives an error.
-func (client DiskEncryptionSetsClient) ListAssociatedResourcesSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListAssociatedResourcesResponder handles the response to the ListAssociatedResources request. The method always
-// closes the http.Response Body.
-func (client DiskEncryptionSetsClient) ListAssociatedResourcesResponder(resp *http.Response) (result ResourceURIList, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listAssociatedResourcesNextResults retrieves the next set of results, if any.
-func (client DiskEncryptionSetsClient) listAssociatedResourcesNextResults(ctx context.Context, lastResults ResourceURIList) (result ResourceURIList, err error) {
-	req, err := lastResults.resourceURIListPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "listAssociatedResourcesNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListAssociatedResourcesSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "listAssociatedResourcesNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListAssociatedResourcesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "compute.DiskEncryptionSetsClient", "listAssociatedResourcesNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListAssociatedResourcesComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DiskEncryptionSetsClient) ListAssociatedResourcesComplete(ctx context.Context, resourceGroupName string, diskEncryptionSetName string) (result ResourceURIListIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/DiskEncryptionSetsClient.ListAssociatedResources")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListAssociatedResources(ctx, resourceGroupName, diskEncryptionSetName)
-	return
-}
-
 // ListByResourceGroup lists all the disk encryption sets under a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group.
@@ -563,7 +445,7 @@ func (client DiskEncryptionSetsClient) ListByResourceGroupPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-30"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -673,7 +555,7 @@ func (client DiskEncryptionSetsClient) UpdatePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2020-06-30"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

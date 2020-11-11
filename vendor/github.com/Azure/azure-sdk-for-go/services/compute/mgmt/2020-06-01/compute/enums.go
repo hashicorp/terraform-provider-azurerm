@@ -326,24 +326,6 @@ func PossibleDiskEncryptionSetIdentityTypeValues() []DiskEncryptionSetIdentityTy
 	return []DiskEncryptionSetIdentityType{SystemAssigned}
 }
 
-// DiskEncryptionSetType enumerates the values for disk encryption set type.
-type DiskEncryptionSetType string
-
-const (
-	// EncryptionAtRestWithCustomerKey Resource using diskEncryptionSet would be encrypted at rest with
-	// Customer managed key that can be changed and revoked by a customer.
-	EncryptionAtRestWithCustomerKey DiskEncryptionSetType = "EncryptionAtRestWithCustomerKey"
-	// EncryptionAtRestWithPlatformAndCustomerKeys Resource using diskEncryptionSet would be encrypted at rest
-	// with two layers of encryption. One of the keys is Customer managed and the other key is Platform
-	// managed.
-	EncryptionAtRestWithPlatformAndCustomerKeys DiskEncryptionSetType = "EncryptionAtRestWithPlatformAndCustomerKeys"
-)
-
-// PossibleDiskEncryptionSetTypeValues returns an array of possible values for the DiskEncryptionSetType const type.
-func PossibleDiskEncryptionSetTypeValues() []DiskEncryptionSetType {
-	return []DiskEncryptionSetType{EncryptionAtRestWithCustomerKey, EncryptionAtRestWithPlatformAndCustomerKeys}
-}
-
 // DiskState enumerates the values for disk state.
 type DiskState string
 
@@ -394,45 +376,20 @@ func PossibleDiskStorageAccountTypesValues() []DiskStorageAccountTypes {
 type EncryptionType string
 
 const (
-	// EncryptionTypeEncryptionAtRestWithCustomerKey Disk is encrypted at rest with Customer managed key that
-	// can be changed and revoked by a customer.
-	EncryptionTypeEncryptionAtRestWithCustomerKey EncryptionType = "EncryptionAtRestWithCustomerKey"
-	// EncryptionTypeEncryptionAtRestWithPlatformAndCustomerKeys Disk is encrypted at rest with 2 layers of
-	// encryption. One of the keys is Customer managed and the other key is Platform managed.
-	EncryptionTypeEncryptionAtRestWithPlatformAndCustomerKeys EncryptionType = "EncryptionAtRestWithPlatformAndCustomerKeys"
-	// EncryptionTypeEncryptionAtRestWithPlatformKey Disk is encrypted at rest with Platform managed key. It is
-	// the default encryption type. This is not a valid encryption type for disk encryption sets.
-	EncryptionTypeEncryptionAtRestWithPlatformKey EncryptionType = "EncryptionAtRestWithPlatformKey"
+	// EncryptionAtRestWithCustomerKey Disk is encrypted at rest with Customer managed key that can be changed
+	// and revoked by a customer.
+	EncryptionAtRestWithCustomerKey EncryptionType = "EncryptionAtRestWithCustomerKey"
+	// EncryptionAtRestWithPlatformAndCustomerKeys Disk is encrypted at rest with 2 layers of encryption. One
+	// of the keys is Customer managed and the other key is Platform managed.
+	EncryptionAtRestWithPlatformAndCustomerKeys EncryptionType = "EncryptionAtRestWithPlatformAndCustomerKeys"
+	// EncryptionAtRestWithPlatformKey Disk is encrypted at rest with Platform managed key. It is the default
+	// encryption type. This is not a valid encryption type for disk encryption sets.
+	EncryptionAtRestWithPlatformKey EncryptionType = "EncryptionAtRestWithPlatformKey"
 )
 
 // PossibleEncryptionTypeValues returns an array of possible values for the EncryptionType const type.
 func PossibleEncryptionTypeValues() []EncryptionType {
-	return []EncryptionType{EncryptionTypeEncryptionAtRestWithCustomerKey, EncryptionTypeEncryptionAtRestWithPlatformAndCustomerKeys, EncryptionTypeEncryptionAtRestWithPlatformKey}
-}
-
-// ExecutionState enumerates the values for execution state.
-type ExecutionState string
-
-const (
-	// ExecutionStateCanceled ...
-	ExecutionStateCanceled ExecutionState = "Canceled"
-	// ExecutionStateFailed ...
-	ExecutionStateFailed ExecutionState = "Failed"
-	// ExecutionStatePending ...
-	ExecutionStatePending ExecutionState = "Pending"
-	// ExecutionStateRunning ...
-	ExecutionStateRunning ExecutionState = "Running"
-	// ExecutionStateSucceeded ...
-	ExecutionStateSucceeded ExecutionState = "Succeeded"
-	// ExecutionStateTimedOut ...
-	ExecutionStateTimedOut ExecutionState = "TimedOut"
-	// ExecutionStateUnknown ...
-	ExecutionStateUnknown ExecutionState = "Unknown"
-)
-
-// PossibleExecutionStateValues returns an array of possible values for the ExecutionState const type.
-func PossibleExecutionStateValues() []ExecutionState {
-	return []ExecutionState{ExecutionStateCanceled, ExecutionStateFailed, ExecutionStatePending, ExecutionStateRunning, ExecutionStateSucceeded, ExecutionStateTimedOut, ExecutionStateUnknown}
+	return []EncryptionType{EncryptionAtRestWithCustomerKey, EncryptionAtRestWithPlatformAndCustomerKeys, EncryptionAtRestWithPlatformKey}
 }
 
 // HostCaching enumerates the values for host caching.
