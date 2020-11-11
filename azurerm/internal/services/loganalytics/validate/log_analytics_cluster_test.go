@@ -6,47 +6,64 @@ import (
 
 func TestLogAnalyticsClustersName(t *testing.T) {
 	testCases := []struct {
+		Name     string
 		Input    string
 		Expected bool
 	}{
 		{
+			Name:     "Too short",
 			Input:    "inv",
 			Expected: false,
 		},
 		{
-			Input:    "invalid_Cluster_Name",
+			Name:     "Invalid characters underscores",
+			Input:    "invalid_Clusters_Name",
 			Expected: false,
 		},
 		{
-			Input:    "invalid Cluster Name",
+			Name:     "Invalid characters space",
+			Input:    "invalid Clusters Name",
 			Expected: false,
 		},
 		{
-			Input:    "-invalidClusterName",
+			Name:     "Invalid name starts with hyphen",
+			Input:    "-invalidClustersName",
 			Expected: false,
 		},
 		{
-			Input:    "invalidClusterName-",
+			Name:     "Invalid name ends with hyphen",
+			Input:    "invalidClustersName-",
 			Expected: false,
 		},
 		{
-			Input:    "validClusterName",
+			Name:     "Invalid name too long",
+			Input:    "thisIsToLoooooooooooooooooooooooooooooooooooooongForAClusterName",
+			Expected: false,
+		},
+		{
+			Name:     "Valid name",
+			Input:    "validClustersName",
 			Expected: true,
 		},
 		{
-			Input:    "validClusterName-2",
+			Name:     "Valid name with hyphen",
+			Input:    "validClustersName-2",
 			Expected: true,
 		},
 		{
+			Name:     "Valid name max length",
 			Input:    "thisIsTheLooooooooooooooooooooooooongestValidClusterNameThereIs",
 			Expected: true,
 		},
 		{
+			Name:     "Valid name min length",
 			Input:    "vali",
 			Expected: true,
 		},
 	}
 	for _, v := range testCases {
+		t.Logf("[DEBUG] Testing %q..", v.Name)
+
 		_, errors := LogAnalyticsClustersName(v.Input, "name")
 		result := len(errors) == 0
 		if result != v.Expected {
