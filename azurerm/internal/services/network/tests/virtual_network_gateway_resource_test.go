@@ -286,7 +286,7 @@ func TestAccAzureRMVirtualNetworkGateway_expressRoute(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGateway_enablePrivateIpAddress(t *testing.T) {
+func TestAccAzureRMVirtualNetworkGateway_privateIpAddressEnabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -295,29 +295,19 @@ func TestAccAzureRMVirtualNetworkGateway_enablePrivateIpAddress(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualNetworkGateway_enablePrivateIpAddress(data),
+				Config: testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualNetworkGateway_disablePrivateIpAddress(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
-		Steps: []resource.TestStep{
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMVirtualNetworkGateway_disablePrivateIpAddress(data),
+				Config: testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabledUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -1000,7 +990,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, generation)
 }
 
-func testAccAzureRMVirtualNetworkGateway_enablePrivateIpAddress(data acceptance.TestData) string {
+func testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -1041,7 +1031,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   type                      = "Vpn"
   vpn_type                  = "RouteBased"
   sku                       = "VpnGw1"
-  enable_private_ip_address = true
+  private_ip_address_enabled = true
 
   custom_route {
     address_prefixes = [
@@ -1059,7 +1049,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualNetworkGateway_disablePrivateIpAddress(data acceptance.TestData) string {
+func testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
@@ -1100,7 +1090,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   type                      = "Vpn"
   vpn_type                  = "RouteBased"
   sku                       = "VpnGw1"
-  enable_private_ip_address = false
+  private_ip_address_enabled = false
 
   custom_route {
     address_prefixes = [

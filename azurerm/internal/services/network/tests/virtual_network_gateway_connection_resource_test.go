@@ -202,24 +202,14 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
 				),
 			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressDisabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
-		Steps: []resource.TestStep{
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressDisabled(data),
+				Config: testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabledUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -898,7 +888,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressDisabled(data acceptance.TestData) string {
+func testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"

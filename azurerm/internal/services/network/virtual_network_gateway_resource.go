@@ -81,7 +81,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				Computed: true,
 			},
 
-			"enable_private_ip_address": {
+			"private_ip_address_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -445,7 +445,7 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
-		d.Set("enable_private_ip_address", gw.EnablePrivateIPAddress)
+		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
 		d.Set("active_active", gw.ActiveActive)
 		d.Set("generation", string(gw.VpnGatewayGeneration))
 
@@ -507,7 +507,7 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 	gatewayType := network.VirtualNetworkGatewayType(d.Get("type").(string))
 	vpnType := network.VpnType(d.Get("vpn_type").(string))
 	enableBgp := d.Get("enable_bgp").(bool)
-	enablePrivateIpAddress := d.Get("enable_private_ip_address").(bool)
+	enablePrivateIpAddress := d.Get("private_ip_address_enabled").(bool)
 	activeActive := d.Get("active_active").(bool)
 	generation := network.VpnGatewayGeneration(d.Get("generation").(string))
 	customRoute := d.Get("custom_route").([]interface{})

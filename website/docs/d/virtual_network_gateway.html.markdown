@@ -43,7 +43,7 @@ output "virtual_network_gateway_id" {
 
 * `active_active` - Is this an Active-Active Gateway?
 
-* `enable_private_ip_address` - Whether private IP needs to be enabled on this gateway for connections or not.
+* `private_ip_address_enabled` - Whether private IP needs to be enabled on this gateway for connections or not.
 
 * `default_local_network_gateway_id` -  The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the

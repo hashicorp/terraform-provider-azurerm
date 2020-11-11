@@ -48,7 +48,7 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 				Computed: true,
 			},
 
-			"enable_private_ip_address": {
+			"private_ip_address_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -206,15 +206,12 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 
 			"custom_route": {
 				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"address_prefixes": {
 							Type:     schema.TypeSet,
-							Optional: true,
-							ForceNew: true,
+							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -263,7 +260,7 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 
 		d.Set("type", string(gw.GatewayType))
 		d.Set("enable_bgp", gw.EnableBgp)
-		d.Set("enable_private_ip_address", gw.EnablePrivateIPAddress)
+		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
 		d.Set("active_active", gw.ActiveActive)
 		d.Set("generation", string(gw.VpnGatewayGeneration))
 
