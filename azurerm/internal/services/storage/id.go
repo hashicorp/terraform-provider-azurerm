@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 func AccountIDSchema() *schema.Schema {
@@ -23,7 +23,7 @@ func ValidateAccountID(i interface{}, k string) (warnings []string, errors []err
 		return
 	}
 
-	if _, err := parsers.ParseAccountID(v); err != nil {
+	if _, err := parse.ParseAccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a Resource ID: %v", v, err))
 	}
 

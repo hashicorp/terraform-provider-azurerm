@@ -1,4 +1,4 @@
-package parsers
+package parse
 
 import (
 	"testing"
