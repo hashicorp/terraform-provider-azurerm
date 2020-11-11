@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -50,16 +49,14 @@ func dataSourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) erro
 	defer cancel()
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Storage Sync %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Storage Sync %q was not found in Resource Group %q", name, resourceGroup)
 		}
-		return fmt.Errorf("reading Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving Storage Sync %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if id := resp.ID; id != nil {
@@ -67,7 +64,7 @@ func dataSourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("incoming_traffic_policy", props.IncomingTrafficPolicy)

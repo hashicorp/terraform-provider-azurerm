@@ -355,23 +355,29 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 		return warnings, errors
 	}
 
-	// Cannot be empty
+	// The Azure Portal shows the following validation criteria:
+
+	// 1) Cannot be empty
 	if len(v) == 0 {
 		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
+		// Treating this as a special case and returning early to match Azure Portal behaviour.
 		return warnings, errors
 	}
 
-	// First, second, and last characters must be a letter or number with a total length between 3 to 64 characters
-	// NOTE: Restricted name to 30 characters because that is the restriction in Azure Portal even though the API supports 64 characters
-	if !regexp.MustCompile("^[a-zA-Z0-9]{2}[-_a-zA-Z0-9]{0,27}[a-zA-Z0-9]{1}$").MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must be 3 - 30 characters in length", k))
-		errors = append(errors, fmt.Errorf("%q first, second, and last characters must be a letter or number", k))
-		errors = append(errors, fmt.Errorf("%q can only contain letters, numbers, underscores, and hyphens", k))
+	// 2) Must be at least 3 characters:
+	if len(v) < 3 {
+		errors = append(errors, fmt.Errorf("%q must be at least 3 characters: %q", k, v))
 	}
 
-	// No consecutive hyphens
-	if regexp.MustCompile("(--)").MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q must not contain any consecutive hyphens", k))
+	// 3) The value must have a length of at most 30.
+	// NOTE: Restricted name to 30 characters because that is the restriction in Azure Portal even though the API supports 64 characters
+	if len(v) > 30 {
+		errors = append(errors, fmt.Errorf("%q must be no more than 30 characters: %q", k, v))
+	}
+
+	// 4) Only alphanumeric characters, underscores, and hyphens are allowed.
+	if !regexp.MustCompile("^[a-zA-Z0-9_-]*$").MatchString(v) {
+		errors = append(errors, fmt.Errorf("%q can contain only alphanumeric characters, underscores, and hyphens: %q", k, v))
 	}
 
 	return warnings, errors

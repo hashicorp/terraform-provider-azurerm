@@ -11,26 +11,29 @@ import (
 )
 
 var kubernetesOtherTests = map[string]func(t *testing.T){
-	"basicAvailabilitySet":           testAccAzureRMKubernetesCluster_basicAvailabilitySet,
-	"basicVMSS":                      testAccAzureRMKubernetesCluster_basicVMSS,
-	"requiresImport":                 testAccAzureRMKubernetesCluster_requiresImport,
-	"linuxProfile":                   testAccAzureRMKubernetesCluster_linuxProfile,
-	"nodeLabels":                     testAccAzureRMKubernetesCluster_nodeLabels,
-	"nodeTaints":                     testAccAzureRMKubernetesCluster_nodeTaints,
-	"nodeResourceGroup":              testAccAzureRMKubernetesCluster_nodeResourceGroup,
-	"paidSku":                        testAccAzureRMKubernetesCluster_paidSku,
-	"upgradeConfig":                  testAccAzureRMKubernetesCluster_upgrade,
-	"tags":                           testAccAzureRMKubernetesCluster_tags,
-	"windowsProfile":                 testAccAzureRMKubernetesCluster_windowsProfile,
-	"outboundTypeLoadBalancer":       testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
-	"outboundTypeUserDefinedRouting": testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting,
-	"privateClusterOn":               testAccAzureRMKubernetesCluster_privateClusterOn,
-	"privateClusterOff":              testAccAzureRMKubernetesCluster_privateClusterOff,
+	"basicAvailabilitySet":     testAccAzureRMKubernetesCluster_basicAvailabilitySet,
+	"basicVMSS":                testAccAzureRMKubernetesCluster_basicVMSS,
+	"requiresImport":           testAccAzureRMKubernetesCluster_requiresImport,
+	"linuxProfile":             testAccAzureRMKubernetesCluster_linuxProfile,
+	"nodeLabels":               testAccAzureRMKubernetesCluster_nodeLabels,
+	"nodeResourceGroup":        testAccAzureRMKubernetesCluster_nodeResourceGroup,
+	"paidSku":                  testAccAzureRMKubernetesCluster_paidSku,
+	"upgradeConfig":            testAccAzureRMKubernetesCluster_upgrade,
+	"tags":                     testAccAzureRMKubernetesCluster_tags,
+	"windowsProfile":           testAccAzureRMKubernetesCluster_windowsProfile,
+	"outboundTypeLoadBalancer": testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
+	"privateClusterOn":         testAccAzureRMKubernetesCluster_privateClusterOn,
+	"privateClusterOff":        testAccAzureRMKubernetesCluster_privateClusterOff,
 }
 
 func TestAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_basicAvailabilitySet(t)
+}
+
+func TestAccAzureRMKubernetesCluster_sameSize(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_sameSizeVMSSConfig(t)
 }
 
 func testAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
@@ -56,7 +59,38 @@ func testAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.password"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Basic"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func testAccAzureRMKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_sameSize(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
 			},
 			data.ImportStep(),
@@ -92,7 +126,7 @@ func testAccAzureRMKubernetesCluster_basicVMSS(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kube_config.0.password"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config.#", "0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "kube_admin_config_raw", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Basic"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
 			},
 			data.ImportStep(),
@@ -274,31 +308,6 @@ func testAccAzureRMKubernetesCluster_nodeLabels(t *testing.T) {
 					resource.TestCheckNoResourceAttr(data.ResourceName, "default_node_pool.0.node_labels"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesCluster_nodeTaints(t)
-}
-
-func testAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMKubernetesCluster_nodeTaintsConfig(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "default_node_pool.0.node_taints.0", "key=value:PreferNoSchedule"),
-				),
-			},
-			data.ImportStep(),
 		},
 	})
 }
@@ -528,6 +537,39 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count = 1
     type       = "AvailabilitySet"
     vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMKubernetesCluster_sameSize(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                = "default"
+    node_count          = 1
+    enable_auto_scaling = true
+    vm_size             = "Standard_DS2_v2"
+    min_count           = 1
+    max_count           = 1
   }
 
   identity {
@@ -793,39 +835,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, labelsStr)
-}
-
-func testAccAzureRMKubernetesCluster_nodeTaintsConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 2
-    vm_size    = "Standard_DS2_v2"
-    node_taints = [
-      "key=value:PreferNoSchedule"
-    ]
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_nodeResourceGroupConfig(data acceptance.TestData) string {

@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -89,6 +91,8 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 					},
 				},
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -130,6 +134,7 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 		Properties: &operationsmanagement.SolutionProperties{
 			WorkspaceResourceID: utils.String(workspaceID),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -207,7 +212,7 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error setting `plan`: %+v", err)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLogAnalyticsSolutionDelete(d *schema.ResourceData, meta interface{}) error {

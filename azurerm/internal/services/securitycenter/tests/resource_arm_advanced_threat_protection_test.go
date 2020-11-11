@@ -126,6 +126,7 @@ func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string) resourc
 	}
 }
 
+// nolint unused
 func testCheckAzureRMAdvancedThreatProtectionIsFalse(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient

@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 
 // Application the HDInsight cluster application
 type Application struct {
@@ -600,8 +600,8 @@ type ClusterCreateProperties struct {
 	EncryptionInTransitProperties *EncryptionInTransitProperties `json:"encryptionInTransitProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
-	// NetworkSettings - The network settings.
-	NetworkSettings *NetworkSettings `json:"networkSettings,omitempty"`
+	// NetworkProperties - The network properties.
+	NetworkProperties *NetworkProperties `json:"networkProperties,omitempty"`
 }
 
 // ClusterDefinition the cluster definition.
@@ -652,6 +652,8 @@ type ClusterGetProperties struct {
 	OsType OSType `json:"osType,omitempty"`
 	// Tier - The cluster tier. Possible values include: 'Standard', 'Premium'
 	Tier Tier `json:"tier,omitempty"`
+	// ClusterID - The cluster id.
+	ClusterID *string `json:"clusterId,omitempty"`
 	// ClusterDefinition - The cluster definition.
 	ClusterDefinition *ClusterDefinition `json:"clusterDefinition,omitempty"`
 	// KafkaRestProperties - The cluster kafka rest proxy configuration.
@@ -678,8 +680,8 @@ type ClusterGetProperties struct {
 	EncryptionInTransitProperties *EncryptionInTransitProperties `json:"encryptionInTransitProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
-	// NetworkSettings - The network settings.
-	NetworkSettings *NetworkSettings `json:"networkSettings,omitempty"`
+	// NetworkProperties - The network properties.
+	NetworkProperties *NetworkProperties `json:"networkProperties,omitempty"`
 }
 
 // ClusterIdentity identity for the cluster.
@@ -1374,12 +1376,12 @@ type LocalizedName struct {
 	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
-// NetworkSettings the network settings.
-type NetworkSettings struct {
-	// PublicNetworkAccess - Specifies whether public network access is enabled for inbound and outbound, or outbound only. Possible values include: 'InboundAndOutbound', 'OutboundOnly'
-	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
-	// OutboundOnlyPublicNetworkAccessType - The mechanism through which the cluster will have outbound access to the public network. Possible values include: 'PublicLoadBalancer', 'UDR'
-	OutboundOnlyPublicNetworkAccessType OutboundOnlyPublicNetworkAccessType `json:"outboundOnlyPublicNetworkAccessType,omitempty"`
+// NetworkProperties the network properties.
+type NetworkProperties struct {
+	// ResourceProviderConnection - The direction for the resource provider connection. Possible values include: 'Inbound', 'Outbound'
+	ResourceProviderConnection ResourceProviderConnection `json:"resourceProviderConnection,omitempty"`
+	// PrivateLink - Indicates whether or not private link is enabled. Possible values include: 'Disabled', 'Enabled'
+	PrivateLink PrivateLink `json:"privateLink,omitempty"`
 }
 
 // Operation the HDInsight REST API operation.

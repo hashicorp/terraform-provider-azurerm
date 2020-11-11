@@ -73,6 +73,48 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnostics(t *testing
 	})
 }
 
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnosticsMananged(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				// Enabled
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnosticsManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				// Removed
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnosticsDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				// Enabled
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnosticsManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherComputerNamePrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
@@ -1008,6 +1050,56 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
+}
+`, template, data.RandomString)
+}
+
+func testAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnosticsManaged(data acceptance.TestData) string {
+	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  boot_diagnostics {}
 }
 `, template, data.RandomString)
 }
