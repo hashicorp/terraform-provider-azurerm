@@ -94,6 +94,7 @@ func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
 	})
 }
 
+// Internet availability, cluster size, identity sources, vcenter password or nsxt password cannot be updated at the same time
 func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
 	resource.Test(t, resource.TestCase{
@@ -124,6 +125,48 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 			data.ImportStep("nsxt_password", "vcenter_password"),
 			{
 				Config: testAccAzureRMavsPrivateCloud_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep("nsxt_password", "vcenter_password"),
+			{
+				Config: testAccAzureRMavsPrivateCloud_update2(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep("nsxt_password", "vcenter_password"),
+			{
+				Config: testAccAzureRMavsPrivateCloud_update3(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
@@ -284,11 +327,61 @@ resource "azurerm_avs_private_cloud" "test" {
     cluster_size = 4
   }
   network_block      = "192.168.48.0/22"
-  internet_connected = true
+  internet_connected = false
   nsxt_password      = "QazWsx13$Edc"
   vcenter_password   = "QazWsx13$Edc"
   tags = {
     ENV = "Stage"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMavsPrivateCloud_update2(data acceptance.TestData) string {
+	template := testAccAzureRMavsPrivateCloud_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_avs_private_cloud" "test" {
+  name                = "acctest-apc-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "AV36"
+
+  management_cluster {
+    cluster_size = 4
+  }
+  network_block      = "192.168.48.0/22"
+  internet_connected = true
+  nsxt_password      = "QazWsx13$Edc"
+  vcenter_password   = "QazWsx13$Edc"
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMavsPrivateCloud_update3(data acceptance.TestData) string {
+	template := testAccAzureRMavsPrivateCloud_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_avs_private_cloud" "test" {
+  name                = "acctest-apc-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "AV36"
+
+  management_cluster {
+    cluster_size = 3
+  }
+  network_block      = "192.168.48.0/22"
+  internet_connected = true
+  nsxt_password      = "QazWsx13$Edc"
+  vcenter_password   = "QazWsx13$Edc"
+  tags = {
+    ENV = "Test"
   }
 }
 `, template, data.RandomInteger)

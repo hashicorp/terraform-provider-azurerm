@@ -31,10 +31,10 @@ func resourceArmAvsPrivateCloud() *schema.Resource {
 		Delete: resourceArmAvsPrivateCloudDelete,
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(240 * time.Minute),
+			Create: schema.DefaultTimeout(6 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(240 * time.Minute),
-			Delete: schema.DefaultTimeout(240 * time.Minute),
+			Update: schema.DefaultTimeout(6 * time.Hour),
+			Delete: schema.DefaultTimeout(3 * time.Hour),
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
