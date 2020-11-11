@@ -93,7 +93,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("true"),
-				check.That(data.ResourceName).Key("ipv4_firewall_rule").HasValue("0"),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -102,7 +102,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("false"),
-				check.That(data.ResourceName).Key("ipv4_firewall_rule").HasValue("1"),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -111,7 +111,7 @@ func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 			Check: resource.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("true"),
-				check.That(data.ResourceName).Key("ipv4_firewall_rule").HasValue("2"),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -180,7 +180,7 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 				check.That(data.ResourceName).Key("backup_blob_container_uri").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("backup_blob_container_uri"),
 	})
 }
 
