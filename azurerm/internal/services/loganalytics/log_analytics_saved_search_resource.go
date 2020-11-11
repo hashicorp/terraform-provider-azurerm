@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -94,6 +95,8 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 					),
 				},
 			},
+
+			"tags": tags.ForceNewSchema(),
 		},
 	}
 }
@@ -130,6 +133,7 @@ func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta inter
 			DisplayName:   utils.String(d.Get("display_name").(string)),
 			Query:         utils.String(d.Get("query").(string)),
 			FunctionAlias: utils.String(d.Get("function_alias").(string)),
+			Tags:          expandArmSavedSearchTag(d.Get("tags").(map[string]interface{})), // expand tags because it's defined as object set in service
 		},
 	}
 
@@ -194,6 +198,11 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 			functionParams = strings.Split(*props.FunctionParameters, ", ")
 		}
 		d.Set("function_parameters", functionParams)
+
+		// flatten tags because it's defined as object set in service
+		if err := d.Set("tags", flattenArmSavedSearchTag(props.Tags)); err != nil {
+			return fmt.Errorf("setting `tag`: %+v", err)
+		}
 	}
 
 	return nil
@@ -213,4 +222,36 @@ func resourceArmLogAnalyticsSavedSearchDelete(d *schema.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func expandArmSavedSearchTag(input map[string]interface{}) *[]operationalinsights.Tag {
+	results := make([]operationalinsights.Tag, 0)
+	for key, value := range input {
+		result := operationalinsights.Tag{
+			Name:  utils.String(key),
+			Value: utils.String(value.(string)),
+		}
+		results = append(results, result)
+	}
+	return &results
+}
+
+func flattenArmSavedSearchTag(input *[]operationalinsights.Tag) map[string]interface{} {
+	results := make(map[string]interface{})
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		var key string
+		if item.Name != nil {
+			key = *item.Name
+		}
+		var value string
+		if item.Value != nil {
+			value = *item.Value
+		}
+		results[key] = value
+	}
+	return results
 }

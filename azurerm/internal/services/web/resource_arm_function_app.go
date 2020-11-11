@@ -180,7 +180,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				Sensitive:     true,
-				Deprecated:    "Deprecated in favor of `storage_account_name` and `storage_account_access_key`",
+				Deprecated:    "Deprecated in favour of `storage_account_name` and `storage_account_access_key`",
 				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
 			},
 
