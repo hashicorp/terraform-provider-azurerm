@@ -319,9 +319,11 @@ func expandApiManagementApiDiagnosticHTTPMessageDiagnostic(input []interface{}) 
 	v := input[0].(map[string]interface{})
 
 	result := &apimanagement.HTTPMessageDiagnostic{
-		Body: &apimanagement.BodyDiagnosticSettings{
-			Bytes: utils.Int32(v["body_bytes"].(int32)),
-		},
+		Body: &apimanagement.BodyDiagnosticSettings{},
+	}
+
+	if bodyBytes, ok := v["body_bytes"]; ok {
+		result.Body.Bytes = utils.Int32(bodyBytes.(int32)),
 	}
 	if headersSetRaw, ok := v["headers_to_log"]; ok {
 		headersSet := headersSetRaw.(*schema.Set).List()
