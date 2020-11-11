@@ -1,6 +1,7 @@
 package analysisservices_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -10,232 +11,205 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AnalysisServicesServerResource struct {
+}
+
 func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAnalysisServicesServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := AnalysisServicesServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAnalysisServicesServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAnalysisServicesServer_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAnalysisServicesServer_withTagsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
-				),
-			},
-			data.ImportStep(),
+	r := AnalysisServicesServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.label").HasValue("test"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withTagsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.label").HasValue("test1"),
+				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "All"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "querypool_connection_mode", "All"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "ReadOnly"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "querypool_connection_mode", "ReadOnly"),
-				),
-			},
-			data.ImportStep(),
+	r := AnalysisServicesServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.querypoolConnectionMode(data, "All"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("querypool_connection_mode").HasValue("All"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.querypoolConnectionMode(data, "ReadOnly"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("querypool_connection_mode").HasValue("ReadOnly"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-	config1 := testAccAzureRMAnalysisServicesServer_firewallSettings1(data, true)
-
-	config2 := testAccAzureRMAnalysisServicesServer_firewallSettings2(data, false)
-
-	config3 := testAccAzureRMAnalysisServicesServer_firewallSettings3(data, true)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config1,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_power_bi_service", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "0"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: config2,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_power_bi_service", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "1"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: config3,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enable_power_bi_service", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "2"),
-				),
-			},
-			data.ImportStep(),
+	r := AnalysisServicesServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.firewallSettings1(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("true"),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule").HasValue("0"),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettings2(data, false),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("false"),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettings3(data, true),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_power_bi_service").HasValue("true"),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 // ARM_ACC_EMAIL1 and ARM_ACC_EMAIL2 must be set and existing emails in the tenant's AD to work properly
 func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+
 	const ArmAccAdminEmail1 = "ARM_ACCTEST_ADMIN_EMAIL1"
 	const ArmAccAdminEmail2 = "ARM_ACCTEST_ADMIN_EMAIL2"
+
 	if os.Getenv(ArmAccAdminEmail1) == "" || os.Getenv(ArmAccAdminEmail2) == "" {
 		t.Skip(fmt.Sprintf("Acceptance test skipped unless env '%s' and '%s' set", ArmAccAdminEmail1, ArmAccAdminEmail2))
 		return
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	email1 := os.Getenv(ArmAccAdminEmail1)
 	email2 := os.Getenv(ArmAccAdminEmail2)
 	preAdminUsers := []string{email1}
 	postAdminUsers := []string{email1, email2}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAnalysisServicesServer_adminUsers(data, preAdminUsers),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAnalysisServicesServer_adminUsers(data, postAdminUsers),
-			},
-			data.ImportStep(),
+	r := AnalysisServicesServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.adminUsers(data, preAdminUsers),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.adminUsers(data, postAdminUsers),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAnalysisServicesServer_serverFullName(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "server_full_name"),
-				),
-			},
-			data.ImportStep(),
+	r := AnalysisServicesServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.serverFullName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("server_full_name").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "backup_blob_container_uri"),
-				),
-			},
+	r := AnalysisServicesServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.backupBlobContainerUri(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_blob_container_uri").Exists(),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAnalysisServicesServer_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
-					testSuspendAzureRMAnalysisServicesServer(data.ResourceName),
-					testCheckAzureRMAnalysisServicesServerState(data.ResourceName, analysisservices.StatePaused),
-				),
-			},
-			{
-				Config: testAccAzureRMAnalysisServicesServer_scale(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "sku", "S1"),
-					testCheckAzureRMAnalysisServicesServerState(data.ResourceName, analysisservices.StatePaused),
-				),
-			},
+	r := AnalysisServicesServerResource{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				r.suspend(data.ResourceName),
+				r.checkState(data.ResourceName, analysisservices.StatePaused),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.scale(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("S1"),
+				r.checkState(data.ResourceName, analysisservices.StatePaused),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testAccAzureRMAnalysisServicesServer_basic(data acceptance.TestData) string {
+func (t AnalysisServicesServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -255,7 +229,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_withTags(data acceptance.TestData) string {
+func (t AnalysisServicesServerResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -279,7 +253,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_withTagsUpdate(data acceptance.TestData) string {
+func (t AnalysisServicesServerResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -304,7 +278,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data acceptance.TestData, connectionMode string) string {
+func (t AnalysisServicesServerResource) querypoolConnectionMode(data acceptance.TestData, connectionMode string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -325,7 +299,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, connectionMode)
 }
 
-func testAccAzureRMAnalysisServicesServer_firewallSettings1(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettings1(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -346,7 +320,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func testAccAzureRMAnalysisServicesServer_firewallSettings2(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettings2(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -373,7 +347,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func testAccAzureRMAnalysisServicesServer_firewallSettings3(data acceptance.TestData, enablePowerBIService bool) string {
+func (t AnalysisServicesServerResource) firewallSettings3(data acceptance.TestData, enablePowerBIService bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -406,7 +380,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enablePowerBIService)
 }
 
-func testAccAzureRMAnalysisServicesServer_adminUsers(data acceptance.TestData, adminUsers []string) string {
+func (t AnalysisServicesServerResource) adminUsers(data acceptance.TestData, adminUsers []string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -427,7 +401,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, strings.Join(adminUsers, "\", \""))
 }
 
-func testAccAzureRMAnalysisServicesServer_serverFullName(data acceptance.TestData) string {
+func (t AnalysisServicesServerResource) serverFullName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -447,7 +421,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(data acceptance.TestData) string {
+func (t AnalysisServicesServerResource) backupBlobContainerUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -502,7 +476,7 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func testAccAzureRMAnalysisServicesServer_scale(data acceptance.TestData) string {
+func (t AnalysisServicesServerResource) scale(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -522,64 +496,21 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_analysis_services_server" {
-			continue
-		}
-
-		id, err := parse.AnalysisServicesServerID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return nil
+func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AnalysisServicesServerID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.AnalysisServicesServerID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Analysis Services Server %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on analysisServicesServerClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.AnalysisServices.ServerClient.GetDetails(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.ServerProperties != nil), nil
 }
 
-func testSuspendAzureRMAnalysisServicesServer(resourceName string) resource.TestCheckFunc {
+func (t AnalysisServicesServerResource) suspend(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -608,7 +539,7 @@ func testSuspendAzureRMAnalysisServicesServer(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMAnalysisServicesServerState(resourceName string, state analysisservices.State) resource.TestCheckFunc {
+func (t AnalysisServicesServerResource) checkState(resourceName string, state analysisservices.State) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
