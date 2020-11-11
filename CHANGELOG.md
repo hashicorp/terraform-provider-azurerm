@@ -2,7 +2,7 @@
 
 UPGRADE NOTES:
 
-* `azurerm_network_connection_monitor` - has been updated to onlt work with v2 of the resource as the service team is deprecating v1 - all v1 properties have been deprecated and will be removed in version `3.0` of the provider and v2 propeties added. [GH-8640]
+* `azurerm_network_connection_monitor` - has been updated to work with v2 of the resource as the service team is deprecating v1 - all v1 properties have been deprecated and will be removed in version `3.0` of the provider and v2 propeties added. [GH-8640]
 
 FEATURES:
 
@@ -23,7 +23,7 @@ IMPROVEMENTS:
 * dependencies: upgrading to `v0.14.0` of `github.com/tombuildsstuff/giovanni` [GH-9189]
 * storage: upgrading the Data Plane API's to API Version `2019-12-12` [GH-9192]
 * `azurerm_app_service` support `v5.0` for the `dotnet_framework_version` [GH-9251]
-* `azurerm_cosmosdb_account` - support for `key_vault_key_id` allowing use of Customer Managed Keys [GH-8919]
+* `azurerm_cosmosdb_account` - support for the `key_vault_key_id` property allowing use of Customer Managed Keys [GH-8919]
 * `azurerm_linux_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_linux_virtual_machine_scale_set` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_log_analytics_workspace` - support for the `internet_ingestion_enabled` and `internet_query_enabled` properties [GH-9033]
