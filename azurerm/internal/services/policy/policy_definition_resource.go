@@ -312,7 +312,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr, err := flattenParameterDefintionsValueToString(props.Parameters); err == nil {
+		if parametersStr, err := flattenParameterDefinitionsValueToString(props.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
 		} else {
 			return fmt.Errorf("flattening policy definition parameters %+v", err)
@@ -356,7 +356,7 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
 
