@@ -176,11 +176,14 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	// Terraform is generating the md5 hash in hex and Azure generates the MD5 hash and then base64 encodes it.
-	// convertHexToBase64Encoding function converts the md5 hash hex to md5 base64 encoded.
-	contentMD5, err := convertHexToBase64Encoding(d.Get("content_md5").(string))
-	if err != nil {
-		return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+	contentMD5Raw := d.Get("content_md5").(string)
+	contentMD5 := ""
+	if contentMD5Raw != "" {
+		// Azure uses a Base64 encoded representation of the standard MD5 sum of the file
+		contentMD5, err = convertHexToBase64Encoding(d.Get("content_md5").(string))
+		if err != nil {
+			return fmt.Errorf("failed to base64 encode `content_md5` value: %s", err)
+		}
 	}
 
 	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
@@ -248,7 +251,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("content_type") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
-
+		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload or it will be zeroed on the blob.
 		contentMD5 := d.Get("content_md5").(string)
 		if contentMD5 != "" {
 			data, err := convertHexToBase64Encoding(contentMD5)

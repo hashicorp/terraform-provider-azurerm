@@ -114,7 +114,7 @@ func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	if sbu.ContentMD5 != "" {
-		return fmt.Errorf("`content_md5` cannot be specified if no source is specified")
+		return fmt.Errorf("`content_md5` cannot be specified if for empty blobs")
 	}
 
 	input := blobs.PutBlockBlobInput{
@@ -367,6 +367,7 @@ func convertHexToBase64Encoding(str string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("%s", err)
 	}
+
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
