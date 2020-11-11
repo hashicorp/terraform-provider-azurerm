@@ -54,7 +54,7 @@ output "virtual_network_gateway_connection_id" {
     network gateway when a VNet-to-VNet connection (i.e. when `type`
     is `Vnet2Vnet`). 
 
-* `use_local_azure_ip_address` - (Optional) Use private local Azure IP for the connection. Changing this forces a new resource to be created.
+* `use_local_azure_ip_address` - Use private local Azure IP for the connection. 
 
 * `local_network_gateway_id` - The ID of the local network gateway
     when a Site-to-Site connection (i.e. when `type` is `IPsec`).
