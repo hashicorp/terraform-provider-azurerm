@@ -109,7 +109,6 @@ func resourceArmServiceEndpointPolicyDefinitionCreateUpdate(d *schema.ResourceDa
 		}
 	}
 
-	// TODO: d.Get() && Create
 	param := network.ServiceEndpointPolicyDefinition{
 		ServiceEndpointPolicyDefinitionPropertiesFormat: &network.ServiceEndpointPolicyDefinitionPropertiesFormat{
 			Description:      utils.String(d.Get("description").(string)),
