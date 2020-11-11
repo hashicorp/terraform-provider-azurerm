@@ -411,6 +411,9 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
 					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
 					WinRM:                  winRmListeners,
+					PatchSettings: &compute.PatchSettings{
+						PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+					},
 				},
 				Secrets: secrets,
 			},
@@ -485,12 +488,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 		params.BillingProfile = &compute.BillingProfile{
 			MaxPrice: utils.Float(v),
-		}
-	}
-
-	if v, ok := d.GetOk("patch_mode"); ok {
-		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.InGuestPatchMode(v.(string)),
 		}
 	}
 
@@ -795,6 +792,22 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		}
 
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
+	if d.HasChange("patch_mode") {
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+		}
 	}
 
 	if d.HasChange("identity") {
