@@ -48,14 +48,14 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.ValidateVirtualHubID,
 			},
 
 			"remote_virtual_network_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VirtualNetworkID,
 			},
 
 			// TODO 3.0: remove this property
