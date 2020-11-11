@@ -822,22 +822,22 @@ resource "azurerm_api_management" "test" {
   }
 
   security {
-    enable_backend_tls11                         = true
-    enable_backend_ssl30                         = true
-    enable_backend_tls10                         = true
-    enable_frontend_ssl30                        = true
-    enable_frontend_tls10                        = true
-    enable_frontend_tls11                        = true
-    enable_tlsEcdheEcdsaWithAes128CbcSha_ciphers = true
-    enable_tlsEcdheEcdsaWithAes256CbcSha_ciphers = true
-    enable_tlsEcdheRsaWithAes128CbcSha_ciphers   = true
-    enable_tlsEcdheRsaWithAes256CbcSha_ciphers   = true
-    enable_tlsRsaWithAes128CbcSha256_ciphers     = true
-    enable_tlsRsaWithAes128CbcSha_ciphers        = true
-    enable_tlsRsaWithAes128GcmSha256_ciphers     = true
-    enable_tlsRsaWithAes256CbcSha256_ciphers     = true
-    enable_tlsRsaWithAes256CbcSha_ciphers        = true
-    enable_triple_des_ciphers                    = true
+    enable_backend_tls11                               = true
+    enable_backend_ssl30                               = true
+    enable_backend_tls10                               = true
+    enable_frontend_ssl30                              = true
+    enable_frontend_tls10                              = true
+    enable_frontend_tls11                              = true
+    enable_tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers = true
+    enable_tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers = true
+    enable_tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers   = true
+    enable_tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers   = true
+    enable_tls_rsa_with_aes128_cbc_sha256_ciphers      = true
+    enable_tls_rsa_with_aes128_cbc_sha_ciphers         = true
+    enable_tls_rsa_with_aes128Gcm_sha256_ciphers       = true
+    enable_tls_rsa_with_aes256_cbc_sha256_ciphers      = true
+    enable_tls_rsa_with_aes256_cbc_sha_ciphers         = true
+    enable_triple_des_ciphers                          = true
   }
 
   hostname_configuration {
