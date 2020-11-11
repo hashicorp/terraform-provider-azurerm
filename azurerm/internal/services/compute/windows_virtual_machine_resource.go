@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-30/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -202,17 +202,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: validation.FloatAtLeast(-1.0),
-			},
-
-			"patch_mode": {
-				Type: schema.TypeString,
-				Optional: true,
-				Default: string(compute.AutomaticByOS),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.AutomaticByOS),
-					string(compute.AutomaticByPlatform),
-					string(compute.Manual),
-				}, false),
 			},
 
 			"plan": planSchema(),
@@ -497,12 +486,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if v, ok := d.GetOk("patch_mode"); ok {
-		params.VirtualMachineProperties.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.InGuestPatchMode(v.(string)),
-		}
-	}
-
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		params.ProximityPlacementGroup = &compute.SubResource{
 			ID: utils.String(v.(string)),
@@ -654,10 +637,6 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
 
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
-
-			if patchSettings := config.PatchSettings; patchSettings != nil {
-				d.Set("patch_mode", patchSettings.PatchMode)
-			}
 
 			d.Set("timezone", config.TimeZone)
 
@@ -1063,7 +1042,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			update := compute.DiskUpdate{
 				DiskUpdateProperties: &compute.DiskUpdateProperties{
 					Encryption: &compute.Encryption{
-						Type:                compute.EncryptionTypeEncryptionAtRestWithCustomerKey,
+						Type:                compute.EncryptionAtRestWithCustomerKey,
 						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
 					},
 				},
@@ -1156,7 +1135,7 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	log.Printf("[DEBUG] Powered Off Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	log.Printf("[DEBUG] Deleting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
-	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(false))
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
