@@ -123,7 +123,9 @@ The following arguments are supported:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created.
 
-* `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Changing this forces a new resource to be created.
+* `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on.
+
+* `dedicated_host_group_id` - (Optional) The ID of a Dedicated Host Group where this machine should be run on.
 
 * `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created.
 
@@ -132,6 +134,8 @@ The following arguments are supported:
 * `eviction_policy` - (Optional) Specifies what should happen when the Virtual Machine is evicted for price reasons when using a Spot instance. At this time the only supported value is `Deallocate`. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
+
+* `extensions_time_budget` - (Optional) Specifies the duration allocated for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to 90 minutes (`PT1H30M`).
 
 * `identity` - (Optional) An `identity` block as defined below.
 

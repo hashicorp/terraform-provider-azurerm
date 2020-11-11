@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -137,12 +138,17 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true, // TODO: investigate, looks like the Portal allows migration
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
 				// TODO: raise a GH issue for the broken API
 				// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/TOM-MANUAL/providers/Microsoft.Compute/hostGroups/tom-hostgroup/hosts/tom-manual-host
+			},
+
+			"dedicated_host_group_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: computeValidate.DedicatedHostGroupID,
 			},
 
 			"disable_password_authentication": {
@@ -166,6 +172,13 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
 					string(compute.Deallocate),
 				}, false),
+			},
+
+			"extensions_time_budget": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT1H30M",
+				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			"identity": virtualMachineIdentitySchema(),
@@ -389,6 +402,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
+			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -415,6 +429,12 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
 		params.Host = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+		params.HostGroup = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
@@ -553,6 +573,12 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("size", string(profile.VMSize))
 	}
 
+	extensionsTimeBudget := "PT1H30M"
+	if props.ExtensionsTimeBudget != nil {
+		extensionsTimeBudget = *props.ExtensionsTimeBudget
+	}
+	d.Set("extensions_time_budget", extensionsTimeBudget)
+
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
 	if props.BillingProfile != nil && props.BillingProfile.MaxPrice != nil {
@@ -571,6 +597,12 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		dedicatedHostId = *props.Host.ID
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
+
+	dedicatedHostGroupId := ""
+	if props.HostGroup != nil && props.HostGroup.ID != nil {
+		dedicatedHostGroupId = *props.HostGroup.ID
+	}
+	d.Set("dedicated_host_group_id", dedicatedHostGroupId)
 
 	virtualMachineScaleSetId := ""
 	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
@@ -739,6 +771,25 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
+	}
+
+	if d.HasChange("extensions_time_budget") {
+		shouldUpdate = true
+		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
+	}
+
+	if d.HasChange("dedicated_host_id") {
+		shouldUpdate = true
+		update.Host = &compute.SubResource{
+			ID: utils.String(d.Get("dedicated_host_id").(string)),
+		}
+	}
+
+	if d.HasChange("dedicated_host_group_id") {
+		shouldUpdate = true
+		update.HostGroup = &compute.SubResource{
+			ID: utils.String(d.Get("dedicated_host_group_id").(string)),
+		}
 	}
 
 	if d.HasChange("max_bid_price") {

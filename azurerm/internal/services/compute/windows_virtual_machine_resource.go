@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -139,12 +140,17 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true, // TODO: investigate, looks like the Portal allows migration
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
 				// TODO: raise a GH issue for the broken API
 				// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/TOM-MANUAL/providers/Microsoft.Compute/hostGroups/tom-hostgroup/hosts/tom-manual-host
+			},
+
+			"dedicated_host_group_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: computeValidate.DedicatedHostGroupID,
 			},
 
 			"enable_automatic_updates": {
@@ -168,6 +174,13 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
 					string(compute.Deallocate),
 				}, false),
+			},
+
+			"extensions_time_budget": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT1H30M",
+				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			"identity": virtualMachineIdentitySchema(),
@@ -419,6 +432,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
+			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -443,6 +457,12 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	if v, ok := d.GetOk("dedicated_host_id"); ok {
 		params.Host = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+		params.HostGroup = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
@@ -584,6 +604,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	}
 	d.Set("license_type", props.LicenseType)
 
+	extensionsTimeBudget := "PT1H30M"
+	if props.ExtensionsTimeBudget != nil {
+		extensionsTimeBudget = *props.ExtensionsTimeBudget
+	}
+	d.Set("extensions_time_budget", extensionsTimeBudget)
+
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
 	if props.BillingProfile != nil && props.BillingProfile.MaxPrice != nil {
@@ -602,6 +628,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		dedicatedHostId = *props.Host.ID
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
+
+	dedicatedHostGroupId := ""
+	if props.HostGroup != nil && props.HostGroup.ID != nil {
+		dedicatedHostGroupId = *props.HostGroup.ID
+	}
+	d.Set("dedicated_host_group_id", dedicatedHostGroupId)
 
 	virtualMachineScaleSetId := ""
 	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
@@ -784,6 +816,34 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
+	}
+
+	if d.HasChange("extensions_time_budget") {
+		shouldUpdate = true
+		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
+	}
+
+	if d.HasChange("dedicated_host_id") {
+		shouldUpdate = true
+		shouldDeallocate = true
+		if v, ok := d.GetOk("dedicated_host_id"); ok {
+			update.Host = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.Host = &compute.SubResource{}
+		}
+	}
+
+	if d.HasChange("dedicated_host_group_id") {
+		shouldUpdate = true
+		if v, ok := d.GetOk("dedicated_host_group_id"); ok {
+			update.HostGroup = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.HostGroup = &compute.SubResource{}
+		}
 	}
 
 	if d.HasChange("max_bid_price") {
