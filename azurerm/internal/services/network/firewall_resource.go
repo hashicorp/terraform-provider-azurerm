@@ -213,10 +213,8 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Zones: zones,
 	}
 
-	s := d.Get("sku").([]interface{})
-	if len(s) == 1 {
-		sku := expandArmFirewallSku(s)
-		parameters.Sku = sku
+	if s := d.Get("sku").([]interface{}); len(s) == 1 {
+		parameters.Sku = expandArmFirewallSku(s)
 	}
 
 	m := d.Get("management_ip_configuration").([]interface{})
