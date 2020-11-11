@@ -982,7 +982,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  patch_mode               = "AutomaticByOS"
+  patch_mode = "AutomaticByOS"
 }
 `, template)
 }
@@ -1016,7 +1016,7 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  patch_mode               = "AutomaticByPlatform"
+  patch_mode = "AutomaticByPlatform"
 }
 `, template)
 }
