@@ -14,7 +14,7 @@ Manages a Service Endpoint Policy.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acceptanceTestResourceGroup1"
+  name     = "example-resources"
   location = "West US"
 }
 

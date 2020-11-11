@@ -79,7 +79,7 @@ func resourceArmSubnet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"service_endpoint_policies": {
+			"service_endpoint_policy_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				MinItems: 1,
@@ -227,7 +227,7 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
-	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policies").(*schema.Set).List()
+	serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*schema.Set).List()
 	properties.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 
 	delegationsRaw := d.Get("delegation").([]interface{})
@@ -319,8 +319,8 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		props.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 	}
 
-	if d.HasChange("service_endpoint_policies") {
-		serviceEndpointPoliciesRaw := d.Get("service_endpoint_policies").(*schema.Set).List()
+	if d.HasChange("service_endpoint_policy_ids") {
+		serviceEndpointPoliciesRaw := d.Get("service_endpoint_policy_ids").(*schema.Set).List()
 		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 	}
 
@@ -394,8 +394,8 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
-		if err := d.Set("service_endpoint_policies", serviceEndpointPolicies); err != nil {
-			return fmt.Errorf("Error setting `service_endpoint_policies`: %+v", err)
+		if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
+			return fmt.Errorf("Error setting `service_endpoint_policy_ids`: %+v", err)
 		}
 	}
 
