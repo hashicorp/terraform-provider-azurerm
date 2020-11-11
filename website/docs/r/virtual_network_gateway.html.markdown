@@ -234,7 +234,7 @@ The `bgp_settings` block supports:
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
 
-An `custom_route` block exports the following:
+A `custom_route` block supports the following:
 
 * `address_prefixes` - (Optional) A list of address blocks reserved for this virtual network in CIDR notation. Changing this forces a new resource to be created.
 
