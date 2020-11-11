@@ -33,6 +33,15 @@ var apimFrontendProtocolTls10 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Se
 var apimFrontendProtocolTls11 = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"
 var apimTripleDesCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"
 var apimHttp2Protocol = "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2"
+var apimTlsEcdheEcdsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA"
+var apimTlsEcdheEcdsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA"
+var apimTlsEcdheRsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"
+var apimTlsEcdheRsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
+var apimTlsRsaWithAes128GcmSha256Ciphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256"
+var apimTlsRsaWithAes256CbcSha256Ciphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256"
+var apimTlsRsaWithAes128CbcSha256Ciphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256"
+var apimTlsRsaWithAes256CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA"
+var apimTlsRsaWithAes128CbcShaCiphers = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
 
 func resourceArmApiManagementService() *schema.Resource {
 	return &schema.Resource{
@@ -290,6 +299,52 @@ func resourceArmApiManagementService() *schema.Resource {
 						},
 
 						"enable_triple_des_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"enable_tlsEcdheEcdsaWithAes256CbcSha_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"enable_tlsEcdheEcdsaWithAes128CbcSha_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"enable_tlsEcdheRsaWithAes256CbcSha_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"enable_tlsEcdheRsaWithAes128CbcSha_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"enable_tlsRsaWithAes128GcmSha256_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"enable_tlsRsaWithAes256CbcSha256_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"enable_tlsRsaWithAes128CbcSha256_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"enable_tlsRsaWithAes256CbcSha_ciphers": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"enable_tlsRsaWithAes128CbcSha_ciphers": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -1130,6 +1185,15 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 	frontendProtocolTls10 := false
 	frontendProtocolTls11 := false
 	tripleDesCiphers := false
+	tlsEcdheEcdsaWithAes256CbcShaCiphers := false
+	tlsEcdheEcdsaWithAes128CbcShaCiphers := false
+	tlsEcdheRsaWithAes256CbcShaCiphers := false
+	tlsEcdheRsaWithAes128CbcShaCiphers := false
+	tlsRsaWithAes128GcmSha256Ciphers := false
+	tlsRsaWithAes256CbcSha256Ciphers := false
+	tlsRsaWithAes128CbcSha256Ciphers := false
+	tlsRsaWithAes256CbcShaCiphers := false
+	tlsRsaWithAes128CbcShaCiphers := false
 
 	if vs := d.Get("security").([]interface{}); len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
@@ -1140,16 +1204,35 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
 		tripleDesCiphers = v["enable_triple_des_ciphers"].(bool)
+
+		tlsEcdheEcdsaWithAes256CbcShaCiphers = v["enable_tlsEcdheEcdsaWithAes256CbcSha_ciphers"].(bool)
+		tlsEcdheEcdsaWithAes128CbcShaCiphers = v["enable_tlsEcdheEcdsaWithAes128CbcSha_ciphers"].(bool)
+		tlsEcdheRsaWithAes256CbcShaCiphers = v["enable_tlsEcdheRsaWithAes256CbcSha_ciphers"].(bool)
+		tlsEcdheRsaWithAes128CbcShaCiphers = v["enable_tlsEcdheRsaWithAes128CbcSha_ciphers"].(bool)
+		tlsRsaWithAes128GcmSha256Ciphers = v["enable_tlsRsaWithAes128GcmSha256_ciphers"].(bool)
+		tlsRsaWithAes256CbcSha256Ciphers = v["enable_tlsRsaWithAes256CbcSha256_ciphers"].(bool)
+		tlsRsaWithAes128CbcSha256Ciphers = v["enable_tlsRsaWithAes128CbcSha256_ciphers"].(bool)
+		tlsRsaWithAes256CbcShaCiphers = v["enable_tlsRsaWithAes256CbcSha_ciphers"].(bool)
+		tlsRsaWithAes128CbcShaCiphers = v["enable_tlsRsaWithAes128CbcSha_ciphers"].(bool)
 	}
 
 	customProperties := map[string]*string{
-		apimBackendProtocolSsl3:   utils.String(strconv.FormatBool(backendProtocolSsl3)),
-		apimBackendProtocolTls10:  utils.String(strconv.FormatBool(backendProtocolTls10)),
-		apimBackendProtocolTls11:  utils.String(strconv.FormatBool(backendProtocolTls11)),
-		apimFrontendProtocolSsl3:  utils.String(strconv.FormatBool(frontendProtocolSsl3)),
-		apimFrontendProtocolTls10: utils.String(strconv.FormatBool(frontendProtocolTls10)),
-		apimFrontendProtocolTls11: utils.String(strconv.FormatBool(frontendProtocolTls11)),
-		apimTripleDesCiphers:      utils.String(strconv.FormatBool(tripleDesCiphers)),
+		apimBackendProtocolSsl3:                  utils.String(strconv.FormatBool(backendProtocolSsl3)),
+		apimBackendProtocolTls10:                 utils.String(strconv.FormatBool(backendProtocolTls10)),
+		apimBackendProtocolTls11:                 utils.String(strconv.FormatBool(backendProtocolTls11)),
+		apimFrontendProtocolSsl3:                 utils.String(strconv.FormatBool(frontendProtocolSsl3)),
+		apimFrontendProtocolTls10:                utils.String(strconv.FormatBool(frontendProtocolTls10)),
+		apimFrontendProtocolTls11:                utils.String(strconv.FormatBool(frontendProtocolTls11)),
+		apimTripleDesCiphers:                     utils.String(strconv.FormatBool(tripleDesCiphers)),
+		apimTlsEcdheEcdsaWithAes256CbcShaCiphers: utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes256CbcShaCiphers)),
+		apimTlsEcdheEcdsaWithAes128CbcShaCiphers: utils.String(strconv.FormatBool(tlsEcdheEcdsaWithAes128CbcShaCiphers)),
+		apimTlsEcdheRsaWithAes256CbcShaCiphers:   utils.String(strconv.FormatBool(tlsEcdheRsaWithAes256CbcShaCiphers)),
+		apimTlsEcdheRsaWithAes128CbcShaCiphers:   utils.String(strconv.FormatBool(tlsEcdheRsaWithAes128CbcShaCiphers)),
+		apimTlsRsaWithAes128GcmSha256Ciphers:     utils.String(strconv.FormatBool(tlsRsaWithAes128GcmSha256Ciphers)),
+		apimTlsRsaWithAes256CbcSha256Ciphers:     utils.String(strconv.FormatBool(tlsRsaWithAes256CbcSha256Ciphers)),
+		apimTlsRsaWithAes128CbcSha256Ciphers:     utils.String(strconv.FormatBool(tlsRsaWithAes128CbcSha256Ciphers)),
+		apimTlsRsaWithAes256CbcShaCiphers:        utils.String(strconv.FormatBool(tlsRsaWithAes256CbcShaCiphers)),
+		apimTlsRsaWithAes128CbcShaCiphers:        utils.String(strconv.FormatBool(tlsRsaWithAes128CbcShaCiphers)),
 	}
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
@@ -1185,6 +1268,15 @@ func flattenApiManagementSecurityCustomProperties(input map[string]*string) []in
 	output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
 	output["enable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
+	output["enable_tlsEcdheEcdsaWithAes256CbcSha_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
+	output["enable_tlsEcdheEcdsaWithAes128CbcSha_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
+	output["enable_tlsEcdheRsaWithAes256CbcSha_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes256CbcShaCiphers)
+	output["enable_tlsEcdheRsaWithAes128CbcSha_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsEcdheRsaWithAes128CbcShaCiphers)
+	output["enable_tlsRsaWithAes128GcmSha256_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128GcmSha256Ciphers)
+	output["enable_tlsRsaWithAes256CbcSha256_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcSha256Ciphers)
+	output["enable_tlsRsaWithAes128CbcSha256_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcSha256Ciphers)
+	output["enable_tlsRsaWithAes256CbcSha_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes256CbcShaCiphers)
+	output["enable_tlsRsaWithAes128CbcSha_ciphers"] = parseApiManagementNilableDictionary(input, apimTlsRsaWithAes128CbcShaCiphers)
 
 	return []interface{}{output}
 }
