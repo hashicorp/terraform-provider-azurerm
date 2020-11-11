@@ -45,7 +45,7 @@ output "virtual_network_gateway_connection_id" {
     Express Route Circuit. This field is present only if the type is an
     ExpressRoute connection.
 
-* `dpd_timeout_seconds` - (Optional) The dead peer detection timeout of this connection in seconds. Changing this forces a new resource to be created.
+* `dpd_timeout_seconds` - The dead peer detection timeout of this connection in seconds.
 
 * `express_route_circuit_id` - The ID of the Express Route Circuit
     (i.e. when `type` is `ExpressRoute`).
