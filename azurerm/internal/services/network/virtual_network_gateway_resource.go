@@ -516,7 +516,7 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 		GatewayType:            gatewayType,
 		VpnType:                vpnType,
 		EnableBgp:              &enableBgp,
-		EnablePrivateIPAddress: utils.Bool(enablePrivateIpAddress),
+		EnablePrivateIPAddress: &enablePrivateIpAddress,
 		ActiveActive:           &activeActive,
 		VpnGatewayGeneration:   generation,
 		Sku:                    expandArmVirtualNetworkGatewaySku(d),
