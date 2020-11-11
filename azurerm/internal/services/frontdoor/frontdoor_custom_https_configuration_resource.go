@@ -260,7 +260,6 @@ func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx context.Con
 	}
 
 	future, err := client.DisableHTTPS(ctx, id.ResourceGroup, id.FrontDoorName, id.Name)
-
 	if err != nil {
 		return fmt.Errorf("disabling Custom Domain HTTPS for Frontend Endpoint: %+v", err)
 	}

@@ -537,7 +537,6 @@ func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 		}
 
 		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

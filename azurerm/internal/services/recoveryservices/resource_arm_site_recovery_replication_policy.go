@@ -86,7 +86,7 @@ func resourceArmSiteRecoveryReplicationPolicyCreate(d *schema.ResourceData, meta
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
-	var parameters = siterecovery.CreatePolicyInput{
+	parameters := siterecovery.CreatePolicyInput{
 		Properties: &siterecovery.CreatePolicyInputProperties{
 			ProviderSpecificInput: &siterecovery.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,
@@ -125,7 +125,7 @@ func resourceArmSiteRecoveryReplicationPolicyUpdate(d *schema.ResourceData, meta
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
-	var parameters = siterecovery.UpdatePolicyInput{
+	parameters := siterecovery.UpdatePolicyInput{
 		Properties: &siterecovery.UpdatePolicyInputProperties{
 			ReplicationProviderSettings: &siterecovery.A2APolicyCreationInput{
 				RecoveryPointHistory:            &recoveryPoint,

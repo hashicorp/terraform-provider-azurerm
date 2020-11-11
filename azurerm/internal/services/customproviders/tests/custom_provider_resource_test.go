@@ -141,7 +141,6 @@ func testCheckAzureRMCustomProviderDestroy(s *terraform.State) error {
 			return err
 		}
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}

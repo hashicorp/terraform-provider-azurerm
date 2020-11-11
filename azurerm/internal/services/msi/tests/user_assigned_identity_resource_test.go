@@ -2,9 +2,8 @@ package tests
 
 import (
 	"fmt"
-	"testing"
-
 	"net/http"
+	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -33,6 +32,7 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
 
@@ -100,7 +100,6 @@ func testCheckAzureRMUserAssignedIdentityDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil

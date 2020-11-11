@@ -330,7 +330,8 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 										Required: true,
 									},
 								},
-							}},
+							},
+						},
 						"number_less_than": {
 							Type:     schema.TypeList,
 							Optional: true,
