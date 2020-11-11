@@ -1,4 +1,4 @@
-package tests
+package advisor_test
 
 import (
 	"fmt"
