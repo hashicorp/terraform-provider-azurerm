@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/resourcemanagershim"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
@@ -25,12 +26,14 @@ type Client struct {
 	FileSystemsClient        *filesystems.Client
 	ManagementPoliciesClient *storage.ManagementPoliciesClient
 	BlobServicesClient       *storage.BlobServicesClient
+	Environment              az.Environment
 	SyncServiceClient        *storagesync.ServicesClient
 	SyncGroupsClient         *storagesync.SyncGroupsClient
 	SubscriptionId           string
 
-	environment   az.Environment
-	storageAdAuth *autorest.Authorizer
+	resourceManagerAuthorizer autorest.Authorizer
+	storageAdAuth             *autorest.Authorizer
+	useResourceManager        bool
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -59,10 +62,14 @@ func NewClient(options *common.ClientOptions) *Client {
 		FileSystemsClient:        &fileSystemsClient,
 		ManagementPoliciesClient: &managementPoliciesClient,
 		BlobServicesClient:       &blobServicesClient,
+		Environment:              options.Environment,
 		SubscriptionId:           options.SubscriptionId,
 		SyncServiceClient:        &syncServiceClient,
 		SyncGroupsClient:         &syncGroupsClient,
-		environment:              options.Environment,
+
+		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
+
+		useResourceManager: false, // TODO: feature toggleable
 	}
 
 	if options.StorageUseAzureAD {
@@ -74,7 +81,7 @@ func NewClient(options *common.ClientOptions) *Client {
 
 func (client Client) AccountsDataPlaneClient(ctx context.Context, account accountDetails) (*accounts.Client, error) {
 	if client.storageAdAuth != nil {
-		accountsClient := accounts.NewWithEnvironment(client.environment)
+		accountsClient := accounts.NewWithEnvironment(client.Environment)
 		accountsClient.Client.Authorizer = *client.storageAdAuth
 		return &accountsClient, nil
 	}
@@ -89,14 +96,14 @@ func (client Client) AccountsDataPlaneClient(ctx context.Context, account accoun
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	accountsClient := accounts.NewWithEnvironment(client.environment)
+	accountsClient := accounts.NewWithEnvironment(client.Environment)
 	accountsClient.Client.Authorizer = storageAuth
 	return &accountsClient, nil
 }
 
 func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*blobs.Client, error) {
 	if client.storageAdAuth != nil {
-		blobsClient := blobs.NewWithEnvironment(client.environment)
+		blobsClient := blobs.NewWithEnvironment(client.Environment)
 		blobsClient.Client.Authorizer = *client.storageAdAuth
 		return &blobsClient, nil
 	}
@@ -111,16 +118,24 @@ func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	blobsClient := blobs.NewWithEnvironment(client.environment)
+	blobsClient := blobs.NewWithEnvironment(client.Environment)
 	blobsClient.Client.Authorizer = storageAuth
 	return &blobsClient, nil
 }
 
-func (client Client) ContainersClient(ctx context.Context, account accountDetails) (*containers.Client, error) {
+func (client Client) ContainersClient(ctx context.Context, account accountDetails) (resourcemanagershim.StorageContainerWrapper, error) {
+	if client.useResourceManager {
+		rmClient := storage.NewBlobContainersClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
+		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
+		rmShim := resourcemanagershim.NewResourceManagerStorageContainerWrapper(&rmClient)
+		return &rmShim, nil
+	}
+
 	if client.storageAdAuth != nil {
-		containersClient := containers.NewWithEnvironment(client.environment)
+		containersClient := containers.NewWithEnvironment(client.Environment)
 		containersClient.Client.Authorizer = *client.storageAdAuth
-		return &containersClient, nil
+		shim := resourcemanagershim.NewDataPlaneStorageContainerWrapper(&containersClient)
+		return shim, nil
 	}
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -133,9 +148,11 @@ func (client Client) ContainersClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	containersClient := containers.NewWithEnvironment(client.environment)
+	containersClient := containers.NewWithEnvironment(client.Environment)
 	containersClient.Client.Authorizer = storageAuth
-	return &containersClient, nil
+
+	shim := resourcemanagershim.NewDataPlaneStorageContainerWrapper(&containersClient)
+	return shim, nil
 }
 
 func (client Client) FileShareDirectoriesClient(ctx context.Context, account accountDetails) (*directories.Client, error) {
@@ -151,7 +168,7 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, account acc
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	directoriesClient := directories.NewWithEnvironment(client.environment)
+	directoriesClient := directories.NewWithEnvironment(client.Environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
 }
@@ -169,14 +186,14 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	sharesClient := shares.NewWithEnvironment(client.environment)
+	sharesClient := shares.NewWithEnvironment(client.Environment)
 	sharesClient.Client.Authorizer = storageAuth
 	return &sharesClient, nil
 }
 
 func (client Client) QueuesClient(ctx context.Context, account accountDetails) (*queues.Client, error) {
 	if client.storageAdAuth != nil {
-		queueAuth := queues.NewWithEnvironment(client.environment)
+		queueAuth := queues.NewWithEnvironment(client.Environment)
 		queueAuth.Client.Authorizer = *client.storageAdAuth
 		return &queueAuth, nil
 	}
@@ -191,7 +208,7 @@ func (client Client) QueuesClient(ctx context.Context, account accountDetails) (
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	queuesClient := queues.NewWithEnvironment(client.environment)
+	queuesClient := queues.NewWithEnvironment(client.Environment)
 	queuesClient.Client.Authorizer = storageAuth
 	return &queuesClient, nil
 }
@@ -209,7 +226,7 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	entitiesClient := entities.NewWithEnvironment(client.environment)
+	entitiesClient := entities.NewWithEnvironment(client.Environment)
 	entitiesClient.Client.Authorizer = storageAuth
 	return &entitiesClient, nil
 }
@@ -227,7 +244,7 @@ func (client Client) TablesClient(ctx context.Context, account accountDetails) (
 		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
 	}
 
-	tablesClient := tables.NewWithEnvironment(client.environment)
+	tablesClient := tables.NewWithEnvironment(client.Environment)
 	tablesClient.Client.Authorizer = storageAuth
 	return &tablesClient, nil
 }
