@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"testing"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
@@ -31,7 +30,6 @@ func testAccDataSourceAzureRMServiceBusSubscription_basic(data acceptance.TestDa
 	return fmt.Sprintf(testAccDataSourceAzureRMServiceBusSubscription_tfTemplate, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, "")
 }
 
-////////TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR
 const testAccDataSourceAzureRMServiceBusSubscription_tfTemplate = `
 resource "azurerm_resource_group" "test" {
     name     = "acctestRG-%d"
@@ -63,7 +61,7 @@ resource "azurerm_servicebus_subscription" "test" {
 data "azurerm_servicebus_subscription" "test" {
 	name                = azurerm_servicebus_subscription.test.name
 	resource_group_name = azurerm_resource_group.test.name
-	namespace_name      = azurerm_servicebus_namespace.test.name 
+	namespace_name      = azurerm_servicebus_namespace.test.name
 	topic_name          = azurerm_servicebus_topic.test.name
   }
 `

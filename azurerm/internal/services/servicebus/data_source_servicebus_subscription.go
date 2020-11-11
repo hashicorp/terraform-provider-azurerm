@@ -127,7 +127,6 @@ func dataSourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interf
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))
 		}
-
 	}
 
 	return nil
