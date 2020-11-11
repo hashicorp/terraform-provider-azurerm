@@ -1,10 +1,13 @@
 package storage
 
 import (
+	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -292,6 +295,7 @@ func resourceArmStorageAccount() *schema.Resource {
 								},
 							},
 						},
+
 						"container_delete_retention_policy": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -791,6 +795,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			if err != nil {
 				return err
 			}
+			//`restore_policy` can not be updated with other three dependant policies
+			blobProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(d.Get("blob_properties.0.restore_policy").([]interface{}))
+			//`container_delete_retention_policy` needs extra feature register
+			blobProperties.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesContainerDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}))
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
 				return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
@@ -1043,25 +1051,52 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
-			o, n := d.GetChange("blob_properties")
 			blobClient := meta.(*clients.Client).Storage.BlobServicesClient
-			blobProperties, err := expandBlobProperties(n.([]interface{}))
+			blobProperties, err := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 			if err != nil {
 				return err
 			}
 			// `container_delete_retention_policy` needs extra enable of feature "container soft-delete" in provider
 			// Thus it will only be set if previous it's set. Else, it raises error.
-			if oldRaw := o.([]interface{}); len(oldRaw) > 0 && blobProperties.ContainerDeleteRetentionPolicy == nil {
-				oldInput := oldRaw[0].(map[string]interface{})
-				if oldContainerInput := oldInput["container_delete_retention_policy"].([]interface{}); len(oldContainerInput) > 0 {
-					blobProperties.ContainerDeleteRetentionPolicy = &storage.DeleteRetentionPolicy{
-						Enabled: utils.Bool(false),
-					}
+			if d.HasChange("blob_properties.0.container_delete_retention_policy") {
+				props := storage.BlobServiceProperties{
+					BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+						ContainerDeleteRetentionPolicy: expandBlobPropertiesDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{})),
+					},
+				}
+				if err = resourceArmStorageBlobPropertiesSet(ctx, blobClient, resourceGroupName, storageAccountName, props); err != nil {
+					return err
 				}
 			}
 
-			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
-				return fmt.Errorf("updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+			// Disable `restore_policy` first.`restore_policy` is dependent on `versioning_enabled`,`change_feed_enabled`,`delete_retention_policy`, could not update together
+			// Issue: https://github.com/Azure/azure-rest-api-specs/issues/11237
+			if v := d.Get("blob_properties.0.restore_policy"); d.HasChange("blob_properties.0.restore_policy") && len(v.([]interface{})) == 0 {
+				props := storage.BlobServiceProperties{
+					BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+						RestorePolicy: expandBlobPropertiesRestorePolicy(v.([]interface{})),
+					},
+				}
+				if err = resourceArmStorageBlobPropertiesSet(ctx, blobClient, resourceGroupName, storageAccountName, props); err != nil {
+					return err
+				}
+			}
+
+			// Update other properties
+			if err = resourceArmStorageBlobPropertiesSet(ctx, blobClient, resourceGroupName, storageAccountName, blobProperties); err != nil {
+				return err
+			}
+
+			// Enable `restore_policy`. `restore_policy` is dependent on `versioning_enabled`,`change_feed_enabled`,`delete_retention_policy`, could not update together
+			if v := d.Get("blob_properties.0.restore_policy"); d.HasChange("blob_properties.0.restore_policy") && len(v.([]interface{})) > 0 {
+				props := storage.BlobServiceProperties{
+					BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+						RestorePolicy: expandBlobPropertiesRestorePolicy(v.([]interface{})),
+					},
+				}
+				if err = resourceArmStorageBlobPropertiesSet(ctx, blobClient, resourceGroupName, storageAccountName, props); err != nil {
+					return err
+				}
 			}
 		} else {
 			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts")
@@ -1123,6 +1158,38 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceArmStorageAccountRead(d, meta)
 }
 
+// `blob_properties` could not be updated continuously within 30 secs for cache reason, else it returns 412 Precondition Error. Then we could retry to update.
+// Issue: https://github.com/Azure/azure-rest-api-specs/issues/11237
+func resourceArmStorageBlobPropertiesSet(ctx context.Context, client *storage.BlobServicesClient, resourceGroupName string, accountName string, props storage.BlobServiceProperties) error {
+	log.Printf("[DEBUG] Waiting for Storage Account %q (Resource Group %q) to be set", accountName, resourceGroupName)
+	stateConf := &resource.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"412"},
+		Target:                    []string{"200"},
+		Refresh:                   storageAccountBlobPropertiesStateRefreshFunc(ctx, client, resourceGroupName, accountName, props),
+		Timeout:                   1 * time.Minute,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Storage Account %q (Resource Group %q) to be set: %+v", accountName, resourceGroupName, err)
+	}
+	return nil
+}
+
+func storageAccountBlobPropertiesStateRefreshFunc(ctx context.Context, client *storage.BlobServicesClient, resourceGroupName string, accountName string, props storage.BlobServiceProperties) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.SetServiceProperties(ctx, resourceGroupName, accountName, props)
+		if err != nil {
+			if utils.ResponseWasStatusCode(res.Response, http.StatusPreconditionFailed) {
+				return nil, "", fmt.Errorf("updating Storage Account %q (Resource Group %q): %s", accountName, resourceGroupName, err)
+			}
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
+}
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
@@ -1522,9 +1589,6 @@ func expandBlobProperties(input []interface{}) (storage.BlobServiceProperties, e
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
-			RestorePolicy: &storage.RestorePolicyProperties{
-				Enabled: utils.Bool(false),
-			},
 		},
 	}
 
@@ -1541,6 +1605,7 @@ func expandBlobProperties(input []interface{}) (storage.BlobServiceProperties, e
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
 	props.IsVersioningEnabled = utils.Bool(v["versioning_enabled"].(bool))
+
 	props.ChangeFeed = &storage.ChangeFeed{
 		Enabled: utils.Bool(v["change_feed_enabled"].(bool)),
 	}
@@ -1551,12 +1616,6 @@ func expandBlobProperties(input []interface{}) (storage.BlobServiceProperties, e
 			return props, fmt.Errorf("`delete_retention_policy` and `versioning_enabled` and `change_feed_enabled` must be enabled when `restore_policy` is enabled")
 
 		}
-	}
-
-	props.RestorePolicy = expandBlobPropertiesRestorePolicy(v["restore_policy"].([]interface{}))
-
-	if container := expandBlobPropertiesContainerDeleteRetentionPolicy(v["container_delete_retention_policy"].([]interface{})); container != nil {
-		props.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = container
 	}
 
 	return props, nil

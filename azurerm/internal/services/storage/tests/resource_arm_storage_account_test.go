@@ -2,17 +2,15 @@ package tests
 
 import (
 	"fmt"
-	"net/http"
-	"regexp"
-	"testing"
-	"time"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"net/http"
+	"regexp"
+	"testing"
 )
 
 func TestValidateArmStorageAccountName(t *testing.T) {
@@ -621,6 +619,13 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMStorageAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMStorageAccount_blobProperties(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
@@ -630,12 +635,18 @@ func TestAccAzureRMStorageAccount_blobProperties(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				PreConfig: func() { time.Sleep(10 * time.Minute) },
-				Config:    testAccAzureRMStorageAccount_blobPropertiesUpdated(data),
+				Config: testAccAzureRMStorageAccount_blobPropertiesUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.cors_rule.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "blob_properties.0.delete_retention_policy.0.days", "7"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -666,16 +677,14 @@ func TestAccAzureRMStorageAccount_blobPropertiesWithSoftDeleteContainerEnabled(t
 			},
 			data.ImportStep(),
 			{
-				PreConfig: func() { time.Sleep(7 * time.Minute) },
-				Config:    testAccAzureRMStorageAccount_blobPropertiesUpdatedWithSoftDeleteContainerEnabled(data),
+				Config: testAccAzureRMStorageAccount_blobPropertiesUpdatedWithSoftDeleteContainerEnabled(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				PreConfig: func() { time.Sleep(7 * time.Minute) },
-				Config:    testAccAzureRMStorageAccount_basic(data),
+				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
@@ -988,7 +997,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-            %s
+                %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1710,7 +1719,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
@@ -1751,7 +1760,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
@@ -1796,7 +1805,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
@@ -1840,7 +1849,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
