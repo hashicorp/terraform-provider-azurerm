@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -166,13 +165,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
 					string(compute.Deallocate),
 				}, false),
-			},
-
-			"extensions_time_budget": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "PT1H30M",
-				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			"identity": virtualMachineIdentitySchema(),
@@ -396,7 +388,6 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
-			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -560,12 +551,6 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	if profile := props.HardwareProfile; profile != nil {
 		d.Set("size", string(profile.VMSize))
 	}
-
-	extensionsTimeBudget := "PT1H30M"
-	if props.ExtensionsTimeBudget != nil {
-		extensionsTimeBudget = *props.ExtensionsTimeBudget
-	}
-	d.Set("extensions_time_budget", extensionsTimeBudget)
 
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
@@ -753,11 +738,6 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
-	}
-
-	if d.HasChange("extensions_time_budget") {
-		shouldUpdate = true
-		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
 	if d.HasChange("dedicated_host_id") {
