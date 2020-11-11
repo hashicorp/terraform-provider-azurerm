@@ -98,15 +98,6 @@ func TestAccWindowsVirtualMachine_scalingDedicatedHostUpdate(t *testing.T) {
 			data.ImportStep(
 				"admin_password",
 			),
-			{
-				Config: testWindowsVirtualMachine_scalingDedicatedHost(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkWindowsVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(
-				"admin_password",
-			),
 		},
 	})
 }

@@ -87,14 +87,6 @@ func TestAccLinuxVirtualMachine_scalingDedicatedHostUpdate(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
-			{
-				Config: testLinuxVirtualMachine_scalingDedicatedHost(data),
-				Check: resource.ComposeTestCheckFunc(
-					checkLinuxVirtualMachineExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
 		},
 	})
 }
