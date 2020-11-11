@@ -150,7 +150,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"enable_automatic_updates": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true, // TODO: confirm
 				Default:  true,
 			},
 
@@ -794,7 +793,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
 	}
 
-	if d.HasChange("patch_mode") {
+	if d.HasChange("patch_mode") || d.HasChange("enable_automatic_updates") {
 		shouldUpdate = true
 
 		if update.OsProfile == nil {
@@ -805,8 +804,14 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
 		}
 
-		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-			PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+		if d.HasChange("enable_automatic_updates") {
+			update.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(d.Get("enable_automatic_updates").(bool))
+		}
+
+		if d.HasChange("patch_mode") {
+			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+				PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+			}
 		}
 	}
 
