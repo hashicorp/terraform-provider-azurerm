@@ -8,6 +8,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_data_share_dataset_kusto_database` [GH-8544]
 * **New Data Source:** `azurerm_traffic_manager_profile` [GH-9229]
+* **New Resource:** `azurerm_api_management_custom_domain` [GH-8228]
 * **New Resource:** `azurerm_data_share_dataset_kusto_database` [GH-8544]
 * **New Resource:** `azurerm_log_analytics_storage_insights` [GH-9014]
 * **New Resource:** `azurerm_monitor_smart_detector_alert_rule` [GH-9032]
