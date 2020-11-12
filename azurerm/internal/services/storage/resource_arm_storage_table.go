@@ -3,7 +3,6 @@ package storage
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 )
@@ -51,7 +51,7 @@ func resourceArmStorageTable() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageTableName,
+				ValidateFunc: validate.TableName,
 			},
 
 			"storage_account_name": {
@@ -233,14 +233,14 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := tables.ParseResourceID(d.Id())
+	id, err := parse.StorageTableDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("unable to locate Storage Account %q!", id.AccountName)
@@ -252,35 +252,19 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("acl") {
-		log.Printf("[DEBUG] Updating the ACL's for Storage Table %q (Storage Account %q)", id.TableName, id.AccountName)
+		log.Printf("[DEBUG] Updating the ACL's for Storage Table %q (Storage Account %q)", id.Name, id.AccountName)
 
 		aclsRaw := d.Get("acl").(*schema.Set).List()
 		acls := expandStorageTableACLs(aclsRaw)
 
-		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.TableName, acls); err != nil {
-			return fmt.Errorf("updating ACL's for Table %q (Storage Account %q): %s", id.TableName, id.AccountName, err)
+		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.Name, acls); err != nil {
+			return fmt.Errorf("updating ACL's for Table %q (Storage Account %q): %s", id.Name, id.AccountName, err)
 		}
 
-		log.Printf("[DEBUG] Updated the ACL's for Storage Table %q (Storage Account %q)", id.TableName, id.AccountName)
+		log.Printf("[DEBUG] Updated the ACL's for Storage Table %q (Storage Account %q)", id.Name, id.AccountName)
 	}
 
 	return resourceArmStorageTableRead(d, meta)
-}
-
-func ValidateArmStorageTableName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-	if value == "table" {
-		errors = append(errors, fmt.Errorf(
-			"Table Storage %q cannot use the word `table`: %q",
-			k, value))
-	}
-	if !regexp.MustCompile(`^[A-Za-z][A-Za-z0-9]{2,62}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"Table Storage %q cannot begin with a numeric character, only alphanumeric characters are allowed and must be between 3 and 63 characters long: %q",
-			k, value))
-	}
-
-	return warnings, errors
 }
 
 func expandStorageTableACLs(input []interface{}) []tables.SignedIdentifier {

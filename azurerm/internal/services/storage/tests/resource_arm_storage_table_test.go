@@ -2,10 +2,7 @@ package tests
 
 import (
 	"fmt"
-	"strings"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -217,38 +214,6 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func TestValidateArmStorageTableName(t *testing.T) {
-	validNames := []string{
-		"mytable01",
-		"mytable",
-		"myTable",
-		"MYTABLE",
-		"tbl",
-		strings.Repeat("w", 63),
-	}
-	for _, v := range validNames {
-		_, errors := storage.ValidateArmStorageTableName(v, "name")
-		if len(errors) != 0 {
-			t.Fatalf("%q should be a valid Storage Table Name: %q", v, errors)
-		}
-	}
-
-	invalidNames := []string{
-		"table",
-		"-invalidname1",
-		"invalid_name",
-		"invalid!",
-		"ww",
-		strings.Repeat("w", 64),
-	}
-	for _, v := range invalidNames {
-		_, errors := storage.ValidateArmStorageTableName(v, "name")
-		if len(errors) == 0 {
-			t.Fatalf("%q should be an invalid Storage Table Name", v)
-		}
-	}
 }
 
 func testAccAzureRMStorageTable_basic(data acceptance.TestData) string {
