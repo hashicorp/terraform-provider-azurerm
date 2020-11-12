@@ -14,6 +14,7 @@ type Client struct {
 	SavedSearchesClient        *operationalinsights.SavedSearchesClient
 	SharedKeysClient           *operationalinsights.SharedKeysClient
 	SolutionsClient            *operationsmanagement.SolutionsClient
+	StorageInsightsClient      *operationalinsights.StorageInsightConfigsClient
 	WorkspacesClient           *operationalinsights.WorkspacesClient
 }
 
@@ -36,6 +37,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	SolutionsClient := operationsmanagement.NewSolutionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
 	o.ConfigureClient(&SolutionsClient.Client, o.ResourceManagerAuthorizer)
 
+	StorageInsightsClient := operationalinsights.NewStorageInsightConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&StorageInsightsClient.Client, o.ResourceManagerAuthorizer)
+
 	LinkedServicesClient := operationalinsights.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LinkedServicesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -50,6 +54,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		SavedSearchesClient:        &SavedSearchesClient,
 		SharedKeysClient:           &SharedKeysClient,
 		SolutionsClient:            &SolutionsClient,
+		StorageInsightsClient:      &StorageInsightsClient,
 		WorkspacesClient:           &WorkspacesClient,
 	}
 }

@@ -21,8 +21,8 @@ We recommend using either a Service Principal or Managed Service Identity when r
 
 ## Important Notes about Authenticating using the Azure CLI
 
-* Prior to version 1.20 the AzureRM Provider used a different method of authorizing via the Azure CLI where credentials reset after an hour - as such we'd recommend upgrading to version 1.20 or later of the AzureRM Provider.
-* Terraform only supports authenticating using the `az` CLI (and this must be available on your PATH) - authenticating using the older `azure` CLI or PowerShell Cmdlets is not supported.
+* Prior to version 1.20, the AzureRM Provider used a different method of authorizing via the Azure CLI where credentials reset after an hour - as such, we'd recommend upgrading to version 1.20 or later of the AzureRM Provider.
+* Terraform only supports authenticating using the `az` CLI (and this must be available on your PATH) - authenticating using the older `azure` CLI or PowerShell Cmdlets are not supported.
 * Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (for example via `az login --service-principal`) you should instead authenticate via the Service Principal directly (either using a [Client Secret](service_principal_client_secret.html) or a [Client Certificate](service_principal_client_certificate.html)).
 
 ---

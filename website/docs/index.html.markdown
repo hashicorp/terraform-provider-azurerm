@@ -69,10 +69,10 @@ If you have a bug or feature request without an existing issue
 The provider maintainers will often use the assignee field on an issue to mark
 who is working on it.
 
-* An issue assigned to an individual maintainer indicates that maintainer is working
+* An issue assigned to an individual maintainer indicates that the maintainer is working
 on the issue
 
-* If you're interested in working on an issue please leave a comment in that issue
+* If you're interested in working on an issue please leave a comment on that issue
 
 ---
 
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
 
-* `tenant_id` - (Optional) The Tenant ID which should be used. This can also be sourced from the `ARM_TENANT_ID` Environment Variable.
+* `tenant_id` - (Optional) The Tenant ID should be used. This can also be sourced from the `ARM_TENANT_ID` Environment Variable.
 
 ---
 
@@ -117,7 +117,7 @@ More information on [how to configure a Service Principal using a Client Secret 
 
 When authenticating using Managed Service Identity, the following fields can be set:
 
-* `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. This can also be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
+* `msi_endpoint` - (Optional) The path to a custom endpoint for Managed Service Identity - in most circumstances, this should be detected automatically. This can also, be sourced from the `ARM_MSI_ENDPOINT` Environment Variable.
 
 * `use_msi` - (Optional) Should Managed Service Identity be used for Authentication? This can also be sourced from the `ARM_USE_MSI` Environment Variable. Defaults to `false`.
 
@@ -137,11 +137,11 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 * `skip_credentials_validation` - (Optional) Should the AzureRM Provider skip verifying the credentials being used are valid? This can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` Environment Variable. Defaults to `false`.
 
-~> **Note:** if `skip_credentials_validation` is false, AzureRM Provider will send request to list all available providers.
+~> **Note:** if `skip_credentials_validation` is false, AzureRM Provider will send a request to list all available providers.
 
 * `skip_provider_registration` - (Optional) Should the AzureRM Provider skip registering the Resource Providers it supports? This can also be sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` Environment Variable. Defaults to `false`.
 
--> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
+-> By default, Terraform will attempt to register any Resource Providers that it supports, even if they're not used in your configurations to be able to display more helpful error messages. If you're running in an environment with restricted permissions, or wish to manage Resource Provider Registration outside of Terraform you may wish to disable this flag; however, please note that the error messages returned from Azure may be confusing as a result (example: `API version 2019-01-01 was not found for Microsoft.Foo`).
 
 * `storage_use_azuread` - (Optional) Should the AzureRM Provider use AzureAD to connect to the Storage Blob & Queue API's, rather than the SharedKey from the Storage Account? This can also be sourced from the `ARM_STORAGE_USE_AZUREAD` Environment Variable. Defaults to `false`.
 
@@ -149,7 +149,7 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** The Files & Table Storage API's do not support authenticating via AzureAD and will continue to use a SharedKey to access the API's.
 
-It's also possible to use multiple Provider blocks within a single Terraform configuration, for example to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
+It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
 ## Features
 
@@ -177,7 +177,7 @@ The `key_vault` block supports the following:
 
 ~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period(90 days) has passed.
 
-~> **Note:** When recovering soft deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
+~> **Note:** When recovering soft-deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
 
 ---
 
