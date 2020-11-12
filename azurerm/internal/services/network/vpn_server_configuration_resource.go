@@ -253,16 +253,16 @@ func resourceArmVPNServerConfiguration() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"address": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"secret": {
-										Type:      schema.TypeString,
-										Required:  true,
+										Type:         schema.TypeString,
+										Required:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
-										Sensitive: true,
+										Sensitive:    true,
 									},
 
 									"score": {
