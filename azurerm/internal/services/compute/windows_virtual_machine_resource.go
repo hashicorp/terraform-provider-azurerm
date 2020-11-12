@@ -787,7 +787,10 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 	if d.HasChange("dedicated_host_id") {
 		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
 		shouldDeallocate = true
+
 		if v, ok := d.GetOk("dedicated_host_id"); ok {
 			update.Host = &compute.SubResource{
 				ID: utils.String(v.(string)),
