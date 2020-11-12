@@ -23,6 +23,7 @@ IMPROVEMENTS:
 * dependencies: upgrading to `v0.14.0` of `github.com/tombuildsstuff/giovanni` [GH-9189]
 * storage: upgrading the Data Plane API's to API Version `2019-12-12` [GH-9192]
 * `azurerm_app_service` support `v5.0` for the `dotnet_framework_version` [GH-9251]
+* `azurerm_availability_set` - adding validation to the `name` field [GH-9279]
 * `azurerm_cosmosdb_account` - support for the `key_vault_key_id` property allowing use of Customer Managed Keys [GH-8919]
 * `azurerm_function_app` - support for the `health_check_path` property under site_config [GH-9233]
 * `azurerm_linux_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
@@ -47,7 +48,6 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine_scale_set` - the field `computer_name_prefix` can now end with a dash [GH-9182]
 * `azurerm_windows_virtual_machine` - the field `disk_size_gb` within the `os_disk` block can now be configured up to `4095` [GH-9202]
 * `azurerm_windows_virtual_machine_scale_set` - the field `disk_size_gb` within the `os_disk` block can now be configured up to `4095` [GH-9202]
-
 
 ## 2.35.0 (November 05, 2020)
 
