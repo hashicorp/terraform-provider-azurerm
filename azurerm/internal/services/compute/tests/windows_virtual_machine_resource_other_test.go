@@ -99,7 +99,7 @@ func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 				"admin_password",
 			),
 			{
-				Config: testWindowsVirtualMachine_otherPatchModeManual(data),
+				Config: testWindowsVirtualMachine_otherPatchModeManual(data), // this update requires force replacement actually
 				Check: resource.ComposeTestCheckFunc(
 					checkWindowsVirtualMachineExists(data.ResourceName),
 				),

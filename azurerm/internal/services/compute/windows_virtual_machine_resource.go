@@ -150,6 +150,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"enable_automatic_updates": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 				Default:  true,
 			},
 
@@ -793,7 +794,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
 	}
 
-	if d.HasChange("patch_mode") || d.HasChange("enable_automatic_updates") {
+	if d.HasChange("patch_mode") {
 		shouldUpdate = true
 
 		if update.OsProfile == nil {
@@ -804,14 +805,8 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
 		}
 
-		if d.HasChange("enable_automatic_updates") {
-			update.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(d.Get("enable_automatic_updates").(bool))
-		}
-
-		if d.HasChange("patch_mode") {
-			update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
-				PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
-			}
+		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
 		}
 	}
 
