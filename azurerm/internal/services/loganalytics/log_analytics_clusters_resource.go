@@ -131,11 +131,14 @@ func resourceArmLogAnalyticsCluster() *schema.Resource {
 }
 func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	keyVaultProps := expandArmLogAnalyticsClusterKeyVaultProperties(d.Get("key_vault_property").([]interface{}))
+	id := parse.NewLogAnalyticsClusterId(name, resourceGroup)
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -145,12 +148,6 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 	}
 	if existing.ID != nil && *existing.ID != "" {
 		return tf.ImportAsExistsError("azurerm_log_analytics_cluster", *existing.ID)
-	}
-
-	keyVaultProps := expandArmLogAnalyticsClusterKeyVaultProperties(d.Get("key_vault_property").([]interface{}))
-
-	if d.IsNewResource() && keyVaultProps != nil {
-		return fmt.Errorf("the Log Analytics Cluster %q (Resource Group %q) must be successfully provisioned before it can be configured to support customer managed keys", name, resourceGroup)
 	}
 
 	sku := &operationalinsights.ClusterSku{
@@ -174,17 +171,18 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("waiting on creating future for Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	_, err = client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Log Analytics Cluster %q (Resource Group %q) ID", name, resourceGroup)
-	}
+	d.SetId(id.ID(subscriptionId))
 
-	d.SetId(*resp.ID)
-	return resourceArmLogAnalyticsClusterRead(d, meta)
+	if keyVaultProps != nil {
+		return resourceArmLogAnalyticsClusterUpdate(d, meta)
+	} else {
+		return resourceArmLogAnalyticsClusterRead(d, meta)
+	}
 }
 
 func resourceArmLogAnalyticsClusterRead(d *schema.ResourceData, meta interface{}) error {
@@ -273,11 +271,16 @@ func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface
 				return nil, "nil", fmt.Errorf("polling for the status of Log Analytics Cluster %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 			}
 
-			if resp.ClusterProperties.ProvisioningState != operationalinsights.Updating && resp.ClusterProperties.ProvisioningState != operationalinsights.Succeeded {
-				return nil, "nil", fmt.Errorf("Log Analytics Cluster %q (Resource Group %q) unexpected Provisioning State encountered: %q", id.Name, id.ResourceGroup, string(resp.ClusterProperties.ProvisioningState))
+			if resp.ClusterProperties != nil {
+				if resp.ClusterProperties.ProvisioningState != operationalinsights.Updating && resp.ClusterProperties.ProvisioningState != operationalinsights.Succeeded {
+					return nil, "nil", fmt.Errorf("Log Analytics Cluster %q (Resource Group %q) unexpected Provisioning State encountered: %q", id.Name, id.ResourceGroup, string(resp.ClusterProperties.ProvisioningState))
+				}
+
+				return resp, string(resp.ClusterProperties.ProvisioningState), nil
 			}
 
-			return resp, string(resp.ClusterProperties.ProvisioningState), nil
+			// I am not returning an error here as this might have just been a bad get
+			return resp, "nil", nil
 		},
 	}
 

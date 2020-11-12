@@ -11,6 +11,18 @@ type LogAnalyticsClusterId struct {
 	Name          string
 }
 
+func NewLogAnalyticsClusterId(name, resourceGroup string) LogAnalyticsClusterId {
+	return LogAnalyticsClusterId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id LogAnalyticsClusterId) ID(subscriptionId string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/clusters/%s"
+	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func LogAnalyticsClusterID(input string) (*LogAnalyticsClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -20,9 +32,11 @@ func LogAnalyticsClusterID(input string) (*LogAnalyticsClusterId, error) {
 	logAnalyticsCluster := LogAnalyticsClusterId{
 		ResourceGroup: id.ResourceGroup,
 	}
+
 	if logAnalyticsCluster.Name, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
