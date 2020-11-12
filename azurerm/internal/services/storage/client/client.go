@@ -201,7 +201,11 @@ func (client Client) QueuesClient(ctx context.Context, account accountDetails) (
 	if client.useResourceManager {
 		rmClient := storage.NewQueueClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
 		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
-		return shim.NewResourceManagerStorageQueueWrapper(&rmClient), nil
+
+		servicesClient := storage.NewQueueServicesClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
+		servicesClient.Client.Authorizer = client.resourceManagerAuthorizer
+
+		return shim.NewResourceManagerStorageQueueWrapper(&rmClient, &servicesClient), nil
 	}
 
 	if client.storageAdAuth != nil {

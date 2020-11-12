@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
@@ -145,8 +146,7 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error building File Share Client: %s", err)
 	}
 
-	// TODO: replace me
-	id := client.GetResourceID(accountName, shareName)
+	id := parse.NewStorageShareDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, shareName).ID("")
 
 	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, shareName)
 	if err != nil {
@@ -179,51 +179,51 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	id, err := shares.ParseResourceID(d.Id())
+	id, err := parse.StorageShareDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Share %q: %s", id.AccountName, id.ShareName, err)
+		return fmt.Errorf("retrieving Account %q for Share %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
-		log.Printf("[WARN] Unable to determine Account %q for Storage Share %q - assuming removed & removing from state", id.AccountName, id.ShareName)
+		log.Printf("[WARN] Unable to determine Account %q for Storage Share %q - assuming removed & removing from state", id.AccountName, id.Name)
 		d.SetId("")
 		return nil
 	}
 
 	client, err := storageClient.FileSharesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
-	props, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.ShareName)
+	props, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		return err
 	}
 	if props == nil {
-		log.Printf("[DEBUG] File Share %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ShareName, id.AccountName, account.ResourceGroup)
+		log.Printf("[DEBUG] File Share %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.Name, id.AccountName, account.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", id.ShareName)
+	d.Set("name", id.Name)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("url", client.GetResourceID(id.AccountName, id.ShareName))
 	d.Set("quota", props.QuotaGB)
-
-	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("flattening `metadata`: %+v", err)
-	}
+	d.Set("url", id.ID(""))
 
 	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
 		return fmt.Errorf("flattening `acl`: %+v", err)
 	}
 
-	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, id.ShareName)
-	d.Set("resource_manager_id", resourceManagerId)
+	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("flattening `metadata`: %+v", err)
+	}
+
+	resourceManagerId := parse.NewStorageShareResourceManagerId(account.ResourceGroup, id.AccountName, id.Name)
+	d.Set("resource_manager_id", resourceManagerId.ID(storageClient.SubscriptionId))
 
 	return nil
 }
@@ -233,14 +233,14 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	id, err := shares.ParseResourceID(d.Id())
+	id, err := parse.StorageShareDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Share %q: %s", id.AccountName, id.ShareName, err)
+		return fmt.Errorf("Error retrieving Account %q for Share %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
@@ -252,40 +252,40 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("quota") {
-		log.Printf("[DEBUG] Updating the Quota for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+		log.Printf("[DEBUG] Updating the Quota for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 		quota := d.Get("quota").(int)
 
-		if err := client.UpdateQuota(ctx, account.ResourceGroup, id.AccountName, id.ShareName, quota); err != nil {
-			return fmt.Errorf("updating Quota for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
+		if err := client.UpdateQuota(ctx, account.ResourceGroup, id.AccountName, id.Name, quota); err != nil {
+			return fmt.Errorf("updating Quota for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
 		}
 
-		log.Printf("[DEBUG] Updated the Quota for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+		log.Printf("[DEBUG] Updated the Quota for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+		log.Printf("[DEBUG] Updating the MetaData for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		metaData := ExpandMetaData(metaDataRaw)
 
-		if err := client.UpdateMetaData(ctx, account.ResourceGroup, id.AccountName, id.ShareName, metaData); err != nil {
-			return fmt.Errorf("Error updating MetaData for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
+		if err := client.UpdateMetaData(ctx, account.ResourceGroup, id.AccountName, id.Name, metaData); err != nil {
+			return fmt.Errorf("Error updating MetaData for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
 		}
 
-		log.Printf("[DEBUG] Updated the MetaData for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+		log.Printf("[DEBUG] Updated the MetaData for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 	}
 
 	if d.HasChange("acl") {
-		log.Printf("[DEBUG] Updating the ACL's for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+		log.Printf("[DEBUG] Updating the ACL's for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 
 		aclsRaw := d.Get("acl").(*schema.Set).List()
 		acls := expandStorageShareACLs(aclsRaw)
 
-		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.ShareName, acls); err != nil {
-			return fmt.Errorf("Error updating ACL's for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
+		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.Name, acls); err != nil {
+			return fmt.Errorf("Error updating ACL's for File Share %q (Storage Account %q): %s", id.Name, id.AccountName, err)
 		}
 
-		log.Printf("[DEBUG] Updated the ACL's for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
+		log.Printf("[DEBUG] Updated the ACL's for File Share %q (Storage Account %q)", id.Name, id.AccountName)
 	}
 
 	return resourceArmStorageShareRead(d, meta)
@@ -296,14 +296,14 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 	defer cancel()
 	storageClient := meta.(*clients.Client).Storage
 
-	id, err := shares.ParseResourceID(d.Id())
+	id, err := parse.StorageShareDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Share %q: %s", id.AccountName, id.ShareName, err)
+		return fmt.Errorf("retrieving Account %q for Share %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("unable to locate Storage Account %q!", id.AccountName)
@@ -314,8 +314,8 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
-	if err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.ShareName); err != nil {
-		return fmt.Errorf("deleting File Share %q (Storage Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, account.ResourceGroup, err)
+	if err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
+		return fmt.Errorf("deleting File Share %q (Storage Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
