@@ -66,6 +66,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `os_disk_size_gb` - The size of the OS Disk on each Node in this Node Pool.
 
+* `os_disk_type` - The type of the OS Disk on each Node in this Node Pool.
+
 * `os_type` - The operating system used on each Node in this Node Pool.
 
 * `priority` - The priority of the Virtual Machines in the Virtual Machine Scale Set backing this Node Pool.
