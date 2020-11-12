@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,12 +17,12 @@ func TestAccAzureRMLogAnalyticsCluster_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
+					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -34,12 +35,12 @@ func TestAccAzureRMLogAnalyticsCluster_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
+					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMLogAnalyticsCluster_requiresImport),
@@ -52,19 +53,19 @@ func TestAccAzureRMLogAnalyticsCluster_complete(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
+					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMLogAnalyticsCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
+					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -72,21 +73,21 @@ func TestAccAzureRMLogAnalyticsCluster_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMoperationalinsightsClusterExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMLogAnalyticsClusterExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.ClusterClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("operationalinsights Cluster not found: %s", resourceName)
+			return fmt.Errorf("log analytics Cluster not found: %s", resourceName)
 		}
-		id, err := parse.OperationalinsightsClusterID(rs.Primary.ID)
+		id, err := parse.LogAnalyticsClusterID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: log_analytics Cluster %q does not exist", id.Name)
+				return fmt.Errorf("bad: log analytics Cluster %q does not exist", id.Name)
 			}
 			return fmt.Errorf("bad: Get on LogAnalytics.ClusterClient: %+v", err)
 		}
@@ -94,7 +95,7 @@ func testCheckAzureRMoperationalinsightsClusterExists(resourceName string) resou
 	}
 }
 
-func testCheckAzureRMoperationalinsightsClusterDestroy(s *terraform.State) error {
+func testCheckAzureRMLogAnalyticsClusterDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).LogAnalytics.ClusterClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -102,7 +103,7 @@ func testCheckAzureRMoperationalinsightsClusterDestroy(s *terraform.State) error
 		if rs.Type != "azurerm_log_analytics_cluster" {
 			continue
 		}
-		id, err := parse.OperationalinsightsClusterID(rs.Primary.ID)
+		id, err := parse.LogAnalyticsClusterID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
