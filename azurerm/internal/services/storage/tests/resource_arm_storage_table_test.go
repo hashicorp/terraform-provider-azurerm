@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
@@ -127,13 +126,12 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
-		props, err := client.Exists(ctx, accountName, tableName)
+		exists, err := client.Exists(ctx, account.ResourceGroup, accountName, tableName)
 		if err != nil {
-			if utils.ResponseWasNotFound(props) {
-				return fmt.Errorf("Table %q doesn't exist in Account %q!", tableName, accountName)
-			}
-
-			return fmt.Errorf("Error retrieving Table %q: %s", tableName, accountName)
+			return fmt.Errorf("retrieving Table %q: %s", tableName, accountName)
+		}
+		if exists == nil || !*exists {
+			return fmt.Errorf("Table %q doesn't exist in Account %q!", tableName, accountName)
 		}
 
 		return nil
@@ -166,17 +164,16 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
-		props, err := client.Exists(ctx, accountName, tableName)
+		exists, err := client.Exists(ctx, account.ResourceGroup, accountName, tableName)
 		if err != nil {
-			if utils.ResponseWasNotFound(props) {
-				return fmt.Errorf("Table %q doesn't exist in Account %q so it can't be deleted!", tableName, accountName)
-			}
-
 			return fmt.Errorf("Error retrieving Table %q: %s", tableName, accountName)
 		}
+		if exists == nil || !*exists {
+			return fmt.Errorf("Table %q doesn't exist in Account %q so it can't be deleted!", tableName, accountName)
+		}
 
-		if _, err := client.Delete(ctx, accountName, tableName); err != nil {
-			return fmt.Errorf("Error deleting Table %q: %s", tableName, err)
+		if err := client.Delete(ctx, account.ResourceGroup, accountName, tableName); err != nil {
+			return fmt.Errorf("deleting Table %q: %s", tableName, err)
 		}
 
 		return nil
@@ -208,12 +205,15 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
-		props, err := client.Exists(ctx, accountName, tableName)
+		exists, err := client.Exists(ctx, account.ResourceGroup, accountName, tableName)
 		if err != nil {
 			return nil
 		}
+		if exists != nil && *exists {
+			return fmt.Errorf("Table still exists")
+		}
 
-		return fmt.Errorf("Table still exists: %+v", props)
+		return nil
 	}
 
 	return nil

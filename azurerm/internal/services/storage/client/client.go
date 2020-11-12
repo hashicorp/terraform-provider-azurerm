@@ -247,7 +247,12 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 	return &entitiesClient, nil
 }
 
-func (client Client) TablesClient(ctx context.Context, account accountDetails) (*tables.Client, error) {
+func (client Client) TablesClient(ctx context.Context, account accountDetails) (shim.StorageTableWrapper, error) {
+	if client.useResourceManager {
+		// TODO: implement me
+		return nil, fmt.Errorf("TODO: implement me")
+	}
+
 	// NOTE: Tables do not support AzureAD Authentication
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -262,5 +267,6 @@ func (client Client) TablesClient(ctx context.Context, account accountDetails) (
 
 	tablesClient := tables.NewWithEnvironment(client.Environment)
 	tablesClient.Client.Authorizer = storageAuth
-	return &tablesClient, nil
+	shim := shim.NewDataPlaneStorageTableWrapper(&tablesClient)
+	return shim, nil
 }

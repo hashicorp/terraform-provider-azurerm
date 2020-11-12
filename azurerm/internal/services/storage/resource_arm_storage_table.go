@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 )
 
@@ -113,39 +113,37 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", accountName, tableName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		return fmt.Errorf("unable to locate Storage Account %q!", accountName)
 	}
 
 	client, err := storageClient.TablesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Table Client: %s", err)
+		return fmt.Errorf("building Table Client: %s", err)
 	}
 
-	id := client.GetResourceID(accountName, tableName)
-	existing, err := client.Exists(ctx, accountName, tableName)
+	id := parse.NewStorageTableDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, tableName).ID("")
+
+	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, tableName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing) {
-			return fmt.Errorf("Error checking for existence of existing Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
-		}
+		return fmt.Errorf("checking for existence of existing Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
 	}
-
-	if !utils.ResponseWasNotFound(existing) {
+	if exists != nil && *exists {
 		return tf.ImportAsExistsError("azurerm_storage_table", id)
 	}
 
 	log.Printf("[DEBUG] Creating Table %q in Storage Account %q.", tableName, accountName)
-	if _, err := client.Create(ctx, accountName, tableName); err != nil {
-		return fmt.Errorf("Error creating Table %q within Storage Account %q: %s", tableName, accountName, err)
-	}
-
-	if _, err := client.SetACL(ctx, accountName, tableName, acls); err != nil {
-		return fmt.Errorf("Error setting ACL's for Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
+	if err := client.Create(ctx, account.ResourceGroup, accountName, tableName); err != nil {
+		return fmt.Errorf("creating Table %q within Storage Account %q: %s", tableName, accountName, err)
 	}
 
 	d.SetId(id)
+	if err := client.UpdateACLs(ctx, account.ResourceGroup, accountName, tableName, acls); err != nil {
+		return fmt.Errorf("setting ACL's for Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
+	}
+
 	return resourceArmStorageTableRead(d, meta)
 }
 
@@ -154,47 +152,46 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := tables.ParseResourceID(d.Id())
+	id, err := parse.StorageTableDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
-		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.Name, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
 	client, err := storageClient.TablesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Table Client: %s", err)
+		return fmt.Errorf("building Table Client: %s", err)
 	}
 
-	exists, err := client.Exists(ctx, id.AccountName, id.TableName)
+	exists, err := client.Exists(ctx, account.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(exists) {
-			log.Printf("[DEBUG] Storage Account %q not found, removing table %q from state", id.AccountName, id.TableName)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error retrieving Table %q in Storage Account %q: %s", id.TableName, id.AccountName, err)
+		return fmt.Errorf("retrieving Table %q (Storage Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
+	}
+	if exists == nil && !*exists {
+		log.Printf("[DEBUG] Storage Account %q not found, removing table %q from state", id.AccountName, id.Name)
+		d.SetId("")
+		return nil
 	}
 
-	acls, err := client.GetACL(ctx, id.AccountName, id.TableName)
+	acls, err := client.GetACLs(ctx, account.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving ACL's %q in Storage Account %q: %s", id.TableName, id.AccountName, err)
+		return fmt.Errorf("retrieving ACL's %q in Storage Account %q: %s", id.Name, id.AccountName, err)
 	}
 
-	d.Set("name", id.TableName)
+	d.Set("name", id.Name)
 	d.Set("storage_account_name", id.AccountName)
 
 	if err := d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
-		return fmt.Errorf("Error flattening `acl`: %+v", err)
+		return fmt.Errorf("flattening `acl`: %+v", err)
 	}
 
 	return nil
@@ -205,14 +202,14 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := tables.ParseResourceID(d.Id())
+	id, err := parse.StorageTableDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
@@ -223,9 +220,9 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error building Table Client: %s", err)
 	}
 
-	log.Printf("[INFO] Deleting Table %q in Storage Account %q", id.TableName, id.AccountName)
-	if _, err := client.Delete(ctx, id.AccountName, id.TableName); err != nil {
-		return fmt.Errorf("Error deleting Table %q from Storage Account %q: %s", id.TableName, id.AccountName, err)
+	log.Printf("[INFO] Deleting Table %q in Storage Account %q", id.Name, id.AccountName)
+	if err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
+		return fmt.Errorf("deleting Table %q from Storage Account %q: %s", id.Name, id.AccountName, err)
 	}
 
 	return nil
@@ -243,15 +240,15 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+		return fmt.Errorf("retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+		return fmt.Errorf("unable to locate Storage Account %q!", id.AccountName)
 	}
 
 	client, err := storageClient.TablesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Table Client: %s", err)
+		return fmt.Errorf("building Table Client: %s", err)
 	}
 
 	if d.HasChange("acl") {
@@ -260,8 +257,8 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 		aclsRaw := d.Get("acl").(*schema.Set).List()
 		acls := expandStorageTableACLs(aclsRaw)
 
-		if _, err := client.SetACL(ctx, id.AccountName, id.TableName, acls); err != nil {
-			return fmt.Errorf("Error updating ACL's for Storage Table %q (Storage Account %q): %s", id.TableName, id.AccountName, err)
+		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.TableName, acls); err != nil {
+			return fmt.Errorf("updating ACL's for Table %q (Storage Account %q): %s", id.TableName, id.AccountName, err)
 		}
 
 		log.Printf("[DEBUG] Updated the ACL's for Storage Table %q (Storage Account %q)", id.TableName, id.AccountName)
@@ -309,10 +306,13 @@ func expandStorageTableACLs(input []interface{}) []tables.SignedIdentifier {
 	return results
 }
 
-func flattenStorageTableACLs(input tables.GetACLResult) []interface{} {
+func flattenStorageTableACLs(input *[]tables.SignedIdentifier) []interface{} {
 	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
 
-	for _, v := range input.SignedIdentifiers {
+	for _, v := range *input {
 		output := map[string]interface{}{
 			"id": v.Id,
 			"access_policy": []interface{}{
