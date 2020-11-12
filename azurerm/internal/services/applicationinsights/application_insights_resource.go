@@ -244,7 +244,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.Name, err)
 	}
 
-	d.Set("name", name)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
