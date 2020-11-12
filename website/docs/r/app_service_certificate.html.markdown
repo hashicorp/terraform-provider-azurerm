@@ -13,7 +13,7 @@ Manages an App Service certificate.
 
 ## Example Usage
 
-This example provisions an App Service Certificate from a Local File. Additional examples of how to use the `azurerm_app_service_certificate` resource can be found [in the ./examples/app-service/certificate` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service/certificate).
+This example provisions an App Service Certificate from a Local File. Additional examples of how to use the `azurerm_app_service_certificate` resource can be found [in the ./examples/app-service-certificate` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service-certificate).
 
 
 ```hcl
