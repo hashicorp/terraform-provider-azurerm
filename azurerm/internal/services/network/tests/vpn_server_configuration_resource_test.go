@@ -382,18 +382,18 @@ resource "azurerm_vpn_server_configuration" "test" {
   vpn_authentication_types = ["Radius"]
 
   radius_server {
- 
-  	server {
-			address = "10.104.1.1"
-			secret  = "vindicators-the-return-of-worldender"
-			score = 1
-  	}
 
-  	server {
-			address = "10.104.1.2"
-			secret  = "vindicators-the-return-of-worldender"
-			score = 30
-  	}
+    server {
+      address = "10.104.1.1"
+      secret  = "vindicators-the-return-of-worldender"
+      score   = 1
+    }
+
+    server {
+      address = "10.104.1.2"
+      secret  = "vindicators-the-return-of-worldender"
+      score   = 30
+    }
 
     server_root_certificate {
       name             = "DigiCert-Federated-ID-Root-CA"

@@ -255,11 +255,13 @@ func resourceArmVPNServerConfiguration() *schema.Resource {
 									"address": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"secret": {
 										Type:      schema.TypeString,
 										Required:  true,
+										ValidateFunc: validation.StringIsNotEmpty,
 										Sensitive: true,
 									},
 
@@ -854,7 +856,7 @@ func flattenVpnServerConfigurationRadiusServer(input *network.VpnServerConfigura
 
 			score := 0
 			if v.RadiusServerScore != nil {
-				score = (int)(*v.RadiusServerScore)
+				score = int(*v.RadiusServerScore)
 			}
 
 			servers = append(servers, map[string]interface{}{
