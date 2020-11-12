@@ -137,9 +137,9 @@ A `blob_properties` block supports the following:
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
-* `versioning_enabled` - (Optional) Default to `false`
+* `versioning_enabled` - (Optional) Is versioning enabled? Default to `false`.
 
-* `change_feed_enabled` - (Optional) Default to `false`
+* `change_feed_enabled` - (Optional) Are the blob service properties for change feed events enabled? Default to `false`
 
 * `restore_policy` - (Optional) A `restore_policy` block as defined below.
 
@@ -261,13 +261,13 @@ A `static_website` block supports the following:
 
 A `restore_policy` block supports the following:
 
-* `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days.
+* `days` - (Optional) Specifies the number of days that the blob should be retained. It should be great than zero and less than `blob_properties.0.delete_retention_policy.0.days`.
 
 ---
 
 A `container_delete_retention_policy` block supports the following:
 
-* `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days.
+* `days` - (Optional) Specifies the number of days that the blob container should be retained, between `1` and `365` days.
 
 ## Attributes Reference
 

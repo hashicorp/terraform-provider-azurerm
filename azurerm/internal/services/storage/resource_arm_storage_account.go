@@ -3,13 +3,14 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
@@ -1020,6 +1021,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	// network_rules always be updated for d.HasChange always return true for a complicated structure with set. Issue: https://github.com/hashicorp/terraform-plugin-sdk/issues/617
 	if d.HasChange("network_rules.0.bypass") || d.HasChange("network_rules.0.ip_rules") || d.HasChange("network_rules.0.virtual_network_subnet_ids") || d.HasChange("network_rules.0.default_action") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
