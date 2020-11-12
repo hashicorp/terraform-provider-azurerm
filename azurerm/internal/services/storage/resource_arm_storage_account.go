@@ -10,13 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -796,9 +795,9 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			if err != nil {
 				return err
 			}
-			//`restore_policy` can not be updated with other three dependant policies
+			// `restore_policy` can not be updated with other three dependant policies
 			blobProperties.RestorePolicy = expandBlobPropertiesRestorePolicy(d.Get("blob_properties.0.restore_policy").([]interface{}))
-			//`container_delete_retention_policy` needs extra feature register
+			// `container_delete_retention_policy` needs extra feature register
 			blobProperties.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy = expandBlobPropertiesContainerDeleteRetentionPolicy(d.Get("blob_properties.0.container_delete_retention_policy").([]interface{}))
 
 			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
@@ -1616,7 +1615,6 @@ func expandBlobProperties(input []interface{}) (storage.BlobServiceProperties, e
 	if restoreRaw, ok := v["restore_policy"]; ok {
 		if restore := restoreRaw.([]interface{}); len(restore) > 0 && (!*props.BlobServicePropertiesProperties.DeleteRetentionPolicy.Enabled || !*props.IsVersioningEnabled || !*props.ChangeFeed.Enabled) {
 			return props, fmt.Errorf("`delete_retention_policy` and `versioning_enabled` and `change_feed_enabled` must be enabled when `restore_policy` is enabled")
-
 		}
 	}
 

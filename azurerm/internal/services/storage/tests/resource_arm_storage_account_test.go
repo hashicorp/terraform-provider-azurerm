@@ -2,15 +2,16 @@ package tests
 
 import (
 	"fmt"
+	"net/http"
+	"regexp"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
-	"net/http"
-	"regexp"
-	"testing"
 )
 
 func TestValidateArmStorageAccountName(t *testing.T) {
@@ -997,7 +998,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-                    %s
+    %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
