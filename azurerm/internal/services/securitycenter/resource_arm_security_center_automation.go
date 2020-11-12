@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -79,9 +79,13 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{typeLogicApp, typeLogAnalytics, typeEventHub}, true),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								typeLogicApp,
+								typeLogAnalytics,
+								typeEventHub,
+							}, true),
 						},
 
 						"resource_id": {
@@ -114,9 +118,13 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"event_source": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"Alerts", "Assessments", "SubAssessments"}, true),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Alerts",
+								"Assessments",
+								"SubAssessments",
+							}, true),
 						},
 
 						"rule_set": {
@@ -138,14 +146,29 @@ func resourceArmSecurityCenterAutomation() *schema.Resource {
 													Required: true,
 												},
 												"operator": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringInSlice([]string{string(security.Contains), string(security.EndsWith), string(security.Equals), string(security.GreaterThan), string(security.GreaterThanOrEqualTo), string(security.LesserThan), string(security.LesserThanOrEqualTo), string(security.NotEquals), string(security.StartsWith)}, true),
+													Type:     schema.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(security.Contains),
+														string(security.EndsWith),
+														string(security.Equals),
+														string(security.GreaterThan),
+														string(security.GreaterThanOrEqualTo),
+														string(security.LesserThan),
+														string(security.LesserThanOrEqualTo),
+														string(security.NotEquals),
+														string(security.StartsWith),
+													}, true),
 												},
 												"property_type": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringInSlice([]string{string(security.Integer), string(security.String), string(security.Boolean), string(security.Number)}, true),
+													Type:     schema.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(security.Integer),
+														string(security.String),
+														string(security.Boolean),
+														string(security.Number),
+													}, true),
 												},
 											},
 										},
@@ -193,15 +216,15 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 		},
 	}
 
-	automation.AutomationProperties.Scopes = expandScopes(d.Get("scopes").([]interface{}))
+	automation.AutomationProperties.Scopes = expandSecurityCenterAutomationScopes(d.Get("scopes").([]interface{}))
 
 	var err error
-	automation.AutomationProperties.Actions, err = expandActions(d.Get("action").([]interface{}))
+	automation.AutomationProperties.Actions, err = expandSecurityCenterAutomationActions(d.Get("action").([]interface{}))
 	if err != nil {
 		return err
 	}
 
-	automation.AutomationProperties.Sources, err = expandSources(d.Get("source").([]interface{}))
+	automation.AutomationProperties.Sources, err = expandSecurityCenterAutomationSources(d.Get("source").([]interface{}))
 	if err != nil {
 		return err
 	}
@@ -221,15 +244,15 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SecurityCenterAutomationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["automations"]
+	resourceGroup := id.ResourceGroup
+	name := id.AutomationName
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Security Center automation %q - removing from state", d.Id())
@@ -241,7 +264,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -249,7 +272,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 	if properties := resp.AutomationProperties; properties != nil {
 		d.Set("enabled", properties.IsEnabled)
 
-		flatScopes, err := flattenScopes(properties.Scopes)
+		flatScopes, err := flattenSecurityCenterAutomationScopes(properties.Scopes)
 		if err != nil {
 			return err
 		}
@@ -257,7 +280,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 			return fmt.Errorf("Error reading Security Center automation scopes: %+v", err)
 		}
 
-		flatActions, err := flattenActions(properties.Actions, d)
+		flatActions, err := flattenSecurityCenterAutomationActions(properties.Actions, d)
 		if err != nil {
 			return err
 		}
@@ -265,7 +288,7 @@ func resourceArmSecurityCenterAutomationRead(d *schema.ResourceData, meta interf
 			return fmt.Errorf("Error reading Security Center automation actions: %+v", err)
 		}
 
-		flatSources, err := flattenSources(properties.Sources)
+		flatSources, err := flattenSecurityCenterAutomationSources(properties.Sources)
 		if err != nil {
 			return err
 		}
@@ -282,15 +305,15 @@ func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SecurityCenterAutomationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["automations"]
+	resourceGroup := id.ResourceGroup
+	name := id.AutomationName
 
-	resp, err := client.Delete(ctx, resGroup, name)
+	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			log.Printf("[DEBUG] Security Center automation was not found: %v", err)
@@ -302,7 +325,7 @@ func resourceArmSecurityCenterAutomationDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func expandSources(sourcesRaw []interface{}) (*[]security.AutomationSource, error) {
+func expandSecurityCenterAutomationSources(sourcesRaw []interface{}) (*[]security.AutomationSource, error) {
 	if len(sourcesRaw) == 0 {
 		return &[]security.AutomationSource{}, nil
 	}
@@ -365,7 +388,7 @@ func expandSources(sourcesRaw []interface{}) (*[]security.AutomationSource, erro
 	return &output, nil
 }
 
-func expandScopes(scopePathsRaw []interface{}) *[]security.AutomationScope {
+func expandSecurityCenterAutomationScopes(scopePathsRaw []interface{}) *[]security.AutomationScope {
 	scopes := make([]security.AutomationScope, 0)
 
 	for _, scopePathRaw := range scopePathsRaw {
@@ -382,7 +405,7 @@ func expandScopes(scopePathsRaw []interface{}) *[]security.AutomationScope {
 	return &scopes
 }
 
-func expandActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction, error) {
+func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction, error) {
 	if len(actionsRaw) == 0 {
 		return &[]security.BasicAutomationAction{}, nil
 	}
@@ -442,7 +465,7 @@ func expandActions(actionsRaw []interface{}) (*[]security.BasicAutomationAction,
 	return &output, nil
 }
 
-func flattenSources(sources *[]security.AutomationSource) ([]map[string]interface{}, error) {
+func flattenSecurityCenterAutomationSources(sources *[]security.AutomationSource) ([]map[string]interface{}, error) {
 	if sources == nil {
 		return make([]map[string]interface{}, 0), nil
 	}
@@ -489,7 +512,7 @@ func flattenSources(sources *[]security.AutomationSource) ([]map[string]interfac
 	return resultSlice, nil
 }
 
-func flattenScopes(scopes *[]security.AutomationScope) ([]string, error) {
+func flattenSecurityCenterAutomationScopes(scopes *[]security.AutomationScope) ([]string, error) {
 	if scopes == nil {
 		return []string{}, nil
 	}
@@ -506,7 +529,7 @@ func flattenScopes(scopes *[]security.AutomationScope) ([]string, error) {
 	return resultSlice, nil
 }
 
-func flattenActions(actions *[]security.BasicAutomationAction, d *schema.ResourceData) ([]map[string]string, error) {
+func flattenSecurityCenterAutomationActions(actions *[]security.BasicAutomationAction, d *schema.ResourceData) ([]map[string]string, error) {
 	if actions == nil {
 		return []map[string]string{}, nil
 	}
