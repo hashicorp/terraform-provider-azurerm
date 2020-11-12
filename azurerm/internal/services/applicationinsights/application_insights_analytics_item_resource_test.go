@@ -1,10 +1,8 @@
-package tests
+package applicationinsights_test
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -155,7 +153,7 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 	id := rs.Primary.Attributes["id"]
 
-	resGroup, appInsightsName, itemScopePath, itemID, err := applicationinsights.ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
+	resGroup, appInsightsName, itemScopePath, itemID, err := ResourcesArmApplicationInsightsAnalyticsItemParseID(id)
 	if err != nil {
 		return false, fmt.Errorf("Failed to parse ID (id: %s): %+v", id, err)
 	}

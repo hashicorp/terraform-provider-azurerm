@@ -1,4 +1,4 @@
-package tests
+package applicationinsights_test
 
 import (
 	"fmt"
