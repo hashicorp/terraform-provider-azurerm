@@ -67,7 +67,7 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 		"client_secret": "",
 	}
 
-	for k, _ := range config {
+	for k := range config {
 		e := fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))
 		if v := os.Getenv(e); v != "" {
 			config[k] = v
