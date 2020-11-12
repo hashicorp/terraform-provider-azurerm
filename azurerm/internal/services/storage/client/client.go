@@ -33,7 +33,6 @@ type Client struct {
 
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
-	useResourceManager        bool
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -68,8 +67,6 @@ func NewClient(options *common.ClientOptions) *Client {
 		SyncGroupsClient:         &syncGroupsClient,
 
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
-
-		useResourceManager: false, // TODO: feature toggleable
 	}
 
 	if options.StorageUseAzureAD {
@@ -124,13 +121,6 @@ func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*
 }
 
 func (client Client) ContainersClient(ctx context.Context, account accountDetails) (shim.StorageContainerWrapper, error) {
-	if client.useResourceManager {
-		rmClient := storage.NewBlobContainersClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
-		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
-		rmShim := shim.NewResourceManagerStorageContainerWrapper(&rmClient)
-		return rmShim, nil
-	}
-
 	if client.storageAdAuth != nil {
 		containersClient := containers.NewWithEnvironment(client.Environment)
 		containersClient.Client.Authorizer = *client.storageAdAuth
@@ -174,11 +164,6 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, account acc
 }
 
 func (client Client) FileSharesClient(ctx context.Context, account accountDetails) (shim.StorageShareWrapper, error) {
-	if client.useResourceManager {
-		// TODO: implement me
-		return nil, fmt.Errorf("API doesn't implement all of the necessary functionality")
-	}
-
 	// NOTE: Files do not support AzureAD Authentication
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -198,16 +183,6 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 }
 
 func (client Client) QueuesClient(ctx context.Context, account accountDetails) (shim.StorageQueuesWrapper, error) {
-	if client.useResourceManager {
-		rmClient := storage.NewQueueClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
-		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
-
-		servicesClient := storage.NewQueueServicesClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
-		servicesClient.Client.Authorizer = client.resourceManagerAuthorizer
-
-		return shim.NewResourceManagerStorageQueueWrapper(&rmClient, &servicesClient), nil
-	}
-
 	if client.storageAdAuth != nil {
 		queueClient := queues.NewWithEnvironment(client.Environment)
 		queueClient.Client.Authorizer = *client.storageAdAuth
@@ -248,11 +223,6 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 }
 
 func (client Client) TablesClient(ctx context.Context, account accountDetails) (shim.StorageTableWrapper, error) {
-	if client.useResourceManager {
-		// TODO: implement me
-		return nil, fmt.Errorf("TODO: implement me")
-	}
-
 	// NOTE: Tables do not support AzureAD Authentication
 
 	accountKey, err := account.AccountKey(ctx, client)
