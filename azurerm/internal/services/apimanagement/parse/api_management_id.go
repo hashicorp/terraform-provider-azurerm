@@ -1,12 +1,19 @@
 package parse
 
 import (
+	"fmt"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type ApiManagementId struct {
 	ResourceGroup string
 	ServiceName   string
+}
+
+func (a *ApiManagementId) ID(subscriptionId string) (id string) {
+	id = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s",
+		subscriptionId, a.ResourceGroup, a.ServiceName)
+	return
 }
 
 func ApiManagementID(input string) (*ApiManagementId, error) {

@@ -8,9 +8,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,9 +35,17 @@ func resourceArmApiManagementIdentityProviderMicrosoft() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(), // TODO remove in v3.0
 
-			"api_management_name": azure.SchemaApiManagementName(),
+			"api_management_name": azure.SchemaApiManagementNameDeprecated(), // TODO remove in v3.0
+
+			"api_management_id": {
+				Type:         schema.TypeString,
+				Optional:     true, // TODO change to required in v3.0
+				Computed:     true, // TODO remove in v3.0
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 
 			"client_id": {
 				Type:         schema.TypeString,
@@ -58,8 +68,23 @@ func resourceArmApiManagementIdentityProviderMicrosoftCreateUpdate(d *schema.Res
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	serviceName := d.Get("api_management_name").(string)
+	var resourceGroup, serviceName string
+	if apiManagementId, ok := d.GetOk("api_management_id"); ok && apiManagementId.(string) != "" {
+		id, err := parse.ApiManagementID(apiManagementId.(string))
+		if err != nil {
+			return err
+		}
+		resourceGroup = id.ResourceGroup
+		serviceName = id.ServiceName
+	} else {
+		resourceGroup = d.Get("resource_group_name").(string)
+		serviceName = d.Get("api_management_name").(string)
+	}
+
+	if resourceGroup == "" || serviceName == "" {
+		return fmt.Errorf("could not determine resource group or API management service, please specify `api_management_id`")
+	}
+
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 
@@ -101,17 +126,18 @@ func resourceArmApiManagementIdentityProviderMicrosoftCreateUpdate(d *schema.Res
 }
 
 func resourceArmApiManagementIdentityProviderMicrosoftRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiManagementIdentityProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	identityProviderName := id.Path["identityProviders"]
+	serviceName := id.ServiceName
+	identityProviderName := id.ProviderName
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName))
 	if err != nil {
@@ -124,8 +150,7 @@ func resourceArmApiManagementIdentityProviderMicrosoftRead(d *schema.ResourceDat
 		return fmt.Errorf("making Read request for Identity Provider %q (Resource Group %q / API Management Service %q): %+v", identityProviderName, resourceGroup, serviceName, err)
 	}
 
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("api_management_id", id.ApiManagementID(subscriptionId))
 
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("client_id", props.ClientID)

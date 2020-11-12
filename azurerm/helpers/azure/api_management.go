@@ -19,6 +19,14 @@ func SchemaApiManagementName() *schema.Schema {
 	}
 }
 
+func SchemaApiManagementNameDeprecated() (s *schema.Schema) {
+	s = SchemaApiManagementName()
+	s.Deprecated = "This property has been deprecated and will be removed in v3.0 of the provider. Please use the `api_management_id` property that replaces it."
+	s.Required = false
+	s.Optional = true
+	return
+}
+
 func SchemaApiManagementDataSourceName() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,

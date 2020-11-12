@@ -2,18 +2,23 @@ package tests
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
+	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -21,59 +26,19 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADB2CDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data),
+				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderAADB2CExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMApiManagementIdentityProviderAADB2C_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADB2CDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderAADB2CExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000-0000-0000-0000-000000000000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "00000000000000000000000000000000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.0", data.Client().TenantID),
-
-					resource.TestCheckResourceAttr(data.ResourceName, "signin_tenant", "11111111-1111-1111-1111-111111111111"),
-					resource.TestCheckResourceAttr(data.ResourceName, "authority", "ExampleAuthority"),
-					resource.TestCheckResourceAttr(data.ResourceName, "signup_policy", "ExampleSignupPolicy"),
-					resource.TestCheckResourceAttr(data.ResourceName, "signin_policy", "ExampleSigninPolicy"),
-				),
-			},
-			{
-				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementIdentityProviderAADB2CExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "22222222-2222-2222-2222-222222222222"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "22222222222222222222222222222222"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.0", data.Client().TenantID),
-					resource.TestCheckResourceAttr(data.ResourceName, "signin_tenant", "11111111-1111-1111-1111-111111111111"),
-					resource.TestCheckResourceAttr(data.ResourceName, "authority", "ExampleAuthority"),
-					resource.TestCheckResourceAttr(data.ResourceName, "signup_policy", "ExampleSignupPolicy"),
-					resource.TestCheckResourceAttr(data.ResourceName, "signin_policy", "ExampleSigninPolicy")),
-			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
 
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
+	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -81,14 +46,37 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(t *testing
 		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADB2CDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data),
+				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderAADB2CExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport),
+			{
+				Config:      testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(data, b2cConfig),
+				ExpectError: acceptance.RequiresImportError(data.ResourceType),
+			},
 		},
 	})
+}
+
+func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T) map[string]string {
+	config := map[string]string{
+		"tenant_id":     "",
+		"tenant_slug":   "",
+		"client_id":     "",
+		"client_secret": "",
+	}
+
+	for k, _ := range config {
+		e := fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))
+		if v := os.Getenv(e); v != "" {
+			config[k] = v
+			continue
+		}
+		t.Fatalf("`%s` must be set for acceptance tests for resource `azurerm_api_management_identity_provider_aadb2c`!", e)
+	}
+
+	return config
 }
 
 func testCheckAzureRMApiManagementIdentityProviderAADB2CDestroy(s *terraform.State) error {
@@ -100,10 +88,13 @@ func testCheckAzureRMApiManagementIdentityProviderAADB2CDestroy(s *terraform.Sta
 			continue
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
+		apiManagementId := rs.Primary.Attributes["api_management_id"]
+		id, err := parse.ApiManagementID(apiManagementId)
+		if err != nil {
+			return fmt.Errorf("Error parsing API Management ID %q: %+v", apiManagementId, err)
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.AadB2C)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, apimanagement.AadB2C)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -126,13 +117,16 @@ func testCheckAzureRMApiManagementIdentityProviderAADB2CExists(resourceName stri
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
+		apiManagementId := rs.Primary.Attributes["api_management_id"]
+		id, err := parse.ApiManagementID(apiManagementId)
+		if err != nil {
+			return fmt.Errorf("Error parsing API Management ID %q: %+v", apiManagementId, err)
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.AadB2C)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, apimanagement.AadB2C)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: API Management Identity Provider %q (Resource Group %q / API Management Service %q) does not exist", apimanagement.AadB2C, resourceGroup, serviceName)
+				return fmt.Errorf("Bad: API Management Identity Provider %q (Resource Group %q / API Management Service %q) does not exist", apimanagement.AadB2C, id.ResourceGroup, id.ServiceName)
 			}
 			return fmt.Errorf("Bad: Get on apiManagementIdentityProviderClient: %+v", err)
 		}
@@ -141,19 +135,25 @@ func testCheckAzureRMApiManagementIdentityProviderAADB2CExists(resourceName stri
 	}
 }
 
-func testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data acceptance.TestData) string {
+func testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data acceptance.TestData, b2cConfig map[string]string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+provider "azuread" {
+  tenant_id     = "%[1]s"
+  client_id     = "%[2]s"
+  client_secret = "%[3]s"
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-api-%d"
-  location = "%s"
+  name     = "acctestRG-api-%[5]d"
+  location = "%[6]s"
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[5]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -161,69 +161,49 @@ resource "azurerm_api_management" "test" {
   sku_name            = "Developer_1"
 }
 
-resource "azurerm_api_management_identity_provider_aadb2c" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  client_id           = "00000000-0000-0000-0000-000000000000"
-  client_secret       = "00000000000000000000000000000000"
-  allowed_tenants     = ["%s"]
-  signin_tenant       = "%s"
-  authority           = "${azurerm_api_management.test.name}.b2clogin.com"
-  signup_policy       = "ExampleSignupPolicy"
-  signin_policy       = "ExampleSigninPolicy"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
+resource "azuread_application" "test" {
+  name                       = "acctestAM-%[5]d"
+  oauth2_allow_implicit_flow = true
+  reply_urls                 = ["https://${azurerm_api_management.test.name}.developer.azure-api.net/signin"]
 }
 
-func testAccAzureRMApiManagementIdentityProviderAADB2C_update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-api-%d"
-  location = "%s"
-}
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
+resource "azuread_application_password" "test" {
+  application_object_id = azuread_application.test.object_id
+  end_date_relative     = "36h"
+  value                 = "P@55w0rD!%[7]s"
 }
 
 resource "azurerm_api_management_identity_provider_aadb2c" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  client_id           = "22222222-2222-2222-2222-222222222222"
-  client_secret       = "22222222222222222222222222222222"
-  allowed_tenants     = ["%s"]
-  signin_tenant       = "%s"
-  authority           = "ExampleAuthority"
-  signup_policy       = "ExampleSignupPolicy"
-  signin_policy       = "ExampleSigninPolicy"
+  api_management_id      = azurerm_api_management.test.id
+  client_id              = azuread_application.test.application_id
+  client_secret          = "P@55w0rD!%[7]s"
+  allowed_tenant         = "%[4]s.onmicrosoft.com"
+  signin_tenant          = "%[4]s.onmicrosoft.com"
+  authority              = "%[4]s.b2clogin.com"
+  signin_policy          = "B2C_1_Login"
+  signup_policy          = "B2C_1_Signup"
+  profile_editing_policy = "B2C_1_EditProfile"
+  password_reset_policy  = "B2C_1_ResetPassword"
+
+  depends_on = [azuread_application_password.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
+`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data)
+func testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(data acceptance.TestData, b2cConfig map[string]string) string {
+	template := testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_identity_provider_aadb2c" "import" {
-  resource_group_name = azurerm_api_management_identity_provider_aadb2c.test.resource_group_name
-  api_management_name = azurerm_api_management_identity_provider_aadb2c.test.api_management_name
-  client_id           = azurerm_api_management_identity_provider_aadb2c.test.client_id
-  client_secret       = azurerm_api_management_identity_provider_aadb2c.test.client_secret
-  allowed_tenants     = azurerm_api_management_identity_provider_aadb2c.test.allowed_tenants
-  signin_tenant       = azurerm_api_management_identity_provider_aadb2c.test.signin_tenant
-  authority           = azurerm_api_management_identity_provider_aadb2c.test.authority
-  signup_policy       = azurerm_api_management_identity_provider_aadb2c.test.signup_policy
-  signin_policy       = azurerm_api_management_identity_provider_aadb2c.test.signin_policy
+  api_management_id = azurerm_api_management_identity_provider_aadb2c.test.api_management_id
+  client_id         = azurerm_api_management_identity_provider_aadb2c.test.client_id
+  client_secret     = azurerm_api_management_identity_provider_aadb2c.test.client_secret
+  allowed_tenant    = azurerm_api_management_identity_provider_aadb2c.test.allowed_tenant
+  signin_tenant     = azurerm_api_management_identity_provider_aadb2c.test.signin_tenant
+  authority         = azurerm_api_management_identity_provider_aadb2c.test.authority
+  signup_policy     = azurerm_api_management_identity_provider_aadb2c.test.signup_policy
+  signin_policy     = azurerm_api_management_identity_provider_aadb2c.test.signin_policy
 }
 `, template)
 }

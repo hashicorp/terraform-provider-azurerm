@@ -28,10 +28,9 @@ resource "azurerm_api_management" "example" {
 }
 
 resource "azurerm_api_management_identity_provider_google" "example" {
-  resource_group_name = azurerm_resource_group.example.name
-  api_management_name = azurerm_api_management.example.name
-  client_id           = "00000000.apps.googleusercontent.com"
-  client_secret       = "00000000000000000000000000000000"
+  api_management_id = azurerm_api_management.example.id
+  client_id         = "00000000.apps.googleusercontent.com"
+  client_secret     = "00000000000000000000000000000000"
 }
 ```
 
@@ -39,9 +38,11 @@ resource "azurerm_api_management_identity_provider_google" "example" {
 
 The following arguments are supported:
 
-* `api_management_name` - (Required) The Name of the API Management Service where this Google Identity Provider should be created. Changing this forces a new resource to be created.
+* `api_management_id` - (Required) The ID of the API Management Service where this Google Identity Provider should be created. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the API Management Service exists. Changing this forces a new resource to be created.
+* `api_management_name` - (Optional, Deprecated) The Name of the API Management Service where this Google Identity Provider should be created. This property is deprecated and will be removed in version 3.0 of the provider. Use the `api_management_id` property instead. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Optional, Deprecated) The Name of the Resource Group where the API Management Service exists. This property is deprecated and will be removed in version 3.0 of the provider. Use the `api_management_id` property instead. Changing this forces a new resource to be created.
 
 * `client_id` - (Required) Client Id for Google Sign-in.
 
@@ -69,5 +70,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 API Management Google Identity Provider can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_identity_provider_google.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/identityProviders/google
+terraform import azurerm_api_management_identity_provider_google.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service1/identityProviders/Google
 ```
