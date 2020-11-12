@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
@@ -64,7 +65,12 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 				ValidateFunc: validateArmStorageDataLakeGen2FileSystemName,
 			},
 
-			"storage_account_id": AccountIDSchema(),
+			"storage_account_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageAccountID,
+			},
 
 			"properties": MetaDataSchema(),
 		},
