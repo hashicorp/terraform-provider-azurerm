@@ -214,43 +214,43 @@ A `security` block supports the following:
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11` field
 
-* `enable_tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
+* `tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA` field
 
-* `enable_tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
+* `tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA` field
 
-* `enable_tls_ecdheRsa_with_aes128_cbc_sha_ciphers` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
+* `tls_ecdheRsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA` field
 
-* `enable_tls_ecdheRsa_with_aes256_cbc_sha_ciphers` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
+* `tls_ecdheRsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA` field
 
-* `enable_tls_rsa_with_aes128_cbc_sha256_ciphers` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA256` cipher be enabled? Defaults to `false`.
+* `tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA256` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256` field
 
-* `enable_tls_rsa_with_aes128_cbc_sha_ciphers` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
+* `tls_rsa_with_aes128_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA` field
 
-* `enable_tls_rsa_with_aes128_gcm_sha256_ciphers` - (Optional) Should the `TLS_RSA_WITH_AES_128_GCM_SHA256` cipher be enabled? Defaults to `false`.
+* `tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_128_GCM_SHA256` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256` field
 
-* `enable_tls_rsa_with_aes256_cbc_sha256_ciphers` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA256` cipher be enabled? Defaults to `false`.
+* `tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA256` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256` field
 
-* `enable_tls_rsa_with_aes256_cbc_sha_ciphers` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
+* `tls_rsa_with_aes256_cbc_sha_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_AES_256_CBC_SHA` cipher be enabled? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA` field
 
-* `enable_triple_des_ciphers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
+* `triple_des_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be enabled for alL TLS versions (1.0, 1.1 and 1.2)? Defaults to `false`.
 
 -> **info:** This maps to the `Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168` field
 
@@ -278,9 +278,9 @@ A `security` block supports the following:
 
 -> **Note:** This property has been deprecated in favour of the `enable_frontend_tls11` property and will be removed in version 2.0 of the provider.
 
-* `disable_triple_des_ciphers` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be disabled for alL TLS versions (1.0, 1.1 and 1.2)? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
+* `disable_triple_des_ciphers_enabled` - (Optional) Should the `TLS_RSA_WITH_3DES_EDE_CBC_SHA` cipher be disabled for alL TLS versions (1.0, 1.1 and 1.2)? This property was mistakenly inverted and `true` actually enables it. Defaults to `false`.
 
--> **Note:** This property has been deprecated in favour of the `enable_triple_des_ciphers` property and will be removed in version 2.0 of the provider.
+-> **Note:** This property has been deprecated in favour of the `triple_des_ciphers_enabled` property and will be removed in version 2.0 of the provider.
 
 ---
 
