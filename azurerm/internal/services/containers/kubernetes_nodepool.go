@@ -49,6 +49,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"availability_zones": {
 					Type:     schema.TypeList,
 					Optional: true,
+					ForceNew: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
 					},
@@ -235,7 +236,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	maxCount := raw["max_count"].(int)
 	minCount := raw["min_count"].(int)
 
-	// Count must always be set (see #6094), RP behavior has changed
+	// Count must always be set (see #6094), RP behaviour has changed
 	// since the API version upgrade in v2.1.0 making Count required
 	// for all create/update requests
 	profile.Count = utils.Int32(int32(count))

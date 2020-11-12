@@ -30,24 +30,6 @@ func TestAccAzureRMLogAnalyticsStorageInsights_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogAnalyticsStorageInsights_basicUppercase(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_storage_insights", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsStorageInsightsDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsStorageInsights_basicUppercase(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsStorageInsightsExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("storage_account_key"), // key is not returned by the API
-		},
-	})
-}
-
 func TestAccAzureRMLogAnalyticsStorageInsights_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_storage_insights", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -221,22 +203,6 @@ func testAccAzureRMLogAnalyticsStorageInsights_basic(data acceptance.TestData) s
 
 resource "azurerm_log_analytics_storage_insights" "test" {
   name                = "acctest-la-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  workspace_id        = azurerm_log_analytics_workspace.test.id
-
-  storage_account_id  = azurerm_storage_account.test.id
-  storage_account_key = azurerm_storage_account.test.primary_access_key
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMLogAnalyticsStorageInsights_basicUppercase(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsStorageInsights_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_storage_insights" "test" {
-  name                = "acctest-LA-%d"
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_log_analytics_workspace.test.id
 
