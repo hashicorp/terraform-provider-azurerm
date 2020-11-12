@@ -626,6 +626,7 @@ resource "azurerm_api_management" "test" {
     xml_content = <<XML
 <policies>
   <inbound>
+    <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
     <find-and-replace from="xyz" to="abc" />
   </inbound>
 </policies>
