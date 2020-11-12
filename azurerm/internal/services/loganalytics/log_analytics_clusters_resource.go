@@ -258,7 +258,7 @@ func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface
 
 	// Need to wait for the cluster to actually finish updating the resource before continuing
 	// since the service returns a 200 instantly while it's still updating in the background
-	log.Printf("[INFO] Checking for Log Analytics Cluster provisioning state", id.Name)
+	log.Printf("[INFO] Checking for Log Analytics Cluster provisioning state")
 
 	updateWait := &resource.StateChangeConf{
 		Pending:    []string{string(operationalinsights.Updating)},
@@ -274,7 +274,7 @@ func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface
 			}
 
 			if resp.ClusterProperties.ProvisioningState != operationalinsights.Updating && resp.ClusterProperties.ProvisioningState != operationalinsights.Succeeded {
-				return nil, "nil", fmt.Errorf("Log Analytics Cluster %q (Resource Group %q) unexpected Provisioning State encounterd: %q", id.Name, id.ResourceGroup, string(resp.ClusterProperties.ProvisioningState))
+				return nil, "nil", fmt.Errorf("Log Analytics Cluster %q (Resource Group %q) unexpected Provisioning State encountered: %q", id.Name, id.ResourceGroup, string(resp.ClusterProperties.ProvisioningState))
 			}
 
 			return resp, string(resp.ClusterProperties.ProvisioningState), nil
