@@ -110,5 +110,5 @@ func (id *ResourceID) ValidateNoEmptySegments(sourceId string) error {
 		return nil
 	}
 
-	return fmt.Errorf("ID contained more segments than required: %q", sourceId)
+	return fmt.Errorf("ID contained more segments than required: %q, %v", sourceId, id.Path)
 }

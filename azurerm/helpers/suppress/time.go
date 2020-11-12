@@ -1,18 +1,11 @@
 package suppress
 
 import (
-	"time"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 )
 
-func RFC3339Time(_, old, new string, _ *schema.ResourceData) bool {
-	ot, oerr := time.Parse(time.RFC3339, old)
-	nt, nerr := time.Parse(time.RFC3339, new)
-
-	if oerr != nil || nerr != nil {
-		return false
-	}
-
-	return nt.Equal(ot)
+// Deprecated: moved to internal and will be removed in 3.0
+func RFC3339Time(k, old, new string, d *schema.ResourceData) bool {
+	return suppress.RFC3339Time(k, old, new, d)
 }

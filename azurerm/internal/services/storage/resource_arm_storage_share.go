@@ -12,10 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
 func resourceArmStorageShare() *schema.Resource {
@@ -70,7 +69,7 @@ func resourceArmStorageShare() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 102400),
 			},
 
-			"metadata": MetaDataSchema(),
+			"metadata": MetaDataComputedSchema(),
 
 			"acl": {
 				Type:     schema.TypeSet,
@@ -89,12 +88,12 @@ func resourceArmStorageShare() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"start": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"expiry": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"permissions": {
@@ -151,17 +150,15 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 
 	id := client.GetResourceID(accountName, shareName)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetProperties(ctx, accountName, shareName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
-			}
-		}
-
+	existing, err := client.GetProperties(ctx, accountName, shareName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_storage_share", id)
+			return fmt.Errorf("Error checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_share", id)
 	}
 
 	log.Printf("[INFO] Creating Share %q in Storage Account %q", shareName, accountName)

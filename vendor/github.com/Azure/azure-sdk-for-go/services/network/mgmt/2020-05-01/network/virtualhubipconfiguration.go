@@ -327,6 +327,9 @@ func (client VirtualHubIPConfigurationClient) List(ctx context.Context, resource
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubIPConfigurationClient", "List", resp, "Failure responding to request")
 	}
+	if result.lvhicr.hasNextLink() && result.lvhicr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

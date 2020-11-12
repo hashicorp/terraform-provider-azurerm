@@ -8,15 +8,30 @@ import (
 
 type SharedImageVersionId struct {
 	ResourceGroup string
-	Version       string
 	Gallery       string
-	Name          string
+	ImageName     string
+	Version       string
+}
+
+func NewSharedImageVersionId(id SharedImageId, name string) SharedImageVersionId {
+	return SharedImageVersionId{
+		ResourceGroup: id.ResourceGroup,
+		Gallery:       id.Gallery,
+		ImageName:     id.Name,
+		Version:       name,
+	}
+}
+
+func (id SharedImageVersionId) ID(subscriptionId string) string {
+	galleryId := NewSharedImageGalleryId(id.ResourceGroup, id.Gallery)
+	base := NewSharedImageId(galleryId, id.ImageName).ID(subscriptionId)
+	return fmt.Sprintf("%s/versions/%s", base, id.Version)
 }
 
 func SharedImageVersionID(input string) (*SharedImageVersionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Image ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Shared Image Version ID %q: %+v", input, err)
 	}
 
 	set := SharedImageVersionId{
@@ -27,7 +42,7 @@ func SharedImageVersionID(input string) (*SharedImageVersionId, error) {
 		return nil, err
 	}
 
-	if set.Name, err = id.PopSegment("images"); err != nil {
+	if set.ImageName, err = id.PopSegment("images"); err != nil {
 		return nil, err
 	}
 

@@ -644,6 +644,9 @@ func (client QueuesClient) ListAuthorizationRules(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "ListAuthorizationRules", resp, "Failure responding to request")
 	}
+	if result.sarlr.hasNextLink() && result.sarlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -781,6 +784,9 @@ func (client QueuesClient) ListByNamespace(ctx context.Context, resourceGroupNam
 	result.sqlr, err = client.ListByNamespaceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.QueuesClient", "ListByNamespace", resp, "Failure responding to request")
+	}
+	if result.sqlr.hasNextLink() && result.sqlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

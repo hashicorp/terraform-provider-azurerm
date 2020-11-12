@@ -468,6 +468,9 @@ func (client NamedValueClient) ListByService(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NamedValueClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.nvc.hasNextLink() && result.nvc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

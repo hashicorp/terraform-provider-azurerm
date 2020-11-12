@@ -236,6 +236,9 @@ func (client ManagedServerSecurityAlertPoliciesClient) ListByInstance(ctx contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ManagedServerSecurityAlertPoliciesClient", "ListByInstance", resp, "Failure responding to request")
 	}
+	if result.mssaplr.hasNextLink() && result.mssaplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,8 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,9 +28,15 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 		Update: resourceArmLoadBalancerRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerRuleDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: loadBalancerSubResourceStateImporter,
-		},
+		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
+			id, err := parse.LoadBalancerRuleID(input)
+			if err != nil {
+				return nil, err
+			}
+
+			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			return &lbId, nil
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -52,7 +59,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: networkValidate.LoadBalancerID,
 			},
 
 			"frontend_ip_configuration_name": {
@@ -136,15 +143,21 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 
 func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	loadBalancerID := d.Get("loadbalancer_id").(string)
+	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
+	if err != nil {
+		return err
+	}
+
+	loadBalancerID := loadBalancerId.ID(subscriptionId)
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerID, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -164,7 +177,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 	existingRule, existingRuleIndex, exists := FindLoadBalancerRuleByName(loadBalancer, name)
 	if exists {
 		if name == *existingRule.Name {
-			if features.ShouldResourcesBeImported() && d.IsNewResource() {
+			if d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.ID)
 			}
 
@@ -174,12 +187,8 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &lbRules
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
-	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
-	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
+	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, *loadBalancer)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating LoadBalancer: %+v", err)
 	}
@@ -188,12 +197,12 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error waiting for completion for Load Balancer updates: %+v", err)
 	}
 
-	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
 		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", loadBalancerId.Name, loadBalancerId.ResourceGroup)
 	}
 
 	var ruleId string
@@ -213,62 +222,92 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	client := meta.(*clients.Client).Network.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.LoadBalancerRuleID(d.Id())
 	if err != nil {
 		return err
 	}
-	name := id.Path["loadBalancingRules"]
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, d.Get("loadbalancer_id").(string), meta)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerRuleByName(loadBalancer, name)
+	config, _, exists := FindLoadBalancerRuleByName(loadBalancer, id.Name)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Rule %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer Rule %q not found. Removing from state", id.Name)
 		return nil
 	}
 
 	d.Set("name", config.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if properties := config.LoadBalancingRulePropertiesFormat; properties != nil {
-		d.Set("protocol", properties.Protocol)
-		d.Set("frontend_port", properties.FrontendPort)
-		d.Set("backend_port", properties.BackendPort)
-		d.Set("disable_outbound_snat", properties.DisableOutboundSnat)
-		d.Set("enable_floating_ip", properties.EnableFloatingIP)
-		d.Set("enable_tcp_reset", properties.EnableTCPReset)
-		d.Set("idle_timeout_in_minutes", properties.IdleTimeoutInMinutes)
+	if props := config.LoadBalancingRulePropertiesFormat; props != nil {
+		d.Set("disable_outbound_snat", props.DisableOutboundSnat)
+		d.Set("enable_floating_ip", props.EnableFloatingIP)
+		d.Set("enable_tcp_reset", props.EnableTCPReset)
+		d.Set("protocol", string(props.Protocol))
 
-		if properties.FrontendIPConfiguration != nil {
-			fipID, err := azure.ParseAzureResourceID(*properties.FrontendIPConfiguration.ID)
+		backendPort := 0
+		if props.BackendPort != nil {
+			backendPort = int(*props.BackendPort)
+		}
+		d.Set("backend_port", backendPort)
+
+		backendAddressPoolId := ""
+		if props.BackendAddressPool != nil && props.BackendAddressPool.ID != nil {
+			backendAddressPoolId = *props.BackendAddressPool.ID
+		}
+		d.Set("backend_address_pool_id", backendAddressPoolId)
+
+		frontendIPConfigName := ""
+		frontendIPConfigID := ""
+		if props.FrontendIPConfiguration != nil && props.FrontendIPConfiguration.ID != nil {
+			feid, err := parse.LoadBalancerFrontendIPConfigurationID(*props.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}
 
-			d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
-			d.Set("frontend_ip_configuration_id", properties.FrontendIPConfiguration.ID)
+			frontendIPConfigName = feid.Name
+			frontendIPConfigID = feid.ID(subscriptionId)
 		}
+		d.Set("frontend_ip_configuration_name", frontendIPConfigName)
+		d.Set("frontend_ip_configuration_id", frontendIPConfigID)
 
-		if properties.BackendAddressPool != nil {
-			d.Set("backend_address_pool_id", properties.BackendAddressPool.ID)
+		frontendPort := 0
+		if props.FrontendPort != nil {
+			frontendPort = int(*props.FrontendPort)
 		}
+		d.Set("frontend_port", frontendPort)
 
-		if properties.Probe != nil {
-			d.Set("probe_id", properties.Probe.ID)
+		idleTimeoutInMinutes := 0
+		if props.IdleTimeoutInMinutes != nil {
+			idleTimeoutInMinutes = int(*props.IdleTimeoutInMinutes)
 		}
+		d.Set("idle_timeout_in_minutes", idleTimeoutInMinutes)
 
-		if properties.LoadDistribution != "" {
-			d.Set("load_distribution", properties.LoadDistribution)
+		loadDistribution := ""
+		if props.LoadDistribution != "" {
+			loadDistribution = string(props.LoadDistribution)
 		}
+		d.Set("load_distribution", loadDistribution)
+
+		probeId := ""
+		if props.Probe != nil && props.Probe.ID != nil {
+			probeId = *props.Probe.ID
+		}
+		d.Set("probe_id", probeId)
 	}
 
 	return nil
@@ -276,14 +315,21 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	loadBalancerID := d.Get("loadbalancer_id").(string)
-	locks.ByID(loadBalancerID)
-	defer locks.UnlockByID(loadBalancerID)
+	id, err := parse.LoadBalancerRuleID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerID, meta)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerIDRaw := loadBalancerId.ID(subscriptionId)
+	locks.ByID(loadBalancerIDRaw)
+	defer locks.UnlockByID(loadBalancerIDRaw)
+
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -301,26 +347,21 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 	newLbRules := append(oldLbRules[:index], oldLbRules[index+1:]...)
 	loadBalancer.LoadBalancerPropertiesFormat.LoadBalancingRules = &newLbRules
 
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, *loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
-	}
-
-	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
-	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
 	if err != nil {
 		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of Load Balancer %q (resource group %s)", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read ID of Load Balancer %q (resource group %s)", id.LoadBalancerName, id.ResourceGroup)
 	}
 
 	return nil
@@ -344,6 +385,7 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 		properties.LoadDistribution = network.LoadDistribution(v)
 	}
 
+	// TODO: ensure these ID's are consistent
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
 		rule, exists := FindLoadBalancerFrontEndIpConfigurationByName(lb, v)
 		if !exists {

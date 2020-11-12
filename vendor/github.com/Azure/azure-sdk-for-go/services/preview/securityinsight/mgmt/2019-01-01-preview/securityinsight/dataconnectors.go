@@ -132,7 +132,6 @@ func (client DataConnectorsClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client DataConnectorsClient) CreateOrUpdateResponder(resp *http.Response) (result DataConnectorModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -227,7 +226,6 @@ func (client DataConnectorsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client DataConnectorsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -321,7 +319,6 @@ func (client DataConnectorsClient) GetSender(req *http.Request) (*http.Response,
 func (client DataConnectorsClient) GetResponder(resp *http.Response) (result DataConnectorModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -378,6 +375,9 @@ func (client DataConnectorsClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.DataConnectorsClient", "List", resp, "Failure responding to request")
 	}
+	if result.dcl.hasNextLink() && result.dcl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -415,7 +415,6 @@ func (client DataConnectorsClient) ListSender(req *http.Request) (*http.Response
 func (client DataConnectorsClient) ListResponder(resp *http.Response) (result DataConnectorList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

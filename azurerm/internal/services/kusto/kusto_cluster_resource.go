@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -50,7 +49,7 @@ func resourceArmKustoCluster() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": azure.SchemaKustoIdentity(),
+			"identity": schemaIdentity(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -206,7 +205,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		server, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
@@ -259,7 +258,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("trusted_external_tenants"); ok {
-		trustedExternalTenants := azure.ExpandKustoClusterTrustedExternalTenants(v.([]interface{}))
+		trustedExternalTenants := expandTrustedExternalTenants(v.([]interface{}))
 		clusterProperties.TrustedExternalTenants = trustedExternalTenants
 	}
 
@@ -276,7 +275,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	if _, ok := d.GetOk("identity"); ok {
 		kustoIdentityRaw := d.Get("identity").([]interface{})
-		kustoIdentity := azure.ExpandKustoIdentity(kustoIdentityRaw)
+		kustoIdentity := expandIdentity(kustoIdentityRaw)
 		kustoCluster.Identity = kustoIdentity
 	}
 
@@ -370,7 +369,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if err := d.Set("identity", azure.FlattenKustoIdentity(clusterResponse.Identity)); err != nil {
+	if err := d.Set("identity", flattenIdentity(clusterResponse.Identity)); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
@@ -386,7 +385,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
-		d.Set("trusted_external_tenants", azure.FlattenKustoClusterTrustedExternalTenants(clusterProperties.TrustedExternalTenants))
+		d.Set("trusted_external_tenants", flattenTrustedExternalTenants(clusterProperties.TrustedExternalTenants))
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("enable_purge", clusterProperties.EnablePurge)

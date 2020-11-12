@@ -71,6 +71,9 @@ func (client ManagedRuleSetsClient) List(ctx context.Context) (result ManagedRul
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "frontdoor.ManagedRuleSetsClient", "List", resp, "Failure responding to request")
 	}
+	if result.mrsdl.hasNextLink() && result.mrsdl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -71,6 +71,9 @@ func (client OperationsClient) List(ctx context.Context) (result OperationsDisco
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.OperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.odc.hasNextLink() && result.odc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -391,6 +391,9 @@ func (client SyncAgentsClient) ListByServer(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.salr.hasNextLink() && result.salr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -505,6 +508,9 @@ func (client SyncAgentsClient) ListLinkedDatabases(ctx context.Context, resource
 	result.saldlr, err = client.ListLinkedDatabasesResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.SyncAgentsClient", "ListLinkedDatabases", resp, "Failure responding to request")
+	}
+	if result.saldlr.hasNextLink() && result.saldlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

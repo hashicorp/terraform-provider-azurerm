@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
+	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,15 +19,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
 )
 
 var storageAccountResourceName = "azurerm_storage_account"
@@ -137,6 +137,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
+			},
+
+			"min_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(storage.TLS10),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.TLS10),
+					string(storage.TLS11),
+					string(storage.TLS12),
+				}, false),
 			},
 
 			"is_hns_enabled": {
@@ -377,6 +388,12 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
+			"large_file_share_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"primary_location": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -564,6 +581,13 @@ func resourceArmStorageAccount() *schema.Resource {
 				}
 			}
 
+			if d.HasChange("large_file_share_enabled") {
+				lfsEnabled, changedEnabled := d.GetChange("large_file_share_enabled")
+				if lfsEnabled.(bool) && !changedEnabled.(bool) {
+					return fmt.Errorf("`large_file_share_enabled` cannot be disabled once it's been enabled")
+				}
+			}
+
 			return nil
 		},
 	}
@@ -593,6 +617,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -603,23 +628,22 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(storageAccountName, storageAccountResourceName)
 	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
-			}
+	existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_storage_account", *existing.ID)
 	}
 
 	accountKind := d.Get("account_kind").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
+	minimumTLSVersion := d.Get("min_tls_version").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
@@ -638,8 +662,19 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
-			AllowBlobPublicAccess:  &allowBlobPublicAccess,
 		},
+	}
+
+	// For all Clouds except Public, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
+	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
+	if envName != autorestAzure.PublicCloud.Name {
+		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
+			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
+		}
+	} else {
+		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
+		parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -675,6 +710,14 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	if accountKind == string(storage.FileStorage) {
 		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
 			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
+		}
+	}
+
+	// nolint staticcheck
+	if v, ok := d.GetOkExists("large_file_share_enabled"); ok {
+		parameters.LargeFileSharesState = storage.LargeFileSharesStateDisabled
+		if v.(bool) {
+			parameters.LargeFileSharesState = storage.LargeFileSharesStateEnabled
 		}
 	}
 
@@ -741,9 +784,9 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("static_website"); ok {
-		// static website only supported on Storage V2
-		if accountKind != string(storage.StorageV2) {
-			return fmt.Errorf("`static_website` is only supported for Storage V2.")
+		// static website only supported on StorageV2 and BlockBlobStorage
+		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
+			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
 		}
 		storageClient := meta.(*clients.Client).Storage
 
@@ -771,6 +814,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -872,17 +916,47 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("min_tls_version") {
+		minimumTLSVersion := d.Get("min_tls_version").(string)
+
+		// For all Clouds except Public, don't specify "min_tls_version" in request body.
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
+		if envName != autorestAzure.PublicCloud.Name {
+			if minimumTLSVersion != string(storage.TLS10) {
+				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
+			}
+		} else {
+			opts := storage.AccountUpdateParameters{
+				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+					MinimumTLSVersion: storage.MinimumTLSVersion(minimumTLSVersion),
+				},
+			}
+
+			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account min_tls_version %q: %+v", storageAccountName, err)
+			}
+		}
+	}
+
 	if d.HasChange("allow_blob_public_access") {
 		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AllowBlobPublicAccess: &allowBlobPublicAccess,
-			},
-		}
+		// For all Clouds except Public, don't specify "allow_blob_public_access" in request body.
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+		if envName != autorestAzure.PublicCloud.Name {
+			if allowBlobPublicAccess {
+				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, envName)
+			}
+		} else {
+			opts := storage.AccountUpdateParameters{
+				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+					AllowBlobPublicAccess: &allowBlobPublicAccess,
+				},
+			}
 
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
+			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
+			}
 		}
 	}
 
@@ -900,6 +974,22 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				NetworkRuleSet: expandStorageAccountNetworkRules(d),
+			},
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
+		}
+	}
+
+	if d.HasChange("large_file_share_enabled") {
+		isEnabled := storage.LargeFileSharesStateDisabled
+		if v := d.Get("large_file_share_enabled").(bool); v {
+			isEnabled = storage.LargeFileSharesStateEnabled
+		}
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				LargeFileSharesState: isEnabled,
 			},
 		}
 
@@ -948,9 +1038,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("static_website") {
-		// static website only supported on Storage V2
-		if accountKind != string(storage.StorageV2) {
-			return fmt.Errorf("`static_website` is only supported for Storage V2.")
+		// static website only supported on StorageV2 and BlockBlobStorage
+		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
+			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
 		}
 		storageClient := meta.(*clients.Client).Storage
 
@@ -1041,6 +1131,19 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+		// For all Clouds except Public, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
+		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.PublicCloud.Name {
+			d.Set("min_tls_version", string(storage.TLS10))
+		} else {
+			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
+			minTlsVersion := string(storage.TLS10)
+			if props.MinimumTLSVersion != "" {
+				minTlsVersion = string(props.MinimumTLSVersion)
+			}
+			d.Set("min_tls_version", minTlsVersion)
+		}
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
@@ -1093,6 +1196,10 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 		if err := d.Set("network_rules", flattenStorageAccountNetworkRules(props.NetworkRuleSet)); err != nil {
 			return fmt.Errorf("Error setting `network_rules`: %+v", err)
+		}
+
+		if props.LargeFileSharesState != "" {
+			d.Set("large_file_share_enabled", props.LargeFileSharesState == storage.LargeFileSharesStateEnabled)
 		}
 	}
 
@@ -1159,8 +1266,8 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	var staticWebsite []interface{}
 
-	// static website only supported on Storage V2
-	if resp.Kind == storage.StorageV2 {
+	// static website only supported on StorageV2 and BlockBlobStorage
+	if resp.Kind == storage.StorageV2 || resp.Kind == storage.BlockBlobStorage {
 		storageClient := meta.(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, name)

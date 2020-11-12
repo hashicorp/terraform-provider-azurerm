@@ -37,7 +37,7 @@ func resourceArmApiManagementApiPolicy() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
-			"api_name": azure.SchemaApiManagementChildName(),
+			"api_name": azure.SchemaApiManagementApiName(),
 
 			"xml_content": {
 				Type:             schema.TypeString,

@@ -206,6 +206,36 @@ func TestAccAzureRMLogicAppTriggerRecurrence_startTime(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_recurrence", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "US Eastern Standard Time"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_time", "2020-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "time_zone", "US Eastern Standard Time"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(data, "2020-01-01T01:02:03Z", "Egypt Standard Time"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppTriggerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "start_time", "2020-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "time_zone", "Egypt Standard Time"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMLogicAppTriggerRecurrence_basic(data acceptance.TestData, frequency string, interval int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -257,6 +287,34 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
   start_time   = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, startTime)
+}
+
+func testAccAzureRMLogicAppTriggerRecurrence_startTimeWithTimeZone(data acceptance.TestData, startTime string, timeZone string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlaw-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_logic_app_trigger_recurrence" "test" {
+  name         = "frequency-trigger"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  frequency    = "Month"
+  interval     = 1
+  start_time   = "%s"
+  time_zone    = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, startTime, timeZone)
 }
 
 func testAccAzureRMLogicAppTriggerRecurrence_requiresImport(data acceptance.TestData, frequency string, interval int) string {

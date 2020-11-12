@@ -50,6 +50,31 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(appconfiguration.SystemAssigned),
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			// the API changed and now returns the rg in lowercase
 			// revert when https://github.com/Azure/azure-sdk-for-go/issues/6606 is fixed
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -180,17 +205,15 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Configuration %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing App Configuration %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_configuration", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_app_configuration", *existing.ID)
 	}
 
 	parameters := appconfiguration.ConfigurationStore{
@@ -200,6 +223,8 @@ func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{})
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
@@ -239,6 +264,10 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 			Name: utils.String(d.Get("sku").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if d.HasChange("identity") {
+		parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
@@ -309,6 +338,10 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("primary_write_key", accessKeys.primaryWriteKey)
 	d.Set("secondary_read_key", accessKeys.secondaryReadKey)
 	d.Set("secondary_write_key", accessKeys.secondaryWriteKey)
+
+	if err := d.Set("identity", flattenAppConfigurationIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -407,6 +440,42 @@ func flattenAppConfigurationAccessKey(input appconfiguration.APIKey) []interface
 			"connection_string": connectionString,
 			"id":                id,
 			"secret":            secret,
+		},
+	}
+}
+
+func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.ResourceIdentity {
+	if len(identities) == 0 {
+		return &appconfiguration.ResourceIdentity{
+			Type: appconfiguration.None,
+		}
+	}
+	identity := identities[0].(map[string]interface{})
+	identityType := appconfiguration.IdentityType(identity["type"].(string))
+	return &appconfiguration.ResourceIdentity{
+		Type: identityType,
+	}
+}
+func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity) []interface{} {
+	if identity == nil || identity.Type == appconfiguration.None {
+		return []interface{}{}
+	}
+
+	principalId := ""
+	if identity.PrincipalID != nil {
+		principalId = *identity.PrincipalID
+	}
+
+	tenantId := ""
+	if identity.TenantID != nil {
+		tenantId = *identity.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(identity.Type),
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
 		},
 	}
 }

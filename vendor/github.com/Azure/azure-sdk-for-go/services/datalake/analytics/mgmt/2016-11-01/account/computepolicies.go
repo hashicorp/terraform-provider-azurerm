@@ -323,6 +323,9 @@ func (client ComputePoliciesClient) ListByAccount(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.ComputePoliciesClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.cplr.hasNextLink() && result.cplr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

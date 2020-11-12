@@ -71,6 +71,9 @@ func (client OperationsClient) List(ctx context.Context) (result AvailableOperat
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "appplatform.OperationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.ao.hasNextLink() && result.ao.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

@@ -31,108 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor"
 
-// Category enumerates the values for category.
-type Category string
-
-const (
-	// Cost ...
-	Cost Category = "Cost"
-	// HighAvailability ...
-	HighAvailability Category = "HighAvailability"
-	// OperationalExcellence ...
-	OperationalExcellence Category = "OperationalExcellence"
-	// Performance ...
-	Performance Category = "Performance"
-	// Security ...
-	Security Category = "Security"
-)
-
-// PossibleCategoryValues returns an array of possible values for the Category const type.
-func PossibleCategoryValues() []Category {
-	return []Category{Cost, HighAvailability, OperationalExcellence, Performance, Security}
-}
-
-// CPUThreshold enumerates the values for cpu threshold.
-type CPUThreshold string
-
-const (
-	// Five ...
-	Five CPUThreshold = "5"
-	// OneFive ...
-	OneFive CPUThreshold = "15"
-	// OneZero ...
-	OneZero CPUThreshold = "10"
-	// TwoZero ...
-	TwoZero CPUThreshold = "20"
-)
-
-// PossibleCPUThresholdValues returns an array of possible values for the CPUThreshold const type.
-func PossibleCPUThresholdValues() []CPUThreshold {
-	return []CPUThreshold{Five, OneFive, OneZero, TwoZero}
-}
-
-// DigestConfigState enumerates the values for digest config state.
-type DigestConfigState string
-
-const (
-	// Active ...
-	Active DigestConfigState = "Active"
-	// Disabled ...
-	Disabled DigestConfigState = "Disabled"
-)
-
-// PossibleDigestConfigStateValues returns an array of possible values for the DigestConfigState const type.
-func PossibleDigestConfigStateValues() []DigestConfigState {
-	return []DigestConfigState{Active, Disabled}
-}
-
-// Impact enumerates the values for impact.
-type Impact string
-
-const (
-	// High ...
-	High Impact = "High"
-	// Low ...
-	Low Impact = "Low"
-	// Medium ...
-	Medium Impact = "Medium"
-)
-
-// PossibleImpactValues returns an array of possible values for the Impact const type.
-func PossibleImpactValues() []Impact {
-	return []Impact{High, Low, Medium}
-}
-
-// Risk enumerates the values for risk.
-type Risk string
-
-const (
-	// Error ...
-	Error Risk = "Error"
-	// None ...
-	None Risk = "None"
-	// Warning ...
-	Warning Risk = "Warning"
-)
-
-// PossibleRiskValues returns an array of possible values for the Risk const type.
-func PossibleRiskValues() []Risk {
-	return []Risk{Error, None, Warning}
-}
-
-// Scenario enumerates the values for scenario.
-type Scenario string
-
-const (
-	// Alerts ...
-	Alerts Scenario = "Alerts"
-)
-
-// PossibleScenarioValues returns an array of possible values for the Scenario const type.
-func PossibleScenarioValues() []Scenario {
-	return []Scenario{Alerts}
-}
-
 // ArmErrorResponse ...
 type ArmErrorResponse struct {
 	Error *ARMErrorResponseBody `json:"error,omitempty"`
@@ -306,10 +204,15 @@ func (clr ConfigurationListResult) IsEmpty() bool {
 	return clr.Value == nil || len(*clr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (clr ConfigurationListResult) hasNextLink() bool {
+	return clr.NextLink != nil && len(*clr.NextLink) != 0
+}
+
 // configurationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (clr ConfigurationListResult) configurationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if clr.NextLink == nil || len(to.String(clr.NextLink)) < 1 {
+	if !clr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -337,11 +240,16 @@ func (page *ConfigurationListResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.clr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.clr)
+		if err != nil {
+			return err
+		}
+		page.clr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.clr = next
 	return nil
 }
 
@@ -549,10 +457,15 @@ func (melr MetadataEntityListResult) IsEmpty() bool {
 	return melr.Value == nil || len(*melr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (melr MetadataEntityListResult) hasNextLink() bool {
+	return melr.NextLink != nil && len(*melr.NextLink) != 0
+}
+
 // metadataEntityListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (melr MetadataEntityListResult) metadataEntityListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if melr.NextLink == nil || len(to.String(melr.NextLink)) < 1 {
+	if !melr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -580,11 +493,16 @@ func (page *MetadataEntityListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.melr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.melr)
+		if err != nil {
+			return err
+		}
+		page.melr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.melr = next
 	return nil
 }
 
@@ -735,10 +653,15 @@ func (oelr OperationEntityListResult) IsEmpty() bool {
 	return oelr.Value == nil || len(*oelr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (oelr OperationEntityListResult) hasNextLink() bool {
+	return oelr.NextLink != nil && len(*oelr.NextLink) != 0
+}
+
 // operationEntityListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (oelr OperationEntityListResult) operationEntityListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if oelr.NextLink == nil || len(to.String(oelr.NextLink)) < 1 {
+	if !oelr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -766,11 +689,16 @@ func (page *OperationEntityListResultPage) NextWithContext(ctx context.Context) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.oelr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.oelr)
+		if err != nil {
+			return err
+		}
+		page.oelr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.oelr = next
 	return nil
 }
 
@@ -1043,10 +971,15 @@ func (rrblr ResourceRecommendationBaseListResult) IsEmpty() bool {
 	return rrblr.Value == nil || len(*rrblr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rrblr ResourceRecommendationBaseListResult) hasNextLink() bool {
+	return rrblr.NextLink != nil && len(*rrblr.NextLink) != 0
+}
+
 // resourceRecommendationBaseListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rrblr ResourceRecommendationBaseListResult) resourceRecommendationBaseListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rrblr.NextLink == nil || len(to.String(rrblr.NextLink)) < 1 {
+	if !rrblr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1074,11 +1007,16 @@ func (page *ResourceRecommendationBaseListResultPage) NextWithContext(ctx contex
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rrblr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rrblr)
+		if err != nil {
+			return err
+		}
+		page.rrblr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rrblr = next
 	return nil
 }
 
@@ -1126,8 +1064,8 @@ type ShortDescription struct {
 	Solution *string `json:"solution,omitempty"`
 }
 
-// SuppressionContract the details of the snoozed or dismissed rule; for example, the duration, name, and
-// GUID associated with the rule.
+// SuppressionContract the details of the snoozed or dismissed rule; for example, the duration, name, and GUID
+// associated with the rule.
 type SuppressionContract struct {
 	autorest.Response `json:"-"`
 	// SuppressionProperties - The properties of the suppression.
@@ -1209,8 +1147,7 @@ type SuppressionContractListResult struct {
 	Value *[]SuppressionContract `json:"value,omitempty"`
 }
 
-// SuppressionContractListResultIterator provides access to a complete listing of SuppressionContract
-// values.
+// SuppressionContractListResultIterator provides access to a complete listing of SuppressionContract values.
 type SuppressionContractListResultIterator struct {
 	i    int
 	page SuppressionContractListResultPage
@@ -1278,10 +1215,15 @@ func (sclr SuppressionContractListResult) IsEmpty() bool {
 	return sclr.Value == nil || len(*sclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (sclr SuppressionContractListResult) hasNextLink() bool {
+	return sclr.NextLink != nil && len(*sclr.NextLink) != 0
+}
+
 // suppressionContractListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (sclr SuppressionContractListResult) suppressionContractListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if sclr.NextLink == nil || len(to.String(sclr.NextLink)) < 1 {
+	if !sclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1309,11 +1251,16 @@ func (page *SuppressionContractListResultPage) NextWithContext(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.sclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.sclr)
+		if err != nil {
+			return err
+		}
+		page.sclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.sclr = next
 	return nil
 }
 

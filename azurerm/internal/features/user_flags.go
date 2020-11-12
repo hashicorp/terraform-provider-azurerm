@@ -5,6 +5,7 @@ type UserFeatures struct {
 	VirtualMachineScaleSet VirtualMachineScaleSetFeatures
 	KeyVault               KeyVaultFeatures
 	Network                NetworkFeatures
+	TemplateDeployment     TemplateDeploymentFeatures
 }
 
 type VirtualMachineFeatures struct {
@@ -22,4 +23,8 @@ type KeyVaultFeatures struct {
 
 type NetworkFeatures struct {
 	RelaxedLocking bool
+}
+
+type TemplateDeploymentFeatures struct {
+	DeleteNestedItemsDuringDeletion bool
 }

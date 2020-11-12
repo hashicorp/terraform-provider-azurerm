@@ -349,6 +349,9 @@ func (client HcxEnterpriseSitesClient) List(ctx context.Context, resourceGroupNa
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.HcxEnterpriseSitesClient", "List", resp, "Failure responding to request")
 	}
+	if result.hesl.hasNextLink() && result.hesl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

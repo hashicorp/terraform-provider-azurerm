@@ -310,6 +310,9 @@ func (client VirtualHubRouteTableV2sClient) List(ctx context.Context, resourceGr
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.VirtualHubRouteTableV2sClient", "List", resp, "Failure responding to request")
 	}
+	if result.lvhrtvr.hasNextLink() && result.lvhrtvr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

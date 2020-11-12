@@ -30,13 +30,13 @@ data "azurerm_blueprint_definition" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Blueprint
+* `name` - (Required) The name of the Blueprint.
 
-* `scope_id` - (Required) The Resource ID of the scope at which the blueprint definition is stored. This will be with either a Subscription ID or Management Group ID.  
+* `scope_id` - (Required) The ID of the Subscription or Management Group, as the scope at which the blueprint definition is stored.
 
 ## Attribute Reference
 
-* `id` - The Azure Resource ID of the Blueprint Definition.  
+* `id` - The ID of the Blueprint Definition.  
 
 * `description` - The description of the Blueprint Definition.  
 

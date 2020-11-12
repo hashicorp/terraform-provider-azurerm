@@ -229,6 +229,9 @@ func (client ApplicationGatewayPrivateEndpointConnectionsClient) List(ctx contex
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "network.ApplicationGatewayPrivateEndpointConnectionsClient", "List", resp, "Failure responding to request")
 	}
+	if result.agpeclr.hasNextLink() && result.agpeclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

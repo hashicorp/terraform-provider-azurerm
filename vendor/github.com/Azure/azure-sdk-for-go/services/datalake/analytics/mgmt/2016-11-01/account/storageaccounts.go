@@ -415,6 +415,9 @@ func (client StorageAccountsClient) ListByAccount(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListByAccount", resp, "Failure responding to request")
 	}
+	if result.sailr.hasNextLink() && result.sailr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -549,6 +552,9 @@ func (client StorageAccountsClient) ListSasTokens(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListSasTokens", resp, "Failure responding to request")
 	}
+	if result.stilr.hasNextLink() && result.stilr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -665,6 +671,9 @@ func (client StorageAccountsClient) ListStorageContainers(ctx context.Context, r
 	result.sclr, err = client.ListStorageContainersResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.StorageAccountsClient", "ListStorageContainers", resp, "Failure responding to request")
+	}
+	if result.sclr.hasNextLink() && result.sclr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

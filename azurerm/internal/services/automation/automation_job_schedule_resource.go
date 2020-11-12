@@ -6,13 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/automation/mgmt/2018-06-30-preview/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -42,21 +43,21 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc: validate.AutomationAccountName(),
 			},
 
 			"runbook_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationRunbookName(),
+				ValidateFunc: validate.AutomationRunbookName(),
 			},
 
 			"schedule_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationScheduleName(),
+				ValidateFunc: validate.AutomationScheduleName(),
 			},
 
 			"parameters": {
@@ -126,9 +127,9 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	//fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
-	//When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
-	//We need to delete the job schedule id if exists to recreate the job schedule
+	// fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
+	// When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
+	// We need to delete the job schedule id if exists to recreate the job schedule
 	for jsIterator, err := client.ListByAutomationAccountComplete(ctx, resourceGroup, accountName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
 		if err != nil {
 			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountName, err)

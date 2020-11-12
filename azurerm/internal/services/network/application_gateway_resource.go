@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -123,7 +122,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"ip_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.IPv4Address,
@@ -486,13 +484,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"rule_type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.Basic),
 								string(network.PathBasedRouting),
-							}, true),
+							}, false),
 						},
 
 						"http_listener_name": {
@@ -846,6 +843,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"unhealthy_threshold": {
 							Type:     schema.TypeInt,
 							Required: true,
+						},
+
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"pick_host_name_from_backend_http_settings": {
@@ -1323,7 +1326,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -2584,6 +2587,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 		name := v["name"].(string)
 		probePath := v["path"].(string)
 		protocol := v["protocol"].(string)
+		port := int32(v["port"].(int))
 		timeout := int32(v["timeout"].(int))
 		unhealthyThreshold := int32(v["unhealthy_threshold"].(int))
 		pickHostNameFromBackendHTTPSettings := v["pick_host_name_from_backend_http_settings"].(bool)
@@ -2618,6 +2622,10 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 			}
 			outputMatch.Body = utils.String(matchBody)
 			output.ApplicationGatewayProbePropertiesFormat.Match = outputMatch
+		}
+
+		if port != 0 {
+			output.ApplicationGatewayProbePropertiesFormat.Port = utils.Int32(port)
 		}
 
 		results = append(results, output)
@@ -2665,6 +2673,12 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 			if threshold := props.UnhealthyThreshold; threshold != nil {
 				output["unhealthy_threshold"] = int(*threshold)
 			}
+
+			port := 0
+			if props.Port != nil {
+				port = int(*props.Port)
+			}
+			output["port"] = port
 
 			if pickHostNameFromBackendHTTPSettings := props.PickHostNameFromBackendHTTPSettings; pickHostNameFromBackendHTTPSettings != nil {
 				output["pick_host_name_from_backend_http_settings"] = *pickHostNameFromBackendHTTPSettings
@@ -3229,6 +3243,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 		data := v["data"].(string)
 		password := v["password"].(string)
 		kvsid := v["key_vault_secret_id"].(string)
+		cert := v["public_cert_data"].(string)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
@@ -3249,6 +3264,8 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 			}
 
 			output.ApplicationGatewaySslCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
+		} else if cert != "" {
+			output.ApplicationGatewaySslCertificatePropertiesFormat.PublicCertData = utils.String(cert)
 		} else {
 			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		}

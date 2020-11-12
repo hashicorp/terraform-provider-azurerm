@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the Private DNS Zone exists. Changing this forces a new resource to be created.
 
-* `virtual_network_id` - (Required) The Resource ID of the Virtual Network that should be linked to the DNS Zone. Changing this forces a new resource to be created.
+* `virtual_network_id` - (Required) The ID of the Virtual Network that should be linked to the DNS Zone. Changing this forces a new resource to be created.
 
 * `registration_enabled` - (Optional) Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled? Defaults to `false`.
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Private DNS Zone Virtual Network Link.
+* `id` - The ID of the Private DNS Zone Virtual Network Link.
 
 ## Timeouts
 

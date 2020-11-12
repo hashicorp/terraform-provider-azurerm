@@ -8,8 +8,21 @@ import (
 
 type TimeSeriesInsightsAccessPolicyId struct {
 	ResourceGroup   string
-	Name            string
 	EnvironmentName string
+	Name            string
+}
+
+func NewTimeSeriesInsightsAccessPolicyID(resourceGroup, environmentName, name string) TimeSeriesInsightsAccessPolicyId {
+	return TimeSeriesInsightsAccessPolicyId{
+		ResourceGroup:   resourceGroup,
+		EnvironmentName: environmentName,
+		Name:            name,
+	}
+}
+
+func (id TimeSeriesInsightsAccessPolicyId) ID(subscriptionId string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s/accessPolicies/%s"
+	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
 }
 
 func TimeSeriesInsightsAccessPolicyID(input string) (*TimeSeriesInsightsAccessPolicyId, error) {
@@ -26,7 +39,7 @@ func TimeSeriesInsightsAccessPolicyID(input string) (*TimeSeriesInsightsAccessPo
 		return nil, err
 	}
 
-	if service.Name, err = id.PopSegment("accesspolicies"); err != nil {
+	if service.Name, err = id.PopSegment("accessPolicies"); err != nil {
 		return nil, err
 	}
 

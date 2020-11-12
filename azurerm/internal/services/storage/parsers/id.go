@@ -5,8 +5,9 @@ import (
 )
 
 type AccountID struct {
-	Name          string
-	ResourceGroup string
+	Name           string
+	ResourceGroup  string
+	SubscriptionId string
 }
 
 func ParseAccountID(input string) (*AccountID, error) {
@@ -16,7 +17,8 @@ func ParseAccountID(input string) (*AccountID, error) {
 	}
 
 	account := AccountID{
-		ResourceGroup: id.ResourceGroup,
+		ResourceGroup:  id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
 	}
 
 	if account.Name, err = id.PopSegment("storageAccounts"); err != nil {

@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
+func TestAccAzureRMApiManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +20,7 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementGroup_basic(data),
+				Config: testAccAzureRMApiManagementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
@@ -32,7 +32,7 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
+func TestAccAzureRMApiManagementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,19 +41,19 @@ func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementGroup_basic(data),
+				Config: testAccAzureRMApiManagementGroup_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
 					resource.TestCheckResourceAttr(data.ResourceName, "type", "custom"),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMAPIManagementGroup_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementGroup_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
+func TestAccAzureRMApiManagementGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -62,7 +62,7 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementGroup_complete(data, "Test Group", "A test description."),
+				Config: testAccAzureRMApiManagementGroup_complete(data, "Test Group", "A test description."),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Test Group"),
@@ -75,7 +75,7 @@ func TestAccAzureRMAPIManagementGroup_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
+func TestAccAzureRMApiManagementGroup_descriptionDisplayNameUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -84,7 +84,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 		CheckDestroy: testCheckAzureRMAPIManagementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAPIManagementGroup_complete(data, "Original Group", "The original description."),
+				Config: testAccAzureRMApiManagementGroup_complete(data, "Original Group", "The original description."),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Original Group"),
@@ -93,7 +93,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementGroup_complete(data, "Modified Group", "A modified description."),
+				Config: testAccAzureRMApiManagementGroup_complete(data, "Modified Group", "A modified description."),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Modified Group"),
@@ -102,7 +102,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 				),
 			},
 			{
-				Config: testAccAzureRMAPIManagementGroup_complete(data, "Original Group", "The original description."),
+				Config: testAccAzureRMApiManagementGroup_complete(data, "Original Group", "The original description."),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementGroupExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", "Original Group"),
@@ -166,7 +166,7 @@ func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.Test
 	}
 }
 
-func testAccAzureRMAPIManagementGroup_basic(data acceptance.TestData) string {
+func testAccAzureRMApiManagementGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -196,8 +196,8 @@ resource "azurerm_api_management_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAPIManagementGroup_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAPIManagementGroup_basic(data)
+func testAccAzureRMApiManagementGroup_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementGroup_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -210,7 +210,7 @@ resource "azurerm_api_management_group" "import" {
 `, template)
 }
 
-func testAccAzureRMAPIManagementGroup_complete(data acceptance.TestData, displayName, description string) string {
+func testAccAzureRMApiManagementGroup_complete(data acceptance.TestData, displayName, description string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

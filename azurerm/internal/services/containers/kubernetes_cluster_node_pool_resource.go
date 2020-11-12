@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -57,11 +57,10 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"node_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				// TODO: this can go to 0 after the next version of the Azure SDK
-				ValidateFunc: validation.IntBetween(1, 100),
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"tags": tags.Schema(),
@@ -77,6 +76,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"availability_zones": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -103,10 +103,9 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"max_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				// NOTE: rather than setting `0` users should instead pass `null` here
-				ValidateFunc: validation.IntBetween(1, 100),
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"max_pods": {
@@ -130,7 +129,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				// NOTE: rather than setting `0` users should instead pass `null` here
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"node_labels": {
@@ -341,13 +340,13 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 			profile.Count = utils.Int32(int32(minCount))
 		}
 
-		if maxCount > 0 {
+		if maxCount >= 0 {
 			profile.MaxCount = utils.Int32(int32(maxCount))
 		} else {
 			return fmt.Errorf("`max_count` must be configured when `enable_auto_scaling` is set to `true`")
 		}
 
-		if minCount > 0 {
+		if minCount >= 0 {
 			profile.MinCount = utils.Int32(int32(minCount))
 		} else {
 			return fmt.Errorf("`min_count` must be configured when `enable_auto_scaling` is set to `true`")
@@ -492,9 +491,6 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	if enableAutoScaling {
 		if maxCount == 0 {
 			return fmt.Errorf("`max_count` must be configured when `enable_auto_scaling` is set to `true`")
-		}
-		if minCount == 0 {
-			return fmt.Errorf("`min_count` must be configured when `enable_auto_scaling` is set to `true`")
 		}
 
 		if minCount > maxCount {

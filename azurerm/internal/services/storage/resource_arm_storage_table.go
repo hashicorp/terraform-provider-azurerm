@@ -10,10 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/tables"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 )
 
 func resourceArmStorageTable() *schema.Resource {
@@ -126,17 +125,15 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	id := client.GetResourceID(accountName, tableName)
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Exists(ctx, accountName, tableName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing) {
-				return fmt.Errorf("Error checking for existence of existing Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
-			}
-		}
-
+	existing, err := client.Exists(ctx, accountName, tableName)
+	if err != nil {
 		if !utils.ResponseWasNotFound(existing) {
-			return tf.ImportAsExistsError("azurerm_storage_table", id)
+			return fmt.Errorf("Error checking for existence of existing Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
 		}
+	}
+
+	if !utils.ResponseWasNotFound(existing) {
+		return tf.ImportAsExistsError("azurerm_storage_table", id)
 	}
 
 	log.Printf("[DEBUG] Creating Table %q in Storage Account %q.", tableName, accountName)

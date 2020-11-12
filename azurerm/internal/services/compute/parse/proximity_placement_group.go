@@ -11,10 +11,21 @@ type ProximityPlacementGroupId struct {
 	Name          string
 }
 
+func NewProximityPlacementGroupId(resourceGroup, name string) ProximityPlacementGroupId {
+	return ProximityPlacementGroupId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id ProximityPlacementGroupId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/proximityPlacementGroups/%s", subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Proximity Placement Group ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Proximity Placement Group ID %q: %+v", input, err)
 	}
 
 	server := ProximityPlacementGroupId{

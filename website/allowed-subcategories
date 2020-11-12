@@ -4,6 +4,7 @@ Analysis Services
 App Configuration
 App Service (Web Apps)
 Application Insights
+Attestation
 Authorization
 Automation
 Avs
@@ -26,6 +27,7 @@ Data Share
 Database
 Database Migration
 Databricks
+Desktop Virtualization
 Dev Test
 DevSpace
 HDInsight
@@ -34,6 +36,7 @@ Healthcare
 IoT Central
 IoT Hub
 Key Vault
+Lighthouse
 Load Balancer
 Log Analytics
 Logic App
@@ -58,6 +61,7 @@ Search
 Security Center
 Sentinel
 Service Fabric
+Service Fabric Mesh
 Spring Cloud
 Storage
 Stream Analytics

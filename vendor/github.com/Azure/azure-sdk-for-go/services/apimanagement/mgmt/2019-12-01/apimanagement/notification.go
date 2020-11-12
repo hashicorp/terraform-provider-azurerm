@@ -266,6 +266,9 @@ func (client NotificationClient) ListByService(ctx context.Context, resourceGrou
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.NotificationClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.nc.hasNextLink() && result.nc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

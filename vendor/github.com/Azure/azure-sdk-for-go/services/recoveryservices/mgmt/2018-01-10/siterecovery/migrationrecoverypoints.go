@@ -157,6 +157,9 @@ func (client MigrationRecoveryPointsClient) ListByReplicationMigrationItems(ctx 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "siterecovery.MigrationRecoveryPointsClient", "ListByReplicationMigrationItems", resp, "Failure responding to request")
 	}
+	if result.mrpc.hasNextLink() && result.mrpc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

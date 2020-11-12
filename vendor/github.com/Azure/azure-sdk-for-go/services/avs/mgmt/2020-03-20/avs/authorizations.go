@@ -348,6 +348,9 @@ func (client AuthorizationsClient) List(ctx context.Context, resourceGroupName s
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "avs.AuthorizationsClient", "List", resp, "Failure responding to request")
 	}
+	if result.eral.hasNextLink() && result.eral.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

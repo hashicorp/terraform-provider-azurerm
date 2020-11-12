@@ -42,6 +42,8 @@ The following arguments are supported:
 
 * `vpn_server_configuration_id` - (Required) The ID of the VPN Server Configuration which this Point-to-Site VPN Gateway should use. Changing this forces a new resource to be created.
 
+* `dns_servers` - (Optional) A list of IP Addresses of DNS Servers for the Point-to-Site VPN Gateway.
+
 * `tags` - (Optional) A mapping of tags to assign to the Point-to-Site VPN Gateway.
 
 ---
@@ -52,11 +54,29 @@ A `connection_configuration` block supports the following:
 
 * `vpn_client_address_pool` - (Required) A `vpn_client_address_pool` block as defined below.
 
+* `route` - (Optional) A `route` block as defined below.
+
 ---
 
 A `vpn_client_address_pool` block supports the following:
 
 * `address_prefixes` - (Required) A list of CIDR Ranges which should be used as Address Prefixes.
+
+---
+
+A `route` block supports the following:
+
+* `associated_route_table_id` - (Required) The Virtual Hub Route Table resource id associated with this Routing Configuration.
+
+* `propagated_route_table` - (Optional) A `propagated_route_table` block as defined below.
+
+---
+
+A `propagated_route_table` block supports the following:
+
+* `ids` - (Required) The list of Virtual Hub Route Table resource id which the routes will be propagated to.
+
+* `labels` - (Optional) The list of labels to logically group Virtual Hub Route Tables which the routes will be propagated to.
 
 ## Attributes Reference
 

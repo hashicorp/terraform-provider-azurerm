@@ -72,8 +72,16 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 							Computed: true,
 						},
 
-						"parameters": {
+						"parameters": { // TODO -- remove this attribute in the next major version
 							Type:     schema.TypeMap,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"parameter_values": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 
@@ -141,7 +149,11 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	}
 	d.Set("policy_definitions", string(definitionBytes))
 
-	if err := d.Set("policy_definition_reference", flattenAzureRMPolicySetDefinitionPolicyDefinitions(setDefinition.PolicyDefinitions)); err != nil {
+	references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitions(setDefinition.PolicyDefinitions)
+	if err != nil {
+		return fmt.Errorf("flattening `policy_definition_reference`: %+v", err)
+	}
+	if err := d.Set("policy_definition_reference", references); err != nil {
 		return fmt.Errorf("setting `policy_definition_reference`: %+v", err)
 	}
 
