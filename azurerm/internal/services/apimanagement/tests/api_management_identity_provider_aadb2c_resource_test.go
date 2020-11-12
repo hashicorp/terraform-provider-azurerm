@@ -19,6 +19,7 @@ import (
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
+	apiDomain := acceptance.AzureProvider.Meta().(*clients.Client).Account.Environment.APIManagementHostNameSuffix
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,7 +27,7 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADB2CDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig),
+				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig, apiDomain),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderAADB2CExists(data.ResourceName),
 				),
@@ -39,6 +40,7 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_basic(t *testing.T) {
 func TestAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_aadb2c", "test")
 	b2cConfig := testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t)
+	apiDomain := acceptance.AzureProvider.Meta().(*clients.Client).Account.Environment.APIManagementHostNameSuffix
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -46,13 +48,13 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(t *testing
 		CheckDestroy: testCheckAzureRMApiManagementIdentityProviderAADB2CDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig),
+				Config: testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig, apiDomain),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderAADB2CExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(data, b2cConfig),
+				Config:      testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(data, b2cConfig, apiDomain),
 				ExpectError: acceptance.RequiresImportError(data.ResourceType),
 			},
 		},
@@ -140,7 +142,7 @@ func testCheckAzureRMApiManagementIdentityProviderAADB2CExists(resourceName stri
 	}
 }
 
-func testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data acceptance.TestData, b2cConfig map[string]string) string {
+func testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data acceptance.TestData, b2cConfig map[string]string, apiDomain string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -169,7 +171,7 @@ resource "azurerm_api_management" "test" {
 resource "azuread_application" "test" {
   name                       = "acctestAM-%[5]d"
   oauth2_allow_implicit_flow = true
-  reply_urls                 = ["https://${azurerm_api_management.test.name}.developer.azure-api.net/signin"]
+  reply_urls                 = ["https://${azurerm_api_management.test.name}.developer.%[8]s/signin"]
 }
 
 resource "azuread_application_password" "test" {
@@ -192,11 +194,11 @@ resource "azurerm_api_management_identity_provider_aadb2c" "test" {
 
   depends_on = [azuread_application_password.test]
 }
-`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, b2cConfig["tenant_id"], b2cConfig["client_id"], b2cConfig["client_secret"], b2cConfig["tenant_slug"], data.RandomInteger, data.Locations.Primary, data.RandomString, apiDomain)
 }
 
-func testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(data acceptance.TestData, b2cConfig map[string]string) string {
-	template := testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig)
+func testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(data acceptance.TestData, b2cConfig map[string]string, apiDomain string) string {
+	template := testAccAzureRMApiManagementIdentityProviderAADB2C_basic(data, b2cConfig, apiDomain)
 	return fmt.Sprintf(`
 %s
 
