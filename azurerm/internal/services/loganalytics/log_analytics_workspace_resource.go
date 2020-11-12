@@ -57,6 +57,18 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
+			"internet_ingestion_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"internet_query_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"sku": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -147,6 +159,15 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
 	}
 
+	internetIngestionEnabled := operationalinsights.Disabled
+	if d.Get("internet_ingestion_enabled").(bool) {
+		internetIngestionEnabled = operationalinsights.Enabled
+	}
+	internetQueryEnabled := operationalinsights.Disabled
+	if d.Get("internet_query_enabled").(bool) {
+		internetQueryEnabled = operationalinsights.Enabled
+	}
+
 	retentionInDays := int32(d.Get("retention_in_days").(int))
 
 	t := d.Get("tags").(map[string]interface{})
@@ -156,8 +177,10 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Location: &location,
 		Tags:     tags.Expand(t),
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
-			Sku:             sku,
-			RetentionInDays: &retentionInDays,
+			Sku:                             sku,
+			PublicNetworkAccessForIngestion: internetIngestionEnabled,
+			PublicNetworkAccessForQuery:     internetQueryEnabled,
+			RetentionInDays:                 &retentionInDays,
 		},
 	}
 
@@ -208,6 +231,9 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
+	d.Set("internet_ingestion_enabled", resp.PublicNetworkAccessForIngestion == operationalinsights.Enabled)
+	d.Set("internet_query_enabled", resp.PublicNetworkAccessForQuery == operationalinsights.Enabled)
 
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", "")

@@ -309,3 +309,20 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 
 	return outputs
 }
+
+// CopyCertificateAndPassword copies any certificate and password attributes
+// from the old config to the current to avoid state diffs.
+// Iterate through old state to find sensitive props not returned by API.
+// This must be done in order to avoid state diffs.
+// NOTE: this information won't be available during times like Import, so this is a best-effort.
+func CopyCertificateAndPassword(vals []interface{}, hostName string, output map[string]interface{}) {
+	for _, val := range vals {
+		oldConfig := val.(map[string]interface{})
+
+		if oldConfig["host_name"] == hostName {
+			output["certificate_password"] = oldConfig["certificate_password"]
+			output["certificate"] = oldConfig["certificate"]
+			break
+		}
+	}
+}

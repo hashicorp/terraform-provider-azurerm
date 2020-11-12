@@ -229,6 +229,11 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("publisher_email", props.PublisherEmail)
 		d.Set("publisher_name", props.PublisherName)

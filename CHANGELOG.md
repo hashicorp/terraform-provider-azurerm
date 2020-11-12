@@ -2,11 +2,13 @@
 
 UPGRADE NOTES:
 
-* `azurerm_network_connection_monitor` - has been updated to onlt work with v2 of the resource as the service team is deprecating v1 - all v1 properties have been deprecated and will be removed in version `3.0` of the provider and v2 propeties added. [GH-8640]
+* `azurerm_network_connection_monitor` - has been updated to work with v2 of the resource as the service team is deprecating v1 - all v1 properties have been deprecated and will be removed in version `3.0` of the provider and v2 propeties added. [GH-8640]
 
 FEATURES:
 
 * **New Data Source:** `azurerm_data_share_dataset_kusto_database` [GH-8544]
+* **New Data Source:** `azurerm_traffic_manager_profile` [GH-9229]
+* **New Resource:** `azurerm_api_management_custom_domain` [GH-8228]
 * **New Resource:** `azurerm_data_share_dataset_kusto_database` [GH-8544]
 * **New Resource:** `azurerm_log_analytics_storage_insights` [GH-9014]
 * **New Resource:** `azurerm_monitor_smart_detector_alert_rule` [GH-9032]
@@ -20,8 +22,11 @@ IMPROVEMENTS:
 * dependencies: upgrading to `v0.13.0` of `github.com/hashicorp/go-azure-helpers` [GH-9191]
 * dependencies: upgrading to `v0.14.0` of `github.com/tombuildsstuff/giovanni` [GH-9189]
 * storage: upgrading the Data Plane API's to API Version `2019-12-12` [GH-9192]
+* `azurerm_app_service` support `v5.0` for the `dotnet_framework_version` [GH-9251]
+* `azurerm_cosmosdb_account` - support for the `key_vault_key_id` property allowing use of Customer Managed Keys [GH-8919]
 * `azurerm_linux_virtual_machine` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
 * `azurerm_linux_virtual_machine_scale_set` - support for managed boot diagnostics by leaving the `storage_account_uri` property empty [GH-8917]
+* `azurerm_log_analytics_workspace` - support for the `internet_ingestion_enabled` and `internet_query_enabled` properties [GH-9033]
 * `azurerm_policy_remediation` - support for the `resource_discovery_mode` property [GH-9210]
 * `azurerm_point_to_site_vpn_gateway` - support for the `route` block [GH-9158]
 * `azurerm_virtual_network` - support for the `bgp_community` and `vnet_protection_enabled` [GH-8979]
