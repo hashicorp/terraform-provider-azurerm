@@ -204,7 +204,7 @@ resource "azurerm_key_vault_key" "test" {
 
 resource "azurerm_key_vault_access_policy" "subscription" {
   key_vault_id = azurerm_key_vault.test.id
-  
+
   key_permissions = [
     "create",
     "delete",
@@ -227,8 +227,8 @@ resource "azurerm_key_vault_access_policy" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   key_permissions = [
-    "get", 
-    "unwrapkey", 
+    "get",
+    "unwrapkey",
     "wrapkey"
   ]
 
