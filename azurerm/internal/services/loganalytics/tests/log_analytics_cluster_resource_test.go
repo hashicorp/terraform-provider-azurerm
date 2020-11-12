@@ -30,6 +30,31 @@ func TestAccAzureRMLogAnalyticsCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogAnalyticsCluster_resize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("size_gb"), // not returned by the API
+			{
+				Config: testAccAzureRMLogAnalyticsCluster_resize(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("size_gb"), // not returned by the API
+		},
+	})
+}
+
 func TestAccAzureRMLogAnalyticsCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -55,13 +80,6 @@ func TestAccAzureRMLogAnalyticsCluster_complete(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLogAnalyticsCluster_basicWithKeyVault(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("size_gb"), // not returned by the API
 			{
 				Config: testAccAzureRMLogAnalyticsCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -218,24 +236,22 @@ resource "azurerm_log_analytics_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMLogAnalyticsCluster_basicWithKeyVault(data acceptance.TestData) string {
+func testAccAzureRMLogAnalyticsCluster_resize(data acceptance.TestData) string {
 	template := testAccAzureRMLogAnalyticsCluster_template(data)
-	keyVaultTemplate := testAccAzureRMLogAnalyticsCluster_keyVaultTemplate(data)
 	return fmt.Sprintf(`
-%s
-
 %s
 
 resource "azurerm_log_analytics_cluster" "test" {
   name                = "acctest-LA-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  size_gb             = 1100
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, template, keyVaultTemplate, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMLogAnalyticsCluster_requiresImport(data acceptance.TestData) string {
