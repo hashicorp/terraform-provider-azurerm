@@ -3,8 +3,11 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
@@ -38,7 +41,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
 	}
 
-	isAzureStack, err := authentication.IsEnvironmentAzureStack(ctx, builder.AuthConfig.MetadataURL, builder.AuthConfig.Environment)
+	isAzureStack, err := authentication.IsEnvironmentAzureStack(ctx, builder.AuthConfig.MetadataHost, builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +49,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
 	}
 
-	env, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.AuthConfig.MetadataURL, builder.AuthConfig.Environment)
+	env, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.AuthConfig.MetadataHost, builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +100,17 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, err
 	}
 
+	// Synapse Endpoints
+	var synapseAuth autorest.Authorizer = nil
+	if env.ResourceIdentifiers.Synapse != azure.NotAvailable {
+		synapseAuth, err = builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Synapse)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Synapse Authorizer since this is not supported in the current Azure Environment")
+	}
+
 	// Key Vault Endpoints
 	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
@@ -111,6 +125,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
+		SynapseAuthorizer:           synapseAuth,
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,

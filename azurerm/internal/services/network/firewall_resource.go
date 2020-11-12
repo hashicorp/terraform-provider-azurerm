@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -121,6 +122,16 @@ func resourceArmFirewall() *schema.Resource {
 				}, false),
 			},
 
+			"dns_servers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.IsIPAddress,
+				},
+			},
+
 			"zones": azure.SchemaZones(),
 
 			"tags": tags.Schema(),
@@ -168,8 +179,9 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(t),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
-			IPConfigurations: ipConfigs,
-			ThreatIntelMode:  network.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string)),
+			IPConfigurations:     ipConfigs,
+			ThreatIntelMode:      network.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string)),
+			AdditionalProperties: expandArmFirewallDNSServers(d.Get("dns_servers").([]interface{})),
 		},
 		Zones: zones,
 	}
@@ -283,7 +295,12 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("management_ip_configuration", managementIPConfigs); err != nil {
 			return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
 		}
+
 		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
+
+		if err := d.Set("dns_servers", flattenArmFirewallDNSServers(props.AdditionalProperties)); err != nil {
+			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+		}
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
@@ -465,6 +482,46 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 	}
 
 	return result
+}
+
+func expandArmFirewallDNSServers(input []interface{}) map[string]*string {
+	if len(input) == 0 {
+		return map[string]*string{
+			"Network.DNS.EnableProxy": utils.String("false"),
+		}
+	}
+
+	var servers []string
+	for _, server := range input {
+		servers = append(servers, server.(string))
+	}
+
+	// Swagger issue asking finalize these properties: https://github.com/Azure/azure-rest-api-specs/issues/11278
+	return map[string]*string{
+		"Network.DNS.EnableProxy": utils.String("true"),
+		"Network.DNS.Servers":     utils.String(strings.Join(servers, ",")),
+	}
+}
+
+func flattenArmFirewallDNSServers(input map[string]*string) []interface{} {
+	if len(input) == 0 {
+		return nil
+	}
+
+	enabled := false
+	if enabledPtr := input["Network.DNS.EnableProxy"]; enabledPtr != nil {
+		enabled = *enabledPtr == "true"
+	}
+
+	if !enabled {
+		return nil
+	}
+
+	servers := []string{}
+	if serversPtr := input["Network.DNS.Servers"]; serversPtr != nil {
+		servers = strings.Split(*serversPtr, ",")
+	}
+	return utils.FlattenStringSlice(&servers)
 }
 
 func ValidateAzureFirewallName(v interface{}, k string) (warnings []string, errors []error) {

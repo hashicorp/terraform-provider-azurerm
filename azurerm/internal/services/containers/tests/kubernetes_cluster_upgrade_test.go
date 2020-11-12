@@ -10,12 +10,44 @@ import (
 )
 
 var kubernetesUpgradeTests = map[string]func(t *testing.T){
+	"UpgradeAutoScaleMinCount":                      testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCount,
 	"upgradeControlPlane":                           testAccAzureRMKubernetesCluster_upgradeControlPlane,
 	"upgradeControlPlaneAndDefaultNodePoolTogether": testAccAzureRMKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTogether,
 	"upgradeControlPlaneAndDefaultNodePoolTwoPhase": testAccAzureRMKubernetesCluster_upgradeControlPlaneAndDefaultNodePoolTwoPhase,
 	"upgradeNodePoolBeforeControlPlaneFails":        testAccAzureRMKubernetesCluster_upgradeNodePoolBeforeControlPlaneFails,
 	"upgradeCustomNodePoolAfterControlPlane":        testAccAzureRMKubernetesCluster_upgradeCustomNodePoolAfterControlPlane,
 	"upgradeCustomNodePoolBeforeControlPlaneFails":  testAccAzureRMKubernetesCluster_upgradeCustomNodePoolBeforeControlPlaneFails,
+}
+
+func TestAccAzureRMKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCount(t)
+}
+
+func testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 3, 8),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data, olderKubernetesVersion, 4, 8),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
 func TestAccAzureRMKubernetesCluster_upgradeControlPlane(t *testing.T) {
@@ -325,4 +357,37 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   orchestrator_version  = %q
 }
 `, template, customNodePoolVersion)
+}
+
+func testAccAzureRMKubernetesCluster_upgradeAutoScaleMinCountConfig(data acceptance.TestData, controlPlaneVersion string, minCount int, maxCount int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
+
+  default_node_pool {
+    name                = "default"
+    vm_size             = "Standard_DS2_v2"
+    enable_auto_scaling = true
+    min_count           = %d
+    max_count           = %d
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, minCount, maxCount)
 }

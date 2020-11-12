@@ -150,7 +150,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	// TODO: Remove the implicit behavior in new major version.
+	// TODO: Remove the implicit behaviour in new major version.
 	// Discrepancy of resource group between ASE and Subnet is allowed. While for the sake of
 	// compatibility, we still allow user to use the resource group of Subnet to be the one for
 	// ASE implicitly. While allow user to explicitly specify the resource group, which takes higher

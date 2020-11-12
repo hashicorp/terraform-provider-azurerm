@@ -1069,6 +1069,25 @@ func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_windowsDotNet5(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_windowsDotNet(data, "v5.0"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v5.0"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1088,6 +1107,13 @@ func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v4.0"),
+				),
+			},
+			{
+				Config: testAccAzureRMAppService_windowsDotNet(data, "v5.0"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v5.0"),
 				),
 			},
 		},
