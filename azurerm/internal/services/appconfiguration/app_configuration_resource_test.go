@@ -10,222 +10,156 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AppConfigurationResource struct {
+}
+
 func TestAccAppConfigurationResource_free(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAppConfigurationResource_free(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.free(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAppConfigurationResource_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAppConfigurationResource_standard(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standard(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAppConfigurationResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAppConfigurationResource_free(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAppConfigurationResource_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.free(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(testAppConfigurationResource_requiresImport),
 	})
 }
 
 func TestAccAppConfigurationResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAppConfigurationResource_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAppConfigurationResource_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAppConfigurationResource_identity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.identity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAppConfigurationResource_identityUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAppConfigurationResource_standard(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAppConfigurationResource_identity(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAppConfigurationResource_standard(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.standard(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.identity(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standard(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAppConfigurationResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAppConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAppConfigurationResource_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
-			{
-				Config: testAppConfigurationResource_completeUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAppConfigurationExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.completeUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
-func testCheckAppConfigurationDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppConfiguration.AppConfigurationsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_app_configuration" {
-			continue
-		}
-
-		id, err := parse.AppConfigurationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
-			}
-		}
-
-		return nil
+func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.AppConfigurationID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAppConfigurationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppConfiguration.AppConfigurationsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := parse.AppConfigurationID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on appConfigurationsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: App Configuration %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
-		}
-
-		return nil
+	resp, err := clients.AppConfiguration.AppConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving App Configuration %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
+	return utils.Bool(resp.ConfigurationStoreProperties != nil), nil
 }
 
-func testAppConfigurationResource_free(data acceptance.TestData) string {
+func (AppConfigurationResource) free(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -245,7 +179,7 @@ resource "azurerm_app_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAppConfigurationResource_standard(data acceptance.TestData) string {
+func (AppConfigurationResource) standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -265,8 +199,8 @@ resource "azurerm_app_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAppConfigurationResource_requiresImport(data acceptance.TestData) string {
-	template := testAppConfigurationResource_free(data)
+func (r AppConfigurationResource) requiresImport(data acceptance.TestData) string {
+	template := r.free(data)
 	return fmt.Sprintf(`
 %s
 
@@ -279,7 +213,7 @@ resource "azurerm_app_configuration" "import" {
 `, template)
 }
 
-func testAppConfigurationResource_complete(data acceptance.TestData) string {
+func (AppConfigurationResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -303,7 +237,7 @@ resource "azurerm_app_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAppConfigurationResource_identity(data acceptance.TestData) string {
+func (AppConfigurationResource) identity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -331,7 +265,7 @@ resource "azurerm_app_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAppConfigurationResource_completeUpdated(data acceptance.TestData) string {
+func (AppConfigurationResource) completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
