@@ -410,7 +410,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"node_labels":                  nodeLabels,
 			"node_taints":                  []string{},
 			"os_disk_size_gb":              osDiskSizeGB,
-			"os_disk_type":                 string(agentPool.OsDiskType),
+			"os_disk_type":                 string(osDiskType),
 			"tags":                         tags.Flatten(agentPool.Tags),
 			"type":                         string(agentPool.Type),
 			"vm_size":                      string(agentPool.VMSize),
