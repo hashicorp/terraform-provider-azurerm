@@ -3,12 +3,12 @@ package avs
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"log"
 	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -34,7 +34,7 @@ func resourceArmAvsPrivateCloud() *schema.Resource {
 			Create: schema.DefaultTimeout(6 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(6 * time.Hour),
-			Delete: schema.DefaultTimeout(3 * time.Hour),
+			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {

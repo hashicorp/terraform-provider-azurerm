@@ -12,9 +12,12 @@ Manages a Azure Vmware Solution Private Cloud.
 
 ## Example Usage
 
+-> **NOTE:** Please set `disable_correlation_request_id` = `true` for AVS resources. Else, continuous CRUD operations might not be triggered.
+
 ```hcl
 provider "azurerm" {
   features {}
+  disable_correlation_request_id = true
 }
 
 resource "azurerm_resource_group" "example" {
@@ -32,21 +35,7 @@ resource "azurerm_avs_private_cloud" "example" {
     cluster_size = 3
   }
 
-  network_block = "192.168.48.0/22"
-
-  identity_source {
-    name                 = "exampleName"
-    alias                = "exampleAlias"
-    base_group_dn        = "exampleGp"
-    base_user_dn         = "exampleUser"
-    domain               = "exampleDomain"
-    password             = "PassWord1234!"
-    primary_server_url   = "http://example.com"
-    secondary_server_url = "http://example2.com"
-    ssl_enabled          = false
-    username             = "exampleUser"
-  }
-
+  network_block      = "192.168.48.0/22"
   internet_connected = false
   nsxt_password      = "QazWsx13$Edc"
   vcenter_password   = "QazWsx13$Edc"
@@ -72,8 +61,6 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The name of the SKU. Changing this forces a new Azure Vmware Solution Private Cloud to be created. Possible values are "av20", "av36" and "av36t".
 
-* `identity_source` - (Optional) One or more `identity_source` blocks as defined below.
-
 * `internet_connected` - (Optional) Is connected to the internet?
 
 * `nsxt_password` - (Optional) The password of the NSX-T Manager. Changing this forces a new Azure Vmware Solution Private Cloud to be created.
@@ -81,30 +68,6 @@ The following arguments are supported:
 * `vcenter_password` - (Optional) The password of the vCenter admin. Changing this forces a new Azure Vmware Solution Private Cloud to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Vmware Solution Private Cloud.
-
----
-
-A `identity_source` block supports the following:
-
-* `name` - (Required) The name of the identity source
-
-* `alias` - (Required) The domain's NetBIOS name.
-
-* `base_group_dn` - (Required) The base distinguished name for groups.
-
-* `base_user_dn` - (Required) The base distinguished name for users.
-
-* `domain` - (Required) The domain's dns name.
-
-* `primary_server_url` - (Required) The primary server URL.
-
-* `secondary_server_url` - (Optional) The secondary server URL.
-
-* `ssl_enabled` - (Required) Should we protect LDAP communication using SSL certificate (LDAPS)?
-
-* `username` - (Required) The ID of an Active Directory user with a minimum of read-only access to Base DN for users and group.
-
-* `password` - (Required) The password of the Active Directory user with a minimum of read-only access to Base DN for users and groups.
 
 ---
 
@@ -160,10 +123,10 @@ A `management_cluster` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 4 hours) Used when creating the Azure Vmware Solution Private Cloud.
+* `create` - (Defaults to 6 hours) Used when creating the Azure Vmware Solution Private Cloud.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Vmware Solution Private Cloud.
-* `update` - (Defaults to 4 hours) Used when updating the Azure Vmware Solution Private Cloud.
-* `delete` - (Defaults to 4 hours) Used when deleting the Azure Vmware Solution Private Cloud.
+* `update` - (Defaults to 6 hours) Used when updating the Azure Vmware Solution Private Cloud.
+* `delete` - (Defaults to 6 hours) Used when deleting the Azure Vmware Solution Private Cloud.
 
 ## Import
 

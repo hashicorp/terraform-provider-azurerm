@@ -238,7 +238,7 @@ func testAccAzureRMavsPrivateCloud_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
-  # In Avs, we can't use client with the same x-ms-correlation-request-id for delete, else the delete will not be triggered
+  # In Avs, please disable correlation request id, else the continuous operations like update or delete will not be triggered
   disable_correlation_request_id = true
 }
 
