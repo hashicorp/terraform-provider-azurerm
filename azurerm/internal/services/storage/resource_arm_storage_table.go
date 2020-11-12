@@ -176,7 +176,7 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return fmt.Errorf("retrieving Table %q (Storage Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
 	}
-	if exists == nil && !*exists {
+	if exists == nil || !*exists {
 		log.Printf("[DEBUG] Storage Account %q not found, removing table %q from state", id.AccountName, id.Name)
 		d.SetId("")
 		return nil
