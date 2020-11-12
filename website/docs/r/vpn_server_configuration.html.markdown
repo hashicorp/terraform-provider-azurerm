@@ -152,13 +152,28 @@ A `ipsec_policy` block supports the following:
 
 A `radius_server` block supports the following:
 
-* `address` - (Required) The Address of the Radius Server.
+* `address` - (Optional) The Address of the Radius Server. Used to create single Radius Server configuration.
 
-* `secret` - (Required) The Secret used to communicate with the Radius Server.
+* `secret` - (Optional) The Secret used to communicate with the Radius Server. Used to crate single Radius Server configuration.
+
+* `server` - (Optional) One or more `server` blocks as defined below. Used to create multiple Radius Servers configuration.
 
 * `client_root_certificate` - (Optional) One or more `client_root_certificate` blocks as defined above.
 
 * `server_root_certificate` - (Optional) One or more `server_root_certificate` blocks as defined below.
+
+---
+
+A `server` block supports the following:
+
+* `address` - (Required) The Address of the Radius Server.
+
+* `secret` - (Required) The Secret used to  communicate with the Radius Server.
+
+* `score` - (Required) The score of the  Radius Server determines the priority of the server
+
+-> **NOTE:** Use server block to create one or more Radius server configuration.  `address` and `secret`  can be still
+  used when creating single Radius Server configuration. Keep them only for backward compatibility purpose.
 
 ---
 

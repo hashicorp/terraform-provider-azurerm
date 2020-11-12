@@ -238,13 +238,38 @@ func resourceArmVPNServerConfiguration() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"address": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"secret": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
+						},
+
+						"server": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"address": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"secret": {
+										Type:      schema.TypeString,
+										Required:  true,
+										Sensitive: true,
+									},
+
+									"score": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 30),
+									},
+								},
+							},
 						},
 
 						"client_root_certificate": {
@@ -392,8 +417,19 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 			return fmt.Errorf("`radius_server` must be specified when `vpn_authentication_type` is set to `Radius`")
 		}
 
-		props.RadiusServerAddress = utils.String(radiusServer.address)
-		props.RadiusServerSecret = utils.String(radiusServer.secret)
+		singeRadius := radiusServer.address != "" && radiusServer.secret != ""
+		multipleRadius := radiusServer.servers != nil && len(*radiusServer.servers) != 0
+
+		if (singeRadius && multipleRadius) || (!singeRadius && !multipleRadius) {
+			return fmt.Errorf("use `address` and `secret` to create single Radius Server configuration or use `server` to cureate one or more Radius Server configurations. Choose one and only of the two optiions")
+		}
+
+		if multipleRadius {
+			props.RadiusServers = radiusServer.servers
+		} else {
+			props.RadiusServerAddress = utils.String(radiusServer.address)
+			props.RadiusServerSecret = utils.String(radiusServer.secret)
+		}
 		props.RadiusClientRootCertificates = radiusServer.clientRootCertificates
 		props.RadiusServerRootCertificates = radiusServer.serverRootCertificates
 	}
@@ -696,6 +732,7 @@ func flattenVpnServerConfigurationIPSecPolicies(input *[]network.IpsecPolicy) []
 type vpnServerConfigurationRadiusServer struct {
 	address                string
 	secret                 string
+	servers                *[]network.RadiusServer
 	clientRootCertificates *[]network.VpnServerConfigRadiusClientRootCertificate
 	serverRootCertificates *[]network.VpnServerConfigRadiusServerRootCertificate
 }
@@ -727,16 +764,28 @@ func expandVpnServerConfigurationRadiusServer(input []interface{}) *vpnServerCon
 		})
 	}
 
+	radiusServers := make([]network.RadiusServer, 0)
+	radiusServersRaw := val["server"].([]interface{})
+	for _, raw := range radiusServersRaw {
+		v := raw.(map[string]interface{})
+		radiusServers = append(radiusServers, network.RadiusServer{
+			RadiusServerAddress: utils.String(v["address"].(string)),
+			RadiusServerSecret:  utils.String(v["secret"].(string)),
+			RadiusServerScore:   utils.Int64(int64(v["score"].(int))),
+		})
+	}
+
 	return &vpnServerConfigurationRadiusServer{
 		address:                val["address"].(string),
 		secret:                 val["secret"].(string),
+		servers:                &radiusServers,
 		clientRootCertificates: &clientRootCertificates,
 		serverRootCertificates: &serverRootCertificates,
 	}
 }
 
 func flattenVpnServerConfigurationRadiusServer(input *network.VpnServerConfigurationProperties) []interface{} {
-	if input == nil || input.RadiusServerAddress == nil || input.RadiusServerRootCertificates == nil || len(*input.RadiusServerRootCertificates) == 0 {
+	if input == nil || (input.RadiusServerAddress == nil && input.RadiusServers == nil) || input.RadiusServerRootCertificates == nil || len(*input.RadiusServerRootCertificates) == 0 {
 		return []interface{}{}
 	}
 
@@ -790,12 +839,39 @@ func flattenVpnServerConfigurationRadiusServer(input *network.VpnServerConfigura
 		}
 	}
 
+	servers := make([]interface{}, 0)
+	if input.RadiusServers != nil {
+		for _, v := range *input.RadiusServers {
+			address := ""
+			if v.RadiusServerAddress != nil {
+				address = *v.RadiusServerAddress
+			}
+
+			secret := ""
+			if v.RadiusServerSecret != nil {
+				secret = *v.RadiusServerSecret
+			}
+
+			score := 0
+			if v.RadiusServerScore != nil {
+				score = (int)(*v.RadiusServerScore)
+			}
+
+			servers = append(servers, map[string]interface{}{
+				"address": address,
+				"secret":  secret,
+				"score":   score,
+			})
+		}
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"address":                 radiusAddress,
 			"client_root_certificate": clientRootCertificates,
 			"secret":                  radiusSecret,
 			"server_root_certificate": serverRootCertificates,
+			"server":                  servers,
 		},
 	}
 }
