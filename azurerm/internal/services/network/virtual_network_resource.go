@@ -92,7 +92,7 @@ func resourceArmVirtualNetwork() *schema.Resource {
 			},
 
 			"dns_servers": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -369,7 +369,7 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			AddressPrefixes: utils.ExpandStringSlice(d.Get("address_space").([]interface{})),
 		},
 		DhcpOptions: &network.DhcpOptions{
-			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
+			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").(*schema.Set).List()),
 		},
 		EnableVMProtection: utils.Bool(d.Get("vm_protection_enabled").(bool)),
 		Subnets:            &subnets,
