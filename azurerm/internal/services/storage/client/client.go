@@ -128,7 +128,7 @@ func (client Client) ContainersClient(ctx context.Context, account accountDetail
 		rmClient := storage.NewBlobContainersClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
 		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
 		rmShim := shim.NewResourceManagerStorageContainerWrapper(&rmClient)
-		return &rmShim, nil
+		return rmShim, nil
 	}
 
 	if client.storageAdAuth != nil {
@@ -191,26 +191,32 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 	return &sharesClient, nil
 }
 
-func (client Client) QueuesClient(ctx context.Context, account accountDetails) (*queues.Client, error) {
+func (client Client) QueuesClient(ctx context.Context, account accountDetails) (shim.StorageQueuesWrapper, error) {
+	if client.useResourceManager {
+		rmClient := storage.NewQueueClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
+		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
+		return shim.NewResourceManagerStorageQueueWrapper(&rmClient), nil
+	}
+
 	if client.storageAdAuth != nil {
-		queueAuth := queues.NewWithEnvironment(client.Environment)
-		queueAuth.Client.Authorizer = *client.storageAdAuth
-		return &queueAuth, nil
+		queueClient := queues.NewWithEnvironment(client.Environment)
+		queueClient.Client.Authorizer = *client.storageAdAuth
+		return shim.NewDataPlaneStorageQueueWrapper(&queueClient), nil
 	}
 
 	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
-		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
+		return nil, fmt.Errorf("retrieving Account Key: %s", err)
 	}
 
 	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyLite)
 	if err != nil {
-		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+		return nil, fmt.Errorf("building Authorizer: %+v", err)
 	}
 
 	queuesClient := queues.NewWithEnvironment(client.Environment)
 	queuesClient.Client.Authorizer = storageAuth
-	return &queuesClient, nil
+	return shim.NewDataPlaneStorageQueueWrapper(&queuesClient), nil
 }
 
 func (client Client) TableEntityClient(ctx context.Context, account accountDetails) (*entities.Client, error) {

@@ -13,7 +13,7 @@ type ResourceManagerStorageContainerWrapper struct {
 	client *storage.BlobContainersClient
 }
 
-func NewResourceManagerStorageContainerWrapper(client *storage.BlobContainersClient) ResourceManagerStorageContainerWrapper {
+func NewResourceManagerStorageContainerWrapper(client *storage.BlobContainersClient) StorageContainerWrapper {
 	return ResourceManagerStorageContainerWrapper{
 		client: client,
 	}
