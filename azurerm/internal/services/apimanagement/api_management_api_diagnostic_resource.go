@@ -207,20 +207,28 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	if frontendRequest, ok := d.GetOk("frontend_request"); ok {
-		parameters.Frontend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
+	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
+	frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
+	if frontendRequestSet || frontendResponseSet {
+		parameters.Frontend = &apimanagement.PipelineDiagnosticSettings{}
+		if frontendRequestSet {
+			parameters.Frontend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
+		}
+		if frontendResponseSet {
+			parameters.Frontend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
+		}
 	}
 
-	if frontendResponse, ok := d.GetOk("frontend_response"); ok {
-		parameters.Frontend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
-	}
-
-	if backendRequest, ok := d.GetOk("backend_request"); ok {
-		parameters.Backend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
-	}
-
-	if backendResponse, ok := d.GetOk("backend_response"); ok {
-		parameters.Backend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
+	backendRequest, backendRequestSet := d.GetOk("backend_request")
+	backendResponse, backendResponseSet := d.GetOk("backend_response")
+	if backendRequestSet || backendResponseSet {
+		parameters.Backend = &apimanagement.PipelineDiagnosticSettings{}
+		if backendRequestSet {
+			parameters.Backend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
+		}
+		if backendResponseSet {
+			parameters.Backend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, diagnosticId, parameters, ""); err != nil {
