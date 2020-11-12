@@ -8,6 +8,8 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
 )
 
+// TODO: tests for this
+
 type StorageContainerDataPlaneId struct {
 	AccountName  string
 	DomainSuffix string
@@ -16,7 +18,7 @@ type StorageContainerDataPlaneId struct {
 
 // only present to comply with the interface
 func (id StorageContainerDataPlaneId) ID(_ string) string {
-	return fmt.Sprintf("https://%s.%s/%s", id.AccountName, id.DomainSuffix, id.Name)
+	return fmt.Sprintf("https://%s.blob.%s/%s", id.AccountName, id.DomainSuffix, id.Name)
 }
 
 func NewStorageContainerDataPlaneId(accountName, domainSuffix, name string) StorageContainerDataPlaneId {
@@ -27,9 +29,7 @@ func NewStorageContainerDataPlaneId(accountName, domainSuffix, name string) Stor
 	}
 }
 
-// ParseResourceID parses the Resource ID and returns an object which can be used
-// to interact with the Container Resource
-func ParseStorageContainerDataPlaneID(id string) (*StorageContainerDataPlaneId, error) {
+func StorageContainerDataPlaneID(id string) (*StorageContainerDataPlaneId, error) {
 	parsed, err := containers.ParseResourceID(id)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func ParseStorageContainerDataPlaneID(id string) (*StorageContainerDataPlaneId, 
 	if len(hostSegments) == 0 {
 		return nil, fmt.Errorf("expected multiple host segments but got 0")
 	}
-	domainNameSuffix := strings.TrimPrefix(host, fmt.Sprintf("%s.", hostSegments[0]))
+	domainNameSuffix := strings.TrimPrefix(host, fmt.Sprintf("%s.blob.", hostSegments[0]))
 
 	return &StorageContainerDataPlaneId{
 		AccountName:  parsed.AccountName,
