@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMoperationalinsightsCluster_basic(t *testing.T) {
+func TestAccAzureRMLogAnalyticsCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -19,7 +19,7 @@ func TestAccAzureRMoperationalinsightsCluster_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMoperationalinsightsCluster_basic(data),
+				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
 				),
@@ -29,7 +29,7 @@ func TestAccAzureRMoperationalinsightsCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMoperationalinsightsCluster_requiresImport(t *testing.T) {
+func TestAccAzureRMLogAnalyticsCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -37,17 +37,17 @@ func TestAccAzureRMoperationalinsightsCluster_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMoperationalinsightsCluster_basic(data),
+				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMoperationalinsightsCluster_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMLogAnalyticsCluster_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMoperationalinsightsCluster_complete(t *testing.T) {
+func TestAccAzureRMLogAnalyticsCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -55,89 +55,14 @@ func TestAccAzureRMoperationalinsightsCluster_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMoperationalinsightsCluster_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMoperationalinsightsCluster_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMoperationalinsightsCluster_basic(data),
+				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMoperationalinsightsCluster_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMoperationalinsightsCluster_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMoperationalinsightsCluster_updateKeyVaultProperties(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMoperationalinsightsCluster_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMoperationalinsightsCluster_updateKeyVaultProperties(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMoperationalinsightsCluster_updateSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMoperationalinsightsClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMoperationalinsightsCluster_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMoperationalinsightsCluster_updateSku(data),
+				Config: testAccAzureRMLogAnalyticsCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMoperationalinsightsClusterExists(data.ResourceName),
 				),
@@ -191,7 +116,7 @@ func testCheckAzureRMoperationalinsightsClusterDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccAzureRMoperationalinsightsCluster_template(data acceptance.TestData) string {
+func testAccAzureRMLogAnalyticsCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,51 +129,125 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMoperationalinsightsCluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMoperationalinsightsCluster_template(data)
+func testAccAzureRMLogAnalyticsCluster_basic(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_log_analytics_cluster" "test" {
-  name = "acctest-LA-%d"
+  name                = "acctest-LA-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMoperationalinsightsCluster_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMoperationalinsightsCluster_basic(data)
+func testAccAzureRMLogAnalyticsCluster_requiresImport(data acceptance.TestData) string {
+	config := testAccAzureRMLogAnalyticsCluster_basic(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_log_analytics_cluster" "import" {
-  name = azurerm_log_analytics_cluster.test.name
+  name                = azurerm_log_analytics_cluster.test.name
   resource_group_name = azurerm_log_analytics_cluster.test.resource_group_name
-  location = azurerm_log_analytics_cluster.test.location
+  location            = azurerm_log_analytics_cluster.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, config)
 }
 
-func testAccAzureRMoperationalinsightsCluster_complete(data acceptance.TestData) string {
-	template := testAccAzureRMoperationalinsightsCluster_template(data)
+func testAccAzureRMLogAnalyticsCluster_complete(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsCluster_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_log_analytics_cluster" "test" {
-  name = "acctest-LA-%d"
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "premium"
+
+  soft_delete_enabled        = true
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%s""
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.subscription]
+}
+
+resource "azurerm_key_vault_access_policy" "subscription" {
+  key_vault_id = azurerm_key_vault.test.id
+  
+  key_permissions = [
+    "create",
+    "delete",
+    "get",
+    "update",
+    "list",
+  ]
+
+  secret_permissions = [
+    "get",
+    "delete",
+    "set",
+  ]
+
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  object_id = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_access_policy" "test" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  key_permissions = [
+    "get", 
+    "unwrapkey", 
+    "wrapkey"
+  ]
+
+  tenant_id = azurerm_log_analytics_cluster.example.identity.0.tenant_id
+  object_id = azurerm_log_analytics_cluster.example.identity.0.principal_id
+}
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctest-LA-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
   identity {
-    type = ""
+    type = "SystemAssigned"
   }
 
-  next_link = ""
-
   key_vault_property {
-    key_name = ""
-    key_vault_uri = ""
-    key_version = ""
+    key_name      = azurerm_key_vault_key.test.name
+    key_vault_uri = azurerm_key_vault.test.vault_uri
+    key_version   = azurerm_key_vault_key.test.version
   }
 
   size_gb = 1100
@@ -257,65 +256,5 @@ resource "azurerm_log_analytics_cluster" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMoperationalinsightsCluster_updateKeyVaultProperties(data acceptance.TestData) string {
-	template := testAccAzureRMoperationalinsightsCluster_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_cluster" "test" {
-  name = "acctest-LA-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  identity {
-    type = ""
-  }
-
-  next_link = ""
-
-  key_vault_property {
-    key_name = ""
-    key_vault_uri = ""
-    key_version = ""
-  }
-
-  size_gb = 1000
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMoperationalinsightsCluster_updateSku(data acceptance.TestData) string {
-	template := testAccAzureRMoperationalinsightsCluster_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_cluster" "test" {
-  name = "acctest-LA-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  identity {
-    type = ""
-  }
-
-  next_link = ""
-
-  key_vault_property {
-    key_name = ""
-    key_vault_uri = ""
-    key_version = ""
-  }
-
-  size_gb = 1000
-
-  tags = {
-    ENV = "Test"
-  }
-}
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomString, data.RandomInteger)
 }
