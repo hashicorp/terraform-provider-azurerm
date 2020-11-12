@@ -25,7 +25,7 @@ func TestAccAzureRMLogAnalyticsCluster_basic(t *testing.T) {
 					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("size_gb"), // not returned by the API
 		},
 	})
 }
@@ -61,14 +61,14 @@ func TestAccAzureRMLogAnalyticsCluster_complete(t *testing.T) {
 					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("size_gb"), // not returned by the API
 			{
 				Config: testAccAzureRMLogAnalyticsCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("size_gb"), // not returned by the API
 		},
 	})
 }
