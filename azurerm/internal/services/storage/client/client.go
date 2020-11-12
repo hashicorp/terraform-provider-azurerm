@@ -9,7 +9,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/resourcemanagershim"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/shim"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
@@ -123,18 +123,18 @@ func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*
 	return &blobsClient, nil
 }
 
-func (client Client) ContainersClient(ctx context.Context, account accountDetails) (resourcemanagershim.StorageContainerWrapper, error) {
+func (client Client) ContainersClient(ctx context.Context, account accountDetails) (shim.StorageContainerWrapper, error) {
 	if client.useResourceManager {
 		rmClient := storage.NewBlobContainersClientWithBaseURI(client.Environment.ResourceManagerEndpoint, client.SubscriptionId)
 		rmClient.Client.Authorizer = client.resourceManagerAuthorizer
-		rmShim := resourcemanagershim.NewResourceManagerStorageContainerWrapper(&rmClient)
+		rmShim := shim.NewResourceManagerStorageContainerWrapper(&rmClient)
 		return &rmShim, nil
 	}
 
 	if client.storageAdAuth != nil {
 		containersClient := containers.NewWithEnvironment(client.Environment)
 		containersClient.Client.Authorizer = *client.storageAdAuth
-		shim := resourcemanagershim.NewDataPlaneStorageContainerWrapper(&containersClient)
+		shim := shim.NewDataPlaneStorageContainerWrapper(&containersClient)
 		return shim, nil
 	}
 
@@ -151,7 +151,7 @@ func (client Client) ContainersClient(ctx context.Context, account accountDetail
 	containersClient := containers.NewWithEnvironment(client.Environment)
 	containersClient.Client.Authorizer = storageAuth
 
-	shim := resourcemanagershim.NewDataPlaneStorageContainerWrapper(&containersClient)
+	shim := shim.NewDataPlaneStorageContainerWrapper(&containersClient)
 	return shim, nil
 }
 

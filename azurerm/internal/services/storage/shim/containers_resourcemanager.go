@@ -1,4 +1,4 @@
-package resourcemanagershim
+package shim
 
 import (
 	"context"
