@@ -1,4 +1,4 @@
-package tests
+package appconfiguration_test
 
 import (
 	"fmt"
