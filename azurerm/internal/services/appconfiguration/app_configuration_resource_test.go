@@ -1,8 +1,8 @@
 package appconfiguration_test
 
 import (
+	`context`
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse"
@@ -59,7 +59,7 @@ func TestAccAppConfigurationResource_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.RequiresImportErrorStep(testAppConfigurationResource_requiresImport),
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 

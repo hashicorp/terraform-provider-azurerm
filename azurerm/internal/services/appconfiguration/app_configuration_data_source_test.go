@@ -22,7 +22,7 @@ func TestAccAppConfigurationDataSource_basic(t *testing.T) {
 		{
 			Config: AppConfigurationDataSource{}.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).ExistsInAzure(AppConfigurationResource{}),
 				check.That(data.ResourceName).Key("endpoint").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("sku").Exists(),
