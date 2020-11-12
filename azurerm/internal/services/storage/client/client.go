@@ -173,7 +173,12 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, account acc
 	return &directoriesClient, nil
 }
 
-func (client Client) FileSharesClient(ctx context.Context, account accountDetails) (*shares.Client, error) {
+func (client Client) FileSharesClient(ctx context.Context, account accountDetails) (shim.StorageShareWrapper, error) {
+	if client.useResourceManager {
+		// TODO: implement me
+		return nil, fmt.Errorf("API doesn't implement all of the necessary functionality")
+	}
+
 	// NOTE: Files do not support AzureAD Authentication
 
 	accountKey, err := account.AccountKey(ctx, client)
@@ -188,7 +193,8 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 
 	sharesClient := shares.NewWithEnvironment(client.Environment)
 	sharesClient.Client.Authorizer = storageAuth
-	return &sharesClient, nil
+	shim := shim.NewDataPlaneStorageShareWrapper(&sharesClient)
+	return shim, nil
 }
 
 func (client Client) QueuesClient(ctx context.Context, account accountDetails) (shim.StorageQueuesWrapper, error) {

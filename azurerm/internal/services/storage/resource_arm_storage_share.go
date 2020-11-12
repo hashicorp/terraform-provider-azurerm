@@ -1,20 +1,16 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
@@ -149,16 +145,14 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error building File Share Client: %s", err)
 	}
 
+	// TODO: replace me
 	id := client.GetResourceID(accountName, shareName)
 
-	existing, err := client.GetProperties(ctx, accountName, shareName)
+	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, shareName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
-		}
+		return fmt.Errorf("checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
 	}
-
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if exists != nil && *exists {
 		return tf.ImportAsExistsError("azurerm_storage_share", id)
 	}
 
@@ -168,31 +162,15 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		MetaData:  metaData,
 	}
 
-	if resp, err := client.Create(ctx, accountName, shareName, input); err != nil {
-		// If we fail due to previous delete still in progress, then we can retry
-		if utils.ResponseWasConflict(resp) && strings.Contains(err.Error(), "ShareBeingDeleted") {
-			stateConf := &resource.StateChangeConf{
-				Pending:        []string{"waitingOnDelete"},
-				Target:         []string{"succeeded"},
-				Refresh:        storageShareCreateRefreshFunc(ctx, client, accountName, shareName, input),
-				PollInterval:   10 * time.Second,
-				NotFoundChecks: 180,
-				Timeout:        d.Timeout(schema.TimeoutCreate),
-			}
-
-			if _, err := stateConf.WaitForState(); err != nil {
-				return fmt.Errorf("failed creating share: %+v", err)
-			}
-		} else {
-			return fmt.Errorf("failed creating share: %+v", err)
-		}
-	}
-
-	if _, err := client.SetACL(ctx, accountName, shareName, acls); err != nil {
-		return fmt.Errorf("Error setting ACL's for Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
+	if err := client.Create(ctx, account.ResourceGroup, accountName, shareName, input); err != nil {
+		return fmt.Errorf("creating Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
 	}
 
 	d.SetId(id)
+	if err := client.UpdateACLs(ctx, account.ResourceGroup, accountName, shareName, acls); err != nil {
+		return fmt.Errorf("setting ACL's for Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
+	}
+
 	return resourceArmStorageShareRead(d, meta)
 }
 
@@ -208,7 +186,7 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Share %q: %s", id.AccountName, id.ShareName, err)
+		return fmt.Errorf("retrieving Account %q for Share %q: %s", id.AccountName, id.ShareName, err)
 	}
 	if account == nil {
 		log.Printf("[WARN] Unable to determine Account %q for Storage Share %q - assuming removed & removing from state", id.AccountName, id.ShareName)
@@ -221,33 +199,27 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
-	props, err := client.GetProperties(ctx, id.AccountName, id.ShareName)
+	props, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.ShareName)
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
-			log.Printf("[DEBUG] File Share %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ShareName, id.AccountName, account.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error retrieving File Share %q (Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, account.ResourceGroup, err)
+		return err
 	}
-
-	acls, err := client.GetACL(ctx, id.AccountName, id.ShareName)
-	if err != nil {
-		return fmt.Errorf("Error retrieving ACL's for File Share %q (Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, account.ResourceGroup, err)
+	if props == nil {
+		log.Printf("[DEBUG] File Share %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ShareName, id.AccountName, account.ResourceGroup)
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("name", id.ShareName)
 	d.Set("storage_account_name", id.AccountName)
 	d.Set("url", client.GetResourceID(id.AccountName, id.ShareName))
-	d.Set("quota", props.ShareQuota)
+	d.Set("quota", props.QuotaGB)
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("Error flattening `metadata`: %+v", err)
+		return fmt.Errorf("flattening `metadata`: %+v", err)
 	}
 
-	if err := d.Set("acl", flattenStorageShareACLs(acls)); err != nil {
-		return fmt.Errorf("Error flattening `acl`: %+v", err)
+	if err := d.Set("acl", flattenStorageShareACLs(props.ACLs)); err != nil {
+		return fmt.Errorf("flattening `acl`: %+v", err)
 	}
 
 	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, id.ShareName)
@@ -282,8 +254,9 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 	if d.HasChange("quota") {
 		log.Printf("[DEBUG] Updating the Quota for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
 		quota := d.Get("quota").(int)
-		if _, err := client.SetProperties(ctx, id.AccountName, id.ShareName, quota); err != nil {
-			return fmt.Errorf("Error updating Quota for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
+
+		if err := client.UpdateQuota(ctx, account.ResourceGroup, id.AccountName, id.ShareName, quota); err != nil {
+			return fmt.Errorf("updating Quota for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
 		}
 
 		log.Printf("[DEBUG] Updated the Quota for File Share %q (Storage Account %q)", id.ShareName, id.AccountName)
@@ -295,7 +268,7 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		metaData := ExpandMetaData(metaDataRaw)
 
-		if _, err := client.SetMetaData(ctx, id.AccountName, id.ShareName, metaData); err != nil {
+		if err := client.UpdateMetaData(ctx, account.ResourceGroup, id.AccountName, id.ShareName, metaData); err != nil {
 			return fmt.Errorf("Error updating MetaData for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
 		}
 
@@ -308,7 +281,7 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 		aclsRaw := d.Get("acl").(*schema.Set).List()
 		acls := expandStorageShareACLs(aclsRaw)
 
-		if _, err := client.SetACL(ctx, id.AccountName, id.ShareName, acls); err != nil {
+		if err := client.UpdateACLs(ctx, account.ResourceGroup, id.AccountName, id.ShareName, acls); err != nil {
 			return fmt.Errorf("Error updating ACL's for File Share %q (Storage Account %q): %s", id.ShareName, id.AccountName, err)
 		}
 
@@ -330,20 +303,19 @@ func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) err
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Share %q: %s", id.AccountName, id.ShareName, err)
+		return fmt.Errorf("retrieving Account %q for Share %q: %s", id.AccountName, id.ShareName, err)
 	}
 	if account == nil {
-		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+		return fmt.Errorf("unable to locate Storage Account %q!", id.AccountName)
 	}
 
 	client, err := storageClient.FileSharesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building File Share Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
-	deleteSnapshots := true
-	if _, err := client.Delete(ctx, id.AccountName, id.ShareName, deleteSnapshots); err != nil {
-		return fmt.Errorf("Error deleting File Share %q (Storage Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, account.ResourceGroup, err)
+	if err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.ShareName); err != nil {
+		return fmt.Errorf("deleting File Share %q (Storage Account %q / Resource Group %q): %s", id.ShareName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
@@ -372,10 +344,10 @@ func expandStorageShareACLs(input []interface{}) []shares.SignedIdentifier {
 	return results
 }
 
-func flattenStorageShareACLs(input shares.GetACLResult) []interface{} {
+func flattenStorageShareACLs(input []shares.SignedIdentifier) []interface{} {
 	result := make([]interface{}, 0)
 
-	for _, v := range input.SignedIdentifiers {
+	for _, v := range input {
 		output := map[string]interface{}{
 			"id": v.Id,
 			"access_policy": []interface{}{
@@ -391,21 +363,4 @@ func flattenStorageShareACLs(input shares.GetACLResult) []interface{} {
 	}
 
 	return result
-}
-
-func storageShareCreateRefreshFunc(ctx context.Context, client *shares.Client, accountName string, shareName string, input shares.CreateInput) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Create(ctx, accountName, shareName, input)
-		if err != nil {
-			if !utils.ResponseWasConflict(resp) {
-				return nil, "", err
-			}
-
-			if utils.ResponseWasConflict(resp) && strings.Contains(err.Error(), "ShareBeingDeleted") {
-				return nil, "waitingOnDelete", nil
-			}
-		}
-
-		return "succeeded", "succeeded", nil
-	}
 }
