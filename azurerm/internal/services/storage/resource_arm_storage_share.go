@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
 func resourceArmStorageShare() *schema.Resource {
@@ -69,7 +69,7 @@ func resourceArmStorageShare() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 102400),
 			},
 
-			"metadata": MetaDataSchema(),
+			"metadata": MetaDataComputedSchema(),
 
 			"acl": {
 				Type:     schema.TypeSet,
@@ -88,12 +88,12 @@ func resourceArmStorageShare() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"start": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"expiry": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"permissions": {

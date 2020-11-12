@@ -141,7 +141,6 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			"is_compression_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"probe_path": {
@@ -242,7 +241,6 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
-	compressionEnabled := d.Get("is_compression_enabled").(bool)
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
 	originHostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
@@ -259,11 +257,14 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			GeoFilters:                 geoFilters,
 			IsHTTPAllowed:              &httpAllowed,
 			IsHTTPSAllowed:             &httpsAllowed,
-			IsCompressionEnabled:       &compressionEnabled,
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(originHostHeader),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("is_compression_enabled"); ok {
+		endpoint.EndpointProperties.IsCompressionEnabled = utils.Bool(v.(bool))
 	}
 
 	if optimizationType != "" {
@@ -337,7 +338,6 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
-	compressionEnabled := d.Get("is_compression_enabled").(bool)
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
 	hostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
@@ -353,13 +353,15 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 			GeoFilters:                 geoFilters,
 			IsHTTPAllowed:              utils.Bool(httpAllowed),
 			IsHTTPSAllowed:             utils.Bool(httpsAllowed),
-			IsCompressionEnabled:       utils.Bool(compressionEnabled),
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(hostHeader),
 		},
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("is_compression_enabled"); ok {
+		endpoint.EndpointPropertiesUpdateParameters.IsCompressionEnabled = utils.Bool(v.(bool))
+	}
 	if optimizationType != "" {
 		endpoint.EndpointPropertiesUpdateParameters.OptimizationType = cdn.OptimizationType(optimizationType)
 	}
@@ -438,7 +440,6 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.EndpointProperties; props != nil {
 		d.Set("host_name", props.HostName)
-		d.Set("is_compression_enabled", props.IsCompressionEnabled)
 		d.Set("is_http_allowed", props.IsHTTPAllowed)
 		d.Set("is_https_allowed", props.IsHTTPSAllowed)
 		d.Set("querystring_caching_behaviour", props.QueryStringCachingBehavior)
@@ -446,6 +447,12 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("origin_path", props.OriginPath)
 		d.Set("probe_path", props.ProbePath)
 		d.Set("optimization_type", string(props.OptimizationType))
+
+		if _, ok := d.GetOk("is_compression_enabled"); ok {
+			if compressionEnabled := props.IsCompressionEnabled; compressionEnabled != nil {
+				d.Set("is_compression_enabled", compressionEnabled)
+			}
+		}
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {

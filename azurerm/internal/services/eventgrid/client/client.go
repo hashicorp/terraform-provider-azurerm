@@ -10,6 +10,7 @@ type Client struct {
 	DomainTopicsClient       *eventgrid.DomainTopicsClient
 	EventSubscriptionsClient *eventgrid.EventSubscriptionsClient
 	TopicsClient             *eventgrid.TopicsClient
+	SystemTopicsClient       *eventgrid.SystemTopicsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -25,10 +26,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	TopicsClient := eventgrid.NewTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&TopicsClient.Client, o.ResourceManagerAuthorizer)
 
+	SystemTopicsClient := eventgrid.NewSystemTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SystemTopicsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		DomainsClient:            &DomainsClient,
 		EventSubscriptionsClient: &EventSubscriptionsClient,
 		DomainTopicsClient:       &DomainTopicsClient,
 		TopicsClient:             &TopicsClient,
+		SystemTopicsClient:       &SystemTopicsClient,
 	}
 }

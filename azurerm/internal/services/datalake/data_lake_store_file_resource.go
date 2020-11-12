@@ -186,7 +186,7 @@ func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 	// TODO: switch to pulling this from the Environment when it's available there
 	// BUG: https://github.com/Azure/go-autorest/issues/312
 	replacement := fmt.Sprintf(".%s", suffix)
-	accountName := strings.Replace(uri.Host, replacement, "", -1)
+	accountName := strings.ReplaceAll(uri.Host, replacement, "")
 
 	file := dataLakeStoreFileId{
 		storageAccountName: accountName,

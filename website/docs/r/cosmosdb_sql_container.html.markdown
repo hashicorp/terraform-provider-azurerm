@@ -88,14 +88,25 @@ An `indexing_policy` block supports the following:
 
 * `excluded_path` - (Optional) One or more `excluded_path` blocks as defined below. Either `included_path` or `excluded_path` must contain the `path` `/*`
 
+* `composite_index` - (Optional) One or more `composite_index` blocks as defined below.
+
 An `included_path` block supports the following:
 
-* `path` - Path for which the indexing behavior applies to.
+* `path` - Path for which the indexing behaviour applies to.
 
 An `excluded_path` block supports the following:
 
 * `path` - Path that is excluded from indexing.
 
+A `composite_index` block supports the following:
+
+* `index` - One or more `index` blocks as defined below.
+
+An `index` block supports the following:
+
+* `path` - Path for which the indexing behaviour applies to.
+
+* `order` - Order of the index. Possible values are `Ascending` or `Descending`.
 
 ## Attributes Reference
 

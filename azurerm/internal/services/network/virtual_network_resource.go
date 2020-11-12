@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -63,6 +65,12 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				},
 			},
 
+			"bgp_community": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.VirtualNetworkBgpCommunity,
+			},
+
 			"ddos_protection_plan": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -90,6 +98,12 @@ func resourceArmVirtualNetwork() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+			},
+
+			"vm_protection_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"guid": {
@@ -260,6 +274,18 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
 			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
 		}
+
+		bgpCommunity := ""
+		if p := props.BgpCommunities; p != nil {
+			if v := p.VirtualNetworkCommunity; v != nil {
+				bgpCommunity = *v
+			}
+		}
+		if err := d.Set("bgp_community", bgpCommunity); err != nil {
+			return fmt.Errorf("Error setting `bgp_community`: %+v", err)
+		}
+
+		d.Set("vm_protection_enabled", props.EnableVMProtection)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -345,7 +371,8 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: utils.ExpandStringSlice(d.Get("dns_servers").([]interface{})),
 		},
-		Subnets: &subnets,
+		EnableVMProtection: utils.Bool(d.Get("vm_protection_enabled").(bool)),
+		Subnets:            &subnets,
 	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
@@ -367,6 +394,10 @@ func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData,
 			enable := v.(bool)
 			properties.EnableDdosProtection = &enable
 		}
+	}
+
+	if v, ok := d.GetOk("bgp_community"); ok {
+		properties.BgpCommunities = &network.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: utils.String(v.(string))}
 	}
 
 	return properties, nil

@@ -1,6 +1,7 @@
 package apimanagement
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -9,12 +10,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -42,10 +46,10 @@ func resourceArmApiManagementService() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(3 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(3 * time.Hour),
+			Delete: schema.DefaultTimeout(3 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -505,19 +509,21 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	customProperties := expandApiManagementCustomProperties(d)
 	certificates := expandAzureRmApiManagementCertificates(d)
-	hostnameConfigurations := expandAzureRmApiManagementHostnameConfigurations(d)
 
 	properties := apimanagement.ServiceResource{
 		Location: utils.String(location),
 		ServiceProperties: &apimanagement.ServiceProperties{
-			PublisherName:          utils.String(publisherName),
-			PublisherEmail:         utils.String(publisherEmail),
-			CustomProperties:       customProperties,
-			Certificates:           certificates,
-			HostnameConfigurations: hostnameConfigurations,
+			PublisherName:    utils.String(publisherName),
+			PublisherEmail:   utils.String(publisherEmail),
+			CustomProperties: customProperties,
+			Certificates:     certificates,
 		},
 		Tags: tags.Expand(t),
 		Sku:  sku,
+	}
+
+	if _, ok := d.GetOk("hostname_configuration"); ok {
+		properties.ServiceProperties.HostnameConfigurations = expandAzureRmApiManagementHostnameConfigurations(d)
 	}
 
 	// intentionally not gated since we specify a default value (of None) in the expand, which we need on updates
@@ -618,13 +624,13 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiManagementID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["service"]
+	name := id.ServiceName
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -730,12 +736,12 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApiManagementID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["service"]
+	name := id.ServiceName
 
 	log.Printf("[DEBUG] Deleting API Management Service %q (Resource Grouo %q)", name, resourceGroup)
 	future, err := client.Delete(ctx, resourceGroup, name)
@@ -752,9 +758,38 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 	return nil
 }
 
+func apiManagementRefreshFunc(ctx context.Context, client *apimanagement.ServiceClient, serviceName, resourceGroup string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if API Management Service %q (Resource Group: %q) is available..", serviceName, resourceGroup)
+
+		resp, err := client.Get(ctx, resourceGroup, serviceName)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				log.Printf("[DEBUG] Retrieving API Management %q (Resource Group: %q) returned 404.", serviceName, resourceGroup)
+				return nil, "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("Error polling for the state of the API Management Service %q (Resource Group: %q): %+v", serviceName, resourceGroup, err)
+		}
+
+		state := ""
+		if props := resp.ServiceProperties; props != nil {
+			if props.ProvisioningState != nil {
+				state = *props.ProvisioningState
+			}
+		}
+
+		return resp, state, nil
+	}
+}
+
 func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[]apimanagement.HostnameConfiguration {
 	results := make([]apimanagement.HostnameConfiguration, 0)
-	hostnameVs := d.Get("hostname_configuration").([]interface{})
+	vs := d.Get("hostname_configuration")
+	if vs == nil {
+		return &results
+	}
+	hostnameVs := vs.([]interface{})
 
 	for _, hostnameRawVal := range hostnameVs {
 		hostnameV := hostnameRawVal.(map[string]interface{})
@@ -865,26 +900,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			output["key_vault_id"] = *config.KeyVaultID
 		}
 
-		// Iterate through old state to find sensitive props not returned by API.
-		// This must be done in order to avoid state diffs.
-		// NOTE: this information won't be available during times like Import, so this is a best-effort.
-		existingHostnames := d.Get("hostname_configuration").([]interface{})
-		if len(existingHostnames) > 0 {
-			v := existingHostnames[0].(map[string]interface{})
-
-			if valsRaw, ok := v[mapAzureRmApiManagementHostNameType(config.Type)]; ok {
-				vals := valsRaw.([]interface{})
-				for _, val := range vals {
-					oldConfig := val.(map[string]interface{})
-
-					if oldConfig["host_name"] == *config.HostName {
-						output["certificate_password"] = oldConfig["certificate_password"]
-						output["certificate"] = oldConfig["certificate"]
-					}
-				}
-			}
-		}
-
+		var configType string
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagement.HostnameTypeProxy)):
 			// only set SSL binding for proxy types
@@ -892,18 +908,33 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 				output["default_ssl_binding"] = *config.DefaultSslBinding
 			}
 			proxyResults = append(proxyResults, output)
+			configType = "proxy"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeManagement)):
 			managementResults = append(managementResults, output)
+			configType = "management"
 
 		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
+			configType = "portal"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeDeveloperPortal)):
 			developerPortalResults = append(developerPortalResults, output)
+			configType = "developer_portal"
 
 		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
+			configType = "scm"
+		}
+
+		existingHostnames := d.Get("hostname_configuration").([]interface{})
+		if len(existingHostnames) > 0 && configType != "" {
+			v := existingHostnames[0].(map[string]interface{})
+
+			if valsRaw, ok := v[configType]; ok {
+				vals := valsRaw.([]interface{})
+				azure.CopyCertificateAndPassword(vals, *config.HostName, output)
+			}
 		}
 	}
 
@@ -919,15 +950,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 			"proxy":            proxyResults,
 			"scm":              scmResults,
 		},
-	}
-}
-
-func mapAzureRmApiManagementHostNameType(t apimanagement.HostnameType) string {
-	switch t {
-	case apimanagement.HostnameTypeDeveloperPortal:
-		return "developer_portal"
-	default:
-		return strings.ToLower(string(t))
 	}
 }
 
@@ -1200,54 +1222,6 @@ func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.Virtua
 	}
 
 	return []interface{}{virtualNetworkConfiguration}
-}
-
-func apiManagementResourceHostnameSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"host_name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"key_vault_id": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
-		},
-
-		"certificate": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"certificate_password": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"negotiate_client_certificate": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-	}
-}
-
-func apiManagementResourceHostnameProxySchema() map[string]*schema.Schema {
-	hostnameSchema := apiManagementResourceHostnameSchema()
-
-	hostnameSchema["default_ssl_binding"] = &schema.Schema{
-		Type:     schema.TypeBool,
-		Optional: true,
-		Computed: true, // Azure has certain logic to set this, which we cannot predict
-	}
-
-	return hostnameSchema
 }
 
 func parseApiManagementNilableDictionary(input map[string]*string, key string) bool {

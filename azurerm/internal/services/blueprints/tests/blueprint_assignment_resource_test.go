@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// Scenario: Basic BP, no artifacts etc.  Stored and applied at Subscription.
+// Scenario: Basic BP, no artefacts etc.  Stored and applied at Subscription.
 func TestAccBlueprintAssignment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_blueprint_assignment", "test")
 

@@ -118,7 +118,6 @@ func CdnEndpointV0Schema() *schema.Resource {
 			"is_compression_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 
 			"probe_path": {
