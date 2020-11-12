@@ -1,14 +1,11 @@
 package avs
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/avs/mgmt/2020-03-20/avs"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -359,41 +356,6 @@ func resourceArmAvsPrivateCloudDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return nil
-	//return waitForAvsPrivateCloudToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
-}
-
-func waitForAvsPrivateCloudToBeDeleted(ctx context.Context, client *avs.PrivateCloudsClient, resourceGroup, name string, d *schema.ResourceData) error {
-	// we can't use the Waiter here since the API returns status succeed once it's deleted which is considered a polling status code..
-	log.Printf("[DEBUG] Waiting for Avs Private Cloud %q in Resource Group %q to be deleted", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: avsPrivateCloudStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Avs Private Cloud %q in Resource Group %q to be deleted: %+v", name, resourceGroup, err)
-	}
-
-	return nil
-}
-
-func avsPrivateCloudStateStatusCodeRefreshFunc(ctx context.Context, client *avs.PrivateCloudsClient, resourceGroup, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
-
-		log.Printf("retrieving Avs Private Cloud %q in Resource Group %q returned Status %d", resourceGroup, name, res.StatusCode)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, strconv.Itoa(res.StatusCode), nil
-			}
-			return nil, "", fmt.Errorf("polling for the status of the Avs Private Cloud %q (RG: %q): %+v", name, resourceGroup, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
 }
 
 func flattenArmPrivateCloudManagementCluster(input *avs.ManagementCluster) []interface{} {
