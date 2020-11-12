@@ -5,40 +5,40 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
+type AppInsightsDataSource struct {
+}
+
 func TestAccDataSourceApplicationInsights_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_application_insights", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccResourceApplicationInsights_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "instrumentation_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "other"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AppInsightsDataSource{}.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("instrumentation_key").Exists(),
+				check.That(data.ResourceName).Key("app_id").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("application_type").HasValue("other"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.foo").HasValue("bar"),
+			),
 		},
 	})
 }
 
-func testAccResourceApplicationInsights_complete(data acceptance.TestData) string {
+func (AppInsightsDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-appinsights-%[1]d"
   location = "%[2]s"
 }
 

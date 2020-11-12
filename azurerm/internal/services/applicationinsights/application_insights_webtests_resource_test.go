@@ -1,173 +1,124 @@
 package applicationinsights_test
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type AppInsightsWebTestsResource struct {
+}
 
 func TestAccAzureRMApplicationInsightsWebTests_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
+	r := AppInsightsWebTestsResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApplicationInsightsWebTests_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsWebTestExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMApplicationInsightsWebTests_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
+	r := AppInsightsWebTestsResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApplicationInsightsWebTests_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsWebTestExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMApplicationInsightsWebTests_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
+	r := AppInsightsWebTestsResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApplicationInsightsWebTests_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsWebTestExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_locations.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "300"),
-					resource.TestCheckResourceAttr(data.ResourceName, "timeout", "30"),
-				),
-			},
-			{
-				Config: testAccAzureRMApplicationInsightsWebTests_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsWebTestExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_locations.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "900"),
-					resource.TestCheckResourceAttr(data.ResourceName, "timeout", "120"),
-				),
-			},
-			{
-				Config: testAccAzureRMApplicationInsightsWebTests_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsWebTestExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_locations.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "300"),
-					resource.TestCheckResourceAttr(data.ResourceName, "timeout", "30"),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_locations.#").HasValue("1"),
+				check.That(data.ResourceName).Key("frequency").HasValue("300"),
+				check.That(data.ResourceName).Key("timeout").HasValue("30"),
+			),
+		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_locations.#").HasValue("2"),
+				check.That(data.ResourceName).Key("frequency").HasValue("900"),
+				check.That(data.ResourceName).Key("timeout").HasValue("120"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_locations.#").HasValue("1"),
+				check.That(data.ResourceName).Key("frequency").HasValue("300"),
+				check.That(data.ResourceName).Key("timeout").HasValue("30"),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
+	r := AppInsightsWebTestsResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightsWebTestsDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApplicationInsightsWebTests_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsWebTestExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMApplicationInsightsWebTests_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_application_insights_web_test" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resGroup, name)
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Application Insights WebTest still exists:\n%#v", resp)
-		}
+func (t AppInsightsWebTestsResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ApplicationInsightsWebTestID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
-
-func testCheckAzureRMApplicationInsightsWebTestExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).AppInsights.WebTestsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up a WebTest
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resGroup, name)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on appInsightsWebTestClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Application Insights WebTest '%q' (resource group: '%q') does not exist", name, resGroup)
-		}
-
-		return nil
+	resp, err := clients.AppInsights.WebTestsClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Application Insights '%q' (resource group: '%q') does not exist", id.ResourceGroup, id.Name)
 	}
+
+	return utils.Bool(resp.WebTestProperties != nil), nil
 }
 
-func testAccAzureRMApplicationInsightsWebTests_basic(data acceptance.TestData) string {
+func (AppInsightsWebTestsResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-appinsights-%d"
   location = "%s"
 }
 
@@ -201,14 +152,14 @@ XML
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApplicationInsightsWebTests_complete(data acceptance.TestData) string {
+func (AppInsightsWebTestsResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-appinsights-%d"
   location = "%s"
 }
 
@@ -245,8 +196,8 @@ XML
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMApplicationInsightsWebTests_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMApplicationInsightsWebTests_basic(data)
+func (AppInsightsWebTestsResource) requiresImport(data acceptance.TestData) string {
+	template := AppInsightsWebTestsResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

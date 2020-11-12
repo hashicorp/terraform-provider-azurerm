@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -222,32 +223,29 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApplicationInsightsID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights '%s'", id)
 
-	resGroup := id.ResourceGroup
-	name := id.Path["components"]
-
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", id.Name, err)
 	}
 
-	billingResp, err := billingClient.Get(ctx, resGroup, name)
+	billingResp, err := billingClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -277,21 +275,19 @@ func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ApplicationInsightsID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["components"]
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights '%s' (resource group '%s')", name, resGroup)
+	log.Printf("[DEBUG] Deleting AzureRM Application Insights '%s' (resource group '%s')", id.Name, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, resGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights '%s': %+v", id.Name, err)
 	}
 
 	return err
