@@ -73,7 +73,12 @@ func testAccAzureRMApiManagementIdentityProviderAADB2C_getB2CConfig(t *testing.T
 			config[k] = v
 			continue
 		}
-		t.Fatalf("`%s` must be set for acceptance tests for resource `azurerm_api_management_identity_provider_aadb2c`!", e)
+		vars := make([]string, 0, len(config))
+		for k := range config {
+			v := fmt.Sprintf("ARM_TEST_B2C_%s", strings.ToUpper(k))
+			vars = append(vars, v)
+		}
+		t.Skip(fmt.Sprintf("Acceptance tests for resource `azurerm_api_management_identity_provider_aadb2c` skipped unless environment variables set: %s", strings.Join(vars, ", ")))
 	}
 
 	return config
