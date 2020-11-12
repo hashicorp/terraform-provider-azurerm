@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/azuresdkhacks"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -206,12 +206,7 @@ func resourceArmSecurityCenterAutomationCreateUpdate(d *schema.ResourceData, met
 		return err
 	}
 
-	// Create our patched/hacked struct with real struct embedded
-	patchedAutomation := azuresdkhacks.Automation{
-		Automation: automation,
-	}
-
-	resp, err := client.CreateOrUpdate(ctx, resourceGroup, name, patchedAutomation)
+	resp, err := client.CreateOrUpdate(ctx, resourceGroup, name, automation)
 	if err != nil {
 		return fmt.Errorf("Error creating Security Center automation: %+v", err)
 	}
