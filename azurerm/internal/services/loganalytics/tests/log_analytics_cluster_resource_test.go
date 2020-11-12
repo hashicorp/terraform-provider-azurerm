@@ -56,7 +56,7 @@ func TestAccAzureRMLogAnalyticsCluster_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsCluster_basic(data),
+				Config: testAccAzureRMLogAnalyticsCluster_basicWithKeyVault(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
 				),
@@ -130,45 +130,8 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMLogAnalyticsCluster_basic(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsCluster_template(data)
+func testAccAzureRMLogAnalyticsCluster_keyVaultTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_cluster" "test" {
-  name                = "acctest-LA-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMLogAnalyticsCluster_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMLogAnalyticsCluster_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_log_analytics_cluster" "import" {
-  name                = azurerm_log_analytics_cluster.test.name
-  resource_group_name = azurerm_log_analytics_cluster.test.resource_group_name
-  location            = azurerm_log_analytics_cluster.test.location
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, config)
-}
-
-func testAccAzureRMLogAnalyticsCluster_complete(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsCluster_template(data)
-	return fmt.Sprintf(`
-%s
-
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
@@ -232,9 +195,73 @@ resource "azurerm_key_vault_access_policy" "test" {
     "wrapkey"
   ]
 
-  tenant_id = azurerm_log_analytics_cluster.example.identity.0.tenant_id
-  object_id = azurerm_log_analytics_cluster.example.identity.0.principal_id
+  tenant_id = azurerm_log_analytics_cluster.test.identity.0.tenant_id
+  object_id = azurerm_log_analytics_cluster.test.identity.0.principal_id
 }
+`, data.RandomInteger, data.RandomString)
+}
+
+func testAccAzureRMLogAnalyticsCluster_basic(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctest-LA-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsCluster_basicWithKeyVault(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsCluster_template(data)
+	keyVaultTemplate := testAccAzureRMLogAnalyticsCluster_keyVaultTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+%s
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctest-LA-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, keyVaultTemplate, data.RandomInteger)
+}
+
+func testAccAzureRMLogAnalyticsCluster_requiresImport(data acceptance.TestData) string {
+	config := testAccAzureRMLogAnalyticsCluster_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_cluster" "import" {
+  name                = azurerm_log_analytics_cluster.test.name
+  resource_group_name = azurerm_log_analytics_cluster.test.resource_group_name
+  location            = azurerm_log_analytics_cluster.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, config)
+}
+
+func testAccAzureRMLogAnalyticsCluster_complete(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsCluster_template(data)
+	keyVaultTemplate := testAccAzureRMLogAnalyticsCluster_keyVaultTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+%s
 
 resource "azurerm_log_analytics_cluster" "test" {
   name                = "acctest-LA-%d"
@@ -250,12 +277,6 @@ resource "azurerm_log_analytics_cluster" "test" {
     key_vault_uri = azurerm_key_vault.test.vault_uri
     key_version   = azurerm_key_vault_key.test.version
   }
-
-  size_gb = 1100
-
-  tags = {
-    ENV = "Test"
-  }
 }
-`, template, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, template, keyVaultTemplate, data.RandomInteger)
 }
