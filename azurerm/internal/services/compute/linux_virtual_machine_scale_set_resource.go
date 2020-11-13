@@ -505,10 +505,11 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 
 	log.Printf("[DEBUG] Waiting for Linux Virtual Machine Scale Set %q (Resource Group %q) to be created..", name, resourceGroup)
+	var finalErr error
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		finalErr = fmt.Errorf("Error waiting for creation of Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created", name, resourceGroup)
+	log.Printf("[DEBUG] Virtual Machine Scale Set %q (Resource Group %q) was created (%v)", name, resourceGroup, finalErr)
 
 	log.Printf("[DEBUG] Retrieving Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -521,7 +522,11 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmLinuxVirtualMachineScaleSetRead(d, meta)
+	res := resourceArmLinuxVirtualMachineScaleSetRead(d, meta)
+	if res == nil {
+		return finalErr
+	}
+	return res
 }
 
 func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta interface{}) error {
