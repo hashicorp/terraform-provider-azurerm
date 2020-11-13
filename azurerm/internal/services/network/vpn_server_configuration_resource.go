@@ -419,10 +419,10 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 			return fmt.Errorf("`radius_server` must be specified when `vpn_authentication_type` is set to `Radius`")
 		}
 
-		singeRadius := radiusServer.address != "" && radiusServer.secret != ""
+		singleRadius := radiusServer.address != "" && radiusServer.secret != ""
 		multipleRadius := radiusServer.servers != nil && len(*radiusServer.servers) != 0
 
-		if (singeRadius && multipleRadius) || (!singeRadius && !multipleRadius) {
+		if (singleRadius && multipleRadius) || (!singleRadius && !multipleRadius) {
 			return fmt.Errorf("use `address` and `secret` to create single Radius Server configuration or use `server` to cureate one or more Radius Server configurations. Choose one and only of the two optiions")
 		}
 
