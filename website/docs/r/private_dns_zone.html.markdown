@@ -35,30 +35,27 @@ The following arguments are supported:
 
 * `soa_record` - (Optional) An `soa_record` block as defined below. 
 
+-> **NOTE** When `soa_record` is removed from terraform configuration file, terraform won't do anything because the Service API doesn't allow deleting the SOA Record.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
 The `soa_record` block supports:
 
-* `email` - (Required) The email for the SOA record.
+* `email` - (Required) The email contact for the SOA record. Defaults to `"azureprivatedns-host.microsoft.com"`.
 
-* `host_name` - (Required) The domain name of the authoritative name server for the SOA record.
+* `expire_time` - (Optional) The expire time for the SOA record. Defaults to `2419200`.
 
-* `expire_time` - (Optional) The expire time for the SOA record.
+* `minimum_ttl` - (Optional) The minimum Time To Live for the SOA record. By convention, it is used to determine the negative caching duration. Defaults to `10`.
 
-* `minimum_ttl` - (Optional) The minimum value for the SOA record. By convention this is used to determine the negative caching duration.
+* `refresh_time` - (Optional) The refresh time for the SOA record. Defaults to `3600`.
 
-* `refresh_time` - (Optional) The refresh value for the SOA record.
+* `retry_time` - (Optional) The retry time for the SOA record. Defaults to `300`.
 
-* `retry_time` - (Optional) The retry time for the SOA record.
-
-* `serial_number` - (Optional) The serial number for the SOA record.
-
-* `ttl` - (Optional) The Time To Live of the SOA Record in seconds.
+* `ttl` - (Optional) The Time To Live of the SOA Record in seconds. Defaults to `3600`.
 
 * `tags` - (Optional) A mapping of tags to assign to the Record Set.
-
 
 ## Attributes Reference
 
@@ -66,6 +63,8 @@ The following attributes are exported:
 
 * `id` - The Private DNS Zone ID.
 * `fqdn` - The fully qualified domain name of the Record Set.
+* `host_name` - The domain name of the authoritative name server for the SOA record.
+* `serial_number` - The serial number for the SOA record. 
 * `number_of_record_sets` - The current number of record sets in this Private DNS zone.
 * `max_number_of_record_sets` - The maximum number of record sets that can be created in this Private DNS zone.
 * `max_number_of_virtual_network_links` - The maximum number of virtual networks that can be linked to this Private DNS zone.

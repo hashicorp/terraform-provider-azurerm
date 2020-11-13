@@ -72,14 +72,9 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"email": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
+							Default:      "azureprivatedns-host.microsoft.com",
 							ValidateFunc: validate.PrivateDnsZoneSOARecordEmail,
-						},
-
-						"host_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"expire_time": {
@@ -92,7 +87,7 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 						"minimum_ttl": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Default:      300,
+							Default:      10,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
@@ -110,13 +105,6 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
-						"serial_number": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validation.IntAtLeast(0),
-						},
-
 						"ttl": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -128,6 +116,22 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 
 						"fqdn": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						// This field should be able to be updated since DNS Record Sets API allows to update it.
+						// So the issue is submitted on https://github.com/Azure/azure-rest-api-specs/issues/11674
+						// Once the issue is fixed, the field will be updated to `Optional` property with `Default` attribute.
+						"host_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						// This field should be able to be updated since DNS Record Sets API allows to update it.
+						// So the issue is submitted on https://github.com/Azure/azure-rest-api-specs/issues/11674
+						// Once the issue is fixed, the field will be updated to `Optional` property with `Default` attribute.
+						"serial_number": {
+							Type:     schema.TypeInt,
 							Computed: true,
 						},
 					},
@@ -288,13 +292,11 @@ func resourceArmPrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) e
 
 func expandArmPrivateDNSZoneSOARecord(input map[string]interface{}) *privatedns.SoaRecord {
 	return &privatedns.SoaRecord{
-		Email:        utils.String(input["email"].(string)),
-		Host:         utils.String(input["host_name"].(string)),
-		ExpireTime:   utils.Int64(int64(input["expire_time"].(int))),
-		MinimumTTL:   utils.Int64(int64(input["minimum_ttl"].(int))),
-		RefreshTime:  utils.Int64(int64(input["refresh_time"].(int))),
-		RetryTime:    utils.Int64(int64(input["retry_time"].(int))),
-		SerialNumber: utils.Int64(int64(input["serial_number"].(int))),
+		Email:       utils.String(input["email"].(string)),
+		ExpireTime:  utils.Int64(int64(input["expire_time"].(int))),
+		MinimumTTL:  utils.Int64(int64(input["minimum_ttl"].(int))),
+		RefreshTime: utils.Int64(int64(input["refresh_time"].(int))),
+		RetryTime:   utils.Int64(int64(input["retry_time"].(int))),
 	}
 }
 

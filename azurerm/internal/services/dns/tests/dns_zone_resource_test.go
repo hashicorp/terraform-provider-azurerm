@@ -253,11 +253,11 @@ resource "azurerm_dns_zone" "test" {
     expire_time   = 2419200
     host_name     = "testhost.contoso.com"
     minimum_ttl   = 200
-	refresh_time  = 2600
+    refresh_time  = 2600
     retry_time    = 200
-	serial_number = 1
+    serial_number = 1
 
-	tags = {
+    tags = {
       ENv = "Test"
     }
   }

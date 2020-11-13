@@ -239,16 +239,14 @@ resource "azurerm_private_dns_zone" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   soa_record {
-    ttl           = 100
     email         = "testemail.com"
     expire_time   = 2419200
-    host_name     = "testhost.contoso.com"
     minimum_ttl   = 200
-	refresh_time  = 2600
+    refresh_time  = 2600
     retry_time    = 200
-	serial_number = 1
+    ttl           = 100
 
-	tags = {
+    tags = {
       ENv = "Test"
     }
   }
