@@ -126,10 +126,6 @@ A `virtual_hub` block supports the following:
 
 * `public_ip_count` - (Optional) Specifies the number of public IPs to assign to the Firewall. Defaults to `1`.
 
-* `public_ip_addresses` - (Optional) A list of public IP addresses to associate with the Firewall.
-
--> **NOTE** In most cases, users do not need to specify this argument, except when scaling down the public IPs (by changing the `public_ip_count`). This argument allows users to specify the existing IPs to be retained, otherwise, the first existing `public_ip_count` public ip addresses will be retained.
-
 ## Attributes Reference
 
 The following attributes are exported:
@@ -137,6 +133,8 @@ The following attributes are exported:
 * `id` - The ID of the Azure Firewall.
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
+
+* `virtual_hub` - A `virtual_hub` block as defined below.
 
 ---
 
@@ -149,6 +147,8 @@ A `ip_configuration` block exports the following:
 A `virtual_hub` block exports the following:
 
 * `private_ip_address` - The private IP address associated with the Firewall.
+
+* `public_ip_addresses` - The list of public IP addresses associated with the Firewall.
 
 ## Timeouts
 

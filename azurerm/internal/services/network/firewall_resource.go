@@ -183,15 +183,9 @@ func resourceArmFirewall() *schema.Resource {
 							Default:      1,
 						},
 						"public_ip_addresses": {
-							Type: schema.TypeList,
-							// Here O+C is because in most cases "public_ip_addresses" can be the Computed attributes,
-							// but still allow users to specify certain IPs to retain when scale down.
-							Optional: true,
+							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.IsIPAddress,
-							},
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"private_ip_address": {
 							Type:     schema.TypeString,
@@ -282,7 +276,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.FirewallPolicy = &network.SubResource{ID: &policyId}
 	}
 
-	vhub, hubIpAddresses, ok := expandArmFirewallVirtualHubSetting(existing, d.Get("virtual_hub").([]interface{}))
+	vhub, hubIpAddresses, ok := expandArmFirewallVirtualHubSetting(d.Get("virtual_hub").([]interface{}))
 	if ok {
 		parameters.AzureFirewallPropertiesFormat.VirtualHub = vhub
 		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
@@ -635,7 +629,7 @@ func flattenArmFirewallDNSServers(input map[string]*string) []interface{} {
 	return utils.FlattenStringSlice(&servers)
 }
 
-func expandArmFirewallVirtualHubSetting(existing network.AzureFirewall, input []interface{}) (vhub *network.SubResource, ipAddresses *network.HubIPAddresses, ok bool) {
+func expandArmFirewallVirtualHubSetting(input []interface{}) (vhub *network.SubResource, ipAddresses *network.HubIPAddresses, ok bool) {
 	if len(input) == 0 {
 		return nil, nil, false
 	}
@@ -644,35 +638,9 @@ func expandArmFirewallVirtualHubSetting(existing network.AzureFirewall, input []
 
 	vhub = &network.SubResource{ID: utils.String(b["virtual_hub_id"].(string))}
 
-	// If scaling down the hub public IPs, API requires users to specify the certain existing public IPs to retain.
-	// In case users do not specify the "public_ip_addresses" explicitly, the computed list of last provision will
-	// be used, in which case the amount of IPs (oldCount) is greater than the target (newCount).
-	// In this case, we will keep the first newCount public IPs.
-	oldCount := 0
-	if prop := existing.AzureFirewallPropertiesFormat; prop != nil {
-		if ipaddress := prop.HubIPAddresses; ipaddress != nil {
-			if pips := ipaddress.PublicIPs; pips != nil {
-				if count := pips.Count; count != nil {
-					oldCount = int(*count)
-				}
-			}
-		}
-	}
-	newCount := b["public_ip_count"].(int)
-
-	var addresses []network.AzureFirewallPublicIPAddress
-	for _, addr := range b["public_ip_addresses"].([]interface{}) {
-		addr := addr.(string)
-		addresses = append(addresses, network.AzureFirewallPublicIPAddress{Address: &addr})
-	}
-	if newCount < oldCount {
-		addresses = addresses[:newCount]
-	}
-
 	ipAddresses = &network.HubIPAddresses{
 		PublicIPs: &network.HubPublicIPAddresses{
-			Addresses: &addresses,
-			Count:     utils.Int32(int32(newCount)),
+			Count: utils.Int32(int32(b["public_ip_count"].(int))),
 		},
 	}
 

@@ -344,36 +344,6 @@ func TestAccAzureRMFirewall_inVirtualHub(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewall_inVirtualHubScaleDownKeepPip(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMFirewall_inVirtualHub(data, 2),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "2"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMFirewall_inVirtualHubScaleDownToOneAndKeepLastPip(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "1"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
@@ -1020,59 +990,4 @@ resource "azurerm_firewall" "test" {
   threat_intel_mode  = ""
 }
 `, data.RandomInteger, data.Locations.Primary, pipCount)
-}
-
-func testAccAzureRMFirewall_inVirtualHubScaleDownToOneAndKeepLastPip(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-fw-%[1]d"
-  location = "%s"
-}
-
-resource "azurerm_firewall_policy" "test" {
-  name                = "acctest-firewallpolicy-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_virtual_wan" "test" {
-  name                = "acctest-virtualwan-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_virtual_hub" "test" {
-  name                = "acctest-virtualhub-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  virtual_wan_id      = azurerm_virtual_wan.test.id
-  address_prefix      = "10.0.1.0/24"
-}
-
-resource "azurerm_firewall" "test" {
-  name                = "acctest-firewall-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "AZFW_Hub"
-
-  virtual_hub {
-    virtual_hub_id      = azurerm_virtual_hub.test.id
-    public_ip_count     = 1
-    public_ip_addresses = [data.azurerm_firewall.test.virtual_hub.0.public_ip_addresses[length(data.azurerm_firewall.test.virtual_hub.0.public_ip_addresses) - 1]]
-  }
-
-  firewall_policy_id = azurerm_firewall_policy.test.id
-  threat_intel_mode  = ""
-}
-
-data "azurerm_firewall" "test" {
-  name                = "acctest-firewall-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-}
-`, data.RandomInteger, data.Locations.Primary)
 }
