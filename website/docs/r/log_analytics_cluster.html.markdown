@@ -48,8 +48,6 @@ The following arguments are supported:
 
 * `identity` - (Required)  A `identity` block as defined below. Changing this forces a new Log Analytics Cluster to be created.
 
-* `key_vault_property` - (Optional)  A `key_vault_property` block as defined below.
-
 * `size_gb` - (Optional) The capacity of the Log Analytics Cluster specified in GB/day. Defaults to 1000.
 
 ~> **NOTE:** The `size_gb` can be in the range of 1000 to 3000 GB per day and must be in steps of 100 GB. For `size_gb` levels higher than 3000 GB per day, please contact your Microsoft contact to enable it.
@@ -64,18 +62,6 @@ An `identity` block supports the following:
 
 ~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Log Analytics Cluster has been created. More details are available below.
 
----
-
-An `key_vault_property` block exports the following:
-
-* `key_name` - (Optional) The name of the key associated with the Log Analytics cluster.
-
-* `key_vault_uri` - (Optional) The Key Vault uri which holds they key associated with the Log Analytics cluster.
-
-* `key_version` - (Optional) The version of the key associated with the Log Analytics cluster.
-
-~> **NOTE:** You must first successfully provision a Log Analytics cluster before you can configure the Log Analytics cluster for Customer-Managed Keys by defining a `key_vault_property` block. Customer-Managed Key capability is regional. Your Azure Key Vault, cluster and linked Log Analytics workspaces must be in the same region, but they can be in different subscriptions.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -84,7 +70,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - A `identity` block as defined below.
 
-* `cluster_id` - The ID of the cluster.
+* `cluster_id` - The GUID of the cluster.
 
 * `type` - The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
 

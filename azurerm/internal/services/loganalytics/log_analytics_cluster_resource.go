@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -82,31 +80,6 @@ func resourceArmLogAnalyticsCluster() *schema.Resource {
 				},
 			},
 
-			"key_vault_property": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-
-						"key_vault_uri": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							DiffSuppressFunc: suppress.LogAnalyticsClusterUrl,
-						},
-
-						"key_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
-
 			// Per the documentation cluster capacity must start at 1000 GB and can go above 3000 GB with an exception by Microsoft
 			// so I am not limiting the upperbound here by design
 			// https://docs.microsoft.com/en-us/azure/azure-monitor/platform/manage-cost-storage#log-analytics-dedicated-clusters
@@ -129,6 +102,7 @@ func resourceArmLogAnalyticsCluster() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.ClusterClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -137,21 +111,17 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	keyVaultProps := expandArmLogAnalyticsClusterKeyVaultProperties(d.Get("key_vault_property").([]interface{}))
+
 	id := parse.NewLogAnalyticsClusterId(name, resourceGroup)
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
 		return tf.ImportAsExistsError("azurerm_log_analytics_cluster", *existing.ID)
-	}
-
-	if d.IsNewResource() && keyVaultProps != nil {
-		return fmt.Errorf("the Log Analytics Cluster %q (Resource Group %q) must be successfully provisioned before it can be configured to support customer managed keys", name, resourceGroup)
 	}
 
 	sku := &operationalinsights.ClusterSku{
@@ -211,12 +181,16 @@ func resourceArmLogAnalyticsClusterRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.ClusterProperties; props != nil {
-		if err := d.Set("key_vault_property", flattenArmLogAnalyticsKeyVaultProperties(props.KeyVaultProperties)); err != nil {
-			return fmt.Errorf("setting `key_vault_property`: %+v", err)
-		}
 		d.Set("cluster_id", props.ClusterID)
 	}
-	d.Set("size_gb", flattenArmLogAnalyticsClusterSku(resp.Sku))
+
+	capacity := 0
+	if sku := resp.Sku; sku != nil {
+		if sku.Capacity != nil {
+			capacity = int(*sku.Capacity)
+		}
+	}
+	d.Set("size_gb", capacity)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -231,13 +205,7 @@ func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	parameters := operationalinsights.ClusterPatch{
-		ClusterPatchProperties: &operationalinsights.ClusterPatchProperties{},
-	}
-
-	if d.HasChange("key_vault_property") {
-		parameters.ClusterPatchProperties.KeyVaultProperties = expandArmLogAnalyticsClusterKeyVaultProperties(d.Get("key_vault_property").([]interface{}))
-	}
+	parameters := operationalinsights.ClusterPatch{}
 
 	if d.HasChange("size_gb") {
 		parameters.Sku = &operationalinsights.ClusterSku{
@@ -258,31 +226,7 @@ func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface
 	// since the service returns a 200 instantly while it's still updating in the background
 	log.Printf("[INFO] Checking for Log Analytics Cluster provisioning state")
 
-	updateWait := &resource.StateChangeConf{
-		Pending:    []string{string(operationalinsights.Updating)},
-		Target:     []string{string(operationalinsights.Succeeded)},
-		MinTimeout: 1 * time.Minute,
-		Timeout:    d.Timeout(schema.TimeoutUpdate),
-		Refresh: func() (interface{}, string, error) {
-			log.Printf("[INFO] checking on state of Log Analytics Cluster %q", id.Name)
-
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
-				return nil, "nil", fmt.Errorf("polling for the status of Log Analytics Cluster %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
-			}
-
-			if resp.ClusterProperties != nil {
-				if resp.ClusterProperties.ProvisioningState != operationalinsights.Updating && resp.ClusterProperties.ProvisioningState != operationalinsights.Succeeded {
-					return nil, "nil", fmt.Errorf("Log Analytics Cluster %q (Resource Group %q) unexpected Provisioning State encountered: %q", id.Name, id.ResourceGroup, string(resp.ClusterProperties.ProvisioningState))
-				}
-
-				return resp, string(resp.ClusterProperties.ProvisioningState), nil
-			}
-
-			// I am not returning an error here as this might have just been a bad get
-			return resp, "nil", nil
-		},
-	}
+	updateWait := logAnalyticsClusterUpdateWaitForState(ctx, meta, d, id.ResourceGroup, id.Name)
 
 	if _, err := updateWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
@@ -322,18 +266,6 @@ func expandArmLogAnalyticsClusterIdentity(input []interface{}) *operationalinsig
 	}
 }
 
-func expandArmLogAnalyticsClusterKeyVaultProperties(input []interface{}) *operationalinsights.KeyVaultProperties {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &operationalinsights.KeyVaultProperties{
-		KeyVaultURI: utils.String(v["key_vault_uri"].(string)),
-		KeyName:     utils.String(v["key_name"].(string)),
-		KeyVersion:  utils.String(v["key_version"].(string)),
-	}
-}
-
 func flattenArmLogAnalyticsIdentity(input *operationalinsights.Identity) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -358,43 +290,4 @@ func flattenArmLogAnalyticsIdentity(input *operationalinsights.Identity) []inter
 			"tenant_id":    tenantId,
 		},
 	}
-}
-
-func flattenArmLogAnalyticsKeyVaultProperties(input *operationalinsights.KeyVaultProperties) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var keyName string
-	if input.KeyName != nil {
-		keyName = *input.KeyName
-	}
-	var keyVaultUri string
-	if input.KeyVaultURI != nil {
-		keyVaultUri = *input.KeyVaultURI
-	}
-	var keyVersion string
-	if input.KeyVersion != nil {
-		keyVersion = *input.KeyVersion
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"key_name":      keyName,
-			"key_vault_uri": keyVaultUri,
-			"key_version":   keyVersion,
-		},
-	}
-}
-
-func flattenArmLogAnalyticsClusterSku(input *operationalinsights.ClusterSku) interface{} {
-	if input == nil {
-		return nil
-	}
-
-	var capacity int
-	if input.Capacity != nil {
-		capacity = int(*input.Capacity)
-	}
-
-	return []interface{}{capacity}
 }

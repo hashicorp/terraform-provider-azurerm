@@ -15,6 +15,11 @@ type KeyVaultChildID struct {
 	Version         string
 }
 
+func NewKeyVaultChildID(keyVaultBaseUrl, childType, name, version string) string {
+	fmtString := "%s%s/%s/%s"
+	return fmt.Sprintf(fmtString, keyVaultBaseUrl, childType, name, version)
+}
+
 func ParseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	idURL, err := url.ParseRequestURI(id)

@@ -28,6 +28,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_log_analytics_cluster":                                resourceArmLogAnalyticsCluster(),
+		"azurerm_log_analytics_cluster_customer_managed_key":           resourceArmLogAnalyticsClusterCustomerManagedKey(),
 		"azurerm_log_analytics_datasource_windows_event":               resourceArmLogAnalyticsDataSourceWindowsEvent(),
 		"azurerm_log_analytics_datasource_windows_performance_counter": resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter(),
 		"azurerm_log_analytics_data_export_rule":                       resourceArmLogAnalyticsDataExport(),
