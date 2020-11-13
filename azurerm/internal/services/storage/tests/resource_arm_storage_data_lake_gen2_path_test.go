@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/paths"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
 )
 
 func TestAccAzureRMStorageDataLakeGen2Path_basic(t *testing.T) {
