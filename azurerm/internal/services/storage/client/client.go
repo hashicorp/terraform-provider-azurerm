@@ -5,20 +5,19 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
 	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
 	"github.com/Azure/go-autorest/autorest"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/tables"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables"
 )
 
 type Client struct {
@@ -26,8 +25,6 @@ type Client struct {
 	FileSystemsClient        *filesystems.Client
 	ManagementPoliciesClient *storage.ManagementPoliciesClient
 	BlobServicesClient       *storage.BlobServicesClient
-	CachesClient             *storagecache.CachesClient
-	StorageTargetsClient     *storagecache.StorageTargetsClient
 	SyncServiceClient        *storagesync.ServicesClient
 	SyncGroupsClient         *storagesync.SyncGroupsClient
 	SubscriptionId           string
@@ -49,12 +46,6 @@ func NewClient(options *common.ClientOptions) *Client {
 	blobServicesClient := storage.NewBlobServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&blobServicesClient.Client, options.ResourceManagerAuthorizer)
 
-	cachesClient := storagecache.NewCachesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&cachesClient.Client, options.ResourceManagerAuthorizer)
-
-	storageTargetsClient := storagecache.NewStorageTargetsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
-	options.ConfigureClient(&storageTargetsClient.Client, options.ResourceManagerAuthorizer)
-
 	syncServiceClient := storagesync.NewServicesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&syncServiceClient.Client, options.ResourceManagerAuthorizer)
 
@@ -68,9 +59,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		FileSystemsClient:        &fileSystemsClient,
 		ManagementPoliciesClient: &managementPoliciesClient,
 		BlobServicesClient:       &blobServicesClient,
-		CachesClient:             &cachesClient,
 		SubscriptionId:           options.SubscriptionId,
-		StorageTargetsClient:     &storageTargetsClient,
 		SyncServiceClient:        &syncServiceClient,
 		SyncGroupsClient:         &syncGroupsClient,
 		environment:              options.Environment,

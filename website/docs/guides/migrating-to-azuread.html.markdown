@@ -73,7 +73,7 @@ resource "azurerm_azuread_service_principal_password" "example" {
 }
 ```
 
-we can remove the `azurerm_` prefix from each of the resource names and interpolations to use the `AzureAD` provider instead by making this:
+we can remove the `azurerm_` prefix from each of the resource names and interpolations to use the `AzureAD` provider instead of by making this:
 
 ```hcl
 resource "azuread_application" "example" {
@@ -91,7 +91,7 @@ resource "azuread_service_principal_password" "example" {
 }
 ```
 
-At this point it should be possible to run `terraform init`, which will download the new AzureAD Provider.
+At this point, it should be possible to run `terraform init`, which will download the new AzureAD Provider.
 
 
 ## Migrating Resources in the State
@@ -174,7 +174,7 @@ $ diff current.tfstate new.tfstate
 
 There should be no unexpected or unrelated changes in your diff output.
 
-For remote state, you will need to push the new statefile to your backend.
+For a remote state, you will need to push the new statefile to your backend.
 
 ```shell
 $ terraform state push new.tfstate
@@ -201,4 +201,4 @@ configuration and real physical resources that exist. As a result, no
 actions need to be performed.
 ```
 
-At this point you've switched over to using [the new Azure Active Directory provider](http://terraform.io/docs/providers/azuread/index.html)! You can stay up to date with Releases (and file Feature Requests/Bugs) [on the Github repository](https://github.com/terraform-providers/terraform-provider-azuread).
+At this point, you've switched over to using [the new Azure Active Directory provider](http://terraform.io/docs/providers/azuread/index.html)! You can stay up to date with Releases (and file Feature Requests/Bugs) [on the Github repository](https://github.com/terraform-providers/terraform-provider-azuread).

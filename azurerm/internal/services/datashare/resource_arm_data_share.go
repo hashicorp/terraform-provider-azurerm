@@ -108,6 +108,7 @@ func resourceArmDataShare() *schema.Resource {
 }
 func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -118,6 +119,7 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
+	resourceId := parse.NewDataShareId(accountId.ResourceGroup, accountId.Name, name).ID(subscriptionId)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 		if err != nil {
@@ -126,7 +128,7 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_share", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_share", resourceId)
 		}
 	}
 
@@ -139,19 +141,10 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if _, err := client.Create(ctx, accountId.ResourceGroup, accountId.Name, name, share); err != nil {
-		return fmt.Errorf("creating DataShare %q (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+		return fmt.Errorf("creating Data Share %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading DataShare %q (Resource Group %q / accountName %q): ID is empty", name, accountId.ResourceGroup, accountId.Name)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(resourceId)
 
 	if d.HasChange("snapshot_schedule") {
 		// only one dependent sync setting is allowed in one data share
@@ -159,11 +152,11 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		if origins := o.([]interface{}); len(origins) > 0 {
 			origin := origins[0].(map[string]interface{})
 			if originName, ok := origin["name"].(string); ok && originName != "" {
-				syncFuture, err := syncClient.Delete(ctx, accountId.ResourceGroup, accountId.Name, name, originName)
+				future, err := syncClient.Delete(ctx, accountId.ResourceGroup, accountId.Name, name, originName)
 				if err != nil {
 					return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
 				}
-				if err = syncFuture.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
+				if err = future.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
 					return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", name, accountId.ResourceGroup, accountId.Name, err)
 				}
 			}
@@ -181,7 +174,7 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
-	accountClient := meta.(*clients.Client).DataShare.AccountClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -191,9 +184,9 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	dataShare, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(dataShare.Response) {
 			log.Printf("[INFO] DataShare %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -201,44 +194,34 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
 	}
 
-	accountResp, err := accountClient.Get(ctx, id.ResourceGroup, id.AccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving DataShare Account %q (Resource Group %q): %+v", id.AccountName, id.ResourceGroup, err)
-	}
-	if accountResp.ID == nil || *accountResp.ID == "" {
-		return fmt.Errorf("reading DataShare Account %q (Resource Group %q): ID is empty", id.AccountName, id.ResourceGroup)
-	}
+	accountId := parse.NewDataShareAccountId(id.ResourceGroup, id.AccountName)
 
 	d.Set("name", id.Name)
-	d.Set("account_id", accountResp.ID)
+	d.Set("account_id", accountId.ID(subscriptionId))
 
-	if props := resp.ShareProperties; props != nil {
+	if props := dataShare.ShareProperties; props != nil {
 		d.Set("kind", props.ShareKind)
 		d.Set("description", props.Description)
 		d.Set("terms", props.Terms)
 	}
 
-	if syncIterator, err := syncClient.ListByShareComplete(ctx, id.ResourceGroup, id.AccountName, id.Name, ""); syncIterator.NotDone() {
-		if err != nil {
-			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+	settings := make([]datashare.ScheduledSynchronizationSetting, 0)
+	syncIterator, err := syncClient.ListByShareComplete(ctx, id.ResourceGroup, id.AccountName, id.Name, "")
+	if err != nil {
+		return fmt.Errorf("listing Snapshot Schedules for Data Share %q (Account %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
+	}
+	for syncIterator.NotDone() {
+		item, ok := syncIterator.Value().AsScheduledSynchronizationSetting()
+		if ok && item != nil {
+			settings = append(settings, *item)
 		}
-		if syncName := syncIterator.Value().(datashare.ScheduledSynchronizationSetting).Name; syncName != nil && *syncName != "" {
-			syncResp, err := syncClient.Get(ctx, id.ResourceGroup, id.AccountName, id.Name, *syncName)
-			if err != nil {
-				return fmt.Errorf("reading DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
-			}
-			if schedule := syncResp.Value.(datashare.ScheduledSynchronizationSetting); schedule.ID != nil && *schedule.ID != "" {
-				if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(&schedule)); err != nil {
-					return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
-				}
-			}
-		}
+
 		if err := syncIterator.NextWithContext(ctx); err != nil {
-			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+			return fmt.Errorf("retrieving next Snapshot Schedule: %+v", err)
 		}
-		if syncIterator.NotDone() {
-			return fmt.Errorf("more than one DataShare %q snapshot schedule (Resource Group %q / accountName %q) is returned", id.Name, id.ResourceGroup, id.AccountName)
-		}
+	}
+	if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(settings)); err != nil {
+		return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
 	}
 
 	return nil
@@ -296,21 +279,26 @@ func expandAzureRmDataShareSnapshotSchedule(input []interface{}) *datashare.Sche
 	}
 }
 
-func flattenAzureRmDataShareSnapshotSchedule(sync *datashare.ScheduledSynchronizationSetting) []interface{} {
-	if sync == nil {
-		return []interface{}{}
-	}
+func flattenAzureRmDataShareSnapshotSchedule(input []datashare.ScheduledSynchronizationSetting) []interface{} {
+	output := make([]interface{}, 0)
 
-	var startTime string
-	if sync.SynchronizationTime != nil && !sync.SynchronizationTime.IsZero() {
-		startTime = sync.SynchronizationTime.Format(time.RFC3339)
-	}
+	for _, setting := range input {
+		name := ""
+		if setting.Name != nil {
+			name = *setting.Name
+		}
 
-	return []interface{}{
-		map[string]interface{}{
-			"name":       sync.Name,
-			"recurrence": string(sync.RecurrenceInterval),
+		startTime := ""
+		if setting.SynchronizationTime != nil && !setting.SynchronizationTime.IsZero() {
+			startTime = setting.SynchronizationTime.Format(time.RFC3339)
+		}
+
+		output = append(output, map[string]interface{}{
+			"name":       name,
+			"recurrence": string(setting.RecurrenceInterval),
 			"start_time": startTime,
-		},
+		})
 	}
+
+	return output
 }

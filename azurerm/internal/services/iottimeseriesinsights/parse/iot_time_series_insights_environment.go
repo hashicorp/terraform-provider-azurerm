@@ -11,6 +11,18 @@ type TimeSeriesInsightsEnvironmentId struct {
 	Name          string
 }
 
+func NewTimeSeriesInsightsEnvironmentID(resourceGroup, name string) TimeSeriesInsightsEnvironmentId {
+	return TimeSeriesInsightsEnvironmentId{
+		ResourceGroup: resourceGroup,
+		Name:          name,
+	}
+}
+
+func (id TimeSeriesInsightsEnvironmentId) ID(subscriptionId string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s"
+	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+}
+
 func TimeSeriesInsightsEnvironmentID(input string) (*TimeSeriesInsightsEnvironmentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
