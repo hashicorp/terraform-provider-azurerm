@@ -121,14 +121,12 @@ func dataSourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interf
 		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
 		d.Set("dead_lettering_on_filter_evaluation_error", props.DeadLetteringOnFilterEvaluationExceptions)
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
+		d.Set("max_delivery_count", props.MaxDeliveryCount)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 		d.Set("status", utils.String(string(props.Status)))
 
-		if count := props.MaxDeliveryCount; count != nil {
-			d.Set("max_delivery_count", int(*count))
-		}
 	}
 
 	return nil
