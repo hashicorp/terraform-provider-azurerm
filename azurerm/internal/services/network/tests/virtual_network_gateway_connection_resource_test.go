@@ -816,17 +816,13 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
 func testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "random" {
-  default = "%d"
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-${var.random}"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-${var.random}"
+  name                = "acctestvn-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
@@ -840,7 +836,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctestip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -848,14 +844,14 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctestgw-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type                      = "Vpn"
-  vpn_type                  = "RouteBased"
-  sku                       = "VpnGw1"
-  enable_private_ip_address = true
+  type                       = "Vpn"
+  vpn_type                   = "RouteBased"
+  sku                        = "VpnGw1"
+  private_ip_address_enabled = true
   ip_configuration {
     name                          = "vnetGatewayConfig"
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -865,7 +861,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 resource "azurerm_local_network_gateway" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctestlgw-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -874,7 +870,7 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                       = "acctest-${var.random}"
+  name                       = "acctestgwc-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   use_local_azure_ip_address = true
@@ -885,50 +881,46 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger,data.RandomInteger,data.RandomInteger,data.RandomInteger,data.RandomInteger)
 }
 
 func testAccAzureRMVirtualNetworkGatewayConnection_useLocalAzureIpAddressEnabledUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "random" {
-  default = "%d"
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-${var.random}"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-${var.random}"
+  name                = "acctestvn-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.66.0.0/16"]
+  address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.66.1.0/24"
+  address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctestip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctestgw-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   type     = "Vpn"
   vpn_type = "RouteBased"
   sku      = "VpnGw1"
-
   ip_configuration {
     name                          = "vnetGatewayConfig"
     public_ip_address_id          = azurerm_public_ip.test.id
@@ -938,7 +930,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 resource "azurerm_local_network_gateway" "test" {
-  name                = "acctest"
+  name                = "acctestlgw-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -947,36 +939,17 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                = "acctest-${var.random}"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                       = "acctestgwc-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  use_local_azure_ip_address = false
 
-  type                               = "IPsec"
-  virtual_network_gateway_id         = azurerm_virtual_network_gateway.test.id
-  local_network_gateway_id           = azurerm_local_network_gateway.test.id
-  use_local_azure_ip_address         = false
-  dpd_timeout_seconds                = 30
-  use_policy_based_traffic_selectors = true
-  routing_weight                     = 20
-
-  ipsec_policy {
-    dh_group         = "DHGroup14"
-    ike_encryption   = "AES256"
-    ike_integrity    = "SHA256"
-    ipsec_encryption = "AES256"
-    ipsec_integrity  = "SHA256"
-    pfs_group        = "PFS2048"
-    sa_datasize      = 102400000
-    sa_lifetime      = 27000
-  }
+  type                       = "IPsec"
+  virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
+  local_network_gateway_id   = azurerm_local_network_gateway.test.id
+  dpd_timeout_seconds        = 30
 
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
-
-  traffic_selector_policy {
-    local_address_cidrs  = ["10.66.18.0/24", "10.66.17.0/24"]
-    remote_address_cidrs = ["10.1.1.0/24"]
-  }
-
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger,data.RandomInteger,data.RandomInteger,data.RandomInteger,data.RandomInteger)
 }

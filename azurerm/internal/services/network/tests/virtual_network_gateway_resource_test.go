@@ -992,17 +992,13 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 func testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-variable "random" {
-  default = "%d"
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-${var.random}"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-${var.random}"
+  name                = "acctestvn-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
@@ -1016,7 +1012,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctest-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -1024,7 +1020,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctest-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1046,22 +1042,18 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = azurerm_subnet.test.id
   }
 }
-  `, data.RandomInteger, data.Locations.Primary)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabledUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-variable "random" {
-  default = "%d"
-}
-
+  return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-${var.random}"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-${var.random}"
+  name                = "acctestvn-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
@@ -1075,7 +1067,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctest-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -1083,7 +1075,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctest-${var.random}"
+  name                = "acctest-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -1105,5 +1097,5 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id                     = azurerm_subnet.test.id
   }
 }
-  `, data.RandomInteger, data.Locations.Primary)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
