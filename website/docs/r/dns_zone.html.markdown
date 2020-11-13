@@ -46,7 +46,7 @@ The following arguments are supported:
 
 The `soa_record` block supports:
 
-* `email` - (Required) The email contact for the SOA record. Defaults to `azuredns-hostmaster.microsoft.com`.
+* `email` - (Required) The email contact for the SOA record.
 
 * `host_name` - (Required) The domain name of the authoritative name server for the SOA record. Defaults to `ns1-03.azure-dns.com.`.
 

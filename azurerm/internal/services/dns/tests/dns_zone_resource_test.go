@@ -239,23 +239,23 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-DNS-%d"
+  name     = "acctestRG-DNSZone-%d"
   location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-  name                = "acctestZONE%d.com"
+  name                = "acctestzone%d.com"
   resource_group_name = azurerm_resource_group.test.name
 
   soa_record {
-    ttl           = 100
     email         = "testemail.com"
-    expire_time   = 2419200
     host_name     = "testhost.contoso.com"
+    expire_time   = 2419200
     minimum_ttl   = 200
     refresh_time  = 2600
     retry_time    = 200
     serial_number = 1
+    ttl           = 100
 
     tags = {
       ENv = "Test"

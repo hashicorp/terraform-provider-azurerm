@@ -43,7 +43,7 @@ The following arguments are supported:
 
 The `soa_record` block supports:
 
-* `email` - (Required) The email contact for the SOA record. Defaults to `"azureprivatedns-host.microsoft.com"`.
+* `email` - (Required) The email contact for the SOA record.
 
 * `expire_time` - (Optional) The expire time for the SOA record. Defaults to `2419200`.
 

@@ -72,15 +72,13 @@ func resourceArmDnsZone() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"email": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "azuredns-hostmaster.microsoft.com",
+							Required:     true,
 							ValidateFunc: validate.DnsZoneSOARecordEmail,
 						},
 
 						"host_name": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "ns1-03.azure-dns.com.",
+							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 

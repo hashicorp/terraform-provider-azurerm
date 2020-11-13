@@ -72,8 +72,7 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"email": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "azureprivatedns-host.microsoft.com",
+							Required:     true,
 							ValidateFunc: validate.PrivateDnsZoneSOARecordEmail,
 						},
 
