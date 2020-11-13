@@ -81,6 +81,13 @@ func TestAccAzureRMLogAnalyticsCluster_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsClusterDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMLogAnalyticsCluster_completePreStep(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("size_gb"), // not returned by the API
+			{
 				Config: testAccAzureRMLogAnalyticsCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsClusterExists(data.ResourceName),
@@ -269,6 +276,26 @@ resource "azurerm_log_analytics_cluster" "import" {
   }
 }
 `, config)
+}
+
+func testAccAzureRMLogAnalyticsCluster_completePreStep(data acceptance.TestData) string {
+	template := testAccAzureRMLogAnalyticsCluster_template(data)
+	keyVaultTemplate := testAccAzureRMLogAnalyticsCluster_keyVaultTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+%s
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctest-LA-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, template, keyVaultTemplate, data.RandomInteger)
 }
 
 func testAccAzureRMLogAnalyticsCluster_complete(data acceptance.TestData) string {

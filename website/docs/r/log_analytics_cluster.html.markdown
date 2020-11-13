@@ -74,7 +74,7 @@ An `key_vault_property` block exports the following:
 
 * `key_version` - (Optional) The version of the key associated with the Log Analytics cluster.
 
-~> **NOTE:** Customer-Managed Key capability is regional. Your Azure Key Vault, cluster and linked Log Analytics workspaces must be in the same region, but they can be in different subscriptions.
+~> **NOTE:** You must first successfully provision a Log Analytics cluster before you can configure the Log Analytics cluster for Customer-Managed Keys by defining a `key_vault_property` block. Customer-Managed Key capability is regional. Your Azure Key Vault, cluster and linked Log Analytics workspaces must be in the same region, but they can be in different subscriptions.
 
 ## Attributes Reference
 

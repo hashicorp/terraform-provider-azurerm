@@ -150,6 +150,10 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_log_analytics_cluster", *existing.ID)
 	}
 
+	if d.IsNewResource() && keyVaultProps != nil {
+		return fmt.Errorf("the Log Analytics Cluster %q (Resource Group %q) must be successfully provisioned before it can be configured to support customer managed keys", name, resourceGroup)
+	}
+
 	sku := &operationalinsights.ClusterSku{
 		Capacity: utils.Int64(int64(d.Get("size_gb").(int))),
 		Name:     operationalinsights.CapacityReservation,
@@ -178,11 +182,7 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(id.ID(subscriptionId))
 
-	if keyVaultProps != nil {
-		return resourceArmLogAnalyticsClusterUpdate(d, meta)
-	} else {
-		return resourceArmLogAnalyticsClusterRead(d, meta)
-	}
+	return resourceArmLogAnalyticsClusterRead(d, meta)
 }
 
 func resourceArmLogAnalyticsClusterRead(d *schema.ResourceData, meta interface{}) error {
