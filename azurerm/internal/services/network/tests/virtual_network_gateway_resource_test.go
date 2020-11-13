@@ -1046,7 +1046,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 func testAccAzureRMVirtualNetworkGateway_privateIpAddressEnabledUpdate(data acceptance.TestData) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
