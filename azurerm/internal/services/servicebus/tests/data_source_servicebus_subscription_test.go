@@ -37,7 +37,6 @@ func TestAccDataSourceAzureRMServiceBusSubscription_basic(t *testing.T) {
 	})
 }
 
-
 func testAccDataSourceAzureRMServiceBusSubscription_basic(data acceptance.TestData) string {
 	template := testAccAzureRMServiceBusSubscription_basic(data)
 	return fmt.Sprintf(`

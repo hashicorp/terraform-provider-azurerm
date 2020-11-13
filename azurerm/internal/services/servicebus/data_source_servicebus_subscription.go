@@ -20,18 +20,18 @@ func dataSourceArmServiceBusSubscription() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"namespace_name": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"topic_name": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -93,7 +93,6 @@ func dataSourceArmServiceBusSubscription() *schema.Resource {
 		},
 	}
 }
-
 
 func dataSourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ServiceBus.SubscriptionsClient
