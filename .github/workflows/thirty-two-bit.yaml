@@ -9,7 +9,7 @@ on:
       - '.github/workflows/**'
 
 jobs:
-  website-test:
+  compatability-32bit-test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: true
