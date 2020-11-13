@@ -275,7 +275,6 @@ resource "azurerm_api_management_api_diagnostic" "test" {
   api_management_name       = azurerm_api_management.test.name
   api_name                  = azurerm_api_management_api.test.name
   api_management_logger_id  = azurerm_api_management_logger.test.id
-  sampling_percentage       = 10
   always_log_errors         = true
   log_client_ip             = true
   http_correlation_protocol = "W3C"

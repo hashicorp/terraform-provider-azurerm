@@ -61,13 +61,6 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 				ValidateFunc: validate.ApiManagementLoggerID,
 			},
 
-			"sampling_percentage": {
-				Type:         schema.TypeFloat,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.FloatBetween(0.0, 100.0),
-			},
-
 			"always_log_errors": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -168,15 +161,6 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 		},
 	}
 
-	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
-		parameters.Sampling = &apimanagement.SamplingSettings{
-			SamplingType: apimanagement.Fixed,
-			Percentage:   utils.Float(samplingPercentage.(float64)),
-		}
-	} else {
-		parameters.Sampling = nil
-	}
-
 	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
 		parameters.AlwaysLog = apimanagement.AllErrors
 	}
@@ -274,9 +258,6 @@ func resourceArmApiManagementApiDiagnosticRead(d *schema.ResourceData, meta inte
 	d.Set("api_management_name", diagnosticId.ServiceName)
 	if props := resp.DiagnosticContractProperties; props != nil {
 		d.Set("api_management_logger_id", props.LoggerID)
-		if props.Sampling != nil && props.Sampling.Percentage != nil {
-			d.Set("sampling_percentage", props.Sampling.Percentage)
-		}
 		d.Set("always_log_errors", props.AlwaysLog == apimanagement.AllErrors)
 		d.Set("verbosity", props.Verbosity)
 		d.Set("log_client_ip", props.LogClientIP)
