@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -182,6 +183,28 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesPlan(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesNoPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMLinuxVirtualMachineScaleSet_imagesNoPlan(data),
+				ExpectError: regexp.MustCompile("Creating a virtual machine from Marketplace image or a custom image sourced from a Marketplace image requires Plan information in the request"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -715,6 +738,50 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   depends_on = ["azurerm_marketplace_agreement.test"]
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_imagesNoPlan(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "cloudbees"
+    offer     = "jenkins-operations-center"
+    sku       = "jenkins-operations-center-solo"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  depends_on = ["azurerm_subnet.test"]
 }
 `, template, data.RandomInteger)
 }
