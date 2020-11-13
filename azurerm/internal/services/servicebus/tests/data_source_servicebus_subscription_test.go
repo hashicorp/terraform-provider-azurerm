@@ -44,7 +44,9 @@ func testAccDataSourceAzureRMServiceBusSubscription_basic(data acceptance.TestDa
 
 data "azurerm_servicebus_subscription" "test" {
   name                = azurerm_servicebus_subscription.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_subscription.test.namespace_name
+  topic_name          = azurerm_servicebus_subscription.test.topic_name
+  resource_group_name = azurerm_servicebus_subscription.test.resource_group_name
 }
 `, template)
 }
