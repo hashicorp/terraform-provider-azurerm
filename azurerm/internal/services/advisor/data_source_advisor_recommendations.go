@@ -33,7 +33,8 @@ func dataSourceArmAdvisorRecommendations() *schema.Resource {
 						string(advisor.Security),
 						string(advisor.Performance),
 						string(advisor.Cost),
-						string(advisor.OperationalExcellence)}, true),
+						string(advisor.OperationalExcellence),
+					}, true),
 				},
 			},
 

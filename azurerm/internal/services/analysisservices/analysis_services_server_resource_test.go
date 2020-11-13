@@ -23,6 +23,7 @@ type AnalysisServicesServerResource struct {
 func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
+
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.basic(data),
@@ -37,6 +38,7 @@ func TestAccAnalysisServicesServer_basic(t *testing.T) {
 func TestAccAnalysisServicesServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
+
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.withTags(data),
@@ -62,8 +64,8 @@ func TestAccAnalysisServicesServer_withTags(t *testing.T) {
 
 func TestAccAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
-
 	r := AnalysisServicesServerResource{}
+
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.querypoolConnectionMode(data, "All"),
@@ -87,6 +89,7 @@ func TestAccAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
+
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
 			Config: r.firewallSettings1(data, true),
@@ -408,7 +411,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-analysis-%d"
   location = "%s"
 }
 
@@ -428,7 +431,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-analysis-%d"
   location = "%s"
 }
 
@@ -483,7 +486,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-analysis-%d"
   location = "%s"
 }
 
