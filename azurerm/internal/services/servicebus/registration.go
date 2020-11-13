@@ -22,6 +22,7 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
+		"azurerm_servicebus_subscription": dataSourceArmServiceBusSubscription(),
 		"azurerm_servicebus_namespace":                    dataSourceArmServiceBusNamespace(),
 		"azurerm_servicebus_namespace_authorization_rule": dataSourceArmServiceBusNamespaceAuthorizationRule(),
 		"azurerm_servicebus_topic_authorization_rule":     dataSourceArmServiceBusTopicAuthorizationRule(),
