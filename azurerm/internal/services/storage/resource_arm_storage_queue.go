@@ -154,7 +154,7 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 
 	queue, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Queue %q (Account %q): %+V", id.AccountName, id.Name)
+		return fmt.Errorf("retrieving Queue %q (Account %q): %+v", id.AccountName, id.Name, err)
 	}
 	if queue == nil {
 		log.Printf("[INFO] Storage Queue %q no longer exists, removing from state...", id.Name)

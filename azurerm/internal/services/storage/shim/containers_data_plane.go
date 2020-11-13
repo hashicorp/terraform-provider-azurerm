@@ -36,7 +36,7 @@ func (w DataPlaneStorageContainerWrapper) Create(ctx context.Context, _, account
 				Refresh:        w.createRefreshFunc(ctx, accountName, containerName, input),
 				PollInterval:   10 * time.Second,
 				NotFoundChecks: 180,
-				Timeout:        timeout.Sub(time.Now()),
+				Timeout:        time.Until(timeout),
 			}
 
 			if _, err := stateConf.WaitForState(); err != nil {

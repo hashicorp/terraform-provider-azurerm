@@ -14,7 +14,7 @@ type StorageContainerResourceManagerId struct {
 }
 
 func (id StorageContainerResourceManagerId) ID(subscriptionId string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/default/containers/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/%s/containers/%s"
 	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.AccountName, id.BlobServiceName, id.Name)
 }
 
