@@ -1028,9 +1028,9 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type                      = "Vpn"
-  vpn_type                  = "RouteBased"
-  sku                       = "VpnGw1"
+  type                       = "Vpn"
+  vpn_type                   = "RouteBased"
+  sku                        = "VpnGw1"
   private_ip_address_enabled = true
 
   custom_route {
@@ -1087,9 +1087,9 @@ resource "azurerm_virtual_network_gateway" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  type                      = "Vpn"
-  vpn_type                  = "RouteBased"
-  sku                       = "VpnGw1"
+  type                       = "Vpn"
+  vpn_type                   = "RouteBased"
+  sku                        = "VpnGw1"
   private_ip_address_enabled = false
 
   custom_route {
