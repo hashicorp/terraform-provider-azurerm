@@ -197,8 +197,8 @@ func testAccAzureRMLogAnalyticsClusterCustomerManagedKey_complete(data acceptanc
 %s
 
 resource "azurerm_log_analytics_cluster_customer_managed_key" "test" {
-  cluster_id       = azurerm_log_analytics_cluster.test.id
-  key_vault_key_id = azurerm_key_vault_key.test.id
+  log_analytics_cluster_id = azurerm_log_analytics_cluster.test.id
+  key_vault_key_id         = azurerm_key_vault_key.test.id
 
   depends_on = [azurerm_key_vault_access_policy.test]
 }
