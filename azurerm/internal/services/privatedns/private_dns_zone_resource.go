@@ -120,7 +120,7 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 
 						// This field should be able to be updated since DNS Record Sets API allows to update it.
 						// So the issue is submitted on https://github.com/Azure/azure-rest-api-specs/issues/11674
-						// Once the issue is fixed, the field will be updated to `Optional` property with `Default` attribute.
+						// Once the issue is fixed, the field will be updated to `Required` property.
 						"host_name": {
 							Type:     schema.TypeString,
 							Computed: true,
