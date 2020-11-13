@@ -63,14 +63,10 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if props := resp.VirtualWanProperties; props != nil {
-		d.Set("address_prefix", props.AddressPrefix)
-
-		var virtualWanID *string
-		if props.ID != nil {
-			virtualWanID = props.ID
-		}
-		d.Set("virtual_wan_id", virtualWanID)
-	}
+	// if props := resp.ID; props != nil {
+	// 	if props.ID != nil {
+	// 		d.Set("virtual_wan_id", props.ID)
+	// 	}
+	// }
 	return tags.FlattenAndSet(d, resp.Tags)
 }
