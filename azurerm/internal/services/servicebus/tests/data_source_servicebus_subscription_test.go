@@ -28,8 +28,6 @@ func TestAccDataSourceAzureRMServiceBusSubscription_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "enable_batched_operations"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "max_delivery_count"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "requires_session"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "forward_to"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "forward_dead_lettered_messages_to"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "status"),
 				),
 			},

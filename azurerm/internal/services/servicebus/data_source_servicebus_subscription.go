@@ -76,16 +76,6 @@ func dataSourceArmServiceBusSubscription() *schema.Resource {
 				Computed: true,
 			},
 
-			"forward_to": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"forward_dead_lettered_messages_to": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -123,8 +113,6 @@ func dataSourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interf
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("max_delivery_count", props.MaxDeliveryCount)
 		d.Set("requires_session", props.RequiresSession)
-		d.Set("forward_to", props.ForwardTo)
-		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 		d.Set("status", utils.String(string(props.Status)))
 
 	}
