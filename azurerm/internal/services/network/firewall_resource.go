@@ -276,7 +276,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		parameters.AzureFirewallPropertiesFormat.FirewallPolicy = &network.SubResource{ID: &policyId}
 	}
 
-	vhub, hubIpAddresses, ok := expandArmFirewallVirtualHubSetting(d.Get("virtual_hub").([]interface{}))
+	vhub, hubIpAddresses, ok := expandArmFirewallVirtualHubSetting(existing, d.Get("virtual_hub").([]interface{}))
 	if ok {
 		parameters.AzureFirewallPropertiesFormat.VirtualHub = vhub
 		parameters.AzureFirewallPropertiesFormat.HubIPAddresses = hubIpAddresses
@@ -629,18 +629,47 @@ func flattenArmFirewallDNSServers(input map[string]*string) []interface{} {
 	return utils.FlattenStringSlice(&servers)
 }
 
-func expandArmFirewallVirtualHubSetting(input []interface{}) (vhub *network.SubResource, ipAddresses *network.HubIPAddresses, ok bool) {
+func expandArmFirewallVirtualHubSetting(existing network.AzureFirewall, input []interface{}) (vhub *network.SubResource, ipAddresses *network.HubIPAddresses, ok bool) {
 	if len(input) == 0 {
 		return nil, nil, false
 	}
 
 	b := input[0].(map[string]interface{})
 
-	vhub = &network.SubResource{ID: utils.String(b["virtual_hub_id"].(string))}
+	// The API requires both "Count" and "Addresses" for the "PublicIPs" setting.
+	// The "Count" means how many PIP to provision.
+	// The "Addresses" means differently in different cases:
+	// - Create: only "Count" is needed, "Addresses" is not necessary
+	// - Update: both "Count" and "Addresses" are needed:
+	//     Scale up: "Addresses" should remain same as before scaling up
+	//     Scale down: "Addresses" should indicate the addresses to be retained (in this case we retain the first new "Count" ones)
+	newCount := b["public_ip_count"].(int)
+	var addresses *[]network.AzureFirewallPublicIPAddress
+	if prop := existing.AzureFirewallPropertiesFormat; prop != nil {
+		if ipaddress := prop.HubIPAddresses; ipaddress != nil {
+			if pips := ipaddress.PublicIPs; pips != nil {
+				if count := pips.Count; count != nil {
+					oldCount := int(*count)
+					addresses = pips.Addresses
 
+					// In case of scale down, keep the first new "Count" addresses.
+					if oldCount > newCount {
+						keptAddresses := make([]network.AzureFirewallPublicIPAddress, newCount)
+						for i := 0; i < newCount; i++ {
+							keptAddresses[i] = (*addresses)[i]
+						}
+						addresses = &keptAddresses
+					}
+				}
+			}
+		}
+	}
+
+	vhub = &network.SubResource{ID: utils.String(b["virtual_hub_id"].(string))}
 	ipAddresses = &network.HubIPAddresses{
 		PublicIPs: &network.HubPublicIPAddresses{
-			Count: utils.Int32(int32(b["public_ip_count"].(int))),
+			Count:     utils.Int32(int32(b["public_ip_count"].(int))),
+			Addresses: addresses,
 		},
 	}
 
