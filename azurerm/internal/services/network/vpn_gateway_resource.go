@@ -199,9 +199,6 @@ func resourceArmVPNGatewayCreate(d *schema.ResourceData, meta interface{}) error
 		return tf.ImportAsExistsError("azurerm_vpn_gateway", *existing.ID)
 	}
 
-	locks.ByName(name, VPNGatewayResourceName)
-	defer locks.UnlockByName(name, VPNGatewayResourceName)
-
 	bgpSettingsRaw := d.Get("bgp_settings").([]interface{})
 	bgpSettings := expandVPNGatewayBGPSettings(bgpSettingsRaw)
 
@@ -372,9 +369,6 @@ func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-
-	locks.ByName(id.Name, VPNGatewayResourceName)
-	defer locks.UnlockByName(id.Name, VPNGatewayResourceName)
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
