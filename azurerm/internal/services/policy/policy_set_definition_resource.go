@@ -113,7 +113,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: policyDefinitionsDiffSuppressFunc,
 				ExactlyOneOf:     []string{"policy_definitions", "policy_definition_reference"},
-				Deprecated:       "Deprecated in favor of `policy_definition_reference`",
+				Deprecated:       "Deprecated in favour of `policy_definition_reference`",
 			},
 
 			"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation

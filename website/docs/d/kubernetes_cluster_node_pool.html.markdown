@@ -70,6 +70,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `priority` - The priority of the Virtual Machines in the Virtual Machine Scale Set backing this Node Pool.
 
+* `proximity_placement_group_id` - The ID of the Proximity Placement Group where the Virtual Machine Scale Set backing this Node Pool will be placed.
+
 * `spot_max_price` - The maximum price being paid for Virtual Machines in this Scale Set. `-1` means the current on-demand price for a Virtual Machine.
 
 * `tags` - A mapping of tags assigned to the Kubernetes Cluster Node Pool.

@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -89,7 +90,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.VirtualHubRouteTableID,
 						},
 
 						"propagated_route_table": {
@@ -115,7 +116,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 										Computed: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: azure.ValidateResourceID,
+											ValidateFunc: validate.VirtualHubRouteTableID,
 										},
 									},
 								},
