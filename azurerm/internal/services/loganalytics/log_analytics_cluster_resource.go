@@ -150,6 +150,12 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	createWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutCreate), id.ResourceGroup, id.Name)
+
+	if _, err := createWait.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+	}
+
 	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmLogAnalyticsClusterRead(d, meta)
@@ -226,7 +232,7 @@ func resourceArmLogAnalyticsClusterUpdate(d *schema.ResourceData, meta interface
 	// since the service returns a 200 instantly while it's still updating in the background
 	log.Printf("[INFO] Checking for Log Analytics Cluster provisioning state")
 
-	updateWait := logAnalyticsClusterUpdateWaitForState(ctx, meta, d, id.ResourceGroup, id.Name)
+	updateWait := logAnalyticsClusterWaitForState(ctx, meta, d.Timeout(schema.TimeoutUpdate), id.ResourceGroup, id.Name)
 
 	if _, err := updateWait.WaitForState(); err != nil {
 		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
@@ -253,6 +259,7 @@ func resourceArmLogAnalyticsClusterDelete(d *schema.ResourceData, meta interface
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting on deleting future for Log Analytics Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
 	return nil
 }
 

@@ -99,13 +99,13 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Required) The ID of the Key Vault Key to use for encryption.
 
-* `log_analytics_cluster_id` - (Required) The ID of the Log Analytics Cluster. Changing this forces a new Log Analytics Cluster Custoemr Managed Key to be created.
+* `log_analytics_cluster_id` - (Required) The ID of the Log Analytics Cluster. Changing this forces a new Log Analytics Cluster Customer Managed Key to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Log Analytics Cluster Custoemr Managed Key.
+* `id` - The ID of the Log Analytics Cluster Customer Managed Key.
 
 ## Timeouts
 
