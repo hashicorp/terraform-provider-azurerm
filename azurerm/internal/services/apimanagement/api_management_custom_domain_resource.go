@@ -189,6 +189,7 @@ func apiManagementCustomDomainRead(d *schema.ResourceData, meta interface{}) err
 		configs := flattenApiManagementHostnameConfiguration(resp.ServiceProperties.HostnameConfigurations, d)
 		for _, config := range configs {
 			for key, v := range config.(map[string]interface{}) {
+				// nolint R001: ResourceData.Set() key argument should be string literal
 				if err := d.Set(key, v); err != nil {
 					return fmt.Errorf("setting `hostname_configuration` %q: %+v", key, err)
 				}
