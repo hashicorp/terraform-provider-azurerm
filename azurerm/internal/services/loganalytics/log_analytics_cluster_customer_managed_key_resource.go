@@ -77,6 +77,12 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyCreate(d *schema.ResourceDa
 		}
 	}
 
+	updateWait := logAnalyticsClusterUpdateWaitForState(ctx, meta, d, clusterId.ResourceGroup, clusterId.Name)
+
+	if _, err := updateWait.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Log Analytics Cluster to finish updating %q (Resource Group %q): %v", clusterId.Name, clusterId.ResourceGroup, err)
+	}
+
 	d.SetId(fmt.Sprintf("%s/CMK", clusterIdRaw))
 	return resourceArmLogAnalyticsClusterCustomerManagedKeyUpdate(d, meta)
 }
@@ -130,6 +136,8 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData
 	if err != nil {
 		return err
 	}
+
+	d.Set("log_analytics_cluster_id", idRaw)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
