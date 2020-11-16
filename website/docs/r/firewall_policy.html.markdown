@@ -50,8 +50,6 @@ A `dns` block supports the following:
 
 * `proxy_enabled` - (Optional) Whether to enable DNS proxy on Firewalls attached to this Firewall Policy? Defaults to `false`.
 
-* `network_rule_fqdn_enabled` - (Optional) Whether FQDNS in Network Rules belongs to this Firewall Policy are supported? Defaults to `false`.
-
 ---
 
 A `threat_intelligence_allowlist` block supports the following:

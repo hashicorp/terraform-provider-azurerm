@@ -83,10 +83,12 @@ func resourceArmFirewallPolicy() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						// TODO 3.0 - remove this property
 						"network_rule_fqdn_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This property is deprecated since service no longer support it since Nov.2020",
 						},
 					},
 				},
@@ -319,9 +321,8 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *network.DNSSettings {
 
 	raw := input[0].(map[string]interface{})
 	output := &network.DNSSettings{
-		Servers:                     utils.ExpandStringSlice(raw["servers"].(*schema.Set).List()),
-		EnableProxy:                 utils.Bool(raw["proxy_enabled"].(bool)),
-		RequireProxyForNetworkRules: utils.Bool(raw["network_rule_fqdn_enabled"].(bool)),
+		Servers:     utils.ExpandStringSlice(raw["servers"].(*schema.Set).List()),
+		EnableProxy: utils.Bool(raw["proxy_enabled"].(bool)),
 	}
 
 	return output
@@ -350,16 +351,10 @@ func flattenFirewallPolicyDNSSetting(input *network.DNSSettings) []interface{} {
 		proxyEnabled = *input.EnableProxy
 	}
 
-	networkRulesFqdnEnabled := false
-	if input.RequireProxyForNetworkRules != nil {
-		networkRulesFqdnEnabled = *input.RequireProxyForNetworkRules
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"servers":                   utils.FlattenStringSlice(input.Servers),
-			"proxy_enabled":             proxyEnabled,
-			"network_rule_fqdn_enabled": networkRulesFqdnEnabled,
+			"servers":       utils.FlattenStringSlice(input.Servers),
+			"proxy_enabled": proxyEnabled,
 		},
 	}
 }

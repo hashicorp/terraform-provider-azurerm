@@ -205,7 +205,6 @@ resource "azurerm_firewall_policy" "test" {
   dns {
     servers                   = ["1.1.1.1", "2.2.2.2"]
     proxy_enabled             = true
-    network_rule_fqdn_enabled = true
   }
   tags = {
     env = "Test"
@@ -250,7 +249,6 @@ resource "azurerm_firewall_policy" "test" {
   dns {
     servers                   = ["1.1.1.1", "2.2.2.2"]
     proxy_enabled             = true
-    network_rule_fqdn_enabled = true
   }
   tags = {
     env = "Test"
