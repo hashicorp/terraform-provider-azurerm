@@ -155,7 +155,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 							Computed: true,
 						},
 
-						"group_names": {
+						"policy_group_names": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -196,7 +196,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
-						"additional_metadata_id": {
+						"additional_metadata_resource_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -658,7 +658,7 @@ func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) (*[]
 			PolicyDefinitionID:          utils.String(v["policy_definition_id"].(string)),
 			Parameters:                  parameters,
 			PolicyDefinitionReferenceID: utils.String(v["reference_id"].(string)),
-			GroupNames:                  utils.ExpandStringSlice(v["group_names"].(*schema.Set).List()),
+			GroupNames:                  utils.ExpandStringSlice(v["policy_group_names"].(*schema.Set).List()),
 		})
 	}
 
@@ -700,7 +700,7 @@ func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.Definiti
 			"parameters":           parametersMap,
 			"parameter_values":     parameterValues,
 			"reference_id":         policyDefinitionReference,
-			"group_names":          utils.FlattenStringSlice(definition.GroupNames),
+			"policy_group_names":   utils.FlattenStringSlice(definition.GroupNames),
 		})
 	}
 	return result, nil
@@ -724,7 +724,7 @@ func expandAzureRMPolicySetDefinitionPolicyGroups(input []interface{}) *[]policy
 		if description := v["description"].(string); description != "" {
 			group.Description = utils.String(description)
 		}
-		if metadataID := v["additional_metadata_id"].(string); metadataID != "" {
+		if metadataID := v["additional_metadata_resource_id"].(string); metadataID != "" {
 			group.AdditionalMetadataID = utils.String(metadataID)
 		}
 		result = append(result, group)
@@ -762,11 +762,11 @@ func flattenAzureRMPolicySetDefinitionPolicyGroups(input *[]policy.DefinitionGro
 		}
 
 		result = append(result, map[string]interface{}{
-			"name":                   name,
-			"display_name":           displayName,
-			"category":               category,
-			"description":            description,
-			"additional_metadata_id": metadataID,
+			"name":                            name,
+			"display_name":                    displayName,
+			"category":                        category,
+			"description":                     description,
+			"additional_metadata_resource_id": metadataID,
 		})
 	}
 

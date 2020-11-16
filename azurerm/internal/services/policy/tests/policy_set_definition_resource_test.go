@@ -231,6 +231,13 @@ func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) 
 				),
 			},
 			data.ImportStep(),
+			{
+				Config: testAzureRMPolicySetDefinition_customWithDefinitionGroupsUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -855,7 +862,7 @@ PARAMETERS
       "allowedLocations": {"value": "[parameters('allowedLocations')]"}
     }
 VALUES
-    group_names          = ["group-1", "group-2"]
+    policy_group_names   = ["group-1", "group-2"]
   }
 
   policy_definition_group {
@@ -868,6 +875,60 @@ VALUES
 
   policy_definition_group {
     name = "group-2"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAzureRMPolicySetDefinition_customWithDefinitionGroupsUpdate(data acceptance.TestData) string {
+	template := testAzureRMPolicySetDefinition_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPolSet-%d"
+  policy_type  = "Custom"
+  display_name = "acctestPolSet-display-%d"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
+    parameter_values     = <<VALUES
+	{
+      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
+    }
+VALUES
+    policy_group_names   = ["group-1", "group-2"]
+  }
+
+  policy_definition_group {
+    name = "redundant"
+  }
+
+  policy_definition_group {
+    name         = "group-1"
+    display_name = "group-display-1"
+    category     = "My Access Control"
+    description  = "Controls accesses"
+  }
+
+  policy_definition_group {
+    name         = "group-2"
+    display_name = "group-display-2"
+    category     = "My Security Control"
+    description  = "Controls security"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)

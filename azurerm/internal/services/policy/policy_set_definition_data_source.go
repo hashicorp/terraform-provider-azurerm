@@ -90,7 +90,7 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 							Computed: true,
 						},
 
-						"group_names": {
+						"policy_group_names": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
@@ -131,7 +131,7 @@ func dataSourceArmPolicySetDefinition() *schema.Resource {
 							Computed: true,
 						},
 
-						"additional_metadata_id": {
+						"additional_metadata_resource_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
