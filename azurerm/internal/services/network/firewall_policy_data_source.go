@@ -47,30 +47,6 @@ func dataSourceArmFirewallPolicy() *schema.Resource {
 				},
 			},
 
-			"dns": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"servers": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"proxy_enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-						"network_rule_fqdn_enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"firewalls": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -155,9 +131,6 @@ func dataSourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("base_policy_id", basePolicyID)
 		if err := d.Set("child_policies", flattenNetworkSubResourceID(prop.ChildPolicies)); err != nil {
 			return fmt.Errorf(`setting "child_policies": %+v`, err)
-		}
-		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
-			return fmt.Errorf(`setting "dns": %+v`, err)
 		}
 		if err := d.Set("firewalls", flattenNetworkSubResourceID(prop.Firewalls)); err != nil {
 			return fmt.Errorf(`setting "firewalls": %+v`, err)

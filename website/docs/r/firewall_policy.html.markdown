@@ -34,23 +34,11 @@ The following arguments are supported:
 
 * `base_policy_id` - (Optional) The ID of the base Firewall Policy.
 
-* `dns` - (Optional) A `dns` block as defined below.
-
 * `threat_intelligence_mode` - (Optional) The operation mode for Threat Intelligence. Possible values are `Alert`, `Deny` and `Off`. Defaults to `Alert`.
 
 * `threat_intelligence_allowlist` - (Optional) A `threat_intelligence_allowlist` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
-
----
-
-A `dns` block supports the following:
-
-* `servers` - (Optional) A list of custom DNS servers' IP addresses.
-
-* `proxy_enabled` - (Optional) Whether to enable DNS proxy on Firewalls attached to this Firewall Policy? Defaults to `false`.
-
-* `network_rule_fqdn_enabled` - (Optional) Whether FQDNS in Network Rules belongs to this Firewall Policy are supported? Defaults to `false`.
 
 ---
 
