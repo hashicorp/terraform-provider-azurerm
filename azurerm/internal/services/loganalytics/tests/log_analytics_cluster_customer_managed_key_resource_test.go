@@ -83,7 +83,7 @@ func testCheckAzureRMLogAnalyticsClusterCustomerManagedKeyDestroy(s *terraform.S
 				return fmt.Errorf("bad: get on Log Analytics Cluster for CMK: %+v", err)
 			}
 		}
-		if resp.ClusterProperties != nil || resp.ClusterProperties.KeyVaultProperties != nil {
+		if resp.ClusterProperties != nil && resp.ClusterProperties.KeyVaultProperties != nil {
 			if resp.ClusterProperties.KeyVaultProperties.KeyName != nil || *resp.ClusterProperties.KeyVaultProperties.KeyName != "" {
 				return fmt.Errorf("Bad: Log Analytics CLuster Customer Managed Key %q still present", *resp.ClusterProperties.KeyVaultProperties.KeyName)
 			}
