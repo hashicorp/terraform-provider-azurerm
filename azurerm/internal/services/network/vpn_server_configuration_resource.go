@@ -425,7 +425,7 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 		multipleRadius := radiusServer.servers != nil && len(*radiusServer.servers) != 0
 
 		if (singleRadius && multipleRadius) || (!singleRadius && !multipleRadius) {
-			return fmt.Errorf("use `address` and `secret` to create single Radius Server configuration or use `server` to cureate one or more Radius Server configurations. Choose one and only of the two optiions")
+			return fmt.Errorf("use `address` and `secret` to create single Radius Server configuration or use `server` to create one or more Radius Server configurations. Choose one and only of the two options")
 		}
 
 		if multipleRadius {
