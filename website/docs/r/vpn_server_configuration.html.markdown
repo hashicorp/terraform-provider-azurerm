@@ -170,7 +170,7 @@ A `server` block supports the following:
 
 * `secret` - (Required) The Secret used to communicate with the Radius Server.
 
-* `score` - (Required) The score of the Radius Server determines the priority of the server
+* `score` - (Required) The score of the Radius Server determines the priority of the server. Ranges from 1 to 30.
 
 ---
 
