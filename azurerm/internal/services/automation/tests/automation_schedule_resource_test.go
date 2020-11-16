@@ -29,6 +29,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
@@ -230,7 +231,6 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

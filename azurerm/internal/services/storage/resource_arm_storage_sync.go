@@ -57,7 +57,8 @@ func resourceArmStorageSync() *schema.Resource {
 				Default:  string(storagesync.AllowAllTraffic),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storagesync.AllowAllTraffic),
-					string(storagesync.AllowVirtualNetworksOnly)}, false),
+					string(storagesync.AllowVirtualNetworksOnly),
+				}, false),
 			},
 
 			"tags": tags.Schema(),

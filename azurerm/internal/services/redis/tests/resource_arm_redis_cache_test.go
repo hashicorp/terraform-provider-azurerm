@@ -302,6 +302,7 @@ func TestAccAzureRMRedisCache_AOFBackupEnabledDisabled(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMRedisCache_PatchSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_redis_cache", "test")
 
@@ -484,7 +485,6 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}

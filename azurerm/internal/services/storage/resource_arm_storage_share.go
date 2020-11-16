@@ -120,6 +120,7 @@ func resourceArmStorageShare() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

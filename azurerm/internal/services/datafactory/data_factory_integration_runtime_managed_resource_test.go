@@ -335,7 +335,6 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy(s *terraform.St
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
-
 		if err != nil {
 			return nil
 		}

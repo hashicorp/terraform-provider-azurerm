@@ -69,6 +69,7 @@ func resourceArmDataShareDataSetKustoCluster() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareDataSetKustoClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

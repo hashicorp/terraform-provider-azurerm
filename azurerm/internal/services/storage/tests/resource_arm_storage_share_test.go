@@ -444,6 +444,7 @@ resource "azurerm_storage_share" "test" {
 }
 `, template, data.RandomString)
 }
+
 func testAccAzureRMStorageShare_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMStorageShare_basic(data)
 	return fmt.Sprintf(`

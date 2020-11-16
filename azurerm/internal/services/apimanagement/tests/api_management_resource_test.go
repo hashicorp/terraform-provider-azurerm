@@ -269,7 +269,6 @@ func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

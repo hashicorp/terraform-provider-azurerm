@@ -107,7 +107,6 @@ func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
-
 		if err != nil {
 			return nil
 		}

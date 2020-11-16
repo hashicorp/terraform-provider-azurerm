@@ -64,7 +64,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				//ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 				ConflictsWith: []string{"azure_blob_storage_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -92,7 +92,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				//ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
+				// ConflictsWith: []string{"sftp_server_location", "file_server_location", "s3_location", "azure_blob_storage_location"},
 				ConflictsWith: []string{"http_server_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -519,6 +519,7 @@ func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafact
 	}
 	return httpServerLocation
 }
+
 func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
 	props := d.Get("azure_blob_storage_location").([]interface{})[0].(map[string]interface{})
 	container := props["container"].(string)

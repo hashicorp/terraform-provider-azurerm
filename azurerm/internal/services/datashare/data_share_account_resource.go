@@ -82,6 +82,7 @@ func resourceArmDataShareAccount() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.AccountClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

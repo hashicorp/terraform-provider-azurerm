@@ -145,7 +145,6 @@ func testCheckAzureRMAPIManagementSubscriptionDestroy(s *terraform.State) error 
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

@@ -818,7 +818,6 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 		}
 
 		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ClusterName, parsedK8sId.Name)
-
 		if err != nil {
 			return nil
 		}

@@ -45,7 +45,8 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-			), {
+			),
+			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),

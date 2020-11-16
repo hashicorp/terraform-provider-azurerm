@@ -1135,7 +1135,6 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 			Refresh: func() (interface{}, string, error) {
 				log.Printf("[INFO] checking on state of Linux Virtual Machine %q", id.Name)
 				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
 				if err != nil {
 					if utils.ResponseWasNotFound(resp.Response) {
 						return resp, strconv.Itoa(resp.StatusCode), nil
