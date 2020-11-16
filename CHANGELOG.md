@@ -1,3 +1,9 @@
+## 2.37.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_api_management_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip` and `verbosity` attributes, and the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-9172]
+
 ## 2.36.0 (November 12, 2020)
 
 UPGRADE NOTES:
