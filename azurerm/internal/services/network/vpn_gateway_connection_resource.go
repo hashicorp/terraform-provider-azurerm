@@ -73,7 +73,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 			},
 
 			// Service will create a route table for the user if this is not specified.
-			"routing_configuration": {
+			"routing": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -96,7 +96,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 				},
 			},
 
-			"vpn_link_connection": {
+			"vpn_link": {
 				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
@@ -153,13 +153,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 							Default:  false,
 						},
 
-						"use_policy_based_traffic_selector": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"ipsec_policy": {
+						"policy": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
@@ -270,7 +264,13 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 							Default:  false,
 						},
 
-						"use_local_azure_ip_address": {
+						"local_azure_ip_address_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"policy_based_traffic_selector_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -315,8 +315,8 @@ func resourceArmVpnGatewayConnectionResourceCreateUpdate(d *schema.ResourceData,
 		VpnConnectionProperties: &network.VpnConnectionProperties{
 			EnableInternetSecurity: utils.Bool(d.Get("internet_security_enabled").(bool)),
 			RemoteVpnSite:          &network.SubResource{ID: utils.String(d.Get("remote_vpn_site_id").(string))},
-			VpnLinkConnections:     expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link_connection").([]interface{})),
-			RoutingConfiguration:   expandArmVpnGatewayConnectionRoutingConfiguration(d.Get("routing_configuration").([]interface{})),
+			VpnLinkConnections:     expandArmVpnGatewayConnectionVpnSiteLinkConnections(d.Get("vpn_link").([]interface{})),
+			RoutingConfiguration:   expandArmVpnGatewayConnectionRoutingConfiguration(d.Get("routing").([]interface{})),
 		},
 	}
 
@@ -392,12 +392,12 @@ func resourceArmVpnGatewayConnectionResourceRead(d *schema.ResourceData, meta in
 		}
 		d.Set("internet_security_enabled", enableInternetSecurity)
 
-		if err := d.Set("routing_configuration", flattenArmVpnGatewayConnectionRoutingConfiguration(prop.RoutingConfiguration)); err != nil {
-			return fmt.Errorf(`setting "routing_configuration": %v`, err)
+		if err := d.Set("routing", flattenArmVpnGatewayConnectionRoutingConfiguration(prop.RoutingConfiguration)); err != nil {
+			return fmt.Errorf(`setting "routing": %v`, err)
 		}
 
-		if err := d.Set("vpn_link_connection", flattenArmVpnGatewayConnectionVpnSiteLinkConnections(prop.VpnLinkConnections)); err != nil {
-			return fmt.Errorf(`setting "vpn_link_connection": %v`, err)
+		if err := d.Set("vpn_link", flattenArmVpnGatewayConnectionVpnSiteLinkConnections(prop.VpnLinkConnections)); err != nil {
+			return fmt.Errorf(`setting "vpn_link": %v`, err)
 		}
 	}
 
@@ -450,10 +450,10 @@ func expandArmVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[
 				VpnConnectionProtocolType:      network.VirtualNetworkGatewayConnectionProtocol(e["protocol"].(string)),
 				ConnectionBandwidth:            utils.Int32(int32(e["bandwidth_mbps"].(int))),
 				EnableBgp:                      utils.Bool(e["bgp_enabled"].(bool)),
-				UsePolicyBasedTrafficSelectors: utils.Bool(e["use_policy_based_traffic_selector"].(bool)),
-				IpsecPolicies:                  expandArmVpnGatewayConnectionIpSecPolicies(e["ipsec_policy"].([]interface{})),
+				IpsecPolicies:                  expandArmVpnGatewayConnectionIpSecPolicies(e["policy"].([]interface{})),
 				EnableRateLimiting:             utils.Bool(e["ratelimit_enabled"].(bool)),
-				UseLocalAzureIPAddress:         utils.Bool(e["use_local_azure_ip_address"].(bool)),
+				UseLocalAzureIPAddress:         utils.Bool(e["local_azure_ip_address_enabled"].(bool)),
+				UsePolicyBasedTrafficSelectors: utils.Bool(e["policy_based_traffic_selector_enabled"].(bool)),
 			},
 		}
 
@@ -521,17 +521,17 @@ func flattenArmVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSi
 		}
 
 		v := map[string]interface{}{
-			"name":                              name,
-			"vpn_site_link_id":                  vpnSiteLinkId,
-			"route_weight":                      routeWeight,
-			"protocol":                          string(e.VpnConnectionProtocolType),
-			"bandwidth_mbps":                    bandwidth,
-			"shared_key":                        sharedKey,
-			"bgp_enabled":                       bgpEnabled,
-			"use_policy_based_traffic_selector": usePolicyBased,
-			"ipsec_policy":                      flattenArmVpnGatewayConnectionIpSecPolicies(e.IpsecPolicies),
-			"ratelimit_enabled":                 rateLimitEnabled,
-			"use_local_azure_ip_address":        useLocalAzureIpAddress,
+			"name":                                  name,
+			"vpn_site_link_id":                      vpnSiteLinkId,
+			"route_weight":                          routeWeight,
+			"protocol":                              string(e.VpnConnectionProtocolType),
+			"bandwidth_mbps":                        bandwidth,
+			"shared_key":                            sharedKey,
+			"bgp_enabled":                           bgpEnabled,
+			"policy":                                flattenArmVpnGatewayConnectionIpSecPolicies(e.IpsecPolicies),
+			"ratelimit_enabled":                     rateLimitEnabled,
+			"local_azure_ip_address_enabled":        useLocalAzureIpAddress,
+			"policy_based_traffic_selector_enabled": usePolicyBased,
 		}
 
 		output = append(output, v)

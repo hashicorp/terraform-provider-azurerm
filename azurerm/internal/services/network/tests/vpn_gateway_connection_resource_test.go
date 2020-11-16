@@ -191,11 +191,11 @@ resource "azurerm_vpn_gateway_connection" "test" {
   name               = "acctest-VpnGwConn-%[2]d"
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
-  vpn_link_connection {
+  vpn_link {
     name             = "link1"
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id
   }
-  vpn_link_connection {
+  vpn_link {
     name             = "link2"
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
@@ -212,11 +212,11 @@ resource "azurerm_vpn_gateway_connection" "test" {
   name               = "acctest-VpnGwConn-%[2]d"
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
-  vpn_link_connection {
+  vpn_link {
     name             = "link1"
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id
   }
-  vpn_link_connection {
+  vpn_link {
     name             = "link2"
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
@@ -238,14 +238,14 @@ resource "azurerm_vpn_gateway_connection" "test" {
   name               = "acctest-VpnGwConn-%[2]d"
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
-  routing_configuration {
+  routing {
     associated_route_table  = azurerm_virtual_hub_route_table.test.id
     propagated_route_tables = [azurerm_virtual_hub_route_table.test.id]
   }
-  vpn_link_connection {
+  vpn_link {
     name             = "link1"
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id
-    ipsec_policy {
+    policy {
       sa_lifetime_sec            = 300
       sa_data_size_kb            = 1024
       ipsec_encryption_algorithm = "AES256"
@@ -255,16 +255,16 @@ resource "azurerm_vpn_gateway_connection" "test" {
       dh_group                   = "DHGroup14"
       pfs_group                  = "PFS14"
     }
-    bandwidth_mbps                    = 30
-    protocol                          = "IKEv2"
-    ratelimit_enabled                 = true
-    route_weight                      = 2
-    shared_key                        = "secret"
-    use_local_azure_ip_address        = true
-    use_policy_based_traffic_selector = true
+    bandwidth_mbps                        = 30
+    protocol                              = "IKEv2"
+    ratelimit_enabled                     = true
+    route_weight                          = 2
+    shared_key                            = "secret"
+    local_azure_ip_address_enabled        = true
+    policy_based_traffic_selector_enabled = true
   }
 
-  vpn_link_connection {
+  vpn_link {
     name             = "link3"
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
@@ -291,14 +291,14 @@ resource "azurerm_vpn_gateway_connection" "test" {
   name               = "acctest-VpnGwConn-%[2]d"
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
-  routing_configuration {
+  routing {
     associated_route_table  = azurerm_virtual_hub_route_table.test2.id
     propagated_route_tables = [azurerm_virtual_hub_route_table.test2.id]
   }
-  vpn_link_connection {
+  vpn_link {
     name             = "link1"
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id
-    ipsec_policy {
+    policy {
       sa_lifetime_sec            = 300
       sa_data_size_kb            = 1024
       ipsec_encryption_algorithm = "AES256"
@@ -308,16 +308,16 @@ resource "azurerm_vpn_gateway_connection" "test" {
       dh_group                   = "DHGroup14"
       pfs_group                  = "PFS14"
     }
-    bandwidth_mbps                    = 30
-    protocol                          = "IKEv2"
-    ratelimit_enabled                 = true
-    route_weight                      = 2
-    shared_key                        = "secret"
-    use_local_azure_ip_address        = true
-    use_policy_based_traffic_selector = true
+    bandwidth_mbps                        = 30
+    protocol                              = "IKEv2"
+    ratelimit_enabled                     = true
+    route_weight                          = 2
+    shared_key                            = "secret"
+    local_azure_ip_address_enabled        = true
+    policy_based_traffic_selector_enabled = true
   }
 
-  vpn_link_connection {
+  vpn_link {
     name             = "link3"
     vpn_site_link_id = azurerm_vpn_site.test.link[1].id
   }
@@ -334,8 +334,8 @@ resource "azurerm_vpn_gateway_connection" "import" {
   name               = azurerm_vpn_gateway_connection.test.name
   vpn_gateway_id     = azurerm_vpn_gateway_connection.test.vpn_gateway_id
   remote_vpn_site_id = azurerm_vpn_gateway_connection.test.remote_vpn_site_id
-  dynamic "vpn_link_connection" {
-    for_each = azurerm_vpn_gateway_connection.test.vpn_link_connection
+  dynamic "vpn_link" {
+    for_each = azurerm_vpn_gateway_connection.test.vpn_link
     iterator = v
     content {
       name             = v.value["name"]
@@ -352,7 +352,7 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
+  name     = "acctestRG-vpn-%[1]d"
   location = "%[2]s"
 }
 

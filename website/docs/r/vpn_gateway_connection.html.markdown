@@ -14,7 +14,7 @@ Manages a VPN Gateway Connection.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-resourcestest1234"
+  name     = "example-resources"
   location = "West Europe"
 }
 
@@ -59,12 +59,12 @@ resource "azurerm_vpn_gateway_connection" "example" {
   vpn_gateway_id     = azurerm_vpn_gateway.example.id
   remote_vpn_site_id = azurerm_vpn_site.example.id
 
-  vpn_link_connection {
+  vpn_link {
     name             = "link1"
     vpn_site_link_id = azurerm_vpn_site.example.vpn_site_link[0].id
   }
 
-  vpn_link_connection {
+  vpn_link {
     name             = "link2"
     vpn_site_link_id = azurerm_vpn_site.example.vpn_site_link[1].id
   }
@@ -81,15 +81,15 @@ The following arguments are supported:
 
 * `vpn_gateway_id` - (Required) The ID of the VPN Gateway that this VPN Gateway Connection belongs to. Changing this forces a new VPN Gateway Connection to be created.
 
-* `vpn_link_connection` - (Required) One or more `vpn_link_connection` blocks as defined below.
+* `vpn_link` - (Required) One or more `vpn_link` blocks as defined below.
 
 * `internet_security_enabled` - (Optional) Whether Internet Security is enabled for this VPN Connection. Defaults to `false`.
 
-* `routing_configuration` - (Optional) A `routing_configuration` block as defined below. If this is not specified, there will be a default route table created implicitly.
+* `routing` - (Optional) A `routing` block as defined below. If this is not specified, there will be a default route table created implicitly.
 
 ---
 
-A `ipsec_policy` block supports the following:
+A `policy` block supports the following:
 
 * `dh_group` - (Required) The DH Group used in IKE Phase 1 for initial SA. Possible values are `None`, `DHGroup1`, `DHGroup2`, `DHGroup14`, `DHGroup24`, `DHGroup2048`, `ECP256`, `ECP384`.
 
@@ -109,7 +109,7 @@ A `ipsec_policy` block supports the following:
 
 ---
 
-A `vpn_link_connection` block supports the following:
+A `vpn_link` block supports the following:
 
 * `name` - (Required) The name which should be used for this VPN Link Connection.
 
@@ -119,7 +119,7 @@ A `vpn_link_connection` block supports the following:
 
 * `bgp_enabled` - (Optional) Should the BGP be enabled? Defaults to `false`. Changing this forces a new VPN Gateway Connection to be created.
 
-* `ipsec_policy` - (Optional) One or more `ipsec_policy` blocks as defined above.
+* `policy` - (Optional) One or more `policy` blocks as defined above.
 
 * `protocol` - (Optional) The protocol used for this VPN Link Connection. Possible values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`.
 
@@ -129,13 +129,13 @@ A `vpn_link_connection` block supports the following:
 
 * `shared_key` - (Optional) SharedKey for this VPN Link Connection.
 
-* `use_local_azure_ip_address` - (Optional) Whether to use local azure ip to initiate connection? Defaults to `false`.
+* `local_azure_ip_address_enabled` - (Optional) Whether to use local azure ip to initiate connection? Defaults to `false`.
 
-* `use_policy_based_traffic_selector` - (Optional) Whether to enable policy-based traffic selectors? Defaults to `false`.
+* `policy_based_traffic_selector_enabled` - (Optional) Whether to enable policy-based traffic selectors? Defaults to `false`.
 
 ---
 
-A `routing_configuration` block supports the following:
+A `routing` block supports the following:
 
 * `associated_route_table` - The ID of the Route Table associated with this VPN Connection.
 
