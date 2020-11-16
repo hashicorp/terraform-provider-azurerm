@@ -7,15 +7,15 @@ import (
 )
 
 type Client struct {
-	DataExportClient           *operationalinsights.DataExportsClient
-	DataSourcesClient          *operationalinsights.DataSourcesClient
-	LinkedServicesClient       *operationalinsights.LinkedServicesClient
+	DataExportClient     *operationalinsights.DataExportsClient
+	DataSourcesClient    *operationalinsights.DataSourcesClient
+	LinkedServicesClient *operationalinsights.LinkedServicesClient
 	LinkedStorageAccountClient *operationalinsights.LinkedStorageAccountsClient
-	SavedSearchesClient        *operationalinsights.SavedSearchesClient
-	SharedKeysClient           *operationalinsights.SharedKeysClient
-	SolutionsClient            *operationsmanagement.SolutionsClient
+	SavedSearchesClient  *operationalinsights.SavedSearchesClient
+	SharedKeysClient     *operationalinsights.SharedKeysClient
+	SolutionsClient      *operationsmanagement.SolutionsClient
 	StorageInsightsClient      *operationalinsights.StorageInsightConfigsClient
-	WorkspacesClient           *operationalinsights.WorkspacesClient
+	WorkspacesClient     *operationalinsights.WorkspacesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -47,14 +47,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&LinkedStorageAccountClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DataExportClient:           &DataExportClient,
-		DataSourcesClient:          &DataSourcesClient,
-		LinkedServicesClient:       &LinkedServicesClient,
+		DataExportClient:     &DataExportClient,
+		DataSourcesClient:    &DataSourcesClient,
+		LinkedServicesClient: &LinkedServicesClient,
 		LinkedStorageAccountClient: &LinkedStorageAccountClient,
-		SavedSearchesClient:        &SavedSearchesClient,
-		SharedKeysClient:           &SharedKeysClient,
-		SolutionsClient:            &SolutionsClient,
+		SavedSearchesClient:  &SavedSearchesClient,
+		SharedKeysClient:     &SharedKeysClient,
+		SolutionsClient:      &SolutionsClient,
 		StorageInsightsClient:      &StorageInsightsClient,
-		WorkspacesClient:           &WorkspacesClient,
+		WorkspacesClient:     &WorkspacesClient,
 	}
 }
