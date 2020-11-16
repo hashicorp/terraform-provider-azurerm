@@ -3,10 +3,12 @@ package logic
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -41,6 +43,13 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringMatch(
+						regexp.MustCompile("^[-()_.A-Za-z0-9]{1,80}$"),
+						"The Logic app name can contain only letters, numbers, periods (.), hyphens (-), brackets (()) and underscores (_), up to 80 characters",
+					),
+				),
 			},
 
 			"location": azure.SchemaLocation(),

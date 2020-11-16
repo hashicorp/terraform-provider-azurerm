@@ -480,6 +480,13 @@ func NewAvailableOperationsPage(getNextPage func(context.Context, AvailableOpera
 	return AvailableOperationsPage{fn: getNextPage}
 }
 
+// AvailableRuntimeVersions ...
+type AvailableRuntimeVersions struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; A list of all supported runtime versions.
+	Value *[]SupportedRuntimeVersion `json:"value,omitempty"`
+}
+
 // BindingResource binding resource payload
 type BindingResource struct {
 	autorest.Response `json:"-"`
@@ -1239,6 +1246,8 @@ type DeploymentInstance struct {
 	Reason *string `json:"reason,omitempty"`
 	// DiscoveryStatus - READ-ONLY; Discovery status of the deployment instance
 	DiscoveryStatus *string `json:"discoveryStatus,omitempty"`
+	// StartTime - READ-ONLY; Start time of the deployment instance
+	StartTime *string `json:"startTime,omitempty"`
 }
 
 // DeploymentResource deployment resource payload
@@ -1489,11 +1498,13 @@ type DeploymentSettings struct {
 	MemoryInGB *int32 `json:"memoryInGB,omitempty"`
 	// JvmOptions - JVM parameter
 	JvmOptions *string `json:"jvmOptions,omitempty"`
+	// NetCoreMainEntryPath - The path to the .NET executable relative to zip root
+	NetCoreMainEntryPath *string `json:"netCoreMainEntryPath,omitempty"`
 	// InstanceCount - Instance count, basic tier should be in range (1, 25), standard tier should be in range (1, 500)
 	InstanceCount *int32 `json:"instanceCount,omitempty"`
 	// EnvironmentVariables - Collection of environment variables
 	EnvironmentVariables map[string]*string `json:"environmentVariables"`
-	// RuntimeVersion - Runtime version. Possible values include: 'Java8', 'Java11'
+	// RuntimeVersion - Runtime version. Possible values include: 'Java8', 'Java11', 'NetCore31'
 	RuntimeVersion RuntimeVersion `json:"runtimeVersion,omitempty"`
 }
 
@@ -1508,6 +1519,9 @@ func (ds DeploymentSettings) MarshalJSON() ([]byte, error) {
 	}
 	if ds.JvmOptions != nil {
 		objectMap["jvmOptions"] = ds.JvmOptions
+	}
+	if ds.NetCoreMainEntryPath != nil {
+		objectMap["netCoreMainEntryPath"] = ds.NetCoreMainEntryPath
 	}
 	if ds.InstanceCount != nil {
 		objectMap["instanceCount"] = ds.InstanceCount
@@ -1739,6 +1753,35 @@ type NetworkProfile struct {
 	ServiceRuntimeNetworkResourceGroup *string `json:"serviceRuntimeNetworkResourceGroup,omitempty"`
 	// AppNetworkResourceGroup - Name of the resource group containing network resources of Azure Spring Cloud Apps
 	AppNetworkResourceGroup *string `json:"appNetworkResourceGroup,omitempty"`
+	// OutboundIPs - READ-ONLY; Desired outbound IP resources for Azure Spring Cloud instance.
+	OutboundIPs *NetworkProfileOutboundIPs `json:"outboundIPs,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NetworkProfile.
+func (np NetworkProfile) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if np.ServiceRuntimeSubnetID != nil {
+		objectMap["serviceRuntimeSubnetId"] = np.ServiceRuntimeSubnetID
+	}
+	if np.AppSubnetID != nil {
+		objectMap["appSubnetId"] = np.AppSubnetID
+	}
+	if np.ServiceCidr != nil {
+		objectMap["serviceCidr"] = np.ServiceCidr
+	}
+	if np.ServiceRuntimeNetworkResourceGroup != nil {
+		objectMap["serviceRuntimeNetworkResourceGroup"] = np.ServiceRuntimeNetworkResourceGroup
+	}
+	if np.AppNetworkResourceGroup != nil {
+		objectMap["appNetworkResourceGroup"] = np.AppNetworkResourceGroup
+	}
+	return json.Marshal(objectMap)
+}
+
+// NetworkProfileOutboundIPs desired outbound IP resources for Azure Spring Cloud instance.
+type NetworkProfileOutboundIPs struct {
+	// PublicIPs - READ-ONLY; A list of public IP addresses.
+	PublicIPs *[]string `json:"publicIPs,omitempty"`
 }
 
 // OperationDetail operation detail payload
@@ -2359,6 +2402,16 @@ type SkuCapacity struct {
 	ScaleType SkuScaleType `json:"scaleType,omitempty"`
 }
 
+// SupportedRuntimeVersion supported deployment runtime version descriptor.
+type SupportedRuntimeVersion struct {
+	// Value - The raw value which could be passed to deployment CRUD operations. Possible values include: 'SupportedRuntimeValueJava8', 'SupportedRuntimeValueJava11', 'SupportedRuntimeValueNetCore31'
+	Value SupportedRuntimeValue `json:"value,omitempty"`
+	// Platform - The platform of this runtime version (possible values: "Java" or ".NET"). Possible values include: 'Java', 'NETCore'
+	Platform SupportedRuntimePlatform `json:"platform,omitempty"`
+	// Version - The detailed version (major.minor) of the platform.
+	Version *string `json:"version,omitempty"`
+}
+
 // TemporaryDisk temporary disk payload
 type TemporaryDisk struct {
 	// SizeInGB - Size of the temporary disk in GB
@@ -2437,7 +2490,7 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 
 // UserSourceInfo source information for a deployment
 type UserSourceInfo struct {
-	// Type - Type of the source uploaded. Possible values include: 'Jar', 'Source'
+	// Type - Type of the source uploaded. Possible values include: 'Jar', 'NetCoreZip', 'Source'
 	Type UserSourceType `json:"type,omitempty"`
 	// RelativePath - Relative path of the storage which stores the source
 	RelativePath *string `json:"relativePath,omitempty"`

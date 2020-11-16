@@ -111,6 +111,9 @@ func WebApplicationFirewallPolicyV0Schema() *schema.Resource {
 									"match_values": {
 										Type:     schema.TypeList,
 										Required: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 
 									"operator": {

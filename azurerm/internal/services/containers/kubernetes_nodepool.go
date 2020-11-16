@@ -3,7 +3,9 @@ package containers
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -49,6 +51,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"availability_zones": {
 					Type:     schema.TypeList,
 					Optional: true,
+					ForceNew: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
 					},
@@ -133,6 +136,12 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Computed:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+				"proximity_placement_group_id": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ForceNew:     true,
+					ValidateFunc: computeValidate.ProximityPlacementGroupID,
+				},
 			},
 		},
 	}
@@ -143,26 +152,27 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 	return containerservice.AgentPool{
 		Name: defaultCluster.Name,
 		ManagedClusterAgentPoolProfileProperties: &containerservice.ManagedClusterAgentPoolProfileProperties{
-			Count:                  defaultCluster.Count,
-			VMSize:                 defaultCluster.VMSize,
-			OsDiskSizeGB:           defaultCluster.OsDiskSizeGB,
-			VnetSubnetID:           defaultCluster.VnetSubnetID,
-			MaxPods:                defaultCluster.MaxPods,
-			OsType:                 defaultCluster.OsType,
-			MaxCount:               defaultCluster.MaxCount,
-			MinCount:               defaultCluster.MinCount,
-			EnableAutoScaling:      defaultCluster.EnableAutoScaling,
-			Type:                   defaultCluster.Type,
-			OrchestratorVersion:    defaultCluster.OrchestratorVersion,
-			AvailabilityZones:      defaultCluster.AvailabilityZones,
-			EnableNodePublicIP:     defaultCluster.EnableNodePublicIP,
-			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
-			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
-			SpotMaxPrice:           defaultCluster.SpotMaxPrice,
-			Mode:                   defaultCluster.Mode,
-			NodeLabels:             defaultCluster.NodeLabels,
-			NodeTaints:             defaultCluster.NodeTaints,
-			Tags:                   defaultCluster.Tags,
+			Count:                     defaultCluster.Count,
+			VMSize:                    defaultCluster.VMSize,
+			OsDiskSizeGB:              defaultCluster.OsDiskSizeGB,
+			VnetSubnetID:              defaultCluster.VnetSubnetID,
+			MaxPods:                   defaultCluster.MaxPods,
+			OsType:                    defaultCluster.OsType,
+			MaxCount:                  defaultCluster.MaxCount,
+			MinCount:                  defaultCluster.MinCount,
+			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
+			Type:                      defaultCluster.Type,
+			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
+			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
+			AvailabilityZones:         defaultCluster.AvailabilityZones,
+			EnableNodePublicIP:        defaultCluster.EnableNodePublicIP,
+			ScaleSetPriority:          defaultCluster.ScaleSetPriority,
+			ScaleSetEvictionPolicy:    defaultCluster.ScaleSetEvictionPolicy,
+			SpotMaxPrice:              defaultCluster.SpotMaxPrice,
+			Mode:                      defaultCluster.Mode,
+			NodeLabels:                defaultCluster.NodeLabels,
+			NodeTaints:                defaultCluster.NodeTaints,
+			Tags:                      defaultCluster.Tags,
 		},
 	}
 }
@@ -176,6 +186,11 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	nodeLabels := utils.ExpandMapStringPtrString(nodeLabelsRaw)
 	nodeTaintsRaw := raw["node_taints"].([]interface{})
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
+
+	if len(*nodeTaints) != 0 {
+		return nil, fmt.Errorf("The AKS API has removed support for tainting all nodes in the default node pool and it is no longer possible to configure this. To taint a node pool, create a separate one")
+	}
+
 	t := raw["tags"].(map[string]interface{})
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
@@ -183,7 +198,6 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
 		Name:               utils.String(raw["name"].(string)),
 		NodeLabels:         nodeLabels,
-		NodeTaints:         nodeTaints,
 		Tags:               tags.Expand(t),
 		Type:               containerservice.AgentPoolType(raw["type"].(string)),
 		VMSize:             containerservice.VMSizeTypes(raw["vm_size"].(string)),
@@ -227,11 +241,15 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
 
+	if proximityPlacementGroupId := raw["proximity_placement_group_id"].(string); proximityPlacementGroupId != "" {
+		profile.ProximityPlacementGroupID = utils.String(proximityPlacementGroupId)
+	}
+
 	count := raw["node_count"].(int)
 	maxCount := raw["max_count"].(int)
 	minCount := raw["min_count"].(int)
 
-	// Count must always be set (see #6094), RP behavior has changed
+	// Count must always be set (see #6094), RP behaviour has changed
 	// since the API version upgrade in v2.1.0 making Count required
 	// for all create/update requests
 	profile.Count = utils.Int32(int32(count))
@@ -337,11 +355,6 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		}
 	}
 
-	var nodeTaints []string
-	if agentPool.NodeTaints != nil {
-		nodeTaints = *agentPool.NodeTaints
-	}
-
 	osDiskSizeGB := 0
 	if agentPool.OsDiskSizeGB != nil {
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
@@ -357,24 +370,30 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		orchestratorVersion = *agentPool.OrchestratorVersion
 	}
 
+	proximityPlacementGroupId := ""
+	if agentPool.ProximityPlacementGroupID != nil {
+		proximityPlacementGroupId = *agentPool.ProximityPlacementGroupID
+	}
+
 	return &[]interface{}{
 		map[string]interface{}{
-			"availability_zones":    availabilityZones,
-			"enable_auto_scaling":   enableAutoScaling,
-			"enable_node_public_ip": enableNodePublicIP,
-			"max_count":             maxCount,
-			"max_pods":              maxPods,
-			"min_count":             minCount,
-			"name":                  name,
-			"node_count":            count,
-			"node_labels":           nodeLabels,
-			"node_taints":           nodeTaints,
-			"os_disk_size_gb":       osDiskSizeGB,
-			"tags":                  tags.Flatten(agentPool.Tags),
-			"type":                  string(agentPool.Type),
-			"vm_size":               string(agentPool.VMSize),
-			"orchestrator_version":  orchestratorVersion,
-			"vnet_subnet_id":        vnetSubnetId,
+			"availability_zones":           availabilityZones,
+			"enable_auto_scaling":          enableAutoScaling,
+			"enable_node_public_ip":        enableNodePublicIP,
+			"max_count":                    maxCount,
+			"max_pods":                     maxPods,
+			"min_count":                    minCount,
+			"name":                         name,
+			"node_count":                   count,
+			"node_labels":                  nodeLabels,
+			"node_taints":                  []string{},
+			"os_disk_size_gb":              osDiskSizeGB,
+			"tags":                         tags.Flatten(agentPool.Tags),
+			"type":                         string(agentPool.Type),
+			"vm_size":                      string(agentPool.VMSize),
+			"orchestrator_version":         orchestratorVersion,
+			"proximity_placement_group_id": proximityPlacementGroupId,
+			"vnet_subnet_id":               vnetSubnetId,
 		},
 	}, nil
 }
