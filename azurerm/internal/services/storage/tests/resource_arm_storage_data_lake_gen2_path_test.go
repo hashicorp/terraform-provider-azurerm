@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
 )
@@ -145,7 +145,7 @@ func testCheckAzureRMStorageDataLakeGen2PathExists(resourceName string) resource
 
 		fileSystemName := rs.Primary.Attributes["filesystem_name"]
 		path := rs.Primary.Attributes["path"]
-		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parse.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,7 @@ func testCheckAzureRMStorageDataLakeGen2PathDestroy(s *terraform.State) error {
 
 		fileSystemName := rs.Primary.Attributes["filesystem_name"]
 		path := rs.Primary.Attributes["path"]
-		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parse.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}

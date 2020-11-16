@@ -11,7 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
@@ -65,7 +66,12 @@ func resourceArmStorageDataLakeGen2Path() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"storage_account_id": AccountIDSchema(),
+			"storage_account_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.StorageAccountID,
+			},
 
 			"filesystem_name": {
 				Type:         schema.TypeString,
@@ -141,7 +147,7 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.ParseAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -235,7 +241,7 @@ func resourceArmStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
+	storageID, err := parse.ParseAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
