@@ -196,6 +196,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				ValidateFunc: validation.FloatAtLeast(-1.0),
 			},
 
+			// This is a preview feature: `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`
 			"patch_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
