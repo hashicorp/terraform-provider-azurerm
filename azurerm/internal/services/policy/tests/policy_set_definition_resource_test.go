@@ -238,6 +238,13 @@ func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) 
 				),
 			},
 			data.ImportStep(),
+			{
+				Config: testAzureRMPolicySetDefinition_customWithDefinitionGroups(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
