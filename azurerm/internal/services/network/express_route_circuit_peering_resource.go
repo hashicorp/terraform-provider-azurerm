@@ -108,13 +108,13 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 				},
 			},
 
-			"ipv6_peering": {
+			"ipv6": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"microsoft_peering_config": {
+						"microsoft_peering": {
 							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
@@ -123,7 +123,11 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 									"advertised_public_prefixes": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsCIDR,
+										},
+										MinItems: 1,
 									},
 									"customer_asn": {
 										Type:     schema.TypeInt,
@@ -242,8 +246,12 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 			}
 		}
 
-		ipv6Peering := d.Get("ipv6_peering").([]interface{})
-		parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = expandExpressRouteCircuitIpv6PeeringConfig(ipv6Peering)
+		ipv6Peering := d.Get("ipv6").([]interface{})
+		ipv6PeeringConfig, err := expandExpressRouteCircuitIpv6PeeringConfig(ipv6Peering)
+		if err != nil {
+			return err
+		}
+		parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = ipv6PeeringConfig
 	} else if route_filter_id != "" {
 		return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 	}
@@ -312,8 +320,8 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 		if err := d.Set("microsoft_peering_config", config); err != nil {
 			return fmt.Errorf("setting `microsoft_peering_config`: %+v", err)
 		}
-		if err := d.Set("ipv6_peering", flattenExpressRouteCircuitIpv6PeeringConfig(props.Ipv6PeeringConfig)); err != nil {
-			return fmt.Errorf("setting `ipv6_peering`: %+v", err)
+		if err := d.Set("ipv6", flattenExpressRouteCircuitIpv6PeeringConfig(props.Ipv6PeeringConfig)); err != nil {
+			return fmt.Errorf("setting `ipv6`: %+v", err)
 		}
 	}
 
@@ -377,24 +385,27 @@ func expandExpressRouteCircuitPeeringMicrosoftConfig(input []interface{}) *netwo
 	}
 }
 
-func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) *network.Ipv6ExpressRouteCircuitPeeringConfig {
+func expandExpressRouteCircuitIpv6PeeringConfig(input []interface{}) (*network.Ipv6ExpressRouteCircuitPeeringConfig, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	v := input[0].(map[string]interface{})
 	peeringConfig := network.Ipv6ExpressRouteCircuitPeeringConfig{
 		PrimaryPeerAddressPrefix:   utils.String(v["primary_peer_address_prefix"].(string)),
 		SecondaryPeerAddressPrefix: utils.String(v["secondary_peer_address_prefix"].(string)),
-		MicrosoftPeeringConfig:     expandExpressRouteCircuitPeeringMicrosoftConfig(v["microsoft_peering_config"].([]interface{})),
+		MicrosoftPeeringConfig:     expandExpressRouteCircuitPeeringMicrosoftConfig(v["microsoft_peering"].([]interface{})),
 	}
 	routeFilterId := v["route_filter_id"].(string)
 	if routeFilterId != "" {
+		if _, err := ParseRouteFilterID(routeFilterId); err != nil {
+			return nil, err
+		}
 		peeringConfig.RouteFilter = &network.SubResource{
 			ID: utils.String(routeFilterId),
 		}
 	}
-	return &peeringConfig
+	return &peeringConfig, nil
 }
 
 func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *network.ExpressRouteCircuitPeeringConfig) interface{} {
@@ -437,7 +448,7 @@ func flattenExpressRouteCircuitIpv6PeeringConfig(input *network.Ipv6ExpressRoute
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"microsoft_peering_config":      flattenExpressRouteCircuitPeeringMicrosoftConfig(input.MicrosoftPeeringConfig),
+			"microsoft_peering":             flattenExpressRouteCircuitPeeringMicrosoftConfig(input.MicrosoftPeeringConfig),
 			"primary_peer_address_prefix":   primaryPeerAddressPrefix,
 			"secondary_peer_address_prefix": secondaryPeerAddressPrefix,
 			"route_filter_id":               routeFilterId,

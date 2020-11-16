@@ -51,11 +51,11 @@ resource "azurerm_express_route_circuit_peering" "example" {
     advertised_public_prefixes = ["123.1.0.0/24"]
   }
 
-  ipv6_peering {
+  ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
 
-    microsoft_peering_config {
+    microsoft_peering {
       advertised_public_prefixes = ["2002:db01::/126"]
     }
   }
@@ -81,7 +81,7 @@ The following arguments are supported:
 * `shared_key` - (Optional) The shared key. Can be a maximum of 25 characters.
 * `peer_asn` - (Optional) The Either a 16-bit or a 32-bit ASN. Can either be public or private.
 * `microsoft_peering_config` - (Optional) A `microsoft_peering_config` block as defined below. Required when `peering_type` is set to `MicrosoftPeering`.
-* `ipv6_peering` - (Optional) A `ipv6_peering` block as defined below.
+* `ipv6` - (Optional) A `ipv6` block as defined below.
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
 
 ---
@@ -92,12 +92,18 @@ A `microsoft_peering_config` block contains:
 * `customer_asn` - (Optional) The CustomerASN of the peering
 * `routing_registry_name` - (Optional) The RoutingRegistryName of the configuration
 
-A `ipv6_peering` block contains:
+A `ipv6` block contains:
 
-* `microsoft_peering_config` - (Required)  A `microsoft_peering_config` block as defined above.
+* `microsoft_peering` - (Required)  A `microsoft_peering` block as defined below.
 * `primary_peer_address_prefix` - (Required) A subnet for the primary link.
 * `secondary_peer_address_prefix` - (Required) A subnet for the secondary link.
 * `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
+
+A `microsoft_peering` block contains:
+
+* `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes
+* `customer_asn` - (Optional) The CustomerASN of the peering
+* `routing_registry_name` - (Optional) The RoutingRegistryName of the configuration
 
 
 ## Attributes Reference

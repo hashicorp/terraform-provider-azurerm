@@ -375,7 +375,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-expressroute-%d"
   location = "%s"
 }
 
@@ -411,11 +411,11 @@ resource "azurerm_express_route_circuit_peering" "test" {
     advertised_public_prefixes = ["123.2.0.0/24"]
   }
 
-  ipv6_peering {
+  ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
 
-    microsoft_peering_config {
+    microsoft_peering {
       advertised_public_prefixes = ["2002:db01::/126"]
     }
   }
@@ -430,7 +430,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-expressroute-%d"
   location = "%s"
 }
 
@@ -465,11 +465,11 @@ resource "azurerm_express_route_circuit_peering" "test" {
   microsoft_peering_config {
     advertised_public_prefixes = ["123.2.0.0/24"]
   }
-  ipv6_peering {
+  ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
 
-    microsoft_peering_config {
+    microsoft_peering {
       advertised_public_prefixes = ["2002:db01::/126"]
       customer_asn               = 64511
       routing_registry_name      = "ARIN"
@@ -486,7 +486,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-expressroute-%d"
   location = "%s"
 }
 
@@ -536,11 +536,11 @@ resource "azurerm_express_route_circuit_peering" "test" {
     advertised_public_prefixes = ["123.2.0.0/24"]
   }
 
-  ipv6_peering {
+  ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
 
-    microsoft_peering_config {
+    microsoft_peering {
       advertised_public_prefixes = ["2002:db01::/126"]
       customer_asn               = 64511
       routing_registry_name      = "ARIN"
