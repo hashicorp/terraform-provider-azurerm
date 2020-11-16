@@ -76,6 +76,25 @@ func TestAccAzureRMApiManagementApiDiagnostic_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementApiDiagnostic_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_diagnostic", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDiagnosticDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApiDiagnostic_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiDiagnosticExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMApiManagementApiDiagnosticDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiDiagnosticClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -243,4 +262,43 @@ resource "azurerm_api_management_api_diagnostic" "import" {
   api_management_logger_id = azurerm_api_management_api_diagnostic.test.api_management_logger_id
 }
 `, template)
+}
+
+func testAccAzureRMApiManagementApiDiagnostic_complete(data acceptance.TestData) string {
+	config := testAccAzureRMApiManagementApiDiagnostic_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_diagnostic" "test" {
+  identifier                = "applicationinsights"
+  resource_group_name       = azurerm_resource_group.test.name
+  api_management_name       = azurerm_api_management.test.name
+  api_name                  = azurerm_api_management_api.test.name
+  api_management_logger_id  = azurerm_api_management_logger.test.id
+  always_log_errors         = true
+  log_client_ip             = true
+  http_correlation_protocol = "W3C"
+  verbosity                 = "verbose"
+
+  backend_request {
+    body_bytes     = 1
+    headers_to_log = ["Host"]
+  }
+
+  backend_response {
+    body_bytes     = 2
+    headers_to_log = ["Content-Type"]
+  }
+
+  frontend_request {
+    body_bytes     = 3
+    headers_to_log = ["Accept"]
+  }
+
+  frontend_response {
+    body_bytes     = 4
+    headers_to_log = ["Content-Length"]
+  }
+}
+`, config)
 }
