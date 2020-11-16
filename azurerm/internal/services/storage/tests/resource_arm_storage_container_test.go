@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageContainer_basic(t *testing.T) {
@@ -245,13 +244,12 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		resp, err := client.GetProperties(ctx, accountName, containerName)
+		resp, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, account.ResourceGroup)
-			}
-
 			return fmt.Errorf("Bad: Get on ContainersClient: %+v", err)
+		}
+		if resp == nil {
+			return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, account.ResourceGroup)
 		}
 
 		return nil
@@ -284,8 +282,8 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		if _, err := client.Delete(ctx, accountName, containerName); err != nil {
-			return fmt.Errorf("Error deleting Container %q (Account %q): %s", containerName, accountName, err)
+		if err := client.Delete(ctx, account.ResourceGroup, accountName, containerName); err != nil {
+			return fmt.Errorf("deleting Container %q (Account %q): %s", containerName, accountName, err)
 		}
 
 		return nil
@@ -317,8 +315,11 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
 
-		props, err := client.GetProperties(ctx, accountName, containerName)
+		props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 		if err != nil {
+			return nil
+		}
+		if props == nil {
 			return nil
 		}
 
