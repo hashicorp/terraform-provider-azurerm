@@ -142,7 +142,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			"min_tls_version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(storage.TLS10),
+				Default:  string(storage.TLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.TLS10),
 					string(storage.TLS11),
@@ -669,7 +669,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 	if envName != autorestAzure.PublicCloud.Name {
-		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
+		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS12) {
 			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
 	} else {
@@ -922,7 +922,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		// For all Clouds except Public, don't specify "min_tls_version" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 		if envName != autorestAzure.PublicCloud.Name {
-			if minimumTLSVersion != string(storage.TLS10) {
+			if minimumTLSVersion != string(storage.TLS12:) {
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
 		} else {
@@ -1135,10 +1135,10 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.PublicCloud.Name {
-			d.Set("min_tls_version", string(storage.TLS10))
+			d.Set("min_tls_version", string(storage.TLS12))
 		} else {
 			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
-			minTlsVersion := string(storage.TLS10)
+			minTlsVersion := string(storage.TLS12)
 			if props.MinimumTLSVersion != "" {
 				minTlsVersion = string(props.MinimumTLSVersion)
 			}
