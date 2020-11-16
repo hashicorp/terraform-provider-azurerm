@@ -922,7 +922,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		// For all Clouds except Public, don't specify "min_tls_version" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
 		if envName != autorestAzure.PublicCloud.Name {
-			if minimumTLSVersion != string(storage.TLS12:) {
+			if minimumTLSVersion != string(storage.TLS12) {
 				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
 		} else {
