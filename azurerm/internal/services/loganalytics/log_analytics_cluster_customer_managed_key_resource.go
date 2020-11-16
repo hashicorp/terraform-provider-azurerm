@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -43,7 +44,7 @@ func resourceArmLogAnalyticsClusterCustomerManagedKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.LogAnalyticsClustersName,
+				ValidateFunc: validate.LogAnalyticsClusterId,
 			},
 
 			"key_vault_key_id": {
