@@ -108,23 +108,6 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyUpdate(d *schema.ResourceDa
 		},
 	}
 
-	// Shouldn't need this, it's a Patch operation...
-	// resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	// if err != nil {
-	//	if utils.ResponseWasNotFound(resp.Response) {
-	//		return fmt.Errorf("Log Analytics Cluster %q (resource group %q) was not found", id.Name, id.ResourceGroup)
-	//	}
-	//	return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	// }
-
-	// if resp.Sku != nil {
-	//	clusterPatch.Sku = resp.Sku
-	// }
-	//
-	// if resp.Tags != nil {
-	//	clusterPatch.Tags = resp.Tags
-	// }
-
 	if _, err := client.Update(ctx, clusterId.ResourceGroup, clusterId.Name, clusterPatch); err != nil {
 		return fmt.Errorf("updating Log Analytics Cluster %q (Resource Group %q): %+v", clusterId.Name, clusterId.ResourceGroup, err)
 	}
@@ -176,7 +159,11 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyRead(d *schema.ResourceData
 			if kvProps.KeyVersion != nil {
 				keyVersion = *kvProps.KeyVersion
 			}
-			d.Set("key_vault_key_id", azure.NewKeyVaultChildID(keyVaultUri, "keys", keyName, keyVersion))
+			keyVaultKeyId, err := azure.NewKeyVaultChildResourceID(keyVaultUri, "keys", keyName, keyVersion)
+			if err != nil {
+				return err
+			}
+			d.Set("key_vault_key_id", keyVaultKeyId)
 		}
 	}
 
