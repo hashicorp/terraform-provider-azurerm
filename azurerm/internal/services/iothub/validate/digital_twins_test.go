@@ -45,8 +45,18 @@ func TestDigitaltwinsName(t *testing.T) {
 			input: "digital.twins",
 			valid: false,
 		},
+		{
+			name:  "Too long",
+			input: "digitalTwinsdigitalTwinsdigitalTwinsdigitalTwinsdigitalTwinsdigitalTwins",
+			valid: false,
+		},
+		{
+			name:  "63 characters",
+			input: "digitalTwinsdigitalTwinsdigitalTwinsdigitalTwinsdigitalTwins123",
+			valid: true,
+		},
 	}
-	var validationFunction = DigitaltwinsName()
+	var validationFunction = DigitaltwinsName
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := validationFunction(tt.input, "")

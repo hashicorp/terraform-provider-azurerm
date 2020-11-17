@@ -21,7 +21,7 @@ import (
 
 func resourceArmDigitalTwins() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDigitalTwinsCreate,
+		Create: resourceArmproperties,
 		Read:   resourceArmDigitalTwinsRead,
 		Update: resourceArmDigitalTwinsUpdate,
 		Delete: resourceArmDigitalTwinsDelete,
@@ -43,7 +43,7 @@ func resourceArmDigitalTwins() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DigitaltwinsName(),
+				ValidateFunc: validate.DigitaltwinsName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -59,7 +59,7 @@ func resourceArmDigitalTwins() *schema.Resource {
 		},
 	}
 }
-func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmproperties(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).IoTHub.DigitalTwinsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -78,12 +78,12 @@ func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) err
 		return tf.ImportAsExistsError("azurerm_iothub_digital_twins", *existing.ID)
 	}
 
-	digitalTwinsCreate := digitaltwins.Description{
+	properties := digitaltwins.Description{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, digitalTwinsCreate)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
 	if err != nil {
 		return fmt.Errorf("creating Digital Twins %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -148,15 +148,16 @@ func resourceArmDigitalTwinsUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	digitalTwinsPatchDescription := digitaltwins.PatchDescription{}
+	properties := digitaltwins.PatchDescription{}
 
 	if d.HasChange("tags") {
-		digitalTwinsPatchDescription.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+		properties.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, digitalTwinsPatchDescription); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, properties); err != nil {
 		return fmt.Errorf("updating Digital Twins %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
 	return resourceArmDigitalTwinsRead(d, meta)
 }
 
