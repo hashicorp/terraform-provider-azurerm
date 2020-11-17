@@ -138,6 +138,9 @@ func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Cl
 		return nil, fmt.Errorf("unexpected scope type: %+v", scope)
 	}
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
 		return nil, fmt.Errorf("retrieving Policy Definition %q: %+v", state.ID, err)
 	}
 

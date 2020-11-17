@@ -139,6 +139,9 @@ func (r PolicyAssignmentResource) Exists(ctx context.Context, client *clients.Cl
 	assignmentsClient := client.Policy.AssignmentsClient
 	resp, err := assignmentsClient.GetByID(ctx, state.ID)
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
 		return nil, fmt.Errorf("retrieving Policy Assignment %q: %+v", state.ID, err)
 	}
 	return utils.Bool(resp.AssignmentProperties != nil), nil
