@@ -63,6 +63,10 @@ func dataSourceArmFirewallPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+						"network_rule_fqdn_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 					},
 				},
 			},

@@ -88,7 +88,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 							Type:       schema.TypeBool,
 							Optional:   true,
 							Computed:   true,
-							Deprecated: "This property is deprecated since service no longer support it since Nov.2020",
+							Deprecated: "This property has been deprecated as the service team has removed it from all API versions and is no longer supported by Azure. It will be removed in v3.0 of the provider.",
 						},
 					},
 				},
@@ -355,6 +355,8 @@ func flattenFirewallPolicyDNSSetting(input *network.DNSSettings) []interface{} {
 		map[string]interface{}{
 			"servers":       utils.FlattenStringSlice(input.Servers),
 			"proxy_enabled": proxyEnabled,
+			// TODO 3.0: remove the setting zero value for property below.
+			"network_rule_fqdn_enabled": false,
 		},
 	}
 }
