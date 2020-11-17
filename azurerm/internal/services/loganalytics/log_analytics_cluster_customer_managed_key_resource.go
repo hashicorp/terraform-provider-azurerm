@@ -190,8 +190,7 @@ func resourceArmLogAnalyticsClusterCustomerManagedKeyDelete(d *schema.ResourceDa
 		},
 	}
 
-	_, err = client.Update(ctx, clusterId.ResourceGroup, clusterId.Name, clusterPatch)
-	if err != nil {
+	if _, err = client.Update(ctx, clusterId.ResourceGroup, clusterId.Name, clusterPatch); err != nil {
 		return fmt.Errorf("removing Log Analytics Cluster Customer Managed Key from cluster %q (resource group %q)", clusterId.Name, clusterId.ResourceGroup)
 	}
 

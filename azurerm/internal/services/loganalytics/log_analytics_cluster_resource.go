@@ -124,16 +124,14 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 		return tf.ImportAsExistsError("azurerm_log_analytics_cluster", *existing.ID)
 	}
 
-	sku := &operationalinsights.ClusterSku{
-		Capacity: utils.Int64(int64(d.Get("size_gb").(int))),
-		Name:     operationalinsights.CapacityReservation,
-	}
-
 	parameters := operationalinsights.Cluster{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Identity: expandArmLogAnalyticsClusterIdentity(d.Get("identity").([]interface{})),
-		Sku:      sku,
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku: &operationalinsights.ClusterSku{
+			Capacity: utils.Int64(int64(d.Get("size_gb").(int))),
+			Name:     operationalinsights.CapacityReservation,
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -145,8 +143,7 @@ func resourceArmLogAnalyticsClusterCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("waiting on creating future for Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	_, err = client.Get(ctx, resourceGroup, name)
-	if err != nil {
+	if _, err = client.Get(ctx, resourceGroup, name); err != nil {
 		return fmt.Errorf("retrieving Log Analytics Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
