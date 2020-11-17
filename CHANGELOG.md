@@ -12,8 +12,10 @@ IMPROVEMENTS:
 * `azurerm_api_management_api_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip` and `verbosity` attributes [GH-9172]
 * `azurerm_api_management_api_diagnostic` - support the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-9172]
 * `azurerm_cosmosdb` - Remove cosmosdb autoscale upper cap [GH-9050]
-* `azurerm_linux_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
-* `azurerm_windows_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
+* `azurerm_linux_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
+* `azurerm_linux_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
+* `azurerm_windows_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
+* `azurerm_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_virtual_machine` - support for the `patch_mode` property [GH-9258]
 
 ## 2.36.0 (November 12, 2020)
