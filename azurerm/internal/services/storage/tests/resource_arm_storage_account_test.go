@@ -2358,6 +2358,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  allow_blob_public_access = true
   blob_properties {
     delete_retention_policy {
       days = 3
