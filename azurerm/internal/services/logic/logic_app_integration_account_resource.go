@@ -64,6 +64,7 @@ func resourceArmLogicAppIntegrationAccount() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmLogicAppIntegrationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Logic.IntegrationAccountClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

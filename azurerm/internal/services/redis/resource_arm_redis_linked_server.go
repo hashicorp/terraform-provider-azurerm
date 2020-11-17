@@ -163,7 +163,6 @@ func resourceArmRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) 
 	name := id.Path["linkedServers"]
 
 	resp, err := client.Get(ctx, resourceGroup, redisCacheName, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Redis Linked Server %q was not found in Cache %q / Resource Group %q - removing from state", name, redisCacheName, resourceGroup)

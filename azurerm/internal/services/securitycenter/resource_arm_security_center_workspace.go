@@ -79,7 +79,6 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	// get pricing tier, workspace can only be configured when tier is not Free.
 	// API does not error, it just doesn't set the workspace scope
 	isPricingStandard, err := isPricingStandard(ctx, priceClient)
-
 	if err != nil {
 		return fmt.Errorf("Checking Security Center Subscription pricing tier %v", err)
 	}

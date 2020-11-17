@@ -93,6 +93,7 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue_authorization_rule", "test")
 

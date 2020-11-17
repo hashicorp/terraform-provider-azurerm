@@ -178,7 +178,6 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Role Definition %q (Scope: %q) does not exist", roleDefinitionId, scope)
@@ -203,7 +202,6 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

@@ -324,7 +324,6 @@ func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
 		}
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
-
 		if err != nil {
 			return nil
 		}

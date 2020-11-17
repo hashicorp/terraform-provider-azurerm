@@ -432,7 +432,6 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	}
 
 	resp, err := getPolicySetDefinitionByName(ctx, client, id.Name, managementGroupName)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Policy Set Definition %q - removing from state", d.Id())

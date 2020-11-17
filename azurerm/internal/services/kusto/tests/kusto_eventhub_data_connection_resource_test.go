@@ -109,7 +109,6 @@ func testCheckAzureRMKustoEventHubDataConnectionDestroy(s *terraform.State) erro
 		name := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

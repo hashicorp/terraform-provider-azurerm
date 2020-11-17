@@ -72,6 +72,7 @@ func resourceArmVirtualHubSecurityPartnerProvider() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmVirtualHubSecurityPartnerProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

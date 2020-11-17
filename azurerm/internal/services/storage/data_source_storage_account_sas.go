@@ -196,7 +196,7 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	// https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 	accountName := kvp[connStringAccountNameKey]
 	accountKey := kvp[connStringAccountKeyKey]
-	var signedProtocol = "https,http"
+	signedProtocol := "https,http"
 	if httpsOnly {
 		signedProtocol = "https"
 	}

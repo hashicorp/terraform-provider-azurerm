@@ -54,7 +54,7 @@ func resourceArmVirtualHubBgpConnection() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(0, 4294967295),
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"peer_ip": {

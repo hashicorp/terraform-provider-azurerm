@@ -204,7 +204,6 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	name := id.Path["automationAccounts"]
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

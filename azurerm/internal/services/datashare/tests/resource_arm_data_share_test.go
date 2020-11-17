@@ -187,6 +187,7 @@ func testCheckAzureRMDataShareDestroy(s *terraform.State) error {
 	}
 	return nil
 }
+
 func testAccAzureRMDataShare_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
