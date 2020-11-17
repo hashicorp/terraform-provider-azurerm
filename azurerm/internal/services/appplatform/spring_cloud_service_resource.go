@@ -69,6 +69,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 			"network": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
