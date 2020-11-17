@@ -149,7 +149,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"enable_automatic_updates": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true, // TODO: confirm
+				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 				Default:  true,
 			},
 
@@ -193,6 +193,18 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: validation.FloatAtLeast(-1.0),
+			},
+
+			// This is a preview feature: `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`
+			"patch_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.AutomaticByOS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.AutomaticByOS),
+					string(compute.AutomaticByPlatform),
+					string(compute.Manual),
+				}, false),
 			},
 
 			"plan": planSchema(),
@@ -399,6 +411,9 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
 					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
 					WinRM:                  winRmListeners,
+					PatchSettings: &compute.PatchSettings{
+						PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+					},
 				},
 				Secrets: secrets,
 			},
@@ -621,6 +636,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
 
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+
+			if patchSettings := config.PatchSettings; patchSettings != nil {
+				d.Set("patch_mode", patchSettings.PatchMode)
+			}
+
 			d.Set("timezone", config.TimeZone)
 
 			if err := d.Set("winrm_listener", flattenWinRMListener(config.WinRM)); err != nil {
@@ -772,6 +792,22 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		}
 
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
+	if d.HasChange("patch_mode") {
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+		}
 	}
 
 	if d.HasChange("identity") {
