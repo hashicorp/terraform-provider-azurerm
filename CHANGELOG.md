@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_api_management_api_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip` and `verbosity` attributes [GH-9172]
 * `azurerm_api_management_api_diagnostic` - support the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-9172]
 * `azurerm_cosmosdb` - Remove cosmosdb autoscale upper cap [GH-9050]
+* `azurerm_firewall` now supports firewall manager policies [GH-8879]
 * `azurerm_linux_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
 * `azurerm_linux_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
