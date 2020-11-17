@@ -31,6 +31,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_policy_assignment":     resourceArmPolicyAssignment(),
 		"azurerm_policy_definition":     resourceArmPolicyDefinition(),
+		"azurerm_policy_exemption":      resourceArmPolicyExemption(),
 		"azurerm_policy_set_definition": resourceArmPolicySetDefinition(),
 		"azurerm_policy_remediation":    resourceArmPolicyRemediation(),
 	}
