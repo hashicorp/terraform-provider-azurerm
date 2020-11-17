@@ -14,11 +14,11 @@ func logAnalyticsGenericName(i interface{}, k string) (warnings []string, errors
 		return
 	}
 	if len(v) < 4 {
-		errors = append(errors, fmt.Errorf("length should be greater than %d", 4))
+		errors = append(errors, fmt.Errorf("length should be greater than %d, got %q", 4, v))
 		return
 	}
 	if len(v) > 63 {
-		errors = append(errors, fmt.Errorf("length should be less than %d", 63))
+		errors = append(errors, fmt.Errorf("length should be less than %d, got %q", 63, v))
 		return
 	}
 	if !regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`).MatchString(v) {
