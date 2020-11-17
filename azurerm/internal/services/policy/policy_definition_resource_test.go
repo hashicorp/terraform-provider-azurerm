@@ -1,15 +1,17 @@
-package policy
+package policy_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -120,7 +122,21 @@ func TestAccAzureRMPolicyDefinition_modeUpdate(t *testing.T) {
 }
 
 func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	resp, err := getPolicyDefinitionByName(ctx, client.Policy.DefinitionsClient, state.Attributes["name"], state.Attributes["management_group_id"])
+	definitionsClient := client.Policy.DefinitionsClient
+	id, err := parse.PolicyDefinitionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp policy.Definition
+	switch scope := id.PolicyScopeId.(type) {
+	case parse.ScopeAtSubscription:
+		resp, err = definitionsClient.Get(ctx, id.Name)
+	case parse.ScopeAtManagementGroup:
+		resp, err = definitionsClient.GetAtManagementGroup(ctx, id.Name, scope.ManagementGroupName)
+	default:
+		return nil, fmt.Errorf("unexpected scope type: %+v", scope)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Policy Definition %q: %+v", state.ID, err)
 	}
