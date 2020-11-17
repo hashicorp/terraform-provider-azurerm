@@ -143,6 +143,10 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching to this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`.
+
+-> **NOTE:** This is a preview feature, you can opt-in with the command `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`.
+
 * `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
 * `priority`- (Optional) Specifies the priority of this Virtual Machine. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.

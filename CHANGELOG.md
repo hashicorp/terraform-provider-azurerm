@@ -8,6 +8,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb` - Remove cosmosdb autoscale upper cap [GH-9050]
 * `azurerm_linux_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
+* `azurerm_windows_virtual_machine` - support for the `patch_mode` property [GH-9258]
 
 ## 2.36.0 (November 12, 2020)
 
