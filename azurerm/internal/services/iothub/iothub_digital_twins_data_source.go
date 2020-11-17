@@ -26,7 +26,7 @@ func dataSourceDigitalTwins() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.DigitaltwinsName(),
+				ValidateFunc: validate.DigitaltwinsName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
