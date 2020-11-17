@@ -11,9 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmContainerRegistryScopeMap() *schema.Resource {
+func dataSourceArmContainerRegistryToken() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmContainerRegistryScopeMapRead,
+		Read: dataSourceArmContainerRegistryTokenRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -30,25 +30,21 @@ func dataSourceArmContainerRegistryScopeMap() *schema.Resource {
 				ValidateFunc: ValidateAzureRMContainerRegistryName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-			"description": {
+			"scope_map_id": {
 				Type: schema.TypeString,
 				Computed: true,
 			},
-			"actions": {
-				Type:     schema.TypeList,
+			"status": {
+				Type: schema.TypeString,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
 			},
 		},
 	}
 }
 
-
-func dataSourceArmContainerRegistryScopeMapRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ScopeMapsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+func dataSourceArmContainerRegistryTokenRead(d* schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Containers.TokensClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -64,12 +60,13 @@ func dataSourceArmContainerRegistryScopeMapRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error making Read request on token %q (Azure Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
 
+
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("container_registry_name", containerRegistryName)
-	d.Set("description", resp.Description)
-	d.Set("actions", utils.FlattenStringSlice(resp.Actions))
+	d.Set("scope_map_id", resp.ScopeMapID)
+	d.Set("status", string(resp.Status))
 
 	return nil
 }
