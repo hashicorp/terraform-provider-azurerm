@@ -1,6 +1,7 @@
-package tests
+package policy_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -10,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
+
+type PolicyAssignmentResource struct {}
 
 func TestAccAzureRMPolicyAssignment_basicCustom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
@@ -154,6 +157,10 @@ func TestAccAzureRMPolicyAssignment_enforcement_mode(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
+}
+
+func (t PolicyAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	
 }
 
 func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCheckFunc {
