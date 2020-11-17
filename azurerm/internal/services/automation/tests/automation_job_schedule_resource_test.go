@@ -115,7 +115,6 @@ func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, jobScheduleUUID)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

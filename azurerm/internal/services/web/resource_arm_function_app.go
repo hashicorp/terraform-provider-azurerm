@@ -180,7 +180,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				Computed:      true,
 				ForceNew:      true,
 				Sensitive:     true,
-				Deprecated:    "Deprecated in favor of `storage_account_name` and `storage_account_access_key`",
+				Deprecated:    "Deprecated in favour of `storage_account_name` and `storage_account_access_key`",
 				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
 			},
 
@@ -362,7 +362,8 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	auth := web.SiteAuthSettings{
 		ID:                         read.ID,
-		SiteAuthSettingsProperties: &authSettings}
+		SiteAuthSettingsProperties: &authSettings,
+	}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
 		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)

@@ -592,7 +592,6 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["containerGroups"]
 
 	resp, err := client.Get(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Container Group %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
@@ -1509,21 +1508,21 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 		return make([]interface{}, 0)
 	}
 
-	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var searchDomains []string
 	if input.SearchDomains != nil {
 		searchDomains = strings.Split(*input.SearchDomains, " ")
 	}
 	output["search_domains"] = searchDomains
 
-	//We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
+	// We're converting to TypeSet here from an API response that looks like "a b c" (assumes space delimited)
 	var options []string
 	if input.Options != nil {
 		options = strings.Split(*input.Options, " ")
 	}
 	output["options"] = options
 
-	//Nameservers is already an array from the API
+	// Nameservers is already an array from the API
 	var nameservers []string
 	if input.NameServers != nil {
 		nameservers = *input.NameServers

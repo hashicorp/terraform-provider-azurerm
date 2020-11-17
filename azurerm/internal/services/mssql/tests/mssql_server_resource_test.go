@@ -291,7 +291,6 @@ func testCheckAzureRMMsSqlServerDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

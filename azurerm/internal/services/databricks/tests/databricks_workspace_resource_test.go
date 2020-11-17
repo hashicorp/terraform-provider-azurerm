@@ -247,7 +247,6 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}

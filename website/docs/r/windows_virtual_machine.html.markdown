@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine. Changing this forces a new resource to be created.
 
-* `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on. Changing this forces a new resource to be created.
+* `dedicated_host_id` - (Optional) The ID of a Dedicated Host where this machine should be run on.
 
 * `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created.
 
@@ -189,7 +189,7 @@ A `additional_unattend_content` block supports the following:
 
 A `boot_diagnostics` block supports the following:
 
-* `storage_account_uri` - (Required) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
+* `storage_account_uri` - (Optional) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
 
 ---
 

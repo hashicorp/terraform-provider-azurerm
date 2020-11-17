@@ -79,6 +79,7 @@ func resourceArmDataShareDataSetDataLakeGen1() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -216,8 +217,14 @@ func resourceArmDataShareDataSetDataLakeGen1Delete(d *schema.ResourceData, meta 
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting DataShare DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
 	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of DataShare Data Lake Gen1 DataSet  %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
+	}
+
 	return nil
 }

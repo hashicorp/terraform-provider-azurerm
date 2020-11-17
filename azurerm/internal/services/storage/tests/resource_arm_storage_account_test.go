@@ -678,6 +678,13 @@ func TestAccAzureRMStorageAccount_shareProperties(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMStorageAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMStorageAccount_shareProperties(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
@@ -689,6 +696,46 @@ func TestAccAzureRMStorageAccount_shareProperties(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "share_properties.0.delete_retention_policy.0.days", "7"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShare(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_shareSoftDelete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_shareSoftDeleteWithShare(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -973,7 +1020,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   tags = {
-    %s
+        %s
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, tags)
@@ -1886,7 +1933,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
@@ -1922,7 +1969,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
@@ -1952,6 +1999,47 @@ resource "azurerm_storage_account" "test" {
     }
 
     delete_retention_policy {
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_shareSoftDeleteWithShare(data acceptance.TestData) string {
+	storageAcc := testAccAzureRMStorageAccount_shareSoftDelete(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+}
+`, storageAcc, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_shareSoftDelete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  share_properties {
+
+    delete_retention_policy {
+      days = 3
     }
   }
 }

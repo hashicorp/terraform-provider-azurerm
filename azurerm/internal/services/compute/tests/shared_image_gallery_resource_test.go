@@ -31,6 +31,7 @@ func TestAccAzureRMSharedImageGallery_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSharedImageGallery_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_gallery", "test")
 

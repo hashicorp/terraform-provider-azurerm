@@ -86,7 +86,6 @@ func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -121,7 +120,6 @@ func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCh
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Automation Module '%s' (resource group: '%s') does not exist", name, resourceGroup)

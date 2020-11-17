@@ -25,8 +25,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
 )
 
 var storageAccountResourceName = "azurerm_storage_account"
@@ -805,8 +805,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
 		}
 
-		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
+		if err = queueClient.UpdateServiceProperties(ctx, account.ResourceGroup, storageAccountName, queueProperties); err != nil {
+			return fmt.Errorf("updating Queue Properties for Storage Account %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1072,8 +1072,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
 		}
 
-		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
+		if err = queueClient.UpdateServiceProperties(ctx, account.ResourceGroup, storageAccountName, queueProperties); err != nil {
+			return fmt.Errorf("updating Queue Properties for Storage Account %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1319,15 +1319,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error building Queues Client: %s", err)
 			}
 
-			queueProps, err := queueClient.GetServiceProperties(ctx, name)
+			queueProps, err := queueClient.GetServiceProperties(ctx, account.ResourceGroup, name)
 			if err != nil {
-				if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {
-					return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
-				}
+				return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
 			}
 
 			if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
-				return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+				return fmt.Errorf("setting `queue_properties`: %+v", err)
 			}
 		}
 	}
@@ -1917,8 +1915,8 @@ func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPo
 	return deleteRetentionPolicy
 }
 
-func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
-	if input.Response.Response == nil {
+func flattenQueueProperties(input *queues.StorageServiceProperties) []interface{} {
+	if input == nil {
 		return []interface{}{}
 	}
 

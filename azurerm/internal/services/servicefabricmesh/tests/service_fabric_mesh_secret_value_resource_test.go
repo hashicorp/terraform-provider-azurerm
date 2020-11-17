@@ -65,7 +65,6 @@ func testCheckAzureRMServiceFabricMeshSecretValueDestroy(s *terraform.State) err
 		}
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.SecretName, id.Name)
-
 		if err != nil {
 			return nil
 		}

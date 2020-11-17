@@ -191,7 +191,6 @@ func testCheckAzureRMPolicyAssignmentDestroy(s *terraform.State) error {
 
 		id := rs.Primary.ID
 		resp, err := client.GetByID(ctx, id)
-
 		if err != nil {
 			return nil
 		}

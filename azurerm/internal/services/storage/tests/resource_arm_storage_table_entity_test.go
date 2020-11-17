@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
 )
 
 func TestAccAzureRMTableEntity_basic(t *testing.T) {
