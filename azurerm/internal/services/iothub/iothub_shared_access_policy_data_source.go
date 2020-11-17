@@ -64,6 +64,7 @@ func dataSourceArmIotHubSharedAccessPolicy() *schema.Resource {
 		},
 	}
 }
+
 func dataSourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

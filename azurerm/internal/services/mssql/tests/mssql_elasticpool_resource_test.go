@@ -154,6 +154,7 @@ func TestAccAzureRMMsSqlElasticPool_basic_vCore_MaxSizeBytes(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMMsSqlElasticPool_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 

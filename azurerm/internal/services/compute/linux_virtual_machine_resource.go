@@ -138,7 +138,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true, // TODO: investigate, looks like the Portal allows migration
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -756,6 +755,21 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		update.Identity = identity
 	}
 
+	if d.HasChange("dedicated_host_id") {
+		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("dedicated_host_id"); ok {
+			update.Host = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.Host = &compute.SubResource{}
+		}
+	}
+
 	if d.HasChange("extensions_time_budget") {
 		shouldUpdate = true
 		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
@@ -1155,7 +1169,6 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 			Refresh: func() (interface{}, string, error) {
 				log.Printf("[INFO] checking on state of Linux Virtual Machine %q", id.Name)
 				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
 				if err != nil {
 					if utils.ResponseWasNotFound(resp.Response) {
 						return resp, strconv.Itoa(resp.StatusCode), nil

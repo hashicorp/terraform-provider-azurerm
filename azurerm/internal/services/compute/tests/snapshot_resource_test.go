@@ -61,6 +61,7 @@ func TestSnapshotName_validation(t *testing.T) {
 		}
 	}
 }
+
 func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
@@ -79,6 +80,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 

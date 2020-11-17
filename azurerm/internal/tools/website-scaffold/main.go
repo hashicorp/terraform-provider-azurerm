@@ -29,7 +29,7 @@ func main() {
 
 	_ = f.Parse(os.Args[1:])
 
-	var quitWithError = func(message string) {
+	quitWithError := func(message string) {
 		log.Print(message)
 		os.Exit(1)
 	}
@@ -204,7 +204,7 @@ func (gen documentationGenerator) generate() string {
 
 // blocks
 func (gen documentationGenerator) argumentsBlock() string {
-	var documentationForArguments = func(input map[string]*schema.Schema, onlyRequired, onlyOptional bool, blockName string) string {
+	documentationForArguments := func(input map[string]*schema.Schema, onlyRequired, onlyOptional bool, blockName string) string {
 		fields := ""
 
 		for _, fieldName := range gen.sortFields(input) {
@@ -283,7 +283,7 @@ The following arguments are supported:
 }
 
 func (gen documentationGenerator) attributesBlock() string {
-	var documentationForAttributes = func(input map[string]*schema.Schema, onlyComputed bool, blockName string) string {
+	documentationForAttributes := func(input map[string]*schema.Schema, onlyComputed bool, blockName string) string {
 		fields := ""
 
 		// now list all of the top-level fields / blocks alphabetically
@@ -409,7 +409,7 @@ func (gen documentationGenerator) timeoutsBlock() string {
 
 	timeoutsBlurb := "The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:"
 
-	var timeoutToFriendlyText = func(duration time.Duration) string {
+	timeoutToFriendlyText := func(duration time.Duration) string {
 		hours := int(math.Floor(duration.Hours()))
 		if hours > 0 {
 			var hoursText string
@@ -714,7 +714,7 @@ func (gen documentationGenerator) requiredFieldsForExampleBlock(fields map[strin
 	indent := gen.buildIndentForExample(indentLevel)
 	output := ""
 
-	var processField = func(name string, field *schema.Schema) string {
+	processField := func(name string, field *schema.Schema) string {
 		value := gen.determineDefaultValueForExample(name, field)
 		return fmt.Sprintf("%s%s = %s\n", indent, name, value)
 	}

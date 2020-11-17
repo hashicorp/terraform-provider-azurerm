@@ -187,6 +187,13 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				}, false),
 			},
 
+			"proximity_placement_group_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: computeValidate.ProximityPlacementGroupID,
+			},
+
 			"spot_max_price": {
 				Type:         schema.TypeFloat,
 				Optional:     true,
@@ -325,6 +332,11 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	if osDiskSizeGB := d.Get("os_disk_size_gb").(int); osDiskSizeGB > 0 {
 		profile.OsDiskSizeGB = utils.Int32(int32(osDiskSizeGB))
+	}
+
+	proximityPlacementGroupId := d.Get("proximity_placement_group_id").(string)
+	if proximityPlacementGroupId != "" {
+		profile.ProximityPlacementGroupID = &proximityPlacementGroupId
 	}
 
 	if vnetSubnetID := d.Get("vnet_subnet_id").(string); vnetSubnetID != "" {
@@ -625,6 +637,8 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			priority = string(props.ScaleSetPriority)
 		}
 		d.Set("priority", priority)
+
+		d.Set("proximity_placement_group_id", props.ProximityPlacementGroupID)
 
 		spotMaxPrice := -1.0
 		if props.SpotMaxPrice != nil {

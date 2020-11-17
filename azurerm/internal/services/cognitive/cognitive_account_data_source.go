@@ -76,7 +76,6 @@ func dataSourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.GetProperties(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Cognitive Services Account %q (Resource Group %q) was not found", name, resourceGroup)
@@ -85,7 +84,6 @@ func dataSourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{})
 	}
 
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Keys for Cognitive Services Account %q (Resource Group %q) were not found", name, resourceGroup)

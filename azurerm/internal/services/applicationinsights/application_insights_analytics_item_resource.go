@@ -97,9 +97,11 @@ func resourceArmApplicationInsightsAnalyticsItem() *schema.Resource {
 func resourceArmApplicationInsightsAnalyticsItemCreate(d *schema.ResourceData, meta interface{}) error {
 	return resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d, meta, false)
 }
+
 func resourceArmApplicationInsightsAnalyticsItemUpdate(d *schema.ResourceData, meta interface{}) error {
 	return resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d, meta, true)
 }
+
 func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceData, meta interface{}, overwrite bool) error {
 	client := meta.(*clients.Client).AppInsights.AnalyticsItemsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

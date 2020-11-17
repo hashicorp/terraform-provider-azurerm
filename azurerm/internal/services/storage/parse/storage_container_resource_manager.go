@@ -1,12 +1,30 @@
-package parsers
+package parse
 
-import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+import (
+	"fmt"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 type StorageContainerResourceManagerId struct {
 	Name            string
 	AccountName     string
 	BlobServiceName string
 	ResourceGroup   string
+}
+
+func (id StorageContainerResourceManagerId) ID(subscriptionId string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/%s/containers/%s"
+	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.AccountName, id.BlobServiceName, id.Name)
+}
+
+func NewStorageContainerResourceManagerId(resourceGroup, accountName, containerName string) StorageContainerResourceManagerId {
+	return StorageContainerResourceManagerId{
+		Name:            containerName,
+		AccountName:     accountName,
+		BlobServiceName: "default",
+		ResourceGroup:   resourceGroup,
+	}
 }
 
 func StorageContainerResourceManagerID(input string) (*StorageContainerResourceManagerId, error) {

@@ -194,7 +194,6 @@ func resourceArmKustoEventHubDataConnectionRead(d *schema.ResourceData, meta int
 	}
 
 	connectionModel, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Database, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(connectionModel.Response) {
 			d.SetId("")
