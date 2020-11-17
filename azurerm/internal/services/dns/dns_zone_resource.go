@@ -68,6 +68,7 @@ func resourceArmDnsZone() *schema.Resource {
 				MaxItems: 1,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"email": {

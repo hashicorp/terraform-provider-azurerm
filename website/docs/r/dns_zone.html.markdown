@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `soa_record` - (Optional) An `soa_record` block as defined below. 
+* `soa_record` - (Optional) An `soa_record` block as defined below. Changing this forces a new resource to be created.
 
 -> **NOTE** When `soa_record` is removed from terraform configuration file, terraform won't do anything because the Service API doesn't allow deleting the SOA Record.
 

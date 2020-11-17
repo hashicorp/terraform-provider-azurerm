@@ -230,7 +230,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-PrivateDNSZone-%d"
+  name     = "acctestRG-privatedns-%d"
   location = "%s"
 }
 
