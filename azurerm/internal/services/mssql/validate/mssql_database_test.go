@@ -134,7 +134,7 @@ func TestMsSqlDBSkuName(t *testing.T) {
 			valid: true,
 		},
 	}
-	var validationFunction = MsSqlDBSkuName()
+	validationFunction := MsSqlDBSkuName()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := validationFunction(tt.input, "")
@@ -203,7 +203,7 @@ func TestMsSqlDBCollation(t *testing.T) {
 			valid: false,
 		},
 	}
-	var validationFunction = MsSqlDBCollation()
+	validationFunction := MsSqlDBCollation()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := validationFunction(tt.input, "")

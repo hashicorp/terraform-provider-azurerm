@@ -205,7 +205,6 @@ func testCheckAzureRMNetworkSecurityRuleDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, sgName, sgrName)
-
 		if err != nil {
 			return nil
 		}

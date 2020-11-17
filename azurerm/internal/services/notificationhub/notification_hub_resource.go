@@ -23,10 +23,12 @@ import (
 
 var notificationHubResourceName = "azurerm_notification_hub"
 
-const apnsProductionName = "Production"
-const apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
-const apnsSandboxName = "Sandbox"
-const apnsSandboxEndpoint = "https://api.development.push.apple.com:443/3/device"
+const (
+	apnsProductionName     = "Production"
+	apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
+	apnsSandboxName        = "Sandbox"
+	apnsSandboxEndpoint    = "https://api.development.push.apple.com:443/3/device"
+)
 
 func resourceArmNotificationHub() *schema.Resource {
 	return &schema.Resource{

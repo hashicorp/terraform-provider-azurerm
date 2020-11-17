@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -136,7 +136,7 @@ func testCheckAzureRMStorageEncryptionScopeExists(resourceName string) resource.
 			return fmt.Errorf("storage Encryption Scope not found: %s", resourceName)
 		}
 
-		id, err := parsers.StorageEncryptionScopeID(rs.Primary.ID)
+		id, err := parse.StorageEncryptionScopeID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -164,7 +164,7 @@ func testCheckAzureRMStorageEncryptionScopeDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.StorageEncryptionScopeID(rs.Primary.ID)
+		id, err := parse.StorageEncryptionScopeID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

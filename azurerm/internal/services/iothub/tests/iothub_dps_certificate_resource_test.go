@@ -92,7 +92,6 @@ func testCheckAzureRMIotHubDPSCertificateDestroy(s *terraform.State) error {
 		iotDPSName := rs.Primary.Attributes["iot_dps_name"]
 
 		resp, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
-
 		if err != nil {
 			return nil
 		}

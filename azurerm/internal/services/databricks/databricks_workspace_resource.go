@@ -214,7 +214,6 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Databricks Workspace %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
@@ -360,7 +359,7 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 	// 1) Cannot be empty
 	if len(v) == 0 {
 		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
-		// Treating this as a special case and returning early to match Azure Portal behavior.
+		// Treating this as a special case and returning early to match Azure Portal behaviour.
 		return warnings, errors
 	}
 

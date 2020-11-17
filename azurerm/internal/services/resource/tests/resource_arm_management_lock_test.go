@@ -233,7 +233,6 @@ func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 
 		resp, err := client.GetByScope(ctx, scope, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

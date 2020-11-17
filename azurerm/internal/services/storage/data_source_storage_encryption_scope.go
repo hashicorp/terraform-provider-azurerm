@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -54,7 +54,7 @@ func dataSourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	storageAccountIDRaw := d.Get("storage_account_id").(string)
-	storageAccountID, _ := storageParse.ParseAccountID(storageAccountIDRaw)
+	storageAccountID, _ := parse.ParseAccountID(storageAccountIDRaw)
 
 	resp, err := client.Get(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, name)
 	if err != nil {

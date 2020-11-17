@@ -35,5 +35,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_hdinsight_ml_services_cluster":       resourceArmHDInsightMLServicesCluster(),
 		"azurerm_hdinsight_rserver_cluster":           resourceArmHDInsightRServerCluster(),
 		"azurerm_hdinsight_spark_cluster":             resourceArmHDInsightSparkCluster(),
-		"azurerm_hdinsight_storm_cluster":             resourceArmHDInsightStormCluster()}
+		"azurerm_hdinsight_storm_cluster":             resourceArmHDInsightStormCluster(),
+	}
 }

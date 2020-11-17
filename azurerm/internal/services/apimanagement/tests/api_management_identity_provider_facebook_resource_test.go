@@ -93,7 +93,6 @@ func testCheckAzureRMApiManagementIdentityProviderFacebookDestroy(s *terraform.S
 
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Facebook)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

@@ -11,8 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
-	storageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	storageValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -27,7 +26,7 @@ func resourceArmStorageEncryptionScope() *schema.Resource {
 		Delete: resourceArmStorageEncryptionScopeDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parsers.StorageEncryptionScopeID(id)
+			_, err := parse.StorageEncryptionScopeID(id)
 			return err
 		}),
 
@@ -80,7 +79,7 @@ func resourceArmStorageEncryptionScopeCreateUpdate(d *schema.ResourceData, meta 
 
 	name := d.Get("name").(string)
 	storageAccountIDRaw := d.Get("storage_account_id").(string)
-	storageAccountID, _ := storageParse.ParseAccountID(storageAccountIDRaw)
+	storageAccountID, _ := parse.ParseAccountID(storageAccountIDRaw)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, name)
@@ -136,7 +135,7 @@ func resourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.StorageEncryptionScopeID(d.Id())
+	id, err := parse.StorageEncryptionScopeID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -171,7 +170,7 @@ func resourceArmStorageEncryptionScopeDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.StorageEncryptionScopeID(d.Id())
+	id, err := parse.StorageEncryptionScopeID(d.Id())
 	if err != nil {
 		return err
 	}

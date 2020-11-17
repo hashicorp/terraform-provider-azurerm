@@ -291,7 +291,7 @@ func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta
 	// Get subnet IDs before delete
 	subnetIDs := getSubnetIDs(&resp)
 
-	// Not optimal behavior for now
+	// Not optimal behaviour for now
 	// It deletes synchronously and resource is not available anymore after return from delete operation
 	// Next, after return - delete operation is still in progress in the background and is still occupying subnets.
 	// As workaround we are checking on all involved subnets presence of serviceAssociationLink and resourceNavigationLink
@@ -457,7 +457,6 @@ func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAs
 	}
 
 	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
@@ -486,7 +485,6 @@ func resourceNavigationLinkExists(ctx context.Context, client *network.ResourceN
 	}
 
 	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil

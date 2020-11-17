@@ -181,6 +181,48 @@ func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherBootDiagnosticsManaged(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				// Enabled
+				Config: testWindowsVirtualMachine_otherBootDiagnosticsManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				// Disabled
+				Config: testWindowsVirtualMachine_otherBootDiagnosticsDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				// Enabled
+				Config: testWindowsVirtualMachine_otherBootDiagnosticsManaged(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherComputerNameDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
@@ -997,6 +1039,39 @@ resource "azurerm_windows_virtual_machine" "test" {
   boot_diagnostics {
     storage_account_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherBootDiagnosticsManaged(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_otherBootDiagnosticsTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  boot_diagnostics {}
 
   os_disk {
     caching              = "ReadWrite"

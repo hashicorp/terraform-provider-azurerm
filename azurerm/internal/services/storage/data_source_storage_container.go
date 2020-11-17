@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmStorageContainer() *schema.Resource {
@@ -73,24 +73,22 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 
 	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Containers Client for Storage Account %q (Resource Group %q): %s", accountName, account.ResourceGroup, err)
 	}
 
-	d.SetId(client.GetResourceID(accountName, containerName))
+	id := parse.NewStorageContainerDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, containerName).ID("")
+	d.SetId(id)
 
-	props, err := client.GetProperties(ctx, accountName, containerName)
+	props, err := client.Get(ctx, account.ResourceGroup, accountName, containerName)
 	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
-			return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
-		}
-
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
+		return fmt.Errorf("retrieving Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
+	}
+	if props == nil {
+		return fmt.Errorf("Container %q was not found in Account %q / Resource Group %q", containerName, accountName, account.ResourceGroup)
 	}
 
 	d.Set("name", containerName)
-
 	d.Set("storage_account_name", accountName)
-
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
@@ -100,8 +98,8 @@ func dataSourceArmStorageContainerRead(d *schema.ResourceData, meta interface{})
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, accountName, containerName)
-	d.Set("resource_manager_id", resourceManagerId)
+	resourceManagerId := parse.NewStorageContainerResourceManagerId(account.ResourceGroup, accountName, containerName)
+	d.Set("resource_manager_id", resourceManagerId.ID(storageClient.SubscriptionId))
 
 	return nil
 }

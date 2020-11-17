@@ -3,9 +3,8 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"testing"
-
 	"strconv"
+	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -363,7 +362,6 @@ func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
-
 		if err != nil {
 			return nil
 		}

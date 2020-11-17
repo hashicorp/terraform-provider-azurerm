@@ -131,7 +131,8 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
-			}, data.ImportStep(),
+			},
+			data.ImportStep(),
 		},
 	})
 }

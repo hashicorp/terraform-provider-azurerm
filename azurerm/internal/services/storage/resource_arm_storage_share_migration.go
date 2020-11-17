@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 )
 
 // the schema schema was used for both V0 and V1
@@ -17,10 +17,9 @@ func resourceStorageShareStateResourceV0V1() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageShareName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
 			"storage_account_name": {

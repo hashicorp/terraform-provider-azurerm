@@ -139,7 +139,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true, // TODO: investigate, looks like the Portal allows migration
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -335,8 +334,10 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	adminPassword := d.Get("admin_password").(string)
 	adminUsername := d.Get("admin_username").(string)
 	allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
+
 	var computerName string
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
@@ -784,6 +785,21 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.Identity = identity
 	}
 
+	if d.HasChange("dedicated_host_id") {
+		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("dedicated_host_id"); ok {
+			update.Host = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.Host = &compute.SubResource{}
+		}
+	}
+
 	if d.HasChange("max_bid_price") {
 		shouldUpdate = true
 
@@ -1179,7 +1195,6 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 			Refresh: func() (interface{}, string, error) {
 				log.Printf("[INFO] checking on state of Windows Virtual Machine %q", id.Name)
 				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
 				if err != nil {
 					if utils.ResponseWasNotFound(resp.Response) {
 						return resp, strconv.Itoa(resp.StatusCode), nil
