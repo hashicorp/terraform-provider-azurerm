@@ -20,7 +20,7 @@ jobs:
         with:
           java-version: '13'
           java-package: jdk
-      uses: actions/cache@v2
+      - uses: actions/cache@v2
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
