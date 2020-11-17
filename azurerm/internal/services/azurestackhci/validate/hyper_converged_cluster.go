@@ -2,8 +2,6 @@ package validate
 
 import (
 	"fmt"
-	"regexp"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/azurestackhci/parse"
 )
 
@@ -29,8 +27,9 @@ func HyperConvergedClusterName(i interface{}, k string) (warnings []string, erro
 		return
 	}
 
-	if matched := regexp.MustCompile(`^.{1,260}$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only be up to 260 characters in length", k))
+	if len(v) == 0 || len(v) > 260 {
+		errors = append(errors, fmt.Errorf("%s cannot be empty and must not exceed 260 characters", k))
+		return warnings, errors
 	}
 
 	return warnings, errors

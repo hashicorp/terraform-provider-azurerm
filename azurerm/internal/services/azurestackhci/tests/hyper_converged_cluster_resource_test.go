@@ -74,14 +74,14 @@ func TestAccAzureRMHyperConvergedCluster_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMHyperConvergedClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHyperConvergedCluster_basic(data),
+				Config: testAccAzureRMHyperConvergedCluster_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHyperConvergedClusterExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMHyperConvergedCluster_complete(data),
+				Config: testAccAzureRMHyperConvergedCluster_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHyperConvergedClusterExists(data.ResourceName),
 				),
@@ -203,6 +203,25 @@ resource "azurerm_hyper_converged_cluster" "test" {
 
   tags = {
     ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMHyperConvergedCluster_update(data acceptance.TestData) string {
+	template := testAccAzureRMHyperConvergedCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hyper_converged_cluster" "test" {
+  name                = "acctest-HyperConvergedCluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  client_id           = data.azurerm_client_config.current.client_id
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  tags = {
+    ENv = "Test2"
   }
 }
 `, template, data.RandomInteger)
