@@ -877,7 +877,7 @@ VALUES
   }
 
   policy_definition_group {
-    name = "group-1"
+    name = "Group-1"
   }
 
   policy_definition_group {
@@ -925,8 +925,8 @@ VALUES
   }
 
   policy_definition_group {
-    name         = "group-1"
-    display_name = "group-display-1"
+    name         = "Group-1"
+    display_name = "Group-Display-1"
     category     = "My Access Control"
     description  = "Controls accesses"
   }
