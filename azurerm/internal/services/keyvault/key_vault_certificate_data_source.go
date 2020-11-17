@@ -288,6 +288,10 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePolicy) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	policy := make(map[string]interface{})
 
 	if params := input.IssuerParameters; params != nil {
