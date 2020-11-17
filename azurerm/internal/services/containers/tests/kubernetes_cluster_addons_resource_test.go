@@ -696,6 +696,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     http_application_routing {
       enabled = true
     }
+    kube_dashboard {
+      enabled = false
+    }
   }
 
   identity {
@@ -738,6 +741,9 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   addon_profile {
     http_application_routing {
+      enabled = false
+    }
+    kube_dashboard {
       enabled = false
     }
   }
