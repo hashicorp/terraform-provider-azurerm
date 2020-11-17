@@ -237,11 +237,20 @@ func testAccAzureRMLogAnalyticsLinkedService_withWriteAccessResourceId(data acce
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctest-LA-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
 resource "azurerm_log_analytics_linked_service" "test" {
   resource_group_name      = azurerm_resource_group.test.name
+  linked_service_name      = "cluster"
   workspace_name           = azurerm_log_analytics_workspace.test.name
-  resource_id              = azurerm_automation_account.test.id
-  write_access_resource_id = 
+  write_access_resource_id = azurerm_log_analytics_cluster.test.id
 }
-`, template)
+`, template, data.RandomInteger)
 }

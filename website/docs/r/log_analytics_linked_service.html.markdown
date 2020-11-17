@@ -52,12 +52,12 @@ The following arguments are supported:
 
 * `workspace_name` - (Required) Name of the Log Analytics Workspace that will contain the linkedServices resource. Changing this forces a new resource to be created.
 
-* `linked_service_name` - (Optional) Name of the type of linkedServices resource to connect to the Log Analytics Workspace specified in `workspace_name`. Currently it defaults to and only supports `automation` as a value. Changing this forces a new resource to be created.
+* `linked_service_name` - (Optional) Name of the type of linkedServices resource to connect to the Log Analytics Workspace specified in `workspace_name`. Currently it only supports `automation` and `cluster` as a value, and defaults to `automation`. Changing this forces a new resource to be created.
 
-* `resource_id` - (Required) The ID of the Resource that will be linked to the workspace. Changing this forces a new resource to be created.
+* `resource_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking resources which require read access.
 
-* `write_access_resource_id` - (Optional) The ID of the write_access_resource.
-
+* `write_access_resource_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking resources which require write access.
+                                          
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference

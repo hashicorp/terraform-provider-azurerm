@@ -54,19 +54,22 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 				Default:  "automation",
 				ValidateFunc: validation.StringInSlice([]string{
 					"automation",
+					"cluster",
 				}, false),
 			},
 
 			"resource_id": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Optional:     true,
 				ValidateFunc: azure.ValidateResourceID,
+				ExactlyOneOf: []string{"resource_id", "write_access_resource_id"},
 			},
 
 			"write_access_resource_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+				ExactlyOneOf: []string{"resource_id", "write_access_resource_id"},
 			},
 
 			// Exported properties
@@ -104,22 +107,28 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 		}
 	}
 
-	resourceId := d.Get("resource_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := operationalinsights.LinkedService{
 		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{
-			ResourceID: utils.String(resourceId),
 		},
 		Tags: tags.Expand(t),
 	}
 
+	if d.Get("resource_id") != "" {
+		parameters.ResourceID = utils.String(d.Get("resource_id").(string))
+	}
 	if d.Get("write_access_resource_id") != "" {
 		parameters.WriteAccessResourceID = utils.String(d.Get("write_access_resource_id").(string))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
+	future, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters)
+	if err != nil {
 		return fmt.Errorf("Error creating Linked Service %q (Workspace %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on creating future for Linked Service %q (Workspace %q / Resource Group %q): %+v", lsName, workspaceName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, workspaceName, lsName)
