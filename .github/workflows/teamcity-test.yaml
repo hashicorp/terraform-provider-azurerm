@@ -1,0 +1,24 @@
+---
+name: TeamCity Config Test
+on:
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths-ignore:
+      - '.teamcity/target/**'
+      - '.teamcity/components/generated/**'
+    paths:
+      - '.teamcity/**'
+      - '.github/workflows/**'
+
+jobs:
+  teamcity-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '13'
+          java-package: jdk
+      - run: make teamcity-test
