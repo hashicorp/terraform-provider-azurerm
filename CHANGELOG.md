@@ -1,5 +1,9 @@
 ## 2.37.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_security_center_automation` [GH-8781]
+
 IMPROVEMENTS:
 
 * storage: foundational improvements to support toggling between the Data Plane and Resource Manager Storage API's in the future [GH-9314]
