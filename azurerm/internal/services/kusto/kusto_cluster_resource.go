@@ -353,7 +353,6 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	clusterResponse, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(clusterResponse.Response) {
 			d.SetId("")

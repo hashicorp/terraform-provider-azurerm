@@ -2,13 +2,12 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"reflect"
 	"strconv"
 	"time"
-
-	"encoding/json"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"

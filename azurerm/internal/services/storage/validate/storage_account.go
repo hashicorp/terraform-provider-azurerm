@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 func StorageAccountID(i interface{}, k string) (warnings []string, errors []error) {
@@ -16,7 +16,7 @@ func StorageAccountID(i interface{}, k string) (warnings []string, errors []erro
 		return
 	}
 
-	if _, err := parsers.ParseAccountID(v); err != nil {
+	if _, err := parse.ParseAccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

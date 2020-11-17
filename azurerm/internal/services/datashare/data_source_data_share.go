@@ -2,7 +2,6 @@ package datashare
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
@@ -78,13 +77,13 @@ func dataSourceDataShare() *schema.Resource {
 
 func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	accountID := d.Get("account_id").(string)
-	accountId, err := parse.DataShareAccountID(accountID)
+	accountId, err := parse.DataShareAccountID(d.Get("account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -92,48 +91,66 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] DataShare %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("DataShare %q (Account %q / Resource Group %q) was not found", name, accountId.Name, accountId.ResourceGroup)
 		}
-		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+		return fmt.Errorf("retrieving DataShare %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading DataShare %q (Resource Group %q / accountName %q): ID is empty", name, accountId.ResourceGroup, accountId.Name)
-	}
+	dataShareId := parse.NewDataShareId(accountId.ResourceGroup, accountId.Name, name).ID(subscriptionId)
+	d.SetId(dataShareId)
 
-	d.SetId(*resp.ID)
 	d.Set("name", name)
-	d.Set("account_id", accountID)
+	d.Set("account_id", accountId.ID(subscriptionId))
+
 	if props := resp.ShareProperties; props != nil {
-		d.Set("kind", props.ShareKind)
 		d.Set("description", props.Description)
+		d.Set("kind", string(props.ShareKind))
 		d.Set("terms", props.Terms)
 	}
 
-	if syncIterator, err := syncClient.ListByShareComplete(ctx, accountId.ResourceGroup, accountId.Name, name, ""); syncIterator.NotDone() {
-		if err != nil {
-			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+	settings := make([]datashare.ScheduledSynchronizationSetting, 0)
+	syncIterator, err := syncClient.ListByShareComplete(ctx, accountId.ResourceGroup, accountId.Name, name, "")
+	if err != nil {
+		return fmt.Errorf("listing Snapshot Schedules for Data Share %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
+	}
+	for syncIterator.NotDone() {
+		item, ok := syncIterator.Value().AsScheduledSynchronizationSetting()
+		if ok && item != nil {
+			settings = append(settings, *item)
 		}
-		if syncName := syncIterator.Value().(datashare.ScheduledSynchronizationSetting).Name; syncName != nil && *syncName != "" {
-			syncResp, err := syncClient.Get(ctx, accountId.ResourceGroup, accountId.Name, name, *syncName)
-			if err != nil {
-				return fmt.Errorf("reading DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
-			}
-			if schedule := syncResp.Value.(datashare.ScheduledSynchronizationSetting); schedule.ID != nil && *schedule.ID != "" {
-				if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(&schedule)); err != nil {
-					return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
-				}
-			}
-		}
+
 		if err := syncIterator.NextWithContext(ctx); err != nil {
-			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
-		}
-		if syncIterator.NotDone() {
-			return fmt.Errorf("more than one DataShare %q snapshot schedule (Resource Group %q / accountName %q) is returned", name, accountId.ResourceGroup, accountId.Name)
+			return fmt.Errorf("retrieving next Snapshot Schedule: %+v", err)
 		}
 	}
 
+	if err := d.Set("snapshot_schedule", flattenDataShareDataSourceSnapshotSchedule(settings)); err != nil {
+		return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
+	}
+
 	return nil
+}
+
+func flattenDataShareDataSourceSnapshotSchedule(input []datashare.ScheduledSynchronizationSetting) []interface{} {
+	output := make([]interface{}, 0)
+
+	for _, sync := range input {
+		name := ""
+		if sync.Name != nil {
+			name = *sync.Name
+		}
+
+		startTime := ""
+		if sync.SynchronizationTime != nil && !sync.SynchronizationTime.IsZero() {
+			startTime = sync.SynchronizationTime.Format(time.RFC3339)
+		}
+
+		output = append(output, map[string]interface{}{
+			"name":       name,
+			"recurrence": string(sync.RecurrenceInterval),
+			"start_time": startTime,
+		})
+	}
+
+	return output
 }

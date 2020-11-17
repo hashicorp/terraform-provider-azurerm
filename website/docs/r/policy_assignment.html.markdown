@@ -96,9 +96,9 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A friendly display name to use for this Policy Assignment. Changing this forces a new resource to be created.
 
-* `metadata` - (Optional) The metadata for the policy assignment. This is a json object representing additional metadata that should be stored with the policy assignment.
+* `metadata` - (Optional) The metadata for the policy assignment. This is a JSON string representing additional metadata that should be stored with the policy assignment.
 
-* `parameters` - (Optional) Parameters for the policy definition. This field is a JSON object that maps to the Parameters field from the Policy Definition. Changing this forces a new resource to be created.
+* `parameters` - (Optional) Parameters for the policy definition. This field is a JSON string that maps to the Parameters field from the Policy Definition. Changing this forces a new resource to be created.
 
 ~> **NOTE:** This value is required when the specified Policy Definition contains the `parameters` field.
 

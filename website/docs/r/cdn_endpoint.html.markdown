@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
 
-* `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled. Defaults to false.
+* `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled.
 
 * `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. `NotSet` value can be used for `Premium Verizon` CDN profile. Defaults to `IgnoreQueryString`.
 

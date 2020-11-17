@@ -191,7 +191,6 @@ func testCheckAzureRMPolicyAssignmentDestroy(s *terraform.State) error {
 
 		id := rs.Primary.ID
 		resp, err := client.GetByID(ctx, id)
-
 		if err != nil {
 			return nil
 		}
@@ -259,7 +258,7 @@ provider "azurerm" {
 }
 
 data "azurerm_policy_set_definition" "test" {
-  display_name = "Audit Windows VMs with a pending reboot"
+  display_name = "Audit machines with insecure password security settings"
 }
 
 resource "azurerm_resource_group" "test" {

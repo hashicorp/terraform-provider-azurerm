@@ -1,5 +1,5 @@
 run:
-  deadline: 10m10s
+  deadline: 12m10s
   modules-download-mode: vendor
 
 issues:
@@ -9,6 +9,7 @@ issues:
 linters:
   disable-all: true
   enable:
+    - asciicheck
     - deadcode
     - errcheck
     - gocritic

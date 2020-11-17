@@ -21,17 +21,21 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_log_analytics_workspace": dataSourceLogAnalyticsWorkspace()}
+		"azurerm_log_analytics_workspace": dataSourceLogAnalyticsWorkspace(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
+		"azurerm_log_analytics_data_export_rule":                       resourceArmLogAnalyticsDataExport(),
 		"azurerm_log_analytics_linked_service":                         resourceArmLogAnalyticsLinkedService(),
+		"azurerm_log_analytics_linked_storage_account":                 resourceArmLogAnalyticsLinkedStorageAccount(),
 		"azurerm_log_analytics_saved_search":                           resourceArmLogAnalyticsSavedSearch(),
 		"azurerm_log_analytics_solution":                               resourceArmLogAnalyticsSolution(),
 		"azurerm_log_analytics_workspace":                              resourceArmLogAnalyticsWorkspace(),
 		"azurerm_log_analytics_datasource_windows_event":               resourceArmLogAnalyticsDataSourceWindowsEvent(),
+		"azurerm_log_analytics_storage_insights":                       resourceArmLogAnalyticsStorageInsights(),
 		"azurerm_log_analytics_datasource_windows_performance_counter": resourceArmLogAnalyticsDataSourceWindowsPerformanceCounter(),
 	}
 }

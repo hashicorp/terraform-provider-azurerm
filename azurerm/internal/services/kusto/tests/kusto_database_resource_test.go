@@ -259,7 +259,6 @@ func testCheckAzureRMKustoDatabaseDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup, clusterName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

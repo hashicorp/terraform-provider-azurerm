@@ -158,6 +158,7 @@ resource "azurerm_batch_certificate" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
+
 func testAccBatchCertificateCer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -186,6 +187,7 @@ resource "azurerm_batch_certificate" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
+
 func testAccBatchCertificateCerWithPassword(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

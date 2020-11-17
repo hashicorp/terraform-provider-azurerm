@@ -15,12 +15,14 @@ import (
 )
 
 type azureCLIProfile struct {
-	subscription *cli.Subscription
+	// CLI "subscriptions" are really "accounts" that can represent either a subscription (with tenant) or _just_ a tenant
+	account *cli.Subscription
 
 	clientId       string
 	environment    string
 	subscriptionId string
 	tenantId       string
+	tenantOnly     bool
 }
 
 type azureCliTokenAuth struct {
@@ -33,20 +35,32 @@ func (a azureCliTokenAuth) build(b Builder) (authMethod, error) {
 		profile: &azureCLIProfile{
 			subscriptionId: b.SubscriptionID,
 			tenantId:       b.TenantID,
+			tenantOnly:     b.TenantOnly,
 			clientId:       "04b07795-8ddb-461a-bbee-02f9e1bf7b46", // fixed first party client id for Az CLI
 		},
 		servicePrincipalAuthDocsLink: b.ClientSecretDocsLink,
 	}
 
-	sub, err := obtainSubscription(b.SubscriptionID)
-	if err != nil {
-		return nil, fmt.Errorf("obtain subscription(%s) from Azure CLI: %+v", b.SubscriptionID, err)
+	var acc *cli.Subscription
+	if auth.profile.tenantOnly {
+		var err error
+		acc, err = obtainTenant(b.TenantID)
+		if err != nil {
+			return nil, fmt.Errorf("obtain tenant(%s) from Azure CLI: %+v", b.TenantID, err)
+		}
+		auth.profile.account = acc
+	} else {
+		var err error
+		acc, err = obtainSubscription(b.SubscriptionID)
+		if err != nil {
+			return nil, fmt.Errorf("obtain subscription(%s) from Azure CLI: %+v", b.SubscriptionID, err)
+		}
+		auth.profile.account = acc
 	}
-	auth.profile.subscription = sub
 
 	// Authenticating as a Service Principal doesn't return all of the information we need for authentication purposes
 	// as such Service Principal authentication is supported using the specific auth method
-	if sub.User == nil || !strings.EqualFold(sub.User.Type, "user") {
+	if acc.User == nil || !strings.EqualFold(acc.User.Type, "user") {
 		return nil, fmt.Errorf(`Authenticating using the Azure CLI is only supported as a User (not a Service Principal).
 
 To authenticate to Azure using a Service Principal, you can use the separate 'Authenticate using a Service Principal'
@@ -56,14 +70,14 @@ Alternatively you can authenticate using the Azure CLI by using a User Account.`
 	}
 
 	// Populate fields
-	if auth.profile.subscriptionId == "" {
-		auth.profile.subscriptionId = sub.ID
+	if !b.TenantOnly && auth.profile.subscriptionId == "" {
+		auth.profile.subscriptionId = acc.ID
 	}
 	if auth.profile.tenantId == "" {
-		auth.profile.tenantId = sub.TenantID
+		auth.profile.tenantId = acc.TenantID
 	}
 	// always pull the environment from the Azure CLI, since the Access Token's associated with it
-	auth.profile.environment = normalizeEnvironmentName(sub.EnvironmentName)
+	auth.profile.environment = normalizeEnvironmentName(acc.EnvironmentName)
 
 	return auth, nil
 }
@@ -147,7 +161,7 @@ func (a azureCliTokenAuth) validate() error {
 		err = multierror.Append(err, fmt.Errorf(errorMessageFmt, "Client ID"))
 	}
 
-	if a.profile.subscriptionId == "" {
+	if !a.profile.tenantOnly && a.profile.subscriptionId == "" {
 		err = multierror.Append(err, fmt.Errorf(errorMessageFmt, "Subscription ID"))
 	}
 
@@ -182,21 +196,57 @@ func obtainAuthorizationToken(endpoint string, subscriptionId string) (*cli.Toke
 	return &token, nil
 }
 
-// obtainSubscription return a subscription object of the specified subscriptionId.
-// If the subscriptionId is empty, it returns the default subscription.
+// obtainSubscription returns a Subscription object of the specified subscriptionId.
+// If the subscriptionId is empty, it selects the default subscription.
 func obtainSubscription(subscriptionId string) (*cli.Subscription, error) {
-	var sub cli.Subscription
+	var acc cli.Subscription
 	cmd := make([]string, 0)
 	cmd = []string{"account", "show", "-o=json"}
 	if subscriptionId != "" {
 		cmd = append(cmd, "-s", subscriptionId)
 	}
-	err := jsonUnmarshalAzCmd(&sub, cmd...)
+	err := jsonUnmarshalAzCmd(&acc, cmd...)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
 	}
 
-	return &sub, nil
+	return &acc, nil
+}
+
+// obtainTenant returns a Subscription object having the specified tenantId.
+// If the tenantId is empty, it selects the default subscription.
+// This works with `az login --allow-no-subscriptions`
+func obtainTenant(tenantId string) (*cli.Subscription, error) {
+	var acc cli.Subscription
+	if tenantId == "" {
+		cmd := make([]string, 0)
+		cmd = []string{"account", "show", "-o=json"}
+		err := jsonUnmarshalAzCmd(&acc, cmd...)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
+		}
+	} else {
+		var accs []cli.Subscription
+		cmd := make([]string, 0)
+		cmd = []string{"account", "list", "-o=json"}
+		err := jsonUnmarshalAzCmd(&accs, cmd...)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing json result from the Azure CLI: %v", err)
+		}
+
+		for _, a := range accs {
+			if a.TenantID == tenantId {
+				acc = a
+				break
+			}
+		}
+
+		if acc.TenantID == "" {
+			return nil, fmt.Errorf("Tenant %q was not found", tenantId)
+		}
+	}
+
+	return &acc, nil
 }
 
 func jsonUnmarshalAzCmd(i interface{}, arg ...string) error {
@@ -209,20 +259,22 @@ func jsonUnmarshalAzCmd(i interface{}, arg ...string) error {
 	cmd.Stdout = &stdout
 
 	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("Error launching Azure CLI: %+v", err)
+		err := fmt.Errorf("Error launching Azure CLI: %+v", err)
+		if stdErrStr := stderr.String(); stdErrStr != "" {
+			err = fmt.Errorf("%s: %s", err, strings.TrimSpace(stdErrStr))
+		}
+		return err
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("Error waiting for the Azure CLI: %+v", err)
+		err := fmt.Errorf("Error waiting for the Azure CLI: %+v", err)
+		if stdErrStr := stderr.String(); stdErrStr != "" {
+			err = fmt.Errorf("%s: %s", err, strings.TrimSpace(stdErrStr))
+		}
+		return err
 	}
 
-	stdOutStr := stdout.String()
-	stdErrStr := stderr.String()
-	if stdErrStr != "" {
-		return fmt.Errorf("Error retrieving running Azure CLI: %s", strings.TrimSpace(stdErrStr))
-	}
-
-	if err := json.Unmarshal([]byte(stdOutStr), &i); err != nil {
+	if err := json.Unmarshal([]byte(stdout.String()), &i); err != nil {
 		return fmt.Errorf("Error unmarshaling the result of Azure CLI: %v", err)
 	}
 

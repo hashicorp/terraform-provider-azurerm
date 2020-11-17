@@ -22,6 +22,7 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_traffic_manager_geographical_location": dataSourceArmTrafficManagerGeographicalLocation(),
+		"azurerm_traffic_manager_profile":               dataSourceArmTrafficManagerProfile(),
 	}
 }
 
