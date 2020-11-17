@@ -3,10 +3,9 @@ name: TeamCity Config Test
 on:
   pull_request:
     types: ['opened', 'synchronize']
-    paths-ignore:
-      - '.teamcity/target/**'
-      - '.teamcity/components/generated/**'
     paths:
+      - '!.teamcity/components/generated/**'
+      - '!.teamcity/target/**'
       - '.teamcity/**'
       - '.github/workflows/**'
 
