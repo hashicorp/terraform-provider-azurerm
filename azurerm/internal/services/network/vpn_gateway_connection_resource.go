@@ -153,7 +153,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 							Default:  false,
 						},
 
-						"policy": {
+						"ipsec_policy": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MinItems: 1,
@@ -169,7 +169,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 										Required:     true,
 										ValidateFunc: validation.IntBetween(1024, 2147483647),
 									},
-									"ipsec_encryption_algorithm": {
+									"encryption_algorithm": {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
@@ -184,7 +184,7 @@ func resourceArmVPNGatewayConnection() *schema.Resource {
 											string(network.IpsecEncryptionNone),
 										}, false),
 									},
-									"ipsec_integrity_algorithm": {
+									"integrity_algorithm": {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
@@ -450,7 +450,7 @@ func expandArmVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[
 				VpnConnectionProtocolType:      network.VirtualNetworkGatewayConnectionProtocol(e["protocol"].(string)),
 				ConnectionBandwidth:            utils.Int32(int32(e["bandwidth_mbps"].(int))),
 				EnableBgp:                      utils.Bool(e["bgp_enabled"].(bool)),
-				IpsecPolicies:                  expandArmVpnGatewayConnectionIpSecPolicies(e["policy"].([]interface{})),
+				IpsecPolicies:                  expandArmVpnGatewayConnectionIpSecPolicies(e["ipsec_policy"].([]interface{})),
 				EnableRateLimiting:             utils.Bool(e["ratelimit_enabled"].(bool)),
 				UseLocalAzureIPAddress:         utils.Bool(e["local_azure_ip_address_enabled"].(bool)),
 				UsePolicyBasedTrafficSelectors: utils.Bool(e["policy_based_traffic_selector_enabled"].(bool)),
@@ -528,7 +528,7 @@ func flattenArmVpnGatewayConnectionVpnSiteLinkConnections(input *[]network.VpnSi
 			"bandwidth_mbps":                        bandwidth,
 			"shared_key":                            sharedKey,
 			"bgp_enabled":                           bgpEnabled,
-			"policy":                                flattenArmVpnGatewayConnectionIpSecPolicies(e.IpsecPolicies),
+			"ipsec_policy":                          flattenArmVpnGatewayConnectionIpSecPolicies(e.IpsecPolicies),
 			"ratelimit_enabled":                     rateLimitEnabled,
 			"local_azure_ip_address_enabled":        useLocalAzureIpAddress,
 			"policy_based_traffic_selector_enabled": usePolicyBased,
@@ -552,8 +552,8 @@ func expandArmVpnGatewayConnectionIpSecPolicies(input []interface{}) *[]network.
 		v := network.IpsecPolicy{
 			SaLifeTimeSeconds:   utils.Int32(int32(e["sa_lifetime_sec"].(int))),
 			SaDataSizeKilobytes: utils.Int32(int32(e["sa_data_size_kb"].(int))),
-			IpsecEncryption:     network.IpsecEncryption(e["ipsec_encryption_algorithm"].(string)),
-			IpsecIntegrity:      network.IpsecIntegrity(e["ipsec_integrity_algorithm"].(string)),
+			IpsecEncryption:     network.IpsecEncryption(e["encryption_algorithm"].(string)),
+			IpsecIntegrity:      network.IpsecIntegrity(e["integrity_algorithm"].(string)),
 			IkeEncryption:       network.IkeEncryption(e["ike_encryption_algorithm"].(string)),
 			IkeIntegrity:        network.IkeIntegrity(e["ike_integrity_algorithm"].(string)),
 			DhGroup:             network.DhGroup(e["dh_group"].(string)),
@@ -584,14 +584,14 @@ func flattenArmVpnGatewayConnectionIpSecPolicies(input *[]network.IpsecPolicy) [
 		}
 
 		v := map[string]interface{}{
-			"sa_lifetime_sec":            saLifetimeSec,
-			"sa_data_size_kb":            saDataSizeKb,
-			"ipsec_encryption_algorithm": string(e.IpsecEncryption),
-			"ipsec_integrity_algorithm":  string(e.IpsecIntegrity),
-			"ike_encryption_algorithm":   string(e.IkeEncryption),
-			"ike_integrity_algorithm":    string(e.IkeIntegrity),
-			"dh_group":                   string(e.DhGroup),
-			"pfs_group":                  string(e.PfsGroup),
+			"sa_lifetime_sec":          saLifetimeSec,
+			"sa_data_size_kb":          saDataSizeKb,
+			"encryption_algorithm":     string(e.IpsecEncryption),
+			"integrity_algorithm":      string(e.IpsecIntegrity),
+			"ike_encryption_algorithm": string(e.IkeEncryption),
+			"ike_integrity_algorithm":  string(e.IkeIntegrity),
+			"dh_group":                 string(e.DhGroup),
+			"pfs_group":                string(e.PfsGroup),
 		}
 
 		output = append(output, v)

@@ -245,15 +245,15 @@ resource "azurerm_vpn_gateway_connection" "test" {
   vpn_link {
     name             = "link1"
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id
-    policy {
-      sa_lifetime_sec            = 300
-      sa_data_size_kb            = 1024
-      ipsec_encryption_algorithm = "AES256"
-      ipsec_integrity_algorithm  = "SHA256"
-      ike_encryption_algorithm   = "AES128"
-      ike_integrity_algorithm    = "SHA256"
-      dh_group                   = "DHGroup14"
-      pfs_group                  = "PFS14"
+    ipsec_policy {
+      sa_lifetime_sec          = 300
+      sa_data_size_kb          = 1024
+      encryption_algorithm     = "AES256"
+      integrity_algorithm      = "SHA256"
+      ike_encryption_algorithm = "AES128"
+      ike_integrity_algorithm  = "SHA256"
+      dh_group                 = "DHGroup14"
+      pfs_group                = "PFS14"
     }
     bandwidth_mbps                        = 30
     protocol                              = "IKEv2"
@@ -298,15 +298,15 @@ resource "azurerm_vpn_gateway_connection" "test" {
   vpn_link {
     name             = "link1"
     vpn_site_link_id = azurerm_vpn_site.test.link[0].id
-    policy {
-      sa_lifetime_sec            = 300
-      sa_data_size_kb            = 1024
-      ipsec_encryption_algorithm = "AES256"
-      ipsec_integrity_algorithm  = "SHA256"
-      ike_encryption_algorithm   = "AES128"
-      ike_integrity_algorithm    = "SHA256"
-      dh_group                   = "DHGroup14"
-      pfs_group                  = "PFS14"
+    ipsec_policy {
+      sa_lifetime_sec          = 300
+      sa_data_size_kb          = 1024
+      encryption_algorithm     = "AES256"
+      integrity_algorithm      = "SHA256"
+      ike_encryption_algorithm = "AES128"
+      ike_integrity_algorithm  = "SHA256"
+      dh_group                 = "DHGroup14"
+      pfs_group                = "PFS14"
     }
     bandwidth_mbps                        = 30
     protocol                              = "IKEv2"

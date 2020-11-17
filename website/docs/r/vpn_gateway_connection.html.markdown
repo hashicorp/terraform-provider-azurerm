@@ -89,7 +89,7 @@ The following arguments are supported:
 
 ---
 
-A `policy` block supports the following:
+A `ipsec_policy` block supports the following:
 
 * `dh_group` - (Required) The DH Group used in IKE Phase 1 for initial SA. Possible values are `None`, `DHGroup1`, `DHGroup2`, `DHGroup14`, `DHGroup24`, `DHGroup2048`, `ECP256`, `ECP384`.
 
@@ -97,9 +97,9 @@ A `policy` block supports the following:
 
 * `ike_integrity_algorithm` - (Required) The IKE integrity algorithm (IKE phase 2). Possible values are `MD5`, `SHA1`, `SHA256`, `SHA384`, `GCMAES128`, `GCMAES256`.
 
-* `ipsec_encryption_algorithm` - (Required) The IPSec encryption algorithm (IKE phase 1). Possible values are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256`, `None`.
+* `encryption_algorithm` - (Required) The IPSec encryption algorithm (IKE phase 1). Possible values are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256`, `None`.
 
-* `ipsec_integrity_algorithm` - (Required) The IPSec integrity algorithm (IKE phase 1). Possible values are `MD5`, `SHA1`, `SHA256`, `GCMAES128`, `GCMAES192`, `GCMAES256`.
+* `integrity_algorithm` - (Required) The IPSec integrity algorithm (IKE phase 1). Possible values are `MD5`, `SHA1`, `SHA256`, `GCMAES128`, `GCMAES192`, `GCMAES256`.
 
 * `pfs_group` - (Required) The Pfs Group used in IKE Phase 2 for the new child SA. Possible values are `None`, `PFS1`, `PFS2`, `PFS14`, `PFS24`, `PFS2048`, `PFSMM`, `ECP256`, `ECP384`.
 
@@ -119,7 +119,7 @@ A `vpn_link` block supports the following:
 
 * `bgp_enabled` - (Optional) Should the BGP be enabled? Defaults to `false`. Changing this forces a new VPN Gateway Connection to be created.
 
-* `policy` - (Optional) One or more `policy` blocks as defined above.
+* `ipsec_policy` - (Optional) One or more `ipsec_policy` blocks as defined above.
 
 * `protocol` - (Optional) The protocol used for this VPN Link Connection. Possible values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`.
 
