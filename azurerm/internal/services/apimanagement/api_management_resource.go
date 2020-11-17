@@ -477,6 +477,9 @@ func resourceArmApiManagementService() *schema.Resource {
 					old.(string) == string(apimanagement.VirtualNetworkTypeInternal)) &&
 					new.(string) == string(apimanagement.VirtualNetworkTypeNone)
 			}),
+			customdiff.ForceNewIfChange("virtual_network_configuration", func(old, new, meta interface{}) bool {
+				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
+			}),
 		),
 	}
 }

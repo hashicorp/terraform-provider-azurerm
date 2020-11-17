@@ -205,13 +205,6 @@ func TestAccAzureRMApiManagement_virtualNetworkInternalUpdate(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{
-				Config: testAccAzureRMApiManagement_virtualNetworkInternalUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
 		},
 	})
 }
@@ -933,13 +926,6 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-resource "azurerm_subnet" "test2" {
-  name                 = "acctestSNET2-%[1]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
 resource "azurerm_network_security_group" "test" {
   name                = "acctest-NSG-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -948,11 +934,6 @@ resource "azurerm_network_security_group" "test" {
 
 resource "azurerm_subnet_network_security_group_association" "test" {
   subnet_id                 = azurerm_subnet.test.id
-  network_security_group_id = azurerm_network_security_group.test.id
-}
-
-resource "azurerm_subnet_network_security_group_association" "test2" {
-  subnet_id                 = azurerm_subnet.test2.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
 
@@ -989,28 +970,6 @@ resource "azurerm_api_management" "test" {
   virtual_network_type = "Internal"
   virtual_network_configuration {
     subnet_id = azurerm_subnet.test.id
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMApiManagement_virtualNetworkInternalUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagement_virtualNetworkTemplate(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-
-  sku_name = "Developer_1"
-
-  virtual_network_type = "Internal"
-  virtual_network_configuration {
-    subnet_id = azurerm_subnet.test2.id
   }
 }
 `, template, data.RandomInteger)
@@ -1133,7 +1092,7 @@ resource "azurerm_api_management" "test" {
     subnet_id = azurerm_subnet.test1.id
   }
 }
-`, data.RandomInteger,data.Locations.Primary,data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {
