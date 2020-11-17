@@ -15,6 +15,7 @@ IMPROVEMENTS:
 * `azurerm_firewall` now supports firewall manager policies [GH-8879]
 * `azurerm_linux_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
 * `azurerm_linux_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
+* `azurerm_mssql_database` - `sku_name` supports more `DWxxxc` options [GH-9370]
 * `azurerm_windows_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
 * `azurerm_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_virtual_machine` - support for the `patch_mode` property [GH-9258]
