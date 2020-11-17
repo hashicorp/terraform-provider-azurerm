@@ -19,9 +19,6 @@ func TestAccDataSourceAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 		{
 			Config: d.basic(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("application_insights_id").Exists(),
-				check.That(data.ResourceName).Key("key_vault_id").Exists(),
-				check.That(data.ResourceName).Key("storage_account_id").Exists(),
 				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
 				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
 				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),

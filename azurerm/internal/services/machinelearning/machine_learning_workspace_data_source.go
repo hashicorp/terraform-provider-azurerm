@@ -31,6 +31,29 @@ func dataSourceArmMachineLearningWorkspace() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
+			"identity": {
+				Type: schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type: schema.TypeString,
+							Computed: true,
+						},
+
+						"principal_id": {
+							Type: schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type: schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -58,6 +81,10 @@ func dataSourceArmAMLWorkspaceRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
+
+	if err := d.Set("identity", flattenArmMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
