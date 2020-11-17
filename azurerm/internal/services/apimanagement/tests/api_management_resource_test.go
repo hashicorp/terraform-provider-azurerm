@@ -914,6 +914,114 @@ provider "azurerm" {
   features {}
 }
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNET-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestSNET-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestSNET2-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-NSG-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "test2" {
+  subnet_id                 = azurerm_subnet.test2.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_network_security_rule" "port_3443" {
+  name                        = "Port_3443"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3443"
+  source_address_prefix       = "ApiManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMApiManagement_virtualNetworkInternal(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagement_virtualNetworkTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  virtual_network_type = "Internal"
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_virtualNetworkInternalUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagement_virtualNetworkTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  virtual_network_type = "Internal"
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test2.id
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG1-%[1]d"
   location = "%[2]s"
@@ -936,7 +1044,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "acctestSNET1-%[1]d"
   resource_group_name  = azurerm_resource_group.test1.name
   virtual_network_name = azurerm_virtual_network.test1.name
-  address_prefixes       = ["10.0.1.0/24"]
+  address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_network_security_group" "test1" {
@@ -976,7 +1084,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctestSNET2-%[1]d"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefixes       = ["10.1.1.0/24"]
+  address_prefix       = "10.1.1.0/24"
 }
 
 resource "azurerm_network_security_group" "test2" {
@@ -1003,60 +1111,9 @@ resource "azurerm_network_security_rule" "port_3443_2" {
   resource_group_name         = azurerm_resource_group.test2.name
   network_security_group_name = azurerm_network_security_group.test2.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
-}
-
-func testAccAzureRMApiManagement_virtualNetworkInternal(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagement_virtualNetworkTemplate(data)
-	return fmt.Sprintf(`
-%s
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = azurerm_resource_group.test1.location
-  resource_group_name = azurerm_resource_group.test1.name
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-
-  sku_name = "Developer_1"
-
-  virtual_network_type = "Internal"
-  virtual_network_configuration {
-    subnet_id = azurerm_subnet.test1.id
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMApiManagement_virtualNetworkInternalUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagement_virtualNetworkTemplate(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = azurerm_resource_group.test1.location
-  resource_group_name = azurerm_resource_group.test1.name
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-
-  sku_name = "Developer_1"
-
-  virtual_network_type = "Internal"
-  virtual_network_configuration {
-    subnet_id = azurerm_subnet.test2.id
-  }
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagement_virtualNetworkTemplate(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test1.location
   resource_group_name = azurerm_resource_group.test1.name
   publisher_name      = "pub1"
@@ -1076,7 +1133,7 @@ resource "azurerm_api_management" "test" {
     subnet_id = azurerm_subnet.test1.id
   }
 }
-`, template, data.RandomInteger)
+`, data.RandomInteger,data.Locations.Primary,data.Locations.Secondary)
 }
 
 func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {
