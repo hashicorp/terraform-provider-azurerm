@@ -155,7 +155,6 @@ func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error 
 		appInsightsName := id.Path["components"]
 
 		resp, err := conn.Get(ctx, resGroup, appInsightsName, name)
-
 		if err != nil {
 			return nil
 		}

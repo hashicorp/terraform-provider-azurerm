@@ -248,7 +248,7 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 }
 
 func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.ManagedClusterAddonProfile, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
-	var filter = func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
+	filter := func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 		output := input
 		if v, ok := output[key]; ok {
 			if v.Enabled != nil && *v.Enabled {

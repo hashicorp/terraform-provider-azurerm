@@ -108,7 +108,6 @@ func testCheckAzureRMBotChannelMsTeamsDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameMsTeamsChannel))
-
 		if err != nil {
 			return nil
 		}

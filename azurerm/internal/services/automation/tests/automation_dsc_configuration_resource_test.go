@@ -73,7 +73,6 @@ func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -108,7 +107,6 @@ func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resou
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Automation Dsc Configuration '%s' (resource group: '%s') does not exist", name, resourceGroup)

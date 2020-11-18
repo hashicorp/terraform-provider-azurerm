@@ -3,6 +3,7 @@ package eventgrid
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
@@ -40,10 +41,16 @@ func resourceArmEventGridTopic() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.All(
+					validation.StringIsNotEmpty,
+					validation.StringMatch(
+						regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+						"EventGrid topic name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					),
+				),
 			},
 
 			"location": azure.SchemaLocation(),

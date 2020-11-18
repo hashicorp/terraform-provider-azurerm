@@ -249,7 +249,6 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
@@ -279,7 +278,6 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)

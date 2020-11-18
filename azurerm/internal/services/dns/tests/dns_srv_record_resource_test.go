@@ -152,7 +152,6 @@ func testCheckAzureRMDnsSrvRecordDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.SRV)
-
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil

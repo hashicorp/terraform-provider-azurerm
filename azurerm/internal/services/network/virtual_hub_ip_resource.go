@@ -83,6 +83,7 @@ func resourceArmVirtualHubIP() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmVirtualHubIPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubIPClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)

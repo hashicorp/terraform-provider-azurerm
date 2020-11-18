@@ -214,7 +214,6 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Databricks Workspace %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)

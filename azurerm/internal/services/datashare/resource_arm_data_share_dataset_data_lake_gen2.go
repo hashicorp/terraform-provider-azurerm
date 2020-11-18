@@ -13,7 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/validate"
-	storageParsers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	storageParsers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -88,6 +88,7 @@ func resourceArmDataShareDataSetDataLakeGen2() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareDataSetDataLakeGen2Create(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

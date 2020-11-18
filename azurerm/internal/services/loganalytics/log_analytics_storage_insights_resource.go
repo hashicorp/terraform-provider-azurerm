@@ -93,6 +93,7 @@ func resourceArmLogAnalyticsStorageInsights() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmLogAnalyticsStorageInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.StorageInsightsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

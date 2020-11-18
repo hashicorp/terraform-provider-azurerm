@@ -372,7 +372,7 @@ func keyVaultChildItemRefreshFunc(secretUri string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
 
-		var PTransport = &http.Transport{Proxy: http.ProxyFromEnvironment}
+		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
 
 		client := &http.Client{
 			Transport: PTransport,

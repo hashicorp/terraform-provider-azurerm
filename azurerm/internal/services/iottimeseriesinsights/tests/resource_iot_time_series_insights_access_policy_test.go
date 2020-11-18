@@ -103,7 +103,6 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy(s *terraform.State
 			return err
 		}
 		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
-
 		if err != nil {
 			return nil
 		}

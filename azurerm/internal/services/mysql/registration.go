@@ -34,5 +34,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mysql_server":                         resourceArmMySqlServer(),
 		"azurerm_mysql_server_key":                     resourceArmMySQLServerKey(),
 		"azurerm_mysql_virtual_network_rule":           resourceArmMySQLVirtualNetworkRule(),
-		"azurerm_mysql_active_directory_administrator": resourceArmMySQLAdministrator()}
+		"azurerm_mysql_active_directory_administrator": resourceArmMySQLAdministrator(),
+	}
 }

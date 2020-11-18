@@ -35,6 +35,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
@@ -238,7 +239,6 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

@@ -26,7 +26,7 @@ func NewDataShareId(resourceGroup, accountName, name string) DataShareId {
 }
 
 func DataShareID(input string) (*DataShareId, error) {
-	var id, err = azure.ParseAzureResourceID(input)
+	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse DataShare ID %q: %+v", input, err)
 	}

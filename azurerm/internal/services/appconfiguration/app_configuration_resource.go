@@ -456,6 +456,7 @@ func expandAppConfigurationIdentity(identities []interface{}) *appconfiguration.
 		Type: identityType,
 	}
 }
+
 func flattenAppConfigurationIdentity(identity *appconfiguration.ResourceIdentity) []interface{} {
 	if identity == nil || identity.Type == appconfiguration.None {
 		return []interface{}{}

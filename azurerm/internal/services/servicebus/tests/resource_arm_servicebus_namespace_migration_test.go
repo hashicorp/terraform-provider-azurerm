@@ -106,7 +106,6 @@ func TestAccAzureRMServiceBusNamespaceMigrateState(t *testing.T) {
 			Attributes: tc.Attributes,
 		}
 		is, err := servicebus.ResourceAzureRMServiceBusNamespaceMigrateState(tc.StateVersion, is, nil)
-
 		if err != nil {
 			t.Fatalf("bad: %q, err: %#v", tn, err)
 		}

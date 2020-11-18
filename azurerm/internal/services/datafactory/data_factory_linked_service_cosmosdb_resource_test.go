@@ -30,6 +30,7 @@ func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
 
@@ -48,6 +49,7 @@ func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
 
@@ -155,7 +157,6 @@ func testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy(s *terraform.State)
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-
 		if err != nil {
 			return nil
 		}
@@ -193,6 +194,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -220,6 +222,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

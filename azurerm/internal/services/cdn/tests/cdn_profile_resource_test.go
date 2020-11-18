@@ -216,7 +216,6 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 			return err
 		}
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}

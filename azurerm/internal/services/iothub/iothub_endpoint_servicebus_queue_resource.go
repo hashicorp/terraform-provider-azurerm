@@ -156,7 +156,6 @@ func resourceArmIotHubEndpointServiceBusQueueRead(d *schema.ResourceData, meta i
 	defer cancel()
 
 	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -197,7 +196,6 @@ func resourceArmIotHubEndpointServiceBusQueueDelete(d *schema.ResourceData, meta
 	defer cancel()
 
 	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
