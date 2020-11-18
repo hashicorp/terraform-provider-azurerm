@@ -99,13 +99,11 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 				"http_application_routing": {
 					Type:     schema.TypeList,
 					MaxItems: 1,
-					ForceNew: true,
 					Optional: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"enabled": {
 								Type:     schema.TypeBool,
-								ForceNew: true,
 								Required: true,
 							},
 							"http_application_routing_zone_name": {
