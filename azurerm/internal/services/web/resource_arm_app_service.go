@@ -171,7 +171,13 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"possible_outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"custom_domain_verification_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -647,6 +653,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
+		d.Set("custom_domain_verification_id"), props.CustomDomainVerificationID)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
