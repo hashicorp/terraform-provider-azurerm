@@ -27,12 +27,7 @@ func TestAccAzureRMApiManagementPolicy_basic(t *testing.T) {
 					testCheckAzureRMApiManagementPolicyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"xml_link"},
-			},
+			data.ImportStep("xml_link"),
 		},
 	})
 }
@@ -70,18 +65,14 @@ func TestAccAzureRMApiManagementPolicy_update(t *testing.T) {
 					testCheckAzureRMApiManagementPolicyExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("xml_link"),
 			{
 				Config: testAccAzureRMApiManagementPolicy_customPolicy(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementPolicyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"xml_link"},
-			},
+			data.ImportStep("xml_link"),
 		},
 	})
 }
@@ -100,12 +91,7 @@ func TestAccAzureRMApiManagementPolicy_customPolicy(t *testing.T) {
 					testCheckAzureRMApiManagementPolicyExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"xml_link"},
-			},
+			data.ImportStep("xml_link"),
 		},
 	})
 }
@@ -192,7 +178,7 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_policy" "test" {
   api_management_id = azurerm_api_management.test.id
-  xml_link          = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
+  xml_link          = "https://raw.githubusercontent.com/terraform-providers/terraform-provider-azurerm/master/azurerm/internal/services/apimanagement/tests/testdata/api_management_policy_test.xml"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
