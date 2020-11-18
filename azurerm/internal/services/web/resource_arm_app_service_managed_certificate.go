@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
@@ -133,8 +134,12 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificate); err != nil {
-		return fmt.Errorf("Error creating/updating App Service Managed Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
+		if !strings.Contains(err.Error(), "StatusCode=202") {
+			return fmt.Errorf("Error creating/updating App Service Managed Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
 	}
+
+	time.Sleep(30 * time.Second)
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
