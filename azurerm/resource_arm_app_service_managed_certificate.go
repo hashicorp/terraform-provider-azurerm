@@ -124,7 +124,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 		CertificateProperties: &web.CertificateProperties{
 			CanonicalName: utils.String(name),
 			ServerFarmID:  utils.String(appServicePlanID),
-			//Password:      utils.String("null"),
+			Password:      new(string),
 		},
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
