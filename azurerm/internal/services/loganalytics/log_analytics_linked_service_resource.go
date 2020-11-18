@@ -135,6 +135,7 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 	if err != nil {
 		return fmt.Errorf("retrieving Linked Service %q (Worksppce %q / Resource Group %q): %+v", serviceType, workspaceName, resourceGroup, err)
 	}
+
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Linked Service %q (Workspace %q / Resource Group %q) ID", serviceType, workspaceName, resourceGroup)
 	}
