@@ -31,29 +31,29 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Virtual Wan exists.
 
+---
+
+* `allow_branch_to_branch_traffic` - (Optional) TODO.
+
+* `disable_vpn_encryption` - (Optional) TODO.
+
+* `office365_local_breakout_category` - (Optional) TODO.
+
+* `virtual_hubs` - (Optional) TODO.
+
+* `vpn_sites` - (Optional) TODO.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
 * `id` - The ID of the Virtual Wan.
 
-* `allow_branch_to_branch_traffic` - TODO.
-
-* `allow_vnet_to_vnet_traffic` - TODO.
-
-* `disable_vpn_encryption` - TODO.
-
 * `location` - The Azure Region where the Virtual Wan exists.
-
-* `office365_local_breakout_category` - TODO.
 
 * `sku` - TODO.
 
 * `tags` - A mapping of tags assigned to the Virtual Wan.
-
-* `virtual_hubs` - TODO.
-
-* `vpn_sites` - TODO.
 
 ## Timeouts
 
