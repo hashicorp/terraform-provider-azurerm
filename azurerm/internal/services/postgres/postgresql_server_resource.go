@@ -124,7 +124,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							ConflictsWith: []string{"storage_mb"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.All(
-								validation.IntBetween(5120, 4194304),
+								validation.IntBetween(5120, 16777216),
 								validation.IntDivisibleBy(1024),
 							),
 						},
@@ -271,7 +271,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Computed:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
 				ValidateFunc: validation.All(
-					validation.IntBetween(5120, 4194304),
+					validation.IntBetween(5120, 16777216),
 					validation.IntDivisibleBy(1024),
 				),
 			},
