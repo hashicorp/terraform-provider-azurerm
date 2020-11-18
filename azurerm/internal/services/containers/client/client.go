@@ -1,8 +1,9 @@
 package client
 
 import (
+	"github.com/Azure/azure-sdk-for-go/profiles/preview/containerregistry/mgmt/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-06-01-preview/containerregistry"
+	previewcontainerregistry "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-06-01-preview/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
@@ -13,8 +14,8 @@ type Client struct {
 	GroupsClient             *containerinstance.ContainerGroupsClient
 	KubernetesClustersClient *containerservice.ManagedClustersClient
 	RegistriesClient         *containerregistry.RegistriesClient
-	TokensClient			 *containerregistry.TokensClient
-	ScopeMapsClient			 *containerregistry.ScopeMapsClient
+	TokensClient             *previewcontainerregistry.TokensClient
+	ScopeMapsClient          *previewcontainerregistry.ScopeMapsClient
 	ReplicationsClient       *containerregistry.ReplicationsClient
 	ServicesClient           *containerservice.ContainerServicesClient
 	WebhooksClient           *containerregistry.WebhooksClient
@@ -56,7 +57,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		KubernetesClustersClient: &kubernetesClustersClient,
 		GroupsClient:             &groupsClient,
 		RegistriesClient:         &registriesClient,
-		TokensClient:         	  &tokensClient,
+		TokensClient:             &tokensClient,
 		ScopeMapsClient:          &scopeMapsClient,
 		WebhooksClient:           &webhooksClient,
 		ReplicationsClient:       &replicationsClient,
