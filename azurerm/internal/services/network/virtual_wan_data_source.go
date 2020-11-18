@@ -59,15 +59,6 @@ func dataSourceArmVirtualWan() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
-
-			// "address_prefix": {
-			// 	Type:     schema.TypeString,
-			// 	Computed: true,
-			// },
-			// "data": {
-			// 	Type: schema.TypeMap,
-			// 	Computed: true,
-			// }
 			"location": azure.SchemaLocationForDataSource(),
 
 			"tags": tags.SchemaDataSource(),
