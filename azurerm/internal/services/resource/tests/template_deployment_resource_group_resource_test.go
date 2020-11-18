@@ -198,14 +198,14 @@ func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
 		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceGroupTemplateDeployment_childItemsConfig(data, "first"),
+				Config: resourceGroupTemplateDeployment_childItemsConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: resourceGroupTemplateDeployment_childItemsConfig(data, "second"),
+				Config: resourceGroupTemplateDeployment_childItemsConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
 				),
@@ -577,7 +577,7 @@ TEMPLATE
 `, data.RandomInteger, data.Locations.Primary, value)
 }
 
-func resourceGroupTemplateDeployment_childItemsConfig(data acceptance.TestData, value string) string {
+func resourceGroupTemplateDeployment_childItemsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
