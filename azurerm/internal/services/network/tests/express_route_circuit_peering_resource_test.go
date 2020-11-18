@@ -539,6 +539,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
   ipv6 {
     primary_peer_address_prefix   = "2002:db01::/126"
     secondary_peer_address_prefix = "2003:db01::/126"
+    route_filter_id               = azurerm_route_filter.test.id
 
     microsoft_peering {
       advertised_public_prefixes = ["2002:db01::/126"]

@@ -101,9 +101,9 @@ A `ipv6` block contains:
 
 A `microsoft_peering` block contains:
 
-* `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes
-* `customer_asn` - (Optional) The CustomerASN of the peering
-* `routing_registry_name` - (Optional) The RoutingRegistryName of the configuration
+* `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes.
+* `customer_asn` - (Optional) The customer ASN of the peering. When advertising prefixes that are not registered to the peering ASN, this will specify the public ASN to which they are registered.
+* `routing_registry_name` - (Optional) The name of the Internet Routing Registry (IRR).
 
 
 ## Attributes Reference
