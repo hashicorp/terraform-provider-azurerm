@@ -2,7 +2,10 @@ package network
 
 import (
 	"fmt"
+	"log"
 	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -28,18 +31,18 @@ func dataSourceArmVirtualWan() *schema.Resource {
 
 			"allow_branch_to_branch_traffic": {
 				Type:     schema.TypeBool,
+				Optional: true,
 				Computed: true,
 			},
-			"allow_vnet_to_vnet_traffic": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
+
 			"disable_vpn_encryption": {
 				Type:     schema.TypeBool,
+				Optional: true,
 				Computed: true,
 			},
 			"office365_local_breakout_category": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"sku": {
@@ -48,10 +51,12 @@ func dataSourceArmVirtualWan() *schema.Resource {
 			},
 			"virtual_hubs": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 			"vpn_sites": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 
@@ -93,22 +98,40 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+	b := false
+
 	if props := resp.VirtualWanProperties; props != nil {
-		if props.AllowBranchToBranchTraffic != nil {
-			d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
+		log.Printf("[DEBUG] ETIENNE ETIENNE ETIENNE %+v", props)
+		if abtbt := *props.AllowBranchToBranchTraffic; props.AllowBranchToBranchTraffic != nil {
+			d.Set("allow_branch_to_branch_traffic", abtbt)
+		} else {
+			d.Set("allow_branch_to_branch_traffic", &b)
 		}
-		if props.AllowVnetToVnetTraffic != nil {
-			d.Set("allow_vnet_to_vnet_traffic", props.AllowVnetToVnetTraffic)
+
+		if dve := *props.DisableVpnEncryption; props.DisableVpnEncryption != nil {
+			d.Set("disable_vpn_encryption", dve)
+		} else {
+			d.Set("disable_vpn_encryption", &b)
 		}
-		if props.DisableVpnEncryption != nil {
-			d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
-		}
-		//bool
-		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory) //string
-		d.Set("sku", props.Type)                                                         // string
-		d.Set("virtual_hubs", props.VirtualHubs)                                         //list
-		d.Set("vpn_sites", props.VpnSites)                                               //list
+		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
+		d.Set("sku", props.Type)
+		d.Set("virtual_hubs", flattenVirtualWanProperties(props.VirtualHubs))
+		d.Set("vpn_sites", flattenVirtualWanProperties(props.VpnSites))
+
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func flattenVirtualWanProperties(input *[]network.SubResource) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	output := make([]interface{}, 0)
+	for _, v := range *input {
+		if v.ID != nil {
+			output = append(output, *v.ID)
+		}
+	}
+	return output
 }
