@@ -25,22 +25,35 @@ func dataSourceArmVirtualWan() *schema.Resource {
 				Required: true,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-			"allow_branch_to_branch_traffic": {Type: schema.TypeString,
-				Computed: true},
-			"allow_vnet_to_vnet_traffic": {Type: schema.TypeString,
-				Computed: true},
-			"proto": {Type: schema.TypeString,
-				Computed: true},
-			"office365_local_breakout_category": {Type: schema.TypeString,
-				Computed: true},
-			"type": {Type: schema.TypeString,
-				Computed: true},
-			"virtual_hubs": {Type: schema.TypeString,
-				Computed: true},
-			"vpn_sites": {Type: schema.TypeString,
-				Computed: true},
-			"disable_vpn_encryption": {Type: schema.TypeString,
-				Computed: true},
+
+			"allow_branch_to_branch_traffic": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"allow_vnet_to_vnet_traffic": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"disable_vpn_encryption": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"office365_local_breakout_category": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"sku": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"virtual_hubs": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"vpn_sites": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			// "address_prefix": {
 			// 	Type:     schema.TypeString,
@@ -80,14 +93,22 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("allow_branch_to_branch_traffic", resp.AllowBranchToBranchTraffic)
-	d.Set("allow_vnet_to_vnet_traffic", resp.AllowVnetToVnetTraffic)
-	d.Set("proto", resp.Proto)
-	d.Set("office365_local_breakout_category", resp.Office365LocalBreakoutCategory)
-	d.Set("type", resp.Type)
-	d.Set("virtual_hubs", resp.VirtualHubs)
-	d.Set("vpn_sites", resp.VpnSites)
-	d.Set("disable_vpn_encryption", resp.DisableVpnEncryption)
-	log.Printf(resp.)
+	if props := resp.VirtualWanProperties; props != nil {
+		if props.AllowBranchToBranchTraffic != nil {
+			d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
+		}
+		if props.AllowVnetToVnetTraffic != nil {
+			d.Set("allow_vnet_to_vnet_traffic", props.AllowVnetToVnetTraffic)
+		}
+		if props.DisableVpnEncryption != nil {
+			d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
+		}
+		//bool
+		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory) //string
+		d.Set("sku", props.Type)                                                         // string
+		d.Set("virtual_hubs", props.VirtualHubs)                                         //list
+		d.Set("vpn_sites", props.VpnSites)                                               //list
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }

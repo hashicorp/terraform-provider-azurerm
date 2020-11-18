@@ -37,13 +37,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Virtual Wan.
 
-* `address_prefix` - TODO.
+* `allow_branch_to_branch_traffic` - TODO.
+
+* `allow_vnet_to_vnet_traffic` - TODO.
+
+* `disable_vpn_encryption` - TODO.
 
 * `location` - The Azure Region where the Virtual Wan exists.
 
+* `office365_local_breakout_category` - TODO.
+
+* `sku` - TODO.
+
 * `tags` - A mapping of tags assigned to the Virtual Wan.
 
-* `virtual_wan_id` - The ID of the TODO.
+* `virtual_hubs` - TODO.
+
+* `vpn_sites` - TODO.
 
 ## Timeouts
 
