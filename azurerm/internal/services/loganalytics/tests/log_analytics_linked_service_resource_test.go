@@ -241,6 +241,7 @@ resource "azurerm_log_analytics_cluster" "test" {
   name                = "acctest-LA-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
   identity {
     type = "SystemAssigned"
   }
