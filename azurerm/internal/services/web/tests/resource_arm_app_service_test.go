@@ -4964,7 +4964,7 @@ resource "azurerm_app_service" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID, web.AzureActiveDirectory)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID, web.BuiltInAuthenticationProviderAzureActiveDirectory)
 }
 
 func testAccAzureRMAppService_basicWindowsContainer(data acceptance.TestData) string {

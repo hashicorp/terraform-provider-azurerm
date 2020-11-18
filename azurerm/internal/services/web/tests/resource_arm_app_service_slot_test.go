@@ -2559,7 +2559,7 @@ resource "azurerm_app_service_slot" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID, web.AzureActiveDirectory)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, tenantID, web.BuiltInAuthenticationProviderAzureActiveDirectory)
 }
 
 func testAccAzureRMAppServiceSlot_defaultDocuments(data acceptance.TestData) string {
