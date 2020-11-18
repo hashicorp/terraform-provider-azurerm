@@ -9,10 +9,13 @@ FEATURES:
 IMPROVEMENTS:
 
 * storage: foundational improvements to support toggling between the Data Plane and Resource Manager Storage API's in the future [GH-9314]
+* Data Source: `azurerm_kubernetes_node_pool` - exposing `os_disk_type` [GH-9166]
 * `azurerm_api_management_api_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip` and `verbosity` attributes [GH-9172]
 * `azurerm_api_management_api_diagnostic` - support the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-9172]
 * `azurerm_cosmosdb` - Remove cosmosdb autoscale upper cap [GH-9050]
 * `azurerm_firewall` now supports firewall manager policies [GH-8879]
+* `azurerm_kubernetes_cluster` - support for configuring `os_disk_type` within the `default_node_pool` block [GH-9166]
+* `azurerm_kubernetes_node_pool` - support for configuring `os_disk_type` [GH-9166]
 * `azurerm_linux_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
 * `azurerm_linux_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_mssql_database` - `sku_name` supports more `DWxxxc` options [GH-9370]
