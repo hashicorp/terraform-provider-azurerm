@@ -89,7 +89,21 @@ func TestAccAzureRMDnsZone_withSOARecord(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDnsZone_withSOARecord(data),
+				Config: testAccAzureRMDnsZone_withBasicSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDnsZone_withCompletedSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDnsZone_withBasicSOARecord(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsZoneExists(data.ResourceName),
 				),
@@ -232,14 +246,37 @@ resource "azurerm_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDnsZone_withSOARecord(data acceptance.TestData) string {
+func testAccAzureRMDnsZone_withBasicSOARecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-DNSZone-%d"
+  name     = "acctestRG-dns-%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+
+  soa_record {
+    email     = "testemail.com"
+    host_name = "testhost.contoso.com"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMDnsZone_withCompletedSOARecord(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-dns-%d"
   location = "%s"
 }
 

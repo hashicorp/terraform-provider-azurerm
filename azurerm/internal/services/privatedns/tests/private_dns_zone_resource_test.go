@@ -81,7 +81,21 @@ func TestAccAzureRMPrivateDnsZone_withSOARecord(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPrivateDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPrivateDnsZone_withSOARecord(data),
+				Config: testAccAzureRMPrivateDnsZone_withBasicSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMPrivateDnsZone_withCompletedSOARecord(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMPrivateDnsZone_withBasicSOARecord(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateDnsZoneExists(data.ResourceName),
 				),
@@ -223,7 +237,29 @@ resource "azurerm_private_dns_zone" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMPrivateDnsZone_withSOARecord(data acceptance.TestData) string {
+func testAccAzureRMPrivateDnsZone_withBasicSOARecord(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatedns-%d"
+  location = "%s"
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = azurerm_resource_group.test.name
+
+  soa_record {
+    email = "testemail.com"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMPrivateDnsZone_withCompletedSOARecord(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
