@@ -31,7 +31,7 @@ func dataSourceArmContainerRegistryScopeMap() *schema.Resource {
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"description": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"actions": {
@@ -44,7 +44,6 @@ func dataSourceArmContainerRegistryScopeMap() *schema.Resource {
 		},
 	}
 }
-
 
 func dataSourceArmContainerRegistryScopeMapRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ScopeMapsClient

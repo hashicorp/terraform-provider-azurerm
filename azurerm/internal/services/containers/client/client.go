@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/profiles/preview/containerregistry/mgmt/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-05-01/containerregistry"
 	previewcontainerregistry "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-06-01-preview/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -27,10 +27,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	registriesClient := containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&registriesClient.Client, o.ResourceManagerAuthorizer)
 
-	tokensClient := containerregistry.NewTokensClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	tokensClient := previewcontainerregistry.NewTokensClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&tokensClient.Client, o.ResourceManagerAuthorizer)
 
-	scopeMapsClient := containerregistry.NewScopeMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	scopeMapsClient := previewcontainerregistry.NewScopeMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&tokensClient.Client, o.ResourceManagerAuthorizer)
 
 	webhooksClient := containerregistry.NewWebhooksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

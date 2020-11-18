@@ -31,18 +31,18 @@ func dataSourceArmContainerRegistryToken() *schema.Resource {
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"scope_map_id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"status": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
 }
 
-func dataSourceArmContainerRegistryTokenRead(d* schema.ResourceData, meta interface{}) error {
+func dataSourceArmContainerRegistryTokenRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -59,7 +59,6 @@ func dataSourceArmContainerRegistryTokenRead(d* schema.ResourceData, meta interf
 
 		return fmt.Errorf("Error making Read request on token %q (Azure Container Registry %q, Resource Group %q): %+v", name, containerRegistryName, resourceGroup, err)
 	}
-
 
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)

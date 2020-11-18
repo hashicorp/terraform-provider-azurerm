@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMContainerRegistryToken_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_scope_map", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -29,7 +29,6 @@ func TestAccDataSourceAzureRMContainerRegistryToken_basic(t *testing.T) {
 	})
 }
 
-
 func testAccDataSourceAzureRMContainerRegistryToken_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -38,7 +37,7 @@ resource "azurerm_container_registry_token" "test" {
 	name                = "testtoken%d"
 	resource_group_name = azurerm_resource_group.test.name
 	container_registry_name = azurerm_container_registry.test.name
-	scope_map_id = "_pull_only"
+	scope_map_id = "_repositories_pull"
   }
 
 data "azurerm_container_registry_token" "test" {

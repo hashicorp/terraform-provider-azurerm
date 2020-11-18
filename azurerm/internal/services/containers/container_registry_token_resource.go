@@ -66,6 +66,7 @@ func resourceArmContainerRegistryToken() *schema.Resource {
 
 func resourceArmContainerRegistryTokenCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.TokensClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

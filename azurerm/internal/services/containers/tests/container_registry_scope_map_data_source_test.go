@@ -12,8 +12,8 @@ func TestAccDataSourceAzureRMContainerRegistryScopeMap_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_scope_map", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -28,7 +28,6 @@ func TestAccDataSourceAzureRMContainerRegistryScopeMap_basic(t *testing.T) {
 		},
 	})
 }
-
 
 func testAccDataSourceAzureRMContainerRegistryScopeMap_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
