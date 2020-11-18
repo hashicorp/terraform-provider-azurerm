@@ -1120,17 +1120,16 @@ func TestAccAzureRMAppServiceSlot_detailedErrorMessagesLogs(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSlot_detailedErrorMessagesEnabled(data),
+				Config: testAccAzureRMAppServiceSlot_detailedErrorMessages(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.detailed_error_messages_enabled", "true"),
 				),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMAppServiceSlot_detailedErrorMessagesDisabled(data),
+				Config: testAccAzureRMAppServiceSlot_detailedErrorMessages(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.detailed_error_messages_enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -1146,17 +1145,16 @@ func TestAccAzureRMAppServiceSlot_failedRequestTracingLogs(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceSlot_failedRequestTracingEnabled(data),
+				Config: testAccAzureRMAppServiceSlot_failedRequestTracing(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.failed_request_tracing_enabled", "true"),
 				),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMAppServiceSlot_failedRequestTracingDisabled(data),
+				Config: testAccAzureRMAppServiceSlot_failedRequestTracing(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.failed_request_tracing_enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -3548,7 +3546,7 @@ resource "azurerm_app_service_slot" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppServiceSlot_detailedErrorMessagesEnabled(data acceptance.TestData) string {
+func testAccAzureRMAppServiceSlot_detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3585,13 +3583,13 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = azurerm_app_service.test.name
 
   logs {
-    detailed_error_messages_enabled = true
+    detailed_error_messages_enabled = %t
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, detailedErrorEnabled)
 }
 
-func testAccAzureRMAppServiceSlot_detailedErrorMessagesDisabled(data acceptance.TestData) string {
+func testAccAzureRMAppServiceSlot_failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3628,96 +3626,10 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = azurerm_app_service.test.name
 
   logs {
-    detailed_error_messages_enabled = false
+    failed_request_tracing_enabled = %t
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppServiceSlot_failedRequestTracingEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-  app_service_name    = azurerm_app_service.test.name
-
-  logs {
-    failed_request_tracing_enabled = true
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppServiceSlot_failedRequestTracingDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-  app_service_name    = azurerm_app_service.test.name
-
-  logs {
-    failed_request_tracing_enabled = false
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, failedRequestEnabled)
 }
 
 func (r AppServiceSlotResource) autoSwap(data acceptance.TestData) string {

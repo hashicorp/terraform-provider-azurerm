@@ -3534,7 +3534,7 @@ resource "azurerm_app_service" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_detailedErrorMessagesEnabled(data acceptance.TestData) string {
+func testAccAzureRMAppService_detailedErrorMessages(data acceptance.TestData, detailedErrorEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3563,13 +3563,13 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = azurerm_app_service_plan.test.id
 
   logs {
-    detailed_error_messages_enabled = true
+    detailed_error_messages_enabled = %t
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, detailedErrorEnabled)
 }
 
-func testAccAzureRMAppService_detailedErrorMessagesDisabled(data acceptance.TestData) string {
+func testAccAzureRMAppService_failedRequestTracing(data acceptance.TestData, failedRequestEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3598,80 +3598,10 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = azurerm_app_service_plan.test.id
 
   logs {
-    detailed_error_messages_enabled = false
+    failed_request_tracing_enabled = %t
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppService_failedRequestTracingEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-
-  logs {
-    failed_request_tracing_enabled = true
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMAppService_failedRequestTracingDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-
-  logs {
-    failed_request_tracing_enabled = false
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, failedRequestEnabled)
 }
 
 func (r AppServiceResource) managedPipelineMode(data acceptance.TestData) string {
