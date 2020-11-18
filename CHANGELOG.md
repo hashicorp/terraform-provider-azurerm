@@ -20,6 +20,9 @@ IMPROVEMENTS:
 * `azurerm_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_virtual_machine` - support for the `patch_mode` property [GH-9258]
 
+BUG FIXES:
+* `azurerm_cosmosdb_sql_container` - no longer attempts to get throughput settings when cosmos account is serverless [GH-9311]
+
 ## 2.36.0 (November 12, 2020)
 
 UPGRADE NOTES:
