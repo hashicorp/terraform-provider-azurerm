@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_linux_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
 * `azurerm_linux_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_mssql_database` - `sku_name` supports more `DWxxxc` options [GH-9370]
+* `azurerm_postgresql_server` - increase max storage to 16TiB [GH-9373]
 * `azurerm_windows_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
 * `azurerm_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_virtual_machine` - support for the `patch_mode` property [GH-9258]
