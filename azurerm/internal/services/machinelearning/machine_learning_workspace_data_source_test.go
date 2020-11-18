@@ -29,7 +29,7 @@ func TestAccDataSourceAzureRMMachineLearningWorkspace_basic(t *testing.T) {
 }
 
 func (d WorkspaceDataSource) basic(data acceptance.TestData) string {
-	config := WorkspaceResource{}.basic(data)
+	config := WorkspaceResource{}.complete(data)
 	return fmt.Sprintf(`
 %s
 
