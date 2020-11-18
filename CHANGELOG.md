@@ -2,9 +2,9 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_security_center_automation` [GH-8781]
 * **New Resource:** `azurerm_log_analytics_cluster` [GH-8946]
 * **New Resource:** `azurerm_log_analytics_cluster_customer_managed_key` [GH-8946]
+* **New Resource:** `azurerm_security_center_automation` [GH-8781]
 
 IMPROVEMENTS:
 
@@ -21,7 +21,10 @@ IMPROVEMENTS:
 * `azurerm_windows_virtual_machine` - support for the `patch_mode` property [GH-9258]
 
 BUG FIXES:
+
+* Data Source: `azurerm_key_vault_certificate` - fixing a crash when serializing the certificate policy block [GH-9355]
 * `azurerm_cosmosdb_sql_container` - no longer attempts to get throughput settings when cosmos account is serverless [GH-9311]
+* `azurerm_key_vault_certificate` - fixing a crash when serializing the certificate policy block [GH-9355]
 
 ## 2.36.0 (November 12, 2020)
 
