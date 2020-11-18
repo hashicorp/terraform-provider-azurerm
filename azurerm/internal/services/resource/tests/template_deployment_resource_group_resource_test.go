@@ -189,6 +189,32 @@ func TestAccResourceGroupTemplateDeployment_multipleNestedItems(t *testing.T) {
 	})
 }
 
+func TestAccResourceGroupTemplateDeployment_childItems(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_resource_group_template_deployment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckResourceGroupTemplateDeploymentDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceGroupTemplateDeployment_childItemsConfig(data, "first"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: resourceGroupTemplateDeployment_childItemsConfig(data, "second"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckResourceGroupTemplateDeploymentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckResourceGroupTemplateDeploymentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
@@ -549,4 +575,50 @@ resource "azurerm_resource_group_template_deployment" "test" {
 TEMPLATE
 }
 `, data.RandomInteger, data.Locations.Primary, value)
+}
+
+func resourceGroupTemplateDeployment_childItemsConfig(data acceptance.TestData, value string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = %q
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_resource_group_template_deployment" "test" {
+  name                = "acctest"
+  resource_group_name = azurerm_resource_group.test.name
+  deployment_mode     = "Incremental"
+
+  template_content = <<TEMPLATE
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {},
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Network/routeTables/routes",
+      "apiVersion": "2020-06-01",
+      "name": "${azurerm_route_table.test.name}/child-route",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressPrefix": "10.2.0.0/16",
+        "nextHopType": "none"
+      }
+    }
+  ]
+}
+TEMPLATE
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
