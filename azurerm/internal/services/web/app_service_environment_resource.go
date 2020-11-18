@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	InternalLoadBalancingModeWebPublishing web.InternalLoadBalancingMode = "Web, Publishing"
+	InternalLoadBalancingModeWebPublishing web.LoadBalancingMode = "Web, Publishing"
 )
 
 func resourceArmAppServiceEnvironment() *schema.Resource {
@@ -66,11 +66,11 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(web.InternalLoadBalancingModeNone),
+				Default:  string(web.LoadBalancingModeNone),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(web.InternalLoadBalancingModeNone),
-					string(web.InternalLoadBalancingModePublishing),
-					string(web.InternalLoadBalancingModeWeb),
+					string(web.LoadBalancingModeNone),
+					string(web.LoadBalancingModePublishing),
+					string(web.LoadBalancingModeWeb),
 					string(InternalLoadBalancingModeWebPublishing),
 				}, false),
 			},
@@ -193,7 +193,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		AppServiceEnvironment: &web.AppServiceEnvironment{
 			Name:                      utils.String(name),
 			Location:                  utils.String(location),
-			InternalLoadBalancingMode: web.InternalLoadBalancingMode(internalLoadBalancingMode),
+			InternalLoadBalancingMode: web.LoadBalancingMode(internalLoadBalancingMode),
 			FrontEndScaleFactor:       utils.Int32(int32(frontEndScaleFactor)),
 			MultiSize:                 utils.String(convertFromIsolatedSKU(pricingTier)),
 			VirtualNetwork: &web.VirtualNetworkProfile{
@@ -245,7 +245,7 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("internal_load_balancing_mode") {
 		v := d.Get("internal_load_balancing_mode").(string)
-		e.AppServiceEnvironment.InternalLoadBalancingMode = web.InternalLoadBalancingMode(v)
+		e.AppServiceEnvironment.InternalLoadBalancingMode = web.LoadBalancingMode(v)
 	}
 
 	if d.HasChange("front_end_scale_factor") {

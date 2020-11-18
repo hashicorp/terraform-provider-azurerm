@@ -80,7 +80,7 @@ func (client ProviderClient) GetAvailableStacks(ctx context.Context, osTypeSelec
 
 // GetAvailableStacksPreparer prepares the GetAvailableStacks request.
 func (client ProviderClient) GetAvailableStacksPreparer(ctx context.Context, osTypeSelected string) (*http.Request, error) {
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -194,7 +194,7 @@ func (client ProviderClient) GetAvailableStacksOnPremPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -305,7 +305,7 @@ func (client ProviderClient) ListOperations(ctx context.Context) (result CsmOper
 
 // ListOperationsPreparer prepares the ListOperations request.
 func (client ProviderClient) ListOperationsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
