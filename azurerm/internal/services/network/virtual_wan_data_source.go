@@ -98,7 +98,6 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 		} else {
 			d.Set("allow_branch_to_branch_traffic", &b)
 		}
-
 		if dve := *props.DisableVpnEncryption; props.DisableVpnEncryption != nil {
 			d.Set("disable_vpn_encryption", dve)
 		} else {
@@ -108,7 +107,6 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("sku", props.Type)
 		d.Set("virtual_hubs", flattenVirtualWanProperties(props.VirtualHubs))
 		d.Set("vpn_sites", flattenVirtualWanProperties(props.VpnSites))
-
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

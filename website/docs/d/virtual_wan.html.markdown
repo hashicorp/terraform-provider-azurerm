@@ -1,5 +1,5 @@
 ---
-subcategory: "TODO - pick from: Load Balancer|Network"
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_virtual_wan"
 description: |-
