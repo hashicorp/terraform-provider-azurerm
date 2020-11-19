@@ -106,7 +106,6 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 	b := false
 
 	if props := resp.VirtualWanProperties; props != nil {
-		log.Printf("[DEBUG] ETIENNE ETIENNE ETIENNE %+v", props)
 		if abtbt := *props.AllowBranchToBranchTraffic; props.AllowBranchToBranchTraffic != nil {
 			if err := d.Set("allow_branch_to_branch_traffic", abtbt); err != nil {
 				return fmt.Errorf("error setting `allow_branch_to_branch_traffic`: %v", err)
