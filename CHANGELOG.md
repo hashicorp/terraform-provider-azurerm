@@ -16,14 +16,16 @@ IMPROVEMENTS:
 * `azurerm_firewall` - supports for firewall manager policies [GH-8879]
 * `azurerm_kubernetes_cluster` - support for configuring `os_disk_type` within the `default_node_pool` block [GH-9166]
 * `azurerm_kubernetes_node_pool` - support for configuring `os_disk_type` [GH-9166]
-* `azurerm_linux_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
+* `azurerm_linux_virtual_machine` - support for the `extensions_time_budget` property [GH-9257]
 * `azurerm_linux_virtual_machine` - updating the `dedicated_host_id` no longer forces a new resource [GH-9264]
+* `azurerm_linux_virtual_machine_scale_set` - support for the `platform_fault_domain_count`, `disk_iops_read_write`, and `disk_mbps_read_write` properties [GH-9262]
 * `azurerm_kubernetes_cluster` - the block `http_application_routing` within the `addon_profile` block can now be updated/removed [GH-9358]
 * `azurerm_mssql_database` - `sku_name` supports more `DWxxxc` options [GH-9370]
 * `azurerm_postgresql_server` - increase max storage to 16TiB [GH-9373]
-* `azurerm_windows_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
+* `azurerm_windows_virtual_machine` - support for the `extensions_time_budget` property [GH-9257]
 * `azurerm_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_virtual_machine` - support for the `patch_mode` property [GH-9258]
+* `azurerm_windows_virtual_machine_scale_set` - support for the `platform_fault_domain_count`, `disk_iops_read_write`, and `disk_mbps_read_write` properties [GH-9262]
 
 BUG FIXES:
 
