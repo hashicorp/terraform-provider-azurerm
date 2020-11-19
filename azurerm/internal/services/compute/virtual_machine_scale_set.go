@@ -787,6 +787,8 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 					Computed: true,
 				},
 
+
+				// TODO 3.0 - change this to ultra_ssd_disk_iops_read_write
 				"disk_mbps_read_write": {
 					Type:     schema.TypeInt,
 					Optional: true,
