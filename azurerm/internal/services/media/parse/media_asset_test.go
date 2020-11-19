@@ -58,7 +58,7 @@ func TestMediaAssetsId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MediaAssetstId(v.Input)
+		actual, err := MediaAssetsID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
