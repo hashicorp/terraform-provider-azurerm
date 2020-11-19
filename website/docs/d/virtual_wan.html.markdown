@@ -14,7 +14,7 @@ Use this data source to access information about an existing Virtual Wan.
 
 ```hcl
 data "azurerm_virtual_wan" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 
