@@ -123,7 +123,7 @@ func resourceArmVpnSite() *schema.Resource {
 									"asn": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 1<<32-1),
+										ValidateFunc: validation.IntAtLeast(1),
 									},
 									"peering_address": {
 										Type:         schema.TypeString,
