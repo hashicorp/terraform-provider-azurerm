@@ -33,7 +33,6 @@ func dataSourceArmVirtualWan() *schema.Resource {
 
 			"allow_branch_to_branch_traffic": {
 				Type:     schema.TypeBool,
-				Optional: true,
 				Computed: true,
 			},
 
