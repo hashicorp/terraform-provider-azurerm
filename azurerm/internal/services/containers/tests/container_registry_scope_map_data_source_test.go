@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMContainerRegistryScopeMap_basic(t *testing.T) {
+func TestAccDataSourceAzureRMContainerRegistryScopeMap_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_registry_scope_map", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -17,27 +17,30 @@ func TestAccDataSourceAzureRMContainerRegistryScopeMap_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMContainerRegistryScopeMap_basic(data),
+				Config: testAccDataSourceAzureRMContainerRegistryScopeMap_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "A test scope map"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "container_registry_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "actions"),
+					resource.TestCheckResourceAttr(data.ResourceName, "actions.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "actions.0", "repositories/testrepo/content/read"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceAzureRMContainerRegistryScopeMap_basic(data acceptance.TestData) string {
+func testAccDataSourceAzureRMContainerRegistryScopeMap_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_container_registry_scope_map" "test" {
 	name                = "testscopemap%d"
+	description = "A test scope map"
 	resource_group_name = azurerm_resource_group.test.name
 	container_registry_name = azurerm_container_registry.test.name
-	actions                 = ["repo/content/read"]
+	actions                 = ["repositories/testrepo/content/read"]
   }
 
 data "azurerm_container_registry_scope_map" "test" {
@@ -45,5 +48,5 @@ data "azurerm_container_registry_scope_map" "test" {
 	container_registry_name                = azurerm_container_registry.test.name
 	resource_group_name = azurerm_container_registry.test.resource_group_name
 }
-	`, testAccAzureRMContainerRegistry_basicManaged(data, "Basic"), data.RandomInteger)
+	`, testAccAzureRMContainerRegistry_basicManaged(data, "Premium"), data.RandomInteger)
 }

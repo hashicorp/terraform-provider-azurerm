@@ -53,7 +53,7 @@ func resourceArmContainerRegistryToken() *schema.Resource {
 			},
 			"status": {
 				Type:     schema.TypeString,
-				Required: false,
+				Optional: true,
 				Default:  containerregistry.TokenStatusEnabled,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerregistry.TokenStatusDisabled),
@@ -172,8 +172,8 @@ func resourceArmContainerRegistryTokenRead(d *schema.ResourceData, meta interfac
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	containerRegistryName := id.Path["container_registry_name"]
-	name := id.Path["name"]
+	containerRegistryName := id.Path["registries"]
+	name := id.Path["tokens"]
 
 	resp, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
 
@@ -188,6 +188,7 @@ func resourceArmContainerRegistryTokenRead(d *schema.ResourceData, meta interfac
 	}
 
 	d.Set("name", resp.Name)
+	d.Set("container_registry_name", containerRegistryName)
 	d.Set("status", resp.Status)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("scope_map_id", resp.ScopeMapID)
@@ -205,8 +206,8 @@ func resourceArmContainerRegistryTokenDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	containerRegistryName := id.Path["container_registry_name"]
-	name := id.Path["name"]
+	containerRegistryName := id.Path["registries"]
+	name := id.Path["tokens"]
 
 	future, err := client.Delete(ctx, resourceGroup, containerRegistryName, name)
 	if err != nil {

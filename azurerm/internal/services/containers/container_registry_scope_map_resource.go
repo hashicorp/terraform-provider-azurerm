@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2019-06-01-preview/containerregistry"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -40,7 +39,8 @@ func resourceArmContainerRegistryScopeMap() *schema.Resource {
 				ForceNew: true,
 			},
 			"description": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
 			"container_registry_name": {
@@ -56,10 +56,6 @@ func resourceArmContainerRegistryScopeMap() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				ValidateFunc: validation.StringInSlice([]string{
-					string(containerregistry.TokenStatusDisabled),
-					string(containerregistry.TokenStatusEnabled),
-				}, false),
 			},
 		},
 	}
@@ -160,7 +156,7 @@ func resourceArmContainerRegistryScopeMapUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*read.ID)
 
-	return resourceArmContainerRegistryTokenRead(d, meta)
+	return resourceArmContainerRegistryScopeMapRead(d, meta)
 }
 
 func resourceArmContainerRegistryScopeMapRead(d *schema.ResourceData, meta interface{}) error {
@@ -173,8 +169,8 @@ func resourceArmContainerRegistryScopeMapRead(d *schema.ResourceData, meta inter
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	containerRegistryName := id.Path["container_registry_name"]
-	name := id.Path["name"]
+	containerRegistryName := id.Path["registries"]
+	name := id.Path["scopeMaps"]
 
 	resp, err := client.Get(ctx, resourceGroup, containerRegistryName, name)
 
@@ -190,6 +186,8 @@ func resourceArmContainerRegistryScopeMapRead(d *schema.ResourceData, meta inter
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("container_registry_name", containerRegistryName)
+	d.Set("description", resp.Description)
 	d.Set("actions", utils.FlattenStringSlice(resp.Actions))
 
 	return nil
@@ -205,8 +203,8 @@ func resourceArmContainerRegistryScopeMapDelete(d *schema.ResourceData, meta int
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	containerRegistryName := id.Path["container_registry_name"]
-	name := id.Path["name"]
+	containerRegistryName := id.Path["registries"]
+	name := id.Path["scopeMaps"]
 
 	future, err := client.Delete(ctx, resourceGroup, containerRegistryName, name)
 	if err != nil {

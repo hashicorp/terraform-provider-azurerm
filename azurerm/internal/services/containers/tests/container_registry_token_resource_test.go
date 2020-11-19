@@ -22,11 +22,7 @@ func TestAccAzureRMContainerRegistryToken_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMContainerRegistryToken_basic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "container_registry_name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_map_id", "_repositories_pull"),
 				),
 			},
 			data.ImportStep(),
@@ -40,16 +36,12 @@ func TestAccAzureRMContainerRegistryToken_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		CheckDestroy: testCheckAzureRMContainerRegistryTokenDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMContainerRegistryToken_basic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "container_registry_name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_map_id", "_repositories_pull"),
 				),
 			},
 			{
@@ -66,16 +58,12 @@ func TestAccAzureRMContainerRegistryToken_complete(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		CheckDestroy: testCheckAzureRMContainerRegistryTokenDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistryToken_complete(data, "enabled", "_repositories_pull"),
+				Config: testAccAzureRMContainerRegistryToken_complete(data, "enabled"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "container_registry_name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_map_id", "_repositories_pull"),
 				),
 			},
 			data.ImportStep(),
@@ -89,26 +77,18 @@ func TestAccAzureRMContainerRegistryToken_completeUpdated(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		CheckDestroy: testCheckAzureRMContainerRegistryTokenDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMContainerRegistryToken_complete(data, "enabled", "_repositories_pull"),
+				Config: testAccAzureRMContainerRegistryToken_complete(data, "enabled"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "container_registry_name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "enabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_map_id", "_repositories_pull"),
 				),
 			},
 			{
-				Config: testAccAzureRMContainerRegistryToken_complete(data, "disabled", "_repositories_push"),
+				Config: testAccAzureRMContainerRegistryToken_complete(data, "disabled"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "container_registry_name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "status", "disabled"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_map_id", "_repositories_push"),
 				),
 			},
 		},
@@ -122,7 +102,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -130,18 +110,21 @@ resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Basic"
+  sku                 = "Premium"
+}
 
-  # make sure network_rule_set is empty for basic SKU
-  # premium SKU will automatically populate network_rule_set.default_action to allow
-  network_rule_set = []
+# use system wide scope map for tests
+data "azurerm_container_registry_scope_map" "pull_repos" {
+	name = "_repositories_pull"
+	container_registry_name = azurerm_container_registry.test.name
+	resource_group_name = azurerm_container_registry.test.resource_group_name
 }
 
 resource "azurerm_container_registry_token" "test" {
 	name = "testtoken%d"
 	resource_group_name = azurerm_resource_group.test.name
 	container_registry_name = azurerm_container_registry.test.name
-	scope_map_id = "_repositories_pull"
+	scope_map_id = data.azurerm_container_registry_scope_map.pull_repos.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -152,22 +135,22 @@ func testAccAzureRMContainerRegistryToken_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_container_registry_token" "import" {
-  name                = azurerm_container_registry.test.name
-  resource_group_name = azurerm_container_registry.test.resource_group_name
-  container_registry_name = azurerm_container_registry.test.name
-  scope_map_id = "_repositories_pull"
+  name                = azurerm_container_registry_token.test.name
+  resource_group_name = azurerm_container_registry_token.test.resource_group_name
+  container_registry_name = azurerm_container_registry_token.test.container_registry_name
+  scope_map_id = azurerm_container_registry_token.test.scope_map_id
 }
 `, template)
 }
 
-func testAccAzureRMContainerRegistryToken_complete(data acceptance.TestData, status string, scopeMapId string) string {
+func testAccAzureRMContainerRegistryToken_complete(data acceptance.TestData, status string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
+  name     = "acctestRG-acr-%d"
   location = "%s"
 }
 
@@ -176,21 +159,28 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   admin_enabled       = false
-  sku                 = "Basic"
+  sku                 = "Premium"
 
   tags = {
     environment = "production"
   }
 }
 
+# use system wide scope map for tests
+data "azurerm_container_registry_scope_map" "pull_repos" {
+	name = "_repositories_pull"
+	container_registry_name = azurerm_container_registry.test.name
+	resource_group_name = azurerm_container_registry.test.resource_group_name
+}
+
 resource "azurerm_container_registry_token" "test" {
 	name = "testtoken%d"
 	resource_group_name = azurerm_resource_group.test.name
 	container_registry_name = azurerm_container_registry.test.name
-	scope_map_id = "%s"
+	scope_map_id = data.azurerm_container_registry_scope_map.pull_repos.id
 	status = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, scopeMapId, status)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status)
 }
 
 func testCheckAzureRMContainerRegistryTokenDestroy(s *terraform.State) error {

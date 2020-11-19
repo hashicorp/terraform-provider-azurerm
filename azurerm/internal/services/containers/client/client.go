@@ -31,7 +31,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&tokensClient.Client, o.ResourceManagerAuthorizer)
 
 	scopeMapsClient := previewcontainerregistry.NewScopeMapsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&tokensClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&scopeMapsClient.Client, o.ResourceManagerAuthorizer)
 
 	webhooksClient := containerregistry.NewWebhooksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&webhooksClient.Client, o.ResourceManagerAuthorizer)

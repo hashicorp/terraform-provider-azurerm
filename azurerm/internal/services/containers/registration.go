@@ -23,6 +23,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_kubernetes_service_versions":  dataSourceArmKubernetesServiceVersions(),
 		"azurerm_container_registry":           dataSourceArmContainerRegistry(),
+		"azurerm_container_registry_token":     dataSourceArmContainerRegistryToken(),
+		"azurerm_container_registry_scope_map": dataSourceArmContainerRegistryScopeMap(),
 		"azurerm_kubernetes_cluster":           dataSourceArmKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool": dataSourceKubernetesClusterNodePool(),
 	}
@@ -34,6 +36,8 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_container_group":              resourceArmContainerGroup(),
 		"azurerm_container_registry_webhook":   resourceArmContainerRegistryWebhook(),
 		"azurerm_container_registry":           resourceArmContainerRegistry(),
+		"azurerm_container_registry_token":     resourceArmContainerRegistryToken(),
+		"azurerm_container_registry_scope_map": resourceArmContainerRegistryScopeMap(),
 		"azurerm_kubernetes_cluster":           resourceArmKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool": resourceArmKubernetesClusterNodePool(),
 	}
