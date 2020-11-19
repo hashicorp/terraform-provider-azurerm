@@ -57,6 +57,12 @@ func dataSourceArmVirtualWan() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+			"vpn_site_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{
+					Type: schema.TypeString
+				},
 			},
 			"location": azure.SchemaLocationForDataSource(),
 
