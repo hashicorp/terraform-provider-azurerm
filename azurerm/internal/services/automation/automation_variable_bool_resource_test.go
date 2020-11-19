@@ -1,4 +1,4 @@
-package tests
+package automation_test
 
 import (
 	"fmt"
@@ -9,19 +9,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMAutomationVariableDateTime_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
+func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableDateTime_basic(data),
+				Config: testAccAzureRMAutomationVariableBool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableDateTimeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "2019-04-24T21:40:54.074Z"),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -29,20 +29,20 @@ func TestAccAzureRMAutomationVariableDateTime_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableDateTime_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
+func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableDateTime_complete(data),
+				Config: testAccAzureRMAutomationVariableBool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableDateTimeExists(data.ResourceName),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "This variable is created by Terraform acceptance test."),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "2019-04-20T08:40:04.02Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -50,49 +50,49 @@ func TestAccAzureRMAutomationVariableDateTime_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableDateTime_basicCompleteUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_variable_datetime", "test")
+func TestAccAzureRMAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableDateTimeDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableDateTime_basic(data),
+				Config: testAccAzureRMAutomationVariableBool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableDateTimeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "2019-04-24T21:40:54.074Z"),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutomationVariableDateTime_complete(data),
+				Config: testAccAzureRMAutomationVariableBool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableDateTimeExists(data.ResourceName),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "This variable is created by Terraform acceptance test."),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "2019-04-20T08:40:04.02Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "true"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutomationVariableDateTime_basic(data),
+				Config: testAccAzureRMAutomationVariableBool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableDateTimeExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "2019-04-24T21:40:54.074Z"),
+					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMAutomationVariableDateTimeExists(resourceName string) resource.TestCheckFunc {
-	return testCheckAzureRMAutomationVariableExists(resourceName, "Datetime")
+func testCheckAzureRMAutomationVariableBoolExists(resourceName string) resource.TestCheckFunc {
+	return testCheckAzureRMAutomationVariableExists(resourceName, "Bool")
 }
 
-func testCheckAzureRMAutomationVariableDateTimeDestroy(s *terraform.State) error {
-	return testCheckAzureRMAutomationVariableDestroy(s, "Datetime")
+func testCheckAzureRMAutomationVariableBoolDestroy(s *terraform.State) error {
+	return testCheckAzureRMAutomationVariableDestroy(s, "Bool")
 }
 
-func testAccAzureRMAutomationVariableDateTime_basic(data acceptance.TestData) string {
+func testAccAzureRMAutomationVariableBool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -110,16 +110,16 @@ resource "azurerm_automation_account" "test" {
   sku_name            = "Basic"
 }
 
-resource "azurerm_automation_variable_datetime" "test" {
+resource "azurerm_automation_variable_bool" "test" {
   name                    = "acctestAutoVar-%d"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
-  value                   = "2019-04-24T21:40:54.074Z"
+  value                   = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationVariableDateTime_complete(data acceptance.TestData) string {
+func testAccAzureRMAutomationVariableBool_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -137,12 +137,12 @@ resource "azurerm_automation_account" "test" {
   sku_name            = "Basic"
 }
 
-resource "azurerm_automation_variable_datetime" "test" {
+resource "azurerm_automation_variable_bool" "test" {
   name                    = "acctestAutoVar-%d"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
   description             = "This variable is created by Terraform acceptance test."
-  value                   = "2019-04-20T08:40:04.02Z"
+  value                   = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

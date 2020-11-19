@@ -1,12 +1,10 @@
-package tests
+package automation_test
 
 import (
 	"fmt"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -68,7 +66,7 @@ func TestParseAzureRmAutomationVariableValue(t *testing.T) {
 			if tc.IsNil {
 				value = nil
 			}
-			actual, err := automation.ParseAzureAutomationVariableValue(tc.Resource, value)
+			actual, err := ParseAzureAutomationVariableValue(tc.Resource, value)
 			if tc.HasError && err == nil {
 				t.Fatalf("Expect parseAzureAutomationVariableValue to return error for resource %q and value %s", tc.Resource, tc.Value)
 			}

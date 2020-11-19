@@ -1,4 +1,4 @@
-package tests
+package automation_test
 
 import (
 	"fmt"
@@ -9,19 +9,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
+func TestAccAzureRMAutomationVariableInt_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableIntDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableBool_basic(data),
+				Config: testAccAzureRMAutomationVariableInt_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
+					testCheckAzureRMAutomationVariableIntExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "1234"),
 				),
 			},
 			data.ImportStep(),
@@ -29,20 +29,20 @@ func TestAccAzureRMAutomationVariableBool_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
+func TestAccAzureRMAutomationVariableInt_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableIntDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableBool_complete(data),
+				Config: testAccAzureRMAutomationVariableInt_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					testCheckAzureRMAutomationVariableIntExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "This variable is created by Terraform acceptance test."),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "12345"),
 				),
 			},
 			data.ImportStep(),
@@ -50,49 +50,49 @@ func TestAccAzureRMAutomationVariableBool_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationVariableBool_basicCompleteUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_variable_bool", "test")
+func TestAccAzureRMAutomationVariableInt_basicCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_variable_int", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationVariableBoolDestroy,
+		CheckDestroy: testCheckAzureRMAutomationVariableIntDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationVariableBool_basic(data),
+				Config: testAccAzureRMAutomationVariableInt_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
+					testCheckAzureRMAutomationVariableIntExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "1234"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutomationVariableBool_complete(data),
+				Config: testAccAzureRMAutomationVariableInt_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
+					testCheckAzureRMAutomationVariableIntExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "This variable is created by Terraform acceptance test."),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "12345"),
 				),
 			},
 			{
-				Config: testAccAzureRMAutomationVariableBool_basic(data),
+				Config: testAccAzureRMAutomationVariableInt_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationVariableBoolExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "false"),
+					testCheckAzureRMAutomationVariableIntExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "1234"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMAutomationVariableBoolExists(resourceName string) resource.TestCheckFunc {
-	return testCheckAzureRMAutomationVariableExists(resourceName, "Bool")
+func testCheckAzureRMAutomationVariableIntExists(resourceName string) resource.TestCheckFunc {
+	return testCheckAzureRMAutomationVariableExists(resourceName, "Int")
 }
 
-func testCheckAzureRMAutomationVariableBoolDestroy(s *terraform.State) error {
-	return testCheckAzureRMAutomationVariableDestroy(s, "Bool")
+func testCheckAzureRMAutomationVariableIntDestroy(s *terraform.State) error {
+	return testCheckAzureRMAutomationVariableDestroy(s, "Int")
 }
 
-func testAccAzureRMAutomationVariableBool_basic(data acceptance.TestData) string {
+func testAccAzureRMAutomationVariableInt_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -110,16 +110,16 @@ resource "azurerm_automation_account" "test" {
   sku_name            = "Basic"
 }
 
-resource "azurerm_automation_variable_bool" "test" {
+resource "azurerm_automation_variable_int" "test" {
   name                    = "acctestAutoVar-%d"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
-  value                   = false
+  value                   = 1234
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationVariableBool_complete(data acceptance.TestData) string {
+func testAccAzureRMAutomationVariableInt_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -137,12 +137,12 @@ resource "azurerm_automation_account" "test" {
   sku_name            = "Basic"
 }
 
-resource "azurerm_automation_variable_bool" "test" {
+resource "azurerm_automation_variable_int" "test" {
   name                    = "acctestAutoVar-%d"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
   description             = "This variable is created by Terraform acceptance test."
-  value                   = true
+  value                   = 12345
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

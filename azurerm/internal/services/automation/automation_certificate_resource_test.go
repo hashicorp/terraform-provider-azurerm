@@ -1,4 +1,4 @@
-package tests
+package automation_test
 
 import (
 	"encoding/base64"
