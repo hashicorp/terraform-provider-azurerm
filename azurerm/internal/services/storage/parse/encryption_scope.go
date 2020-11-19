@@ -16,7 +16,7 @@ type EncryptionScopeId struct {
 // the subscriptionId isn't used here, this is just to comply with the interface for now..
 func (id EncryptionScopeId) ID(_ string) string {
 	fmtString := "%s/encryptionScopes/%s"
-	accountId := NewAccountId(id.SubscriptionId, id.ResourceGroup, id.Name).ID("")
+	accountId := NewAccountId(id.SubscriptionId, id.ResourceGroup, id.AccountName).ID("")
 	return fmt.Sprintf(fmtString, accountId, id.Name)
 }
 
@@ -36,7 +36,8 @@ func EncryptionScopeID(input string) (*EncryptionScopeId, error) {
 	}
 
 	es := EncryptionScopeId{
-		ResourceGroup: id.ResourceGroup,
+		ResourceGroup:  id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
 	}
 
 	if es.AccountName, err = id.PopSegment("storageAccounts"); err != nil {

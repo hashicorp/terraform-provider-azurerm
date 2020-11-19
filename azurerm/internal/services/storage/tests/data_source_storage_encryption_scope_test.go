@@ -13,12 +13,10 @@ type StorageEncryptionScopeDataSourceTests struct{}
 
 func TestAccDataSourceStorageEncryptionScope_keyVaultKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_encryption_scope", "test")
-	r := StorageEncryptionScopeResourceTests{}
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: StorageEncryptionScopeDataSourceTests{}.keyVaultKey(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.KeyVault"),
 			),
 		},
@@ -27,12 +25,10 @@ func TestAccDataSourceStorageEncryptionScope_keyVaultKey(t *testing.T) {
 
 func TestAccDataSourceStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_encryption_scope", "test")
-	r := StorageEncryptionScopeResourceTests{}
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: StorageEncryptionScopeDataSourceTests{}.microsoftManagedKey(data),
 			Check: resource.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source").HasValue("Microsoft.Storage"),
 				check.That(data.ResourceName).Key("key_vault_key_id").IsEmpty(),
 			),

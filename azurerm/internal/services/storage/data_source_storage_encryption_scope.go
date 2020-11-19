@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -54,25 +53,22 @@ func dataSourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interf
 	defer cancel()
 
 	name := d.Get("name").(string)
-	storageAccountID, err := parse.AccountID(d.Get("storage_account_id").(string))
+	accountId, err := parse.AccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, name)
+	resp, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Storage Encryption Scope %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q) was not found", name, accountId.Name, accountId.ResourceGroup)
 		}
-		return fmt.Errorf("reading Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, storageAccountID.Name, storageAccountID.ResourceGroup, err)
+
+		return fmt.Errorf("retrieving Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
 
-	d.SetId(parse.NewEncryptionScopeId(*storageAccountID, name).ID(subscriptionId))
+	d.SetId(parse.NewEncryptionScopeId(*accountId, name).ID(subscriptionId))
 
-	d.Set("name", resp.Name)
-	d.Set("storage_account_id", storageAccountID.ID(subscriptionId))
 	if props := resp.EncryptionScopeProperties; props != nil {
 		d.Set("source", flattenEncryptionScopeSource(props.Source))
 		var keyId string

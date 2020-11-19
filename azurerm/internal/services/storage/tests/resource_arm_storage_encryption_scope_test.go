@@ -33,7 +33,7 @@ func TestAccStorageEncryptionScope_keyVaultKey(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageEncryptionScope_keyVaultKeyUpdate(t *testing.T) {
+func TestAccStorageEncryptionScope_keyVaultKeyUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 	r := StorageEncryptionScopeResourceTests{}
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -56,7 +56,7 @@ func TestAccAzureRMStorageEncryptionScope_keyVaultKeyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageEncryptionScope_keyVaultKeyToMicrosoftManagedKey(t *testing.T) {
+func TestAccStorageEncryptionScope_keyVaultKeyToMicrosoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 	r := StorageEncryptionScopeResourceTests{}
 	data.ResourceTest(t, r, []resource.TestStep{
@@ -79,7 +79,7 @@ func TestAccAzureRMStorageEncryptionScope_keyVaultKeyToMicrosoftManagedKey(t *te
 	})
 }
 
-func TestAccAzureRMStorageEncryptionScope_microsoftManagedKeyToKeyVaultManagedKey(t *testing.T) {
+func TestAccStorageEncryptionScope_microsoftManagedKeyToKeyVaultManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
 	r := StorageEncryptionScopeResourceTests{}
@@ -103,7 +103,7 @@ func TestAccAzureRMStorageEncryptionScope_microsoftManagedKeyToKeyVaultManagedKe
 	})
 }
 
-func TestAccAzureRMStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
+func TestAccStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
 	r := StorageEncryptionScopeResourceTests{}
@@ -119,7 +119,7 @@ func TestAccAzureRMStorageEncryptionScope_microsoftManagedKey(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageEncryptionScope_requiresImport(t *testing.T) {
+func TestAccStorageEncryptionScope_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_encryption_scope", "test")
 
 	r := StorageEncryptionScopeResourceTests{}
@@ -136,7 +136,7 @@ func TestAccAzureRMStorageEncryptionScope_requiresImport(t *testing.T) {
 }
 
 func (t StorageEncryptionScopeResourceTests) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.EncryptionScopeID(state.ID)
+	id, err := parse.EncryptionScopeID(state.Attributes["id"])
 	if err != nil {
 		return nil, err
 	}

@@ -156,7 +156,7 @@ func resourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	accountId := parse.NewAccountId(id.SubscriptionId, id.ResourceGroup, id.Name)
+	accountId := parse.NewAccountId(id.SubscriptionId, id.ResourceGroup, id.AccountName)
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
