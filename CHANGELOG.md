@@ -3,10 +3,12 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_servicebus_subscription` [GH-9272]
+* **New Data Source:** `azurerm_storage_encryption_scope` [GH-8894]
 * **New Resource:** `azurerm_log_analytics_cluster` [GH-8946]
 * **New Resource:** `azurerm_log_analytics_cluster_customer_managed_key` [GH-8946]
 * **New Resource:** `azurerm_security_center_automation` [GH-8781]
 * **New Resource:** `azurerm_storage_data_lake_gen2_path` [GH-7521]
+* **New Resource:** `azurerm_storage_encryption_scope` [GH-8894]
 
 IMPROVEMENTS:
 
