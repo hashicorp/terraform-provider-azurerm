@@ -20,6 +20,7 @@ IMPROVEMENTS:
 * `azurerm_api_management_api_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip` and `verbosity` attributes [GH-9172]
 * `azurerm_api_management_api_diagnostic` - support the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-9172]
 * `azurerm_container_group` - support for secret container volumes with the `container.#.volume.#.secret` attribute [GH-9117]
+* `azurerm_cosmosdb_account` - support for the `public_network_access_enabled` property [GH-9236]
 * `azurerm_cosmosdb_cassandra_keyspace` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
 * `azurerm_cosmosdb_gremlin_database` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
 * `azurerm_cosmosdb_mongo_database` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
