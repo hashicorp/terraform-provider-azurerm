@@ -248,7 +248,7 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 		}
 
 		if gwc.UseLocalAzureIPAddress != nil {
-			d.Set("use_local_azure_ip_address", gwc.UseLocalAzureIPAddress)
+			d.Set("local_azure_ip_address_enabled", gwc.UseLocalAzureIPAddress)
 		}
 
 		d.Set("resource_guid", gwc.ResourceGUID)

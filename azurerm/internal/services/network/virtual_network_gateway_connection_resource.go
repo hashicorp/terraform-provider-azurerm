@@ -400,7 +400,7 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 	}
 
 	if conn.UseLocalAzureIPAddress != nil {
-		d.Set("use_local_azure_ip_address", conn.UseLocalAzureIPAddress)
+		d.Set("local_azure_ip_address_enabled", conn.UseLocalAzureIPAddress)
 	}
 
 	if conn.LocalNetworkGateway2 != nil {
@@ -526,7 +526,7 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		}
 	}
 
-	if v, ok := d.GetOk("use_local_azure_ip_address"); ok {
+	if v, ok := d.GetOk("local_azure_ip_address_enabled"); ok {
 		props.UseLocalAzureIPAddress = utils.Bool(v.(bool))
 	}
 

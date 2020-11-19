@@ -873,7 +873,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   name                       = "acctestgwc-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  use_local_azure_ip_address = true
+  local_azure_ip_address_enabled = true
 
   type                       = "IPsec"
   virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id
@@ -942,7 +942,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   name                       = "acctestgwc-%d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
-  use_local_azure_ip_address = false
+  local_azure_ip_address_enabled = false
 
   type                       = "IPsec"
   virtual_network_gateway_id = azurerm_virtual_network_gateway.test.id

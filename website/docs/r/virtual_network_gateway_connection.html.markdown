@@ -237,7 +237,7 @@ The following arguments are supported:
     is `Vnet2Vnet`). The peer Virtual Network Gateway can be in the same or
     in a different subscription.
 
-* `use_local_azure_ip_address` - (Optional) Use private local Azure IP for the connection. Changing this forces a new resource to be created.
+* `local_azure_ip_address_enabled` - (Optional) Use private local Azure IP for the connection. Changing this forces a new resource to be created.
 
 * `local_network_gateway_id` - (Optional) The ID of the local network gateway
     when creating Site-to-Site connection (i.e. when `type` is `IPsec`).
