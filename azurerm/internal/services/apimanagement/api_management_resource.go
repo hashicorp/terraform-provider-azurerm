@@ -20,7 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -359,7 +358,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Optional:         true,
 							Computed:         true,
 							ConflictsWith:    []string{"policy.0.xml_link"},
-							DiffSuppressFunc: suppress.XmlDiff,
+							DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
 						},
 
 						"xml_link": {
@@ -1345,7 +1344,7 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlContent != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				Format: apimanagement.XML,
+				Format: apimanagement.Rawxml,
 				Value:  utils.String(xmlContent),
 			},
 		}, nil
