@@ -114,7 +114,7 @@ func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 
 func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	if sbu.ContentMD5 != "" {
-		return fmt.Errorf("`content_md5` cannot be specified if for empty blobs")
+		return fmt.Errorf("`content_md5` cannot be specified for empty Block blobs")
 	}
 
 	input := blobs.PutBlockBlobInput{
@@ -153,8 +153,10 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 
 	input := blobs.PutBlockBlobInput{
 		ContentType: utils.String(sbu.ContentType),
-		ContentMD5:  utils.String(sbu.ContentMD5),
 		MetaData:    sbu.MetaData,
+	}
+	if sbu.ContentMD5 != "" {
+		input.ContentMD5 = utils.String(sbu.ContentMD5)
 	}
 	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
 		return fmt.Errorf("Error PutBlockBlobFromFile: %s", err)
@@ -365,7 +367,7 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 func convertHexToBase64Encoding(str string) (string, error) {
 	data, err := hex.DecodeString(str)
 	if err != nil {
-		return "", fmt.Errorf("%s", err)
+		return "", fmt.Errorf("converting %q from Hex to Base64 Encoding: %+v", str, err)
 	}
 
 	return base64.StdEncoding.EncodeToString(data), nil
@@ -374,7 +376,7 @@ func convertHexToBase64Encoding(str string) (string, error) {
 func convertBase64ToHexEncoding(str string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		return "", fmt.Errorf("%s", err)
+		return "", fmt.Errorf("converting %q from Base64 to Hex Encoding: %+v", str, err)
 	}
 
 	return hex.EncodeToString(data), nil

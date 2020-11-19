@@ -252,18 +252,17 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("content_type") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
 		// `content_md5` is `ForceNew` but must be included in the `SetPropertiesInput` update payload or it will be zeroed on the blob.
-		contentMD5 := d.Get("content_md5").(string)
-		if contentMD5 != "" {
+		input := blobs.SetPropertiesInput{
+			ContentType: utils.String(d.Get("content_type").(string)),
+		}
+
+		if contentMD5 := d.Get("content_md5").(string); contentMD5 != "" {
 			data, err := convertHexToBase64Encoding(contentMD5)
 			if err != nil {
 				return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
 			}
-			contentMD5 = data
-		}
 
-		input := blobs.SetPropertiesInput{
-			ContentType: utils.String(d.Get("content_type").(string)),
-			ContentMD5:  utils.String(contentMD5),
+			input.ContentMD5 = utils.String(data)
 		}
 
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
@@ -333,14 +332,14 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("content_type", props.ContentType)
 
 	// Set the ContentMD5 value to md5 hash in hex
+	contentMD5 := ""
 	if props.ContentMD5 != "" {
-		contentMD5, err := convertBase64ToHexEncoding(props.ContentMD5)
+		contentMD5, err = convertBase64ToHexEncoding(props.ContentMD5)
 		if err != nil {
 			return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
 		}
-
-		d.Set("content_md5", contentMD5)
 	}
+	d.Set("content_md5", contentMD5)
 
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 	d.Set("url", d.Id())
