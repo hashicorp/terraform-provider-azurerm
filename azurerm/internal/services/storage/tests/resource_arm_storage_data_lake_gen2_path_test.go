@@ -223,6 +223,12 @@ func testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_role_assignment" "storage_blob_owner" {
+  role_definition_name = "Storage Blob Data Owner"
+  scope                = azurerm_resource_group.test.id
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
 resource "azurerm_storage_data_lake_gen2_path" "test" {
   storage_account_id = azurerm_storage_account.test.id
   filesystem_name    = azurerm_storage_data_lake_gen2_filesystem.test.name
@@ -247,6 +253,12 @@ func testAccAzureRMStorageDataLakeGen2Path_withSimpleACLUpdated(data acceptance.
 	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_role_assignment" "storage_blob_owner" {
+  role_definition_name = "Storage Blob Data Owner"
+  scope                = azurerm_resource_group.test.id
+  principal_id         = data.azurerm_client_config.current.object_id
+}
 
 resource "azurerm_storage_data_lake_gen2_path" "test" {
   storage_account_id = azurerm_storage_account.test.id
@@ -342,6 +354,12 @@ func testAccAzureRMStorageDataLakeGen2Path_withOwner(data acceptance.TestData) s
 	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_role_assignment" "storage_blob_owner" {
+  role_definition_name = "Storage Blob Data Owner"
+  scope                = azurerm_resource_group.test.id
+  principal_id         = data.azurerm_client_config.current.object_id
+}
 
 resource "azuread_application" "test" {
   name = "acctestspa%[2]d"
