@@ -36,17 +36,17 @@ func testAccDataSourceAzureRMContainerRegistryScopeMap_complete(data acceptance.
 %s
 
 resource "azurerm_container_registry_scope_map" "test" {
-	name                    = "testscopemap%d"
-	description             = "A test scope map"
-	resource_group_name     = azurerm_resource_group.test.name
-	container_registry_name = azurerm_container_registry.test.name
-	actions                 = ["repositories/testrepo/content/read"]
-  }
+  name                    = "testscopemap%d"
+  description             = "A test scope map"
+  resource_group_name     = azurerm_resource_group.test.name
+  container_registry_name = azurerm_container_registry.test.name
+  actions                 = ["repositories/testrepo/content/read"]
+}
 
 data "azurerm_container_registry_scope_map" "test" {
-	name                    = azurerm_container_registry_scope_map.test.name
-	container_registry_name = azurerm_container_registry.test.name
-	resource_group_name     = azurerm_container_registry.test.resource_group_name
+  name                    = azurerm_container_registry_scope_map.test.name
+  container_registry_name = azurerm_container_registry.test.name
+  resource_group_name     = azurerm_container_registry.test.resource_group_name
 }
 	`, testAccAzureRMContainerRegistry_basicManaged(data, "Premium"), data.RandomInteger)
 }

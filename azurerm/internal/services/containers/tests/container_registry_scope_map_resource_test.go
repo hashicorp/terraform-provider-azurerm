@@ -142,10 +142,10 @@ func testAccAzureRMContainerRegistryScopeMap_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_container_registry_scope_map" "import" {
-  name                = azurerm_container_registry_scope_map.test.name
-  resource_group_name = azurerm_container_registry_scope_map.test.resource_group_name
+  name                    = azurerm_container_registry_scope_map.test.name
+  resource_group_name     = azurerm_container_registry_scope_map.test.resource_group_name
   container_registry_name = azurerm_container_registry_scope_map.test.container_registry_name
-  actions = azurerm_container_registry_scope_map.test.actions
+  actions                 = azurerm_container_registry_scope_map.test.actions
 }
 `, template)
 }
