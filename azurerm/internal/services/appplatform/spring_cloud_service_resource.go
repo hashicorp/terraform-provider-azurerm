@@ -111,22 +111,6 @@ func resourceArmSpringCloudService() *schema.Resource {
 							Computed: true,
 							ForceNew: true,
 						},
-
-						"outbound_ip": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"public_ips": {
-										Type:     schema.TypeList,
-										Computed: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
 					},
 				},
 			},
@@ -220,6 +204,22 @@ func resourceArmSpringCloudService() *schema.Resource {
 						"instrumentation_key": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+					},
+				},
+			},
+
+			"outbound_ip": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"public_ips": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -395,6 +395,11 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 		}
 		if err := d.Set("network", flattenArmSpringCloudNetwork(resp.Properties.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `network`: %+v", err)
+		}
+		if resp.Properties.NetworkProfile != nil {
+			if err := d.Set("outbound_ip", flattenArmSpringCloudNetworkOutboundIPs(resp.Properties.NetworkProfile.OutboundIPs)); err != nil {
+				return fmt.Errorf("setting `outbound_ip`: %+v", err)
+			}
 		}
 		if resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
 			if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
@@ -821,7 +826,6 @@ func flattenArmSpringCloudNetwork(input *appplatform.NetworkProfile) []interface
 			"cidr_ranges":                            cidrRanges,
 			"app_network_resource_group":             appNetworkResourceGroup,
 			"service_runtime_network_resource_group": serviceRuntimeNetworkResourceGroup,
-			"outbound_ip":                            flattenArmSpringCloudNetworkOutboundIPs(input.OutboundIPs),
 		},
 	}
 }
