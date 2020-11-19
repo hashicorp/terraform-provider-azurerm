@@ -86,7 +86,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 - `tags` - A mapping of tags assigned to the Virtual Wan.
 
-- `virtual_hubs` - (Optional) list of virtual hubs attached.
+- `virtual_hub_ids` - A list of Virtual Hubs ID's attached to this Virtual WAN.
 
 - `vpn_sites` - (Optional) list of vpn sites attached.
 
