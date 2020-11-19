@@ -131,7 +131,6 @@ func dataSourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interf
 		}
 
 		d.Set("max_delivery_count", maxDeliveryCount)
-
 	}
 
 	return nil
