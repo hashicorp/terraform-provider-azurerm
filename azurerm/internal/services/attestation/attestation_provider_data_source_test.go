@@ -29,7 +29,7 @@ func TestAccDataSourceAzureRMAttestationProvider_basic(t *testing.T) {
 }
 
 func (AttestationProviderDataSource) basic(data acceptance.TestData, randStr string) string {
-	config := testAccAzureRMAttestationProvider_basic(data, randStr)
+	config := AttestationProviderResource{}.basic(data, randStr)
 	return fmt.Sprintf(`
 %s
 
