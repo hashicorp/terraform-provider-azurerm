@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -24,8 +25,9 @@ func dataSourceArmVirtualWan() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
@@ -82,6 +84,9 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error reading Virtual Wan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returns a nil/empty id on Virtual Wan %q (resource group %q): %+v", name, resourceGroup, err)
+	}
 	d.SetId(*resp.ID)
 
 	d.Set("name", resp.Name)
@@ -94,19 +99,35 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 	if props := resp.VirtualWanProperties; props != nil {
 		log.Printf("[DEBUG] ETIENNE ETIENNE ETIENNE %+v", props)
 		if abtbt := *props.AllowBranchToBranchTraffic; props.AllowBranchToBranchTraffic != nil {
-			d.Set("allow_branch_to_branch_traffic", abtbt)
+			if err := d.Set("allow_branch_to_branch_traffic", abtbt); err != nil {
+				return fmt.Errorf("error setting `allow_branch_to_branch_traffic`: %v", err)
+			}
 		} else {
-			d.Set("allow_branch_to_branch_traffic", &b)
+			if err := d.Set("allow_branch_to_branch_traffic", &b); err != nil {
+				return fmt.Errorf("error setting `allow_branch_to_branch_traffic`: %v", err)
+			}
 		}
 		if dve := *props.DisableVpnEncryption; props.DisableVpnEncryption != nil {
-			d.Set("disable_vpn_encryption", dve)
+			if err := d.Set("disable_vpn_encryption", dve); err != nil {
+				return fmt.Errorf("error setting `disable_vpn_encryption`: %v", err)
+			}
 		} else {
-			d.Set("disable_vpn_encryption", &b)
+			if err := d.Set("disable_vpn_encryption", &b); err != nil {
+				return fmt.Errorf("error setting `disable_vpn_encryption`: %v", err)
+			}
 		}
-		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
-		d.Set("sku", props.Type)
-		d.Set("virtual_hubs", flattenVirtualWanProperties(props.VirtualHubs))
-		d.Set("vpn_sites", flattenVirtualWanProperties(props.VpnSites))
+		if err := d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory); err != nil {
+			return fmt.Errorf("error setting `office365_local_breakout_category`: %v", err)
+		}
+		if err := d.Set("sku", props.Type); err != nil {
+			return fmt.Errorf("error setting `sku`: %v", err)
+		}
+		if err := d.Set("virtual_hubs", flattenVirtualWanProperties(props.VirtualHubs)); err != nil {
+			return fmt.Errorf("error setting `virtual_hubs`: %v", err)
+		}
+		if err := d.Set("vpn_sites", flattenVirtualWanProperties(props.VpnSites)); err != nil {
+			return fmt.Errorf("error setting `vpn_sites`: %v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
