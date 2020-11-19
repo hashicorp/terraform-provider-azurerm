@@ -870,9 +870,9 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                       = "acctestgwc-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
+  name                           = "acctestgwc-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
   local_azure_ip_address_enabled = true
 
   type                       = "IPsec"
@@ -939,9 +939,9 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name                       = "acctestgwc-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
+  name                           = "acctestgwc-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
   local_azure_ip_address_enabled = false
 
   type                       = "IPsec"
