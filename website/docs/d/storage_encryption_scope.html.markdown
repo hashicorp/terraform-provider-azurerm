@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Storage Encryption Scope.
 
-* `storage_account_id` - (Required) The ID of the Storage Account where this Storage Encryption Scope is created.
+* `storage_account_id` - (Required) The ID of the Storage Account where this Storage Encryption Scope exists.
 
 ## Attributes Reference
 

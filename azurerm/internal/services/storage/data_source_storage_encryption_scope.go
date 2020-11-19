@@ -49,12 +49,15 @@ func dataSourceArmStorageEncryptionScope() *schema.Resource {
 
 func dataSourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.EncryptionScopesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	storageAccountIDRaw := d.Get("storage_account_id").(string)
-	storageAccountID, _ := parse.ParseAccountID(storageAccountIDRaw)
+	storageAccountID, err := parse.AccountID(d.Get("storage_account_id").(string))
+	if err != nil {
+		return err
+	}
 
 	resp, err := client.Get(ctx, storageAccountID.ResourceGroup, storageAccountID.Name, name)
 	if err != nil {
@@ -66,14 +69,12 @@ func dataSourceArmStorageEncryptionScopeRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("reading Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", name, storageAccountID.Name, storageAccountID.ResourceGroup, err)
 	}
 
-	if id := resp.ID; id != nil {
-		d.SetId(*resp.ID)
-	}
+	d.SetId(parse.NewEncryptionScopeId(*storageAccountID, name).ID(subscriptionId))
 
 	d.Set("name", resp.Name)
-	d.Set("storage_account_id", storageAccountIDRaw)
+	d.Set("storage_account_id", storageAccountID.ID(subscriptionId))
 	if props := resp.EncryptionScopeProperties; props != nil {
-		d.Set("source", string(props.Source))
+		d.Set("source", flattenEncryptionScopeSource(props.Source))
 		var keyId string
 		if kv := props.KeyVaultProperties; kv != nil {
 			if kv.KeyURI != nil {
