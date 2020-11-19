@@ -94,7 +94,7 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Computed: true,
 			},
 
-			"use_local_azure_ip_address": {
+			"local_azure_ip_address_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
