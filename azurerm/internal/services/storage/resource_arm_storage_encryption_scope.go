@@ -212,8 +212,7 @@ func resourceArmStorageEncryptionScopeDelete(d *schema.ResourceData, meta interf
 		},
 	}
 
-	_, err = client.Put(ctx, id.ResourceGroup, id.AccountName, id.Name, props)
-	if err != nil {
+	if _, err = client.Put(ctx, id.ResourceGroup, id.AccountName, id.Name, props); err != nil {
 		return fmt.Errorf("disabling Storage Encryption Scope %q (Storage Account Name %q / Resource Group %q): %+v", id.Name, id.AccountName, id.ResourceGroup, err)
 	}
 
