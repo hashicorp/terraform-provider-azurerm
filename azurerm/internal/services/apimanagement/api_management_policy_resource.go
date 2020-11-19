@@ -46,6 +46,7 @@ func resourceArmApiManagementPolicy() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
+				ExactlyOneOf:     []string{"xml_link", "xml_content"},
 				DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
 			},
 
@@ -53,6 +54,7 @@ func resourceArmApiManagementPolicy() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{"xml_content"},
+				ExactlyOneOf:  []string{"xml_link", "xml_content"},
 			},
 		},
 	}
