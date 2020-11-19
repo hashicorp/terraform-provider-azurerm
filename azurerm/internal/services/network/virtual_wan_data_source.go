@@ -42,7 +42,6 @@ func dataSourceArmVirtualWan() *schema.Resource {
 			},
 			"office365_local_breakout_category": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"sku": {
