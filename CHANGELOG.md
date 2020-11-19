@@ -20,6 +20,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_cassandra_keyspace` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
 * `azurerm_cosmosdb_gremlin_database` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
 * `azurerm_cosmosdb_mongo_database` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
+* `azurerm_cosmosdb_sql_container` - `max_throughput` within the `autoscale_settings` block can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
 * `azurerm_cosmosdb_sql_database` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
 * `azurerm_cosmosdb_table` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
 * `azurerm_firewall` - support for `firewall_policy_id`, `sku_name`, `sku_tier` and `virtual_hub` [GH-8879]
