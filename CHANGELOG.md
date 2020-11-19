@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_servicebus_subscription` [GH-9272]
 * **New Resource:** `azurerm_log_analytics_cluster` [GH-8946]
 * **New Resource:** `azurerm_log_analytics_cluster_customer_managed_key` [GH-8946]
 * **New Resource:** `azurerm_security_center_automation` [GH-8781]
