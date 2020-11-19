@@ -271,7 +271,7 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 A `http_application_routing` block supports the following:
 
-* `enabled` (Required) Is HTTP Application Routing Enabled? Changing this forces a new resource to be created.
+* `enabled` (Required) Is HTTP Application Routing Enabled?
 
 ---
 

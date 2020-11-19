@@ -49,8 +49,8 @@ The following arguments are supported:
 * `type` - (Required) The type of the Virtual Desktop Host Pool. Valid options are
     `Personal` or `Pooled`. Changing the type forces a new resource to be created.
 
-* `load_balancer_type` -  (Optional) `Breadthfirst` load balancing distributes new user sessions across all available session hosts in the host pool.
-    `Depthfirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
+* `load_balancer_type` -  (Optional) `BreadthFirst` load balancing distributes new user sessions across all available session hosts in the host pool.
+    `DepthFirst` load balancing distributes new user sessions to an available session host with the highest number of connections but has not reached its maximum session limit threshold.
     `Persistent` should be used if the host pool type is `Personal`
 
 * `friendly_name` - (Optional) A friendly name for the Virtual Desktop Host Pool.

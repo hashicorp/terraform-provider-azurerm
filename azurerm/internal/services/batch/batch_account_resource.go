@@ -221,7 +221,6 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 
 	if d.Get("pool_allocation_mode").(string) == string(batch.BatchService) {
 		keys, err := client.GetKeys(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.Name, id.ResourceGroup, err)
 		}

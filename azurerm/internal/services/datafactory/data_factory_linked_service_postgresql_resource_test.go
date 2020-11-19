@@ -109,7 +109,6 @@ func testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy(s *terraform.Stat
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-
 		if err != nil {
 			return nil
 		}

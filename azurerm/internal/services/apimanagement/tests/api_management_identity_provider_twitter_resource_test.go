@@ -93,7 +93,6 @@ func testCheckAzureRMApiManagementIdentityProviderTwitterDestroy(s *terraform.St
 
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Twitter)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

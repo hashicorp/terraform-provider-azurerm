@@ -32,6 +32,26 @@ func TestAccAzureRMCosmosDbSqlContainer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbSqlContainer_basic_serverless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+
+				Config: testAccAzureRMCosmosDbSqlContainer_basic_serverless(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDbSqlContainer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
 
@@ -228,6 +248,19 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = azurerm_cosmosdb_sql_database.test.name
 }
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
+}
+
+func testAccAzureRMCosmosDbSqlContainer_basic_serverless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+}
+`, testAccAzureRMCosmosDbSqlDatabase_serverless(data), data.RandomInteger)
 }
 
 func testAccAzureRMCosmosDbSqlContainer_complete(data acceptance.TestData) string {

@@ -37,6 +37,7 @@ func TestAccAzureMySqlAdministrator_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureMySqlAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_active_directory_administrator", "test")
 

@@ -136,7 +136,6 @@ func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 	name := id.Path["firewallRules"]
 
 	resp, err := client.Get(ctx, resourceGroup, cacheName, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Redis Firewall Rule %q was not found in Cache %q / Resource Group %q - removing from state", name, cacheName, resourceGroup)
@@ -172,7 +171,6 @@ func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}
 	name := id.Path["firewallRules"]
 
 	resp, err := client.Delete(ctx, resourceGroup, cacheName, name)
-
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error issuing AzureRM delete request of Redis Firewall Rule %q (cache %q / resource group %q): %+v", name, cacheName, resourceGroup, err)

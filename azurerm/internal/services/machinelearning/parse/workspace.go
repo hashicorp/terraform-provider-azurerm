@@ -2,7 +2,7 @@ package parse
 
 import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	accountParser "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	accountParser "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 type WorkspaceId struct {

@@ -169,7 +169,6 @@ func testCheckAzureRMAppServiceSlotVirtualNetworkSwiftConnectionDestroy(s *terra
 		}
 
 		resp, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SiteName)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

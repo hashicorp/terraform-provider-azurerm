@@ -1139,6 +1139,7 @@ func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, e
 
 	return warnings, errors
 }
+
 func expandIPFilterRules(d *schema.ResourceData) *[]devices.IPFilterRule {
 	ipFilterRuleList := d.Get("ip_filter_rule").(*schema.Set).List()
 	if len(ipFilterRuleList) == 0 {

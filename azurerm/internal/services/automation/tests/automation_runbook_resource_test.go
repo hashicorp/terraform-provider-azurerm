@@ -167,7 +167,6 @@ func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -202,7 +201,6 @@ func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestC
 		}
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Automation Runbook '%s' (resource group: '%s') does not exist", name, resourceGroup)

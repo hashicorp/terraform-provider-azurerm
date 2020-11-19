@@ -23,7 +23,6 @@ func testCheckAzureRMHDInsightClusterDestroy(terraformResourceName string) func(
 			name := rs.Primary.Attributes["name"]
 			resourceGroup := rs.Primary.Attributes["resource_group_name"]
 			resp, err := client.Get(ctx, resourceGroup, name)
-
 			if err != nil {
 				if !utils.ResponseWasNotFound(resp.Response) {
 					return err

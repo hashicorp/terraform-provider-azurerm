@@ -31,6 +31,7 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMServiceBusQueue_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	resource.ParallelTest(t, resource.TestCase{

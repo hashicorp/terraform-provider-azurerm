@@ -99,6 +99,7 @@ func dataSourceArmSharedImage() *schema.Resource {
 		},
 	}
 }
+
 func dataSourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.GalleryImagesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

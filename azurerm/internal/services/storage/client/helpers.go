@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 var (
@@ -121,7 +121,7 @@ func populateAccountDetails(accountName string, props storage.Account) (*account
 	}
 
 	accountId := *props.ID
-	id, err := parsers.ParseAccountID(accountId)
+	id, err := parse.ParseAccountID(accountId)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing %q as a Resource ID: %+v", accountId, err)
 	}

@@ -93,7 +93,6 @@ func testCheckAzureRMApiManagementIdentityProviderMicrosoftDestroy(s *terraform.
 
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Microsoft)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

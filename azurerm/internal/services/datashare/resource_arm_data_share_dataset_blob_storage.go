@@ -110,6 +110,7 @@ func resourceArmDataShareDataSetBlobStorage() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareDataSetBlobStorageCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

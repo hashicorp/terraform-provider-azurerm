@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -28,7 +28,7 @@ func resourceArmStorageSync() *schema.Resource {
 		Delete: resourceArmStorageSyncDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parsers.ParseStorageSyncID(id)
+			_, err := parse.ParseStorageSyncID(id)
 			return err
 		}),
 
@@ -57,7 +57,8 @@ func resourceArmStorageSync() *schema.Resource {
 				Default:  string(storagesync.AllowAllTraffic),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storagesync.AllowAllTraffic),
-					string(storagesync.AllowVirtualNetworksOnly)}, false),
+					string(storagesync.AllowVirtualNetworksOnly),
+				}, false),
 			},
 
 			"tags": tags.Schema(),
@@ -117,7 +118,7 @@ func resourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.ParseStorageSyncID(d.Id())
+	id, err := parse.ParseStorageSyncID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -145,7 +146,7 @@ func resourceArmStorageSyncUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.ParseStorageSyncID(d.Id())
+	id, err := parse.ParseStorageSyncID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -179,7 +180,7 @@ func resourceArmStorageSyncDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.ParseStorageSyncID(d.Id())
+	id, err := parse.ParseStorageSyncID(d.Id())
 	if err != nil {
 		return err
 	}
