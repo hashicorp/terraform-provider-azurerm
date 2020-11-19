@@ -3,6 +3,7 @@ package applicationinsights_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -111,7 +112,7 @@ func (t AppInsightsAnalyticsItemResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving Application Insights AnalyticsItem %q (resource group: %q, app insight: %s, item scope: %s): %+v", resGroup, appInsightsName, itemScopePath, itemID, err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return utils.Bool(resp.StatusCode == http.StatusNotFound), nil
 }
 
 func (AppInsightsAnalyticsItemResource) basic(data acceptance.TestData) string {
