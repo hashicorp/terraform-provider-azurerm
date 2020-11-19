@@ -124,6 +124,17 @@ func SchemaDefaultNodePool() *schema.Schema {
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
+				"os_disk_type": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ForceNew: true,
+					Default:  containerservice.Managed,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(containerservice.Ephemeral),
+						string(containerservice.Managed),
+					}, false),
+				},
+
 				"vnet_subnet_id": {
 					Type:         schema.TypeString,
 					Optional:     true,
@@ -155,6 +166,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			Count:                     defaultCluster.Count,
 			VMSize:                    defaultCluster.VMSize,
 			OsDiskSizeGB:              defaultCluster.OsDiskSizeGB,
+			OsDiskType:                defaultCluster.OsDiskType,
 			VnetSubnetID:              defaultCluster.VnetSubnetID,
 			MaxPods:                   defaultCluster.MaxPods,
 			OsType:                    defaultCluster.OsType,
@@ -231,6 +243,11 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 	if osDiskSizeGB := int32(raw["os_disk_size_gb"].(int)); osDiskSizeGB > 0 {
 		profile.OsDiskSizeGB = utils.Int32(osDiskSizeGB)
+	}
+
+	profile.OsDiskType = containerservice.Managed
+	if osDiskType := raw["os_disk_type"].(string); osDiskType != "" {
+		profile.OsDiskType = containerservice.OSDiskType(raw["os_disk_type"].(string))
 	}
 
 	if vnetSubnetID := raw["vnet_subnet_id"].(string); vnetSubnetID != "" {
@@ -360,6 +377,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
 	}
 
+	osDiskType := containerservice.Managed
+	if agentPool.OsDiskType != "" {
+		osDiskType = agentPool.OsDiskType
+	}
+
 	vnetSubnetId := ""
 	if agentPool.VnetSubnetID != nil {
 		vnetSubnetId = *agentPool.VnetSubnetID
@@ -388,6 +410,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"node_labels":                  nodeLabels,
 			"node_taints":                  []string{},
 			"os_disk_size_gb":              osDiskSizeGB,
+			"os_disk_type":                 string(osDiskType),
 			"tags":                         tags.Flatten(agentPool.Tags),
 			"type":                         string(agentPool.Type),
 			"vm_size":                      string(agentPool.VMSize),

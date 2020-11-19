@@ -1,14 +1,36 @@
 ## 2.37.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_log_analytics_cluster` [GH-8946]
+* **New Resource:** `azurerm_log_analytics_cluster_customer_managed_key` [GH-8946]
+* **New Resource:** `azurerm_security_center_automation` [GH-8781]
+
 IMPROVEMENTS:
 
 * storage: foundational improvements to support toggling between the Data Plane and Resource Manager Storage API's in the future [GH-9314]
+* Data Source: `azurerm_kubernetes_node_pool` - exposing `os_disk_type` [GH-9166]
 * `azurerm_api_management_api_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip` and `verbosity` attributes [GH-9172]
 * `azurerm_api_management_api_diagnostic` - support the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-9172]
-* `azurerm_cosmosdb` - Remove cosmosdb autoscale upper cap [GH-9050]
-* `azurerm_linux_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
-* `azurerm_windows_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
+* `azurerm_cosmosdb` - removing the cosmosdb autoscale upper cap [GH-9050]
+* `azurerm_firewall` - supports for firewall manager policies [GH-8879]
+* `azurerm_kubernetes_cluster` - support for configuring `os_disk_type` within the `default_node_pool` block [GH-9166]
+* `azurerm_kubernetes_node_pool` - support for configuring `os_disk_type` [GH-9166]
+* `azurerm_linux_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
+* `azurerm_linux_virtual_machine` - updating the `dedicated_host_id` no longer forces a new resource [GH-9264]
+* `azurerm_kubernetes_cluster` - the block `http_application_routing` within the `addon_profile` block can now be updated/removed [GH-9358]
+* `azurerm_mssql_database` - `sku_name` supports more `DWxxxc` options [GH-9370]
+* `azurerm_postgresql_server` - increase max storage to 16TiB [GH-9373]
+* `azurerm_windows_virtual_machine` - Support `extensions_time_budget` property [GH-9257]
+* `azurerm_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_virtual_machine` - support for the `patch_mode` property [GH-9258]
+
+BUG FIXES:
+
+* Data Source: `azurerm_key_vault_certificate` - fixing a crash when serializing the certificate policy block [GH-9355]
+* `azurerm_cosmosdb_sql_container` - no longer attempts to get throughput settings when cosmos account is serverless [GH-9311]
+* `azurerm_key_vault_certificate` - fixing a crash when serializing the certificate policy block [GH-9355]
+* `azurerm_resource_group_template_deployment` - fixing an issue during deletion where the API version of nested resources couldn't be determined [GH-9364]
 
 ## 2.36.0 (November 12, 2020)
 
