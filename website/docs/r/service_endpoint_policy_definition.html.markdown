@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `policy_id` - (Required) The ID of the Service Endpoint Policy which this Service Endpoint Policy Definition belongs to. Changing this forces a new Service Endpoint Policy Definition to be created.
 
-* `service_endpoint_name` - (Required) The service endpoint name.
+* `service_endpoint_name` - (Required) The service endpoint name. Currently the only valid value is `Microsoft.Storage`.
 
 * `service_resources` - (Required) Specifies a list of resources that this Service Endpoint Policy Definition applies to.
 
