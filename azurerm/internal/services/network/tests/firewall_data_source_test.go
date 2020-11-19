@@ -27,6 +27,85 @@ func TestAccDataSourceAzureRMFirewall_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMFirewall_enableDNS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceFirewall_enableDNS(data, "1.1.1.1", "8.8.8.8"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "dns_servers.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "dns_servers.0", "1.1.1.1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "dns_servers.1", "8.8.8.8"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMFirewall_withManagementIp(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceFirewall_withManagementIp(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "management_ip_configuration.0.name", "management_configuration"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_ip_configuration.0.private_ip_address"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_ip_configuration.0.subnet_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_ip_configuration.0.public_ip_address_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMFirewall_withFirewallPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceFirewall_withFirewallPolicy(data, "policy1"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(data.ResourceName, "firewall_policy_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMFirewall_inVirtualhub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceFirewall_inVirtualHub(data, 2),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.virtual_hub_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_count", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "2"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceFirewall_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -77,4 +156,52 @@ data "azurerm_firewall" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccDataSourceFirewall_enableDNS(data acceptance.TestData, dnsServers ...string) string {
+	template := testAccAzureRMFirewall_enableDNS(data, dnsServers...)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_firewall" "test" {
+  name                = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
+}
+
+func testAccDataSourceFirewall_withManagementIp(data acceptance.TestData) string {
+	template := testAccAzureRMFirewall_withManagementIp(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_firewall" "test" {
+  name                = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
+}
+
+func testAccDataSourceFirewall_withFirewallPolicy(data acceptance.TestData, policyName string) string {
+	template := testAccAzureRMFirewall_withFirewallPolicy(data, policyName)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_firewall" "test" {
+  name                = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
+}
+
+func testAccDataSourceFirewall_inVirtualHub(data acceptance.TestData, pipCount int) string {
+	template := testAccAzureRMFirewall_inVirtualHub(data, pipCount)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_firewall" "test" {
+  name                = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
 }

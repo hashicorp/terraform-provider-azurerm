@@ -59,6 +59,7 @@ func TestExpandFeatures(t *testing.T) {
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": true,
+							"graceful_shutdown":          true,
 						},
 					},
 					"virtual_machine_scale_set": []interface{}{
@@ -81,6 +82,7 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
 					DeleteOSDiskOnDeletion: true,
+					GracefulShutdown:       true,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: true,
@@ -94,6 +96,7 @@ func TestExpandFeatures(t *testing.T) {
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": false,
+							"graceful_shutdown":          false,
 						},
 					},
 					"network_locking": []interface{}{
@@ -132,6 +135,7 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				VirtualMachine: features.VirtualMachineFeatures{
 					DeleteOSDiskOnDeletion: false,
+					GracefulShutdown:       false,
 				},
 				VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 					RollInstancesWhenRequired: false,
@@ -366,16 +370,18 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
 					DeleteOSDiskOnDeletion: true,
+					GracefulShutdown:       false,
 				},
 			},
 		},
 		{
-			Name: "Delete OS Disk Enabled",
+			Name: "Delete OS Disk and Graceful Shutdown Enabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": true,
+							"graceful_shutdown":          true,
 						},
 					},
 				},
@@ -383,16 +389,18 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
 					DeleteOSDiskOnDeletion: true,
+					GracefulShutdown:       true,
 				},
 			},
 		},
 		{
-			Name: "Delete OS Disk Disabled",
+			Name: "Delete OS Disk and Graceful Shutdown Disabled",
 			Input: []interface{}{
 				map[string]interface{}{
 					"virtual_machine": []interface{}{
 						map[string]interface{}{
 							"delete_os_disk_on_deletion": false,
+							"graceful_shutdown":          false,
 						},
 					},
 				},
@@ -400,6 +408,7 @@ func TestExpandFeaturesVirtualMachine(t *testing.T) {
 			Expected: features.UserFeatures{
 				VirtualMachine: features.VirtualMachineFeatures{
 					DeleteOSDiskOnDeletion: false,
+					GracefulShutdown:       false,
 				},
 			},
 		},

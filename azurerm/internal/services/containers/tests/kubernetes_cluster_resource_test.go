@@ -18,12 +18,9 @@ var (
 )
 
 func TestAccAzureRMKubernetes_all(t *testing.T) {
-	// we can conditionally run tests tests individually, or combined
-	checkIfShouldRunTestsCombined(t)
-
-	// NOTE: this is a combined test rather than separate split out tests to
-	// ease the load on the kubernetes api
-	testCases := map[string]map[string]func(t *testing.T){
+	// NOTE: this test is no longer used, but this assignment kicks around temporarily
+	// to allow us to migrate off this without causing conflicts in open PR's
+	_ = map[string]map[string]func(t *testing.T){
 		"auth":               kubernetesAuthTests,
 		"clusterAddOn":       kubernetesAddOnTests,
 		"datasource":         kubernetesDataSourceTests,
@@ -35,18 +32,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 		"upgrade":            kubernetesUpgradeTests,
 	}
 
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
+	t.Skip("Skipping since this is being run Individually")
 }
 
 func testCheckAzureRMKubernetesClusterExists(resourceName string) resource.TestCheckFunc {
