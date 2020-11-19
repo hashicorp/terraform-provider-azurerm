@@ -35,18 +35,6 @@ func TestPolicyExemptionID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "the returned value of policy assignment id may not keep its casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.authorization/policyExemptions/exemption1",
-			Expected: &PolicyExemptionId{
-				Name: "exemption1",
-				PolicyScopeId: ScopeAtResourceGroup{
-					scopeId:        "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-					SubscriptionId: "00000000-0000-0000-0000-000000000000",
-					ResourceGroup:  "foo",
-				},
-			},
-		},
-		{
 			Name:  "policy assignment in subscription",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policyExemptions/exemption1",
 			Expected: &PolicyExemptionId{
