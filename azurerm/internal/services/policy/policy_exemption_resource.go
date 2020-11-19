@@ -54,6 +54,15 @@ func resourceArmPolicyExemption() *schema.Resource {
 				ValidateFunc: validate.PolicyScopeID,
 			},
 
+			"exemption_category": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(policy.Mitigated),
+					string(policy.Waiver),
+				}, false),
+			},
+
 			"policy_assignment_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -81,16 +90,6 @@ func resourceArmPolicyExemption() *schema.Resource {
 				},
 			},
 
-			"exemption_category": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(policy.Mitigated),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.Mitigated),
-					string(policy.Waiver),
-				}, false),
-			},
-
 			"expires_on": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -100,9 +99,7 @@ func resourceArmPolicyExemption() *schema.Resource {
 			"metadata": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.StringIsJSON,
-				// TODO -- check suppression
 			},
 		},
 	}
