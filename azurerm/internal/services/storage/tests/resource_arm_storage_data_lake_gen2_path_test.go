@@ -145,7 +145,7 @@ func testCheckAzureRMStorageDataLakeGen2PathExists(resourceName string) resource
 
 		fileSystemName := rs.Primary.Attributes["filesystem_name"]
 		path := rs.Primary.Attributes["path"]
-		storageID, err := parse.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parse.AccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,7 @@ func testCheckAzureRMStorageDataLakeGen2PathDestroy(s *terraform.State) error {
 
 		fileSystemName := rs.Primary.Attributes["filesystem_name"]
 		path := rs.Primary.Attributes["path"]
-		storageID, err := parse.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parse.AccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}
