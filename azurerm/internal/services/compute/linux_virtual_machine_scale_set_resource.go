@@ -298,7 +298,11 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
 
 	dataDisksRaw := d.Get("data_disk").([]interface{})
-	dataDisks := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
+	ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
+	dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw, ultraSSDEnabled)
+	if err != nil {
+		return fmt.Errorf("expanding `data_disk`: %+v", err)
+	}
 
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
@@ -673,8 +677,12 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		}
 
 		if d.HasChange("data_disk") {
-			dataDisksRaw := d.Get("data_disk").([]interface{})
-			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
+			ultraSSDEnabled := d.Get("additional_capabilities.0.ultra_ssd_enabled").(bool)
+			dataDisks, err := ExpandVirtualMachineScaleSetDataDisk(d.Get("data_disk").([]interface{}), ultraSSDEnabled)
+			if err != nil {
+				return fmt.Errorf("expanding `data_disk`: %+v", err)
+			}
+			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = dataDisks
 		}
 
 		if d.HasChange("os_disk") {

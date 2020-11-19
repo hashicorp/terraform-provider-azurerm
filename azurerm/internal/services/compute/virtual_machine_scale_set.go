@@ -796,7 +796,7 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 	}
 }
 
-func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.VirtualMachineScaleSetDataDisk {
+func ExpandVirtualMachineScaleSetDataDisk(input []interface{}, ultraSSDEnabled bool) (*[]compute.VirtualMachineScaleSetDataDisk, error) {
 	disks := make([]compute.VirtualMachineScaleSetDataDisk, 0)
 
 	for _, v := range input {
@@ -820,17 +820,23 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.Virtua
 		}
 
 		if iops := raw["disk_iops_read_write"].(int); iops != 0 {
+			if !ultraSSDEnabled {
+				return nil, fmt.Errorf("`disk_iops_read_write` are only available for UltraSSD disks")
+			}
 			disk.DiskIOPSReadWrite = utils.Int64(int64(iops))
 		}
 
 		if mbps := raw["disk_mbps_read_write"].(int); mbps != 0 {
+			if !ultraSSDEnabled {
+				return nil, fmt.Errorf("`disk_mbps_read_write` are only available for UltraSSD disks")
+			}
 			disk.DiskMBpsReadWrite = utils.Int64(int64(mbps))
 		}
 
 		disks = append(disks, disk)
 	}
 
-	return &disks
+	return &disks, nil
 }
 
 func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleSetDataDisk) []interface{} {
