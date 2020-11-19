@@ -8,7 +8,7 @@ func TestMediaAssetsId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MediaAssetId
+		Expected *MediaAssetsId
 	}{
 		{
 			Name:     "Empty",
@@ -42,7 +42,7 @@ func TestMediaAssetsId(t *testing.T) {
 		{
 			Name:  "Media Asset ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaservices/Service1/assets/Asset1",
-			Expected: &MediaServicesAccountId{
+			Expected: &MediaAssetsId{
 				AccountName:   "Service1",
 				ResourceGroup: "resGroup1",
 				Name:          "Asset1",
