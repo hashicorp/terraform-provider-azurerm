@@ -9,12 +9,19 @@ FEATURES:
 IMPROVEMENTS:
 
 * storage: foundational improvements to support toggling between the Data Plane and Resource Manager Storage API's in the future [GH-9314]
+* Data Source: `azurerm_firewall`-  exposing `dns_servers`, `firewall_policy_id`, `sku_name`, `sku_tier`, `threat_intel_mode`, `virtual_hub` and `zones` [GH-8879]
+* Data Source: `azurerm_firewall`-  exposing `public_ip_address_id` and `private_ip_address_id` within the `ip_configuration` block [GH-8879]
+* Data Source: `azurerm_firewall`-  exposing `name` within the `management_ip_configuration` block [GH-8879]
 * Data Source: `azurerm_kubernetes_node_pool` - exposing `os_disk_type` [GH-9166]
 * `azurerm_api_management_api_diagnostic` - support for the `always_log_errors`, `http_correlation_protocol`, `log_client_ip` and `verbosity` attributes [GH-9172]
 * `azurerm_api_management_api_diagnostic` - support the `frontend_request`, `frontend_response`, `backend_request` and `backend_response` blocks [GH-9172]
 * `azurerm_dns_zone` - support for the `soa_record` block [GH-9319]
-* `azurerm_cosmosdb` - removing the cosmosdb autoscale upper cap [GH-9050]
-* `azurerm_firewall` - supports for firewall manager policies [GH-8879]
+* `azurerm_cosmosdb_cassandra_keyspace` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
+* `azurerm_cosmosdb_gremlin_database` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
+* `azurerm_cosmosdb_mongo_database` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
+* `azurerm_cosmosdb_sql_database` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
+* `azurerm_cosmosdb_table` - `throughput` can now be set to higher than `1000000` if enabled by Azure Support [GH-9050]
+* `azurerm_firewall` - support for `firewall_policy_id`, `sku_name`, `sku_tier` and `virtual_hub` [GH-8879]
 * `azurerm_kubernetes_cluster` - support for configuring `os_disk_type` within the `default_node_pool` block [GH-9166]
 * `azurerm_kubernetes_node_pool` - support for configuring `os_disk_type` [GH-9166]
 * `azurerm_linux_virtual_machine` - support for the `extensions_time_budget` property [GH-9257]
@@ -37,9 +44,9 @@ BUG FIXES:
 
 * Data Source: `azurerm_key_vault_certificate` - fixing a crash when serializing the certificate policy block [GH-9355]
 * `azurerm_cosmosdb_sql_container` - no longer attempts to get throughput settings when cosmos account is serverless [GH-9311]
-* `azurerm_firewall_policy` - deprecate the `dns.network_rule_fqdn_enabled` property as the API no longer allows it to be set  [GH-9332]
+* `azurerm_firewall_policy` - deprecate the `dns.network_rule_fqdn_enabled` property as the API no longer allows it to be set [GH-9332]
 * `azurerm_key_vault_certificate` - fixing a crash when serializing the certificate policy block [GH-9355]
-* `azurerm_mssql_virtual_machine` - Fix crash when setting `auto_patching` [GH-9388]
+* `azurerm_mssql_virtual_machine` - fixing a crash when serializing `auto_patching` [GH-9388]
 * `azurerm_resource_group_template_deployment` - fixing an issue during deletion where the API version of nested resources couldn't be determined [GH-9364]
 
 ## 2.36.0 (November 12, 2020)
