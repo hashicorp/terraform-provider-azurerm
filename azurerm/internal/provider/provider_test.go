@@ -87,5 +87,5 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ = AzureProvider()
+	_ = AzureProvider()
 }

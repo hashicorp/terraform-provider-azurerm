@@ -79,7 +79,6 @@ func testCheckAzureRMServiceFabricMeshLocalNetworkDestroy(s *terraform.State) er
 		}
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}

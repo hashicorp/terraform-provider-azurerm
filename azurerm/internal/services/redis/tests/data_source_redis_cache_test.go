@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"

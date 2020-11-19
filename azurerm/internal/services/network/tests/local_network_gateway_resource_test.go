@@ -351,7 +351,6 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		resourceGroup := id.ResourceGroup
 
 		resp, err := client.Get(ctx, resourceGroup, localNetName)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

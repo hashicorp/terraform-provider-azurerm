@@ -100,7 +100,6 @@ func testCheckAzureRMLighthouseAssignmentExists(resourceName string) resource.Te
 		expandLighthouseDefinition := true
 
 		resp, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Lighthouse Assignment %q (Scope: %q) does not exist", lighthouseAssignmentName, scope)
@@ -126,7 +125,6 @@ func testCheckAzureRMLighthouseAssignmentDestroy(s *terraform.State) error {
 		expandLighthouseDefinition := true
 
 		resp, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

@@ -525,7 +525,6 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		isDefault := v["is_default"].(bool)
 
 		uri, err := url.Parse(storageContainerID)
-
 		if err != nil {
 			return nil, nil, fmt.Errorf("Error parsing %q: %s", storageContainerID, err)
 		}

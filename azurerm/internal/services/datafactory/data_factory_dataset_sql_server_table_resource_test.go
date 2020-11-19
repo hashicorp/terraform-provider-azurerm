@@ -111,7 +111,6 @@ func testCheckAzureRMDataFactoryDatasetSQLServerTableDestroy(s *terraform.State)
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
-
 		if err != nil {
 			return nil
 		}

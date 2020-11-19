@@ -120,7 +120,6 @@ func testCheckAzureRMApplicationInsightsWebTestsDestroy(s *terraform.State) erro
 		resGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resGroup, name)
-
 		if err != nil {
 			return nil
 		}

@@ -1384,7 +1384,6 @@ func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

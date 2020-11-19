@@ -13,6 +13,7 @@ type AdvisorRecommendationsDataSourceTests struct{}
 
 func TestAdvisorRecommendationsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: AdvisorRecommendationsDataSourceTests{}.basicConfig(),
@@ -33,6 +34,7 @@ func TestAdvisorRecommendationsDataSource_basic(t *testing.T) {
 
 func TestAdvisorRecommendationsDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: AdvisorRecommendationsDataSourceTests{}.completeConfig(data),
@@ -45,6 +47,7 @@ func TestAdvisorRecommendationsDataSource_complete(t *testing.T) {
 
 func TestAdvisorRecommendationsDataSource_categoriesFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_advisor_recommendations", "test")
+
 	data.DataSourceTest(t, []resource.TestStep{
 		{
 			Config: AdvisorRecommendationsDataSourceTests{}.categoriesFilterConfig(),
