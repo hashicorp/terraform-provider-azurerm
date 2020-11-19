@@ -133,7 +133,7 @@ func (t AppInsightsAPIKey) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, fmt.Errorf("retrieving Application Insights API Key '%q' (resource group: '%q') does not exist", keyID, resGroup)
 	}
 
-	return utils.Bool(resp.StatusCode == http.StatusNotFound), nil
+	return utils.Bool(resp.StatusCode != http.StatusNotFound), nil
 }
 
 func (AppInsightsAPIKey) basic(data acceptance.TestData, readPerms, writePerms string) string {
