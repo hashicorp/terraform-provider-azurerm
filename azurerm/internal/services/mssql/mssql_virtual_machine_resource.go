@@ -380,7 +380,7 @@ func expandArmSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvir
 }
 
 func flattenArmSqlVirtualMachineAutoPatching(autoPatching *sqlvirtualmachine.AutoPatchingSettings) []interface{} {
-	if autoPatching == nil || !*autoPatching.Enable {
+	if autoPatching == nil || autoPatching.Enable == nil || !*autoPatching.Enable {
 		return []interface{}{}
 	}
 
