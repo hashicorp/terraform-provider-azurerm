@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_servicebus_subscription
 
-Use this data source to access information about an existing ServiceBus Namespace.
+Use this data source to access information about an existing ServiceBus Subscription.
 
 ## Example Usage
 
@@ -61,4 +61,4 @@ output "servicebus_subscription" {
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription.
