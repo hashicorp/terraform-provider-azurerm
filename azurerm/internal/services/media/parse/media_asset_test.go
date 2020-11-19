@@ -8,7 +8,7 @@ func TestMediaAssetsId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MediaAssetsId
+		Expected *MediaAssetstId
 	}{
 		{
 			Name:     "Empty",
@@ -58,7 +58,7 @@ func TestMediaAssetsId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MediaAssetsID(v.Input)
+		actual, err := MediaAssetstId(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
