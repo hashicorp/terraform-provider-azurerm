@@ -112,7 +112,7 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 			if err := d.Set("disable_vpn_encryption", &b); err != nil {
 				return fmt.Errorf("error setting `disable_vpn_encryption`: %v", err)
 			}
-		}
+		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
 		if err := d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory); err != nil {
 			return fmt.Errorf("error setting `office365_local_breakout_category`: %v", err)
 		}
