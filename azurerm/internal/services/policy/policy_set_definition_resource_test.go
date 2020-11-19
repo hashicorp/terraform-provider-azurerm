@@ -1,6 +1,7 @@
-package tests
+package policy_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -8,320 +9,274 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type PolicySetDefinitionResource struct{}
+
 func TestAccAzureRMPolicySetDefinition_builtInDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_builtInDeprecated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.builtInDeprecated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_builtIn(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_builtIn(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.builtIn(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_builtIn(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAzureRMPolicySetDefinition_requiresImport),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.builtIn(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_customDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_customDeprecated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customDeprecated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_custom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_custom(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.custom(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_customNoParameter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_customNoParameter(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customNoParameter(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_customUpdateDisplayName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_custom(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPolicySetDefinition_customUpdateDisplayName(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.custom(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.customUpdateDisplayName(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_customUpdateParameters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_custom(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPolicySetDefinition_customUpdateParameters(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.custom(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customUpdateParameters(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_customUpdateAddNewReference(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_custom(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMPolicySetDefinition_customUpdateAddNewReference(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.custom(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.customUpdateAddNewReference(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_customWithPolicyReferenceID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_customWithPolicyReferenceID(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customWithPolicyReferenceID(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	r := PolicySetDefinitionResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_customWithDefinitionGroups(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAzureRMPolicySetDefinition_customWithDefinitionGroupsUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAzureRMPolicySetDefinition_customWithDefinitionGroups(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.customWithDefinitionGroups(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.customWithDefinitionGroupsUpdate(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customWithDefinitionGroups(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_managementGroupDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_managementGroupDeprecated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managementGroupDeprecated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_managementGroup(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.managementGroup(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_metadataDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_metadataDeprecated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.metadataDeprecated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMPolicySetDefinition_metadata(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMPolicySetDefinition_metadata(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	r := PolicySetDefinitionResource{}
+
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.metadata(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func testAzureRMPolicySetDefinition_builtInDeprecated(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) builtInDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -361,7 +316,7 @@ POLICY_DEFINITIONS
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_builtIn(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) builtIn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -397,8 +352,8 @@ VALUES
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_requiresImport(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_builtInDeprecated(data)
+func (r PolicySetDefinitionResource) requiresImport(data acceptance.TestData) string {
+	template := r.builtInDeprecated(data)
 	return fmt.Sprintf(`
 %s
 
@@ -420,8 +375,8 @@ VALUES
 `, template)
 }
 
-func testAzureRMPolicySetDefinition_customDeprecated(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_template(data)
+func (r PolicySetDefinitionResource) customDeprecated(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -459,8 +414,8 @@ POLICY_DEFINITIONS
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_custom(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_template(data)
+func (r PolicySetDefinitionResource) custom(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -494,8 +449,8 @@ VALUES
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPolicySetDefinition_customUpdateDisplayName(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_template(data)
+func (r PolicySetDefinitionResource) customUpdateDisplayName(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -529,8 +484,8 @@ VALUES
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMPolicySetDefinition_customUpdateParameters(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_template(data)
+func (r PolicySetDefinitionResource) customUpdateParameters(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -564,8 +519,8 @@ VALUES
 `, template, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMPolicySetDefinition_customUpdateAddNewReference(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_template(data)
+func (r PolicySetDefinitionResource) customUpdateAddNewReference(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -612,8 +567,8 @@ VALUES
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_customNoParameter(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_templateNoParameter(data)
+func (r PolicySetDefinitionResource) customNoParameter(data acceptance.TestData) string {
+	template := r.templateNoParameter(data)
 	return fmt.Sprintf(`
 %s
 
@@ -629,7 +584,7 @@ resource "azurerm_policy_set_definition" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_managementGroupDeprecated(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) managementGroupDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -674,7 +629,7 @@ POLICY_DEFINITIONS
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_managementGroup(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) managementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -715,7 +670,7 @@ VALUES
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_metadataDeprecated(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) metadataDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -761,7 +716,7 @@ METADATA
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_metadata(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) metadata(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -803,8 +758,8 @@ METADATA
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_customWithPolicyReferenceID(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_template(data)
+func (r PolicySetDefinitionResource) customWithPolicyReferenceID(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -839,8 +794,8 @@ VALUES
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_customWithDefinitionGroups(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_template(data)
+func (r PolicySetDefinitionResource) customWithDefinitionGroups(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -887,8 +842,8 @@ VALUES
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_customWithDefinitionGroupsUpdate(data acceptance.TestData) string {
-	template := testAzureRMPolicySetDefinition_template(data)
+func (r PolicySetDefinitionResource) customWithDefinitionGroupsUpdate(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -941,7 +896,7 @@ VALUES
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_template(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -983,7 +938,7 @@ PARAMETERS
 `, data.RandomInteger, data.RandomInteger)
 }
 
-func testAzureRMPolicySetDefinition_templateNoParameter(data acceptance.TestData) string {
+func (r PolicySetDefinitionResource) templateNoParameter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1012,38 +967,26 @@ POLICY_RULE
 `, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
-func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("not found: %s", resourceName)
-		}
-
-		id, err := parse.PolicySetDefinitionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		var resp policy.SetDefinition
-		if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
-			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupName)
-		} else {
-			resp, err = client.Get(ctx, id.Name)
-		}
-
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("policy set definition does not exist: %s", id.Name)
-			} else {
-				return fmt.Errorf("Bad: Get on policySetDefinitionsClient: %s", err)
-			}
-		}
-
-		return nil
+func (r PolicySetDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.PolicySetDefinitionID(state.ID)
+	if err != nil {
+		return nil, err
 	}
+
+	var resp policy.SetDefinition
+	if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
+		resp, err = client.Policy.SetDefinitionsClient.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupName)
+	} else {
+		resp, err = client.Policy.SetDefinitionsClient.Get(ctx, id.Name)
+	}
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return utils.Bool(false), nil
+		}
+		return nil, fmt.Errorf("retrieving Policy Set Definition %q: %+v", id.Name, err)
+	}
+
+	return utils.Bool(true), nil
 }
 
 func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
