@@ -52,6 +52,12 @@ func dataSourceArmVirtualWan() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+			"virtual_hub_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{
+					Type: schema.TypeString
+				},
 			},
 			"vpn_sites": {
 				Type:     schema.TypeString,
