@@ -193,7 +193,7 @@ The `virtual_machine` block supports the following:
 
 * `graceful_shutdown` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` request a graceful shutdown when the Virtual Machine is destroyed? Defaults to `false`.
 
-~> **Note:** The Azure platform cannot wait forever after [initiating a graceful shutdown](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/). The platform will wait 5 minutes for the Virtual Machine to shut down gracefully, and if it is still running after that time it will power off the machine.
+~> **Note:** When using a graceful shutdown, Azure gives the Virtual Machine a 5 minutes window in which to complete the shutdown process, at which point the machine will be force powered off - [more information can be found in this blog post](https://azure.microsoft.com/en-us/blog/linux-and-graceful-shutdowns-2/).
 
 ---
 
