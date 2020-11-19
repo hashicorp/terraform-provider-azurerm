@@ -16,7 +16,7 @@ func PrivateDnsZoneSOARecordEmail(v interface{}, k string) (warnings []string, e
 
 	vSegments := strings.Split(value, ".")
 	if len(vSegments) < 2 || len(vSegments) > 34 {
-		errors = append(errors, fmt.Errorf("%q must be between 2 and 34 labels", k))
+		errors = append(errors, fmt.Errorf("%q must be between 2 and 34 segments", k))
 		return warnings, errors
 	}
 
@@ -27,7 +27,7 @@ func PrivateDnsZoneSOARecordEmail(v interface{}, k string) (warnings []string, e
 		}
 
 		if len(segment) > 63 {
-			errors = append(errors, fmt.Errorf("the each label must contain between 1 and 63 characters"))
+			errors = append(errors, fmt.Errorf("the each segment of the `email` must contain between 1 and 63 characters"))
 			return warnings, errors
 		}
 	}
