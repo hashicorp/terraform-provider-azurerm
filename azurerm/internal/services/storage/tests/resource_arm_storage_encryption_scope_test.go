@@ -222,10 +222,6 @@ resource "azurerm_storage_encryption_scope" "test" {
 func (t StorageEncryptionScopeResourceTests) requiresImport(data acceptance.TestData) string {
 	template := t.microsoftManagedKey(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_storage_encryption_scope" "import" {
