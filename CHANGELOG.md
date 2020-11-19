@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - support for the `platform_fault_domain_count`, `disk_iops_read_write`, and `disk_mbps_read_write` properties [GH-9262]
 * `azurerm_kubernetes_cluster` - the block `http_application_routing` within the `addon_profile` block can now be updated/removed [GH-9358]
 * `azurerm_mssql_database` - `sku_name` supports more `DWxxxc` options [GH-9370]
+* `azurerm_policy_set_definition` - support for the `policy_definition_group` block [GH-9259]
 * `azurerm_postgresql_server` - increase max storage to 16TiB [GH-9373]
 * `azurerm_windows_virtual_machine` - support for the `extensions_time_budget` property [GH-9257]
 * `azurerm_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
