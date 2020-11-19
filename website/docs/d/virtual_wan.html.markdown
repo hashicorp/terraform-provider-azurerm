@@ -88,7 +88,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 - `virtual_hub_ids` - A list of Virtual Hubs ID's attached to this Virtual WAN.
 
-- `vpn_sites` - (Optional) list of vpn sites attached.
+- `vpn_site_ids` - A list of VPN Site ID's attached to this Virtual WAN.
 
 ## Timeouts
 
