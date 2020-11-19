@@ -189,8 +189,6 @@ A `azure_active_directory` block supports the following:
 
 * `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration.
 
-~> **Note:** Managed Azure Active Directory Integrations is in Preview and needs to be enabled prior to use. More information, including how to enable the Preview feature - [can be found in the Managed Azure Active Directory Integration Documentation](https://docs.microsoft.com/en-us/azure/aks/azure-ad-v2).
-
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
 
 When `managed` is set to `true` the following properties can be specified:
