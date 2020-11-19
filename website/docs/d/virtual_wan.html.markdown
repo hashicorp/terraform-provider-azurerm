@@ -72,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 - `allow_branch_to_branch_traffic` - (Optional) True, if allow branch to branch traffic is allowed.
 
-- `disable_vpn_encryption` - (Optional) True, if vpn encryption is disabled.
+- `disable_vpn_encryption` - Is VPN Encryption disabled?
 
 - `location` - The Azure Region where the Virtual Wan exists.
 
