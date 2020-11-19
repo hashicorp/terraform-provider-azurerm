@@ -988,34 +988,3 @@ func (r PolicySetDefinitionResource) Exists(ctx context.Context, client *clients
 
 	return utils.Bool(true), nil
 }
-
-func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.SetDefinitionsClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_policy_set_definition" {
-			continue
-		}
-
-		id, err := parse.PolicySetDefinitionID(rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		var resp policy.SetDefinition
-		if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
-			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupName)
-		} else {
-			resp, err = client.Get(ctx, id.Name)
-		}
-
-		if err == nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on Policy.SetDefinitionsClient: %+v", err)
-			}
-		}
-	}
-
-	return nil
-}
