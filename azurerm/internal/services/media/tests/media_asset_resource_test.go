@@ -121,10 +121,10 @@ func testAccAzureRMMediaAsset_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_asset" "test" {
-	name                        = "asset%s"
-	description                 = "Asset description"
-	resource_group_name         = azurerm_resource_group.test.name
-	media_services_account_name = azurerm_media_services_account.test.name
+  name                        = "asset%s"
+  description                 = "Asset description"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
 }
 
 `, template, data.RandomString)
@@ -136,11 +136,11 @@ func testAccAzureRMMediaAsset_alternate_id(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_asset" "test" {
-	name                        = "asset%s"
-	description                 = "Asset description"
-	resource_group_name         = azurerm_resource_group.test.name
-	media_services_account_name = azurerm_media_services_account.test.name
-	alternate_id                = "assetalternateid"
+  name                        = "asset%s"
+  description                 = "Asset description"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
+  alternate_id                = "assetalternateid"
 }
 
 `, template, data.RandomString)
@@ -152,11 +152,11 @@ func testAccAzureRMMediaAsset_storage_account(data acceptance.TestData) string {
 %s
 
 resource "azurerm_media_asset" "test" {
-	name                        = "asset%s"
-	description                 = "Asset description"
-	resource_group_name         = azurerm_resource_group.test.name
-	media_services_account_name = azurerm_media_services_account.test.name
-	storage_account_name        = azurerm_storage_account.test.name
+  name                        = "asset%s"
+  description                 = "Asset description"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
+  storage_account_name        = azurerm_storage_account.test.name
 }
 
 `, template, data.RandomString)
@@ -168,12 +168,12 @@ func testAccAzureRMMediaAsset_custom_container(data acceptance.TestData) string 
 %s
 
 resource "azurerm_media_asset" "test" {
-	name                        = "asset%s"
-	description                 = "Asset description"
-	resource_group_name         = azurerm_resource_group.test.name
-	media_services_account_name = azurerm_media_services_account.test.name
-	storage_account_name        = azurerm_storage_account.test.name
-	container                   = "assetcontainer"
+  name                        = "asset%s"
+  description                 = "Asset description"
+  resource_group_name         = azurerm_resource_group.test.name
+  media_services_account_name = azurerm_media_services_account.test.name
+  storage_account_name        = azurerm_storage_account.test.name
+  container                   = "assetcontainer"
 }
 
 `, template, data.RandomString)
@@ -199,14 +199,14 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_media_services_account" "test" {
-	name                = "acctestmsa%s"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-  
-	storage_account {
-	  id         = azurerm_storage_account.test.id
-	  is_primary = true
-	}
+  name                = "acctestmsa%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  storage_account {
+    id         = azurerm_storage_account.test.id
+    is_primary = true
   }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
