@@ -9,6 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_security_center_automation` [GH-8781]
 * **New Resource:** `azurerm_storage_data_lake_gen2_path` [GH-7521]
 * **New Resource:** `azurerm_storage_encryption_scope` [GH-8894]
+* **New Resource:** `azurerm_vpn_gateway_connection` [GH-9160]
 
 IMPROVEMENTS:
 
