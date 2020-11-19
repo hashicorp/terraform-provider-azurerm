@@ -3,7 +3,7 @@ package parse
 import (
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 func TestWorkspaceID(t *testing.T) {
@@ -76,7 +76,7 @@ func TestAccountIDCaseDiffSuppress(t *testing.T) {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *parsers.AccountID
+		Expect *parse.AccountID
 	}{
 		{
 			Name:  "Empty",
@@ -101,7 +101,7 @@ func TestAccountIDCaseDiffSuppress(t *testing.T) {
 		{
 			Name:  "Account ID with right casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/storageAccounts/account1",
-			Expect: &parsers.AccountID{
+			Expect: &parse.AccountID{
 				Name:          "account1",
 				ResourceGroup: "resGroup1",
 			},
@@ -109,7 +109,7 @@ func TestAccountIDCaseDiffSuppress(t *testing.T) {
 		{
 			Name:  "Wrong Casing",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resgroup1/storageaccounts/account1",
-			Expect: &parsers.AccountID{
+			Expect: &parse.AccountID{
 				Name:          "account1",
 				ResourceGroup: "resgroup1",
 			},

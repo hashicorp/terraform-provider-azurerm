@@ -32,12 +32,17 @@ func TestTimeSeriesInsightsAccessPolicyId(t *testing.T) {
 		},
 		{
 			Name:     "Time Series Insight AccessPolicy Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/Environment1/accesspolicies/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/Environment1/accessPolicies/",
+			Expected: nil,
+		},
+		{
+			Name:     "Time Series Insight Access Policy ID legacy casing",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/Environment1/accesspolicies/Policy1",
 			Expected: nil,
 		},
 		{
 			Name:  "Time Series Insight Access Policy ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/Environment1/accesspolicies/Policy1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/Environment1/accessPolicies/Policy1",
 			Expected: &TimeSeriesInsightsAccessPolicyId{
 				EnvironmentName: "Environment1",
 				ResourceGroup:   "resGroup1",

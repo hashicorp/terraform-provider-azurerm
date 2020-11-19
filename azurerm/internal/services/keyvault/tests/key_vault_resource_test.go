@@ -210,6 +210,39 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVault_updateContacts(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKeyVault_updateContacts(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKeyVault_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMKeyVault_justCert(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
 
@@ -607,7 +640,11 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.client_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "ManageContacts",
+    ]
 
     key_permissions = [
       "create",
@@ -636,7 +673,7 @@ resource "azurerm_key_vault" "import" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.client_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -704,7 +741,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.client_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -739,7 +776,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.client_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -775,7 +812,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.client_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -818,7 +855,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.client_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "get",
@@ -935,7 +972,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id      = data.azurerm_client_config.current.tenant_id
-    object_id      = data.azurerm_client_config.current.client_id
+    object_id      = data.azurerm_client_config.current.object_id
     application_id = data.azurerm_client_config.current.client_id
 
     certificate_permissions = [
@@ -982,7 +1019,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.client_id
+    object_id = data.azurerm_client_config.current.object_id
 
     certificate_permissions = [
       "get",
@@ -1218,6 +1255,54 @@ resource "azurerm_key_vault" "test" {
   sku_name = "premium"
 
   access_policy = []
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMKeyVault_updateContacts(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-kv-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "premium"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "ManageContacts",
+    ]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+
+  contact {
+    email = "example@example.com"
+    name  = "example"
+    phone = "01234567890"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

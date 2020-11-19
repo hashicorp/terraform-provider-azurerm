@@ -81,7 +81,6 @@ func testCheckAzureRMLogAnalyticsSolutionDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}
@@ -152,6 +151,10 @@ resource "azurerm_log_analytics_solution" "test" {
   plan {
     publisher = "Microsoft"
     product   = "OMSGallery/ContainerInsights"
+  }
+
+  tags = {
+    Environment = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

@@ -112,7 +112,6 @@ func testCheckAzureRMApplicationSecurityGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -145,7 +144,6 @@ func testCheckAzureRMApplicationSecurityGroupExists(resourceName string) resourc
 		}
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Application Security Group %q (resource group: %q) was not found: %+v", name, resourceGroup, err)

@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"

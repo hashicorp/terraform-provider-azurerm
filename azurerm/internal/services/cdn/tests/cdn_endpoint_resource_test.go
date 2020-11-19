@@ -131,6 +131,25 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMCdnEndpoint_withoutCompression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCdnEndpoint_withoutCompression(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckNoResourceAttr(data.ResourceName, "is_compression_enabled"),
+				),
 			}, data.ImportStep(),
 		},
 	})
@@ -674,6 +693,43 @@ resource "azurerm_cdn_endpoint" "test" {
 }
 
 func testAccAzureRMCdnEndpoint_optimized(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Verizon"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  is_http_allowed     = false
+  is_https_allowed    = true
+  optimization_type   = "GeneralWebDelivery"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.contoso.com"
+    https_port = 443
+    http_port  = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_withoutCompression(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -73,6 +73,7 @@ func resourceArmAttestationProvider() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmAttestationProviderCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Attestation.ProviderClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

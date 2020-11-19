@@ -152,7 +152,6 @@ func resourceArmKustoAttachedDatabaseConfigurationRead(d *schema.ResourceData, m
 	}
 
 	configuration, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(configuration.Response) {
 			d.SetId("")

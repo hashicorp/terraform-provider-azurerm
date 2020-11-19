@@ -59,6 +59,8 @@ func resourceArmSearchService() *schema.Resource {
 					string(search.Standard),
 					string(search.Standard2),
 					string(search.Standard3),
+					string(search.StorageOptimizedL1),
+					string(search.StorageOptimizedL2),
 				}, false),
 			},
 
@@ -118,6 +120,33 @@ func resourceArmSearchService() *schema.Resource {
 				},
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(search.SystemAssigned),
+							}, false),
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -164,7 +193,8 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 				IPRules: expandSearchServiceIPRules(d.Get("allowed_ips").([]interface{})),
 			},
 		},
-		Tags: tags.Expand(t),
+		Identity: expandSearchServiceIdentity(d.Get("identity").([]interface{})),
+		Tags:     tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
@@ -254,6 +284,10 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("query_keys", flattenSearchQueryKeys(queryKeysResp.Values()))
 	}
 
+	if err := d.Set("identity", flattenSearchServiceIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %s", err)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -268,7 +302,6 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name, nil)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
@@ -323,4 +356,40 @@ func flattenSearchServiceIPRules(input *search.NetworkRuleSet) []interface{} {
 		result = append(result, rule.Value)
 	}
 	return result
+}
+
+func expandSearchServiceIdentity(input []interface{}) *search.Identity {
+	if len(input) == 0 || input[0] == nil {
+		return &search.Identity{
+			Type: search.None,
+		}
+	}
+	identity := input[0].(map[string]interface{})
+	return &search.Identity{
+		Type: search.IdentityType(identity["type"].(string)),
+	}
+}
+
+func flattenSearchServiceIdentity(identity *search.Identity) []interface{} {
+	if identity == nil || identity.Type == search.None {
+		return make([]interface{}, 0)
+	}
+
+	principalId := ""
+	if identity.PrincipalID != nil {
+		principalId = *identity.PrincipalID
+	}
+
+	tenantId := ""
+	if identity.TenantID != nil {
+		tenantId = *identity.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+			"type":         string(identity.Type),
+		},
+	}
 }

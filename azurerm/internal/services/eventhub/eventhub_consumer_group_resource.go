@@ -103,7 +103,6 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	read, err := client.Get(ctx, resGroup, namespaceName, eventHubName, name)
-
 	if err != nil {
 		return err
 	}
@@ -167,7 +166,6 @@ func resourceArmEventHubConsumerGroupDelete(d *schema.ResourceData, meta interfa
 	name := id.Path["consumergroups"]
 
 	resp, err := client.Delete(ctx, resGroup, namespaceName, eventHubName, name)
-
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error issuing Azure ARM delete request of EventHub Consumer Group '%s': %+v", name, err)

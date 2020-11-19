@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2018-06-01/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -131,7 +131,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				UserName:            utils.String(username),
 				Password:            utils.String(password),
 			})
-
 			if err != nil {
 				return err
 			}
@@ -296,7 +295,6 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 
 func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string) error {
 	future, err := client.Delete(ctx, resourceGroup, name, name)
-
 	if err != nil {
 		return fmt.Errorf("Error deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -370,7 +368,8 @@ func flattenHDInsightMonitoring(monitor hdinsight.ClusterMonitoringResponse) []i
 			map[string]string{
 				"log_analytics_workspace_id": *monitor.WorkspaceID,
 				"primary_key":                "*****",
-			}}
+			},
+		}
 	}
 
 	return nil

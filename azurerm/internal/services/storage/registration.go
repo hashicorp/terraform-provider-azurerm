@@ -34,15 +34,13 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_hpc_cache":                            resourceArmHPCCache(),
-		"azurerm_hpc_cache_blob_target":                resourceArmHPCCacheBlobTarget(),
-		"azurerm_hpc_cache_nfs_target":                 resourceArmHPCCacheNFSTarget(),
 		"azurerm_storage_account":                      resourceArmStorageAccount(),
 		"azurerm_storage_account_customer_managed_key": resourceArmStorageAccountCustomerManagedKey(),
 		"azurerm_storage_account_network_rules":        resourceArmStorageAccountNetworkRules(),
 		"azurerm_storage_blob":                         resourceArmStorageBlob(),
 		"azurerm_storage_container":                    resourceArmStorageContainer(),
 		"azurerm_storage_data_lake_gen2_filesystem":    resourceArmStorageDataLakeGen2FileSystem(),
+		"azurerm_storage_data_lake_gen2_path":          resourceArmStorageDataLakeGen2Path(),
 		"azurerm_storage_management_policy":            resourceArmStorageManagementPolicy(),
 		"azurerm_storage_queue":                        resourceArmStorageQueue(),
 		"azurerm_storage_share":                        resourceArmStorageShare(),

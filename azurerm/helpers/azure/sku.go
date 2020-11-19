@@ -16,7 +16,6 @@ func SplitSku(sku string) (string, int32, error) {
 	}
 
 	capacity, err := strconv.Atoi(skuParts[1])
-
 	if err != nil {
 		return "", -1, fmt.Errorf("%s in sku_name is not a valid value.", skuParts[1])
 	}
@@ -37,7 +36,6 @@ func MinCapacitySkuNameInSlice(valid []string, minCapacity int32, ignoreCase boo
 		}
 
 		name, capacity, err := SplitSku(v)
-
 		if err != nil {
 			es = append(es, err)
 			return

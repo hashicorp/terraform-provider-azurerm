@@ -146,7 +146,6 @@ func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) 
 		hostname := rs.Primary.Attributes["hostname"]
 
 		resp, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

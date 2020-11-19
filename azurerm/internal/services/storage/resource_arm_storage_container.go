@@ -1,21 +1,18 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers"
 )
 
 func resourceArmStorageContainer() *schema.Resource {
@@ -108,18 +105,15 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 
 	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client: %s", err)
+		return fmt.Errorf("building storage client: %+v", err)
 	}
 
-	id := client.GetResourceID(accountName, containerName)
-	existing, err := client.GetProperties(ctx, accountName, containerName)
+	id := parse.NewStorageContainerDataPlaneId(accountName, storageClient.Environment.StorageEndpointSuffix, containerName).ID("")
+	exists, err := client.Exists(ctx, account.ResourceGroup, accountName, containerName)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q): %+v", containerName, accountName, account.ResourceGroup, err)
-		}
+		return err
 	}
-
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if exists != nil && *exists {
 		return tf.ImportAsExistsError("azurerm_storage_container", id)
 	}
 
@@ -128,24 +122,9 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		AccessLevel: accessLevel,
 		MetaData:    metaData,
 	}
-	if resp, err := client.Create(ctx, accountName, containerName, input); err != nil {
-		// If we fail due to previous delete still in progress, then we can retry
-		if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
-			stateConf := &resource.StateChangeConf{
-				Pending:        []string{"waitingOnDelete"},
-				Target:         []string{"succeeded"},
-				Refresh:        storageContainerCreateRefreshFunc(ctx, client, accountName, containerName, input),
-				PollInterval:   10 * time.Second,
-				NotFoundChecks: 180,
-				Timeout:        d.Timeout(schema.TimeoutCreate),
-			}
 
-			if _, err := stateConf.WaitForState(); err != nil {
-				return fmt.Errorf("failed creating container: %+v", err)
-			}
-		} else {
-			return fmt.Errorf("failed creating container: %+v", err)
-		}
+	if err := client.Create(ctx, account.ResourceGroup, accountName, containerName, input); err != nil {
+		return fmt.Errorf("failed creating container: %+v", err)
 	}
 
 	d.SetId(id)
@@ -157,44 +136,45 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseResourceID(d.Id())
+	id, err := parse.StorageContainerDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Container %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
-
 	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	if d.HasChange("container_access_type") {
-		log.Printf("[DEBUG] Updating the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+		log.Printf("[DEBUG] Updating the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.Name, id.AccountName, account.ResourceGroup)
 		accessLevelRaw := d.Get("container_access_type").(string)
 		accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
 
-		if _, err := client.SetAccessControl(ctx, id.AccountName, id.ContainerName, accessLevel); err != nil {
-			return fmt.Errorf("Error updating the Access Control for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		if err := client.UpdateAccessLevel(ctx, account.ResourceGroup, id.AccountName, id.Name, accessLevel); err != nil {
+			return fmt.Errorf("updating the Access Control for Container %q (Storage Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
 		}
-		log.Printf("[DEBUG] Updated the Access Control for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, account.ResourceGroup)
+
+		log.Printf("[DEBUG] Updated the Access Control for Container %q (Storage Account %q / Resource Group %q)", id.Name, id.AccountName, account.ResourceGroup)
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
+		log.Printf("[DEBUG] Updating the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.Name, id.AccountName, account.ResourceGroup)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		metaData := ExpandMetaData(metaDataRaw)
 
-		if _, err := client.SetMetaData(ctx, id.AccountName, id.ContainerName, metaData); err != nil {
-			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+		if err := client.UpdateMetaData(ctx, account.ResourceGroup, id.AccountName, id.Name, metaData); err != nil {
+			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
 		}
-		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, account.ResourceGroup)
+
+		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.Name, id.AccountName, account.ResourceGroup)
 	}
 
 	return resourceArmStorageContainerRead(d, meta)
@@ -202,54 +182,53 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseResourceID(d.Id())
+	id, err := parse.StorageContainerDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.ContainerName, err)
+		return fmt.Errorf("retrieving Account %q for Container %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
-		log.Printf("[DEBUG] Unable to locate Account %q for Storage Container %q - assuming removed & removing from state", id.AccountName, id.ContainerName)
+		log.Printf("[DEBUG] Unable to locate Account %q for Storage Container %q - assuming removed & removing from state", id.AccountName, id.Name)
+		d.SetId("")
+		return nil
+	}
+	client, err := storageClient.ContainersClient(ctx, *account)
+	if err != nil {
+		return fmt.Errorf("building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+	}
+
+	props, err := client.Get(ctx, account.ResourceGroup, id.AccountName, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
+	}
+	if props == nil {
+		log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.Name, id.AccountName, account.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *account)
-	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
-	}
-
-	props, err := client.GetProperties(ctx, id.AccountName, id.ContainerName)
-	if err != nil {
-		if utils.ResponseWasNotFound(props.Response) {
-			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountName, account.ResourceGroup)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
-	}
-
-	d.Set("name", id.ContainerName)
+	d.Set("name", id.Name)
 	d.Set("storage_account_name", id.AccountName)
 
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
-		return fmt.Errorf("Error setting `metadata`: %+v", err)
+		return fmt.Errorf("setting `metadata`: %+v", err)
 	}
 
 	d.Set("has_immutability_policy", props.HasImmutabilityPolicy)
 	d.Set("has_legal_hold", props.HasLegalHold)
 
-	resourceManagerId := client.GetResourceManagerResourceID(storageClient.SubscriptionId, account.ResourceGroup, id.AccountName, id.ContainerName)
-	d.Set("resource_manager_id", resourceManagerId)
+	resourceManagerId := parse.NewStorageContainerResourceManagerId(account.ResourceGroup, id.AccountName, id.Name)
+	d.Set("resource_manager_id", resourceManagerId.ID(subscriptionId))
 
 	return nil
 }
@@ -259,26 +238,25 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := containers.ParseResourceID(d.Id())
+	id, err := parse.StorageContainerDataPlaneID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.ContainerName, err)
+		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.Name, err)
 	}
 	if account == nil {
 		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
-
 	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
+		return fmt.Errorf("building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
-	if _, err := client.Delete(ctx, id.AccountName, id.ContainerName); err != nil {
-		return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
+	if err := client.Delete(ctx, account.ResourceGroup, id.AccountName, id.Name); err != nil {
+		return fmt.Errorf("deleting Container %q (Storage Account %q / Resource Group %q): %s", id.Name, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
@@ -302,21 +280,4 @@ func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
 	}
 
 	return string(input)
-}
-
-func storageContainerCreateRefreshFunc(ctx context.Context, client *containers.Client, accountName string, containerName string, input containers.CreateInput) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resp, err := client.Create(ctx, accountName, containerName, input)
-		if err != nil {
-			if !utils.ResponseWasConflict(resp.Response) {
-				return nil, "", err
-			}
-
-			if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
-				return nil, "waitingOnDelete", nil
-			}
-		}
-
-		return "succeeded", "succeeded", nil
-	}
 }

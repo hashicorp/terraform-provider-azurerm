@@ -119,7 +119,6 @@ func testCheckDevTestLabGlobalVMShutdownScheduleExists(resourceName string) reso
 
 		targetResourceID := rs.Primary.Attributes["virtual_machine_id"]
 		exists, err := testCheckDevTestLabGlobalVMShutdownScheduleExistsInternal(targetResourceID)
-
 		if err != nil {
 			return fmt.Errorf("Error checking if item has been created: %s", err)
 		}
@@ -139,7 +138,6 @@ func testCheckDevTestLabGlobalVMShutdownScheduleDestroy(s *terraform.State) erro
 
 		targetResourceID := rs.Primary.Attributes["virtual_machine_id"]
 		exists, err := testCheckDevTestLabGlobalVMShutdownScheduleExistsInternal(targetResourceID)
-
 		if err != nil {
 			return fmt.Errorf("Error checking if item has been destroyed: %s", err)
 		}

@@ -373,7 +373,7 @@ func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) 
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
-	// During update it can be set and it will not return an error. Workaround for the APIs behavior
+	// During update it can be set and it will not return an error. Workaround for the APIs behaviour
 	if v, ok := d.GetOk("week_days"); ok {
 		weekDays := v.(*schema.Set).List()
 		expandedWeekDays := make([]string, len(weekDays))

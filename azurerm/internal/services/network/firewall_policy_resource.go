@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 
@@ -22,6 +23,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
 func resourceArmFirewallPolicy() *schema.Resource {
 	return &schema.Resource{
@@ -80,10 +83,12 @@ func resourceArmFirewallPolicy() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						// TODO 3.0 - remove this property
 						"network_rule_fqdn_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:       schema.TypeBool,
+							Optional:   true,
+							Computed:   true,
+							Deprecated: "This property has been deprecated as the service team has removed it from all API versions and is no longer supported by Azure. It will be removed in v3.0 of the provider.",
 						},
 					},
 				},
@@ -192,6 +197,9 @@ func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interfac
 		props.FirewallPolicyPropertiesFormat.BasePolicy = &network.SubResource{ID: utils.String(id.(string))}
 	}
 
+	locks.ByName(name, azureFirewallPolicyResourceName)
+	defer locks.UnlockByName(name, azureFirewallPolicyResourceName)
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, props); err != nil {
 		return fmt.Errorf("creating Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -276,6 +284,9 @@ func resourceArmFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
+	locks.ByName(id.Name, azureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.Name, azureFirewallPolicyResourceName)
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting Firewall Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
@@ -310,9 +321,8 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *network.DNSSettings {
 
 	raw := input[0].(map[string]interface{})
 	output := &network.DNSSettings{
-		Servers:                     utils.ExpandStringSlice(raw["servers"].(*schema.Set).List()),
-		EnableProxy:                 utils.Bool(raw["proxy_enabled"].(bool)),
-		RequireProxyForNetworkRules: utils.Bool(raw["network_rule_fqdn_enabled"].(bool)),
+		Servers:     utils.ExpandStringSlice(raw["servers"].(*schema.Set).List()),
+		EnableProxy: utils.Bool(raw["proxy_enabled"].(bool)),
 	}
 
 	return output
@@ -341,16 +351,12 @@ func flattenFirewallPolicyDNSSetting(input *network.DNSSettings) []interface{} {
 		proxyEnabled = *input.EnableProxy
 	}
 
-	networkRulesFqdnEnabled := false
-	if input.RequireProxyForNetworkRules != nil {
-		networkRulesFqdnEnabled = *input.RequireProxyForNetworkRules
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"servers":                   utils.FlattenStringSlice(input.Servers),
-			"proxy_enabled":             proxyEnabled,
-			"network_rule_fqdn_enabled": networkRulesFqdnEnabled,
+			"servers":       utils.FlattenStringSlice(input.Servers),
+			"proxy_enabled": proxyEnabled,
+			// TODO 3.0: remove the setting zero value for property below.
+			"network_rule_fqdn_enabled": false,
 		},
 	}
 }

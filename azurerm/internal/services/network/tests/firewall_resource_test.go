@@ -70,6 +70,46 @@ func TestAccAzureRMFirewall_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFirewall_enableDNS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewall_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_enableDNS(data, "1.1.1.1", "8.8.8.8"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_enableDNS(data, "1.1.1.1"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMFirewall_withManagementIp(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 
@@ -239,6 +279,71 @@ func TestAccAzureRMFirewall_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFirewall_withFirewallPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewall_withFirewallPolicy(data, "pol-01"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_withFirewallPolicy(data, "pol-02"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFirewall_inVirtualHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewall_inVirtualHub(data, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_inVirtualHub(data, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "2"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFirewall_inVirtualHub(data, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_hub.0.public_ip_addresses.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_hub.0.private_ip_address"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.AzureFirewallsClient
@@ -332,7 +437,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -373,7 +478,12 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFirewall_withManagementIp(data acceptance.TestData) string {
+func testAccAzureRMFirewall_enableDNS(data acceptance.TestData, dnsServers ...string) string {
+	servers := make([]string, len(dnsServers))
+	for idx, server := range dnsServers {
+		servers[idx] = fmt.Sprintf(`"%s"`, server)
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -381,6 +491,55 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+  threat_intel_mode = "Deny"
+  dns_servers       = [%s]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, strings.Join(servers, ","))
+}
+
+func testAccAzureRMFirewall_withManagementIp(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -450,7 +609,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -530,7 +689,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -582,7 +741,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -634,7 +793,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -683,7 +842,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 
@@ -723,4 +882,112 @@ resource "azurerm_firewall" "test" {
   zones = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMFirewall_withFirewallPolicy(data acceptance.TestData, policyName string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctestfirewall-%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  firewall_policy_id = azurerm_firewall_policy.test.id
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, policyName, data.RandomInteger)
+}
+
+func testAccAzureRMFirewall_inVirtualHub(data acceptance.TestData, pipCount int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_firewall_policy" "test" {
+  name                = "acctest-firewallpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_wan" "test" {
+  name                = "acctest-virtualwan-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctest-virtualhub-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctest-firewall-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "AZFW_Hub"
+
+  virtual_hub {
+    virtual_hub_id  = azurerm_virtual_hub.test.id
+    public_ip_count = %[3]d
+  }
+
+  firewall_policy_id = azurerm_firewall_policy.test.id
+  threat_intel_mode  = ""
+}
+`, data.RandomInteger, data.Locations.Primary, pipCount)
 }

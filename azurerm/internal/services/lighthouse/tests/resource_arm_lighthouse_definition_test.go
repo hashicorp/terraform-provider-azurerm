@@ -158,7 +158,6 @@ func testCheckAzureRMLighthouseDefinitionExists(resourceName string) resource.Te
 		lighthouseDefinitionID := rs.Primary.Attributes["lighthouse_definition_id"]
 
 		resp, err := client.Get(ctx, scope, lighthouseDefinitionID)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Lighthouse Definition %q (Scope: %q) does not exist", lighthouseDefinitionID, scope)
@@ -183,7 +182,6 @@ func testCheckAzureRMLighthouseDefinitionDestroy(s *terraform.State) error {
 		lighthouseDefinitionID := rs.Primary.Attributes["lighthouse_definition_id"]
 
 		resp, err := client.Get(ctx, scope, lighthouseDefinitionID)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

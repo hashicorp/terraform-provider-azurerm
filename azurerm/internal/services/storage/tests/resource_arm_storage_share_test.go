@@ -152,6 +152,25 @@ func TestAccAzureRMStorageShare_acl(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShare_aclGhostedRecall(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_aclGhostedRecall(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageShare_updateQuota(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
@@ -229,7 +248,11 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
 
-		if _, err = client.GetProperties(ctx, accountName, shareName); err != nil {
+		exists, err := client.Exists(ctx, account.ResourceGroup, accountName, shareName)
+		if err != nil {
+			return fmt.Errorf("Bad: checking for presence of Share %q (Storage Account: %q): %+v", shareName, accountName, err)
+		}
+		if exists == nil || !*exists {
 			return fmt.Errorf("Bad: Share %q (Storage Account: %q) does not exist", shareName, accountName)
 		}
 
@@ -263,7 +286,7 @@ func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCh
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
 
-		if _, err := client.Delete(ctx, accountName, shareName, true); err != nil {
+		if err := client.Delete(ctx, account.ResourceGroup, accountName, shareName); err != nil {
 			return fmt.Errorf("Error deleting Share %q (Account %q): %v", shareName, accountName, err)
 		}
 
@@ -298,12 +321,16 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
 
-		props, err := client.GetProperties(ctx, accountName, shareName)
+		exists, err := client.Exists(ctx, account.ResourceGroup, accountName, shareName)
 		if err != nil {
 			return nil
 		}
 
-		return fmt.Errorf("Share still exists: %+v", props)
+		if exists != nil && *exists {
+			return fmt.Errorf("Share still exists!")
+		}
+
+		return nil
 	}
 
 	return nil
@@ -376,6 +403,25 @@ resource "azurerm_storage_share" "test" {
 `, template, data.RandomString)
 }
 
+func testAccAzureRMStorageShare_aclGhostedRecall(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShare_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share" "test" {
+  name                 = "testshare%s"
+  storage_account_name = azurerm_storage_account.test.name
+
+  acl {
+    id = "GhostedRecall"
+    access_policy {
+      permissions = "r"
+    }
+  }
+}
+`, template, data.RandomString)
+}
+
 func testAccAzureRMStorageShare_aclUpdated(data acceptance.TestData) string {
 	template := testAccAzureRMStorageShare_template(data)
 	return fmt.Sprintf(`
@@ -406,6 +452,7 @@ resource "azurerm_storage_share" "test" {
 }
 `, template, data.RandomString)
 }
+
 func testAccAzureRMStorageShare_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMStorageShare_basic(data)
 	return fmt.Sprintf(`
