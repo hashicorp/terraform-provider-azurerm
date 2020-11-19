@@ -183,32 +183,6 @@ func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApiManagement_virtualNetworkInternalUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagement_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMApiManagement_virtualNetworkInternal(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
@@ -299,7 +273,6 @@ func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		resp, err := conn.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
