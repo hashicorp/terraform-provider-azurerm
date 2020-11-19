@@ -11,9 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var actions = "[\"repositories/testrepo/content/read\"]"
-var actionsUpdate = "[\"repositories/testrepo/content/read\", \"repositories/testrepo/content/delete\"]"
-
 func TestAccAzureRMContainerRegistryScopeMap_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_scope_map", "test")
 
