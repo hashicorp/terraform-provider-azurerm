@@ -102,6 +102,7 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 		},
 	})
 }
+
 func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
@@ -270,7 +271,6 @@ func testCheckAzureRMRoleAssignmentExists(resourceName string) resource.TestChec
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Role Assignment %q (Scope: %q) does not exist", roleAssignmentName, scope)
@@ -295,7 +295,6 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, scope, roleAssignmentName)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

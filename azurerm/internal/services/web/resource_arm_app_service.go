@@ -306,7 +306,8 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	auth := web.SiteAuthSettings{
 		ID:                         read.ID,
-		SiteAuthSettingsProperties: &authSettings}
+		SiteAuthSettingsProperties: &authSettings,
+	}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
 		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -316,7 +317,8 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	logs := web.SiteLogsConfig{
 		ID:                       read.ID,
-		SiteLogsConfigProperties: &logsConfig}
+		SiteLogsConfigProperties: &logsConfig,
+	}
 
 	if _, err := client.UpdateDiagnosticLogsConfig(ctx, resourceGroup, name, logs); err != nil {
 		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -533,7 +535,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		site.Identity = appServiceIdentity
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, site)
-
 		if err != nil {
 			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", id.Name, err)
 		}

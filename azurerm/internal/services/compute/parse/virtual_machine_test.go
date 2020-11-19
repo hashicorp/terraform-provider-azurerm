@@ -18,7 +18,7 @@ func TestVirtualMachineIDFormatter(t *testing.T) {
 }
 
 func TestVirtualMachineID(t *testing.T) {
-	var testData = []struct {
+	testData := []struct {
 		Name     string
 		Input    string
 		Expected *VirtualMachineId

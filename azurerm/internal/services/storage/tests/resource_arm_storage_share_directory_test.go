@@ -112,6 +112,7 @@ func TestAccAzureRMStorageShareDirectory_update(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share_directory", "parent")
 

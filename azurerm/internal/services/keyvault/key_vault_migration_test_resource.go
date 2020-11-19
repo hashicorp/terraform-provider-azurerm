@@ -366,7 +366,6 @@ func TestKeyVaultMigrateState(t *testing.T) {
 			Attributes: tc.Attributes,
 		}
 		is, err := resourceAzureRMKeyVaultMigrateState(tc.StateVersion, is, tc.Meta)
-
 		if err != nil {
 			t.Fatalf("bad: %q, err: %+v", tn, err)
 		}

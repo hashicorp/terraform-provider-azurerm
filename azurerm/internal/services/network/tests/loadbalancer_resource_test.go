@@ -82,6 +82,7 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 	var lb network.LoadBalancer
@@ -106,6 +107,7 @@ func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	var lb network.LoadBalancer
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
@@ -255,7 +257,6 @@ func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
-
 		if err != nil {
 			return nil
 		}

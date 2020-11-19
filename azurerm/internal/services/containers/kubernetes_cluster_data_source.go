@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-09-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -716,7 +716,6 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 
 		if strings.Contains(rawConfig, "apiserver-id:") {
 			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
-
 			if err != nil {
 				return utils.String(rawConfig), []interface{}{}
 			}
@@ -724,7 +723,6 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
 		} else {
 			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-
 			if err != nil {
 				return utils.String(rawConfig), []interface{}{}
 			}
@@ -1082,7 +1080,7 @@ func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfi
 
 func flattenKubernetesClusterDataSourceManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
 	// if it's none, omit the block
-	if input == nil || input.Type == containerservice.None {
+	if input == nil || input.Type == containerservice.ResourceIdentityTypeNone {
 		return []interface{}{}
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	dataLakeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
-	StorageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	StorageParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 func DataShareAccountName() schema.SchemaValidateFunc {
@@ -84,7 +84,7 @@ func StorageAccountID(i interface{}, k string) (warnings []string, errors []erro
 		return warnings, errors
 	}
 
-	if _, err := StorageParse.ParseAccountID(v); err != nil {
+	if _, err := StorageParse.AccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Storage Account id: %v", k, err))
 	}
 
