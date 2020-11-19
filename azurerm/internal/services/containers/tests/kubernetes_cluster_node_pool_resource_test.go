@@ -736,11 +736,6 @@ func TestAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	testAccAzureRMKubernetesClusterNodePool_zeroSize(t)
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
-	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_sameSize(t)
-}
-
 func testAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 
@@ -760,6 +755,11 @@ func testAccAzureRMKubernetesClusterNodePool_zeroSize(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_maxSize(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_maxSize(t)
+}
+
 func testAccAzureRMKubernetesClusterNodePool_maxSize(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 
@@ -777,6 +777,11 @@ func testAccAzureRMKubernetesClusterNodePool_maxSize(t *testing.T) {
 			data.ImportStep(),
 		},
 	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_sameSize(t)
 }
 
 func testAccAzureRMKubernetesClusterNodePool_sameSize(t *testing.T) {
