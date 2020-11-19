@@ -93,7 +93,7 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
-			"use_local_azure_ip_address": {
+			"local_azure_ip_address_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
