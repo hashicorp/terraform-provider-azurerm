@@ -45,15 +45,15 @@ output "servicebus_subscription" {
 
 * `lock_duration` - The lock duration for the subscription.
 
-* `dead_lettering_on_message_expiration` - Boolean flag which controls whether the Subscription has dead letter support when a message expires.
+* `dead_lettering_on_message_expiration` - Does the Service Bus Subscription have dead letter support when a message expires?
 
-* `dead_lettering_on_filter_evaluation_error` - Boolean flag which controls whether the Subscription has dead letter support on filter evaluation exceptions.
+* `dead_lettering_on_filter_evaluation_error` - Does the ServiceBus Subscription have dead letter support on filter evaluation exceptions?
 
-* `enable_batched_operations` - Boolean flag which controls whether the Subscription supports batched operations.
+* `enable_batched_operations` - Are batched operations enabled on this ServiceBus Subscription?
 
-* `requires_session` - Boolean flag which controls whether this Subscription supports the concept of a session.
+* `requires_session` - Whether or not this ServiceBus Subscription supports session.
 
-* `forward_to` - The name of a Queue or Topic to automatically forward messages to.
+* `forward_to` - The name of a ServiceBus Queue or ServiceBus Topic where messages are automatically forwarded.
 
 * `forward_dead_lettered_messages_to` - The name of a Queue or Topic to automatically forward Dead Letter messages to.
 

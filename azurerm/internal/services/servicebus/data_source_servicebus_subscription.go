@@ -124,9 +124,14 @@ func dataSourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interf
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 		d.Set("forward_to", props.ForwardTo)
-		if count := props.MaxDeliveryCount; count != nil {
-			d.Set("max_delivery_count", int(*count))
+
+		maxDeliveryCount := 0
+		if props.MaxDeliveryCount != nil {
+			maxDeliveryCount = int(*props.MaxDeliveryCount)
 		}
+
+		d.Set("max_delivery_count", maxDeliveryCount)
+
 	}
 
 	return nil
