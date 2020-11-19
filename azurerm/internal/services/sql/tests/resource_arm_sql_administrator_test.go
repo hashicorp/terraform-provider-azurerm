@@ -37,6 +37,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 

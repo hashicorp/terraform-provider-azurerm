@@ -1,4 +1,4 @@
-package parsers
+package parse
 
 import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"

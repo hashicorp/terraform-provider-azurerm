@@ -105,6 +105,62 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmAge
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherExtensionsTimeBudget(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_otherExtensionsTimeBudget(data, "PT30M"),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "extensions_time_budget", "PT30M"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherExtensionsTimeBudgetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_otherExtensionsTimeBudget(data, "PT30M"),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "extensions_time_budget", "PT30M"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_otherExtensionsTimeBudget(data, "PT50M"),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "extensions_time_budget", "PT50M"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_otherExtensionsTimeBudget(data, "PT30M"),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "extensions_time_budget", "PT30M"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
@@ -700,6 +756,43 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_otherExtensionsTimeBudget(data acceptance.TestData, duration string) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  extensions_time_budget = "%s"
+}
+`, template, data.RandomInteger, duration)
 }
 
 func testLinuxVirtualMachine_otherBootDiagnostics(data acceptance.TestData) string {

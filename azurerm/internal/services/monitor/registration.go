@@ -25,7 +25,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_monitor_diagnostic_categories":       dataSourceArmMonitorDiagnosticCategories(),
 		"azurerm_monitor_log_profile":                 dataSourceArmMonitorLogProfile(),
 		"azurerm_monitor_scheduled_query_rules_alert": dataSourceArmMonitorScheduledQueryRulesAlert(),
-		"azurerm_monitor_scheduled_query_rules_log":   dataSourceArmMonitorScheduledQueryRulesLog()}
+		"azurerm_monitor_scheduled_query_rules_log":   dataSourceArmMonitorScheduledQueryRulesLog(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service

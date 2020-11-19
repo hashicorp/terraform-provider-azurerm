@@ -256,7 +256,7 @@ func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta in
 		})
 	}
 
-	var parameters = siterecovery.EnableProtectionInput{
+	parameters := siterecovery.EnableProtectionInput{
 		Properties: &siterecovery.EnableProtectionInputProperties{
 			PolicyID: &policyId,
 			ProviderSpecificDetails: siterecovery.A2AEnableProtectionInput{
@@ -360,7 +360,7 @@ func resourceArmSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta in
 		}
 	}
 
-	var parameters = siterecovery.UpdateReplicationProtectedItemInput{
+	parameters := siterecovery.UpdateReplicationProtectedItemInput{
 		Properties: &siterecovery.UpdateReplicationProtectedItemInputProperties{
 			RecoveryAzureVMName:            &name,
 			SelectedRecoveryAzureNetworkID: &targetNetworkId,

@@ -106,6 +106,7 @@ func resourceArmDataShare() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId

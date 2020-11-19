@@ -240,7 +240,6 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["group_id"]
 		recurse := false
 		resp, err := client.Get(ctx, name, "", &recurse, "", "no-cache")
-
 		if err != nil {
 			return nil
 		}

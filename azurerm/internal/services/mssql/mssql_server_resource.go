@@ -416,6 +416,7 @@ func expandAzureRmSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentit
 		Type: identityType,
 	}
 }
+
 func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
 	if identity == nil {
 		return []interface{}{}

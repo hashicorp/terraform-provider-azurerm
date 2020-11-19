@@ -28,6 +28,7 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMServiceBusSubscriptionRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 

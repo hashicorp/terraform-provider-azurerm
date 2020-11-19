@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-var AzureProvider *schema.Provider
-var SupportedProviders map[string]terraform.ResourceProvider
+var (
+	AzureProvider      *schema.Provider
+	SupportedProviders map[string]terraform.ResourceProvider
+)
 
 func PreCheck(t *testing.T) {
 	variables := []string{

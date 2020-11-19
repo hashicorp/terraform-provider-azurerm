@@ -244,7 +244,6 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 		Timeout:    d.Timeout(schema.TimeoutDelete),
 		Refresh: func() (interface{}, string, error) {
 			resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
-
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return resp, strconv.Itoa(resp.StatusCode), nil

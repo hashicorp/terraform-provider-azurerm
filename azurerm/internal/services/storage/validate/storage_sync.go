@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 func StorageSyncName(v interface{}, _ string) (warnings []string, errors []error) {
@@ -24,7 +24,7 @@ func StorageSyncId(i interface{}, k string) (warnings []string, errors []error) 
 		return warnings, errors
 	}
 
-	if _, err := parsers.ParseStorageSyncID(v); err != nil {
+	if _, err := parse.ParseStorageSyncID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Storage Sync resource id: %v", k, err))
 	}
 

@@ -32,5 +32,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mariadb_database":             resourceArmMariaDbDatabase(),
 		"azurerm_mariadb_firewall_rule":        resourceArmMariaDBFirewallRule(),
 		"azurerm_mariadb_server":               resourceArmMariaDbServer(),
-		"azurerm_mariadb_virtual_network_rule": resourceArmMariaDbVirtualNetworkRule()}
+		"azurerm_mariadb_virtual_network_rule": resourceArmMariaDbVirtualNetworkRule(),
+	}
 }

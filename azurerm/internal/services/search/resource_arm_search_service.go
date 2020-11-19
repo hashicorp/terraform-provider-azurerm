@@ -302,7 +302,6 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name, nil)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

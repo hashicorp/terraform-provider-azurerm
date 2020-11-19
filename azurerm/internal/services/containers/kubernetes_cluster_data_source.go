@@ -716,7 +716,6 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 
 		if strings.Contains(rawConfig, "apiserver-id:") {
 			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
-
 			if err != nil {
 				return utils.String(rawConfig), []interface{}{}
 			}
@@ -724,7 +723,6 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
 		} else {
 			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-
 			if err != nil {
 				return utils.String(rawConfig), []interface{}{}
 			}
