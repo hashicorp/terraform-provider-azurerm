@@ -2,6 +2,7 @@ package privatedns
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
@@ -197,6 +198,10 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 				Metadata:  tags.Expand(soaRecord["tags"].(map[string]interface{})),
 				SoaRecord: expandArmPrivateDNSZoneSOARecord(soaRecord),
 			},
+		}
+
+		if len(name+strings.TrimSuffix(*rsParameters.RecordSetProperties.SoaRecord.Email, ".")) > 253 {
+			return fmt.Errorf("`email` which is concatenated with Private DNS Zone `name` cannot exceed 253 characters excluding a trailing period", name, resGroup)
 		}
 
 		if _, err := recordSetsClient.CreateOrUpdate(ctx, resGroup, name, privatedns.SOA, "@", rsParameters, etag, ifNoneMatch); err != nil {

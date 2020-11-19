@@ -2,6 +2,7 @@ package dns
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
@@ -189,6 +190,10 @@ func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) er
 				Metadata:  tags.Expand(soaRecord["tags"].(map[string]interface{})),
 				SoaRecord: expandArmDNSZoneSOARecord(soaRecord),
 			},
+		}
+
+		if len(name+strings.TrimSuffix(*rsParameters.RecordSetProperties.SoaRecord.Email, ".")) > 253 {
+			return fmt.Errorf("`email` which is concatenated with DNS Zone `name` cannot exceed 253 characters excluding a trailing period", name, resGroup)
 		}
 
 		if _, err := recordSetsClient.CreateOrUpdate(ctx, resGroup, name, "@", dns.SOA, rsParameters, etag, ifNoneMatch); err != nil {

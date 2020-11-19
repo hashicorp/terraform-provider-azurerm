@@ -3,13 +3,37 @@ package validate
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 func DnsZoneSOARecordEmail(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile(`^[a-zA-Z\d_-][a-zA-Z\d._-]{0,62}$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q must be between 1 and 63 characters in length and contains only letters, numbers, underscores, dashes and periods", k))
+	if len(value) == 0 {
+		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
+		return warnings, errors
+	}
+
+	vSegments := strings.Split(value, ".")
+	if len(vSegments) < 2 || len(vSegments) > 34 {
+		errors = append(errors, fmt.Errorf("%q must be between 2 and 34 labels", k))
+		return warnings, errors
+	}
+
+	for _, segment := range vSegments {
+		if segment == "" {
+			errors = append(errors, fmt.Errorf("%q cannot contain consecutive period", k))
+			return warnings, errors
+		}
+
+		if len(segment) > 63 {
+			errors = append(errors, fmt.Errorf("the each label must contain between 1 and 63 characters"))
+			return warnings, errors
+		}
+	}
+
+	if !regexp.MustCompile(`^[a-zA-Z\d._-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q only contains letters, numbers, underscores, dashes and periods", k))
 		return warnings, errors
 	}
 

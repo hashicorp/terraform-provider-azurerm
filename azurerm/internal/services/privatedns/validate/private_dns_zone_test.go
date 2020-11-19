@@ -15,7 +15,35 @@ func TestPrivateDNSZoneSOARecordEmail(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Value:  "a/b.com",
+			Value:  "a..com",
+			Errors: 1,
+		},
+		{
+			Value:  ".a.com",
+			Errors: 1,
+		},
+		{
+			Value:  "a.com.",
+			Errors: 1,
+		},
+		{
+			Value:  "a",
+			Errors: 1,
+		},
+		{
+			Value:  "a@.com.",
+			Errors: 1,
+		},
+		{
+			Value:  "a.com",
+			Errors: 0,
+		},
+		{
+			Value:  strings.Repeat("a.", 33) + "com",
+			Errors: 0,
+		},
+		{
+			Value:  strings.Repeat("a.", 34) + "com",
 			Errors: 1,
 		},
 		{
@@ -23,23 +51,11 @@ func TestPrivateDNSZoneSOARecordEmail(t *testing.T) {
 			Errors: 0,
 		},
 		{
-			Value:  "ab.com",
+			Value:  strings.Repeat("s", 63) + ".com",
 			Errors: 0,
 		},
 		{
-			Value:  "terraform.io",
-			Errors: 0,
-		},
-		{
-			Value:  strings.Repeat("s", 62),
-			Errors: 0,
-		},
-		{
-			Value:  strings.Repeat("s", 63),
-			Errors: 0,
-		},
-		{
-			Value:  strings.Repeat("s", 64),
+			Value:  strings.Repeat("s", 64) + ".com",
 			Errors: 1,
 		},
 	}
