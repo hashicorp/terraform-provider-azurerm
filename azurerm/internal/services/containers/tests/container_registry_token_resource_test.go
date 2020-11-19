@@ -115,16 +115,16 @@ resource "azurerm_container_registry" "test" {
 
 # use system wide scope map for tests
 data "azurerm_container_registry_scope_map" "pull_repos" {
-	name = "_repositories_pull"
+	name                    = "_repositories_pull"
 	container_registry_name = azurerm_container_registry.test.name
-	resource_group_name = azurerm_container_registry.test.resource_group_name
+	resource_group_name     = azurerm_container_registry.test.resource_group_name
 }
 
 resource "azurerm_container_registry_token" "test" {
-	name = "testtoken%d"
-	resource_group_name = azurerm_resource_group.test.name
+	name                    = "testtoken%d"
+	resource_group_name     = azurerm_resource_group.test.name
 	container_registry_name = azurerm_container_registry.test.name
-	scope_map_id = data.azurerm_container_registry_scope_map.pull_repos.id
+	scope_map_id            = data.azurerm_container_registry_scope_map.pull_repos.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -135,10 +135,10 @@ func testAccAzureRMContainerRegistryToken_requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_container_registry_token" "import" {
-  name                = azurerm_container_registry_token.test.name
-  resource_group_name = azurerm_container_registry_token.test.resource_group_name
+  name                    = azurerm_container_registry_token.test.name
+  resource_group_name     = azurerm_container_registry_token.test.resource_group_name
   container_registry_name = azurerm_container_registry_token.test.container_registry_name
-  scope_map_id = azurerm_container_registry_token.test.scope_map_id
+  scope_map_id            = azurerm_container_registry_token.test.scope_map_id
 }
 `, template)
 }
@@ -168,17 +168,17 @@ resource "azurerm_container_registry" "test" {
 
 # use system wide scope map for tests
 data "azurerm_container_registry_scope_map" "pull_repos" {
-	name = "_repositories_pull"
+	name                    = "_repositories_pull"
 	container_registry_name = azurerm_container_registry.test.name
-	resource_group_name = azurerm_container_registry.test.resource_group_name
+	resource_group_name     = azurerm_container_registry.test.resource_group_name
 }
 
 resource "azurerm_container_registry_token" "test" {
-	name = "testtoken%d"
-	resource_group_name = azurerm_resource_group.test.name
+	name                    = "testtoken%d"
+	resource_group_name     = azurerm_resource_group.test.name
 	container_registry_name = azurerm_container_registry.test.name
-	scope_map_id = data.azurerm_container_registry_scope_map.pull_repos.id
-	status = "%s"
+	scope_map_id            = data.azurerm_container_registry_scope_map.pull_repos.id
+	status                  = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status)
 }

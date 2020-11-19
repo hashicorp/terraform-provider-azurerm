@@ -15,8 +15,8 @@ Use this data source to access information about an existing Container Registry 
 
 ```hcl
 data "azurerm_container_registry_token" "example" {
-  name                = "testtoken"
-  resource_group_name = "test"
+  name                    = "testtoken"
+  resource_group_name     = "test"
   container_registry_name = "testacr"
 }
 

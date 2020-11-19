@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_container_registry_scope_map
 
-Manages an Azure Container Registry scope map.
+Manages an Azure Container Registry scope map.  Scope Maps are a preview feature only available in Premium SKU Container registries.
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
@@ -27,12 +27,12 @@ resource "azurerm_container_registry" "acr" {
 }
 
 resource "azurerm_container_registry_scope_map" "map" {
-  name                     = "repo1_read_create"
-  container_registry_name  = azurerm_container_registry.acr.name
-  resource_group_name      = azurerm_resource_group.rg.name
+  name                    = "repo1_read_create"
+  container_registry_name = azurerm_container_registry.acr.name
+  resource_group_name     = azurerm_resource_group.rg.name
   actions = [
-      "repo1/content/read",
-      "repo1/content/create"
+    "repo1/content/read",
+    "repo1/content/create"
   ]
 }
 ```
@@ -71,5 +71,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Container Registries can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_registry_scope_map.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/scopeMap/scopemap1
+terraform import azurerm_container_registry_scope_map.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1/scopeMaps/scopemap1
 ```

@@ -35,23 +35,23 @@ func testAccDataSourceAzureRMContainerRegistryToken_basic(data acceptance.TestDa
 %s
 
 data "azurerm_container_registry_scope_map" "pull_repos" {
-	name = "_repositories_pull"
+	name                    = "_repositories_pull"
 	container_registry_name = azurerm_container_registry.test.name
-	resource_group_name = azurerm_container_registry.test.resource_group_name
+	resource_group_name     = azurerm_container_registry.test.resource_group_name
 }
 
 resource "azurerm_container_registry_token" "test" {
-	name                = "testtoken%d"
-	resource_group_name = azurerm_resource_group.test.name
+	name                    = "testtoken%d"
+	resource_group_name     = azurerm_resource_group.test.name
 	container_registry_name = azurerm_container_registry.test.name
-	scope_map_id = data.azurerm_container_registry_scope_map.pull_repos.id
-	status = "disabled"
+	scope_map_id            = data.azurerm_container_registry_scope_map.pull_repos.id
+	status                  = "disabled"
 }
 
 data "azurerm_container_registry_token" "test" {
-	name = azurerm_container_registry_token.test.name
+	name                    = azurerm_container_registry_token.test.name
 	container_registry_name = azurerm_container_registry.test.name
-	resource_group_name = azurerm_container_registry.test.resource_group_name
+	resource_group_name     = azurerm_container_registry.test.resource_group_name
 }
 	`, testAccAzureRMContainerRegistry_basicManaged(data, "Premium"), data.RandomInteger)
 }
