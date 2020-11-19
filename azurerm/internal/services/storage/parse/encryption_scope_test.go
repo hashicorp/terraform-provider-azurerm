@@ -6,7 +6,7 @@ func TestStorageEncryptionScopeID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *StorageEncryptionScopeId
+		Expected *EncryptionScopeId
 	}{
 		{
 			Name:     "Empty",
@@ -41,10 +41,10 @@ func TestStorageEncryptionScopeID(t *testing.T) {
 		{
 			Name:  "Encryption Scope Id",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/acc1/encryptionScopes/enScope1",
-			Expected: &StorageEncryptionScopeId{
-				Name:           "enScope1",
-				StorageAccName: "acc1",
-				ResourceGroup:  "resGroup1",
+			Expected: &EncryptionScopeId{
+				Name:          "enScope1",
+				AccountName:   "acc1",
+				ResourceGroup: "resGroup1",
 			},
 		},
 		{
@@ -57,7 +57,7 @@ func TestStorageEncryptionScopeID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := StorageEncryptionScopeID(v.Input)
+		actual, err := EncryptionScopeID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -70,7 +70,7 @@ func TestStorageEncryptionScopeID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.StorageAccName != v.Expected.StorageAccName {
+		if actual.AccountName != v.Expected.AccountName {
 			t.Fatalf("Expected %q but got %q for Storage Encryption Scope Name", v.Expected.Name, actual.Name)
 		}
 

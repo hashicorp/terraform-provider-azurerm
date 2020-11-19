@@ -111,7 +111,7 @@ func resourceArmDataShareDataSetDataLakeGen2Create(d *schema.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen2", *existingId)
 	}
 
-	strId, err := storageParsers.ParseAccountID(d.Get("storage_account_id").(string))
+	strId, err := storageParsers.AccountID(d.Get("storage_account_id").(string))
 	if err != nil {
 		return err
 	}

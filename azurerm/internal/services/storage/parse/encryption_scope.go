@@ -1,24 +1,45 @@
 package parse
 
-import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+import (
+	"fmt"
 
-type StorageEncryptionScopeId struct {
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
+
+type EncryptionScopeId struct {
 	Name           string
-	StorageAccName string
+	AccountName    string
 	ResourceGroup  string
+	SubscriptionId string
 }
 
-func StorageEncryptionScopeID(input string) (*StorageEncryptionScopeId, error) {
+// the subscriptionId isn't used here, this is just to comply with the interface for now..
+func (id EncryptionScopeId) ID(_ string) string {
+	fmtString := "%s/encryptionScopes/%s"
+	accountId := NewAccountId(id.SubscriptionId, id.ResourceGroup, id.Name).ID("")
+	return fmt.Sprintf(fmtString, accountId, id.Name)
+}
+
+func NewEncryptionScopeId(storageAccount AccountId, name string) EncryptionScopeId {
+	return EncryptionScopeId{
+		Name:           name,
+		AccountName:    storageAccount.Name,
+		ResourceGroup:  storageAccount.ResourceGroup,
+		SubscriptionId: storageAccount.SubscriptionId,
+	}
+}
+
+func EncryptionScopeID(input string) (*EncryptionScopeId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	es := StorageEncryptionScopeId{
+	es := EncryptionScopeId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if es.StorageAccName, err = id.PopSegment("storageAccounts"); err != nil {
+	if es.AccountName, err = id.PopSegment("storageAccounts"); err != nil {
 		return nil, err
 	}
 

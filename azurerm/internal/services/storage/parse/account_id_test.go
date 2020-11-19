@@ -7,7 +7,7 @@ import (
 func TestParseAccountID(t *testing.T) {
 	testData := []struct {
 		input    string
-		expected *AccountID
+		expected *AccountId
 	}{
 		{
 			input:    "",
@@ -32,7 +32,7 @@ func TestParseAccountID(t *testing.T) {
 		},
 		{
 			input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/storageAccounts/account1",
-			expected: &AccountID{
+			expected: &AccountId{
 				Name:          "account1",
 				ResourceGroup: "hello",
 			},
@@ -41,7 +41,7 @@ func TestParseAccountID(t *testing.T) {
 
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
-		actual, err := ParseAccountID(v.input)
+		actual, err := AccountID(v.input)
 
 		// if we get something there shouldn't be an error
 		if v.expected != nil && err == nil {
