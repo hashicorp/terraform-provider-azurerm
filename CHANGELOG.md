@@ -46,6 +46,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_key_vault_certificate` - fixing a crash when serializing the certificate policy block [GH-9355]
+* `azurerm_api_management` - the field `xml_content` within the `policy` block now supports C#/.net interpolations [GH-9296]
 * `azurerm_cosmosdb_sql_container` - no longer attempts to get throughput settings when cosmos account is serverless [GH-9311]
 * `azurerm_firewall_policy` - deprecate the `dns.network_rule_fqdn_enabled` property as the API no longer allows it to be set [GH-9332]
 * `azurerm_key_vault_certificate` - fixing a crash when serializing the certificate policy block [GH-9355]
