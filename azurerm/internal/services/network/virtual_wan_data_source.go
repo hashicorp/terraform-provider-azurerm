@@ -38,7 +38,6 @@ func dataSourceArmVirtualWan() *schema.Resource {
 
 			"disable_vpn_encryption": {
 				Type:     schema.TypeBool,
-				Optional: true,
 				Computed: true,
 			},
 			"office365_local_breakout_category": {
