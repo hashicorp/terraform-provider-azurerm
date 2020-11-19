@@ -103,7 +103,7 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 			if err := d.Set("allow_branch_to_branch_traffic", &b); err != nil {
 				return fmt.Errorf("error setting `allow_branch_to_branch_traffic`: %v", err)
 			}
-		}
+		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
 		if dve := *props.DisableVpnEncryption; props.DisableVpnEncryption != nil {
 			if err := d.Set("disable_vpn_encryption", dve); err != nil {
 				return fmt.Errorf("error setting `disable_vpn_encryption`: %v", err)
