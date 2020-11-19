@@ -2,41 +2,35 @@ package automation_test
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+type AutomationAccountDataSource struct {
+}
+
 func TestAccDataSourceAutomationAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_automation_account", "test")
-	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAutomationAccount_complete(resourceGroupName, data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
-					resource.TestMatchResourceAttr(data.ResourceName, "id",
-						regexp.MustCompile(`^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Automation/automationAccounts/[^/]+$`)),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AutomationAccountDataSource{}.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+			),
 		},
 	})
 }
 
-func testAccDataSourceAutomationAccount_complete(resourceGroupName string, data acceptance.TestData) string {
+func (AutomationAccountDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "%s"
+  name     = "acctestRG-auto-%s"
   location = "%s"
 }
 
@@ -51,5 +45,5 @@ data "azurerm_automation_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = azurerm_automation_account.test.name
 }
-`, resourceGroupName, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

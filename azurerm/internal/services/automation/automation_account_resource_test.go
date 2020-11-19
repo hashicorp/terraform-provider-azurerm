@@ -1,147 +1,101 @@
 package automation_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/parse`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AutomationAccountResource struct {
+}
+
 func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource {}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
-		Steps: []resource.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationAccount_basic(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Basic"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "dsc_server_endpoint"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "dsc_primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "dsc_secondary_access_key"),
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key( "sku_name").HasValue( "Basic"),
+					check.That(data.ResourceName).Key( "dsc_server_endpoint").Exists(),
+					check.That(data.ResourceName).Key( "dsc_primary_access_key").Exists(),
+					check.That(data.ResourceName).Key( "dsc_secondary_access_key").Exists(),
 				),
 			},
 			data.ImportStep(),
-		},
 	})
 }
 
 func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource {}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
-		Steps: []resource.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationAccount_basic(data),
+				Config: r.basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationAccountExists(data.ResourceName),
+					check.That(data.ResourceName).ExistsInAzure(r),
 				),
 			},
 			{
-				Config:      testAccAzureRMAutomationAccount_requiresImport(data),
+				Config: r.requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_automation_account"),
 			},
-		},
 	})
 }
 
 func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_account", "test")
+	r := AutomationAccountResource {}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
-		Steps: []resource.TestStep{
+	data.ResourceTest(t, r, []resource.TestStep{
 			{
-				Config: testAccAzureRMAutomationAccount_complete(data),
+				Config: r.complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Basic"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key( "sku_name").HasValue( "Basic"),
+					check.That(data.ResourceName).Key( "tags.hello").HasValue( "world"),
 				),
 			},
 			data.ImportStep(),
-		},
 	})
 }
 
-func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.AccountClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_automation_account" {
-			continue
-		}
+func (t AutomationAccountResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	name := id.Path["automationAccounts"]
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Automation Account still exists:\n%#v", resp)
+	resp, err := clients.Automation.AccountClient.Get(ctx, id.ResourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Automation Account %q (resource group: %q): %+v", name, id.ResourceGroup, err)
 	}
 
-	return nil
+	return utils.Bool(resp.AccountProperties != nil), nil
 }
 
-func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.AccountClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Account: '%s'", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Automation Account '%s' (resource group: '%s') was not found: %+v", name, resourceGroup, err)
-			}
-
-			return fmt.Errorf("Bad: Get on automationClient: %s", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMAutomationAccount_basic(data acceptance.TestData) string {
+func (AutomationAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-auto-%d"
   location = "%s"
 }
 
@@ -155,8 +109,9 @@ resource "azurerm_automation_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationAccount_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationAccount_basic(data)
+func (AutomationAccountResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationAccountResource{}.basic(data)
+
 	return fmt.Sprintf(`
 %s
 
@@ -170,14 +125,14 @@ resource "azurerm_automation_account" "import" {
 `, template)
 }
 
-func testAccAzureRMAutomationAccount_complete(data acceptance.TestData) string {
+func (AutomationAccountResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-auto-%d"
   location = "%s"
 }
 

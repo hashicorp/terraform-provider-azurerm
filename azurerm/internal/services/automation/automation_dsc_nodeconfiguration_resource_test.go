@@ -121,7 +121,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-auto-%d"
   location = "%s"
 }
 
