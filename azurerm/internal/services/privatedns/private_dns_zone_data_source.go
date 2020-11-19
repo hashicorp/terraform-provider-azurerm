@@ -68,9 +68,7 @@ func dataSourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	var (
-		resp *privatedns.PrivateZone
-	)
+	var resp *privatedns.PrivateZone
 	if resourceGroup != "" {
 		zone, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -121,7 +119,6 @@ type privateDnsZone struct {
 func findPrivateZone(ctx context.Context, client *privatedns.PrivateZonesClient, resourcesClient *resources.Client, name string) (*privateDnsZone, error) {
 	filter := fmt.Sprintf("resourceType eq 'Microsoft.Network/privateDnsZones' and name eq '%s'", name)
 	privateZones, err := resourcesClient.List(ctx, filter, "", nil)
-
 	if err != nil {
 		return nil, fmt.Errorf("Error listing Private DNS Zones: %+v", err)
 	}
@@ -136,13 +133,11 @@ func findPrivateZone(ctx context.Context, client *privatedns.PrivateZonesClient,
 		}
 
 		id, err := azure.ParseAzureResourceID(*z.ID)
-
 		if err != nil {
 			continue
 		}
 
 		zone, err := client.Get(ctx, id.ResourceGroup, name)
-
 		if err != nil {
 			return nil, fmt.Errorf("Error retrieving Private DNS Zone %q in resource group %q: %+v", name, id.ResourceGroup, err)
 		}

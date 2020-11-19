@@ -266,7 +266,6 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}
@@ -307,6 +306,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 		return nil
 	}
 }
+
 func testAccAzureRMLogAnalyticsWorkspace_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

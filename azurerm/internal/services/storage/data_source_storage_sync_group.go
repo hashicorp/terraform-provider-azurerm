@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -43,7 +43,7 @@ func dataSourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{})
 	defer cancel()
 
 	name := d.Get("name").(string)
-	storageSyncId, err := parsers.ParseStorageSyncID(d.Get("storage_sync_id").(string))
+	storageSyncId, err := parse.ParseStorageSyncID(d.Get("storage_sync_id").(string))
 	if err != nil {
 		return err
 	}

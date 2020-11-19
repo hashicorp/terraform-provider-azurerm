@@ -126,6 +126,7 @@ func dataSourceArmAppService() *schema.Resource {
 		},
 	}
 }
+
 func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

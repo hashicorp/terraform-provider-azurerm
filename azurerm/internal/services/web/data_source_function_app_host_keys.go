@@ -71,7 +71,6 @@ func dataSourceArmFunctionAppHostKeysRead(d *schema.ResourceData, meta interface
 	d.SetId(*functionSettings.ID)
 
 	res, err := client.ListHostKeys(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(res.Response) {
 			return fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup)

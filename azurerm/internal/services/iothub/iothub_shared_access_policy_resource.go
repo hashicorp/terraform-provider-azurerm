@@ -211,7 +211,6 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	defer cancel()
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -264,7 +263,6 @@ func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta inte
 	defer cancel()
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -320,7 +318,7 @@ type accessRights struct {
 }
 
 func expandAccessRights(d *schema.ResourceData) string {
-	var possibleAccessRights = []struct {
+	possibleAccessRights := []struct {
 		schema string
 		right  string
 	}{

@@ -262,7 +262,6 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}

@@ -39,6 +39,7 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_firewall_rule", "test")
 

@@ -241,7 +241,6 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 		}
 
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

@@ -25,7 +25,7 @@ func TestAzureProvider() terraform.ResourceProvider {
 
 func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 	// avoids this showing up in test output
-	var debugLog = func(f string, v ...interface{}) {
+	debugLog := func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
 			return
 		}

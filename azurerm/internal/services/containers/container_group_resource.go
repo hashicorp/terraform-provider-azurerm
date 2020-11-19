@@ -592,7 +592,6 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["containerGroups"]
 
 	resp, err := client.Get(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Container Group %q was not found in Resource Group %q - removing from state!", name, resourceGroup)

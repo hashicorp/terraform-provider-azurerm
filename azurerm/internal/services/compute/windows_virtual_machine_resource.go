@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
@@ -139,7 +140,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"dedicated_host_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true, // TODO: investigate, looks like the Portal allows migration
 				ValidateFunc: computeValidate.DedicatedHostID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -150,7 +150,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"enable_automatic_updates": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true, // TODO: confirm
+				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
 				Default:  true,
 			},
 
@@ -168,6 +168,13 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 					// NOTE: whilst Delete is an option here, it's only applicable for VMSS
 					string(compute.Deallocate),
 				}, false),
+			},
+
+			"extensions_time_budget": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "PT1H30M",
+				ValidateFunc: azValidate.ISO8601DurationBetween("PT15M", "PT2H"),
 			},
 
 			"identity": virtualMachineIdentitySchema(),
@@ -194,6 +201,18 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Optional:     true,
 				Default:      -1,
 				ValidateFunc: validation.FloatAtLeast(-1.0),
+			},
+
+			// This is a preview feature: `az feature register -n InGuestAutoPatchVMPreview --namespace Microsoft.Compute`
+			"patch_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.AutomaticByOS),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.AutomaticByOS),
+					string(compute.AutomaticByPlatform),
+					string(compute.Manual),
+				}, false),
 			},
 
 			"plan": planSchema(),
@@ -400,6 +419,9 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
 					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
 					WinRM:                  winRmListeners,
+					PatchSettings: &compute.PatchSettings{
+						PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+					},
 				},
 				Secrets: secrets,
 			},
@@ -419,6 +441,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
+			ExtensionsTimeBudget:   utils.String(d.Get("extensions_time_budget").(string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -584,6 +607,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	}
 	d.Set("license_type", props.LicenseType)
 
+	extensionsTimeBudget := "PT1H30M"
+	if props.ExtensionsTimeBudget != nil {
+		extensionsTimeBudget = *props.ExtensionsTimeBudget
+	}
+	d.Set("extensions_time_budget", extensionsTimeBudget)
+
 	// defaulted since BillingProfile isn't returned if it's unset
 	maxBidPrice := float64(-1.0)
 	if props.BillingProfile != nil && props.BillingProfile.MaxPrice != nil {
@@ -622,6 +651,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
 
 			d.Set("provision_vm_agent", config.ProvisionVMAgent)
+
+			if patchSettings := config.PatchSettings; patchSettings != nil {
+				d.Set("patch_mode", patchSettings.PatchMode)
+			}
+
 			d.Set("timezone", config.TimeZone)
 
 			if err := d.Set("winrm_listener", flattenWinRMListener(config.WinRM)); err != nil {
@@ -775,6 +809,22 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
 	}
 
+	if d.HasChange("patch_mode") {
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		if update.OsProfile.WindowsConfiguration == nil {
+			update.OsProfile.WindowsConfiguration = &compute.WindowsConfiguration{}
+		}
+
+		update.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
+		}
+	}
+
 	if d.HasChange("identity") {
 		shouldUpdate = true
 
@@ -784,6 +834,26 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
+	}
+
+	if d.HasChange("dedicated_host_id") {
+		shouldUpdate = true
+
+		// Code="PropertyChangeNotAllowed" Message="Updating Host of VM 'VMNAME' is not allowed as the VM is currently allocated. Please Deallocate the VM and retry the operation."
+		shouldDeallocate = true
+
+		if v, ok := d.GetOk("dedicated_host_id"); ok {
+			update.Host = &compute.SubResource{
+				ID: utils.String(v.(string)),
+			}
+		} else {
+			update.Host = &compute.SubResource{}
+		}
+	}
+
+	if d.HasChange("extensions_time_budget") {
+		shouldUpdate = true
+		update.ExtensionsTimeBudget = utils.String(d.Get("extensions_time_budget").(string))
 	}
 
 	if d.HasChange("max_bid_price") {
@@ -1181,7 +1251,6 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 			Refresh: func() (interface{}, string, error) {
 				log.Printf("[INFO] checking on state of Windows Virtual Machine %q", id.Name)
 				resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
 				if err != nil {
 					if utils.ResponseWasNotFound(resp.Response) {
 						return resp, strconv.Itoa(resp.StatusCode), nil

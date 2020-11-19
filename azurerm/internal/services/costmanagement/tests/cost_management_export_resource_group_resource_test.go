@@ -108,7 +108,6 @@ func testCheckAzureRMCostManagementExportResourceGroupDestroy(s *terraform.State
 			return err
 		}
 		resp, err := client.Get(ctx, id.ResourceId, id.Name)
-
 		if err != nil {
 			return nil
 		}

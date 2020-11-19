@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -56,7 +56,7 @@ func testCheckAzureRMStorageSyncGroupExists(resourceName string) resource.TestCh
 		if !ok {
 			return fmt.Errorf("storage Sync Group not found: %s", resourceName)
 		}
-		id, err := parsers.StorageSyncGroupID(rs.Primary.ID)
+		id, err := parse.StorageSyncGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -84,7 +84,7 @@ func testCheckAzureRMStorageSyncGroupDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.StorageSyncGroupID(rs.Primary.ID)
+		id, err := parse.StorageSyncGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

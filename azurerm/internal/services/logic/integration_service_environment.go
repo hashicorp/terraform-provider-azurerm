@@ -457,7 +457,6 @@ func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAs
 	}
 
 	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
@@ -486,7 +485,6 @@ func resourceNavigationLinkExists(ctx context.Context, client *network.ResourceN
 	}
 
 	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil

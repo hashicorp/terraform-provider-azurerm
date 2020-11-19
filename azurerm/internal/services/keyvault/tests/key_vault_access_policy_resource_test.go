@@ -158,7 +158,6 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.Te
 		}
 
 		id, err := azure.ParseAzureResourceID(rs.Primary.ID)
-
 		if err != nil {
 			return err
 		}

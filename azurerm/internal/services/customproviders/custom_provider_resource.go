@@ -210,6 +210,7 @@ func resourceArmCustomProviderRead(d *schema.ResourceData, meta interface{}) err
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
+
 func resourceArmCustomProviderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)

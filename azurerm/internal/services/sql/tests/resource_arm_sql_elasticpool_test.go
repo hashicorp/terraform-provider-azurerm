@@ -29,6 +29,7 @@ func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSqlElasticPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_elasticpool", "test")
 
@@ -137,7 +138,6 @@ func testCheckAzureRMSqlElasticPoolDestroy(s *terraform.State) error {
 		poolName := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
-
 		if err != nil {
 			return nil
 		}

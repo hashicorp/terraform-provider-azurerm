@@ -179,7 +179,6 @@ func testCheckAzureRMAppServiceCertificateOrderDestroy(s *terraform.State) error
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

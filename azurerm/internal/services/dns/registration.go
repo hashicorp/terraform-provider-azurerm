@@ -37,5 +37,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_dns_ptr_record":   resourceArmDnsPtrRecord(),
 		"azurerm_dns_srv_record":   resourceArmDnsSrvRecord(),
 		"azurerm_dns_txt_record":   resourceArmDnsTxtRecord(),
-		"azurerm_dns_zone":         resourceArmDnsZone()}
+		"azurerm_dns_zone":         resourceArmDnsZone(),
+	}
 }

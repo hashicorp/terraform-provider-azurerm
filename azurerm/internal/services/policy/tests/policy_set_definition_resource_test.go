@@ -216,6 +216,39 @@ func TestAccAzureRMPolicySetDefinition_customWithPolicyReferenceID(t *testing.T)
 	})
 }
 
+func TestAccAzureRMPolicySetDefinition_customWithDefinitionGroups(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicySetDefinition_customWithDefinitionGroups(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAzureRMPolicySetDefinition_customWithDefinitionGroupsUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAzureRMPolicySetDefinition_customWithDefinitionGroups(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMPolicySetDefinition_managementGroupDeprecated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -801,6 +834,108 @@ PARAMETERS
     }
 VALUES
     reference_id         = "TestRef"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAzureRMPolicySetDefinition_customWithDefinitionGroups(data acceptance.TestData) string {
+	template := testAzureRMPolicySetDefinition_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPolSet-%d"
+  policy_type  = "Custom"
+  display_name = "acctestPolSet-display-%d"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
+    parameter_values     = <<VALUES
+	{
+      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
+    }
+VALUES
+    policy_group_names   = ["group-1", "group-2"]
+  }
+
+  policy_definition_group {
+    name = "redundant"
+  }
+
+  policy_definition_group {
+    name = "Group-1"
+  }
+
+  policy_definition_group {
+    name = "group-2"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAzureRMPolicySetDefinition_customWithDefinitionGroupsUpdate(data acceptance.TestData) string {
+	template := testAzureRMPolicySetDefinition_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestPolSet-%d"
+  policy_type  = "Custom"
+  display_name = "acctestPolSet-display-%d"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
+    parameter_values     = <<VALUES
+	{
+      "allowedLocations": {"value": "[parameters('allowedLocations')]"}
+    }
+VALUES
+    policy_group_names   = ["group-1", "group-2"]
+  }
+
+  policy_definition_group {
+    name = "redundant"
+  }
+
+  policy_definition_group {
+    name         = "Group-1"
+    display_name = "Group-Display-1"
+    category     = "My Access Control"
+    description  = "Controls accesses"
+  }
+
+  policy_definition_group {
+    name         = "group-2"
+    display_name = "group-display-2"
+    category     = "My Security Control"
+    description  = "Controls security"
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)

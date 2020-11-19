@@ -107,7 +107,6 @@ func testCheckAzureRMAppServiceHybridConnectionDestroy(s *terraform.State) error
 		relayName := rs.Primary.Attributes["relay_name"]
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		resp, err := client.GetHybridConnection(ctx, resGroup, name, namespaceName, relayName)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
