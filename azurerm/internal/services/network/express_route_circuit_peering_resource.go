@@ -94,11 +94,13 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+
 						"customer_asn": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  0,
 						},
+
 						"routing_registry_name": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -122,18 +124,20 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"advertised_public_prefixes": {
 										Type:     schema.TypeList,
+										MinItems: 1,
 										Optional: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: validation.IsCIDR,
 										},
-										MinItems: 1,
 									},
+
 									"customer_asn": {
 										Type:     schema.TypeInt,
 										Optional: true,
 										Default:  0,
 									},
+
 									"routing_registry_name": {
 										Type:         schema.TypeString,
 										Optional:     true,
@@ -143,14 +147,17 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 								},
 							},
 						},
+
 						"primary_peer_address_prefix": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+
 						"secondary_peer_address_prefix": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+
 						"route_filter_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
