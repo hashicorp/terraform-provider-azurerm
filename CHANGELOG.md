@@ -26,6 +26,7 @@ IMPROVEMENTS:
 * `azurerm_policy_set_definition` - support for the `policy_definition_group` block [GH-9259]
 * `azurerm_postgresql_server` - increase max storage to 16TiB [GH-9373]
 * `azurerm_private_dns_zone` - support for the `soa_record` block [GH-9319]
+* `azurerm_storage_blob` - support for `content_md5` [GH-7786]
 * `azurerm_windows_virtual_machine` - support for the `extensions_time_budget` property [GH-9257]
 * `azurerm_windows_virtual_machine` - updating the `dedicated_host_id` nolonger forces a new resource [GH-9264]
 * `azurerm_windows_virtual_machine` - support for graceful shutdowns (via the features block) [GH-8470]
