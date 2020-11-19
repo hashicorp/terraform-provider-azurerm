@@ -2,8 +2,9 @@ package web
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
@@ -99,6 +100,7 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 
 func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.CertificatesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -110,8 +112,10 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	id := parse.NewAppServiceManagedCertificateId(name, resourceGroup)
+
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
@@ -133,23 +137,44 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 		Tags:     tags.Expand(t),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificate); err != nil {
-		if !strings.Contains(err.Error(), "StatusCode=202") {
+	if resp, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificate); err != nil {
+		// API returns 202 where 200 is expected - https://github.com/Azure/azure-sdk-for-go/issues/13665
+		if !utils.ResponseWasStatusCode(resp.Response, 202) {
 			return fmt.Errorf("Error creating/updating App Service Managed Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
 
-	time.Sleep(30 * time.Second)
+	// TODO - Custom poller, CreateOrUpdate should be an LRO returning a future, this is missing from the SDK.
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving App Service Managed Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Service Managed Certificate %q (Resource Group %q) ID", name, resourceGroup)
+	certificateWait := &resource.StateChangeConf{
+		Pending:    []string{"NotFound", "Unknown"},
+		Target:     []string{"Success"},
+		MinTimeout: 10 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return "NotFound", "NotFound", err
+				}
+				return "Unknown", "Unknown", err
+			}
+			if utils.ResponseWasStatusCode(resp.Response, 200) {
+				return "Success", "Success", nil
+			}
+			return "Unknown", "Unknown", err
+		},
 	}
 
-	d.SetId(*read.ID)
+	if !d.IsNewResource() {
+		certificateWait.Timeout = d.Timeout(schema.TimeoutUpdate)
+	}
+
+	if _, err := certificateWait.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for App Service Managed Certificate %q: %+v", id.Name, err)
+	}
+
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmAppServiceManagedCertificateRead(d, meta)
 }
@@ -159,26 +184,23 @@ func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AppServiceManagedCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["certificates"]
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Managed Certificate %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] App Service Managed Certificate %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Managed Certificate %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on App Service Managed Certificate %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -202,19 +224,17 @@ func resourceArmAppServiceManagedCertificateDelete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.AppServiceManagedCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["certificates"]
 
-	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", name, resourceGroup)
+	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", id.Name, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
 		}
 	}
 
