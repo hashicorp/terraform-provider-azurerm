@@ -52,11 +52,9 @@ The following arguments are supported:
 
 * `workspace_name` - (Required) Name of the Log Analytics Workspace that will contain the Log Analytics Linked Service resource. Changing this forces a new resource to be created.
 
-* `linked_service_type` - (Optional) The resource type that is specified by the `workspace_name` attribute. Supported values are `automation` and `cluster`. Defaults to `automation`. Changing this forces a new resource to be created.
+* `read_access_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking to an Automation Account resource.
 
-* `read_access_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking resources which only require read access.
-
-* `write_access_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking resources which require write access.
+* `write_access_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking to a Log Analytics Cluster resource.
 
 ~> **NOTE:** You must define at least one of the above access resource id attributes (e.g. `read_access_resource_id` or `write_access_resource_id`).
 
@@ -68,7 +66,7 @@ The following attributes are exported:
 
 * `id` - The Log Analytics Linked Service ID.
 
-* `name` - The generated name of the Linked Service. The format for this attribute is always `<workspace_name>/<linked_service_type>`(e.g. `workspace1/Automation` or `workspace1/Cluster`)
+* `name` - The generated name of the Linked Service. The format for this attribute is always `<workspace name>/<linked service type>`(e.g. `workspace1/Automation` or `workspace1/Cluster`)
 
 ## Timeouts
 
@@ -84,5 +82,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Log Analytics Workspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_log_analytics_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedservices/automation
+terraform import azurerm_log_analytics_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/Automation
 ```

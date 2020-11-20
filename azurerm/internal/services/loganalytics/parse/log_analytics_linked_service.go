@@ -49,3 +49,11 @@ func LogAnalyticsLinkedServiceID(input string) (*LogAnalyticsLinkedServiceId, er
 
 	return &linkedService, nil
 }
+
+func LogAnalyticsLinkedServiceType(readAccessId string) string {
+	if readAccessId != "" {
+		return "Automation"
+	}
+
+	return "Cluster"
+}

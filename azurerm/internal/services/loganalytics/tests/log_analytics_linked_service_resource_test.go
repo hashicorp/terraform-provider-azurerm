@@ -25,7 +25,6 @@ func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestLAW-%d/Automation", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "Automation"),
 				),
 			},
 			data.ImportStep(),
@@ -46,7 +45,6 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestLAW-%d/Automation", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "Automation"),
 				),
 			},
 			{
@@ -69,7 +67,6 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsLinkedService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "Automation"),
 				),
 			},
 			data.ImportStep(),
@@ -107,14 +104,14 @@ func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error 
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		workspaceId := rs.Primary.Attributes["workspace_id"]
-		serviceType := rs.Primary.Attributes["linked_service_type"]
+		readAccess := rs.Primary.Attributes["read_access_id"]
 
 		workspace, err := parse.LogAnalyticsWorkspaceID(workspaceId)
 		if err != nil {
-			return fmt.Errorf("Bad: Log Analytics Linked Service Destroy: %+v", err)
+			return fmt.Errorf("Bad: Log Analytics Linked Service Destroy unable to parse workspace id: %+v", err)
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, serviceType)
+		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, parse.LogAnalyticsLinkedServiceType(readAccess))
 		if err != nil {
 			return nil
 		}
@@ -123,7 +120,7 @@ func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error 
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Log Analytics Linked Service still exists:\n%#v", resp)
+			return fmt.Errorf("Bad: Log Analytics Linked Service still exists:\n%#v", resp)
 		}
 	}
 
@@ -202,7 +199,6 @@ func testAccAzureRMLogAnalyticsLinkedService_complete(data acceptance.TestData) 
 resource "azurerm_log_analytics_linked_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_log_analytics_workspace.test.id
-  linked_service_type = "Automation"
   read_access_id      = azurerm_automation_account.test.id
 }
 `, template)
@@ -258,7 +254,6 @@ resource "azurerm_log_analytics_cluster" "test" {
 
 resource "azurerm_log_analytics_linked_service" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  linked_service_type = "Cluster"
   workspace_id        = azurerm_log_analytics_workspace.test.id
   write_access_id     = azurerm_log_analytics_cluster.test.id
 }
