@@ -38,9 +38,9 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_linked_service" "example" {
-  resource_group_name     = azurerm_resource_group.example.name
-  workspace_name          = azurerm_log_analytics_workspace.example.name
-  read_access_resource_id = azurerm_automation_account.example.id
+  resource_group_name = azurerm_resource_group.example.name
+  workspace_name      = azurerm_log_analytics_workspace.example.name
+  read_access_id      = azurerm_automation_account.example.id
 }
 ```
 
@@ -54,9 +54,9 @@ The following arguments are supported:
 
 * `linked_service_type` - (Optional) The resource type that is specified by the `workspace_name` attribute. Supported values are `automation` and `cluster`. Defaults to `automation`. Changing this forces a new resource to be created.
 
-* `read_access_resource_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking resources which only require read access.
+* `read_access_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking resources which only require read access.
 
-* `write_access_resource_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking resources which require write access.
+* `write_access_id` - (Optional) The ID of the Resource that will be linked to the workspace. This should be used for linking resources which require write access.
 
 ~> **NOTE:** You must define at least one of the above access resource id attributes (e.g. `read_access_resource_id` or `write_access_resource_id`).
 

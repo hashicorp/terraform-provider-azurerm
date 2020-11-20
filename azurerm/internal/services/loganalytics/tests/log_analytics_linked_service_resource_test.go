@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
 func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
@@ -23,9 +24,8 @@ func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsLinkedService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "automation"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestLAW-%d/Automation", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "Automation"),
 				),
 			},
 			data.ImportStep(),
@@ -45,9 +45,8 @@ func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsLinkedService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestlaw-%d/Automation", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "workspace_name", fmt.Sprintf("acctestlaw-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "automation"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestLAW-%d/Automation", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "Automation"),
 				),
 			},
 			{
@@ -70,7 +69,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 				Config: testAccAzureRMLogAnalyticsLinkedService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsLinkedServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "automation"),
+					resource.TestCheckResourceAttr(data.ResourceName, "linked_service_type", "Automation"),
 				),
 			},
 			data.ImportStep(),
@@ -107,10 +106,15 @@ func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error 
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		workspaceName := rs.Primary.Attributes["workspace_name"]
-		lsName := rs.Primary.Attributes["linked_service_type"]
+		workspaceId := rs.Primary.Attributes["workspace_id"]
+		serviceType := rs.Primary.Attributes["linked_service_type"]
 
-		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
+		workspace, err := parse.LogAnalyticsWorkspaceID(workspaceId)
+		if err != nil {
+			return fmt.Errorf("Bad: Log Analytics Linked Service Destroy: %+v", err)
+		}
+
+		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, serviceType)
 		if err != nil {
 			return nil
 		}
@@ -138,15 +142,20 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resour
 		}
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		workspaceName := rs.Primary.Attributes["workspace_name"]
-		lsName := rs.Primary.Attributes["linked_service_type"]
+		workspaceId := rs.Primary.Attributes["workspace_id"]
+		serviceType := rs.Primary.Attributes["linked_service_type"]
 		name := rs.Primary.Attributes["name"]
 
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%s'", name)
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
+		workspace, err := parse.LogAnalyticsWorkspaceID(workspaceId)
+		if err != nil {
+			return fmt.Errorf("Bad: Log Analytics Linked Service Exists: %+v", err)
+		}
+
+		resp, err := conn.Get(ctx, resourceGroup, workspace.Name, serviceType)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Linked Service Client: %+v", err)
 		}
@@ -165,9 +174,9 @@ func testAccAzureRMLogAnalyticsLinkedService_basic(data acceptance.TestData) str
 %s
 
 resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name     = azurerm_resource_group.test.name
-  workspace_name          = azurerm_log_analytics_workspace.test.name
-  read_access_resource_id = azurerm_automation_account.test.id
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  read_access_id      = azurerm_automation_account.test.id
 }
 `, template)
 }
@@ -178,9 +187,9 @@ func testAccAzureRMLogAnalyticsLinkedService_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_log_analytics_linked_service" "import" {
-  resource_group_name     = azurerm_log_analytics_linked_service.test.resource_group_name
-  workspace_name          = azurerm_log_analytics_linked_service.test.workspace_name
-  read_access_resource_id = azurerm_log_analytics_linked_service.test.read_access_resource_id
+  resource_group_name = azurerm_log_analytics_linked_service.test.resource_group_name
+  workspace_id        = azurerm_log_analytics_linked_service.test.workspace_id
+  read_access_id      = azurerm_log_analytics_linked_service.test.read_access_id
 }
 `, template)
 }
@@ -191,10 +200,10 @@ func testAccAzureRMLogAnalyticsLinkedService_complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name     = azurerm_resource_group.test.name
-  workspace_name          = azurerm_log_analytics_workspace.test.name
-  linked_service_type     = "automation"
-  read_access_resource_id = azurerm_automation_account.test.id
+  resource_group_name = azurerm_resource_group.test.name
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  linked_service_type = "Automation"
+  read_access_id      = azurerm_automation_account.test.id
 }
 `, template)
 }
@@ -248,10 +257,10 @@ resource "azurerm_log_analytics_cluster" "test" {
 }
 
 resource "azurerm_log_analytics_linked_service" "test" {
-  resource_group_name      = azurerm_resource_group.test.name
-  linked_service_type      = "cluster"
-  workspace_name           = azurerm_log_analytics_workspace.test.name
-  write_access_resource_id = azurerm_log_analytics_cluster.test.id
+  resource_group_name = azurerm_resource_group.test.name
+  linked_service_type = "Cluster"
+  workspace_id        = azurerm_log_analytics_workspace.test.id
+  write_access_id     = azurerm_log_analytics_cluster.test.id
 }
 `, template, data.RandomInteger)
 }
