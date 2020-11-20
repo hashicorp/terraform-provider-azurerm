@@ -15,11 +15,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	commonValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var VPNGatewayResourceName = "azurerm_vpn_gateway"
 
 func resourceArmVPNGateway() *schema.Resource {
 	return &schema.Resource{
@@ -265,6 +269,9 @@ func resourceArmVPNGatewayUpdate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	locks.ByName(name, VPNGatewayResourceName)
+	defer locks.UnlockByName(name, VPNGatewayResourceName)
+
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("retrieving for presence of existing VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -310,7 +317,7 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVPNGatewayID(d.Id())
+	id, err := parse.VPNGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -358,7 +365,7 @@ func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVPNGatewayID(d.Id())
+	id, err := parse.VPNGatewayID(d.Id())
 	if err != nil {
 		return err
 	}

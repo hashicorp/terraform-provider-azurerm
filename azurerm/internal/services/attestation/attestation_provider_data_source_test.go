@@ -1,4 +1,4 @@
-package tests
+package attestation_test
 
 import (
 	"fmt"
@@ -8,29 +8,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type AttestationProviderDataSource struct {
+}
 
 func TestAccDataSourceAzureRMAttestationProvider_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_attestation_provider", "test")
 	randStr := strings.ToLower(acctest.RandString(10))
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAttestationProviderDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAttestationProvider_basic(data, randStr),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAttestationProviderExists(data.ResourceName),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: AttestationProviderDataSource{}.basic(data, randStr),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(AttestationProviderResource{}),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAttestationProvider_basic(data acceptance.TestData, randStr string) string {
-	config := testAccAzureRMAttestationProvider_basic(data, randStr)
+func (AttestationProviderDataSource) basic(data acceptance.TestData, randStr string) string {
+	config := AttestationProviderResource{}.basic(data, randStr)
 	return fmt.Sprintf(`
 %s
 
