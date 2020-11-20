@@ -1294,7 +1294,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// FileStorage does not support blob settings
-	if resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku.Tier != storage.Premium {
+	if resp.Kind != storage.BlobStorage && resp.Kind != storage.BlockBlobStorage && resp.Sku != nil && resp.Sku.Tier != storage.Premium {
 		shareProps, err := fileServiceClient.GetServiceProperties(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(shareProps.Response) {
