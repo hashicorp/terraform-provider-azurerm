@@ -84,7 +84,7 @@ func StorageAccountID(i interface{}, k string) (warnings []string, errors []erro
 		return warnings, errors
 	}
 
-	if _, err := StorageParse.ParseAccountID(v); err != nil {
+	if _, err := StorageParse.AccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Storage Account id: %v", k, err))
 	}
 

@@ -1,6 +1,8 @@
 package check
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -71,4 +73,10 @@ func (t thatWithKeyType) HasValue(value string) resource.TestCheckFunc {
 // matches another other key on another resource
 func (t thatWithKeyType) MatchesOtherKey(other thatWithKeyType) resource.TestCheckFunc {
 	return resource.TestCheckResourceAttrPair(t.resourceName, t.key, other.resourceName, other.key)
+}
+
+// MatchesRegex returns a TestCheckFunc which validates that the key on this resource matches
+// the given regular expression
+func (t thatWithKeyType) MatchesRegex(r *regexp.Regexp) resource.TestCheckFunc {
+	return resource.TestMatchResourceAttr(t.resourceName, t.key, r)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -31,6 +32,21 @@ func dataSourceArmFirewall() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
+			"sku_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"sku_tier": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"firewall_policy_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"ip_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -41,10 +57,6 @@ func dataSourceArmFirewall() *schema.Resource {
 							Computed: true,
 						},
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"internal_public_ip_address_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -59,6 +71,70 @@ func dataSourceArmFirewall() *schema.Resource {
 					},
 				},
 			},
+
+			"management_ip_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"subnet_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"public_ip_address_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"threat_intel_mode": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"dns_servers": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"virtual_hub": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"virtual_hub_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"public_ip_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"public_ip_addresses": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"private_ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"zones": azure.SchemaZonesComputed(),
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -94,6 +170,38 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
+		managementIPConfigs := make([]interface{}, 0)
+		if props.ManagementIPConfiguration != nil {
+			managementIPConfigs = flattenArmFirewallIPConfigurations(&[]network.AzureFirewallIPConfiguration{
+				*props.ManagementIPConfiguration,
+			})
+		}
+		if err := d.Set("management_ip_configuration", managementIPConfigs); err != nil {
+			return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
+		}
+
+		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
+
+		if err := d.Set("dns_servers", flattenArmFirewallDNSServers(props.AdditionalProperties)); err != nil {
+			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+		}
+
+		if policy := props.FirewallPolicy; policy != nil {
+			d.Set("firewall_policy_id", policy.ID)
+		}
+
+		if sku := props.Sku; sku != nil {
+			d.Set("sku_name", string(sku.Name))
+			d.Set("sku_tier", string(sku.Tier))
+		}
+
+		if err := d.Set("virtual_hub", flattenArmFirewallVirtualHubSetting(props)); err != nil {
+			return fmt.Errorf("Error setting `virtual_hub`: %+v", err)
+		}
+	}
+
+	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
+		return fmt.Errorf("Error setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, read.Tags)
