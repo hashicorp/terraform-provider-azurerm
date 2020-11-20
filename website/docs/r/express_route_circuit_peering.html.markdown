@@ -98,7 +98,7 @@ A `microsoft_peering_config` block contains:
 
 * `customer_asn` - (Optional) The CustomerASN of the peering.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example: ARIN, RIPE, AFRINIC etc. 
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered.  For example:  `ARIN`, `RIPE`, `AFRINIC` etc. 
 
 ---
 
@@ -120,7 +120,7 @@ A `microsoft_peering` block contains:
 
 * `customer_asn` - (Optional) The CustomerASN of the peering.
 
-* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example: ARIN, RIPE, AFRINIC etc. 
+* `routing_registry_name` - (Optional) The Routing Registry against which the AS number and prefixes are registered. For example:  `ARIN`, `RIPE`, `AFRINIC` etc 
 
 
 

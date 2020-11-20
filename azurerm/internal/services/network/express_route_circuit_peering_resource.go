@@ -259,8 +259,15 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 			return err
 		}
 		parameters.ExpressRouteCircuitPeeringPropertiesFormat.Ipv6PeeringConfig = ipv6PeeringConfig
-	} else if route_filter_id != "" {
-		return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
+	} else {
+		if route_filter_id != "" {
+			return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
+		}
+
+		ipv6Peering := d.Get("ipv6").([]interface{})
+		if len(ipv6Peering) != 0 {
+			return fmt.Errorf("`ipv6` may only be specified when `peering_type` is set to `MicrosoftPeering`")
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringType, parameters)
