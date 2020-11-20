@@ -69,7 +69,6 @@ func resourceArmSpringCloudService() *schema.Resource {
 			"network": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -817,6 +816,10 @@ func flattenArmSpringCloudNetwork(input *appplatform.NetworkProfile) []interface
 	}
 	if input.AppNetworkResourceGroup != nil {
 		appNetworkResourceGroup = *input.AppNetworkResourceGroup
+	}
+
+	if serviceRuntimeSubnetID == "" && appSubnetID == "" && serviceRuntimeNetworkResourceGroup == "" && appNetworkResourceGroup == "" && len(cidrRanges) == 0 {
+		return []interface{}{}
 	}
 
 	return []interface{}{
