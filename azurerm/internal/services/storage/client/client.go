@@ -16,6 +16,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues"
 	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities"
@@ -172,6 +173,24 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, account acc
 	directoriesClient := directories.NewWithEnvironment(client.Environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
+}
+
+func (client Client) FileShareFilesClient(ctx context.Context, account accountDetails) (*files.Client, error) {
+	// NOTE: Files do not support AzureAD Authentication
+
+	accountKey, err := account.AccountKey(ctx, client)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
+	}
+
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyLite)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
+	filesClient := files.NewWithEnvironment(client.Environment)
+	filesClient.Client.Authorizer = storageAuth
+	return &filesClient, nil
 }
 
 func (client Client) FileSharesClient(ctx context.Context, account accountDetails) (shim.StorageShareWrapper, error) {
