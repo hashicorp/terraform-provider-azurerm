@@ -2,19 +2,18 @@ package web
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	azvalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
-
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -42,7 +41,14 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validate.AppServiceName,
+			},
+
+			"canonical_name": {
+				Type: schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: azvalidate.DomainName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -129,7 +135,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 
 	certificate := web.Certificate{
 		CertificateProperties: &web.CertificateProperties{
-			CanonicalName: utils.String(name),
+			CanonicalName: utils.String(d.Get("canonical_name").(string)),
 			ServerFarmID:  utils.String(appServicePlanID),
 			Password:      new(string),
 		},
@@ -143,8 +149,6 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 			return fmt.Errorf("Error creating/updating App Service Managed Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
-
-	// TODO - Custom poller, CreateOrUpdate should be an LRO returning a future, this is missing from the SDK.
 
 	certificateWait := &resource.StateChangeConf{
 		Pending:    []string{"NotFound", "Unknown"},
@@ -207,6 +211,7 @@ func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta in
 	}
 
 	if props := resp.CertificateProperties; props != nil {
+		d.Set("canonical_name", props.CanonicalName)
 		d.Set("friendly_name", props.FriendlyName)
 		d.Set("subject_name", props.SubjectName)
 		d.Set("host_names", props.HostNames)
