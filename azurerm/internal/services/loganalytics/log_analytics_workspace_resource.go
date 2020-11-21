@@ -159,6 +159,20 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
 	}
 
+	// (@WodansSon) - If the workspace is connected to a cluster via the linked service resource
+	// the workspace cannot be modified since the linked service changes the sku value within
+	// the workspace
+	if !d.IsNewResource() {
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err == nil {
+			if azSku := resp.Sku; azSku != nil {
+				if strings.EqualFold(string(azSku.Name), "lacluster") {
+					return fmt.Errorf("Log Analytics Workspace %q (Resource Group %q): cannot be modified while it is connected to a Log Analytics cluster", name, resourceGroup)
+				}
+			}
+		}
+	}
+
 	internetIngestionEnabled := operationalinsights.Disabled
 	if d.Get("internet_ingestion_enabled").(bool) {
 		internetIngestionEnabled = operationalinsights.Enabled

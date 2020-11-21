@@ -208,5 +208,13 @@ func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta int
 		}
 	}
 
+	// (@WodansSon) - This is a bug in the service API, it returns instantly from the delete call with a 200
+	// so we must wait for the state to change before we return from the delete function
+	deleteWait := logAnalyticsLinkedServiceDeleteWaitForState(ctx, meta, d.Timeout(schema.TimeoutDelete), resourceGroup, workspaceName, serviceType)
+
+	if _, err := deleteWait.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Log Analytics Cluster to finish deleting '%s/%s' (Resource Group %q): %+v", workspaceName, serviceType, resourceGroup, err)
+	}
+
 	return nil
 }
