@@ -41,11 +41,13 @@ func resourceArmAppServiceCustomHostnameCertificateBinding() *schema.Resource {
 			"hostname_binding_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"certificate_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"ssl_state": {
