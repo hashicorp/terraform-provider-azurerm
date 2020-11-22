@@ -38,6 +38,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_app_service_certificate":                           resourceArmAppServiceCertificate(),
 		"azurerm_app_service_certificate_order":                     resourceArmAppServiceCertificateOrder(),
 		"azurerm_app_service_custom_hostname_binding":               resourceArmAppServiceCustomHostnameBinding(),
+		"azurerm_app_service_custom_hostname_certificate_binding":   resourceArmAppServiceCustomHostnameCertificateBinding(),
 		"azurerm_app_service_environment":                           resourceArmAppServiceEnvironment(),
 		"azurerm_app_service_hybrid_connection":                     resourceArmAppServiceHybridConnection(),
 		"azurerm_app_service_managed_certificate":                   resourceArmAppServiceManagedCertificate(),
