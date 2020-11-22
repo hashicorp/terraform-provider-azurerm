@@ -106,10 +106,10 @@ func resourceArmAppServiceCustomHostnameCertificateBindingCreate(d *schema.Resou
 	if err != nil {
 		return err
 	}
-	resp, err := client.GetHostNameBinding(ctx, id.ResourceGroup, id.Name, hostname)
+	resp, err := client.GetHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, hostname)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Cannot bind certificate as hostname binding doesn't exist. Error retrieving Custom Hostname Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.Name, hostname, id.AppServiceName, id.ResourceGroup, err)
+			return fmt.Errorf("Cannot bind certificate as hostname binding doesn't exist. Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, id.AppServiceName, id.ResourceGroup, err)
 		}
 		return fmt.Errorf("Error retrieving Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.Name, hostname, id.AppServiceName, id.ResourceGroup, err)
 	}
