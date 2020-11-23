@@ -10,7 +10,7 @@ var _ resourceid.Formatter = CdnEndpointId{}
 
 func TestCdnEndpointIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewCdnEndpointID(NewCdnProfileID("group1", "profile1"), "endpoint1").ID(subscriptionId)
+	actual := NewCdnEndpointID(NewCdnProfileID(subscriptionId, "group1", "profile1"), "endpoint1").ID("")
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -62,9 +62,10 @@ func TestCdnEndpointId(t *testing.T) {
 			Name:  "CDN Endpoint ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profName1/endpoints/Endpoint1",
 			Expected: &CdnEndpointId{
-				ResourceGroup: "resGroup1",
-				ProfileName:   "profName1",
-				Name:          "Endpoint1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "resGroup1",
+				ProfileName:    "profName1",
+				Name:           "Endpoint1",
 			},
 		},
 		{
@@ -94,6 +95,9 @@ func TestCdnEndpointId(t *testing.T) {
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }

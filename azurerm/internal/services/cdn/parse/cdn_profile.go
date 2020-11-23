@@ -7,15 +7,22 @@ import (
 )
 
 type CdnProfileId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewCdnProfileID(resourceGroup, name string) CdnProfileId {
+func NewCdnProfileID(subscriptionId, resourceGroup, name string) CdnProfileId {
 	return CdnProfileId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
+}
+
+func (id CdnProfileId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func CdnProfileID(input string) (*CdnProfileId, error) {
@@ -25,7 +32,8 @@ func CdnProfileID(input string) (*CdnProfileId, error) {
 	}
 
 	profile := CdnProfileId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if profile.Name, err = id.PopSegment("profiles"); err != nil {
@@ -37,9 +45,4 @@ func CdnProfileID(input string) (*CdnProfileId, error) {
 	}
 
 	return &profile, nil
-}
-
-func (id CdnProfileId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
 }

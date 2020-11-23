@@ -7,17 +7,24 @@ import (
 )
 
 type CdnEndpointId struct {
-	ResourceGroup string
-	ProfileName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	ProfileName    string
+	Name           string
 }
 
 func NewCdnEndpointID(id CdnProfileId, name string) CdnEndpointId {
 	return CdnEndpointId{
-		ResourceGroup: id.ResourceGroup,
-		ProfileName:   id.Name,
-		Name:          name,
+		SubscriptionId: id.SubscriptionId,
+		ResourceGroup:  id.ResourceGroup,
+		ProfileName:    id.Name,
+		Name:           name,
 	}
+}
+
+func (id CdnEndpointId) ID(_ string) string {
+	base := NewCdnProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+	return fmt.Sprintf("%s/endpoints/%s", base, id.Name)
 }
 
 func CdnEndpointID(input string) (*CdnEndpointId, error) {
@@ -27,7 +34,8 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 	}
 
 	endpoint := CdnEndpointId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if endpoint.ProfileName, err = id.PopSegment("profiles"); err != nil {
@@ -43,9 +51,4 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 	}
 
 	return &endpoint, nil
-}
-
-func (id CdnEndpointId) ID(subscriptionId string) string {
-	base := NewCdnProfileID(id.ResourceGroup, id.ProfileName).ID(subscriptionId)
-	return fmt.Sprintf("%s/endpoints/%s", base, id.Name)
 }
