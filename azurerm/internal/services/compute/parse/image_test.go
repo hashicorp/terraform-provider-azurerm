@@ -85,5 +85,9 @@ func TestImageID(t *testing.T) {
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
 		}
+
+		if actual.SubscriptionId != v.Expect.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expect.SubscriptionId, actual.SubscriptionId)
+		}
 	}
 }

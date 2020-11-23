@@ -7,19 +7,22 @@ import (
 )
 
 type ProximityPlacementGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewProximityPlacementGroupId(resourceGroup, name string) ProximityPlacementGroupId {
+func NewProximityPlacementGroupId(subscriptionId, resourceGroup, name string) ProximityPlacementGroupId {
 	return ProximityPlacementGroupId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id ProximityPlacementGroupId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/proximityPlacementGroups/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id ProximityPlacementGroupId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/proximityPlacementGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error) {
@@ -29,7 +32,8 @@ func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error)
 	}
 
 	server := ProximityPlacementGroupId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if server.Name, err = id.PopSegment("proximityPlacementGroups"); err != nil {

@@ -10,7 +10,7 @@ var _ resourceid.Formatter = ProximityPlacementGroupId{}
 
 func TestProximityPlacementGroupIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewProximityPlacementGroupId("group1", "ppg1").ID(subscriptionId)
+	actual := NewProximityPlacementGroupId(subscriptionId, "group1", "ppg1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -54,8 +54,9 @@ func TestProximityPlacementGroupID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/proximityPlacementGroups/group1",
 			Error: false,
 			Expect: &ProximityPlacementGroupId{
-				ResourceGroup: "resGroup1",
-				Name:          "group1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "resGroup1",
+				Name:           "group1",
 			},
 		},
 		{
@@ -83,6 +84,10 @@ func TestProximityPlacementGroupID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.SubscriptionId != v.Expect.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expect.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }
