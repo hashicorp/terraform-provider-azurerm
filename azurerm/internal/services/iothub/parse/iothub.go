@@ -1,12 +1,28 @@
 package parse
 
 import (
+	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type IotHubId struct {
-	Name          string
-	ResourceGroup string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewIoTHubId(subscriptionId, resourceGroup, name string) IotHubId {
+	return IotHubId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id IotHubId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Devices/IotHubs/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func IotHubID(input string) (*IotHubId, error) {
@@ -16,7 +32,8 @@ func IotHubID(input string) (*IotHubId, error) {
 	}
 
 	iothub := IotHubId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if iothub.Name, err = id.PopSegment("IotHubs"); err != nil {
