@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = DataShareId{}
+var _ resourceid.Formatter = DataShareDataSetId{}
 
-func TestDataShareIDFormatter(t *testing.T) {
+func TestDataShareDataSetIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewDataShareId(subscriptionId, "group1", "account1", "share1").ID("")
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.DataShare/accounts/account1/shares/share1"
+	actual := NewDataShareDataSetId(subscriptionId, "group1", "account1", "share1", "set1").ID("")
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.DataShare/accounts/account1/shares/share1/dataSets/set1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestDataShareID(t *testing.T) {
+func TestDataShareDataSetID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DataShareId
+		Expected *DataShareDataSetId
 	}{
 		{
 			Name:     "Empty",
@@ -59,18 +59,29 @@ func TestDataShareID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "Data Share ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1/shares/share1",
-			Expected: &DataShareId{
-				Name:           "share1",
+			Name:     "Missing DataSet",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1/shares/share1",
+			Expected: nil,
+		},
+		{
+			Name:     "Missing DataSet Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1/shares/share1/dataSets",
+			Expected: nil,
+		},
+		{
+			Name:  "DataSet ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1/shares/share1/dataSets/dataSet1",
+			Expected: &DataShareDataSetId{
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				Name:           "dataSet1",
 				AccountName:    "account1",
 				ResourceGroup:  "resGroup1",
-				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ShareName:      "share1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1/Shares/share1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1/shares/share1/DataSets/dataSet1",
 			Expected: nil,
 		},
 	}
@@ -78,7 +89,7 @@ func TestDataShareID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := DataShareID(v.Input)
+		actual, err := DataShareDataSetID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -90,12 +101,16 @@ func TestDataShareID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
 
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		if actual.ShareName != v.Expected.ShareName {
+			t.Fatalf("Expected %q but got %q for Share Name", v.Expected.ShareName, actual.ShareName)
 		}
 
 		if actual.AccountName != v.Expected.AccountName {
 			t.Fatalf("Expected %q but got %q for Account Name", v.Expected.AccountName, actual.AccountName)
+		}
+
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 
 		if actual.Name != v.Expected.Name {

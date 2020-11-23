@@ -7,21 +7,23 @@ import (
 )
 
 type DataShareId struct {
-	ResourceGroup string
-	AccountName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	AccountName    string
+	Name           string
 }
 
-func (id DataShareId) ID(subscriptionId string) string {
+func (id DataShareId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.AccountName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.Name)
 }
 
-func NewDataShareId(resourceGroup, accountName, name string) DataShareId {
+func NewDataShareId(subscriptionId, resourceGroup, accountName, name string) DataShareId {
 	return DataShareId{
-		ResourceGroup: resourceGroup,
-		AccountName:   accountName,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		AccountName:    accountName,
+		Name:           name,
 	}
 }
 
@@ -32,7 +34,8 @@ func DataShareID(input string) (*DataShareId, error) {
 	}
 
 	DataShare := DataShareId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 	if DataShare.AccountName, err = id.PopSegment("accounts"); err != nil {
 		return nil, err
