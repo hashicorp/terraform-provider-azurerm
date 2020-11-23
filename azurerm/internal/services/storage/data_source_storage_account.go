@@ -253,13 +253,25 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"subscription_id": {
+				Type: schema.TypeString,
+				Optional: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.AccountsClient
+	client := &storage.AccountsClient{}
+
+	if subscriptionID := d.Get("subscription_id").(string); subscriptionID != "" {
+		client = meta.(*clients.Client).Storage.AccountsClientOverrideSubscription(subscriptionID)
+	} else {
+		client = meta.(*clients.Client).Storage.AccountsClient
+	}
+	
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -36,6 +36,7 @@ type Client struct {
 
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
+	options *common.ClientOptions
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -78,6 +79,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		SyncGroupsClient:         &syncGroupsClient,
 
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
+		options: options,
 	}
 
 	if options.StorageUseAzureAD {
@@ -250,4 +252,10 @@ func (client Client) TablesClient(ctx context.Context, account accountDetails) (
 	tablesClient.Client.Authorizer = storageAuth
 	shim := shim.NewDataPlaneStorageTableWrapper(&tablesClient)
 	return shim, nil
+}
+
+func (client Client) AccountsClientOverrideSubscription(subscriptionID string) *storage.AccountsClient {
+	accountsClient := storage.NewAccountsClientWithBaseURI(client.options.ResourceManagerEndpoint, subscriptionID)
+	client.options.ConfigureClient(&accountsClient.Client, client.options.ResourceManagerAuthorizer)
+	return &accountsClient
 }
