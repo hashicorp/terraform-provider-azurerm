@@ -1,4 +1,4 @@
-package sdk
+package location
 
 import (
 	"context"
@@ -26,8 +26,8 @@ type metaDataResponse struct {
 	CloudEndpoint map[string]cloudEndpoint `json:"cloudEndpoint"`
 }
 
-// AvailableAzureLocations returns a list of the Azure Locations which are available on the specified endpoint
-func AvailableAzureLocations(ctx context.Context, env *azure.Environment) (*SupportedLocations, error) {
+// availableAzureLocations returns a list of the Azure Locations which are available on the specified endpoint
+func availableAzureLocations(ctx context.Context, env *azure.Environment) (*SupportedLocations, error) {
 	// e.g. https://management.azure.com/ but we need management.azure.com
 	endpoint := strings.TrimPrefix(env.ResourceManagerEndpoint, "https://")
 	endpoint = strings.TrimSuffix(endpoint, "/")
