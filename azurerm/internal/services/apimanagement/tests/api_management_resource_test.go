@@ -975,78 +975,32 @@ resource "azurerm_api_management" "test" {
 }
 
 func testAccAzureRMApiManagement_virtualNetworkInternalAdditionalLocation(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagement_virtualNetworkTemplate(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test1" {
-  name     = "acctestRG1-%[1]d"
-  location = "%[2]s"
-}
+%[1]s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[1]d"
+  name     = "acctestRG2-%[2]d"
   location = "%[3]s"
-}
-
-// subnet1 from the first location
-resource "azurerm_virtual_network" "test1" {
-  name                = "acctestVNET1-%[1]d"
-  location            = azurerm_resource_group.test1.location
-  resource_group_name = azurerm_resource_group.test1.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "acctestSNET1-%[1]d"
-  resource_group_name  = azurerm_resource_group.test1.name
-  virtual_network_name = azurerm_virtual_network.test1.name
-  address_prefix       = "10.0.1.0/24"
-}
-
-resource "azurerm_network_security_group" "test1" {
-  name                = "acctest-NSG1-%[1]d"
-  location            = azurerm_resource_group.test1.location
-  resource_group_name = azurerm_resource_group.test1.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "test1" {
-  subnet_id                 = azurerm_subnet.test1.id
-  network_security_group_id = azurerm_network_security_group.test1.id
-}
-
-resource "azurerm_network_security_rule" "port_3443" {
-  name                        = "Port_3443"
-  priority                    = 100
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "3443"
-  source_address_prefix       = "ApiManagement"
-  destination_address_prefix  = "VirtualNetwork"
-  resource_group_name         = azurerm_resource_group.test1.name
-  network_security_group_name = azurerm_network_security_group.test1.name
 }
 
 // subnet2 from the second location
 resource "azurerm_virtual_network" "test2" {
-  name                = "acctestVNET2-%[1]d"
+  name                = "acctestVNET2-%[2]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "test2" {
-  name                 = "acctestSNET2-%[1]d"
+  name                 = "acctestSNET2-%[2]d"
   resource_group_name  = azurerm_resource_group.test2.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefix       = "10.1.1.0/24"
 }
 
 resource "azurerm_network_security_group" "test2" {
-  name                = "acctest-NSG2-%[1]d"
+  name                = "acctest-NSG2-%[2]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
 }
@@ -1071,9 +1025,9 @@ resource "azurerm_network_security_rule" "port_3443_2" {
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%[1]d"
-  location            = azurerm_resource_group.test1.location
-  resource_group_name = azurerm_resource_group.test1.name
+  name                = "acctestAM-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -1088,10 +1042,10 @@ resource "azurerm_api_management" "test" {
 
   virtual_network_type = "Internal"
   virtual_network_configuration {
-    subnet_id = azurerm_subnet.test1.id
+    subnet_id = azurerm_subnet.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, template,data.RandomInteger, data.Locations.Secondary)
 }
 
 func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {
