@@ -10,7 +10,7 @@ var _ resourceid.Formatter = WebApplicationFirewallPolicyId{}
 
 func TestWebApplicationFirewallPolicyIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewWebApplicationFirewallPolicyID("group1", "policy1").ID(subscriptionId)
+	actual := NewWebApplicationFirewallPolicyID(subscriptionId, "group1", "policy1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -31,8 +31,9 @@ func TestWebApplicationFirewallPolicyIDParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/policy1",
 			expected: &WebApplicationFirewallPolicyId{
-				ResourceGroup: "group1",
-				Name:          "policy1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				Name:           "policy1",
 			},
 		},
 		{
@@ -57,6 +58,10 @@ func TestWebApplicationFirewallPolicyIDParser(t *testing.T) {
 			} else if err != nil && test.expected != nil {
 				t.Fatalf("Expected no error but got: %+v", err)
 			}
+		}
+
+		if actual.SubscriptionId != test.expected.SubscriptionId {
+			t.Fatalf("Expected SubscriptionId to be %q but was %q", test.expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {

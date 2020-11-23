@@ -7,19 +7,22 @@ import (
 )
 
 type WebApplicationFirewallPolicyId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewWebApplicationFirewallPolicyID(resourceGroup, name string) WebApplicationFirewallPolicyId {
+func NewWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name string) WebApplicationFirewallPolicyId {
 	return WebApplicationFirewallPolicyId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id WebApplicationFirewallPolicyId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id WebApplicationFirewallPolicyId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func WebApplicationFirewallPolicyID(input string) (*WebApplicationFirewallPolicyId, error) {
@@ -29,7 +32,8 @@ func WebApplicationFirewallPolicyID(input string) (*WebApplicationFirewallPolicy
 	}
 
 	policy := WebApplicationFirewallPolicyId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if policy.Name, err = id.PopSegment("frontDoorWebApplicationFirewallPolicies"); err != nil {
