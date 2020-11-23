@@ -25,7 +25,7 @@ func TestAzureProvider() terraform.ResourceProvider {
 
 func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 	// avoids this showing up in test output
-	var debugLog = func(f string, v ...interface{}) {
+	debugLog := func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
 			return
 		}
@@ -236,7 +236,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			TenantID:           d.Get("tenant_id").(string),
 			AuxiliaryTenantIDs: auxTenants,
 			Environment:        d.Get("environment").(string),
-			MetadataURL:        metadataHost, // TODO: rename this in Helpers too
+			MetadataHost:       metadataHost,
 			MsiEndpoint:        d.Get("msi_endpoint").(string),
 			ClientCertPassword: d.Get("client_certificate_password").(string),
 			ClientCertPath:     d.Get("client_certificate_path").(string),
@@ -249,7 +249,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
-			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/guides/service_principal_client_secret.html",
+			ClientSecretDocsLink: "https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret",
 		}
 
 		config, err := builder.Build()

@@ -30,6 +30,7 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMServiceBusTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
 

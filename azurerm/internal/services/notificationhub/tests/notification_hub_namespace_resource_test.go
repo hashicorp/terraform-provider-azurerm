@@ -120,7 +120,6 @@ func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		namespaceName := rs.Primary.Attributes["name"]
 		resp, err := client.Get(ctx, resourceGroup, namespaceName)
-
 		if err != nil {
 			return nil
 		}

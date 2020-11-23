@@ -101,7 +101,7 @@ func TestApiManagementApiDiagnosticID(t *testing.T) {
 		}
 
 		if actual.ServiceName != v.Expected.ServiceName {
-			t.Fatalf("Expected %q but got %q for Service Name", v.Expected.Name, actual.Name)
+			t.Fatalf("Expected %q but got %q for Service Name", v.Expected.ServiceName, actual.ServiceName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

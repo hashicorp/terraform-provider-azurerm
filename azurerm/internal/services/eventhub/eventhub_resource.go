@@ -257,7 +257,6 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["eventhubs"]
 	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

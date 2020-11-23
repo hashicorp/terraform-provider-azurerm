@@ -127,7 +127,6 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 		hubName := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, hubName)
-
 		if err != nil {
 			return nil
 		}

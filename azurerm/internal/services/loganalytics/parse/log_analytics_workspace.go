@@ -20,7 +20,7 @@ func NewLogAnalyticsWorkspaceID(name, resourceGroup string) LogAnalyticsWorkspac
 
 func (id LogAnalyticsWorkspaceId) ID(subscriptionId string) string {
 	// Log Analytics ID ignores casing
-	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/microsoft.operationalinsights/workspaces/%s", subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.OperationalInsights/workspaces/%s", subscriptionId, id.ResourceGroup, id.Name)
 }
 
 func LogAnalyticsWorkspaceID(input string) (*LogAnalyticsWorkspaceId, error) {

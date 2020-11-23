@@ -2,7 +2,7 @@ package parse
 
 import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	accountParser "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	accountParser "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 )
 
 type WorkspaceId struct {
@@ -33,13 +33,13 @@ func WorkspaceID(input string) (*WorkspaceId, error) {
 
 // TODO -- use parse function "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers".ParseAccountID
 // when issue https://github.com/Azure/azure-rest-api-specs/issues/8323 is addressed
-func AccountIDCaseDiffSuppress(input string) (*accountParser.AccountID, error) {
+func AccountIDCaseDiffSuppress(input string) (*accountParser.AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	account := accountParser.AccountID{
+	account := accountParser.AccountId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

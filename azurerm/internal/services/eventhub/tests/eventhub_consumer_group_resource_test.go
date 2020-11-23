@@ -112,7 +112,6 @@ func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

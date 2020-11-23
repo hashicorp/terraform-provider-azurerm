@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -25,7 +25,7 @@ func resourceArmStorageSyncCloudEndpoint() *schema.Resource {
 		Delete: resourceArmStorageSyncCloudEndpointDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parsers.SyncCloudEndpointID(id)
+			_, err := parse.SyncCloudEndpointID(id)
 			return err
 		}),
 
@@ -54,7 +54,7 @@ func resourceArmStorageSyncCloudEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageShareName,
+				ValidateFunc: validate.ShareName,
 			},
 
 			"storage_account_id": {
@@ -80,7 +80,7 @@ func resourceArmStorageSyncCloudEndpointCreate(d *schema.ResourceData, meta inte
 	defer cancel()
 
 	name := d.Get("name").(string)
-	storagesyncGroupId, _ := parsers.StorageSyncGroupID(d.Get("storage_sync_group_id").(string))
+	storagesyncGroupId, _ := parse.StorageSyncGroupID(d.Get("storage_sync_group_id").(string))
 
 	existing, err := client.Get(ctx, storagesyncGroupId.ResourceGroup, storagesyncGroupId.StorageSyncName, storagesyncGroupId.Name, name)
 	if err != nil {
@@ -129,7 +129,7 @@ func resourceArmStorageSyncCloudEndpointRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.SyncCloudEndpointID(d.Id())
+	id, err := parse.SyncCloudEndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func resourceArmStorageSyncCloudEndpointDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.SyncCloudEndpointID(d.Id())
+	id, err := parse.SyncCloudEndpointID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -58,7 +58,7 @@ func testCheckAzureRMStorageSyncCloudEndpointExists(resourceName string) resourc
 			return fmt.Errorf("storage Sync Cloud Endpoint not found: %s", resourceName)
 		}
 
-		id, err := parsers.SyncCloudEndpointID(rs.Primary.Attributes["id"])
+		id, err := parse.SyncCloudEndpointID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
@@ -86,7 +86,7 @@ func testCheckAzureRMStorageSyncCloudEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.SyncCloudEndpointID(rs.Primary.Attributes["id"])
+		id, err := parse.SyncCloudEndpointID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}

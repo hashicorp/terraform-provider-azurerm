@@ -187,7 +187,6 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleRead(d *schema.ResourceData, m
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
