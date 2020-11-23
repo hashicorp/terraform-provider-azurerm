@@ -729,9 +729,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
-	if d.Get("enable_pod_security_policy").(bool) {
-		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
-	}
+	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
 
 	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
 	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
@@ -744,18 +742,19 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
 		},
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAccessProfile: &apiAccessProfile,
-			AadProfile:             azureADProfile,
-			AddonProfiles:          *addonProfiles,
-			AgentPoolProfiles:      agentProfiles,
-			AutoScalerProfile:      autoScalerProfile,
-			DNSPrefix:              utils.String(dnsPrefix),
-			EnableRBAC:             utils.Bool(rbacEnabled),
-			KubernetesVersion:      utils.String(kubernetesVersion),
-			LinuxProfile:           linuxProfile,
-			WindowsProfile:         windowsProfile,
-			NetworkProfile:         networkProfile,
-			NodeResourceGroup:      utils.String(nodeResourceGroup),
+			APIServerAccessProfile:  &apiAccessProfile,
+			AadProfile:              azureADProfile,
+			AddonProfiles:           *addonProfiles,
+			AgentPoolProfiles:       agentProfiles,
+			AutoScalerProfile:       autoScalerProfile,
+			DNSPrefix:               utils.String(dnsPrefix),
+			EnableRBAC:              utils.Bool(rbacEnabled),
+			KubernetesVersion:       utils.String(kubernetesVersion),
+			LinuxProfile:            linuxProfile,
+			WindowsProfile:          windowsProfile,
+			NetworkProfile:          networkProfile,
+			NodeResourceGroup:       utils.String(nodeResourceGroup),
+			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -952,8 +951,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.AutoScalerProfile = autoScalerProfile
 	}
 
-	if d.HasChange("enable_pod_security_policy") && d.Get("enable_pod_security_policy").(bool) {
-		return fmt.Errorf("The AKS API has removed support for this field on 2020-10-15 and is no longer possible to configure this the Pod Security Policy - as such you'll need to set `enable_pod_security_policy` to `false`")
+	if d.HasChange("enable_pod_security_policy") {
+		updateCluster = true
+		enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
+		existing.ManagedClusterProperties.EnablePodSecurityPolicy = utils.Bool(enablePodSecurityPolicy)
 	}
 
 	if d.HasChange("linux_profile") {
