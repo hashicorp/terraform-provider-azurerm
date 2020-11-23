@@ -8,14 +8,16 @@ import (
 )
 
 type FrontDoorId struct {
-	Name          string
-	ResourceGroup string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewFrontDoorID(resourceGroup, name string) FrontDoorId {
+func NewFrontDoorID(subscriptionId, resourceGroup, name string) FrontDoorId {
 	return FrontDoorId{
-		Name:          name,
-		ResourceGroup: resourceGroup,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
@@ -39,7 +41,8 @@ func FrontDoorIDForImport(input string) (*FrontDoorId, error) {
 	}
 
 	frontDoorId := FrontDoorId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if frontDoorId.Name, err = id.PopSegment("frontDoors"); err != nil {
@@ -53,8 +56,9 @@ func FrontDoorIDForImport(input string) (*FrontDoorId, error) {
 	return &frontDoorId, nil
 }
 
-func (id FrontDoorId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id FrontDoorId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func parseFrontDoorChildResourceId(input string) (*FrontDoorId, *azure.ResourceID, error) {
@@ -64,7 +68,8 @@ func parseFrontDoorChildResourceId(input string) (*FrontDoorId, *azure.ResourceI
 	}
 
 	frontdoor := FrontDoorId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	for key, value := range id.Path {
