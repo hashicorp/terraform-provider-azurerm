@@ -21,7 +21,7 @@ import (
 
 func resourceArmDigitalTwins() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmproperties,
+		Create: resourceArmDigitalTwinsCreate,
 		Read:   resourceArmDigitalTwinsRead,
 		Update: resourceArmDigitalTwinsUpdate,
 		Delete: resourceArmDigitalTwinsDelete,
@@ -59,7 +59,7 @@ func resourceArmDigitalTwins() *schema.Resource {
 		},
 	}
 }
-func resourceArmproperties(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDigitalTwinsCreate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).IoTHub.DigitalTwinsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
