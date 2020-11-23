@@ -10,7 +10,7 @@ var _ resourceid.Formatter = LoadBalancingId{}
 
 func TestLoadBalancingIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	frontDoorId := NewFrontDoorID("group1", "frontdoor1")
+	frontDoorId := NewFrontDoorID(subscriptionId, "group1", "frontdoor1")
 	actual := NewLoadBalancingID(frontDoorId, "setting1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/loadBalancingSettings/setting1"
 	if actual != expected {
@@ -32,18 +32,20 @@ func TestLoadBalancingIDParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1/loadBalancingSettings/setting1",
 			expected: &LoadBalancingId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "setting1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "setting1",
 			},
 		},
 		{
 			// title case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/LoadBalancingSettings/setting1",
 			expected: &LoadBalancingId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "setting1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "setting1",
 			},
 		},
 		{
@@ -63,6 +65,10 @@ func TestLoadBalancingIDParser(t *testing.T) {
 			} else if err != nil && test.expected != nil {
 				t.Fatalf("Expected no error but got: %+v", err)
 			}
+		}
+
+		if actual.SubscriptionId != test.expected.SubscriptionId {
+			t.Fatalf("Expected SubscriptionId to be %q but was %q", test.expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {
