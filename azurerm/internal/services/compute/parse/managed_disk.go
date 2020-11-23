@@ -7,19 +7,22 @@ import (
 )
 
 type ManagedDiskId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewManagedDiskId(resourceGroup, name string) ManagedDiskId {
+func NewManagedDiskId(subscriptionId, resourceGroup, name string) ManagedDiskId {
 	return ManagedDiskId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id ManagedDiskId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id ManagedDiskId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/disks/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ManagedDiskID(input string) (*ManagedDiskId, error) {
@@ -29,7 +32,8 @@ func ManagedDiskID(input string) (*ManagedDiskId, error) {
 	}
 
 	disk := ManagedDiskId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if disk.Name, err = id.PopSegment("disks"); err != nil {
