@@ -10,7 +10,7 @@ var _ resourceid.Formatter = BackendPoolId{}
 
 func TestBackendPoolIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	frontDoorId := NewFrontDoorID("group1", "frontdoor1")
+	frontDoorId := NewFrontDoorID(subscriptionId, "group1", "frontdoor1")
 	actual := NewBackendPoolID(frontDoorId, "pool1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/backendPools/pool1"
 	if actual != expected {
@@ -27,27 +27,30 @@ func TestBackendPoolIDParser(t *testing.T) {
 			// lower case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontdoors/frontDoor1/backendpools/pool1",
 			expected: &BackendPoolId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "pool1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "pool1",
 			},
 		},
 		{
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1/backendPools/pool1",
 			expected: &BackendPoolId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "pool1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "pool1",
 			},
 		},
 		{
 			// title case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/BackendPools/pool1",
 			expected: &BackendPoolId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "pool1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "pool1",
 			},
 		},
 		{
@@ -67,6 +70,10 @@ func TestBackendPoolIDParser(t *testing.T) {
 			} else if err != nil && test.expected != nil {
 				t.Fatalf("Expected no error but got: %+v", err)
 			}
+		}
+
+		if actual.SubscriptionId != test.expected.SubscriptionId {
+			t.Fatalf("Expected SubscriptionId to be %q but was %q", test.expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {
