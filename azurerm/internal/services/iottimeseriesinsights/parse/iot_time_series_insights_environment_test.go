@@ -2,7 +2,20 @@ package parse
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = TimeSeriesInsightsEnvironmentId{}
+
+func TestTimeSeriesInsightsEnvironmentIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	actual := NewTimeSeriesInsightsEnvironmentID(subscriptionId, "resourceGroup1", "env1").ID("")
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/Microsoft.TimeSeriesInsights/environments/env1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestTimeSeriesInsightsEnvironmentId(t *testing.T) {
 	testData := []struct {
@@ -39,8 +52,9 @@ func TestTimeSeriesInsightsEnvironmentId(t *testing.T) {
 			Name:  "Time Series Insight Environment ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/Environment1",
 			Expected: &TimeSeriesInsightsEnvironmentId{
-				Name:          "Environment1",
-				ResourceGroup: "resGroup1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				Name:           "Environment1",
+				ResourceGroup:  "resGroup1",
 			},
 		},
 		{
@@ -68,6 +82,10 @@ func TestTimeSeriesInsightsEnvironmentId(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }
