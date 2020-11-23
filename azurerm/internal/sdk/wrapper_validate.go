@@ -6,14 +6,14 @@ import (
 	"strings"
 )
 
-// ValidateModelObject validates that the object contains the specified `hcl` tags
+// ValidateModelObject validates that the object contains the specified `tfschema` tags
 // required to be used with the Encode and Decode functions
 func ValidateModelObject(input interface{}) error {
 	if reflect.TypeOf(input).Kind() != reflect.Ptr {
 		return fmt.Errorf("need a pointer")
 	}
 
-	// TODO: could we also validate that each `hcl` tag exists in the schema?
+	// TODO: could we also validate that each `tfschema` tag exists in the schema?
 
 	objType := reflect.TypeOf(input).Elem()
 	objVal := reflect.ValueOf(input).Elem()
@@ -46,9 +46,9 @@ func validateModelObjectRecursively(prefix string, objType reflect.Type, objVal 
 			}
 		}
 
-		if _, exists := field.Tag.Lookup("hcl"); !exists {
+		if _, exists := field.Tag.Lookup("tfschema"); !exists {
 			fieldName := strings.TrimPrefix(fmt.Sprintf("%s.%s", prefix, field.Name), ".")
-			return fmt.Errorf("field %q is missing an `hcl` label", fieldName)
+			return fmt.Errorf("field %q is missing an `tfschema` label", fieldName)
 		}
 	}
 

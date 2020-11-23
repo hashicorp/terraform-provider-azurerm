@@ -4,8 +4,8 @@ import "testing"
 
 func TestValidateTopLevelObjectValid(t *testing.T) {
 	type Person struct {
-		Name string `hcl:"name"`
-		Age  int    `hcl:"int"`
+		Name string `tfschema:"name"`
+		Age  int    `tfschema:"int"`
 	}
 	if err := ValidateModelObject(&Person{}); err != nil {
 		t.Fatalf("error: %+v", err)
@@ -32,11 +32,11 @@ func TestValidateTopLevelObjectInvalid(t *testing.T) {
 
 func TestValidateNestedObjectValid(t *testing.T) {
 	type Pet struct {
-		Name string `hcl:"name"`
+		Name string `tfschema:"name"`
 	}
 	type Person struct {
-		Name string `hcl:"name"`
-		Pets []Pet  `hcl:"pets"`
+		Name string `tfschema:"name"`
+		Pets []Pet  `tfschema:"pets"`
 	}
 	if err := ValidateModelObject(&Person{}); err != nil {
 		t.Fatalf("error: %+v", err)
@@ -45,12 +45,12 @@ func TestValidateNestedObjectValid(t *testing.T) {
 
 func TestValidateNestedObjectInvalid(t *testing.T) {
 	type Pet struct {
-		Name string `hcl:"name"`
+		Name string `tfschema:"name"`
 		Age  int
 	}
 	type Person struct {
-		Name string `hcl:"name"`
-		Pets []Pet  `hcl:"pets"`
+		Name string `tfschema:"name"`
+		Pets []Pet  `tfschema:"pets"`
 	}
 	if err := ValidateModelObject(&Person{}); err == nil {
 		t.Fatalf("expected an error but didn't get one")

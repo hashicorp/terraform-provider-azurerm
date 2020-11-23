@@ -3,45 +3,45 @@ package sdk
 // TODO: make these more granular for the tests
 
 type ExampleObj struct {
-	Name        string            `hcl:"name"`
-	Number      int               `hcl:"number"`
-	Output      string            `hcl:"output" computed:"true"`
-	Enabled     bool              `hcl:"enabled"`
-	Networks    []string          `hcl:"networks"`
-	NetworksSet []string          `hcl:"networks_set"`
-	IntList     []int             `hcl:"int_list"`
-	IntSet      []int             `hcl:"int_set"`
-	FloatList   []float64         `hcl:"float_list"`
-	FloatSet    []float64         `hcl:"float_set"`
-	BoolList    []bool            `hcl:"bool_list"`
-	BoolSet     []bool            `hcl:"bool_set"`
-	List        []NetworkList     `hcl:"list"`
-	Set         []NetworkSet      `hcl:"set"`
-	Float       float64           `hcl:"float"`
-	Map         map[string]string `hcl:"map"`
+	Name        string            `tfschema:"name"`
+	Number      int               `tfschema:"number"`
+	Output      string            `tfschema:"output" computed:"true"`
+	Enabled     bool              `tfschema:"enabled"`
+	Networks    []string          `tfschema:"networks"`
+	NetworksSet []string          `tfschema:"networks_set"`
+	IntList     []int             `tfschema:"int_list"`
+	IntSet      []int             `tfschema:"int_set"`
+	FloatList   []float64         `tfschema:"float_list"`
+	FloatSet    []float64         `tfschema:"float_set"`
+	BoolList    []bool            `tfschema:"bool_list"`
+	BoolSet     []bool            `tfschema:"bool_set"`
+	List        []NetworkList     `tfschema:"list"`
+	Set         []NetworkSet      `tfschema:"set"`
+	Float       float64           `tfschema:"float"`
+	Map         map[string]string `tfschema:"map"`
 }
 
 type NetworkList struct {
-	Name  string         `hcl:"name"`
-	Inner []NetworkInner `hcl:"inner"`
+	Name  string         `tfschema:"name"`
+	Inner []NetworkInner `tfschema:"inner"`
 }
 
 type NetworkListSet struct {
-	Name string `hcl:"name"`
+	Name string `tfschema:"name"`
 }
 
 type NetworkSet struct {
-	Name  string       `hcl:"name"`
-	Inner []InnerInner `hcl:"inner"`
+	Name  string       `tfschema:"name"`
+	Inner []InnerInner `tfschema:"inner"`
 }
 
 type NetworkInner struct {
-	Name  string           `hcl:"name"`
-	Inner []InnerInner     `hcl:"inner"`
-	Set   []NetworkListSet `hcl:"set"`
+	Name  string           `tfschema:"name"`
+	Inner []InnerInner     `tfschema:"inner"`
+	Set   []NetworkListSet `tfschema:"set"`
 }
 
 type InnerInner struct {
-	Name         string `hcl:"name"`
-	ShouldBeFine bool   `hcl:"should_be_fine"`
+	Name         string `tfschema:"name"`
+	ShouldBeFine bool   `tfschema:"should_be_fine"`
 }

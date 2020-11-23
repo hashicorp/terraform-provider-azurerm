@@ -15,16 +15,16 @@ type encodeTestData struct {
 
 func TestResourceEncode_TopLevel(t *testing.T) {
 	type SimpleType struct {
-		String        string            `hcl:"string"`
-		Number        int               `hcl:"number"`
-		Price         float64           `hcl:"price"`
-		Enabled       bool              `hcl:"enabled"`
-		ListOfFloats  []float64         `hcl:"list_of_floats"`
-		ListOfNumbers []int             `hcl:"list_of_numbers"`
-		ListOfStrings []string          `hcl:"list_of_strings"`
-		MapOfBools    map[string]bool   `hcl:"map_of_bools"`
-		MapOfNumbers  map[string]int    `hcl:"map_of_numbers"`
-		MapOfStrings  map[string]string `hcl:"map_of_strings"`
+		String        string            `tfschema:"string"`
+		Number        int               `tfschema:"number"`
+		Price         float64           `tfschema:"price"`
+		Enabled       bool              `tfschema:"enabled"`
+		ListOfFloats  []float64         `tfschema:"list_of_floats"`
+		ListOfNumbers []int             `tfschema:"list_of_numbers"`
+		ListOfStrings []string          `tfschema:"list_of_strings"`
+		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
+		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
+		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 
 	encodeTestData{
@@ -94,16 +94,16 @@ func TestResourceEncode_TopLevel(t *testing.T) {
 
 func TestResourceEncode_TopLevelOmitted(t *testing.T) {
 	type SimpleType struct {
-		String        string            `hcl:"string"`
-		Number        int               `hcl:"number"`
-		Price         float64           `hcl:"price"`
-		Enabled       bool              `hcl:"enabled"`
-		ListOfFloats  []float64         `hcl:"list_of_floats"`
-		ListOfNumbers []int             `hcl:"list_of_numbers"`
-		ListOfStrings []string          `hcl:"list_of_strings"`
-		MapOfBools    map[string]bool   `hcl:"map_of_bools"`
-		MapOfNumbers  map[string]int    `hcl:"map_of_numbers"`
-		MapOfStrings  map[string]string `hcl:"map_of_strings"`
+		String        string            `tfschema:"string"`
+		Number        int               `tfschema:"number"`
+		Price         float64           `tfschema:"price"`
+		Enabled       bool              `tfschema:"enabled"`
+		ListOfFloats  []float64         `tfschema:"list_of_floats"`
+		ListOfNumbers []int             `tfschema:"list_of_numbers"`
+		ListOfStrings []string          `tfschema:"list_of_strings"`
+		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
+		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
+		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 	encodeTestData{
 		Input: &SimpleType{},
@@ -124,15 +124,15 @@ func TestResourceEncode_TopLevelOmitted(t *testing.T) {
 
 func TestResourceEncode_TopLevelComputed(t *testing.T) {
 	type SimpleType struct {
-		ComputedString        string             `hcl:"computed_string" computed:"true"`
-		ComputedNumber        int                `hcl:"computed_number" computed:"true"`
-		ComputedBool          bool               `hcl:"computed_bool" computed:"true"`
-		ComputedListOfNumbers []int              `hcl:"computed_list_of_numbers" computed:"true"`
-		ComputedListOfStrings []string           `hcl:"computed_list_of_strings" computed:"true"`
-		ComputedMapOfBools    map[string]bool    `hcl:"computed_map_of_bools" computed:"true"`
-		ComputedMapOfFloats   map[string]float64 `hcl:"computed_map_of_floats" computed:"true"`
-		ComputedMapOfInts     map[string]int     `hcl:"computed_map_of_ints" computed:"true"`
-		ComputedMapOfStrings  map[string]string  `hcl:"computed_map_of_strings" computed:"true"`
+		ComputedString        string             `tfschema:"computed_string" computed:"true"`
+		ComputedNumber        int                `tfschema:"computed_number" computed:"true"`
+		ComputedBool          bool               `tfschema:"computed_bool" computed:"true"`
+		ComputedListOfNumbers []int              `tfschema:"computed_list_of_numbers" computed:"true"`
+		ComputedListOfStrings []string           `tfschema:"computed_list_of_strings" computed:"true"`
+		ComputedMapOfBools    map[string]bool    `tfschema:"computed_map_of_bools" computed:"true"`
+		ComputedMapOfFloats   map[string]float64 `tfschema:"computed_map_of_floats" computed:"true"`
+		ComputedMapOfInts     map[string]int     `tfschema:"computed_map_of_ints" computed:"true"`
+		ComputedMapOfStrings  map[string]string  `tfschema:"computed_map_of_strings" computed:"true"`
 	}
 	encodeTestData{
 		Input: &SimpleType{
@@ -196,10 +196,10 @@ func TestResourceEncode_TopLevelComputed(t *testing.T) {
 
 func TestResourceEncode_NestedOneLevelDeepEmpty(t *testing.T) {
 	type Inner struct {
-		Value string `hcl:"value"`
+		Value string `tfschema:"value"`
 	}
 	type Type struct {
-		NestedObject []Inner `hcl:"inner"`
+		NestedObject []Inner `tfschema:"inner"`
 	}
 	encodeTestData{
 		Input: &Type{
@@ -213,19 +213,19 @@ func TestResourceEncode_NestedOneLevelDeepEmpty(t *testing.T) {
 
 func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 	type Inner struct {
-		String        string            `hcl:"string"`
-		Number        int               `hcl:"number"`
-		Price         float64           `hcl:"price"`
-		Enabled       bool              `hcl:"enabled"`
-		ListOfFloats  []float64         `hcl:"list_of_floats"`
-		ListOfNumbers []int             `hcl:"list_of_numbers"`
-		ListOfStrings []string          `hcl:"list_of_strings"`
-		MapOfBools    map[string]bool   `hcl:"map_of_bools"`
-		MapOfNumbers  map[string]int    `hcl:"map_of_numbers"`
-		MapOfStrings  map[string]string `hcl:"map_of_strings"`
+		String        string            `tfschema:"string"`
+		Number        int               `tfschema:"number"`
+		Price         float64           `tfschema:"price"`
+		Enabled       bool              `tfschema:"enabled"`
+		ListOfFloats  []float64         `tfschema:"list_of_floats"`
+		ListOfNumbers []int             `tfschema:"list_of_numbers"`
+		ListOfStrings []string          `tfschema:"list_of_strings"`
+		MapOfBools    map[string]bool   `tfschema:"map_of_bools"`
+		MapOfNumbers  map[string]int    `tfschema:"map_of_numbers"`
+		MapOfStrings  map[string]string `tfschema:"map_of_strings"`
 	}
 	type Type struct {
-		NestedObject []Inner `hcl:"inner"`
+		NestedObject []Inner `tfschema:"inner"`
 	}
 	encodeTestData{
 		Input: &Type{
@@ -302,23 +302,23 @@ func TestResourceEncode_NestedOneLevelDeepSingle(t *testing.T) {
 
 func TestResourceEncode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 	type Inner struct {
-		String               string             `hcl:"string"`
-		Number               int                `hcl:"number"`
-		Price                float64            `hcl:"price"`
-		Enabled              bool               `hcl:"enabled"`
-		ListOfFloats         []float64          `hcl:"list_of_floats"`
-		ListOfNumbers        []int              `hcl:"list_of_numbers"`
-		ListOfStrings        []string           `hcl:"list_of_strings"`
-		MapOfBools           map[string]bool    `hcl:"map_of_bools"`
-		MapOfNumbers         map[string]int     `hcl:"map_of_numbers"`
-		MapOfStrings         map[string]string  `hcl:"map_of_strings"`
-		ComputedMapOfBools   map[string]bool    `hcl:"computed_map_of_bools" computed:"true"`
-		ComputedMapOfFloats  map[string]float64 `hcl:"computed_map_of_floats" computed:"true"`
-		ComputedMapOfInts    map[string]int     `hcl:"computed_map_of_ints" computed:"true"`
-		ComputedMapOfStrings map[string]string  `hcl:"computed_map_of_strings" computed:"true"`
+		String               string             `tfschema:"string"`
+		Number               int                `tfschema:"number"`
+		Price                float64            `tfschema:"price"`
+		Enabled              bool               `tfschema:"enabled"`
+		ListOfFloats         []float64          `tfschema:"list_of_floats"`
+		ListOfNumbers        []int              `tfschema:"list_of_numbers"`
+		ListOfStrings        []string           `tfschema:"list_of_strings"`
+		MapOfBools           map[string]bool    `tfschema:"map_of_bools"`
+		MapOfNumbers         map[string]int     `tfschema:"map_of_numbers"`
+		MapOfStrings         map[string]string  `tfschema:"map_of_strings"`
+		ComputedMapOfBools   map[string]bool    `tfschema:"computed_map_of_bools" computed:"true"`
+		ComputedMapOfFloats  map[string]float64 `tfschema:"computed_map_of_floats" computed:"true"`
+		ComputedMapOfInts    map[string]int     `tfschema:"computed_map_of_ints" computed:"true"`
+		ComputedMapOfStrings map[string]string  `tfschema:"computed_map_of_strings" computed:"true"`
 	}
 	type Type struct {
-		NestedObject []Inner `hcl:"inner"`
+		NestedObject []Inner `tfschema:"inner"`
 	}
 	encodeTestData{
 		Input: &Type{
@@ -351,10 +351,10 @@ func TestResourceEncode_NestedOneLevelDeepSingleOmittedValues(t *testing.T) {
 
 func TestResourceEncode_NestedOneLevelDeepSingleMultiple(t *testing.T) {
 	type Inner struct {
-		Value string `hcl:"value"`
+		Value string `tfschema:"value"`
 	}
 	type Type struct {
-		NestedObject []Inner `hcl:"inner"`
+		NestedObject []Inner `tfschema:"inner"`
 	}
 	encodeTestData{
 		Input: &Type{
@@ -388,16 +388,16 @@ func TestResourceEncode_NestedOneLevelDeepSingleMultiple(t *testing.T) {
 
 func TestResourceEncode_NestedThreeLevelsDeepEmpty(t *testing.T) {
 	type ThirdInner struct {
-		Value string `hcl:"value"`
+		Value string `tfschema:"value"`
 	}
 	type SecondInner struct {
-		Third []ThirdInner `hcl:"third"`
+		Third []ThirdInner `tfschema:"third"`
 	}
 	type FirstInner struct {
-		Second []SecondInner `hcl:"second"`
+		Second []SecondInner `tfschema:"second"`
 	}
 	type Type struct {
-		First []FirstInner `hcl:"first"`
+		First []FirstInner `tfschema:"first"`
 	}
 
 	t.Log("Top Level Empty")
@@ -457,16 +457,16 @@ func TestResourceEncode_NestedThreeLevelsDeepEmpty(t *testing.T) {
 
 func TestResourceEncode_NestedThreeLevelsDeepSingleItem(t *testing.T) {
 	type ThirdInner struct {
-		Value string `hcl:"value"`
+		Value string `tfschema:"value"`
 	}
 	type SecondInner struct {
-		Third []ThirdInner `hcl:"third"`
+		Third []ThirdInner `tfschema:"third"`
 	}
 	type FirstInner struct {
-		Second []SecondInner `hcl:"second"`
+		Second []SecondInner `tfschema:"second"`
 	}
 	type Type struct {
-		First []FirstInner `hcl:"first"`
+		First []FirstInner `tfschema:"first"`
 	}
 
 	encodeTestData{
@@ -505,18 +505,18 @@ func TestResourceEncode_NestedThreeLevelsDeepSingleItem(t *testing.T) {
 
 func TestResourceEncode_NestedThreeLevelsDeepMultipleItems(t *testing.T) {
 	type ThirdInner struct {
-		Value string `hcl:"value"`
+		Value string `tfschema:"value"`
 	}
 	type SecondInner struct {
-		Value string       `hcl:"value"`
-		Third []ThirdInner `hcl:"third"`
+		Value string       `tfschema:"value"`
+		Third []ThirdInner `tfschema:"third"`
 	}
 	type FirstInner struct {
-		Value  string        `hcl:"value"`
-		Second []SecondInner `hcl:"second"`
+		Value  string        `tfschema:"value"`
+		Second []SecondInner `tfschema:"second"`
 	}
 	type Type struct {
-		First []FirstInner `hcl:"first"`
+		First []FirstInner `tfschema:"first"`
 	}
 
 	encodeTestData{

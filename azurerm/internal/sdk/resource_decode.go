@@ -8,13 +8,13 @@ import (
 )
 
 // Decode will decode the Terraform Schema into the specified object
-// NOTE: this object must be passed by value - and must contain `hcl`
+// NOTE: this object must be passed by value - and must contain `tfschema`
 // struct tags for all fields
 //
 // Example Usage:
 //
 // type Person struct {
-//	 Name string `hcl:"name"
+//	 Name string `tfschema:"name"
 // }
 // var person Person
 // if err := metadata.Decode(&person); err != nil { .. }
@@ -39,17 +39,17 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 		field := objType.Field(i)
 		debugLogger.Infof("Field", field)
 
-		if val, exists := field.Tag.Lookup("hcl"); exists {
-			hclValue, valExists := stateRetriever.GetOkExists(val)
+		if val, exists := field.Tag.Lookup("tfschema"); exists {
+			tfschemaValue, valExists := stateRetriever.GetOkExists(val)
 			if !valExists {
 				continue
 			}
 
-			debugLogger.Infof("HCLValue: ", hclValue)
+			debugLogger.Infof("TFSchemaValue: ", tfschemaValue)
 			debugLogger.Infof("Input Type: ", reflect.ValueOf(input).Elem().Field(i).Type())
 
 			fieldName := reflect.ValueOf(input).Elem().Field(i).String()
-			if err := setValue(input, hclValue, i, fieldName, debugLogger); err != nil {
+			if err := setValue(input, tfschemaValue, i, fieldName, debugLogger); err != nil {
 				return err
 			}
 		}
@@ -57,7 +57,7 @@ func decodeReflectedType(input interface{}, stateRetriever stateRetriever, debug
 	return nil
 }
 
-func setValue(input, hclValue interface{}, index int, fieldName string, debugLogger Logger) (errOut error) {
+func setValue(input, tfschemaValue interface{}, index int, fieldName string, debugLogger Logger) (errOut error) {
 	debugLogger.Infof("setting list value for %q..", fieldName)
 	defer func() {
 		if r := recover(); r != nil {
@@ -71,7 +71,7 @@ func setValue(input, hclValue interface{}, index int, fieldName string, debugLog
 		}
 	}()
 
-	if v, ok := hclValue.(string); ok {
+	if v, ok := tfschemaValue.(string); ok {
 		debugLogger.Infof("[String] Decode %+v", v)
 		debugLogger.Infof("Input %+v", reflect.ValueOf(input))
 		debugLogger.Infof("Input Elem %+v", reflect.ValueOf(input).Elem())
@@ -79,44 +79,44 @@ func setValue(input, hclValue interface{}, index int, fieldName string, debugLog
 		return
 	}
 
-	if v, ok := hclValue.(int); ok {
+	if v, ok := tfschemaValue.(int); ok {
 		debugLogger.Infof("[INT] Decode %+v", v)
 		reflect.ValueOf(input).Elem().Field(index).SetInt(int64(v))
 		return
 	}
 
-	if v, ok := hclValue.(int32); ok {
+	if v, ok := tfschemaValue.(int32); ok {
 		debugLogger.Infof("[INT] Decode %+v", v)
 		reflect.ValueOf(input).Elem().Field(index).SetInt(int64(v))
 		return
 	}
 
-	if v, ok := hclValue.(int64); ok {
+	if v, ok := tfschemaValue.(int64); ok {
 		debugLogger.Infof("[INT] Decode %+v", v)
 		reflect.ValueOf(input).Elem().Field(index).SetInt(v)
 		return
 	}
 
-	if v, ok := hclValue.(float64); ok {
+	if v, ok := tfschemaValue.(float64); ok {
 		debugLogger.Infof("[Float] Decode %+v", v)
 		reflect.ValueOf(input).Elem().Field(index).SetFloat(v)
 		return
 	}
 
 	// Doesn't work for empty bools?
-	if v, ok := hclValue.(bool); ok {
+	if v, ok := tfschemaValue.(bool); ok {
 		debugLogger.Infof("[BOOL] Decode %+v", v)
 
 		reflect.ValueOf(input).Elem().Field(index).SetBool(v)
 		return
 	}
 
-	if v, ok := hclValue.(*schema.Set); ok {
+	if v, ok := tfschemaValue.(*schema.Set); ok {
 		setListValue(input, index, fieldName, v.List(), debugLogger)
 		return
 	}
 
-	if mapConfig, ok := hclValue.(map[string]interface{}); ok {
+	if mapConfig, ok := tfschemaValue.(map[string]interface{}); ok {
 		mapOutput := reflect.MakeMap(reflect.ValueOf(input).Elem().Field(index).Type())
 		for key, val := range mapConfig {
 			mapOutput.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
@@ -126,7 +126,7 @@ func setValue(input, hclValue interface{}, index int, fieldName string, debugLog
 		return
 	}
 
-	if v, ok := hclValue.([]interface{}); ok {
+	if v, ok := tfschemaValue.([]interface{}); ok {
 		setListValue(input, index, fieldName, v, debugLogger)
 		return
 	}
@@ -176,9 +176,9 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 					nestedField := elem.Type().Elem().Field(j)
 					debugLogger.Infof("nestedField ", nestedField)
 
-					if val, exists := nestedField.Tag.Lookup("hcl"); exists {
-						nestedHCLValue := test[val]
-						setValue(elem.Interface(), nestedHCLValue, j, fieldName, debugLogger)
+					if val, exists := nestedField.Tag.Lookup("tfschema"); exists {
+						nestedTFSchemaValue := test[val]
+						setValue(elem.Interface(), nestedTFSchemaValue, j, fieldName, debugLogger)
 					}
 				}
 

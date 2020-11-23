@@ -40,9 +40,9 @@ import (
 )
 
 type ResourceGroup struct {
-	Name     string            `hcl:"name"`
-	Location string            `hcl:"location"`
-	Tags     map[string]string `hcl:"tags"`
+	Name     string            `tfschema:"name"`
+	Location string            `tfschema:"location"`
+	Tags     map[string]string `tfschema:"tags"`
 }
 
 type ResourceGroupResource struct {
@@ -213,4 +213,4 @@ The end result being the removal of a lot of common bugs by moving to a conventi
 * Each Resource has to have an ID Formatter and Validation Function
 * The Model Object is validated via unit tests to ensure it contains the relevant struct tags (TODO: also confirming these exist in the state and are of the correct type, so no Set errors occur)
 
-Ultimately this allows bugs to be caught by the Compiler (for example if a Read function is unimplemented) - or Unit Tests (for example should the `hcl` struct tags be missing) - rather than during Provider Initialization, which reduces the feedback loop.
+Ultimately this allows bugs to be caught by the Compiler (for example if a Read function is unimplemented) - or Unit Tests (for example should the `tfschema` struct tags be missing) - rather than during Provider Initialization, which reduces the feedback loop.

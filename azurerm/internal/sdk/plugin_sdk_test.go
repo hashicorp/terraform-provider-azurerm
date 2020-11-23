@@ -15,21 +15,21 @@ func TestPluginSDKAndDecoder(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type NestedType struct {
-		Key string `hcl:"key"`
+		Key string `tfschema:"key"`
 	}
 	type MyType struct {
-		Hello         string             `hcl:"hello"`
-		RandomNumber  int                `hcl:"random_number"`
-		Enabled       bool               `hcl:"enabled"`
-		ListOfStrings []string           `hcl:"list_of_strings"`
-		ListOfNumbers []int              `hcl:"list_of_numbers"`
-		ListOfBools   []bool             `hcl:"list_of_bools"`
-		ListOfFloats  []float64          `hcl:"list_of_floats"`
-		NestedObject  []NestedType       `hcl:"nested_object"`
-		MapOfStrings  map[string]string  `hcl:"map_of_strings"`
-		MapOfNumbers  map[string]int     `hcl:"map_of_numbers"`
-		MapOfBools    map[string]bool    `hcl:"map_of_bools"`
-		MapOfFloats   map[string]float64 `hcl:"map_of_floats"`
+		Hello         string             `tfschema:"hello"`
+		RandomNumber  int                `tfschema:"random_number"`
+		Enabled       bool               `tfschema:"enabled"`
+		ListOfStrings []string           `tfschema:"list_of_strings"`
+		ListOfNumbers []int              `tfschema:"list_of_numbers"`
+		ListOfBools   []bool             `tfschema:"list_of_bools"`
+		ListOfFloats  []float64          `tfschema:"list_of_floats"`
+		NestedObject  []NestedType       `tfschema:"nested_object"`
+		MapOfStrings  map[string]string  `tfschema:"map_of_strings"`
+		MapOfNumbers  map[string]int     `tfschema:"map_of_numbers"`
+		MapOfBools    map[string]bool    `tfschema:"map_of_bools"`
+		MapOfFloats   map[string]float64 `tfschema:"map_of_floats"`
 		// Sets are handled in a separate test, since the orders can be different
 	}
 
@@ -215,9 +215,9 @@ func TestPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type MyType struct {
-		Hello   string `hcl:"hello"`
-		Number  int    `hcl:"number"`
-		Enabled bool   `hcl:"enabled"`
+		Hello   string `tfschema:"hello"`
+		Number  int    `tfschema:"number"`
+		Enabled bool   `tfschema:"enabled"`
 		// TODO: do we need other field types, or is this sufficient?
 	}
 
@@ -336,9 +336,9 @@ func TestPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type MyType struct {
-		Hello   string `hcl:"hello"`
-		Number  int    `hcl:"number"`
-		Enabled bool   `hcl:"enabled"`
+		Hello   string `tfschema:"hello"`
+		Number  int    `tfschema:"number"`
+		Enabled bool   `tfschema:"enabled"`
 		// TODO: do we need other field types, or is this sufficient?
 	}
 
@@ -439,10 +439,10 @@ func TestPluginSDKAndDecoderSets(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type MyType struct {
-		SetOfStrings []string  `hcl:"set_of_strings"`
-		SetOfNumbers []int     `hcl:"set_of_numbers"`
-		SetOfBools   []bool    `hcl:"set_of_bools"`
-		SetOfFloats  []float64 `hcl:"set_of_floats"`
+		SetOfStrings []string  `tfschema:"set_of_strings"`
+		SetOfNumbers []int     `tfschema:"set_of_numbers"`
+		SetOfBools   []bool    `tfschema:"set_of_bools"`
+		SetOfFloats  []float64 `tfschema:"set_of_floats"`
 		// we could arguably extend this with nested Sets, but they're tested in the Decode function
 		// so we should be covered via this test alone
 	}
@@ -618,25 +618,25 @@ func TestPluginSDKAndEncoder(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type NestedType struct {
-		Key string `hcl:"key"`
+		Key string `tfschema:"key"`
 	}
 	type MyType struct {
-		Hello         string             `hcl:"hello"`
-		RandomNumber  int                `hcl:"random_number"`
-		Enabled       bool               `hcl:"enabled"`
-		ListOfStrings []string           `hcl:"list_of_strings"`
-		ListOfNumbers []int              `hcl:"list_of_numbers"`
-		ListOfBools   []bool             `hcl:"list_of_bools"`
-		ListOfFloats  []float64          `hcl:"list_of_floats"`
-		NestedObject  []NestedType       `hcl:"nested_object"`
-		MapOfStrings  map[string]string  `hcl:"map_of_strings"`
-		MapOfNumbers  map[string]int     `hcl:"map_of_numbers"`
-		MapOfBools    map[string]bool    `hcl:"map_of_bools"`
-		MapOfFloats   map[string]float64 `hcl:"map_of_floats"`
-		SetOfStrings  []string           `hcl:"set_of_strings"`
-		SetOfNumbers  []int              `hcl:"set_of_numbers"`
-		SetOfBools    []bool             `hcl:"set_of_bools"`
-		SetOfFloats   []float64          `hcl:"set_of_floats"`
+		Hello         string             `tfschema:"hello"`
+		RandomNumber  int                `tfschema:"random_number"`
+		Enabled       bool               `tfschema:"enabled"`
+		ListOfStrings []string           `tfschema:"list_of_strings"`
+		ListOfNumbers []int              `tfschema:"list_of_numbers"`
+		ListOfBools   []bool             `tfschema:"list_of_bools"`
+		ListOfFloats  []float64          `tfschema:"list_of_floats"`
+		NestedObject  []NestedType       `tfschema:"nested_object"`
+		MapOfStrings  map[string]string  `tfschema:"map_of_strings"`
+		MapOfNumbers  map[string]int     `tfschema:"map_of_numbers"`
+		MapOfBools    map[string]bool    `tfschema:"map_of_bools"`
+		MapOfFloats   map[string]float64 `tfschema:"map_of_floats"`
+		SetOfStrings  []string           `tfschema:"set_of_strings"`
+		SetOfNumbers  []int              `tfschema:"set_of_numbers"`
+		SetOfBools    []bool             `tfschema:"set_of_bools"`
+		SetOfFloats   []float64          `tfschema:"set_of_floats"`
 	}
 
 	resource.ParallelTest(t, resource.TestCase{

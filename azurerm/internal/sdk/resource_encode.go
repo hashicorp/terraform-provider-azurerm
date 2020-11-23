@@ -7,7 +7,7 @@ import (
 
 // Encode will encode the specified object into the Terraform State
 // NOTE: this requires that the object passed in is a pointer and
-// all fields contain `hcl` struct tags
+// all fields contain `tfschema` struct tags
 func (rmd ResourceMetaData) Encode(input interface{}) error {
 	if reflect.TypeOf(input).Kind() != reflect.Ptr {
 		return fmt.Errorf("need a pointer")
@@ -47,29 +47,29 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
 		fieldVal := objVal.Field(i)
-		if hclTag, exists := field.Tag.Lookup("hcl"); exists {
+		if tfschemaTag, exists := field.Tag.Lookup("tfschema"); exists {
 			switch field.Type.Kind() {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				iv := fieldVal.Int()
-				debugLogger.Infof("Setting %q to %d", hclTag, iv)
+				debugLogger.Infof("Setting %q to %d", tfschemaTag, iv)
 
-				output[hclTag] = iv
+				output[tfschemaTag] = iv
 
 			case reflect.Float32, reflect.Float64:
 				fv := fieldVal.Float()
-				debugLogger.Infof("Setting %q to %f", hclTag, fv)
+				debugLogger.Infof("Setting %q to %f", tfschemaTag, fv)
 
-				output[hclTag] = fv
+				output[tfschemaTag] = fv
 
 			case reflect.String:
 				sv := fieldVal.String()
-				debugLogger.Infof("Setting %q to %q", hclTag, sv)
-				output[hclTag] = sv
+				debugLogger.Infof("Setting %q to %q", tfschemaTag, sv)
+				output[tfschemaTag] = sv
 
 			case reflect.Bool:
 				bv := fieldVal.Bool()
-				debugLogger.Infof("Setting %q to %t", hclTag, bv)
-				output[hclTag] = bv
+				debugLogger.Infof("Setting %q to %t", tfschemaTag, bv)
+				output[tfschemaTag] = bv
 
 			case reflect.Map:
 				iter := fieldVal.MapRange()
@@ -77,42 +77,42 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 				for iter.Next() {
 					attr[iter.Key().String()] = iter.Value().Interface()
 				}
-				output[hclTag] = attr
+				output[tfschemaTag] = attr
 
 			case reflect.Slice:
 				sv := fieldVal.Slice(0, fieldVal.Len())
 				attr := make([]interface{}, sv.Len())
 				switch sv.Type() {
 				case reflect.TypeOf([]string{}):
-					debugLogger.Infof("Setting %q to []string", hclTag)
+					debugLogger.Infof("Setting %q to []string", tfschemaTag)
 					if sv.Len() > 0 {
-						output[hclTag] = sv.Interface()
+						output[tfschemaTag] = sv.Interface()
 					} else {
-						output[hclTag] = make([]string, 0)
+						output[tfschemaTag] = make([]string, 0)
 					}
 
 				case reflect.TypeOf([]int{}):
-					debugLogger.Infof("Setting %q to []int", hclTag)
+					debugLogger.Infof("Setting %q to []int", tfschemaTag)
 					if sv.Len() > 0 {
-						output[hclTag] = sv.Interface()
+						output[tfschemaTag] = sv.Interface()
 					} else {
-						output[hclTag] = make([]int, 0)
+						output[tfschemaTag] = make([]int, 0)
 					}
 
 				case reflect.TypeOf([]float64{}):
-					debugLogger.Infof("Setting %q to []float64", hclTag)
+					debugLogger.Infof("Setting %q to []float64", tfschemaTag)
 					if sv.Len() > 0 {
-						output[hclTag] = sv.Interface()
+						output[tfschemaTag] = sv.Interface()
 					} else {
-						output[hclTag] = make([]float64, 0)
+						output[tfschemaTag] = make([]float64, 0)
 					}
 
 				case reflect.TypeOf([]bool{}):
-					debugLogger.Infof("Setting %q to []bool", hclTag)
+					debugLogger.Infof("Setting %q to []bool", tfschemaTag)
 					if sv.Len() > 0 {
-						output[hclTag] = sv.Interface()
+						output[tfschemaTag] = sv.Interface()
 					} else {
-						output[hclTag] = make([]bool, 0)
+						output[tfschemaTag] = make([]bool, 0)
 					}
 
 				default:
@@ -129,11 +129,11 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 						}
 						attr[i] = serialized
 					}
-					debugLogger.Infof("[SLICE] Setting %q to %+v", hclTag, attr)
-					output[hclTag] = attr
+					debugLogger.Infof("[SLICE] Setting %q to %+v", tfschemaTag, attr)
+					output[tfschemaTag] = attr
 				}
 			default:
-				return output, fmt.Errorf("unknown type %+v for key %q", field.Type.Kind(), hclTag)
+				return output, fmt.Errorf("unknown type %+v for key %q", field.Type.Kind(), tfschemaTag)
 			}
 		}
 	}
