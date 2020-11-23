@@ -7,19 +7,22 @@ import (
 )
 
 type DedicatedHostGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewDedicatedHostGroupId(resourceGroup, name string) DedicatedHostGroupId {
+func NewDedicatedHostGroupId(subscriptionId, resourceGroup, name string) DedicatedHostGroupId {
 	return DedicatedHostGroupId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id DedicatedHostGroupId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id DedicatedHostGroupId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/hostGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
@@ -29,7 +32,8 @@ func DedicatedHostGroupID(input string) (*DedicatedHostGroupId, error) {
 	}
 
 	group := DedicatedHostGroupId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if group.Name, err = id.PopSegment("hostGroups"); err != nil {
