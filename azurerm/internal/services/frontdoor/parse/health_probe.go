@@ -3,21 +3,23 @@ package parse
 import "fmt"
 
 type HealthProbeId struct {
-	ResourceGroup string
-	FrontDoorName string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	FrontDoorName  string
+	Name           string
 }
 
 func NewHealthProbeID(id FrontDoorId, name string) HealthProbeId {
 	return HealthProbeId{
-		ResourceGroup: id.ResourceGroup,
-		FrontDoorName: id.Name,
-		Name:          name,
+		SubscriptionId: id.SubscriptionId,
+		ResourceGroup:  id.ResourceGroup,
+		FrontDoorName:  id.Name,
+		Name:           name,
 	}
 }
 
-func (id HealthProbeId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
+func (id HealthProbeId) ID(_ string) string {
+	base := NewFrontDoorID(id.SubscriptionId, id.ResourceGroup, id.FrontDoorName).ID("")
 	return fmt.Sprintf("%s/healthProbeSettings/%s", base, id.Name)
 }
 
@@ -28,8 +30,9 @@ func HealthProbeID(input string) (*HealthProbeId, error) {
 	}
 
 	probeId := HealthProbeId{
-		ResourceGroup: frontDoorId.ResourceGroup,
-		FrontDoorName: frontDoorId.Name,
+		SubscriptionId: frontDoorId.SubscriptionId,
+		ResourceGroup:  frontDoorId.ResourceGroup,
+		FrontDoorName:  frontDoorId.Name,
 	}
 
 	// https://github.com/Azure/azure-sdk-for-go/issues/6762

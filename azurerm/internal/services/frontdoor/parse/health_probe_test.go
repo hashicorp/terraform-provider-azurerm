@@ -10,8 +10,8 @@ var _ resourceid.Formatter = HealthProbeId{}
 
 func TestHealthProbeIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	frontDoorId := NewFrontDoorID("group1", "frontdoor1")
-	actual := NewHealthProbeID(frontDoorId, "probe1").ID(subscriptionId)
+	frontDoorId := NewFrontDoorID(subscriptionId, "group1", "frontdoor1")
+	actual := NewHealthProbeID(frontDoorId, "probe1").ID("")
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/healthProbeSettings/probe1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -32,18 +32,20 @@ func TestHealthProbeIDParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1/healthProbeSettings/probe1",
 			expected: &HealthProbeId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "probe1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "probe1",
 			},
 		},
 		{
 			// title case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/HealthProbeSettings/probe1",
 			expected: &HealthProbeId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "probe1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "probe1",
 			},
 		},
 		{
@@ -63,6 +65,10 @@ func TestHealthProbeIDParser(t *testing.T) {
 			} else if err != nil && test.expected != nil {
 				t.Fatalf("Expected no error but got: %+v", err)
 			}
+		}
+
+		if actual.SubscriptionId != test.expected.SubscriptionId {
+			t.Fatalf("Expected SubscriptionId to be %q but was %q", test.expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {
