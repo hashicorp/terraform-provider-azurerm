@@ -7,22 +7,24 @@ import (
 )
 
 type TimeSeriesInsightsAccessPolicyId struct {
+	SubscriptionId  string
 	ResourceGroup   string
 	EnvironmentName string
 	Name            string
 }
 
-func NewTimeSeriesInsightsAccessPolicyID(resourceGroup, environmentName, name string) TimeSeriesInsightsAccessPolicyId {
+func NewTimeSeriesInsightsAccessPolicyID(subscriptionId, resourceGroup, environmentName, name string) TimeSeriesInsightsAccessPolicyId {
 	return TimeSeriesInsightsAccessPolicyId{
+		SubscriptionId:  subscriptionId,
 		ResourceGroup:   resourceGroup,
 		EnvironmentName: environmentName,
 		Name:            name,
 	}
 }
 
-func (id TimeSeriesInsightsAccessPolicyId) ID(subscriptionId string) string {
+func (id TimeSeriesInsightsAccessPolicyId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s/accessPolicies/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
 }
 
 func TimeSeriesInsightsAccessPolicyID(input string) (*TimeSeriesInsightsAccessPolicyId, error) {
@@ -32,7 +34,8 @@ func TimeSeriesInsightsAccessPolicyID(input string) (*TimeSeriesInsightsAccessPo
 	}
 
 	service := TimeSeriesInsightsAccessPolicyId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if service.EnvironmentName, err = id.PopSegment("environments"); err != nil {
