@@ -3,21 +3,23 @@ package parse
 import "fmt"
 
 type RoutingRuleId struct {
-	ResourceGroup string
-	FrontDoorName string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	FrontDoorName  string
+	Name           string
 }
 
 func NewRoutingRuleID(id FrontDoorId, name string) RoutingRuleId {
 	return RoutingRuleId{
-		ResourceGroup: id.ResourceGroup,
-		FrontDoorName: id.Name,
-		Name:          name,
+		SubscriptionId: id.SubscriptionId,
+		ResourceGroup:  id.ResourceGroup,
+		FrontDoorName:  id.Name,
+		Name:           name,
 	}
 }
 
-func (id RoutingRuleId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
+func (id RoutingRuleId) ID(_ string) string {
+	base := NewFrontDoorID(id.SubscriptionId, id.ResourceGroup, id.FrontDoorName).ID("")
 	return fmt.Sprintf("%s/routingRules/%s", base, id.Name)
 }
 
@@ -28,8 +30,9 @@ func RoutingRuleID(input string) (*RoutingRuleId, error) {
 	}
 
 	poolId := RoutingRuleId{
-		ResourceGroup: frontDoorId.ResourceGroup,
-		FrontDoorName: frontDoorId.Name,
+		SubscriptionId: frontDoorId.SubscriptionId,
+		ResourceGroup:  frontDoorId.ResourceGroup,
+		FrontDoorName:  frontDoorId.Name,
 	}
 
 	// API is broken - https://github.com/Azure/azure-sdk-for-go/issues/6762

@@ -10,7 +10,7 @@ var _ resourceid.Formatter = RoutingRuleId{}
 
 func TestRoutingRuleIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	frontDoorId := NewFrontDoorID("group1", "frontdoor1")
+	frontDoorId := NewFrontDoorID(subscriptionId, "group1", "frontdoor1")
 	actual := NewRoutingRuleID(frontDoorId, "rule1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/rule1"
 	if actual != expected {
@@ -32,18 +32,20 @@ func TestRoutingRuleIDParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1/routingRules/rule1",
 			expected: &RoutingRuleId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "rule1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "rule1",
 			},
 		},
 		{
 			// title case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/RoutingRules/rule1",
 			expected: &RoutingRuleId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "rule1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "rule1",
 			},
 		},
 		{
@@ -63,6 +65,10 @@ func TestRoutingRuleIDParser(t *testing.T) {
 			} else if err != nil && test.expected != nil {
 				t.Fatalf("Expected no error but got: %+v", err)
 			}
+		}
+
+		if actual.SubscriptionId != test.expected.SubscriptionId {
+			t.Fatalf("Expected SubscriptionId to be %q but was %q", test.expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {
