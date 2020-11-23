@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -124,7 +125,6 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(apimanagement.VirtualNetworkTypeNone),
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apimanagement.VirtualNetworkTypeNone),
 					string(apimanagement.VirtualNetworkTypeExternal),
@@ -141,7 +141,6 @@ func resourceArmApiManagementService() *schema.Resource {
 						"subnet_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
@@ -467,6 +466,21 @@ func resourceArmApiManagementService() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		// we can only change `virtual_network_type` from None to Internal Or External, Else the subnet can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
+		// we can not change the subnet from subnet1 to subnet2 either, Else the subnet1 can not be destroyed cause “InUseSubnetCannotBeDeleted” for 3 hours
+		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("virtual_network_type", func(old, new, meta interface{}) bool {
+				return !(old.(string) == string(apimanagement.VirtualNetworkTypeNone) &&
+					(new.(string) == string(apimanagement.VirtualNetworkTypeInternal) ||
+						new.(string) == string(apimanagement.VirtualNetworkTypeExternal)))
+			}),
+
+			customdiff.ForceNewIfChange("virtual_network_configuration", func(old, new, meta interface{}) bool {
+				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
+			}),
+		),
 	}
 }
 
