@@ -1,8 +1,11 @@
-package common
+package sdk
 
 import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
-type ServiceRegistration interface {
+// UntypedServiceRegistration is the interface used for untyped/raw Plugin SDK resources
+// in the future this'll be superseded by the TypedServiceRegistration which allows for
+// stronger Typed resources to be used.
+type UntypedServiceRegistration interface {
 	// Name is the name of this Service
 	Name() string
 
