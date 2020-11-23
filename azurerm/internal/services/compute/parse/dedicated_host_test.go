@@ -10,7 +10,7 @@ var _ resourceid.Formatter = DedicatedHostId{}
 
 func TestDedicatedHostIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	hostGroupId := NewDedicatedHostGroupId("group1", "hostGroup1")
+	hostGroupId := NewDedicatedHostGroupId(subscriptionId, "group1", "hostGroup1")
 	actual := NewDedicatedHostId(hostGroupId, "host1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/hostGroups/hostGroup1/hosts/host1"
 	if actual != expected {
@@ -65,9 +65,10 @@ func TestDedicatedHostID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/hostGroups/group1/hosts/host1",
 			Error: false,
 			Expect: &DedicatedHostId{
-				ResourceGroup: "resGroup1",
-				HostGroup:     "group1",
-				Name:          "host1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "resGroup1",
+				HostGroup:      "group1",
+				Name:           "host1",
 			},
 		},
 		{
@@ -99,6 +100,10 @@ func TestDedicatedHostID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.SubscriptionId != v.Expect.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expect.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }
