@@ -1,4 +1,4 @@
-package resource
+package parse
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ func TestParseResourceGroup(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *ResourceGroupResourceID
+		Expected *ResourceGroupId
 	}{
 		{
 			Name:     "Empty",
@@ -28,8 +28,9 @@ func TestParseResourceGroup(t *testing.T) {
 		{
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
-			Expected: &ResourceGroupResourceID{
-				Name: "foo",
+			Expected: &ResourceGroupId{
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				Name:           "foo",
 			},
 		},
 		{
@@ -47,7 +48,7 @@ func TestParseResourceGroup(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseResourceGroupID(v.Input)
+		actual, err := ResourceGroupID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
