@@ -1,11 +1,13 @@
+## 2.38.0 (Unreleased)
+
+* `azurerm_express_route_circuit_peering` - support for the `ipv6` block  [GH-9235]
+
 ## 2.37.0 (November 20, 2020)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_iothub_digital_twins`([#9212](https://github.com/terraform-providers/terraform-provider-azurerm/pull/9212))
 * **New Data Source:** `azurerm_servicebus_subscription` ([#9272](https://github.com/terraform-providers/terraform-provider-azurerm/issues/9272))
 * **New Data Source:** `azurerm_storage_encryption_scope` ([#8894](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8894))
-* **New Resource:** `azurerm_iothub_digital_twins` ([#9212](https://github.com/terraform-providers/terraform-provider-azurerm/pull/9212))
 * **New Resource:** `azurerm_log_analytics_cluster` ([#8946](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8946))
 * **New Resource:** `azurerm_log_analytics_cluster_customer_managed_key` ([#8946](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8946))
 * **New Resource:** `azurerm_security_center_automation` ([#8781](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8781))
