@@ -30,6 +30,7 @@ github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamig
 github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare
 github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces
 github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl
+github.com/Azure/azure-sdk-for-go/services/digitaltwins/mgmt/2020-10-31/digitaltwins
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
@@ -373,11 +374,13 @@ github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/containers
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/filesystems
+github.com/tombuildsstuff/giovanni/storage/2019-12-12/datalakestore/paths
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/directories
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/shares
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/queue/queues
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/entities
 github.com/tombuildsstuff/giovanni/storage/2019-12-12/table/tables
+github.com/tombuildsstuff/giovanni/storage/accesscontrol
 github.com/tombuildsstuff/giovanni/storage/internal/endpoints
 github.com/tombuildsstuff/giovanni/storage/internal/metadata
 github.com/tombuildsstuff/giovanni/version
