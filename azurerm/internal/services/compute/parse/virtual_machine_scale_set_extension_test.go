@@ -10,7 +10,7 @@ var _ resourceid.Formatter = VirtualMachineScaleSetExtensionId{}
 
 func TestVirtualMachineScaleSetExtensionIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	vmssId := NewVirtualMachineScaleSetId("group1", "vmss1")
+	vmssId := NewVirtualMachineScaleSetId(subscriptionId, "group1", "vmss1")
 	actual := NewVirtualMachineScaleSetExtensionId(vmssId, "extension1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachineScaleSets/vmss1/extensions/extension1"
 	if actual != expected {
@@ -53,9 +53,10 @@ func TestParseVirtualMachineScaleSetExtensionID(t *testing.T) {
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/machine1/extensions/extension1",
 			Expected: &VirtualMachineScaleSetExtensionId{
-				Name:                       "extension1",
-				VirtualMachineScaleSetName: "machine1",
+				SubscriptionId:             "00000000-0000-0000-0000-000000000000",
 				ResourceGroup:              "foo",
+				VirtualMachineScaleSetName: "machine1",
+				Name:                       "extension1",
 			},
 		},
 	}

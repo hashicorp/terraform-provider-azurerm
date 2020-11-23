@@ -7,6 +7,7 @@ import (
 )
 
 type VirtualMachineScaleSetExtensionId struct {
+	SubscriptionId             string
 	ResourceGroup              string
 	VirtualMachineScaleSetName string
 	Name                       string
@@ -14,14 +15,15 @@ type VirtualMachineScaleSetExtensionId struct {
 
 func NewVirtualMachineScaleSetExtensionId(id VirtualMachineScaleSetId, name string) VirtualMachineScaleSetExtensionId {
 	return VirtualMachineScaleSetExtensionId{
+		SubscriptionId:             id.SubscriptionId,
 		ResourceGroup:              id.ResourceGroup,
 		VirtualMachineScaleSetName: id.Name,
 		Name:                       name,
 	}
 }
 
-func (id VirtualMachineScaleSetExtensionId) ID(subscriptionId string) string {
-	base := NewVirtualMachineScaleSetId(id.ResourceGroup, id.VirtualMachineScaleSetName).ID(subscriptionId)
+func (id VirtualMachineScaleSetExtensionId) ID(_ string) string {
+	base := NewVirtualMachineScaleSetId(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineScaleSetName).ID("")
 	return fmt.Sprintf("%s/extensions/%s", base, id.Name)
 }
 
@@ -32,7 +34,8 @@ func VirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExt
 	}
 
 	extension := VirtualMachineScaleSetExtensionId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if extension.VirtualMachineScaleSetName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
