@@ -7,19 +7,22 @@ import (
 )
 
 type DigitalTwinsId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewDigitalTwinsID(resourcegroup string, name string) DigitalTwinsId {
+func NewDigitalTwinsID(subscriptionId, resourceGroup string, name string) DigitalTwinsId {
 	return DigitalTwinsId{
-		ResourceGroup: resourcegroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id DigitalTwinsId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id DigitalTwinsId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func DigitalTwinsID(input string) (*DigitalTwinsId, error) {
@@ -29,7 +32,8 @@ func DigitalTwinsID(input string) (*DigitalTwinsId, error) {
 	}
 
 	digitalTwins := DigitalTwinsId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 	if digitalTwins.Name, err = id.PopSegment("digitalTwinsInstances"); err != nil {
 		return nil, err

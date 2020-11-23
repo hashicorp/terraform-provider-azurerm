@@ -10,7 +10,7 @@ var _ resourceid.Formatter = DigitalTwinsId{}
 
 func TestDigitalTwinsIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	id := NewDigitalTwinsID("resourceGroup1", "resource1")
+	id := NewDigitalTwinsID(subscriptionId, "resourceGroup1", "resource1")
 	actual := id.ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/resource1"
 	if actual != expected {
@@ -50,11 +50,12 @@ func TestDigitalTwinsID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "digitaltwins DigitalTwins ID",
+			Name:  "Digital Twins ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/resource1",
 			Expected: &DigitalTwinsId{
-				ResourceGroup: "resourceGroup1",
-				Name:          "resource1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "resourceGroup1",
+				Name:           "resource1",
 			},
 		},
 		{
@@ -73,6 +74,10 @@ func TestDigitalTwinsID(t *testing.T) {
 				continue
 			}
 			t.Fatalf("Expected a value but got an error: %s", err)
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
