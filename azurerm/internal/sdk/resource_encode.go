@@ -24,7 +24,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 
 	for k, v := range serialized {
 		if err := rmd.ResourceData.Set(k, v); err != nil {
-			return fmt.Errorf("settting %q: %+v", k, err)
+			return fmt.Errorf("setting %q: %+v", k, err)
 		}
 	}
 	return nil
@@ -43,7 +43,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 		}
 	}()
 
-	output = make(map[string]interface{}, 0)
+	output = make(map[string]interface{})
 	for i := 0; i < objType.NumField(); i++ {
 		field := objType.Field(i)
 		fieldVal := objVal.Field(i)

@@ -13,7 +13,7 @@ func FromTypedObject(input map[string]string) map[string]*string {
 }
 
 func ToTypedObject(input map[string]*string) map[string]string {
-	output := make(map[string]string, 0)
+	output := make(map[string]string)
 
 	for k, v := range input {
 		if v == nil {

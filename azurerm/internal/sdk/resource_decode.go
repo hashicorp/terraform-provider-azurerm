@@ -76,31 +76,31 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		debugLogger.Infof("Input %+v", reflect.ValueOf(input))
 		debugLogger.Infof("Input Elem %+v", reflect.ValueOf(input).Elem())
 		reflect.ValueOf(input).Elem().Field(index).SetString(v)
-		return
+		return nil
 	}
 
 	if v, ok := tfschemaValue.(int); ok {
 		debugLogger.Infof("[INT] Decode %+v", v)
 		reflect.ValueOf(input).Elem().Field(index).SetInt(int64(v))
-		return
+		return nil
 	}
 
 	if v, ok := tfschemaValue.(int32); ok {
 		debugLogger.Infof("[INT] Decode %+v", v)
 		reflect.ValueOf(input).Elem().Field(index).SetInt(int64(v))
-		return
+		return nil
 	}
 
 	if v, ok := tfschemaValue.(int64); ok {
 		debugLogger.Infof("[INT] Decode %+v", v)
 		reflect.ValueOf(input).Elem().Field(index).SetInt(v)
-		return
+		return nil
 	}
 
 	if v, ok := tfschemaValue.(float64); ok {
 		debugLogger.Infof("[Float] Decode %+v", v)
 		reflect.ValueOf(input).Elem().Field(index).SetFloat(v)
-		return
+		return nil
 	}
 
 	// Doesn't work for empty bools?
@@ -108,12 +108,11 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		debugLogger.Infof("[BOOL] Decode %+v", v)
 
 		reflect.ValueOf(input).Elem().Field(index).SetBool(v)
-		return
+		return nil
 	}
 
 	if v, ok := tfschemaValue.(*schema.Set); ok {
-		setListValue(input, index, fieldName, v.List(), debugLogger)
-		return
+		return setListValue(input, index, fieldName, v.List(), debugLogger)
 	}
 
 	if mapConfig, ok := tfschemaValue.(map[string]interface{}); ok {
@@ -123,18 +122,17 @@ func setValue(input, tfschemaValue interface{}, index int, fieldName string, deb
 		}
 
 		reflect.ValueOf(input).Elem().Field(index).Set(mapOutput)
-		return
+		return nil
 	}
 
 	if v, ok := tfschemaValue.([]interface{}); ok {
-		setListValue(input, index, fieldName, v, debugLogger)
-		return
+		return setListValue(input, index, fieldName, v, debugLogger)
 	}
 
-	return
+	return nil
 }
 
-func setListValue(input interface{}, index int, fieldName string, v []interface{}, debugLogger Logger) {
+func setListValue(input interface{}, index int, fieldName string, v []interface{}, debugLogger Logger) error {
 	switch fieldType := reflect.ValueOf(input).Elem().Field(index).Type(); fieldType {
 	case reflect.TypeOf([]string{}):
 		stringSlice := reflect.MakeSlice(reflect.TypeOf([]string{}), len(v), len(v))
@@ -178,7 +176,9 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 
 					if val, exists := nestedField.Tag.Lookup("tfschema"); exists {
 						nestedTFSchemaValue := test[val]
-						setValue(elem.Interface(), nestedTFSchemaValue, j, fieldName, debugLogger)
+						if err := setValue(elem.Interface(), nestedTFSchemaValue, j, fieldName, debugLogger); err != nil {
+							return err
+						}
 					}
 				}
 
@@ -200,4 +200,6 @@ func setListValue(input interface{}, index int, fieldName string, v []interface{
 		fieldToSet := reflect.ValueOf(input).Elem().Field(index)
 		fieldToSet.Set(reflect.Indirect(valueToSet))
 	}
+
+	return nil
 }

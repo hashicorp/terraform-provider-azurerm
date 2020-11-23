@@ -14,7 +14,7 @@ import (
 // whilst this may look overkill, this allows for simpler implementations in other tooling, for example
 // when generating documentation
 func combineSchema(arguments map[string]*schema.Schema, attributes map[string]*schema.Schema) (*map[string]*schema.Schema, error) {
-	out := make(map[string]*schema.Schema, 0)
+	out := make(map[string]*schema.Schema)
 
 	for k, v := range arguments {
 		if _, alreadyExists := out[k]; alreadyExists {
