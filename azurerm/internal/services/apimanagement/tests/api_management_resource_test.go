@@ -1045,7 +1045,7 @@ resource "azurerm_api_management" "test" {
     subnet_id = azurerm_subnet.test.id
   }
 }
-`, template,data.RandomInteger, data.Locations.Secondary)
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
 func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {
