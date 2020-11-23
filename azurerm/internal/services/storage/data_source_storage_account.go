@@ -254,7 +254,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 			},
 
 			"subscription_id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 
@@ -271,7 +271,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	} else {
 		client = meta.(*clients.Client).Storage.AccountsClient
 	}
-	
+
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

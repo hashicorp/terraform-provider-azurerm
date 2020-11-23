@@ -36,7 +36,7 @@ type Client struct {
 
 	resourceManagerAuthorizer autorest.Authorizer
 	storageAdAuth             *autorest.Authorizer
-	options *common.ClientOptions
+	options                   *common.ClientOptions
 }
 
 func NewClient(options *common.ClientOptions) *Client {
@@ -79,7 +79,7 @@ func NewClient(options *common.ClientOptions) *Client {
 		SyncGroupsClient:         &syncGroupsClient,
 
 		resourceManagerAuthorizer: options.ResourceManagerAuthorizer,
-		options: options,
+		options:                   options,
 	}
 
 	if options.StorageUseAzureAD {
