@@ -11,7 +11,7 @@ var _ resourceid.Formatter = TimeSeriesInsightsAccessPolicyId{}
 func TestTimeSeriesInsightsAccessPolicyIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
 	actual := NewTimeSeriesInsightsAccessPolicyID(subscriptionId, "resourceGroup1", "env1", "policy1").ID("")
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/Microsoft.TimeSeriesInsights/environments/env1/accessPolicies/policy1"
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.TimeSeriesInsights/environments/env1/accessPolicies/policy1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}

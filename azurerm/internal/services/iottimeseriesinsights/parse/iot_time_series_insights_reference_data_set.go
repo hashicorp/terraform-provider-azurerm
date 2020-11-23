@@ -7,9 +7,24 @@ import (
 )
 
 type TimeSeriesInsightsReferenceDataSetId struct {
+	SubscriptionId  string
 	ResourceGroup   string
 	EnvironmentName string
 	Name            string
+}
+
+func NewTimeSeriesInsightsReferenceDataSetID(subscriptionId, resourceGroup, environmentName, name string) TimeSeriesInsightsReferenceDataSetId {
+	return TimeSeriesInsightsReferenceDataSetId{
+		SubscriptionId:  subscriptionId,
+		ResourceGroup:   resourceGroup,
+		EnvironmentName: environmentName,
+		Name:            name,
+	}
+}
+
+func (id TimeSeriesInsightsReferenceDataSetId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s/referenceDataSets/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
 }
 
 func TimeSeriesInsightsReferenceDataSetID(input string) (*TimeSeriesInsightsReferenceDataSetId, error) {
@@ -19,7 +34,8 @@ func TimeSeriesInsightsReferenceDataSetID(input string) (*TimeSeriesInsightsRefe
 	}
 
 	service := TimeSeriesInsightsReferenceDataSetId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if service.EnvironmentName, err = id.PopSegment("environments"); err != nil {
