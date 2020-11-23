@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/sdk"
 )
 
 // NOTE: since we're using `go run` for these tools all of the code needs to live within the main.go
@@ -88,7 +89,22 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 	}
 
 	if !isResource {
-		for _, service := range provider.SupportedServices() {
+		for _, service := range provider.SupportedTypedServices() {
+			for _, ds := range service.SupportedDataSources() {
+				if ds.ResourceType() == resourceName {
+					wrapper := sdk.NewDataSourceWrapper(ds)
+					dsWrapper, err := wrapper.DataSource()
+					if err != nil {
+						return nil, fmt.Errorf("wrapping Data Source %q: %+v", ds.ResourceType(), err)
+					}
+
+					generator.resource = dsWrapper
+					generator.websiteCategories = service.WebsiteCategories()
+					break
+				}
+			}
+		}
+		for _, service := range provider.SupportedUntypedServices() {
 			for key, ds := range service.SupportedDataSources() {
 				if key == resourceName {
 					generator.resource = ds
@@ -102,7 +118,22 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 			return nil, fmt.Errorf("Data Source %q was not registered!", resourceName)
 		}
 	} else {
-		for _, service := range provider.SupportedServices() {
+		for _, service := range provider.SupportedTypedServices() {
+			for _, rs := range service.SupportedResources() {
+				if rs.ResourceType() == resourceName {
+					wrapper := sdk.NewResourceWrapper(rs)
+					rsWrapper, err := wrapper.Resource()
+					if err != nil {
+						return nil, fmt.Errorf("wrapping Resource %q: %+v", rs.ResourceType(), err)
+					}
+
+					generator.resource = rsWrapper
+					generator.websiteCategories = service.WebsiteCategories()
+					break
+				}
+			}
+		}
+		for _, service := range provider.SupportedUntypedServices() {
 			for key, rs := range service.SupportedResources() {
 				if key == resourceName {
 					generator.resource = rs
