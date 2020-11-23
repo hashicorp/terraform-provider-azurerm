@@ -10,7 +10,7 @@ var _ resourceid.Formatter = SharedImageGalleryId{}
 
 func TestSharedImageGalleryIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewSharedImageGalleryId("group1", "gallery1").ID(subscriptionId)
+	actual := NewSharedImageGalleryId(subscriptionId, "group1", "gallery1").ID("")
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/galleries/gallery1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -59,8 +59,9 @@ func TestSharedImageGalleryID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1",
 			Error: false,
 			Expect: &SharedImageGalleryId{
-				ResourceGroup: "mygroup1",
-				Name:          "gallery1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "mygroup1",
+				Name:           "gallery1",
 			},
 		},
 		{
@@ -88,6 +89,10 @@ func TestSharedImageGalleryID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.SubscriptionId != v.Expect.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expect.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }
