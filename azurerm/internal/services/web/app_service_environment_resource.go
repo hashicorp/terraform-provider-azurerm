@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
@@ -22,6 +23,10 @@ import (
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+const (
+	LoadBalancingModeWebPublishing web.LoadBalancingMode = "Web, Publishing"
 )
 
 func resourceArmAppServiceEnvironment() *schema.Resource {
@@ -68,7 +73,10 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 					string(web.LoadBalancingModePublishing),
 					string(web.LoadBalancingModeWeb),
 					string(web.LoadBalancingModeWebPublishing),
+					// (@jackofallops) breaking change in SDK - Enum for internal_load_balancing_mode changed from Web, Publishing to Web,Publishing
+					string(LoadBalancingModeWebPublishing),
 				}, false),
+				DiffSuppressFunc: loadBalancingModeDiffSuppress,
 			},
 
 			"front_end_scale_factor": {
@@ -134,6 +142,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 
 	name := d.Get("name").(string)
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
+	internalLoadBalancingMode = strings.ReplaceAll(internalLoadBalancingMode, " ", "")
 	t := d.Get("tags").(map[string]interface{})
 	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
 	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
@@ -241,6 +250,7 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("internal_load_balancing_mode") {
 		v := d.Get("internal_load_balancing_mode").(string)
+		v = strings.ReplaceAll(v, " ", "")
 		e.AppServiceEnvironment.InternalLoadBalancingMode = web.LoadBalancingMode(v)
 	}
 
@@ -411,4 +421,8 @@ func convertToIsolatedSKU(vmSKU string) (isolated string) {
 		isolated = "I3"
 	}
 	return isolated
+}
+
+func loadBalancingModeDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	return strings.ReplaceAll(old, " ", "") == strings.ReplaceAll(new, " ", "")
 }
