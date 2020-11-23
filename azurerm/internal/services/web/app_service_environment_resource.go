@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -219,9 +220,21 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	createWait := resource.StateChangeConf{
+		Pending: []string{
+			string(web.ProvisioningStateInProgress),
+		},
+		Target: []string{
+			string(web.ProvisioningStateSucceeded),
+		},
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Refresh:    appServiceEnvironmentRefresh(ctx, client, resourceGroup, name),
+	}
+
 	// as such we'll ignore it and use a custom poller instead
-	if err := waitForAppServiceEnvironmentToStabilize(ctx, client, resourceGroup, name); err != nil {
-		return fmt.Errorf("Error waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := createWait.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -276,7 +289,19 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error updating App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if err := waitForAppServiceEnvironmentToStabilize(ctx, client, id.ResourceGroup, id.Name); err != nil {
+	updateWait := resource.StateChangeConf{
+		Pending: []string{
+			string(web.ProvisioningStateInProgress),
+		},
+		Target: []string{
+			string(web.ProvisioningStateSucceeded),
+		},
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.Name),
+	}
+
+	if _, err := updateWait.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Update of App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -372,29 +397,20 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func waitForAppServiceEnvironmentToStabilize(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) error {
-	for {
-		time.Sleep(1 * time.Minute)
-
+func appServiceEnvironmentRefresh(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
 		read, err := client.Get(ctx, resourceGroup, name)
+
 		if err != nil {
-			return err
+			return "", "", err
 		}
 
 		if read.AppServiceEnvironment == nil {
-			return fmt.Errorf("`properties` was nil")
+			return "", "", fmt.Errorf("`properties` was nil")
 		}
 
 		state := read.AppServiceEnvironment.ProvisioningState
-		if state == web.ProvisioningStateSucceeded {
-			return nil
-		}
-
-		if state == web.ProvisioningStateInProgress {
-			continue
-		}
-
-		return fmt.Errorf("Unexpected ProvisioningState: %q", state)
+		return state, string(state), nil
 	}
 }
 
