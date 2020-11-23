@@ -10,7 +10,7 @@ var _ resourceid.Formatter = FrontendEndpointId{}
 
 func TestFrontendEndpointIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	frontDoorId := NewFrontDoorID("group1", "frontdoor1")
+	frontDoorId := NewFrontDoorID(subscriptionId, "group1", "frontdoor1")
 	actual := NewFrontendEndpointID(frontDoorId, "endpoint1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/endpoint1"
 	if actual != expected {
@@ -32,18 +32,20 @@ func TestFrontendEndpointIDParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1/frontendEndpoints/endpoint1",
 			expected: &FrontendEndpointId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "endpoint1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "endpoint1",
 			},
 		},
 		{
 			// title case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/FrontendEndpoints/endpoint1",
 			expected: &FrontendEndpointId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "endpoint1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "endpoint1",
 			},
 		},
 		{
@@ -63,6 +65,10 @@ func TestFrontendEndpointIDParser(t *testing.T) {
 			} else if err != nil && test.expected != nil {
 				t.Fatalf("Expected no error but got: %+v", err)
 			}
+		}
+
+		if actual.SubscriptionId != test.expected.SubscriptionId {
+			t.Fatalf("Expected SubscriptionId to be %q but was %q", test.expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {
@@ -93,9 +99,10 @@ func TestFrontendEndpointIDForImportParser(t *testing.T) {
 			// camel case
 			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1/frontendEndpoints/endpoint1",
 			expected: &FrontendEndpointId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "endpoint1",
+				SubscriptionId: "12345678-1234-5678-1234-123456789012",
+				ResourceGroup:  "group1",
+				FrontDoorName:  "frontDoor1",
+				Name:           "endpoint1",
 			},
 		},
 		{
@@ -120,6 +127,10 @@ func TestFrontendEndpointIDForImportParser(t *testing.T) {
 			} else if err != nil && test.expected != nil {
 				t.Fatalf("Expected no error but got: %+v", err)
 			}
+		}
+
+		if actual.SubscriptionId != test.expected.SubscriptionId {
+			t.Fatalf("Expected SubscriptionId to be %q but was %q", test.expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {

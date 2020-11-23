@@ -3,21 +3,23 @@ package parse
 import "fmt"
 
 type FrontendEndpointId struct {
-	ResourceGroup string
-	FrontDoorName string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	FrontDoorName  string
+	Name           string
 }
 
 func NewFrontendEndpointID(id FrontDoorId, name string) FrontendEndpointId {
 	return FrontendEndpointId{
-		ResourceGroup: id.ResourceGroup,
-		FrontDoorName: id.Name,
-		Name:          name,
+		SubscriptionId: id.SubscriptionId,
+		ResourceGroup:  id.ResourceGroup,
+		FrontDoorName:  id.Name,
+		Name:           name,
 	}
 }
 
-func (id FrontendEndpointId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
+func (id FrontendEndpointId) ID(_ string) string {
+	base := NewFrontDoorID(id.SubscriptionId, id.ResourceGroup, id.FrontDoorName).ID("")
 	return fmt.Sprintf("%s/frontendEndpoints/%s", base, id.Name)
 }
 
@@ -36,8 +38,9 @@ func parseFrontendEndpointID(input string, caseSensitive bool) (*FrontendEndpoin
 	}
 
 	endpointId := FrontendEndpointId{
-		ResourceGroup: frontDoorId.ResourceGroup,
-		FrontDoorName: frontDoorId.Name,
+		SubscriptionId: frontDoorId.SubscriptionId,
+		ResourceGroup:  frontDoorId.ResourceGroup,
+		FrontDoorName:  frontDoorId.Name,
 	}
 
 	// The Azure API (per the ARM Spec/chatting with the ARM Team) should be following Postel's Law;
