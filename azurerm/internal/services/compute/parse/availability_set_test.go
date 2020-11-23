@@ -10,7 +10,7 @@ var _ resourceid.Formatter = AvailabilitySetId{}
 
 func TestAvailabilitySetIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewAvailabilitySetId("group1", "set1").ID(subscriptionId)
+	actual := NewAvailabilitySetId(subscriptionId, "group1", "set1").ID("")
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/availabilitySets/set1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -54,8 +54,9 @@ func TestAvailabilitySetID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/availabilitySets/set1",
 			Error: false,
 			Expect: &AvailabilitySetId{
-				ResourceGroup: "resGroup1",
-				Name:          "set1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "resGroup1",
+				Name:           "set1",
 			},
 		},
 		{
