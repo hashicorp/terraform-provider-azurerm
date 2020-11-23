@@ -10,7 +10,7 @@ var _ resourceid.Formatter = SharedImageVersionId{}
 
 func TestSharedImageVersionIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	galleryId := NewSharedImageGalleryId("group1", "gallery1")
+	galleryId := NewSharedImageGalleryId(subscriptionId, "group1", "gallery1")
 	imageId := NewSharedImageId(galleryId, "image1")
 	actual := NewSharedImageVersionId(imageId, "version1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/galleries/gallery1/images/image1/versions/version1"
@@ -61,10 +61,11 @@ func TestSharedImageVersionID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/images/image1/versions/1.0.0",
 			Error: false,
 			Expect: &SharedImageVersionId{
-				ResourceGroup: "mygroup1",
-				Gallery:       "gallery1",
-				ImageName:     "image1",
-				Version:       "1.0.0",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "mygroup1",
+				Gallery:        "gallery1",
+				ImageName:      "image1",
+				Version:        "1.0.0",
 			},
 		},
 		{
@@ -92,6 +93,10 @@ func TestSharedImageVersionID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expect.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.SubscriptionId != v.Expect.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expect.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }

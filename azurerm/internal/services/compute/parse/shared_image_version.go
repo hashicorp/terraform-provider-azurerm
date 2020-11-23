@@ -7,24 +7,26 @@ import (
 )
 
 type SharedImageVersionId struct {
-	ResourceGroup string
-	Gallery       string
-	ImageName     string
-	Version       string
+	SubscriptionId string
+	ResourceGroup  string
+	Gallery        string
+	ImageName      string
+	Version        string
 }
 
 func NewSharedImageVersionId(id SharedImageId, name string) SharedImageVersionId {
 	return SharedImageVersionId{
-		ResourceGroup: id.ResourceGroup,
-		Gallery:       id.Gallery,
-		ImageName:     id.Name,
-		Version:       name,
+		SubscriptionId: id.SubscriptionId,
+		ResourceGroup:  id.ResourceGroup,
+		Gallery:        id.Gallery,
+		ImageName:      id.Name,
+		Version:        name,
 	}
 }
 
-func (id SharedImageVersionId) ID(subscriptionId string) string {
-	galleryId := NewSharedImageGalleryId(id.ResourceGroup, id.Gallery)
-	base := NewSharedImageId(galleryId, id.ImageName).ID(subscriptionId)
+func (id SharedImageVersionId) ID(_ string) string {
+	galleryId := NewSharedImageGalleryId(id.SubscriptionId, id.ResourceGroup, id.Gallery)
+	base := NewSharedImageId(galleryId, id.ImageName).ID("")
 	return fmt.Sprintf("%s/versions/%s", base, id.Version)
 }
 
@@ -35,7 +37,8 @@ func SharedImageVersionID(input string) (*SharedImageVersionId, error) {
 	}
 
 	set := SharedImageVersionId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if set.Gallery, err = id.PopSegment("galleries"); err != nil {

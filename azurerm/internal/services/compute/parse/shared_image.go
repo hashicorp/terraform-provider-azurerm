@@ -22,8 +22,8 @@ func NewSharedImageId(id SharedImageGalleryId, name string) SharedImageId {
 	}
 }
 
-func (id SharedImageId) ID(subscriptionId string) string {
-	base := NewSharedImageGalleryId(id.SubscriptionId, id.ResourceGroup, id.Gallery).ID(subscriptionId)
+func (id SharedImageId) ID(_ string) string {
+	base := NewSharedImageGalleryId(id.SubscriptionId, id.ResourceGroup, id.Gallery).ID("")
 	return fmt.Sprintf("%s/images/%s", base, id.Name)
 }
 
