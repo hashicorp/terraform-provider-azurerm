@@ -7,19 +7,22 @@ import (
 )
 
 type VirtualMachineScaleSetId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewVirtualMachineScaleSetId(resourceGroup, name string) VirtualMachineScaleSetId {
+func NewVirtualMachineScaleSetId(subscriptionId, resourceGroup, name string) VirtualMachineScaleSetId {
 	return VirtualMachineScaleSetId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id VirtualMachineScaleSetId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id VirtualMachineScaleSetId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachineScaleSets/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
@@ -29,7 +32,8 @@ func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
 	}
 
 	vmScaleSet := VirtualMachineScaleSetId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if vmScaleSet.Name, err = id.PopSegment("virtualMachineScaleSets"); err != nil {

@@ -10,7 +10,7 @@ var _ resourceid.Formatter = VirtualMachineScaleSetId{}
 
 func TestVirtualMachineScaleSetIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewVirtualMachineScaleSetId("group1", "vmss1").ID(subscriptionId)
+	actual := NewVirtualMachineScaleSetId(subscriptionId, "group1", "vmss1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachineScaleSets/vmss1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -42,8 +42,9 @@ func TestVirtualMachineScaleSetID(t *testing.T) {
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/example",
 			Expected: &VirtualMachineScaleSetId{
-				Name:          "example",
-				ResourceGroup: "foo",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				Name:           "example",
+				ResourceGroup:  "foo",
 			},
 		},
 	}
@@ -66,6 +67,10 @@ func TestVirtualMachineScaleSetID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }
