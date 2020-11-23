@@ -10,7 +10,7 @@ var _ resourceid.Formatter = VirtualMachineId{}
 
 func TestVirtualMachineIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewVirtualMachineId("group1", "vm1").ID(subscriptionId)
+	actual := NewVirtualMachineId(subscriptionId, "group1", "vm1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -49,11 +49,12 @@ func TestVirtualMachineID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:  "App Configuration ID",
+			Name:  "Virtual Machine ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachines/vm1",
 			Expected: &VirtualMachineId{
-				Name:          "vm1",
-				ResourceGroup: "resGroup1",
+				Name:           "vm1",
+				ResourceGroup:  "resGroup1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
@@ -80,6 +81,10 @@ func TestVirtualMachineID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }

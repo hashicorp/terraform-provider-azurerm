@@ -7,19 +7,22 @@ import (
 )
 
 type VirtualMachineId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewVirtualMachineId(resourceGroup, name string) VirtualMachineId {
+func NewVirtualMachineId(subscriptionId, resourceGroup, name string) VirtualMachineId {
 	return VirtualMachineId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id VirtualMachineId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id VirtualMachineId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/virtualMachines/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func VirtualMachineID(input string) (*VirtualMachineId, error) {
@@ -29,7 +32,8 @@ func VirtualMachineID(input string) (*VirtualMachineId, error) {
 	}
 
 	vm := VirtualMachineId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if vm.Name, err = id.PopSegment("virtualMachines"); err != nil {
