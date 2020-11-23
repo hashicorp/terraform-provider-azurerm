@@ -7,21 +7,23 @@ import (
 )
 
 type VirtualMachineExtensionId struct {
+	SubscriptionId string
 	ResourceGroup  string
-	Name           string
 	VirtualMachine string
+	Name           string
 }
 
 func NewVirtualMachineExtensionId(id VirtualMachineId, name string) VirtualMachineExtensionId {
 	return VirtualMachineExtensionId{
+		SubscriptionId: id.SubscriptionId,
 		ResourceGroup:  id.ResourceGroup,
 		VirtualMachine: id.Name,
 		Name:           name,
 	}
 }
 
-func (id VirtualMachineExtensionId) ID(subscriptionId string) string {
-	base := NewVirtualMachineId(id.ResourceGroup, id.VirtualMachine).ID(subscriptionId)
+func (id VirtualMachineExtensionId) ID(_ string) string {
+	base := NewVirtualMachineId(id.SubscriptionId, id.ResourceGroup, id.VirtualMachine).ID("")
 	return fmt.Sprintf("%s/extensions/%s", base, id.Name)
 }
 
@@ -32,7 +34,8 @@ func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error)
 	}
 
 	virtualMachineExtension := VirtualMachineExtensionId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if virtualMachineExtension.VirtualMachine, err = id.PopSegment("virtualMachines"); err != nil {

@@ -10,7 +10,7 @@ var _ resourceid.Formatter = VirtualMachineExtensionId{}
 
 func TestVirtualMachineExtensionIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	vmId := NewVirtualMachineId("group1", "vm1")
+	vmId := NewVirtualMachineId(subscriptionId, "group1", "vm1")
 	actual := NewVirtualMachineExtensionId(vmId, "extension1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/extensions/extension1"
 	if actual != expected {
@@ -48,6 +48,7 @@ func TestParseVirtualMachineExtensionID(t *testing.T) {
 			Name:  "Valid",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Compute/virtualMachines/machine1/extensions/extName",
 			Expected: &VirtualMachineExtensionId{
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
 				ResourceGroup:  "myGroup1",
 				Name:           "extName",
 				VirtualMachine: "machine1",
@@ -72,6 +73,10 @@ func TestParseVirtualMachineExtensionID(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription Id", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
 	}
 }
