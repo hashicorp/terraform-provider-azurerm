@@ -49,6 +49,25 @@ func TestAccAzureRMStorageShareFile_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShareFile_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareFileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShareFile_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareFileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMStorageShareFileExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		storageClient := acceptance.AzureProvider.Meta().(*clients.Client).Storage
@@ -144,6 +163,10 @@ resource "azurerm_storage_share_file" "test" {
   name                 = "dir"
   share_name           = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_account.test.name
+
+  metadata = {
+    hello = "world"
+  }
 }
 `, template)
 }
@@ -186,4 +209,26 @@ resource "azurerm_storage_share" "test" {
   quota                = 50
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageShareFile_complete(data acceptance.TestData) string {
+	template := testAccAzureRMStorageShareFile_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name                 = "dir"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
+  
+  content_type        = "test_content_type"
+  content_length       = 100
+  content_encoding    = "test_encoding"
+  content_disposition = "test_content_disposition"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template)
 }

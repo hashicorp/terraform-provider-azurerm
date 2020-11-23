@@ -2,9 +2,10 @@ package storage
 
 import (
 	"fmt"
-	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files"
 	"log"
 	"time"
+
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/file/files"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -53,9 +54,43 @@ func resourceArmStorageShareFile() *schema.Resource {
 			},
 			"directory_name": {
 				Type:         schema.TypeString,
+				ForceNew:     true,
 				Optional:     true,
 				Default:      "",
 				ValidateFunc: validate.StorageShareDirectoryName,
+			},
+
+			"content_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "application/octet-stream",
+			},
+
+			"content_length": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  0,
+				ForceNew: true,
+				// TODO check for 512 divisibility
+				// ValidateFunc:
+			},
+
+			"content_encoding": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"content_md5": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"content_disposition": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"metadata": MetaDataSchema(),
@@ -102,8 +137,17 @@ func resourceArmStorageShareFileCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	input := files.CreateInput{
-		MetaData: metaData,
+		MetaData:           metaData,
+		ContentType:        utils.String(d.Get("content_type").(string)),
+		ContentLength:      int64(d.Get("content_length").(int)),
+		ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
+		ContentDisposition: utils.String(d.Get("content_disposition").(string)),
 	}
+
+	if v, ok := d.GetOk("content_md5"); ok {
+		input.ContentMD5 = utils.String(v.(string))
+	}
+
 	if _, err := client.Create(ctx, accountName, shareName, directoryName, fileName, input); err != nil {
 		return fmt.Errorf("Error creating File %q (File Share %q / Account %q): %+v", fileName, shareName, accountName, err)
 	}
@@ -141,9 +185,6 @@ func resourceArmStorageShareFileUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	metaData := ExpandMetaData(metaDataRaw)
-
 	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
@@ -154,11 +195,48 @@ func resourceArmStorageShareFileUpdate(d *schema.ResourceData, meta interface{})
 
 	client, err := storageClient.FileShareFilesClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building File Share File Client: %s", err)
+		return fmt.Errorf("Error building File Share Directories Client: %s", err)
 	}
 
-	if _, err := client.SetMetaData(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName, metaData); err != nil {
-		return fmt.Errorf("Error updating MetaData for File %q (File Share %q / Account %q): %+v", id.FileName, id.ShareName, id.AccountName, err)
+	existing, err := client.GetProperties(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing File %q (File Share %q / Storage Account %q / Resource Group %q): %s", id.FileName, id.ShareName, id.AccountName, account.ResourceGroup, err)
+		}
+	}
+
+	if d.HasChange("metadata") {
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		metaData := ExpandMetaData(metaDataRaw)
+
+		account, err := storageClient.FindAccount(ctx, id.AccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q for File %q (Share %q): %s", id.AccountName, id.FileName, id.ShareName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+		}
+
+		if _, err := client.SetMetaData(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName, metaData); err != nil {
+			return fmt.Errorf("Error updating MetaData for File %q (File Share %q / Account %q): %+v", id.FileName, id.ShareName, id.AccountName, err)
+		}
+	}
+
+	if d.HasChange("content_type") || d.HasChange("content_length") || d.HasChange("content_encoding") || d.HasChange("content_disposition") || d.HasChange("content_md5") {
+		input := files.SetPropertiesInput{
+			ContentType:        utils.String(d.Get("content_type").(string)),
+			ContentLength:      utils.Int64(int64(d.Get("content_length").(int))),
+			ContentEncoding:    utils.String(d.Get("content_encoding").(string)),
+			ContentDisposition: utils.String(d.Get("content_disposition").(string)),
+		}
+
+		if v, ok := d.GetOk("content_md5"); ok {
+			input.ContentMD5 = utils.String(v.(string))
+		}
+
+		if _, err := client.SetProperties(ctx, id.AccountName, id.ShareName, id.DirectoryName, id.FileName, input); err != nil {
+			return fmt.Errorf("Error creating File %q (File Share %q / Account %q): %+v", id.FileName, id.ShareName, id.AccountName, err)
+		}
 	}
 
 	return resourceArmStorageShareFileRead(d, meta)
@@ -202,6 +280,11 @@ func resourceArmStorageShareFileRead(d *schema.ResourceData, meta interface{}) e
 	if err := d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %s", err)
 	}
+	d.Set("content_type", props.ContentType)
+	d.Set("content_length", props.ContentLength)
+	d.Set("content_encoding", props.ContentEncoding)
+	d.Set("content_md5", props.ContentMD5)
+	d.Set("content_disposition", props.ContentDisposition)
 
 	return nil
 }
