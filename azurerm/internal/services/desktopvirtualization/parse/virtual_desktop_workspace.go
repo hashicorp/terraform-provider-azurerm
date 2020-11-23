@@ -7,19 +7,21 @@ import (
 )
 
 type VirtualDesktopWorkspaceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id VirtualDesktopWorkspaceId) ID(subscriptionId string) string {
+func (id VirtualDesktopWorkspaceId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/workspaces/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-func NewVirtualDesktopWorkspaceId(resourceGroup, name string) VirtualDesktopWorkspaceId {
+func NewVirtualDesktopWorkspaceId(subscriptionId, resourceGroup, name string) VirtualDesktopWorkspaceId {
 	return VirtualDesktopWorkspaceId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
@@ -30,7 +32,8 @@ func VirtualDesktopWorkspaceID(input string) (*VirtualDesktopWorkspaceId, error)
 	}
 
 	workspace := VirtualDesktopWorkspaceId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if workspace.Name, err = id.PopSegment("workspaces"); err != nil {

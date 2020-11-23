@@ -7,19 +7,21 @@ import (
 )
 
 type VirtualDesktopHostPoolId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id VirtualDesktopHostPoolId) ID(subscriptionId string) string {
+func (id VirtualDesktopHostPoolId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/hostpools/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
-func NewVirtualDesktopHostPoolId(resourceGroup, name string) VirtualDesktopHostPoolId {
+func NewVirtualDesktopHostPoolId(subscriptionId, resourceGroup, name string) VirtualDesktopHostPoolId {
 	return VirtualDesktopHostPoolId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
@@ -31,7 +33,8 @@ func VirtualDesktopHostPoolID(input string) (*VirtualDesktopHostPoolId, error) {
 	}
 
 	hostPool := VirtualDesktopHostPoolId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if hostPool.Name, err = id.PopSegment("hostpools"); err != nil {

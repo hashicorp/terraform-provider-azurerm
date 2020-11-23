@@ -7,20 +7,22 @@ import (
 )
 
 type VirtualDesktopApplicationGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewVirtualDesktopApplicationGroupId(resourceGroup, name string) VirtualDesktopApplicationGroupId {
+func NewVirtualDesktopApplicationGroupId(subscriptionId, resourceGroup, name string) VirtualDesktopApplicationGroupId {
 	return VirtualDesktopApplicationGroupId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id VirtualDesktopApplicationGroupId) ID(subscriptionId string) string {
+func (id VirtualDesktopApplicationGroupId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/applicationgroups/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func VirtualDesktopApplicationGroupID(input string) (*VirtualDesktopApplicationGroupId, error) {
@@ -30,7 +32,8 @@ func VirtualDesktopApplicationGroupID(input string) (*VirtualDesktopApplicationG
 	}
 
 	applicationGroup := VirtualDesktopApplicationGroupId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if applicationGroup.Name, err = id.PopSegment("applicationgroups"); err != nil {
