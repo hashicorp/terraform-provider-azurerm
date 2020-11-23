@@ -7,19 +7,22 @@ import (
 )
 
 type DiskEncryptionSetId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewDiskEncryptionSetId(resourceGroup, name string) DiskEncryptionSetId {
+func NewDiskEncryptionSetId(subscriptionId, resourceGroup, name string) DiskEncryptionSetId {
 	return DiskEncryptionSetId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id DiskEncryptionSetId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/diskEncryptionSets/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id DiskEncryptionSetId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/diskEncryptionSets/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func DiskEncryptionSetID(input string) (*DiskEncryptionSetId, error) {
@@ -29,7 +32,8 @@ func DiskEncryptionSetID(input string) (*DiskEncryptionSetId, error) {
 	}
 
 	encryptionSetId := DiskEncryptionSetId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if encryptionSetId.Name, err = id.PopSegment("diskEncryptionSets"); err != nil {
