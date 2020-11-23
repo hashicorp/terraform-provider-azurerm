@@ -91,32 +91,6 @@ func schemaAppServiceGoogleAuthSettings() *schema.Schema {
 	}
 }
 
-func schemaAppServiceGithubAuthSettings() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"client_id": {
-					Type:     schema.TypeString,
-					Required: true,
-				},
-				"client_secret": {
-					Type:      schema.TypeString,
-					Required:  true,
-					Sensitive: true,
-				},
-				"oauth_scopes": {
-					Type:     schema.TypeList,
-					Optional: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
-				},
-			},
-		},
-	}
-}
-
 func schemaAppServiceMicrosoftAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -240,8 +214,6 @@ func schemaAppServiceAuthSettings() *schema.Schema {
 				"active_directory": schemaAppServiceAadAuthSettings(),
 
 				"facebook": schemaAppServiceFacebookAuthSettings(),
-
-				"github": schemaAppServiceGithubAuthSettings(),
 
 				"google": schemaAppServiceGoogleAuthSettings(),
 
