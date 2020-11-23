@@ -10,7 +10,7 @@ var _ resourceid.Formatter = ImageId{}
 
 func TestImageIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewImageId("group1", "image1").ID(subscriptionId)
+	actual := NewImageId(subscriptionId, "group1", "image1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/images/image1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -54,8 +54,9 @@ func TestImageID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/images/image1",
 			Error: false,
 			Expect: &ImageId{
-				ResourceGroup: "resGroup1",
-				Name:          "image1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "resGroup1",
+				Name:           "image1",
 			},
 		},
 		{

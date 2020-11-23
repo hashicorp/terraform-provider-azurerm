@@ -7,19 +7,22 @@ import (
 )
 
 type ImageId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewImageId(resourceGroup, name string) ImageId {
+func NewImageId(subscriptionId, resourceGroup, name string) ImageId {
 	return ImageId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id ImageId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/images/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id ImageId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/images/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ImageID(input string) (*ImageId, error) {
@@ -29,7 +32,8 @@ func ImageID(input string) (*ImageId, error) {
 	}
 
 	set := ImageId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if set.Name, err = id.PopSegment("images"); err != nil {
