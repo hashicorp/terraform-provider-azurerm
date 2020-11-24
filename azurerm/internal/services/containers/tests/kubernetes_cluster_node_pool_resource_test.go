@@ -893,18 +893,18 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 
 		name := rs.Primary.Attributes["name"]
 		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.KubernetesClusterID(kubernetesClusterId)
+		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		agentPool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
+		agentPool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
 		}
 
 		if agentPool.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.Name, parsedK8sId.ResourceGroup)
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup)
 		}
 
 		return nil
@@ -924,12 +924,12 @@ func testCheckAzureRMKubernetesNodePoolScale(resourceName string, nodeCount int)
 
 		nodePoolName := rs.Primary.Attributes["name"]
 		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.KubernetesClusterID(kubernetesClusterId)
+		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		clusterName := parsedK8sId.Name
+		clusterName := parsedK8sId.ManagedClusterName
 		resourceGroup := parsedK8sId.ResourceGroup
 
 		nodePool, err := client.Get(ctx, resourceGroup, clusterName, nodePoolName)
@@ -973,18 +973,18 @@ func testCheckAzureRMKubernetesNodePoolNodeLabels(resourceName string, expectedL
 
 		name := rs.Primary.Attributes["name"]
 		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.KubernetesClusterID(kubernetesClusterId)
+		parsedK8sId, err := parse.ClusterID(kubernetesClusterId)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
+		agent_pool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
 		}
 
 		if agent_pool.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.Name, parsedK8sId.ResourceGroup)
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup)
 		}
 
 		labels := make(map[string]string)
@@ -992,7 +992,7 @@ func testCheckAzureRMKubernetesNodePoolNodeLabels(resourceName string, expectedL
 			labels[k] = *v
 		}
 		if !reflect.DeepEqual(labels, expectedLabels) {
-			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) nodeLabels %v do not match expected %v", name, parsedK8sId.Name, parsedK8sId.ResourceGroup, labels, expectedLabels)
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) nodeLabels %v do not match expected %v", name, parsedK8sId.ManagedClusterName, parsedK8sId.ResourceGroup, labels, expectedLabels)
 		}
 
 		return nil

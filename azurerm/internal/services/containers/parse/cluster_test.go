@@ -7,7 +7,7 @@ import (
 func TestKubernetesClusterID(t *testing.T) {
 	testData := []struct {
 		input    string
-		expected *KubernetesClusterId
+		expected *ClusterId
 	}{
 		{
 			input:    "",
@@ -32,16 +32,16 @@ func TestKubernetesClusterID(t *testing.T) {
 		},
 		{
 			input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/managedClusters/cluster1",
-			expected: &KubernetesClusterId{
-				Name:          "cluster1",
-				ResourceGroup: "hello",
+			expected: &ClusterId{
+				ManagedClusterName: "cluster1",
+				ResourceGroup:      "hello",
 			},
 		},
 	}
 
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
-		actual, err := KubernetesClusterID(v.input)
+		actual, err := ClusterID(v.input)
 
 		// if we get something there shouldn't be an error
 		if v.expected != nil && err == nil {
@@ -67,8 +67,8 @@ func TestKubernetesClusterID(t *testing.T) {
 		if v.expected.ResourceGroup != actual.ResourceGroup {
 			t.Fatalf("Expected ResourceGroup to be %q but got %q", v.expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if v.expected.Name != actual.Name {
-			t.Fatalf("Expected Name to be %q but got %q", v.expected.Name, actual.Name)
+		if v.expected.ManagedClusterName != actual.ManagedClusterName {
+			t.Fatalf("Expected Name to be %q but got %q", v.expected.ManagedClusterName, actual.ManagedClusterName)
 		}
 	}
 }

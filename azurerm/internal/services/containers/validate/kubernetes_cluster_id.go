@@ -13,7 +13,7 @@ func KubernetesClusterID(i interface{}, k string) (warnings []string, errors []e
 		return
 	}
 
-	if _, err := parse.KubernetesClusterID(v); err != nil {
+	if _, err := parse.ClusterID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a Resource Id: %v", v, err))
 	}
 

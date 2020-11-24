@@ -2,22 +2,22 @@ package parse
 
 import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
-type KubernetesClusterId struct {
-	Name          string
-	ResourceGroup string
+type ClusterId struct {
+	ResourceGroup      string
+	ManagedClusterName string
 }
 
-func KubernetesClusterID(input string) (*KubernetesClusterId, error) {
+func ClusterID(input string) (*ClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	cluster := KubernetesClusterId{
+	cluster := ClusterId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if cluster.Name, err = id.PopSegment("managedClusters"); err != nil {
+	if cluster.ManagedClusterName, err = id.PopSegment("managedClusters"); err != nil {
 		return nil, err
 	}
 

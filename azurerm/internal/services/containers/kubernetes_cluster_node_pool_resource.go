@@ -230,13 +230,13 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	kubernetesClusterId, err := parse.KubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
+	kubernetesClusterId, err := parse.ClusterID(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := kubernetesClusterId.ResourceGroup
-	clusterName := kubernetesClusterId.Name
+	clusterName := kubernetesClusterId.ManagedClusterName
 	name := d.Get("name").(string)
 
 	log.Printf("[DEBUG] Retrieving Kubernetes Cluster %q (Resource Group %q)..", clusterName, resourceGroup)
