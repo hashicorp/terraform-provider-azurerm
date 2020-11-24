@@ -11,13 +11,14 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/tombuildsstuff/giovanni/storage/internal/endpoints"
+	"github.com/tombuildsstuff/giovanni/storage/internal/metadata"
 )
 
 type SetPropertiesInput struct {
 	// Resizes a file to the specified size.
 	// If the specified byte value is less than the current size of the file,
 	// then all ranges above the specified byte value are cleared.
-	ContentLength *int64
+	ContentLength int64
 
 	// Modifies the cache control string for the file.
 	// If this property is not specified on the request, then the property will be cleared for the file.
@@ -62,6 +63,9 @@ type SetPropertiesInput struct {
 	// The time at which this file was last modified - if omitted, this'll be set to "now"
 	// This maps to the `x-ms-file-last-write-time` field.
 	LastModified *time.Time
+
+	// MetaData is a mapping of key value pairs which should be assigned to this file
+	MetaData map[string]string
 }
 
 // SetProperties sets the specified properties on the specified File
@@ -124,6 +128,7 @@ func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, sha
 		"x-ms-version": APIVersion,
 		"x-ms-type":    "file",
 
+		"x-ms-content-length":       input.ContentLength,
 		"x-ms-file-permission":      "inherit", // TODO: expose this in future
 		"x-ms-file-attributes":      "None",    // TODO: expose this in future
 		"x-ms-file-creation-time":   coalesceDate(input.CreatedAt, "now"),
@@ -142,15 +147,14 @@ func (client Client) SetPropertiesPreparer(ctx context.Context, accountName, sha
 	if input.ContentLanguage != nil {
 		headers["x-ms-content-language"] = *input.ContentLanguage
 	}
-	if input.ContentLength != nil {
-		headers["x-ms-content-length"] = *input.ContentLength
-	}
 	if input.ContentMD5 != nil {
 		headers["x-ms-content-md5"] = *input.ContentMD5
 	}
 	if input.ContentType != nil {
 		headers["x-ms-content-type"] = *input.ContentType
 	}
+
+	headers = metadata.SetIntoHeaders(headers, input.MetaData)
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/xml; charset=utf-8"),

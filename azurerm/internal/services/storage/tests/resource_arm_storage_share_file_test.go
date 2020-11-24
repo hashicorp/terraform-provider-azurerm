@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -25,7 +26,7 @@ func TestAccAzureRMStorageShareFile_basic(t *testing.T) {
 					testCheckAzureRMStorageShareFileExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("parallelism"),
 		},
 	})
 }
@@ -63,7 +64,67 @@ func TestAccAzureRMStorageShareFile_complete(t *testing.T) {
 					testCheckAzureRMStorageShareFileExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("parallelism"),
+		},
+	})
+}
+
+func TestAccAzureRMStorageShareFile_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareFileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShareFile_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareFileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("parallelism"),
+			{
+				Config: testAccAzureRMStorageShareFile_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareFileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("parallelism"),
+			{
+				Config: testAccAzureRMStorageShareFile_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareFileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("parallelism"),
+		},
+	})
+}
+
+func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
+	sourceBlob, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := testAccAzureRMStorageBlob_populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_share_file", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareFileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShareFile_withFile(data, sourceBlob.Name()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareFileExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("source", "parallelism"),
 		},
 	})
 }
@@ -222,7 +283,6 @@ resource "azurerm_storage_share_file" "test" {
   storage_account_name = azurerm_storage_account.test.name
   
   content_type        = "test_content_type"
-  content_length       = 100
   content_encoding    = "test_encoding"
   content_disposition = "test_content_disposition"
 
@@ -231,4 +291,24 @@ resource "azurerm_storage_share_file" "test" {
   }
 }
 `, template)
+}
+
+func testAccAzureRMStorageShareFile_withFile(data acceptance.TestData, fileName string) string {
+	template := testAccAzureRMStorageShareFile_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_file" "test" {
+  name                 = "dir"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
+
+
+  source = "%s"
+
+  metadata = {
+    hello = "world"
+  }
+}
+`, template, fileName)
 }
