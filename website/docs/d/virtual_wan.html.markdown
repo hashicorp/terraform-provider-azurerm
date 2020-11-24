@@ -70,7 +70,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 - `id` - The ID of the Virtual Wan.
 
-- `allow_branch_to_branch_traffic` - (Optional) True, if allow branch to branch traffic is allowed.
+- `allow_branch_to_branch_traffic` - Is branch to branch traffic allowed?
 
 - `disable_vpn_encryption` - Is VPN Encryption disabled?
 
