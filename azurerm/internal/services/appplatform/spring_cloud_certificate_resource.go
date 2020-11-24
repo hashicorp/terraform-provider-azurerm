@@ -64,6 +64,7 @@ func resourceArmSpringCloudCertificate() *schema.Resource {
 
 func resourceArmSpringCloudCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.CertificatesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -71,14 +72,15 @@ func resourceArmSpringCloudCertificateCreate(d *schema.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("service_name").(string)
 
+	resourceId := parse.NewSpringCloudCertificateID(subscriptionId, resourceGroup, serviceName, name).ID("")
 	existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for presence of existing Spring Cloud Service Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_spring_cloud_certificate", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_spring_cloud_certificate", resourceId)
 	}
 
 	keyVaultCertificateId, _ := azure.ParseKeyVaultChildID(d.Get("key_vault_certificate_id").(string))
@@ -93,15 +95,7 @@ func resourceArmSpringCloudCertificateCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("creating Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("read Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q) ID", name, serviceName, resourceGroup)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(resourceId)
 	return resourceArmSpringCloudCertificateRead(d, meta)
 }
 
@@ -124,9 +118,9 @@ func resourceArmSpringCloudCertificateRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("reading Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.CertificateName)
 	d.Set("service_name", id.SpringName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	return nil
 }
