@@ -53,7 +53,7 @@ func dataSourceArmDigitalTwinsInstanceRead(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewDigitalTwinsInstanceID(resourceGroup, name)
+	id := parse.NewDigitalTwinsInstanceID(subscriptionId, resourceGroup, name)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {

@@ -2,7 +2,21 @@ package parse
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = DigitalTwinsInstanceId{}
+
+func TestDigitalTwinsInstanceIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	id := NewDigitalTwinsInstanceID(subscriptionId, "resourceGroup1", "resource1")
+	actual := id.ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/resource1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestDigitalTwinsInstanceID(t *testing.T) {
 	testData := []struct {

@@ -7,19 +7,22 @@ import (
 )
 
 type DigitalTwinsInstanceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewDigitalTwinsInstanceID(resourcegroup string, name string) DigitalTwinsInstanceId {
+func NewDigitalTwinsInstanceID(subscriptionId, resourceGroup, name string) DigitalTwinsInstanceId {
 	return DigitalTwinsInstanceId{
-		ResourceGroup: resourcegroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id DigitalTwinsInstanceId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id DigitalTwinsInstanceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DigitalTwins/digitalTwinsInstances/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func DigitalTwinsInstanceID(input string) (*DigitalTwinsInstanceId, error) {
@@ -28,15 +31,18 @@ func DigitalTwinsInstanceID(input string) (*DigitalTwinsInstanceId, error) {
 		return nil, fmt.Errorf("parsing DigitalTwins ID %q: %+v", input, err)
 	}
 
-	digitalTwins := DigitalTwinsInstanceId{
-		ResourceGroup: id.ResourceGroup,
+	digitalTwinsInstance := DigitalTwinsInstanceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if digitalTwins.Name, err = id.PopSegment("digitalTwinsInstances"); err != nil {
+
+	if digitalTwinsInstance.Name, err = id.PopSegment("digitalTwinsInstances"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &digitalTwins, nil
+	return &digitalTwinsInstance, nil
 }
