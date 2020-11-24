@@ -3,6 +3,8 @@
 IMPROVEMENTS: 
 
 * dependencies: updating App Service to API version `2020-06-01` [GH-9409]
+* `azurerm_application_insights` - validating the ID is correct at import time [GH-9446]
+* `azurerm_application_insights_web_test` - validating the ID is correct at import time [GH-9446]
 * `azurerm_express_route_circuit_peering` - support for the `ipv6` block  [GH-9235]
 
 ## 2.37.0 (November 20, 2020)
