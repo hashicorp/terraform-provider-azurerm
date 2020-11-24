@@ -25,32 +25,32 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the all resource groups and resources exist within subscriptions. These operation enable you get
+// TenantsClient is the all resource groups and resources exist within subscriptions. These operation enable you get
 // information about your subscriptions and tenants. A tenant is a dedicated instance of Azure Active Directory (Azure
 // AD) for your organization.
-type OperationsClient struct {
+type TenantsClient struct {
 	BaseClient
 }
 
-// NewOperationsClient creates an instance of the OperationsClient client.
-func NewOperationsClient() OperationsClient {
-	return NewOperationsClientWithBaseURI(DefaultBaseURI)
+// NewTenantsClient creates an instance of the TenantsClient client.
+func NewTenantsClient() TenantsClient {
+	return NewTenantsClientWithBaseURI(DefaultBaseURI)
 }
 
-// NewOperationsClientWithBaseURI creates an instance of the OperationsClient client using a custom endpoint.  Use this
-// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewOperationsClientWithBaseURI(baseURI string) OperationsClient {
-	return OperationsClient{NewWithBaseURI(baseURI)}
+// NewTenantsClientWithBaseURI creates an instance of the TenantsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewTenantsClientWithBaseURI(baseURI string) TenantsClient {
+	return TenantsClient{NewWithBaseURI(baseURI)}
 }
 
-// List lists all of the available Microsoft.Resources REST API operations.
-func (client OperationsClient) List(ctx context.Context) (result OperationListResultPage, err error) {
+// List gets the tenants for your account.
+func (client TenantsClient) List(ctx context.Context) (result TenantListResultPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TenantsClient.List")
 		defer func() {
 			sc := -1
-			if result.olr.Response.Response != nil {
-				sc = result.olr.Response.Response.StatusCode
+			if result.tlr.Response.Response != nil {
+				sc = result.tlr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -58,22 +58,22 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.OperationsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.olr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "subscriptions.OperationsClient", "List", resp, "Failure sending request")
+		result.tlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.olr, err = client.ListResponder(resp)
+	result.tlr, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.OperationsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "List", resp, "Failure responding to request")
 	}
-	if result.olr.hasNextLink() && result.olr.IsEmpty() {
+	if result.tlr.hasNextLink() && result.tlr.IsEmpty() {
 		err = result.NextWithContext(ctx)
 	}
 
@@ -81,8 +81,8 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 }
 
 // ListPreparer prepares the List request.
-func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-06-01"
+func (client TenantsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+	const APIVersion = "2019-11-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -90,20 +90,20 @@ func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request,
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/Microsoft.Resources/operations"),
+		autorest.WithPath("/tenants"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client OperationsClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client TenantsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client OperationsClient) ListResponder(resp *http.Response) (result OperationListResult, err error) {
+func (client TenantsClient) ListResponder(resp *http.Response) (result TenantListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -114,10 +114,10 @@ func (client OperationsClient) ListResponder(resp *http.Response) (result Operat
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client OperationsClient) listNextResults(ctx context.Context, lastResults OperationListResult) (result OperationListResult, err error) {
-	req, err := lastResults.operationListResultPreparer(ctx)
+func (client TenantsClient) listNextResults(ctx context.Context, lastResults TenantListResult) (result TenantListResult, err error) {
+	req, err := lastResults.tenantListResultPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "subscriptions.OperationsClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -125,19 +125,19 @@ func (client OperationsClient) listNextResults(ctx context.Context, lastResults 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "subscriptions.OperationsClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "subscriptions.OperationsClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "subscriptions.TenantsClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client OperationsClient) ListComplete(ctx context.Context) (result OperationListResultIterator, err error) {
+func (client TenantsClient) ListComplete(ctx context.Context) (result TenantListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TenantsClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
