@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,41 @@ import (
 )
 
 type PoolId struct {
+	SubscriptionId   string
 	ResourceGroup    string
 	BatchAccountName string
 	PoolName         string
 }
 
+func NewPoolID(subscriptionId, resourceGroup, batchAccountName, poolName string) PoolId {
+	return PoolId{
+		SubscriptionId:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		BatchAccountName: batchAccountName,
+		PoolName:         poolName,
+	}
+}
+
+func (id PoolId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Batch/batchAccounts/%s/pools/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName)
+}
+
 func PoolID(input string) (*PoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Batch Pool ID %q: %+v", input, err)
-	}
-
-	pool := PoolId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if pool.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
 
-	if pool.PoolName, err = id.PopSegment("pools"); err != nil {
+	resourceId := PoolId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
+		return nil, err
+	}
+	if resourceId.PoolName, err = id.PopSegment("pools"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +51,5 @@ func PoolID(input string) (*PoolId, error) {
 		return nil, err
 	}
 
-	return &pool, nil
+	return &resourceId, nil
 }

@@ -1,86 +1,128 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestBatchApplicationId(t *testing.T) {
+var _ resourceid.Formatter = ApplicationId{}
+
+func TestApplicationIDFormatter(t *testing.T) {
+	actual := NewApplicationID("12345678-1234-9876-4563-123456789012", "resGroup1", "account1", "application1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/applications/application1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestApplicationID(t *testing.T) {
 	testData := []struct {
-		Name     string
 		Input    string
+		Error    bool
 		Expected *ApplicationId
 	}{
+
 		{
-			Name:     "Empty",
-			Input:    "",
-			Expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			Name:     "No Resource Groups Segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			Name:     "No Resource Groups Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
-			Expected: nil,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
 		},
+
 		{
-			Name:     "Resource Group ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
-			Expected: nil,
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing Accounts Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/",
-			Expected: nil,
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
 		},
+
 		{
-			Name:     "Batch Account ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1",
-			Expected: nil,
+			// missing BatchAccountName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing Applications Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/applications/",
-			Expected: nil,
+			// missing value for BatchAccountName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/",
+			Error: true,
 		},
+
 		{
-			Name:  "Batch Application ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/applications/Application1",
+			// missing ApplicationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/",
+			Error: true,
+		},
+
+		{
+			// missing value for ApplicationName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/applications/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/applications/application1",
 			Expected: &ApplicationId{
+				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
-				BatchAccountName: "acctName1",
-				ApplicationName:  "Application1",
+				BatchAccountName: "account1",
+				ApplicationName:  "application1",
 			},
 		},
+
 		{
-			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/Applications/Application1",
-			Expected: nil,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.BATCH/BATCHACCOUNTS/ACCOUNT1/APPLICATIONS/APPLICATION1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := ApplicationID(v.Input)
 		if err != nil {
-			if v.Expected == nil {
+			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.ApplicationName != v.Expected.ApplicationName {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.ApplicationName, actual.ApplicationName)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 		if actual.BatchAccountName != v.Expected.BatchAccountName {
 			t.Fatalf("Expected %q but got %q for BatchAccountName", v.Expected.BatchAccountName, actual.BatchAccountName)
 		}
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
+		if actual.ApplicationName != v.Expected.ApplicationName {
+			t.Fatalf("Expected %q but got %q for ApplicationName", v.Expected.ApplicationName, actual.ApplicationName)
 		}
 	}
 }

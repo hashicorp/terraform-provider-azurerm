@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type AccountId struct {
+	SubscriptionId   string
 	ResourceGroup    string
 	BatchAccountName string
+}
+
+func NewAccountID(subscriptionId, resourceGroup, batchAccountName string) AccountId {
+	return AccountId{
+		SubscriptionId:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		BatchAccountName: batchAccountName,
+	}
+}
+
+func (id AccountId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Batch/batchAccounts/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
 }
 
 func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Batch Account ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	account := AccountId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := AccountId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if account.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
+	if resourceId.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func AccountID(input string) (*AccountId, error) {
 		return nil, err
 	}
 
-	return &account, nil
+	return &resourceId, nil
 }
