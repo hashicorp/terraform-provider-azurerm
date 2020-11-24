@@ -446,8 +446,6 @@ type Subscription struct {
 	SubscriptionPolicies *Policies `json:"subscriptionPolicies,omitempty"`
 	// AuthorizationSource - The authorization source of the request. Valid values are one or more combinations of Legacy, RoleBased, Bypassed, Direct and Management. For example, 'Legacy, RoleBased'.
 	AuthorizationSource *string `json:"authorizationSource,omitempty"`
-        // Tags - Resource tags.
-        Tags map[string]*string `json:"tags"`
 }
 
 // MarshalJSON is the custom marshaler for Subscription.
@@ -459,9 +457,6 @@ func (s Subscription) MarshalJSON() ([]byte, error) {
 	if s.AuthorizationSource != nil {
 		objectMap["authorizationSource"] = s.AuthorizationSource
 	}
-        if s.Tags != nil {
-                objectMap["tags"] = s.Tags
-        }
 	return json.Marshal(objectMap)
 }
 

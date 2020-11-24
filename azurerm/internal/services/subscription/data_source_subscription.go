@@ -90,5 +90,9 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("spending_limit", resp.SubscriptionPolicies.SpendingLimit)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if resp.Tags != nil {
+		d.Set("tags", res.Tags)
+	}
+
+	return nil
 }

@@ -403,6 +403,8 @@ github.com/zclconf/go-cty/cty/msgpack
 github.com/zclconf/go-cty/cty/set
 # github.com/zclconf/go-cty-yaml v1.0.1
 github.com/zclconf/go-cty-yaml
+# github.com/harshavmb/subscription v1.0.0
+github.com/harshavmb/subscription
 # go.opencensus.io v0.22.0
 go.opencensus.io
 go.opencensus.io/internal
