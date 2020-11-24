@@ -53,7 +53,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: containerValidate.KubernetesClusterID,
+				ValidateFunc: containerValidate.ClusterID,
 			},
 
 			"node_count": {
