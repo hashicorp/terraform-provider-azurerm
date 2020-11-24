@@ -149,14 +149,14 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 }
 
 func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.ApplicationInsightsID(state.ID)
+	id, err := parse.ComponentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppInsights.ComponentsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.AppInsights.ComponentsClient.Get(ctx, id.ResourceGroup, id.ComponentName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights '%q' (resource group: '%q') does not exist", id.ResourceGroup, id.Name)
+		return nil, fmt.Errorf("retrieving Application Insights %q (resource group: %q) does not exist", id.ComponentName, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.ApplicationInsightsComponentProperties != nil), nil

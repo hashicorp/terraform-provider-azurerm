@@ -130,8 +130,8 @@ func resourceArmApplicationInsights() *schema.Resource {
 func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.ComponentsClient
 	billingClient := meta.(*clients.Client).AppInsights.BillingClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
@@ -139,6 +139,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
+	resourceId := parse.NewComponentID(subscriptionId, resGroup, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
@@ -147,8 +148,8 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_application_insights", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_application_insights", resourceId)
 		}
 	}
 
@@ -212,7 +213,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error update Application Insights Billing Feature %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(resourceId)
 
 	return resourceArmApplicationInsightsRead(d, meta)
 }
@@ -223,28 +224,28 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationInsightsID(d.Id())
+	id, err := parse.ComponentID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights '%s'", id)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ComponentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", id.ComponentName, err)
 	}
 
-	billingResp, err := billingClient.Get(ctx, id.ResourceGroup, id.Name)
+	billingResp, err := billingClient.Get(ctx, id.ResourceGroup, id.ComponentName)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.ComponentName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ComponentName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -275,19 +276,19 @@ func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ApplicationInsightsID(d.Id())
+	id, err := parse.ComponentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights '%s' (resource group '%s')", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting AzureRM Application Insights %q (resource group %q)", id.ComponentName, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ComponentName)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights '%s': %+v", id.Name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights %q: %+v", id.ComponentName, err)
 	}
 
 	return err
