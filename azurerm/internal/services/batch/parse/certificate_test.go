@@ -8,7 +8,7 @@ func TestBatchCertificateId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *BatchCertificateId
+		Expected *CertificateId
 	}{
 		{
 			Name:     "Empty",
@@ -48,10 +48,10 @@ func TestBatchCertificateId(t *testing.T) {
 		{
 			Name:  "Batch Certificate ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/certificates/Certificate1",
-			Expected: &BatchCertificateId{
-				ResourceGroup: "resGroup1",
-				AccountName:   "acctName1",
-				Name:          "Certificate1",
+			Expected: &CertificateId{
+				ResourceGroup:    "resGroup1",
+				BatchAccountName: "acctName1",
+				CertificateName:  "Certificate1",
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func TestBatchCertificateId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := BatchCertificateID(v.Input)
+		actual, err := CertificateID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -73,11 +73,11 @@ func TestBatchCertificateId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.CertificateName != v.Expected.CertificateName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.CertificateName, actual.CertificateName)
 		}
-		if actual.AccountName != v.Expected.AccountName {
-			t.Fatalf("Expected %q but got %q for BatchAccountName", v.Expected.AccountName, actual.AccountName)
+		if actual.BatchAccountName != v.Expected.BatchAccountName {
+			t.Fatalf("Expected %q but got %q for BatchAccountName", v.Expected.BatchAccountName, actual.BatchAccountName)
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
