@@ -35,6 +35,10 @@ func run(servicePackagePath, name, id string) error {
 		return fmt.Errorf("creating parse directory at %q: %+v", parsersPath, err)
 	}
 	fileName := convertToSnakeCase(name)
+	if strings.HasSuffix(fileName, "_test") {
+		// e.g. "webtest" in applicationInsights
+		fileName += "_id"
+	}
 	parserFilePath := fmt.Sprintf("%s/%s.go", parsersPath, fileName)
 	parserTestsFilePath := fmt.Sprintf("%s/%s_test.go", parsersPath, fileName)
 	resourceId, err := NewResourceID(name, id)
