@@ -97,7 +97,13 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 	if props := resp.VirtualWanProperties; props != nil {
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
 		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
+		if err := d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory); err != nil {
+			return fmt.Errorf("error setting `office365_local_breakout_category`: %v", err)
+		}
 		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
+		if err := d.Set("sku", props.Type); err != nil {
+			return fmt.Errorf("error setting `sku`: %v", err)
+		}
 		d.Set("sku", props.Type)
 		if err := d.Set("virtual_hub_ids", flattenVirtualWanProperties(props.VirtualHubs)); err != nil {
 			return fmt.Errorf("error setting `virtual_hubs`: %v", err)
