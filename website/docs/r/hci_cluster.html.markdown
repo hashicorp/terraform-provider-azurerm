@@ -3,12 +3,12 @@ subcategory: "Azure Stack HCI"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hci_cluster"
 description: |-
-  Manages an Azure HCI Cluster.
+  Manages an Azure Stack HCI Cluster.
 ---
 
 # azurerm_hci_cluster
 
-Manages an Azure HCI Cluster.
+Manages an Azure Stack HCI Cluster.
 
 ## Example Usage
 
