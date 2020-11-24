@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appplatform/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -108,6 +109,7 @@ func dataSourceArmSpringCloudService() *schema.Resource {
 
 func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -122,11 +124,7 @@ func dataSourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error reading Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Error retrieving Spring Cloud Service %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
-	}
-
-	d.SetId(*resp.ID)
+	d.SetId(parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID(""))
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)

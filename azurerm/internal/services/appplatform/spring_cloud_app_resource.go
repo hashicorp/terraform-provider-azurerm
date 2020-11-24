@@ -88,6 +88,7 @@ func resourceArmSpringCloudApp() *schema.Resource {
 func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
 	servicesClient := meta.(*clients.Client).AppPlatform.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -100,6 +101,7 @@ func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("unable to retrieve Spring Cloud Service %q (Resource Group %q): %+v", serviceName, resourceGroup, err)
 	}
 
+	resourceId := parse.NewSpringCloudAppID(subscriptionId, resourceGroup, serviceName, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name, "")
 		if err != nil {
@@ -107,8 +109,8 @@ func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interfac
 				return fmt.Errorf("checking for presence of existing Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 			}
 		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_spring_cloud_app", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_spring_cloud_app", resourceId)
 		}
 	}
 
@@ -124,15 +126,7 @@ func resourceArmSpringCloudAppCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("waiting for creation/update of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("read Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q) ID", name, serviceName, resourceGroup)
-	}
-	d.SetId(*resp.ID)
-
+	d.SetId(resourceId)
 	return resourceArmSpringCloudAppRead(d, meta)
 }
 
@@ -146,19 +140,19 @@ func resourceArmSpringCloudAppRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.AppName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Spring Cloud App %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.AppName)
+	d.Set("service_name", id.SpringName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("service_name", id.ServiceName)
 
 	if err := d.Set("identity", flattenSpringCloudAppIdentity(resp.Identity)); err != nil {
 		return fmt.Errorf("setting `identity`: %s", err)
@@ -177,8 +171,8 @@ func resourceArmSpringCloudAppDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name); err != nil {
-		return fmt.Errorf("deleting Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.AppName); err != nil {
+		return fmt.Errorf("deleting Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", id.AppName, id.SpringName, id.ResourceGroup, err)
 	}
 
 	return nil

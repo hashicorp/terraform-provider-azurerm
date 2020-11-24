@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,41 @@ import (
 )
 
 type SpringCloudAppId struct {
-	ResourceGroup string
-	ServiceName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	SpringName     string
+	AppName        string
+}
+
+func NewSpringCloudAppID(subscriptionId, resourceGroup, springName, appName string) SpringCloudAppId {
+	return SpringCloudAppId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		SpringName:     springName,
+		AppName:        appName,
+	}
+}
+
+func (id SpringCloudAppId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/apps/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.AppName)
 }
 
 func SpringCloudAppID(input string) (*SpringCloudAppId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Spring Cloud App ID %q: %+v", input, err)
-	}
-
-	app := SpringCloudAppId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if app.ServiceName, err = id.PopSegment("Spring"); err != nil {
 		return nil, err
 	}
 
-	if app.Name, err = id.PopSegment("apps"); err != nil {
+	resourceId := SpringCloudAppId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {
+		return nil, err
+	}
+	if resourceId.AppName, err = id.PopSegment("apps"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +51,5 @@ func SpringCloudAppID(input string) (*SpringCloudAppId, error) {
 		return nil, err
 	}
 
-	return &app, nil
+	return &resourceId, nil
 }
