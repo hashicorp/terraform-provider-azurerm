@@ -238,12 +238,12 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.GetProperties(ctx, id.ResourceGroup, id.AccountName)
 		if err != nil {
 			if resp.StatusCode != http.StatusNotFound {
 				return fmt.Errorf("Cognitive Services Account still exists:\n%#v", resp)
@@ -267,15 +267,15 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.GetProperties(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.GetProperties(ctx, id.ResourceGroup, id.AccountName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Cognitive Services Account %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("Bad: Cognitive Services Account %q (Resource Group: %q) does not exist", id.AccountName, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on cognitiveAccountsClient: %+v", err)

@@ -8,7 +8,7 @@ func TestCognitiveAccountId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *CognitiveAccountId
+		Expected *AccountId
 	}{
 		{
 			Name:     "Empty",
@@ -38,8 +38,8 @@ func TestCognitiveAccountId(t *testing.T) {
 		{
 			Name:  "Cognitive Account ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.CognitiveServices/accounts/Account1",
-			Expected: &CognitiveAccountId{
-				Name:          "Account1",
+			Expected: &AccountId{
+				AccountName:   "Account1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -53,7 +53,7 @@ func TestCognitiveAccountId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := CognitiveAccountID(v.Input)
+		actual, err := AccountID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -62,8 +62,8 @@ func TestCognitiveAccountId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.AccountName != v.Expected.AccountName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.AccountName, actual.AccountName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

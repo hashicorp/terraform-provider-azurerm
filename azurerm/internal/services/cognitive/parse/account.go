@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type CognitiveAccountId struct {
+type AccountId struct {
 	ResourceGroup string
-	Name          string
+	AccountName   string
 }
 
-func CognitiveAccountID(input string) (*CognitiveAccountId, error) {
+func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Cognitive Account ID %q: %+v", input, err)
 	}
 
-	account := CognitiveAccountId{
+	account := AccountId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if account.Name, err = id.PopSegment("accounts"); err != nil {
+	if account.AccountName, err = id.PopSegment("accounts"); err != nil {
 		return nil, err
 	}
 
