@@ -35,7 +35,7 @@ func resourceArmBatchAccount() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.BatchAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -189,22 +189,22 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BatchAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
-			log.Printf("[DEBUG] Batch Account %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Batch Account %q was not found in Resource Group %q - removing from state!", id.BatchAccountName, id.ResourceGroup)
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of Batch account %q: %+v", id.Name, err)
+		return fmt.Errorf("Error reading the state of Batch account %q: %+v", id.BatchAccountName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.BatchAccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_endpoint", resp.AccountEndpoint)
 
@@ -220,9 +220,9 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.Get("pool_allocation_mode").(string) == string(batch.BatchService) {
-		keys, err := client.GetKeys(ctx, id.ResourceGroup, id.Name)
+		keys, err := client.GetKeys(ctx, id.ResourceGroup, id.BatchAccountName)
 		if err != nil {
-			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Cannot read keys for Batch account %q (resource group %q): %v", id.BatchAccountName, id.ResourceGroup, err)
 		}
 
 		d.Set("primary_access_key", keys.Primary)
@@ -239,7 +239,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
 
-	id, err := parse.BatchAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -256,17 +256,17 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 		Tags: tags.Expand(t),
 	}
 
-	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
-		return fmt.Errorf("Error updating Batch account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err = client.Update(ctx, id.ResourceGroup, id.BatchAccountName, parameters); err != nil {
+		return fmt.Errorf("Error updating Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	read, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Batch account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Batch account %q (resource group %q) ID", id.Name, id.ResourceGroup)
+		return fmt.Errorf("Cannot read Batch account %q (resource group %q) ID", id.BatchAccountName, id.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -279,19 +279,19 @@ func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BatchAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Batch account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Batch account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error waiting for deletion of Batch account %q (Resource Group %q): %+v", id.BatchAccountName, id.ResourceGroup, err)
 		}
 	}
 
