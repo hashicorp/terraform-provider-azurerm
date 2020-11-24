@@ -12,10 +12,10 @@ type CdnEndpointId struct {
 	Name          string
 }
 
-func NewCdnEndpointID(id CdnProfileId, name string) CdnEndpointId {
+func NewCdnEndpointID(id ProfileId, name string) CdnEndpointId {
 	return CdnEndpointId{
 		ResourceGroup: id.ResourceGroup,
-		ProfileName:   id.Name,
+		ProfileName:   id.ProfileName,
 		Name:          name,
 	}
 }
@@ -46,6 +46,6 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 }
 
 func (id CdnEndpointId) ID(subscriptionId string) string {
-	base := NewCdnProfileID(id.ResourceGroup, id.ProfileName).ID(subscriptionId)
+	base := NewProfileID(id.ResourceGroup, id.ProfileName).ID(subscriptionId)
 	return fmt.Sprintf("%s/endpoints/%s", base, id.Name)
 }

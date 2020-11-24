@@ -6,11 +6,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = CdnProfileId{}
+var _ resourceid.Formatter = ProfileId{}
 
 func TestCdnProfileIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewCdnProfileID("group1", "profile1").ID(subscriptionId)
+	actual := NewProfileID("group1", "profile1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -21,7 +21,7 @@ func TestCdnProfileId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *CdnProfileId
+		Expected *ProfileId
 	}{
 		{
 			Name:     "Empty",
@@ -51,8 +51,8 @@ func TestCdnProfileId(t *testing.T) {
 		{
 			Name:  "CDN Profile ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/Profile1",
-			Expected: &CdnProfileId{
-				Name:          "Profile1",
+			Expected: &ProfileId{
+				ProfileName:   "Profile1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -66,7 +66,7 @@ func TestCdnProfileId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := CdnProfileID(v.Input)
+		actual, err := ProfileID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -75,8 +75,8 @@ func TestCdnProfileId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.ProfileName != v.Expected.ProfileName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.ProfileName, actual.ProfileName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

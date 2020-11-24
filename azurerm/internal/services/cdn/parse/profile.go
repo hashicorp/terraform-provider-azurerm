@@ -6,29 +6,29 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type CdnProfileId struct {
+type ProfileId struct {
 	ResourceGroup string
-	Name          string
+	ProfileName   string
 }
 
-func NewCdnProfileID(resourceGroup, name string) CdnProfileId {
-	return CdnProfileId{
+func NewProfileID(resourceGroup, name string) ProfileId {
+	return ProfileId{
 		ResourceGroup: resourceGroup,
-		Name:          name,
+		ProfileName:   name,
 	}
 }
 
-func CdnProfileID(input string) (*CdnProfileId, error) {
+func ProfileID(input string) (*ProfileId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse CDN Profile ID %q: %+v", input, err)
 	}
 
-	profile := CdnProfileId{
+	profile := ProfileId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if profile.Name, err = id.PopSegment("profiles"); err != nil {
+	if profile.ProfileName, err = id.PopSegment("profiles"); err != nil {
 		return nil, err
 	}
 
@@ -39,7 +39,7 @@ func CdnProfileID(input string) (*CdnProfileId, error) {
 	return &profile, nil
 }
 
-func (id CdnProfileId) ID(subscriptionId string) string {
+func (id ProfileId) ID(subscriptionId string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s",
-		subscriptionId, id.ResourceGroup, id.Name)
+		subscriptionId, id.ResourceGroup, id.ProfileName)
 }
