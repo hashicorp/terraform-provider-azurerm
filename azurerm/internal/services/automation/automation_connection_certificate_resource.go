@@ -26,7 +26,7 @@ func resourceArmAutomationConnectionCertificate() *schema.Resource {
 		Delete: resourceArmAutomationConnectionCertificateDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := parse.AutomationConnectionID(id)
+			_, err := parse.ConnectionID(id)
 			return err
 		}, importAutomationConnection("Azure")),
 
@@ -135,24 +135,24 @@ func resourceArmAutomationConnectionCertificateRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationConnectionID(d.Id())
+	id, err := parse.ConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.ConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Read request on AzureRM Automation Connection '%s': %+v", id.Name, err)
+		return fmt.Errorf("Read request on AzureRM Automation Connection '%s': %+v", id.ConnectionName, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("automation_account_name", id.AccountName)
+	d.Set("automation_account_name", id.AutomationAccountName)
 	d.Set("description", resp.Description)
 
 	if props := resp.ConnectionProperties; props != nil {
@@ -172,18 +172,18 @@ func resourceArmAutomationConnectionCertificateDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AutomationConnectionID(d.Id())
+	id, err := parse.ConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.ConnectionName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("deleting Automation Connection '%s': %+v", id.Name, err)
+		return fmt.Errorf("deleting Automation Connection '%s': %+v", id.ConnectionName, err)
 	}
 
 	return nil
