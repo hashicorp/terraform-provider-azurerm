@@ -264,7 +264,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 }
 
 func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := &storage.AccountsClient{}
+	var client *storage.AccountsClient
 
 	if subscriptionID := d.Get("subscription_id").(string); subscriptionID != "" {
 		client = meta.(*clients.Client).Storage.AccountsClientOverrideSubscription(subscriptionID)
