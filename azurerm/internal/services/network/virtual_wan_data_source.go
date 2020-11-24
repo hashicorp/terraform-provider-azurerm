@@ -130,7 +130,7 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 		if err := d.Set("sku", props.Type); err != nil {
 			return fmt.Errorf("error setting `sku`: %v", err)
 		}
-		if err := d.Set("virtual_hubs", flattenVirtualWanProperties(props.VirtualHubs)); err != nil {
+		if err := d.Set("virtual_hub_ids", flattenVirtualWanProperties(props.VirtualHubs)); err != nil {
 			return fmt.Errorf("error setting `virtual_hubs`: %v", err)
 		}
 		if err := d.Set("vpn_site_ids", flattenVirtualWanProperties(props.VpnSites)); err != nil {
