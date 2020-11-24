@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,28 +9,36 @@ import (
 )
 
 type ProfileId struct {
-	ResourceGroup string
-	ProfileName   string
+	SubscriptionId string
+	ResourceGroup  string
+	ProfileName    string
 }
 
-func NewProfileID(resourceGroup, name string) ProfileId {
+func NewProfileID(subscriptionId, resourceGroup, profileName string) ProfileId {
 	return ProfileId{
-		ResourceGroup: resourceGroup,
-		ProfileName:   name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ProfileName:    profileName,
 	}
+}
+
+func (id ProfileId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName)
 }
 
 func ProfileID(input string) (*ProfileId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse CDN Profile ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	profile := ProfileId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ProfileId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if profile.ProfileName, err = id.PopSegment("profiles"); err != nil {
+	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
 		return nil, err
 	}
 
@@ -36,10 +46,5 @@ func ProfileID(input string) (*ProfileId, error) {
 		return nil, err
 	}
 
-	return &profile, nil
-}
-
-func (id ProfileId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s",
-		subscriptionId, id.ResourceGroup, id.ProfileName)
+	return &resourceId, nil
 }

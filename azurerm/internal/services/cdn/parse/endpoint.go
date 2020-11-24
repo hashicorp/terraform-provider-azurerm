@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,34 +9,41 @@ import (
 )
 
 type EndpointId struct {
-	ResourceGroup string
-	ProfileName   string
-	EndpointName  string
+	SubscriptionId string
+	ResourceGroup  string
+	ProfileName    string
+	EndpointName   string
 }
 
-func NewEndpointID(resourceGroup, profileName, name string) EndpointId {
+func NewEndpointID(subscriptionId, resourceGroup, profileName, endpointName string) EndpointId {
 	return EndpointId{
-		ResourceGroup: resourceGroup,
-		ProfileName:   profileName,
-		EndpointName:  name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ProfileName:    profileName,
+		EndpointName:   endpointName,
 	}
+}
+
+func (id EndpointId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/endpoints/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
 }
 
 func EndpointID(input string) (*EndpointId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse CDN Endpoint ID %q: %+v", input, err)
-	}
-
-	endpoint := EndpointId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if endpoint.ProfileName, err = id.PopSegment("profiles"); err != nil {
 		return nil, err
 	}
 
-	if endpoint.EndpointName, err = id.PopSegment("endpoints"); err != nil {
+	resourceId := EndpointId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
+		return nil, err
+	}
+	if resourceId.EndpointName, err = id.PopSegment("endpoints"); err != nil {
 		return nil, err
 	}
 
@@ -42,10 +51,5 @@ func EndpointID(input string) (*EndpointId, error) {
 		return nil, err
 	}
 
-	return &endpoint, nil
-}
-
-func (id EndpointId) ID(subscriptionId string) string {
-	base := NewProfileID(id.ResourceGroup, id.ProfileName).ID(subscriptionId)
-	return fmt.Sprintf("%s/endpoints/%s", base, id.EndpointName)
+	return &resourceId, nil
 }
