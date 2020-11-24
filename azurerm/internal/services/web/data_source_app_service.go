@@ -107,6 +107,11 @@ func dataSourceArmAppService() *schema.Resource {
 				},
 			},
 
+			"custom_domain_verification_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"default_site_hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -193,6 +198,7 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
+		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
 	}
 
 	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {

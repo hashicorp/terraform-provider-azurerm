@@ -2,17 +2,18 @@ package parse
 
 import (
 	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type AppServiceManagedCertificateId struct {
-	Name string
+	Name          string
 	ResourceGroup string
 }
 
 func NewAppServiceManagedCertificateId(name, resourceGroup string) AppServiceManagedCertificateId {
 	return AppServiceManagedCertificateId{
-		Name: name,
+		Name:          name,
 		ResourceGroup: resourceGroup,
 	}
 }

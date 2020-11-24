@@ -2,11 +2,12 @@ package web
 
 import (
 	"fmt"
-	azvalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	azvalidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -45,9 +46,9 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 			},
 
 			"canonical_name": {
-				Type: schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azvalidate.DomainName,
 			},
 

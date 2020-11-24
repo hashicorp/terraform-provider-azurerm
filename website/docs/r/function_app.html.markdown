@@ -369,6 +369,8 @@ The following attributes are exported:
 
 * `id` - The ID of the Function App
 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification. 
+
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`

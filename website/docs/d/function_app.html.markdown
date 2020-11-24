@@ -40,6 +40,8 @@ The following attributes are exported:
 
 * `connection_string` - An `connection_string` block as defined below.
 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via TXT record.
+
 * `default_hostname` - The default hostname associated with the Function App.
 
 * `enabled` - Is the Function App enabled?
