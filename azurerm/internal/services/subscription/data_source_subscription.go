@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+        "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -52,6 +53,8 @@ func dataSourceArmSubscription() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+                        "tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -87,5 +90,5 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("spending_limit", resp.SubscriptionPolicies.SpendingLimit)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
