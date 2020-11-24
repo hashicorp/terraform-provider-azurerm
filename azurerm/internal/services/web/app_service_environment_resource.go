@@ -43,10 +43,10 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 
 		// Need to find sane values for below, some operations on this resource can take an exceptionally long time
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(4 * time.Hour),
+			Create: schema.DefaultTimeout(6 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(4 * time.Hour),
-			Delete: schema.DefaultTimeout(4 * time.Hour),
+			Update: schema.DefaultTimeout(6 * time.Hour),
+			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
