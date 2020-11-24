@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmHyperConvergedCluster() *schema.Resource {
+func resourceArmHCICluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHyperConvergedClusterCreate,
-		Read:   resourceArmHyperConvergedClusterRead,
-		Update: resourceArmHyperConvergedClusterUpdate,
-		Delete: resourceArmHyperConvergedClusterDelete,
+		Create: resourceArmHCIClusterCreate,
+		Read:   resourceArmHCIClusterRead,
+		Update: resourceArmHCIClusterUpdate,
+		Delete: resourceArmHCIClusterDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -35,7 +35,7 @@ func resourceArmHyperConvergedCluster() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.HyperConvergedClusterID(id)
+			_, err := parse.HCIClusterID(id)
 			return err
 		}),
 
@@ -44,7 +44,7 @@ func resourceArmHyperConvergedCluster() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.HyperConvergedClusterName,
+				ValidateFunc: validate.HCIClusterName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -69,7 +69,7 @@ func resourceArmHyperConvergedCluster() *schema.Resource {
 		},
 	}
 }
-func resourceArmHyperConvergedClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHCIClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -80,12 +80,12 @@ func resourceArmHyperConvergedClusterCreate(d *schema.ResourceData, meta interfa
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Hyper Converged Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("checking for present of existing HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_hyper_converged_cluster", *existing.ID)
+		return tf.ImportAsExistsError("azurerm_hci_cluster", *existing.ID)
 	}
 
 	cluster := azurestackhci.Cluster{
@@ -98,29 +98,29 @@ func resourceArmHyperConvergedClusterCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, cluster); err != nil {
-		return fmt.Errorf("creating Hyper Converged Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Hyper Converged Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving HCI Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Hyper Converged Cluster %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for HCI Cluster %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmHyperConvergedClusterRead(d, meta)
+	return resourceArmHCIClusterRead(d, meta)
 }
 
-func resourceArmHyperConvergedClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHCIClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HyperConvergedClusterID(d.Id())
+	id, err := parse.HCIClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -128,12 +128,12 @@ func resourceArmHyperConvergedClusterRead(d *schema.ResourceData, meta interface
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Hyper Converged Cluster %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] HCI Cluster %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Hyper Converged Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -148,12 +148,12 @@ func resourceArmHyperConvergedClusterRead(d *schema.ResourceData, meta interface
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmHyperConvergedClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHCIClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HyperConvergedClusterID(d.Id())
+	id, err := parse.HCIClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -165,24 +165,24 @@ func resourceArmHyperConvergedClusterUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, cluster); err != nil {
-		return fmt.Errorf("updating Hyper Converged Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	return resourceArmHyperConvergedClusterRead(d, meta)
+	return resourceArmHCIClusterRead(d, meta)
 }
 
-func resourceArmHyperConvergedClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHCIClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AzureStackHCI.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.HyperConvergedClusterID(d.Id())
+	id, err := parse.HCIClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Hyper Converged Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting HCI Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

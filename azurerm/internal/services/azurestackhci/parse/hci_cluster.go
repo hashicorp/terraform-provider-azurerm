@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type HyperConvergedClusterId struct {
+type HCIClusterId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func HyperConvergedClusterID(input string) (*HyperConvergedClusterId, error) {
+func HCIClusterID(input string) (*HCIClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing hyperConvergedCluster ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing hciCluster ID %q: %+v", input, err)
 	}
 
-	hyperConvergedCluster := HyperConvergedClusterId{
+	hciCluster := HCIClusterId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if hyperConvergedCluster.Name, err = id.PopSegment("clusters"); err != nil {
+	if hciCluster.Name, err = id.PopSegment("clusters"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +29,5 @@ func HyperConvergedClusterID(input string) (*HyperConvergedClusterId, error) {
 		return nil, err
 	}
 
-	return &hyperConvergedCluster, nil
+	return &hciCluster, nil
 }

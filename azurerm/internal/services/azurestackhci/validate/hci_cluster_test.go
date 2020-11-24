@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestHyperConvergedClusterName(t *testing.T) {
+func TestHCIClusterName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -42,7 +42,7 @@ func TestHyperConvergedClusterName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := HyperConvergedClusterName(v.input, "name")
+		_, errors := HCIClusterName(v.input, "name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
