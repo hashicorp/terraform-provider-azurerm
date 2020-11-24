@@ -111,27 +111,42 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 			continue
 		}
 
-		segment := ResourceIdSegment{
-			FieldName:    strings.Title(key),
-			ArgumentName: key,
-			SegmentKey:   key,
-			SegmentValue: value,
-		}
-		if strings.EqualFold(key, "resourceGroups") {
-			segment.FieldName = "ResourceGroup"
-			segment.ArgumentName = "resourceGroup"
-		} else if key == "subscriptions" {
-			segment.FieldName = "SubscriptionId"
-			segment.ArgumentName = "subscriptionId"
-		} else if strings.HasSuffix(key, "s") {
-			// remove {Thing}s and make that {Thing}Name
-			rewritten := fmt.Sprintf("%sName", strings.TrimSuffix(key, "s"))
-			segment.FieldName = strings.Title(rewritten)
-			segment.ArgumentName = rewritten
-		}
-		// TODO: should we add `Name` as a suffix, always?
+		var segmentBuilder = func(key, value string) ResourceIdSegment {
+			segment := ResourceIdSegment{
+				FieldName:    strings.Title(key),
+				ArgumentName: key,
+				SegmentKey:   key,
+				SegmentValue: value,
+			}
 
-		segments = append(segments, segment)
+			if strings.EqualFold(key, "resourceGroups") {
+				segment.FieldName = "ResourceGroup"
+				segment.ArgumentName = "resourceGroup"
+				return segment
+			}
+
+			if key == "subscriptions" {
+				segment.FieldName = "SubscriptionId"
+				segment.ArgumentName = "subscriptionId"
+				return segment
+			}
+
+			if strings.HasSuffix(key, "s") {
+				// remove {Thing}s and make that {Thing}Name
+				rewritten := fmt.Sprintf("%sName", strings.TrimSuffix(key, "s"))
+				segment.FieldName = strings.Title(rewritten)
+				segment.ArgumentName = rewritten
+			} else {
+				// TODO: should we add `Name` as a suffix, always?
+				rewritten := fmt.Sprintf("%sName", key)
+				segment.FieldName = strings.Title(rewritten)
+				segment.ArgumentName = rewritten
+			}
+
+			return segment
+		}
+
+		segments = append(segments, segmentBuilder(key, value))
 	}
 
 	// finally build up the format string based on this information
@@ -423,13 +438,8 @@ func (f GolangCodeFormatter) Format(input string) (*string, error) {
 	}
 	defer f.deleteFileContents(filePath)
 
-	if err := f.runGoFmt(filePath); err != nil {
-		return nil, fmt.Errorf("running gofmt on %q: %+v", filePath, err)
-	}
-
-	if err := f.runGoImports(filePath); err != nil {
-		return nil, fmt.Errorf("running goimports on %q: %+v", filePath, err)
-	}
+	f.runGoFmt(filePath)
+	f.runGoImports(filePath)
 
 	contents, err := f.readFileContents(filePath)
 	if err != nil {
@@ -444,24 +454,22 @@ func (f GolangCodeFormatter) randomFilePath() string {
 	return fmt.Sprintf("%stemp-%d.go", os.TempDir(), time)
 }
 
-func (f GolangCodeFormatter) runGoFmt(filePath string) error {
+func (f GolangCodeFormatter) runGoFmt(filePath string) {
 	cmd := exec.Command("gofmt", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
-	cmd.Start()
-	cmd.Wait()
-	return nil
+	_ = cmd.Start()
+	_ = cmd.Wait()
 }
 
-func (f GolangCodeFormatter) runGoImports(filePath string) error {
+func (f GolangCodeFormatter) runGoImports(filePath string) {
 	cmd := exec.Command("goimports", "-w", filePath)
 	// intentionally not using these errors since the exit codes are kinda uninteresting
-	cmd.Start()
-	cmd.Wait()
-	return nil
+	_ = cmd.Start()
+	_ = cmd.Wait()
 }
 
-func (f GolangCodeFormatter) deleteFileContents(filePath string) error {
-	return os.Remove(filePath)
+func (f GolangCodeFormatter) deleteFileContents(filePath string) {
+	_ = os.Remove(filePath)
 }
 
 func (f GolangCodeFormatter) readFileContents(filePath string) (*string, error) {
