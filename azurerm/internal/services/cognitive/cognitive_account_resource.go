@@ -37,7 +37,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CognitiveAccountID(id)
+			_, err := parse.AccountID(id)
 			return err
 		}),
 
@@ -205,14 +205,14 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	sku, err := expandAccountSkuName(d.Get("sku_name").(string))
 	if err != nil {
-		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("error expanding sku_name for Cognitive Account %s (Resource Group %q): %v", id.AccountName, id.ResourceGroup, err)
 	}
 
 	props := cognitiveservices.Account{
@@ -231,8 +231,8 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	if _, err = client.Update(ctx, id.ResourceGroup, id.Name, props); err != nil {
-		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err = client.Update(ctx, id.ResourceGroup, id.AccountName, props); err != nil {
+		return fmt.Errorf("Error updating Cognitive Services Account %q (Resource Group %q): %+v", id.AccountName, id.ResourceGroup, err)
 	}
 
 	return resourceArmCognitiveAccountRead(d, meta)
@@ -243,22 +243,22 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.GetProperties(ctx, id.ResourceGroup, id.AccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Cognitive Services Account %q was not found in Resource Group %q - removing from state!", id.AccountName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 		return err
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
 
@@ -277,14 +277,14 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("endpoint", props.Endpoint)
 	}
 
-	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.AccountName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Not able to obtain keys for Cognitive Services Account %q in Resource Group %q - removing from state!", id.AccountName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error obtaining keys for Cognitive Services Account %q in Resource Group %q: %v", id.AccountName, id.ResourceGroup, err)
 	}
 
 	d.Set("primary_access_key", keys.Key1)
@@ -298,15 +298,15 @@ func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CognitiveAccountID(d.Id())
+	id, err := parse.AccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AccountName)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Cognitive Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting Cognitive Services Account %q (Resource Group %q): %+v", id.AccountName, id.ResourceGroup, err)
 		}
 	}
 
