@@ -6,27 +6,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type BatchPoolId struct {
-	ResourceGroup string
-	AccountName   string
-	Name          string
+type PoolId struct {
+	ResourceGroup    string
+	BatchAccountName string
+	PoolName         string
 }
 
-func BatchPoolID(input string) (*BatchPoolId, error) {
+func PoolID(input string) (*PoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Batch Pool ID %q: %+v", input, err)
 	}
 
-	pool := BatchPoolId{
+	pool := PoolId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if pool.AccountName, err = id.PopSegment("batchAccounts"); err != nil {
+	if pool.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
 
-	if pool.Name, err = id.PopSegment("pools"); err != nil {
+	if pool.PoolName, err = id.PopSegment("pools"); err != nil {
 		return nil, err
 	}
 

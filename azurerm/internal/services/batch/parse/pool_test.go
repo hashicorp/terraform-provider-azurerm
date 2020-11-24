@@ -8,7 +8,7 @@ func TestBatchPoolId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *BatchPoolId
+		Expected *PoolId
 	}{
 		{
 			Name:     "Empty",
@@ -48,10 +48,10 @@ func TestBatchPoolId(t *testing.T) {
 		{
 			Name:  "Batch Pool ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/acctName1/pools/Pool1",
-			Expected: &BatchPoolId{
-				ResourceGroup: "resGroup1",
-				AccountName:   "acctName1",
-				Name:          "Pool1",
+			Expected: &PoolId{
+				ResourceGroup:    "resGroup1",
+				BatchAccountName: "acctName1",
+				PoolName:         "Pool1",
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func TestBatchPoolId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := BatchPoolID(v.Input)
+		actual, err := PoolID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -73,11 +73,11 @@ func TestBatchPoolId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.PoolName != v.Expected.PoolName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.PoolName, actual.PoolName)
 		}
-		if actual.AccountName != v.Expected.AccountName {
-			t.Fatalf("Expected %q but got %q for BatchAccountName", v.Expected.AccountName, actual.AccountName)
+		if actual.BatchAccountName != v.Expected.BatchAccountName {
+			t.Fatalf("Expected %q but got %q for BatchAccountName", v.Expected.BatchAccountName, actual.BatchAccountName)
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
