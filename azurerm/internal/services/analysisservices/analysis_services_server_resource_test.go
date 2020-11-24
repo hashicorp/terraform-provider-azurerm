@@ -500,14 +500,14 @@ resource "azurerm_analysis_services_server" "test" {
 }
 
 func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AnalysisServicesServerID(state.ID)
+	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AnalysisServices.ServerClient.GetDetails(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.AnalysisServices.ServerClient.GetDetails(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ServerProperties != nil), nil
@@ -516,19 +516,19 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 	client := clients.AnalysisServices.ServerClient
 
-	id, err := parse.AnalysisServicesServerID(state.ID)
+	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
+	suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.ServerName)
 	if err != nil {
-		return fmt.Errorf("suspending Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("suspending Analysis Services Server %q (resource group: %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
 	err = suspendFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Wait for Suspend on Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Wait for Suspend on Analysis Services Server %q (resource group: %q): %+v", id.ServerName, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -538,12 +538,12 @@ func (t AnalysisServicesServerResource) checkState(serverState analysisservices.
 	return func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
 		client := clients.AnalysisServices.ServerClient
 
-		id, err := parse.AnalysisServicesServerID(state.ID)
+		id, err := parse.ServerID(state.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.ServerName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on analysisServicesServerClient: %+v", err)
 		}
