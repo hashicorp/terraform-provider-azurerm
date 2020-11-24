@@ -1,4 +1,4 @@
-package tests
+package authorization
 
 import (
 	"os"
