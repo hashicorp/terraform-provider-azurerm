@@ -1,13 +1,32 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
+	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type NodePoolId struct {
+	SubscriptionId     string
 	ResourceGroup      string
 	ManagedClusterName string
 	AgentPoolName      string
+}
+
+func NewNodePoolID(subscriptionId, resourceGroup, managedClusterName, agentPoolName string) NodePoolId {
+	return NodePoolId{
+		SubscriptionId:     subscriptionId,
+		ResourceGroup:      resourceGroup,
+		ManagedClusterName: managedClusterName,
+		AgentPoolName:      agentPoolName,
+	}
+}
+
+func (id NodePoolId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ContainerService/managedClusters/%s/agentPools/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ManagedClusterName, id.AgentPoolName)
 }
 
 func NodePoolID(input string) (*NodePoolId, error) {
@@ -16,15 +35,15 @@ func NodePoolID(input string) (*NodePoolId, error) {
 		return nil, err
 	}
 
-	pool := NodePoolId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := NodePoolId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if pool.ManagedClusterName, err = id.PopSegment("managedClusters"); err != nil {
+	if resourceId.ManagedClusterName, err = id.PopSegment("managedClusters"); err != nil {
 		return nil, err
 	}
-
-	if pool.AgentPoolName, err = id.PopSegment("agentPools"); err != nil {
+	if resourceId.AgentPoolName, err = id.PopSegment("agentPools"); err != nil {
 		return nil, err
 	}
 
@@ -32,5 +51,5 @@ func NodePoolID(input string) (*NodePoolId, error) {
 		return nil, err
 	}
 
-	return &pool, nil
+	return &resourceId, nil
 }

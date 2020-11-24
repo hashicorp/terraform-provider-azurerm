@@ -1,87 +1,128 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestKubernetesNodePoolID(t *testing.T) {
+var _ resourceid.Formatter = NodePoolId{}
+
+func TestNodePoolIDFormatter(t *testing.T) {
+	actual := NewNodePoolID("12345678-1234-9876-4563-123456789012", "resGroup1", "cluster1", "pool1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestNodePoolID(t *testing.T) {
 	testData := []struct {
-		input    string
-		expected *NodePoolId
+		Input    string
+		Error    bool
+		Expected *NodePoolId
 	}{
+
 		{
-			input:    "",
-			expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups",
-			expected: nil,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello",
-			expected: nil,
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/managedClusters/",
-			expected: nil,
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/managedClusters/cluster1",
-			expected: nil,
+			// missing ManagedClusterName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/",
+			Error: true,
 		},
+
 		{
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/managedClusters/cluster1/agentPools/",
-			expected: nil,
+			// missing value for ManagedClusterName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/",
+			Error: true,
 		},
+
 		{
-			input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/managedClusters/cluster1/agentPools/pool1",
-			expected: &NodePoolId{
-				AgentPoolName:      "pool1",
+			// missing AgentPoolName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/",
+			Error: true,
+		},
+
+		{
+			// missing value for AgentPoolName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1",
+			Expected: &NodePoolId{
+				SubscriptionId:     "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:      "resGroup1",
 				ManagedClusterName: "cluster1",
-				ResourceGroup:      "hello",
+				AgentPoolName:      "pool1",
 			},
 		},
+
 		{
-			// wrong case
-			input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/managedClusters/cluster1/agentpools/pool1",
-			expected: nil,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.CONTAINERSERVICE/MANAGEDCLUSTERS/CLUSTER1/AGENTPOOLS/POOL1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q..", v.input)
-		actual, err := NodePoolID(v.input)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		// if we get something there shouldn't be an error
-		if v.expected != nil && err == nil {
-			continue
+		actual, err := NodePoolID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %s", err)
 		}
-
-		// if nothing's expected we should get an error
-		if v.expected == nil && err != nil {
-			continue
-		}
-
-		if v.expected == nil && actual == nil {
-			continue
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if v.expected == nil && actual != nil {
-			t.Fatalf("Expected nothing but got %+v", actual)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-		if v.expected != nil && actual == nil {
-			t.Fatalf("Expected %+v but got nil", actual)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-
-		if v.expected.ResourceGroup != actual.ResourceGroup {
-			t.Fatalf("Expected ResourceGroup to be %q but got %q", v.expected.ResourceGroup, actual.ResourceGroup)
+		if actual.ManagedClusterName != v.Expected.ManagedClusterName {
+			t.Fatalf("Expected %q but got %q for ManagedClusterName", v.Expected.ManagedClusterName, actual.ManagedClusterName)
 		}
-		if v.expected.AgentPoolName != actual.AgentPoolName {
-			t.Fatalf("Expected Name to be %q but got %q", v.expected.AgentPoolName, actual.AgentPoolName)
+		if actual.AgentPoolName != v.Expected.AgentPoolName {
+			t.Fatalf("Expected %q but got %q for AgentPoolName", v.Expected.AgentPoolName, actual.AgentPoolName)
 		}
 	}
 }
