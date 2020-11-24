@@ -15,8 +15,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var testCertThumbprintRaw, _ = ioutil.ReadFile(filepath.Join("testdata", "automation_certificate_test.thumb"))
-var testCertRaw, _ = ioutil.ReadFile(filepath.Join("testdata", "automation_certificate_test.pfx"))
+var (
+	testCertThumbprintRaw, _ = ioutil.ReadFile(filepath.Join("testdata", "automation_certificate_test.thumb"))
+	testCertRaw, _           = ioutil.ReadFile(filepath.Join("testdata", "automation_certificate_test.pfx"))
+)
 
 var testCertBase64 = base64.StdEncoding.EncodeToString(testCertRaw)
 
@@ -122,7 +124,6 @@ func testCheckAzureRMAutomationCertificateDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -153,7 +154,6 @@ func testCheckAzureRMAutomationCertificateExists(resourceName string) resource.T
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Automation Certificate '%s' (resource group: '%s') does not exist", name, resourceGroup)

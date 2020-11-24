@@ -168,6 +168,8 @@ The following arguments are supported:
 
 -> **NOTE:** When using an image from Azure Marketplace a `plan` must be specified.
 
+* `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used by this Linux Virtual Machine Scale Set. Changing this forces a new resource to be created.
+
 * `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
 -> **NOTE:** When `priority` is set to `Spot` an `eviction_policy` must be specified.
@@ -240,7 +242,7 @@ A `automatic_instance_repair` block supports the following:
 
 A `boot_diagnostics` block supports the following:
 
-* `storage_account_uri` - (Required) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
+* `storage_account_uri` - (Optional) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
 
 ---
 
@@ -273,6 +275,10 @@ A `data_disk` block supports the following:
 -> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
 ~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
+
+* `disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable for UltraSSD disks.
+
+* `disk_mbps_read_write` - (Optional) Specifies the bandwidth in MB per second for this Data Disk. Only settable for UltraSSD disks.
 
 * `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 

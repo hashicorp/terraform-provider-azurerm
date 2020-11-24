@@ -226,7 +226,6 @@ func testCheckAzureRMNotificationHubAuthorizationRuleDestroy(s *terraform.State)
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		ruleName := rs.Primary.Attributes["name"]
 		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, ruleName)
-
 		if err != nil {
 			return nil
 		}

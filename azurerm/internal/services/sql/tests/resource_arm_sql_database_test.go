@@ -35,6 +35,7 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
 

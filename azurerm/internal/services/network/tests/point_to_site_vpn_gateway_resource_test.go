@@ -174,6 +174,11 @@ func testAccAzureRMAzureRMPointToSiteVPNGateway_updated(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_virtual_hub_route_table" "test" {
+  name           = "acctest-RouteTable-%d"
+  virtual_hub_id = azurerm_virtual_hub.test.id
+}
+
 resource "azurerm_point_to_site_vpn_gateway" "test" {
   name                        = "acctestp2sVPNG-%d"
   location                    = azurerm_resource_group.test.location
@@ -181,15 +186,25 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   virtual_hub_id              = azurerm_virtual_hub.test.id
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
   scale_unit                  = 2
+  dns_servers                 = ["3.3.3.3"]
 
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
       address_prefixes = ["172.100.0.0/14", "10.100.0.0/14"]
     }
+
+    route {
+      associated_route_table_id = azurerm_virtual_hub_route_table.test.id
+
+      propagated_route_table {
+        ids    = [azurerm_virtual_hub_route_table.test.id]
+        labels = ["label1", "label2"]
+      }
+    }
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMAzureRMPointToSiteVPNGateway_requiresImport(data acceptance.TestData) string {

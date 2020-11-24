@@ -88,9 +88,15 @@ The following arguments are supported:
 
 * `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
 
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account.
+
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Possible values are `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableTable`, `MongoDBv3.4`, `EnableServerless`, and `mongoEnableDocLevelTTL`.
 
 * `is_virtual_network_filter_enabled` - (Optional) Enables virtual network filtering for this Cosmos DB account.
+
+* `key_vault_key_id` - (Optional) A Key Vault Key ID for CMK encryption. Changing this forces a new resource to be created.
+
+~> **NOTE:** The CosmosDB service always uses the latest version of the specified key, so terraform ignores the version specified in the Key Vault Key ID.
 
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rules` resource, used to define which subnets are allowed to access this CosmosDB account.
 
@@ -113,7 +119,7 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableAnalyticalStorage`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `EnableServerless`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 

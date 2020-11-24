@@ -8,13 +8,13 @@ type Registration struct{}
 
 // Registration - Name is the name of this Service
 func (r Registration) Name() string {
-	return "DesktopVirtualization"
+	return "Desktop Virtualization"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"DesktopVirtualization",
+		"Desktop Virtualization",
 	}
 }
 

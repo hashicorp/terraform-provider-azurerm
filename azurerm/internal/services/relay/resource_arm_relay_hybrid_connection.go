@@ -172,7 +172,6 @@ func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[INFO] Waiting for Relay Hybrid Connection %q (Namespace %q Resource Group %q) to be deleted", name, relayNamespace, resourceGroup)
 	rc, err := client.Delete(ctx, resourceGroup, relayNamespace, name)
-
 	if err != nil {
 		if response.WasNotFound(rc.Response) {
 			return nil

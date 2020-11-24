@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -15,71 +16,89 @@ import (
 )
 
 func TestAzureRMDatabrickWorkspaceName(t *testing.T) {
+	const errEmpty = "cannot be an empty string"
+	const errMinLen = "must be at least 3 characters"
+	const errMaxLen = "must be no more than 30 characters"
+	const errAllowList = "can contain only alphanumeric characters, underscores, and hyphens"
+
 	cases := []struct {
-		Value       string
-		ShouldError bool
+		Name           string
+		Input          string
+		ExpectedErrors []string
 	}{
+		// Happy paths:
 		{
-			Value:       "hello",
-			ShouldError: false,
+			Name:  "Entire character allow-list",
+			Input: "aZ09_-",
 		},
 		{
-			Value:       "hello123there",
-			ShouldError: false,
+			Name:  "Minimum character length",
+			Input: "---",
 		},
 		{
-			Value:       "hello-1-2-3-there",
-			ShouldError: false,
+			Name:  "Maximum character length",
+			Input: "012345678901234567890123456789", // 30 chars
+		},
+
+		// Simple negative cases:
+		{
+			Name:           "Introduce a non-allowed character",
+			Input:          "aZ09_-$", // dollar sign
+			ExpectedErrors: []string{errAllowList},
 		},
 		{
-			Value:       "hello_1_2_3_there",
-			ShouldError: false,
+			Name:           "Below minimum character length",
+			Input:          "--",
+			ExpectedErrors: []string{errMinLen},
 		},
 		{
-			Value:       "hello-1-2-3-",
-			ShouldError: true,
+			Name:           "Above maximum character length",
+			Input:          "0123456789012345678901234567890", // 31 chars
+			ExpectedErrors: []string{errMaxLen},
 		},
 		{
-			Value:       "-hello-1-2-3",
-			ShouldError: true,
+			Name:           "Specifically test for emptiness",
+			Input:          "",
+			ExpectedErrors: []string{errEmpty},
+		},
+
+		// Complex negative cases
+		{
+			Name:           "Too short and non-allowed char",
+			Input:          "*^",
+			ExpectedErrors: []string{errMinLen, errAllowList},
 		},
 		{
-			Value:       "hello_1_2_3_",
-			ShouldError: true,
-		},
-		{
-			Value:       "_hello_1_2_3",
-			ShouldError: true,
-		},
-		{
-			Value:       "hello!there",
-			ShouldError: true,
-		},
-		{
-			Value:       "hello--there",
-			ShouldError: true,
-		},
-		{
-			Value:       "!hellothere",
-			ShouldError: true,
-		},
-		{
-			Value:       "hellothere!",
-			ShouldError: true,
+			Name:           "Too long and non-allowed char",
+			Input:          "012345678901234567890123456789ß",
+			ExpectedErrors: []string{errMaxLen, errAllowList},
 		},
 	}
 
+	errsContain := func(errors []error, text string) bool {
+		for _, err := range errors {
+			if strings.Contains(err.Error(), text) {
+				return true
+			}
+		}
+		return false
+	}
+
+	t.Parallel()
 	for _, tc := range cases {
-		_, errors := databricks.ValidateDatabricksWorkspaceName(tc.Value, "test")
+		t.Run(tc.Name, func(t *testing.T) {
+			_, errors := databricks.ValidateDatabricksWorkspaceName(tc.Input, "azurerm_databricks_workspace.test.name")
 
-		hasErrors := len(errors) > 0
-		if hasErrors && !tc.ShouldError {
-			t.Fatalf("Expected no errors but got %d for %q", len(errors), tc.Value)
-		}
+			if len(errors) != len(tc.ExpectedErrors) {
+				t.Fatalf("Expected %d errors but got %d for %q: %v", len(tc.ExpectedErrors), len(errors), tc.Input, errors)
+			}
 
-		if !hasErrors && tc.ShouldError {
-			t.Fatalf("Expected no errors but got %d for %q", len(errors), tc.Value)
-		}
+			for _, expectedError := range tc.ExpectedErrors {
+				if !errsContain(errors, expectedError) {
+					t.Fatalf("Errors did not contain expected error: %s", expectedError)
+				}
+			}
+		})
 	}
 }
 
@@ -228,7 +247,6 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 		}
 
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}

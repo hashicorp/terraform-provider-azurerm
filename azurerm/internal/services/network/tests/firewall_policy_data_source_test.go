@@ -29,7 +29,6 @@ func TestAccDataSourceFirewallPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "base_policy_id"),
 					resource.TestCheckResourceAttr(dataParent.ResourceName, "child_policies.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "dns.0.proxy_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "dns.0.network_rule_fqdn_enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "dns.0.servers.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "threat_intelligence_mode", string(network.AzureFirewallThreatIntelModeAlert)),
 					resource.TestCheckResourceAttr(data.ResourceName, "threat_intelligence_allowlist.0.ip_addresses.#", "2"),

@@ -117,7 +117,7 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(reso
 			return fmt.Errorf("Expected ID to be in the format {workspaceID}/{applicationGroup} but got %q", toBeSplitID)
 		}
 
-		id, err := parse.DesktopVirtualizationWorkspaceID(splitID[0])
+		id, err := parse.VirtualDesktopWorkspaceID(splitID[0])
 		if err != nil {
 			return err
 		}

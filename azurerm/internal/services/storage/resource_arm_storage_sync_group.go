@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -23,7 +23,7 @@ func resourceArmStorageSyncGroup() *schema.Resource {
 		Delete: resourceArmStorageSyncGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parsers.StorageSyncGroupID(id)
+			_, err := parse.StorageSyncGroupID(id)
 			return err
 		}),
 
@@ -57,7 +57,7 @@ func resourceArmStorageSyncGroupCreate(d *schema.ResourceData, meta interface{})
 	defer cancel()
 
 	name := d.Get("name").(string)
-	ssId, _ := parsers.ParseStorageSyncID(d.Get("storage_sync_id").(string))
+	ssId, _ := parse.ParseStorageSyncID(d.Get("storage_sync_id").(string))
 
 	existing, err := client.Get(ctx, ssId.ResourceGroup, ssId.Name, name)
 	if err != nil {
@@ -93,7 +93,7 @@ func resourceArmStorageSyncGroupRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.StorageSyncGroupID(d.Id())
+	id, err := parse.StorageSyncGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func resourceArmStorageSyncGroupDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.StorageSyncGroupID(d.Id())
+	id, err := parse.StorageSyncGroupID(d.Id())
 	if err != nil {
 		return err
 	}

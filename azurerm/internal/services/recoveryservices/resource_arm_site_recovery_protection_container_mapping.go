@@ -103,7 +103,7 @@ func resourceArmSiteRecoveryContainerMappingCreate(d *schema.ResourceData, meta 
 		}
 	}
 
-	var parameters = siterecovery.CreateProtectionContainerMappingInput{
+	parameters := siterecovery.CreateProtectionContainerMappingInput{
 		Properties: &siterecovery.CreateProtectionContainerMappingInputProperties{
 			TargetProtectionContainerID: &targetContainerId,
 			PolicyID:                    &policyId,
