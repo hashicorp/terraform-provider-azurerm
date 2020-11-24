@@ -1,4 +1,4 @@
-package tests
+package authorization_test
 
 import (
 	"fmt"
@@ -7,155 +7,137 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type RoleDefinitionDataSource struct{}
 
 func TestAccDataSourceAzureRMRoleDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
 	id := uuid.New().String()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceRoleDefinition_basic(id, data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.0", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.0", "Microsoft.Authorization/*/Delete"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.1", "Microsoft.Authorization/*/Write"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.2", "Microsoft.Authorization/elevateAccess/Action"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.basic(id, data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.0").HasValue("*"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("3"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.0").HasValue("Microsoft.Authorization/*/Delete"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.1").HasValue("Microsoft.Authorization/*/Write"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.2").HasValue("Microsoft.Authorization/elevateAccess/Action"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMRoleDefinition_basicByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
-
 	id := uuid.New().String()
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceRoleDefinition_byName(id, data),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.0", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.0", "Microsoft.Authorization/*/Delete"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.1", "Microsoft.Authorization/*/Write"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.2", "Microsoft.Authorization/elevateAccess/Action"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.byName(id, data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.0").HasValue("*"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("3"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.0").HasValue("Microsoft.Authorization/*/Delete"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.1").HasValue("Microsoft.Authorization/*/Write"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.2").HasValue("Microsoft.Authorization/elevateAccess/Action"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_contributor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Contributor"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.0", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.#", "5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.0", "Microsoft.Authorization/*/Delete"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.1", "Microsoft.Authorization/*/Write"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.2", "Microsoft.Authorization/elevateAccess/Action"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.3", "Microsoft.Blueprint/blueprintAssignments/write"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.4", "Microsoft.Blueprint/blueprintAssignments/delete"),
-				),
-			},
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.builtIn("Contributor"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"),
+				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.0").HasValue("*"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("5"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.0").HasValue("Microsoft.Authorization/*/Delete"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.1").HasValue("Microsoft.Authorization/*/Write"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.2").HasValue("Microsoft.Authorization/elevateAccess/Action"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.3").HasValue("Microsoft.Blueprint/blueprintAssignments/write"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.4").HasValue("Microsoft.Blueprint/blueprintAssignments/delete"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_owner(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Owner"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.0", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.#", "0"),
-				),
-			},
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.builtIn("Owner"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"),
+				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.0").HasValue("*"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_reader(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Reader"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.actions.0", "*/read"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.#", "0"),
-				),
-			},
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.builtIn("Reader"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7"),
+				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.actions.0").HasValue("*/read"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("0"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMRoleDefinition_builtIn_virtualMachineContributor(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMRoleDefinition_builtIn("Virtual Machine Contributor"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "permissions.0.not_actions.#", "0"),
-				),
-			},
+
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: RoleDefinitionDataSource{}.builtIn("Virtual Machine Contributor"),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("id").HasValue("/providers/Microsoft.Authorization/roleDefinitions/9980e02c-c2be-4d73-94e8-173b1dc7cf3c"),
+				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("type").Exists(),
+				check.That(data.ResourceName).Key("permissions.#").HasValue("1"),
+				check.That(data.ResourceName).Key("permissions.0.not_actions.#").HasValue("0"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMRoleDefinition_builtIn(name string) string {
+func (d RoleDefinitionDataSource) builtIn(name string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -167,7 +149,7 @@ data "azurerm_role_definition" "test" {
 `, name)
 }
 
-func testAccDataSourceRoleDefinition_basic(id string, data acceptance.TestData) string {
+func (d RoleDefinitionDataSource) basic(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,7 +186,7 @@ data "azurerm_role_definition" "test" {
 `, id, data.RandomInteger)
 }
 
-func testAccDataSourceRoleDefinition_byName(id string, data acceptance.TestData) string {
+func (d RoleDefinitionDataSource) byName(id string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -212,5 +194,5 @@ data "azurerm_role_definition" "byName" {
   name  = azurerm_role_definition.test.name
   scope = data.azurerm_subscription.primary.id
 }
-`, testAccDataSourceRoleDefinition_basic(id, data))
+`, d.basic(id, data))
 }
