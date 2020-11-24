@@ -103,7 +103,6 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	b := false
 
 	if props := resp.VirtualWanProperties; props != nil {
 		if abtbt := *props.AllowBranchToBranchTraffic; props.AllowBranchToBranchTraffic != nil {
