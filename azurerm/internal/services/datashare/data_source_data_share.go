@@ -77,7 +77,6 @@ func dataSourceDataShare() *schema.Resource {
 
 func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,11 +95,11 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving DataShare %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
 
-	dataShareId := parse.NewDataShareId(accountId.ResourceGroup, accountId.Name, name).ID(subscriptionId)
+	dataShareId := parse.NewDataShareId(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, name).ID("")
 	d.SetId(dataShareId)
 
 	d.Set("name", name)
-	d.Set("account_id", accountId.ID(subscriptionId))
+	d.Set("account_id", accountId.ID(""))
 
 	if props := resp.ShareProperties; props != nil {
 		d.Set("description", props.Description)

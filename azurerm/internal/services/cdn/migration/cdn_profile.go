@@ -71,8 +71,8 @@ func CdnProfileV0ToV1(rawState map[string]interface{}, _ interface{}) (map[strin
 		return rawState, err
 	}
 
-	newId := parse.NewCdnProfileID(resourceGroup, name)
-	newIdStr := newId.ID(oldParsedId.SubscriptionID)
+	newId := parse.NewCdnProfileID(oldParsedId.SubscriptionID, resourceGroup, name)
+	newIdStr := newId.ID("")
 
 	log.Printf("[DEBUG] Updating ID from %q to %q", oldId, newIdStr)
 

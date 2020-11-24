@@ -109,7 +109,6 @@ func resourceArmDataShare() *schema.Resource {
 
 func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,7 +119,7 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	resourceId := parse.NewDataShareId(accountId.ResourceGroup, accountId.Name, name).ID(subscriptionId)
+	resourceId := parse.NewDataShareId(accountId.SubscriptionId, accountId.ResourceGroup, accountId.Name, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 		if err != nil {
@@ -145,7 +144,9 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("creating Data Share %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
 
-	d.SetId(resourceId)
+	if d.IsNewResource() {
+		d.SetId(resourceId)
+	}
 
 	if d.HasChange("snapshot_schedule") {
 		// only one dependent sync setting is allowed in one data share
@@ -175,7 +176,6 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.SharesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	syncClient := meta.(*clients.Client).DataShare.SynchronizationClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -195,10 +195,10 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
 	}
 
-	accountId := parse.NewDataShareAccountId(id.ResourceGroup, id.AccountName)
+	accountId := parse.NewDataShareAccountId(id.SubscriptionId, id.ResourceGroup, id.AccountName)
 
 	d.Set("name", id.Name)
-	d.Set("account_id", accountId.ID(subscriptionId))
+	d.Set("account_id", accountId.ID(""))
 
 	if props := dataShare.ShareProperties; props != nil {
 		d.Set("kind", props.ShareKind)

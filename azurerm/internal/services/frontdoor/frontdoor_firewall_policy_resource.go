@@ -443,7 +443,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	id := parse.NewWebApplicationFirewallPolicyID(resourceGroup, name).ID(subscriptionId)
+	id := parse.NewWebApplicationFirewallPolicyID(subscriptionId, resourceGroup, name).ID("")
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
