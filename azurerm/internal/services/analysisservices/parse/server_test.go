@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
@@ -18,9 +20,9 @@ func TestServerIDFormatter(t *testing.T) {
 
 func TestServerID(t *testing.T) {
 	testData := []struct {
-		Input  string
-		Error  bool
-		Expect *ServerId
+		Input    string
+		Error    bool
+		Expected *ServerId
 	}{
 
 		{
@@ -68,7 +70,7 @@ func TestServerID(t *testing.T) {
 		{
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AnalysisServices/servers/Server1",
-			Expect: &ServerId{
+			Expected: &ServerId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				ServerName:     "Server1",
@@ -97,14 +99,14 @@ func TestServerID(t *testing.T) {
 			t.Fatal("Expect an error but didn't get one")
 		}
 
-		if actual.SubscriptionId != v.Expect.SubscriptionId {
-			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expect.SubscriptionId, actual.SubscriptionId)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expect.ResourceGroup, actual.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.ServerName != v.Expect.ServerName {
-			t.Fatalf("Expected %q but got %q for ServerName", v.Expect.ServerName, actual.ServerName)
+		if actual.ServerName != v.Expected.ServerName {
+			t.Fatalf("Expected %q but got %q for ServerName", v.Expected.ServerName, actual.ServerName)
 		}
 	}
 }

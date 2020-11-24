@@ -129,6 +129,7 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 			segment.FieldName = strings.Title(rewritten)
 			segment.ArgumentName = rewritten
 		}
+		// TODO: should we add `Name` as a suffix, always?
 
 		segments = append(segments, segment)
 	}
@@ -166,6 +167,8 @@ type ResourceIdGenerator struct {
 func (id ResourceIdGenerator) Code() string {
 	return fmt.Sprintf(`
 package parse
+
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
 	"fmt"
@@ -279,6 +282,8 @@ func (id ResourceIdGenerator) TestCode() string {
 	return fmt.Sprintf(`
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
@@ -336,7 +341,7 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 		resourceIdToThisPoint = id.IDRaw[0:resourceIdToThisPointIndex]
 		testCases = append(testCases, fmt.Sprintf(testCaseFmt, fmt.Sprintf("value for %s", segment.FieldName), resourceIdToThisPoint))
 
-		assignmentsFmt := "\t\tif actual.%[1]s != v.Expect.%[1]s {\n\t\t\tt.Fatalf(\"Expected %%q but got %%q for %[1]s\", v.Expect.%[1]s, actual.%[1]s)\n\t\t}"
+		assignmentsFmt := "\t\tif actual.%[1]s != v.Expected.%[1]s {\n\t\t\tt.Fatalf(\"Expected %%q but got %%q for %[1]s\", v.Expected.%[1]s, actual.%[1]s)\n\t\t}"
 		assignmentChecks = append(assignmentChecks, fmt.Sprintf(assignmentsFmt, segment.FieldName))
 	}
 
@@ -349,7 +354,7 @@ func (id ResourceIdGenerator) testCodeForParser() string {
 		{
 			// valid
 			Input: "%[1]s",
-			Expect: &%[2]sId{
+			Expected: &%[2]sId{
 %[3]s
 			},
 		},
@@ -370,7 +375,7 @@ func Test%[1]sID(t *testing.T) {
 	testData := []struct {
 		Input  string
 		Error  bool
-		Expect *%[1]sId
+		Expected *%[1]sId
 	}{
 %[2]s
 	}
