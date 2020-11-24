@@ -8,21 +8,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/digitaltwins/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDigitalTwins_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_digital_twins", "test")
+func TestAccAzureRMDigitalTwinsInstance_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_instance", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDigitalTwinsDestroy,
+		CheckDestroy: testCheckAzureRMDigitalTwinsInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDigitalTwins_basic(data),
+				Config: testAccAzureRMDigitalTwinsInstance_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsInstanceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
 				),
 			},
@@ -31,79 +31,36 @@ func TestAccAzureRMDigitalTwins_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDigitalTwins_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_digital_twins", "test")
+func TestAccAzureRMDigitalTwinsInstance_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_instance", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDigitalTwinsDestroy,
+		CheckDestroy: testCheckAzureRMDigitalTwinsInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDigitalTwins_basic(data),
+				Config: testAccAzureRMDigitalTwinsInstance_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsInstanceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMDigitalTwins_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMDigitalTwinsInstance_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMDigitalTwins_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_digital_twins", "test")
+func TestAccAzureRMDigitalTwinsInstance_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_instance", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDigitalTwinsDestroy,
+		CheckDestroy: testCheckAzureRMDigitalTwinsInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDigitalTwins_complete(data),
+				Config: testAccAzureRMDigitalTwinsInstance_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMDigitalTwins_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iothub_digital_twins", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDigitalTwinsDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDigitalTwins_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDigitalTwins_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDigitalTwins_updateTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMDigitalTwins_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsInstanceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
 				),
 			},
@@ -112,43 +69,86 @@ func TestAccAzureRMDigitalTwins_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDigitalTwinsExists(resourceName string) resource.TestCheckFunc {
+func TestAccAzureRMDigitalTwinsInstance_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_digital_twins_instance", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDigitalTwinsInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDigitalTwinsInstance_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDigitalTwinsInstanceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDigitalTwinsInstance_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDigitalTwinsInstanceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDigitalTwinsInstance_updateTags(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDigitalTwinsInstanceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDigitalTwinsInstance_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDigitalTwinsInstanceExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func testCheckAzureRMDigitalTwinsInstanceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DigitalTwinsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DigitalTwins.InstanceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("digital Twins not found: %s", resourceName)
+			return fmt.Errorf("Digital Twins Instance not found: %s", resourceName)
 		}
-		id, err := parse.DigitalTwinsID(rs.Primary.ID)
+		id, err := parse.DigitalTwinsInstanceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Digital Twins %q does not exist", id.Name)
+				return fmt.Errorf("bad: Digital Twins Instance %q does not exist", id.Name)
 			}
-			return fmt.Errorf("bad: Get on Digitaltwins Client: %+v", err)
+			return fmt.Errorf("bad: Get on Digital Twins Instance Client: %+v", err)
 		}
 		return nil
 	}
 }
 
-func testCheckAzureRMDigitalTwinsDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTHub.DigitalTwinsClient
+func testCheckAzureRMDigitalTwinsInstanceDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DigitalTwins.InstanceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_digital_twins" {
+		if rs.Type != "azurerm_digital_twins_instance" {
 			continue
 		}
-		id, err := parse.DigitalTwinsID(rs.Primary.ID)
+		id, err := parse.DigitalTwinsInstanceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Digitaltwins.DigitalTwinsClient: %+v", err)
+				return fmt.Errorf("bad: Get on DigitalTwins.InstanceClient: %+v", err)
 			}
 		}
 		return nil
@@ -156,7 +156,7 @@ func testCheckAzureRMDigitalTwinsDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDigitalTwins_template(data acceptance.TestData) string {
+func testAccAzureRMDigitalTwinsInstance_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -169,12 +169,12 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMDigitalTwins_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDigitalTwins_template(data)
+func testAccAzureRMDigitalTwinsInstance_basic(data acceptance.TestData) string {
+	template := testAccAzureRMDigitalTwinsInstance_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_digital_twins" "test" {
+resource "azurerm_digital_twins_instance" "test" {
   name                = "acctest-DT-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -182,28 +182,29 @@ resource "azurerm_iothub_digital_twins" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDigitalTwins_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMDigitalTwins_basic(data)
+func testAccAzureRMDigitalTwinsInstance_requiresImport(data acceptance.TestData) string {
+	config := testAccAzureRMDigitalTwinsInstance_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_digital_twins" "import" {
-  name                = azurerm_iothub_digital_twins.test.name
-  resource_group_name = azurerm_iothub_digital_twins.test.resource_group_name
-  location            = azurerm_iothub_digital_twins.test.location
+resource "azurerm_digital_twins_instance" "import" {
+  name                = azurerm_digital_twins_instance.test.name
+  resource_group_name = azurerm_digital_twins_instance.test.resource_group_name
+  location            = azurerm_digital_twins_instance.test.location
 }
 `, config)
 }
 
-func testAccAzureRMDigitalTwins_complete(data acceptance.TestData) string {
-	template := testAccAzureRMDigitalTwins_template(data)
+func testAccAzureRMDigitalTwinsInstance_complete(data acceptance.TestData) string {
+	template := testAccAzureRMDigitalTwinsInstance_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_digital_twins" "test" {
+resource "azurerm_digital_twins_instance" "test" {
   name                = "acctest-DT-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
   tags = {
     ENV = "Test"
   }
@@ -211,15 +212,16 @@ resource "azurerm_iothub_digital_twins" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMDigitalTwins_updateTags(data acceptance.TestData) string {
-	template := testAccAzureRMDigitalTwins_template(data)
+func testAccAzureRMDigitalTwinsInstance_updateTags(data acceptance.TestData) string {
+	template := testAccAzureRMDigitalTwinsInstance_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_digital_twins" "test" {
+resource "azurerm_digital_twins_instance" "test" {
   name                = "acctest-DT-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
   tags = {
     ENV = "Stage"
   }

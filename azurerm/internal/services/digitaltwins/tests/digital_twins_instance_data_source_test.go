@@ -9,16 +9,16 @@ import (
 )
 
 func TestAccDataSourceAzureRMDigitalTwins_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_iothub_digital_twins", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_digital_twins_instance", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDigitalTwinsDestroy,
+		CheckDestroy: testCheckAzureRMDigitalTwinsInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDigitalTwins_basic(data),
+				Config: testAccDataSourceDigitalTwinsInstance_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDigitalTwinsExists(data.ResourceName),
+					testCheckAzureRMDigitalTwinsInstanceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "host_name"),
 				),
 			},
@@ -26,14 +26,14 @@ func TestAccDataSourceAzureRMDigitalTwins_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceDigitalTwins_basic(data acceptance.TestData) string {
-	config := testAccAzureRMDigitalTwins_basic(data)
+func testAccDataSourceDigitalTwinsInstance_basic(data acceptance.TestData) string {
+	config := testAccAzureRMDigitalTwinsInstance_basic(data)
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_iothub_digital_twins" "test" {
-  name                = azurerm_iothub_digital_twins.test.name
-  resource_group_name = azurerm_iothub_digital_twins.test.resource_group_name
+data "azurerm_digital_twins_instance" "test" {
+  name                = azurerm_digital_twins_instance.test.name
+  resource_group_name = azurerm_digital_twins_instance.test.resource_group_name
 }
 `, config)
 }
