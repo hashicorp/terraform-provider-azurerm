@@ -6,27 +6,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type CdnEndpointId struct {
+type EndpointId struct {
 	ResourceGroup string
 	ProfileName   string
-	Name          string
+	EndpointName  string
 }
 
-func NewCdnEndpointID(id ProfileId, name string) CdnEndpointId {
-	return CdnEndpointId{
-		ResourceGroup: id.ResourceGroup,
-		ProfileName:   id.ProfileName,
-		Name:          name,
+func NewEndpointID(resourceGroup, profileName, name string) EndpointId {
+	return EndpointId{
+		ResourceGroup: resourceGroup,
+		ProfileName:   profileName,
+		EndpointName:  name,
 	}
 }
 
-func CdnEndpointID(input string) (*CdnEndpointId, error) {
+func EndpointID(input string) (*EndpointId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse CDN Endpoint ID %q: %+v", input, err)
 	}
 
-	endpoint := CdnEndpointId{
+	endpoint := EndpointId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -34,7 +34,7 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 		return nil, err
 	}
 
-	if endpoint.Name, err = id.PopSegment("endpoints"); err != nil {
+	if endpoint.EndpointName, err = id.PopSegment("endpoints"); err != nil {
 		return nil, err
 	}
 
@@ -45,7 +45,7 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 	return &endpoint, nil
 }
 
-func (id CdnEndpointId) ID(subscriptionId string) string {
+func (id EndpointId) ID(subscriptionId string) string {
 	base := NewProfileID(id.ResourceGroup, id.ProfileName).ID(subscriptionId)
-	return fmt.Sprintf("%s/endpoints/%s", base, id.Name)
+	return fmt.Sprintf("%s/endpoints/%s", base, id.EndpointName)
 }

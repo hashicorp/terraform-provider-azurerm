@@ -6,11 +6,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = CdnEndpointId{}
+var _ resourceid.Formatter = EndpointId{}
 
 func TestCdnEndpointIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	actual := NewCdnEndpointID(NewProfileID("group1", "profile1"), "endpoint1").ID(subscriptionId)
+	actual := NewEndpointID("group1", "profile1", "endpoint1").ID(subscriptionId)
 	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Cdn/profiles/profile1/endpoints/endpoint1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
@@ -21,7 +21,7 @@ func TestCdnEndpointId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *CdnEndpointId
+		Expected *EndpointId
 	}{
 		{
 			Name:     "Empty",
@@ -61,10 +61,10 @@ func TestCdnEndpointId(t *testing.T) {
 		{
 			Name:  "CDN Endpoint ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profName1/endpoints/Endpoint1",
-			Expected: &CdnEndpointId{
+			Expected: &EndpointId{
 				ResourceGroup: "resGroup1",
 				ProfileName:   "profName1",
-				Name:          "Endpoint1",
+				EndpointName:  "Endpoint1",
 			},
 		},
 		{
@@ -77,7 +77,7 @@ func TestCdnEndpointId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := CdnEndpointID(v.Input)
+		actual, err := EndpointID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -86,8 +86,8 @@ func TestCdnEndpointId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.EndpointName != v.Expected.EndpointName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.EndpointName, actual.EndpointName)
 		}
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
