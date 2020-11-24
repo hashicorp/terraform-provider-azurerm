@@ -898,7 +898,7 @@ func TestPluginSDKReturnsComputedFields(t *testing.T) {
 }
 
 func computedFieldsResource() *schema.Resource {
-	var readFunc = func(d *schema.ResourceData, meta interface{}) error {
+	var readFunc = func(d *schema.ResourceData, _ interface{}) error {
 		d.Set("hello", "world")
 		d.Set("random_number", 42)
 		d.Set("enabled", true)
