@@ -25,23 +25,22 @@ func TestAccDataSourceVirtualWan_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDataSourceVirtualWan_basic(data acceptance.TestData) string {
 	template := testAccDataSourceVirtualWan_template(data)
 	return fmt.Sprintf(`
 %s
-	resource "azurerm_virtual_wan" "test" {
-		name = "test"
-		resource_group_name = azurerm_resource_group.test.name
-		location = azurerm_resource_group.test.location
-	}
-	
-	data "azurerm_virtual_wan" "test" {
-		name = azurerm_virtual_wan.test.name
-		resource_group_name = azurerm_virtual_wan.test.resource_group_name
-	}
+resource "azurerm_virtual_wan" "test" {
+  name                = "test"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+data "azurerm_virtual_wan" "test" {
+  name                = azurerm_virtual_wan.test.name
+  resource_group_name = azurerm_virtual_wan.test.resource_group_name
+}
 	`, template)
 }
 
