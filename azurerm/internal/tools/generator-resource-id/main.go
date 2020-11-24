@@ -112,9 +112,24 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 		}
 
 		var segmentBuilder = func(key, value string) ResourceIdSegment {
+			var toCamelCase = func(input string) string {
+				// lazy but it works
+				out := make([]rune, 0)
+				for i, char := range strings.Title(input) {
+					if i == 0 {
+						out = append(out, unicode.ToLower(char))
+						continue
+					}
+
+					out = append(out, char)
+				}
+				return string(out)
+			}
+
+			rewritten := fmt.Sprintf("%sName", key)
 			segment := ResourceIdSegment{
-				FieldName:    strings.Title(key),
-				ArgumentName: key,
+				FieldName:    strings.Title(rewritten),
+				ArgumentName: toCamelCase(rewritten),
 				SegmentKey:   key,
 				SegmentValue: value,
 			}
@@ -133,14 +148,9 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 
 			if strings.HasSuffix(key, "s") {
 				// remove {Thing}s and make that {Thing}Name
-				rewritten := fmt.Sprintf("%sName", strings.TrimSuffix(key, "s"))
+				rewritten = fmt.Sprintf("%sName", strings.TrimSuffix(key, "s"))
 				segment.FieldName = strings.Title(rewritten)
-				segment.ArgumentName = rewritten
-			} else {
-				// TODO: should we add `Name` as a suffix, always?
-				rewritten := fmt.Sprintf("%sName", key)
-				segment.FieldName = strings.Title(rewritten)
-				segment.ArgumentName = rewritten
+				segment.ArgumentName = toCamelCase(rewritten)
 			}
 
 			return segment
