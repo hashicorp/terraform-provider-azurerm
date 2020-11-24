@@ -37,7 +37,7 @@ func resourceArmCdnProfile() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnProfileID(id)
+			_, err := parse.ProfileID(id)
 			return err
 		}),
 
@@ -133,7 +133,7 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read CDN Profile %s (resource group %s) ID", name, resGroup)
 	}
 
-	id, err := parse.CdnProfileID(*read.ID)
+	id, err := parse.ProfileID(*read.ID)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -165,13 +165,13 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		Tags: tags.Expand(newTags),
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.Name, props)
+	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, props)
 	if err != nil {
-		return fmt.Errorf("Error issuing update request for CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error issuing update request for CDN Profile %q (Resource Group %q): %+v", id.ProfileName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the update of CDN Profile %q (Resource Group %q) to commplete: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for the update of CDN Profile %q (Resource Group %q) to commplete: %+v", id.ProfileName, id.ResourceGroup, err)
 	}
 
 	return resourceArmCdnProfileRead(d, meta)
@@ -182,21 +182,21 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure CDN Profile %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on Azure CDN Profile %q (Resource Group %q): %+v", id.ProfileName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.ProfileName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

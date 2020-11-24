@@ -394,18 +394,18 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		id, err := parse.EndpointID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnEndpointsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: CDN Endpoint %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: CDN Endpoint %q (resource group: %q) does not exist", id.EndpointName, id.ResourceGroup)
 		}
 
 		return nil
@@ -452,12 +452,12 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		id, err := parse.EndpointID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, id.EndpointName)
 		if err != nil {
 			return nil
 		}
