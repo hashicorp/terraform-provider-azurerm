@@ -129,14 +129,14 @@ func TestAccAzureRMAttestationProvider_update(t *testing.T) {
 }
 
 func (t AttestationProviderResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AttestationId(state.ID)
+	id, err := parse.ProviderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Attestation.ProviderClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Attestation.ProviderClient.Get(ctx, id.ResourceGroup, id.AttestationProviderName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Attestation Provider %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Attestation Provider %q (resource group: %q): %+v", id.AttestationProviderName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.StatusResult != nil), nil
