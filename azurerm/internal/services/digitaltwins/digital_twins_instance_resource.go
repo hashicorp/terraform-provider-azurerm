@@ -91,7 +91,7 @@ func resourceArmDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Digital Twins Instance %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of the Digital Twins Instance %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	_, err = client.Get(ctx, resourceGroup, name)
@@ -173,7 +173,7 @@ func resourceArmDigitalTwinsInstanceDelete(d *schema.ResourceData, meta interfac
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Digital Twins Instance %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of the Digital Twins Instance %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
