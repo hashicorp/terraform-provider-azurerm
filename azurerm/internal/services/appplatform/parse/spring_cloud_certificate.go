@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,41 @@ import (
 )
 
 type SpringCloudCertificateId struct {
-	ResourceGroup string
-	ServiceName   string
-	Name          string
+	SubscriptionId  string
+	ResourceGroup   string
+	SpringName      string
+	CertificateName string
+}
+
+func NewSpringCloudCertificateID(subscriptionId, resourceGroup, springName, certificateName string) SpringCloudCertificateId {
+	return SpringCloudCertificateId{
+		SubscriptionId:  subscriptionId,
+		ResourceGroup:   resourceGroup,
+		SpringName:      springName,
+		CertificateName: certificateName,
+	}
+}
+
+func (id SpringCloudCertificateId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppPlatform/Spring/%s/certificates/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.SpringName, id.CertificateName)
 }
 
 func SpringCloudCertificateID(input string) (*SpringCloudCertificateId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Spring Cloud Certificate ID %q: %+v", input, err)
-	}
-
-	cert := SpringCloudCertificateId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if cert.ServiceName, err = id.PopSegment("Spring"); err != nil {
 		return nil, err
 	}
 
-	if cert.Name, err = id.PopSegment("certificates"); err != nil {
+	resourceId := SpringCloudCertificateId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.SpringName, err = id.PopSegment("Spring"); err != nil {
+		return nil, err
+	}
+	if resourceId.CertificateName, err = id.PopSegment("certificates"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +51,5 @@ func SpringCloudCertificateID(input string) (*SpringCloudCertificateId, error) {
 		return nil, err
 	}
 
-	return &cert, nil
+	return &resourceId, nil
 }

@@ -114,19 +114,19 @@ func resourceArmSpringCloudCertificateRead(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName, id.CertificateName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Spring Cloud Certificate %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("service_name", id.ServiceName)
+	d.Set("service_name", id.SpringName)
 
 	return nil
 }
@@ -141,8 +141,8 @@ func resourceArmSpringCloudCertificateDelete(d *schema.ResourceData, meta interf
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.ServiceName, id.Name); err != nil {
-		return fmt.Errorf("deleting Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.Name, id.ServiceName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.SpringName, id.CertificateName); err != nil {
+		return fmt.Errorf("deleting Spring Cloud Certificate %q (Spring Cloud Service %q / Resource Group %q): %+v", id.CertificateName, id.SpringName, id.ResourceGroup, err)
 	}
 
 	return nil
