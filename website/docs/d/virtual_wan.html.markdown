@@ -70,17 +70,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 - `id` - The ID of the Virtual Wan.
 
-- `allow_branch_to_branch_traffic` - (Optional) True, if allow branch to branch traffic is allowed.
+- `allow_branch_to_branch_traffic` - Is branch to branch traffic is allowed?
 
 - `disable_vpn_encryption` - Is VPN Encryption disabled?
 
 - `location` - The Azure Region where the Virtual Wan exists.
 
-- `office365_local_breakout_category` - (Optional) Possible value are :
-    - `All`
-    - `None`
-    - `Optimize`
-    - `OptimizeAndAllow`.
+- `office365_local_breakout_category` - The Office365 Local Breakout Category.
 
 - `sku` - Type of Virtual Wan (Basic or Standard).
 

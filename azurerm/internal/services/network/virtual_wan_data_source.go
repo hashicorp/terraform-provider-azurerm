@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -35,7 +34,6 @@ func dataSourceArmVirtualWan() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-
 			"disable_vpn_encryption": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -48,26 +46,18 @@ func dataSourceArmVirtualWan() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"virtual_hubs": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
 			"virtual_hub_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{
-					Type: schema.TypeString
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
-			"vpn_sites": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
 			"vpn_site_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{
-					Type: schema.TypeString
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 			"location": azure.SchemaLocationForDataSource(),
@@ -103,32 +93,11 @@ func dataSourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	b := false
 
 	if props := resp.VirtualWanProperties; props != nil {
-		if abtbt := *props.AllowBranchToBranchTraffic; props.AllowBranchToBranchTraffic != nil {
-			if err := d.Set("allow_branch_to_branch_traffic", abtbt); err != nil {
-				return fmt.Errorf("error setting `allow_branch_to_branch_traffic`: %v", err)
-			}
-		} else {
-			if err := d.Set("allow_branch_to_branch_traffic", &b); err != nil {
-				return fmt.Errorf("error setting `allow_branch_to_branch_traffic`: %v", err)
-			}
 		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
-		if dve := *props.DisableVpnEncryption; props.DisableVpnEncryption != nil {
-			if err := d.Set("disable_vpn_encryption", dve); err != nil {
-				return fmt.Errorf("error setting `disable_vpn_encryption`: %v", err)
-			}
-		} else {
-			if err := d.Set("disable_vpn_encryption", &b); err != nil {
-				return fmt.Errorf("error setting `disable_vpn_encryption`: %v", err)
-			}
 		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
-		if err := d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory); err != nil {
-			return fmt.Errorf("error setting `office365_local_breakout_category`: %v", err)
-		}
-		if err := d.Set("sku", props.Type); err != nil {
-			return fmt.Errorf("error setting `sku`: %v", err)
+		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
 		d.Set("sku", props.Type)
 		if err := d.Set("virtual_hub_ids", flattenVirtualWanProperties(props.VirtualHubs)); err != nil {
 			return fmt.Errorf("error setting `virtual_hubs`: %v", err)
