@@ -145,20 +145,20 @@ func testCheckBatchAccountExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.BatchAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		// Ensure resource group exists in API
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on batchAccountClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Batch account %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: Batch account %q (resource group: %q) does not exist", id.BatchAccountName, id.ResourceGroup)
 		}
 
 		return nil
@@ -174,12 +174,12 @@ func testCheckBatchAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.BatchAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

@@ -8,7 +8,7 @@ func TestBatchAccountId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *BatchAccountId
+		Expected *AccountId
 	}{
 		{
 			Name:     "Empty",
@@ -38,9 +38,9 @@ func TestBatchAccountId(t *testing.T) {
 		{
 			Name:  "Batch Account ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/Account1",
-			Expected: &BatchAccountId{
-				Name:          "Account1",
-				ResourceGroup: "resGroup1",
+			Expected: &AccountId{
+				BatchAccountName: "Account1",
+				ResourceGroup:    "resGroup1",
 			},
 		},
 		{
@@ -53,7 +53,7 @@ func TestBatchAccountId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := BatchAccountID(v.Input)
+		actual, err := AccountID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -62,8 +62,8 @@ func TestBatchAccountId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.BatchAccountName != v.Expected.BatchAccountName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.BatchAccountName, actual.BatchAccountName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

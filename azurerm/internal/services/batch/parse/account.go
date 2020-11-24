@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type BatchAccountId struct {
-	ResourceGroup string
-	Name          string
+type AccountId struct {
+	ResourceGroup    string
+	BatchAccountName string
 }
 
-func BatchAccountID(input string) (*BatchAccountId, error) {
+func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Batch Account ID %q: %+v", input, err)
 	}
 
-	account := BatchAccountId{
+	account := AccountId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if account.Name, err = id.PopSegment("batchAccounts"); err != nil {
+	if account.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
 
