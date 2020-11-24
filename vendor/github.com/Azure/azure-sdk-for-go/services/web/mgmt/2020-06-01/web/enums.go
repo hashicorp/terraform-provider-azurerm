@@ -200,21 +200,23 @@ func PossibleBuildStatusValues() []BuildStatus {
 type BuiltInAuthenticationProvider string
 
 const (
-	// AzureActiveDirectory ...
-	AzureActiveDirectory BuiltInAuthenticationProvider = "AzureActiveDirectory"
-	// Facebook ...
-	Facebook BuiltInAuthenticationProvider = "Facebook"
-	// Google ...
-	Google BuiltInAuthenticationProvider = "Google"
-	// MicrosoftAccount ...
-	MicrosoftAccount BuiltInAuthenticationProvider = "MicrosoftAccount"
-	// Twitter ...
-	Twitter BuiltInAuthenticationProvider = "Twitter"
+	// BuiltInAuthenticationProviderAzureActiveDirectory ...
+	BuiltInAuthenticationProviderAzureActiveDirectory BuiltInAuthenticationProvider = "AzureActiveDirectory"
+	// BuiltInAuthenticationProviderFacebook ...
+	BuiltInAuthenticationProviderFacebook BuiltInAuthenticationProvider = "Facebook"
+	// BuiltInAuthenticationProviderGithub ...
+	BuiltInAuthenticationProviderGithub BuiltInAuthenticationProvider = "Github"
+	// BuiltInAuthenticationProviderGoogle ...
+	BuiltInAuthenticationProviderGoogle BuiltInAuthenticationProvider = "Google"
+	// BuiltInAuthenticationProviderMicrosoftAccount ...
+	BuiltInAuthenticationProviderMicrosoftAccount BuiltInAuthenticationProvider = "MicrosoftAccount"
+	// BuiltInAuthenticationProviderTwitter ...
+	BuiltInAuthenticationProviderTwitter BuiltInAuthenticationProvider = "Twitter"
 )
 
 // PossibleBuiltInAuthenticationProviderValues returns an array of possible values for the BuiltInAuthenticationProvider const type.
 func PossibleBuiltInAuthenticationProviderValues() []BuiltInAuthenticationProvider {
-	return []BuiltInAuthenticationProvider{AzureActiveDirectory, Facebook, Google, MicrosoftAccount, Twitter}
+	return []BuiltInAuthenticationProvider{BuiltInAuthenticationProviderAzureActiveDirectory, BuiltInAuthenticationProviderFacebook, BuiltInAuthenticationProviderGithub, BuiltInAuthenticationProviderGoogle, BuiltInAuthenticationProviderMicrosoftAccount, BuiltInAuthenticationProviderTwitter}
 }
 
 // CertificateOrderActionType enumerates the values for certificate order action type.
@@ -350,6 +352,34 @@ func PossibleCheckNameResourceTypesValues() []CheckNameResourceTypes {
 	return []CheckNameResourceTypes{CheckNameResourceTypesHostingEnvironment, CheckNameResourceTypesMicrosoftWebhostingEnvironments, CheckNameResourceTypesMicrosoftWebpublishingUsers, CheckNameResourceTypesMicrosoftWebsites, CheckNameResourceTypesMicrosoftWebsitesslots, CheckNameResourceTypesPublishingUser, CheckNameResourceTypesSite, CheckNameResourceTypesSlot}
 }
 
+// ClientCertMode enumerates the values for client cert mode.
+type ClientCertMode string
+
+const (
+	// Optional ...
+	Optional ClientCertMode = "Optional"
+	// Required ...
+	Required ClientCertMode = "Required"
+)
+
+// PossibleClientCertModeValues returns an array of possible values for the ClientCertMode const type.
+func PossibleClientCertModeValues() []ClientCertMode {
+	return []ClientCertMode{Optional, Required}
+}
+
+// ClientCredentialMethod enumerates the values for client credential method.
+type ClientCredentialMethod string
+
+const (
+	// ClientSecretPost ...
+	ClientSecretPost ClientCredentialMethod = "ClientSecretPost"
+)
+
+// PossibleClientCredentialMethodValues returns an array of possible values for the ClientCredentialMethod const type.
+func PossibleClientCredentialMethodValues() []ClientCredentialMethod {
+	return []ClientCredentialMethod{ClientSecretPost}
+}
+
 // CloneAbilityResult enumerates the values for clone ability result.
 type CloneAbilityResult string
 
@@ -382,32 +412,6 @@ const (
 // PossibleComputeModeOptionsValues returns an array of possible values for the ComputeModeOptions const type.
 func PossibleComputeModeOptionsValues() []ComputeModeOptions {
 	return []ComputeModeOptions{ComputeModeOptionsDedicated, ComputeModeOptionsDynamic, ComputeModeOptionsShared}
-}
-
-// ConfigReferenceLocation enumerates the values for config reference location.
-type ConfigReferenceLocation string
-
-const (
-	// ApplicationSetting ...
-	ApplicationSetting ConfigReferenceLocation = "ApplicationSetting"
-)
-
-// PossibleConfigReferenceLocationValues returns an array of possible values for the ConfigReferenceLocation const type.
-func PossibleConfigReferenceLocationValues() []ConfigReferenceLocation {
-	return []ConfigReferenceLocation{ApplicationSetting}
-}
-
-// ConfigReferenceSource enumerates the values for config reference source.
-type ConfigReferenceSource string
-
-const (
-	// KeyVault ...
-	KeyVault ConfigReferenceSource = "KeyVault"
-)
-
-// PossibleConfigReferenceSourceValues returns an array of possible values for the ConfigReferenceSource const type.
-func PossibleConfigReferenceSourceValues() []ConfigReferenceSource {
-	return []ConfigReferenceSource{KeyVault}
 }
 
 // ConnectionStringType enumerates the values for connection string type.
@@ -462,6 +466,21 @@ const (
 // PossibleContinuousWebJobStatusValues returns an array of possible values for the ContinuousWebJobStatus const type.
 func PossibleContinuousWebJobStatusValues() []ContinuousWebJobStatus {
 	return []ContinuousWebJobStatus{Initializing, PendingRestart, Running, Starting, Stopped}
+}
+
+// CookieExpirationConvention enumerates the values for cookie expiration convention.
+type CookieExpirationConvention string
+
+const (
+	// FixedTime ...
+	FixedTime CookieExpirationConvention = "FixedTime"
+	// IdentityProviderDerived ...
+	IdentityProviderDerived CookieExpirationConvention = "IdentityProviderDerived"
+)
+
+// PossibleCookieExpirationConventionValues returns an array of possible values for the CookieExpirationConvention const type.
+func PossibleCookieExpirationConventionValues() []CookieExpirationConvention {
+	return []CookieExpirationConvention{FixedTime, IdentityProviderDerived}
 }
 
 // CustomHostNameDNSRecordType enumerates the values for custom host name dns record type.
@@ -598,6 +617,23 @@ func PossibleDomainTypeValues() []DomainType {
 	return []DomainType{Regular, SoftDeleted}
 }
 
+// ForwardProxyConvention enumerates the values for forward proxy convention.
+type ForwardProxyConvention string
+
+const (
+	// ForwardProxyConventionCustom ...
+	ForwardProxyConventionCustom ForwardProxyConvention = "Custom"
+	// ForwardProxyConventionNoProxy ...
+	ForwardProxyConventionNoProxy ForwardProxyConvention = "NoProxy"
+	// ForwardProxyConventionStandard ...
+	ForwardProxyConventionStandard ForwardProxyConvention = "Standard"
+)
+
+// PossibleForwardProxyConventionValues returns an array of possible values for the ForwardProxyConvention const type.
+func PossibleForwardProxyConventionValues() []ForwardProxyConvention {
+	return []ForwardProxyConvention{ForwardProxyConventionCustom, ForwardProxyConventionNoProxy, ForwardProxyConventionStandard}
+}
+
 // FrequencyUnit enumerates the values for frequency unit.
 type FrequencyUnit string
 
@@ -694,36 +730,21 @@ func PossibleInAvailabilityReasonTypeValues() []InAvailabilityReasonType {
 	return []InAvailabilityReasonType{AlreadyExists, Invalid}
 }
 
-// InternalLoadBalancingMode enumerates the values for internal load balancing mode.
-type InternalLoadBalancingMode string
-
-const (
-	// InternalLoadBalancingModeNone ...
-	InternalLoadBalancingModeNone InternalLoadBalancingMode = "None"
-	// InternalLoadBalancingModePublishing ...
-	InternalLoadBalancingModePublishing InternalLoadBalancingMode = "Publishing"
-	// InternalLoadBalancingModeWeb ...
-	InternalLoadBalancingModeWeb InternalLoadBalancingMode = "Web"
-)
-
-// PossibleInternalLoadBalancingModeValues returns an array of possible values for the InternalLoadBalancingMode const type.
-func PossibleInternalLoadBalancingModeValues() []InternalLoadBalancingMode {
-	return []InternalLoadBalancingMode{InternalLoadBalancingModeNone, InternalLoadBalancingModePublishing, InternalLoadBalancingModeWeb}
-}
-
 // IPFilterTag enumerates the values for ip filter tag.
 type IPFilterTag string
 
 const (
 	// Default ...
 	Default IPFilterTag = "Default"
+	// ServiceTag ...
+	ServiceTag IPFilterTag = "ServiceTag"
 	// XffProxy ...
 	XffProxy IPFilterTag = "XffProxy"
 )
 
 // PossibleIPFilterTagValues returns an array of possible values for the IPFilterTag const type.
 func PossibleIPFilterTagValues() []IPFilterTag {
-	return []IPFilterTag{Default, XffProxy}
+	return []IPFilterTag{Default, ServiceTag, XffProxy}
 }
 
 // IssueType enumerates the values for issue type.
@@ -799,6 +820,25 @@ const (
 // PossibleKeyVaultSecretStatusValues returns an array of possible values for the KeyVaultSecretStatus const type.
 func PossibleKeyVaultSecretStatusValues() []KeyVaultSecretStatus {
 	return []KeyVaultSecretStatus{KeyVaultSecretStatusAzureServiceUnauthorizedToAccessKeyVault, KeyVaultSecretStatusCertificateOrderFailed, KeyVaultSecretStatusExternalPrivateKey, KeyVaultSecretStatusInitialized, KeyVaultSecretStatusKeyVaultDoesNotExist, KeyVaultSecretStatusKeyVaultSecretDoesNotExist, KeyVaultSecretStatusOperationNotPermittedOnKeyVault, KeyVaultSecretStatusSucceeded, KeyVaultSecretStatusUnknown, KeyVaultSecretStatusUnknownError, KeyVaultSecretStatusWaitingOnCertificateOrder}
+}
+
+// LoadBalancingMode enumerates the values for load balancing mode.
+type LoadBalancingMode string
+
+const (
+	// LoadBalancingModeNone ...
+	LoadBalancingModeNone LoadBalancingMode = "None"
+	// LoadBalancingModePublishing ...
+	LoadBalancingModePublishing LoadBalancingMode = "Publishing"
+	// LoadBalancingModeWeb ...
+	LoadBalancingModeWeb LoadBalancingMode = "Web"
+	// LoadBalancingModeWebPublishing ...
+	LoadBalancingModeWebPublishing LoadBalancingMode = "Web,Publishing"
+)
+
+// PossibleLoadBalancingModeValues returns an array of possible values for the LoadBalancingMode const type.
+func PossibleLoadBalancingModeValues() []LoadBalancingMode {
+	return []LoadBalancingMode{LoadBalancingModeNone, LoadBalancingModePublishing, LoadBalancingModeWeb, LoadBalancingModeWebPublishing}
 }
 
 // LogLevel enumerates the values for log level.
@@ -1042,35 +1082,6 @@ const (
 // PossibleRenderingTypeValues returns an array of possible values for the RenderingType const type.
 func PossibleRenderingTypeValues() []RenderingType {
 	return []RenderingType{NoGraph, Table, TimeSeries, TimeSeriesPerInstance}
-}
-
-// ResolveStatus enumerates the values for resolve status.
-type ResolveStatus string
-
-const (
-	// AccessToKeyVaultDenied ...
-	AccessToKeyVaultDenied ResolveStatus = "AccessToKeyVaultDenied"
-	// Initialized ...
-	Initialized ResolveStatus = "Initialized"
-	// InvalidSyntax ...
-	InvalidSyntax ResolveStatus = "InvalidSyntax"
-	// MSINotEnabled ...
-	MSINotEnabled ResolveStatus = "MSINotEnabled"
-	// OtherReasons ...
-	OtherReasons ResolveStatus = "OtherReasons"
-	// Resolved ...
-	Resolved ResolveStatus = "Resolved"
-	// SecretNotFound ...
-	SecretNotFound ResolveStatus = "SecretNotFound"
-	// SecretVersionNotFound ...
-	SecretVersionNotFound ResolveStatus = "SecretVersionNotFound"
-	// VaultNotFound ...
-	VaultNotFound ResolveStatus = "VaultNotFound"
-)
-
-// PossibleResolveStatusValues returns an array of possible values for the ResolveStatus const type.
-func PossibleResolveStatusValues() []ResolveStatus {
-	return []ResolveStatus{AccessToKeyVaultDenied, Initialized, InvalidSyntax, MSINotEnabled, OtherReasons, Resolved, SecretNotFound, SecretVersionNotFound, VaultNotFound}
 }
 
 // ResourceScopeType enumerates the values for resource scope type.
@@ -1360,6 +1371,25 @@ const (
 // PossibleUnauthenticatedClientActionValues returns an array of possible values for the UnauthenticatedClientAction const type.
 func PossibleUnauthenticatedClientActionValues() []UnauthenticatedClientAction {
 	return []UnauthenticatedClientAction{AllowAnonymous, RedirectToLoginPage}
+}
+
+// UnauthenticatedClientActionV2 enumerates the values for unauthenticated client action v2.
+type UnauthenticatedClientActionV2 string
+
+const (
+	// UnauthenticatedClientActionV2AllowAnonymous ...
+	UnauthenticatedClientActionV2AllowAnonymous UnauthenticatedClientActionV2 = "AllowAnonymous"
+	// UnauthenticatedClientActionV2RedirectToLoginPage ...
+	UnauthenticatedClientActionV2RedirectToLoginPage UnauthenticatedClientActionV2 = "RedirectToLoginPage"
+	// UnauthenticatedClientActionV2Return401 ...
+	UnauthenticatedClientActionV2Return401 UnauthenticatedClientActionV2 = "Return401"
+	// UnauthenticatedClientActionV2Return403 ...
+	UnauthenticatedClientActionV2Return403 UnauthenticatedClientActionV2 = "Return403"
+)
+
+// PossibleUnauthenticatedClientActionV2Values returns an array of possible values for the UnauthenticatedClientActionV2 const type.
+func PossibleUnauthenticatedClientActionV2Values() []UnauthenticatedClientActionV2 {
+	return []UnauthenticatedClientActionV2{UnauthenticatedClientActionV2AllowAnonymous, UnauthenticatedClientActionV2RedirectToLoginPage, UnauthenticatedClientActionV2Return401, UnauthenticatedClientActionV2Return403}
 }
 
 // UsageState enumerates the values for usage state.

@@ -4,10 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -25,7 +27,7 @@ import (
 )
 
 const (
-	InternalLoadBalancingModeWebPublishing web.InternalLoadBalancingMode = "Web, Publishing"
+	LoadBalancingModeWebPublishing web.LoadBalancingMode = "Web, Publishing"
 )
 
 func resourceArmAppServiceEnvironment() *schema.Resource {
@@ -41,10 +43,10 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 
 		// Need to find sane values for below, some operations on this resource can take an exceptionally long time
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(4 * time.Hour),
+			Create: schema.DefaultTimeout(6 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(4 * time.Hour),
-			Delete: schema.DefaultTimeout(4 * time.Hour),
+			Update: schema.DefaultTimeout(6 * time.Hour),
+			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -66,13 +68,16 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(web.InternalLoadBalancingModeNone),
+				Default:  string(web.LoadBalancingModeNone),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(web.InternalLoadBalancingModeNone),
-					string(web.InternalLoadBalancingModePublishing),
-					string(web.InternalLoadBalancingModeWeb),
-					string(InternalLoadBalancingModeWebPublishing),
+					string(web.LoadBalancingModeNone),
+					string(web.LoadBalancingModePublishing),
+					string(web.LoadBalancingModeWeb),
+					string(web.LoadBalancingModeWebPublishing),
+					// (@jackofallops) breaking change in SDK - Enum for internal_load_balancing_mode changed from Web, Publishing to Web,Publishing
+					string(LoadBalancingModeWebPublishing),
 				}, false),
+				DiffSuppressFunc: loadBalancingModeDiffSuppress,
 			},
 
 			"front_end_scale_factor": {
@@ -138,6 +143,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 
 	name := d.Get("name").(string)
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
+	internalLoadBalancingMode = strings.ReplaceAll(internalLoadBalancingMode, " ", "")
 	t := d.Get("tags").(map[string]interface{})
 	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
 	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
@@ -193,7 +199,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		AppServiceEnvironment: &web.AppServiceEnvironment{
 			Name:                      utils.String(name),
 			Location:                  utils.String(location),
-			InternalLoadBalancingMode: web.InternalLoadBalancingMode(internalLoadBalancingMode),
+			InternalLoadBalancingMode: web.LoadBalancingMode(internalLoadBalancingMode),
 			FrontEndScaleFactor:       utils.Int32(int32(frontEndScaleFactor)),
 			MultiSize:                 utils.String(convertFromIsolatedSKU(pricingTier)),
 			VirtualNetwork: &web.VirtualNetworkProfile{
@@ -214,9 +220,21 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	createWait := resource.StateChangeConf{
+		Pending: []string{
+			string(web.ProvisioningStateInProgress),
+		},
+		Target: []string{
+			string(web.ProvisioningStateSucceeded),
+		},
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Refresh:    appServiceEnvironmentRefresh(ctx, client, resourceGroup, name),
+	}
+
 	// as such we'll ignore it and use a custom poller instead
-	if err := waitForAppServiceEnvironmentToStabilize(ctx, client, resourceGroup, name); err != nil {
-		return fmt.Errorf("Error waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := createWait.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -245,7 +263,8 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("internal_load_balancing_mode") {
 		v := d.Get("internal_load_balancing_mode").(string)
-		e.AppServiceEnvironment.InternalLoadBalancingMode = web.InternalLoadBalancingMode(v)
+		v = strings.ReplaceAll(v, " ", "")
+		e.AppServiceEnvironment.InternalLoadBalancingMode = web.LoadBalancingMode(v)
 	}
 
 	if d.HasChange("front_end_scale_factor") {
@@ -270,7 +289,19 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error updating App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if err := waitForAppServiceEnvironmentToStabilize(ctx, client, id.ResourceGroup, id.Name); err != nil {
+	updateWait := resource.StateChangeConf{
+		Pending: []string{
+			string(web.ProvisioningStateInProgress),
+		},
+		Target: []string{
+			string(web.ProvisioningStateSucceeded),
+		},
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
+		Refresh:    appServiceEnvironmentRefresh(ctx, client, id.ResourceGroup, id.Name),
+	}
+
+	if _, err := updateWait.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Update of App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -366,29 +397,20 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func waitForAppServiceEnvironmentToStabilize(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) error {
-	for {
-		time.Sleep(1 * time.Minute)
-
+func appServiceEnvironmentRefresh(ctx context.Context, client *web.AppServiceEnvironmentsClient, resourceGroup string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
 		read, err := client.Get(ctx, resourceGroup, name)
+
 		if err != nil {
-			return err
+			return "", "", err
 		}
 
 		if read.AppServiceEnvironment == nil {
-			return fmt.Errorf("`properties` was nil")
+			return "", "", fmt.Errorf("`properties` was nil")
 		}
 
 		state := read.AppServiceEnvironment.ProvisioningState
-		if state == web.ProvisioningStateSucceeded {
-			return nil
-		}
-
-		if state == web.ProvisioningStateInProgress {
-			continue
-		}
-
-		return fmt.Errorf("Unexpected ProvisioningState: %q", state)
+		return state, string(state), nil
 	}
 }
 
@@ -415,4 +437,8 @@ func convertToIsolatedSKU(vmSKU string) (isolated string) {
 		isolated = "I3"
 	}
 	return isolated
+}
+
+func loadBalancingModeDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
+	return strings.ReplaceAll(old, " ", "") == strings.ReplaceAll(new, " ", "")
 }
