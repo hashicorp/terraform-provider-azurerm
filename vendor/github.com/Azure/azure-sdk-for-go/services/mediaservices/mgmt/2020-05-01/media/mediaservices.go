@@ -86,7 +86,7 @@ func (client MediaservicesClient) CreateOrUpdatePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -163,7 +163,7 @@ func (client MediaservicesClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -187,7 +187,7 @@ func (client MediaservicesClient) DeleteSender(req *http.Request) (*http.Respons
 func (client MediaservicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -237,7 +237,7 @@ func (client MediaservicesClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -271,7 +271,7 @@ func (client MediaservicesClient) GetResponder(resp *http.Response) (result Serv
 // GetBySubscription get the details of a Media Services account
 // Parameters:
 // accountName - the Media Services account name.
-func (client MediaservicesClient) GetBySubscription(ctx context.Context, accountName string) (result SubscriptionMediaService, err error) {
+func (client MediaservicesClient) GetBySubscription(ctx context.Context, accountName string) (result Service, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/MediaservicesClient.GetBySubscription")
 		defer func() {
@@ -310,7 +310,7 @@ func (client MediaservicesClient) GetBySubscriptionPreparer(ctx context.Context,
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -331,7 +331,7 @@ func (client MediaservicesClient) GetBySubscriptionSender(req *http.Request) (*h
 
 // GetBySubscriptionResponder handles the response to the GetBySubscription request. The method always
 // closes the http.Response Body.
-func (client MediaservicesClient) GetBySubscriptionResponder(resp *http.Response) (result SubscriptionMediaService, err error) {
+func (client MediaservicesClient) GetBySubscriptionResponder(resp *http.Response) (result Service, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -387,7 +387,7 @@ func (client MediaservicesClient) ListPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -456,13 +456,13 @@ func (client MediaservicesClient) ListComplete(ctx context.Context, resourceGrou
 }
 
 // ListBySubscription list Media Services accounts in the subscription.
-func (client MediaservicesClient) ListBySubscription(ctx context.Context) (result SubscriptionMediaServiceCollectionPage, err error) {
+func (client MediaservicesClient) ListBySubscription(ctx context.Context) (result ServiceCollectionPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/MediaservicesClient.ListBySubscription")
 		defer func() {
 			sc := -1
-			if result.smsc.Response.Response != nil {
-				sc = result.smsc.Response.Response.StatusCode
+			if result.sc.Response.Response != nil {
+				sc = result.sc.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -476,16 +476,16 @@ func (client MediaservicesClient) ListBySubscription(ctx context.Context) (resul
 
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
-		result.smsc.Response = autorest.Response{Response: resp}
+		result.sc.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result.smsc, err = client.ListBySubscriptionResponder(resp)
+	result.sc, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "media.MediaservicesClient", "ListBySubscription", resp, "Failure responding to request")
 	}
-	if result.smsc.hasNextLink() && result.smsc.IsEmpty() {
+	if result.sc.hasNextLink() && result.sc.IsEmpty() {
 		err = result.NextWithContext(ctx)
 	}
 
@@ -498,7 +498,7 @@ func (client MediaservicesClient) ListBySubscriptionPreparer(ctx context.Context
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -519,7 +519,7 @@ func (client MediaservicesClient) ListBySubscriptionSender(req *http.Request) (*
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
-func (client MediaservicesClient) ListBySubscriptionResponder(resp *http.Response) (result SubscriptionMediaServiceCollection, err error) {
+func (client MediaservicesClient) ListBySubscriptionResponder(resp *http.Response) (result ServiceCollection, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -530,8 +530,8 @@ func (client MediaservicesClient) ListBySubscriptionResponder(resp *http.Respons
 }
 
 // listBySubscriptionNextResults retrieves the next set of results, if any.
-func (client MediaservicesClient) listBySubscriptionNextResults(ctx context.Context, lastResults SubscriptionMediaServiceCollection) (result SubscriptionMediaServiceCollection, err error) {
-	req, err := lastResults.subscriptionMediaServiceCollectionPreparer(ctx)
+func (client MediaservicesClient) listBySubscriptionNextResults(ctx context.Context, lastResults ServiceCollection) (result ServiceCollection, err error) {
+	req, err := lastResults.serviceCollectionPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "media.MediaservicesClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
 	}
@@ -551,7 +551,7 @@ func (client MediaservicesClient) listBySubscriptionNextResults(ctx context.Cont
 }
 
 // ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
-func (client MediaservicesClient) ListBySubscriptionComplete(ctx context.Context) (result SubscriptionMediaServiceCollectionIterator, err error) {
+func (client MediaservicesClient) ListBySubscriptionComplete(ctx context.Context) (result ServiceCollectionIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/MediaservicesClient.ListBySubscription")
 		defer func() {
@@ -611,7 +611,7 @@ func (client MediaservicesClient) ListEdgePoliciesPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -689,7 +689,7 @@ func (client MediaservicesClient) SyncStorageKeysPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -766,7 +766,7 @@ func (client MediaservicesClient) UpdatePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

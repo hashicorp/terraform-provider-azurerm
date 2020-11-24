@@ -43,12 +43,12 @@ func NewStreamingEndpointsClientWithBaseURI(baseURI string, subscriptionID strin
 	return StreamingEndpointsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create creates a StreamingEndpoint.
+// Create creates a streaming endpoint.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// streamingEndpointName - the name of the StreamingEndpoint.
-// parameters - streamingEndpoint properties needed for creation.
+// streamingEndpointName - the name of the streaming endpoint, maximum length is 24.
+// parameters - streaming endpoint properties needed for creation.
 // autoStart - the flag indicates if the resource should be automatically started on creation.
 func (client StreamingEndpointsClient) Create(ctx context.Context, resourceGroupName string, accountName string, streamingEndpointName string, parameters StreamingEndpoint, autoStart *bool) (result StreamingEndpointsCreateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -96,7 +96,7 @@ func (client StreamingEndpointsClient) CreatePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -131,18 +131,18 @@ func (client StreamingEndpointsClient) CreateSender(req *http.Request) (future S
 func (client StreamingEndpointsClient) CreateResponder(resp *http.Response) (result StreamingEndpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// Delete deletes a StreamingEndpoint.
+// Delete deletes a streaming endpoint.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// streamingEndpointName - the name of the StreamingEndpoint.
+// streamingEndpointName - the name of the streaming endpoint, maximum length is 24.
 func (client StreamingEndpointsClient) Delete(ctx context.Context, resourceGroupName string, accountName string, streamingEndpointName string) (result StreamingEndpointsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Delete")
@@ -186,7 +186,7 @@ func (client StreamingEndpointsClient) DeletePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -222,11 +222,11 @@ func (client StreamingEndpointsClient) DeleteResponder(resp *http.Response) (res
 	return
 }
 
-// Get gets a StreamingEndpoint.
+// Get gets a streaming endpoint.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// streamingEndpointName - the name of the StreamingEndpoint.
+// streamingEndpointName - the name of the streaming endpoint, maximum length is 24.
 func (client StreamingEndpointsClient) Get(ctx context.Context, resourceGroupName string, accountName string, streamingEndpointName string) (result StreamingEndpoint, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Get")
@@ -276,7 +276,7 @@ func (client StreamingEndpointsClient) GetPreparer(ctx context.Context, resource
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -307,7 +307,7 @@ func (client StreamingEndpointsClient) GetResponder(resp *http.Response) (result
 	return
 }
 
-// List lists the StreamingEndpoints in the account.
+// List lists the streaming endpoints in the account.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
@@ -355,7 +355,7 @@ func (client StreamingEndpointsClient) ListPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -423,12 +423,12 @@ func (client StreamingEndpointsClient) ListComplete(ctx context.Context, resourc
 	return
 }
 
-// Scale scales an existing StreamingEndpoint.
+// Scale scales an existing streaming endpoint.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// streamingEndpointName - the name of the StreamingEndpoint.
-// parameters - streamingEndpoint scale parameters
+// streamingEndpointName - the name of the streaming endpoint, maximum length is 24.
+// parameters - streaming endpoint scale parameters
 func (client StreamingEndpointsClient) Scale(ctx context.Context, resourceGroupName string, accountName string, streamingEndpointName string, parameters StreamingEntityScaleUnit) (result StreamingEndpointsScaleFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Scale")
@@ -472,7 +472,7 @@ func (client StreamingEndpointsClient) ScalePreparer(ctx context.Context, resour
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -510,11 +510,11 @@ func (client StreamingEndpointsClient) ScaleResponder(resp *http.Response) (resu
 	return
 }
 
-// Start starts an existing StreamingEndpoint.
+// Start starts an existing streaming endpoint.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// streamingEndpointName - the name of the StreamingEndpoint.
+// streamingEndpointName - the name of the streaming endpoint, maximum length is 24.
 func (client StreamingEndpointsClient) Start(ctx context.Context, resourceGroupName string, accountName string, streamingEndpointName string) (result StreamingEndpointsStartFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Start")
@@ -558,7 +558,7 @@ func (client StreamingEndpointsClient) StartPreparer(ctx context.Context, resour
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -594,11 +594,11 @@ func (client StreamingEndpointsClient) StartResponder(resp *http.Response) (resu
 	return
 }
 
-// Stop stops an existing StreamingEndpoint.
+// Stop stops an existing streaming endpoint.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// streamingEndpointName - the name of the StreamingEndpoint.
+// streamingEndpointName - the name of the streaming endpoint, maximum length is 24.
 func (client StreamingEndpointsClient) Stop(ctx context.Context, resourceGroupName string, accountName string, streamingEndpointName string) (result StreamingEndpointsStopFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Stop")
@@ -642,7 +642,7 @@ func (client StreamingEndpointsClient) StopPreparer(ctx context.Context, resourc
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -678,12 +678,12 @@ func (client StreamingEndpointsClient) StopResponder(resp *http.Response) (resul
 	return
 }
 
-// Update updates a existing StreamingEndpoint.
+// Update updates a existing streaming endpoint.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// streamingEndpointName - the name of the StreamingEndpoint.
-// parameters - streamingEndpoint properties needed for creation.
+// streamingEndpointName - the name of the streaming endpoint, maximum length is 24.
+// parameters - streaming endpoint properties needed for creation.
 func (client StreamingEndpointsClient) Update(ctx context.Context, resourceGroupName string, accountName string, streamingEndpointName string, parameters StreamingEndpoint) (result StreamingEndpointsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StreamingEndpointsClient.Update")
@@ -727,7 +727,7 @@ func (client StreamingEndpointsClient) UpdatePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -6,13 +6,15 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
+	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2020-05-01/media"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -72,9 +74,45 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 				},
 			},
 
-			// TODO: support Tags when this bug is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/5249
-			// "tags": tags.Schema(),
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"type": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+					},
+				},
+			},
+
+			"storage_authentication": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"ManagedIdentity",
+				}, true),
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -86,6 +124,7 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 
 	accountName := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
@@ -99,6 +138,17 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 			StorageAccounts: storageAccounts,
 		},
 		Location: utils.String(location),
+		Tags:     tags.Expand(t),
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		mediaServiceIdentity := expandAzureRmMediaServiceIdentity(d)
+		parameters.Identity = mediaServiceIdentity
+	}
+
+	if _, ok := d.GetOk("storage_authentication"); ok {
+		storageAuthentication := d.Get("storage_authentication").(string)
+		parameters.StorageAuthentication = media.StorageAuthentication(storageAuthentication)
 	}
 
 	if _, e := client.CreateOrUpdate(ctx, resourceGroup, accountName, parameters); e != nil {
@@ -148,10 +198,16 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	// TODO: support Tags when this bug is fixed:
-	// https://github.com/Azure/azure-rest-api-specs/issues/5249
-	// return tags.FlattenAndSet(d, resp.Tags)
-	return nil
+	identity := flattenAzureRmMediaServicedentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return fmt.Errorf("Error flattening `identity`: %s", err)
+	}
+
+	if storageAuthentication := resp.StorageAuthentication; storageAuthentication != "" {
+		d.Set("storage_authentication", storageAuthentication)
+	}
+
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
@@ -224,4 +280,30 @@ func flattenMediaServicesAccountStorageAccounts(input *[]media.StorageAccount) [
 	}
 
 	return results
+}
+
+func expandAzureRmMediaServiceIdentity(d *schema.ResourceData) *media.ServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &media.ServiceIdentity{
+		Type: media.ManagedIdentityType(identityType),
+	}
+}
+
+func flattenAzureRmMediaServicedentity(identity *media.ServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }

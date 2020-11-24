@@ -42,12 +42,12 @@ func NewLiveOutputsClientWithBaseURI(baseURI string, subscriptionID string) Live
 	return LiveOutputsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create creates a Live Output.
+// Create creates a new live output.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
-// liveOutputName - the name of the Live Output.
+// liveEventName - the name of the live event, maximum length is 32.
+// liveOutputName - the name of the live output.
 // parameters - live Output properties needed for creation.
 func (client LiveOutputsClient) Create(ctx context.Context, resourceGroupName string, accountName string, liveEventName string, liveOutputName string, parameters LiveOutput) (result LiveOutputsCreateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -102,7 +102,7 @@ func (client LiveOutputsClient) CreatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -134,19 +134,19 @@ func (client LiveOutputsClient) CreateSender(req *http.Request) (future LiveOutp
 func (client LiveOutputsClient) CreateResponder(resp *http.Response) (result LiveOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// Delete deletes a Live Output.
+// Delete deletes a live output. Deleting a live output does not delete the asset the live output is writing to.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
-// liveOutputName - the name of the Live Output.
+// liveEventName - the name of the live event, maximum length is 32.
+// liveOutputName - the name of the live output.
 func (client LiveOutputsClient) Delete(ctx context.Context, resourceGroupName string, accountName string, liveEventName string, liveOutputName string) (result LiveOutputsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LiveOutputsClient.Delete")
@@ -195,7 +195,7 @@ func (client LiveOutputsClient) DeletePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -231,12 +231,12 @@ func (client LiveOutputsClient) DeleteResponder(resp *http.Response) (result aut
 	return
 }
 
-// Get gets a Live Output.
+// Get gets a live output.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
-// liveOutputName - the name of the Live Output.
+// liveEventName - the name of the live event, maximum length is 32.
+// liveOutputName - the name of the live output.
 func (client LiveOutputsClient) Get(ctx context.Context, resourceGroupName string, accountName string, liveEventName string, liveOutputName string) (result LiveOutput, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LiveOutputsClient.Get")
@@ -291,7 +291,7 @@ func (client LiveOutputsClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -322,11 +322,11 @@ func (client LiveOutputsClient) GetResponder(resp *http.Response) (result LiveOu
 	return
 }
 
-// List lists the Live Outputs in the Live Event.
+// List lists the live outputs of a live event.
 // Parameters:
 // resourceGroupName - the name of the resource group within the Azure subscription.
 // accountName - the Media Services account name.
-// liveEventName - the name of the Live Event.
+// liveEventName - the name of the live event, maximum length is 32.
 func (client LiveOutputsClient) List(ctx context.Context, resourceGroupName string, accountName string, liveEventName string) (result LiveOutputListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LiveOutputsClient.List")
@@ -380,7 +380,7 @@ func (client LiveOutputsClient) ListPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
