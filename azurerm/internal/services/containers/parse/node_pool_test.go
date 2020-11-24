@@ -7,7 +7,7 @@ import (
 func TestKubernetesNodePoolID(t *testing.T) {
 	testData := []struct {
 		input    string
-		expected *KubernetesNodePoolId
+		expected *NodePoolId
 	}{
 		{
 			input:    "",
@@ -39,10 +39,10 @@ func TestKubernetesNodePoolID(t *testing.T) {
 		},
 		{
 			input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/hello/managedClusters/cluster1/agentPools/pool1",
-			expected: &KubernetesNodePoolId{
-				Name:          "pool1",
-				ClusterName:   "cluster1",
-				ResourceGroup: "hello",
+			expected: &NodePoolId{
+				AgentPoolName:      "pool1",
+				ManagedClusterName: "cluster1",
+				ResourceGroup:      "hello",
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func TestKubernetesNodePoolID(t *testing.T) {
 
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
-		actual, err := KubernetesNodePoolID(v.input)
+		actual, err := NodePoolID(v.input)
 
 		// if we get something there shouldn't be an error
 		if v.expected != nil && err == nil {
@@ -80,8 +80,8 @@ func TestKubernetesNodePoolID(t *testing.T) {
 		if v.expected.ResourceGroup != actual.ResourceGroup {
 			t.Fatalf("Expected ResourceGroup to be %q but got %q", v.expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if v.expected.Name != actual.Name {
-			t.Fatalf("Expected Name to be %q but got %q", v.expected.Name, actual.Name)
+		if v.expected.AgentPoolName != actual.AgentPoolName {
+			t.Fatalf("Expected Name to be %q but got %q", v.expected.AgentPoolName, actual.AgentPoolName)
 		}
 	}
 }

@@ -4,27 +4,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type KubernetesNodePoolId struct {
-	Name          string
-	ClusterName   string
-	ResourceGroup string
+type NodePoolId struct {
+	ResourceGroup      string
+	ManagedClusterName string
+	AgentPoolName      string
 }
 
-func KubernetesNodePoolID(input string) (*KubernetesNodePoolId, error) {
+func NodePoolID(input string) (*NodePoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	pool := KubernetesNodePoolId{
+	pool := NodePoolId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if pool.ClusterName, err = id.PopSegment("managedClusters"); err != nil {
+	if pool.ManagedClusterName, err = id.PopSegment("managedClusters"); err != nil {
 		return nil, err
 	}
 
-	if pool.Name, err = id.PopSegment("agentPools"); err != nil {
+	if pool.AgentPoolName, err = id.PopSegment("agentPools"); err != nil {
 		return nil, err
 	}
 

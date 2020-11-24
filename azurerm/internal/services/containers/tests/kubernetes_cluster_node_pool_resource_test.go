@@ -862,12 +862,12 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 			continue
 		}
 
-		parsedK8sId, err := parse.KubernetesNodePoolID(rs.Primary.ID)
+		parsedK8sId, err := parse.NodePoolID(rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Error parsing kubernetes node pool id: %+v", err)
 		}
 
-		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ClusterName, parsedK8sId.Name)
+		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ManagedClusterName, parsedK8sId.AgentPoolName)
 		if err != nil {
 			return nil
 		}
