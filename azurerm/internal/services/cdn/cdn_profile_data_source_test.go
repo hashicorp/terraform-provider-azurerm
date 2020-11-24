@@ -1,4 +1,4 @@
-package tests
+package cdn_test
 
 import (
 	"fmt"
@@ -6,48 +6,43 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 )
+
+type CdnProfileDataSource struct{}
 
 func TestAccDataSourceAzureRMCdnProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_profile", "test")
+	d := CdnProfileDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMCdnProfile_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists("data.azurerm_cdn_profile.test"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: d.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku").HasValue("Standard_Verizon"),
+			),
 		},
 	})
 }
 
 func TestAccDataSourceAzureRMCdnProfile_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_profile", "test")
+	d := CdnProfileDataSource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceAzureRMCdnProfile_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnProfileExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.cost_center", "MSFT"),
-				),
-			},
+	data.DataSourceTest(t, []resource.TestStep{
+		{
+			Config: d.withTags(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sku").HasValue("Standard_Verizon"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+				check.That(data.ResourceName).Key("tags.cost_center").HasValue("MSFT"),
+			),
 		},
 	})
 }
 
-func testAccDataSourceAzureRMCdnProfile_basic(data acceptance.TestData) string {
+func (d CdnProfileDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -72,7 +67,7 @@ data "azurerm_cdn_profile" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccDataSourceAzureRMCdnProfile_withTags(data acceptance.TestData) string {
+func (d CdnProfileDataSource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
