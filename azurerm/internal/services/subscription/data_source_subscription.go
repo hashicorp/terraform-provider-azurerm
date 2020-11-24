@@ -88,11 +88,7 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location_placement_id", resp.SubscriptionPolicies.LocationPlacementID)
 		d.Set("quota_id", resp.SubscriptionPolicies.QuotaID)
 		d.Set("spending_limit", resp.SubscriptionPolicies.SpendingLimit)
-	}
+	}	
 
-	if resp.Tags != nil {
-		d.Set("tags", res.Tags)
-	}
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

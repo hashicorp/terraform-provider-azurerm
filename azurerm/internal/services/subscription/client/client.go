@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/harshavmb/subscription"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-11-01/subscriptions"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
