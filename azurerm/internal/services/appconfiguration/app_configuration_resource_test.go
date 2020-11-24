@@ -146,14 +146,14 @@ func TestAccAppConfigurationResource_update(t *testing.T) {
 }
 
 func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AppConfigurationID(state.ID)
+	id, err := parse.ConfigurationStoreID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.AppConfiguration.AppConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.AppConfiguration.AppConfigurationsClient.Get(ctx, id.ResourceGroup, id.ConfigurationStoreName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving App Configuration %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving App Configuration %q (resource group: %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ConfigurationStoreProperties != nil), nil
