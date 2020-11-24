@@ -8,7 +8,7 @@ func TestAutomationConnectionID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AutomationConnectionId
+		Expected *ConnectionId
 	}{
 		{
 			Name:     "Empty",
@@ -38,10 +38,10 @@ func TestAutomationConnectionID(t *testing.T) {
 		{
 			Name:  "Automation Connection ID",
 			Input: "/subscriptions/85b3dbca-5974-4067-9669-67a141095a76/resourceGroups/resGroup1/providers/Microsoft.Automation/automationAccounts/account1/connections/conn1",
-			Expected: &AutomationConnectionId{
-				AccountName:   "account1",
-				Name:          "conn1",
-				ResourceGroup: "resGroup1",
+			Expected: &ConnectionId{
+				AutomationAccountName: "account1",
+				ConnectionName:        "conn1",
+				ResourceGroup:         "resGroup1",
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func TestAutomationConnectionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := AutomationConnectionID(v.Input)
+		actual, err := ConnectionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -63,12 +63,12 @@ func TestAutomationConnectionID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.AccountName != v.Expected.AccountName {
-			t.Fatalf("Expected %q but got %q for AccountName", v.Expected.AccountName, actual.AccountName)
+		if actual.AutomationAccountName != v.Expected.AutomationAccountName {
+			t.Fatalf("Expected %q but got %q for AccountName", v.Expected.AutomationAccountName, actual.AutomationAccountName)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.ConnectionName != v.Expected.ConnectionName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.ConnectionName, actual.ConnectionName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

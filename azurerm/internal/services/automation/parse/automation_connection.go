@@ -6,27 +6,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AutomationConnectionId struct {
-	ResourceGroup string
-	AccountName   string
-	Name          string
+type ConnectionId struct {
+	ResourceGroup         string
+	AutomationAccountName string
+	ConnectionName        string
 }
 
-func AutomationConnectionID(input string) (*AutomationConnectionId, error) {
+func ConnectionID(input string) (*ConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Automation Connection ID %q: %+v", input, err)
 	}
 
-	connection := AutomationConnectionId{
+	connection := ConnectionId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if connection.AccountName, err = id.PopSegment("automationAccounts"); err != nil {
+	if connection.AutomationAccountName, err = id.PopSegment("automationAccounts"); err != nil {
 		return nil, err
 	}
 
-	if connection.Name, err = id.PopSegment("connections"); err != nil {
+	if connection.ConnectionName, err = id.PopSegment("connections"); err != nil {
 		return nil, err
 	}
 
