@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestPluginSDKAndDecoder(t *testing.T) {
+func TestAccPluginSDKAndDecoder(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type NestedType struct {
@@ -60,6 +60,7 @@ func TestPluginSDKAndDecoder(t *testing.T) {
 		},
 	}
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]terraform.ResourceProviderFactory{
 			"validator": func() (terraform.ResourceProvider, error) {
@@ -211,7 +212,7 @@ func TestPluginSDKAndDecoder(t *testing.T) {
 	})
 }
 
-func TestPluginSDKAndDecoderOptionalComputed(t *testing.T) {
+func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type MyType struct {
@@ -259,6 +260,7 @@ func TestPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 		}
 	}
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]terraform.ResourceProviderFactory{
 			"validator": func() (terraform.ResourceProvider, error) {
@@ -332,7 +334,7 @@ resource "validator_decoder_unspecified" "test" {}
 	})
 }
 
-func TestPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
+func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type MyType struct {
@@ -342,6 +344,7 @@ func TestPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 		// TODO: do we need other field types, or is this sufficient?
 	}
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]terraform.ResourceProviderFactory{
 			"validator": func() (terraform.ResourceProvider, error) {
@@ -435,7 +438,7 @@ resource "validator_decoder_override" "test" {
 	})
 }
 
-func TestPluginSDKAndDecoderSets(t *testing.T) {
+func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type MyType struct {
@@ -447,6 +450,7 @@ func TestPluginSDKAndDecoderSets(t *testing.T) {
 		// so we should be covered via this test alone
 	}
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]terraform.ResourceProviderFactory{
 			"validator": func() (terraform.ResourceProvider, error) {
@@ -614,7 +618,7 @@ func TestPluginSDKAndDecoderSets(t *testing.T) {
 	})
 }
 
-func TestPluginSDKAndEncoder(t *testing.T) {
+func TestAccPluginSDKAndEncoder(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	type NestedType struct {
@@ -639,6 +643,7 @@ func TestPluginSDKAndEncoder(t *testing.T) {
 		SetOfFloats   []float64          `tfschema:"set_of_floats"`
 	}
 
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]terraform.ResourceProviderFactory{
 			"validator": func() (terraform.ResourceProvider, error) {
@@ -850,10 +855,11 @@ func TestPluginSDKAndEncoder(t *testing.T) {
 	})
 }
 
-func TestPluginSDKReturnsComputedFields(t *testing.T) {
+func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
 	os.Setenv("TF_ACC", "1")
 
 	resourceName := "validator_computed.test"
+	// lintignore:AT001
 	resource.ParallelTest(t, resource.TestCase{
 		ProviderFactories: map[string]terraform.ResourceProviderFactory{
 			"validator": func() (terraform.ResourceProvider, error) {
