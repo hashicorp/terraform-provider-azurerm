@@ -80,7 +80,7 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 			),
 		},
 		{
-			Config: r.            nonStandardCasing(data),
+			Config:             r.nonStandardCasing(data),
 			PlanOnly:           true,
 			ExpectNonEmptyPlan: false,
 		},
