@@ -1445,8 +1445,8 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	appGWSkuTier := d.Get("sku.0.tier").(string)
 	wafFileUploadLimit := d.Get("waf_configuration.0.file_upload_limit_mb").(int)
 
-	if appGWSkuTier != "WAF_v2" && wafFileUploadLimit > 500 {
-		return fmt.Errorf("Only SKU `WAF_v2` allows `file_upload_limit_mb` to exceed 500MB")
+	if appGWSkuTier != string(network.WAFV2) && wafFileUploadLimit > 500 {
+		return fmt.Errorf("Only SKU `%s` allows `file_upload_limit_mb` to exceed 500MB", network.WAFV2)
 	}
 
 	if v, ok := d.GetOk("firewall_policy_id"); ok {

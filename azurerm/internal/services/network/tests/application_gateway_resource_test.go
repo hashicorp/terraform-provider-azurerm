@@ -867,7 +867,7 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall_exclusions(t *testi
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.rule_set_version", "3.0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.request_body_check", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.max_request_body_size_kb", "128"),
-					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.file_upload_limit_mb", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.file_upload_limit_mb", "750"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.exclusion.0.match_variable", "RequestArgNames"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.exclusion.0.selector_match_operator", "Equals"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.exclusion.0.selector", "displayNameHtml"),
@@ -898,7 +898,7 @@ func TestAccAzureRMApplicationGateway_webApplicationFirewall_exclusions(t *testi
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.rule_set_version", "3.0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.request_body_check", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.max_request_body_size_kb", "128"),
-					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.file_upload_limit_mb", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.file_upload_limit_mb", "750"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.exclusion.0.match_variable", "RequestArgNames"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.exclusion.0.selector_match_operator", "Equals"),
 					resource.TestCheckResourceAttr(data.ResourceName, "waf_configuration.0.exclusion.0.selector", "displayNameHtml"),
@@ -4661,7 +4661,7 @@ resource "azurerm_application_gateway" "test" {
     rule_set_version         = "3.0"
     request_body_check       = true
     max_request_body_size_kb = 128
-    file_upload_limit_mb     = 100
+    file_upload_limit_mb     = 750
 
     exclusion {
       match_variable          = "RequestArgNames"
@@ -4777,7 +4777,7 @@ resource "azurerm_application_gateway" "test" {
     rule_set_version         = "3.0"
     request_body_check       = true
     max_request_body_size_kb = 128
-    file_upload_limit_mb     = 100
+    file_upload_limit_mb     = 750
 
     exclusion {
       match_variable          = "RequestArgNames"
