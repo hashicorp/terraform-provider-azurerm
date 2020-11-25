@@ -8,7 +8,7 @@ func TestDnsTxtRecordId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DnsTxtRecordId
+		Expected *TxtRecordId
 	}{
 		{
 			Name:     "Empty",
@@ -48,10 +48,10 @@ func TestDnsTxtRecordId(t *testing.T) {
 		{
 			Name:  "DNS TXT Record ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/dnszones/zone1/TXT/myrecord1",
-			Expected: &DnsTxtRecordId{
+			Expected: &TxtRecordId{
 				ResourceGroup: "resGroup1",
-				ZoneName:      "zone1",
-				Name:          "myrecord1",
+				DnsZoneName:   "zone1",
+				TXTName:       "myrecord1",
 			},
 		},
 		{
@@ -64,7 +64,7 @@ func TestDnsTxtRecordId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := DnsTxtRecordID(v.Input)
+		actual, err := TxtRecordID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -73,11 +73,11 @@ func TestDnsTxtRecordId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.TXTName != v.Expected.TXTName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.TXTName, actual.TXTName)
 		}
-		if actual.ZoneName != v.Expected.ZoneName {
-			t.Fatalf("Expected %q but got %q for ZoneName", v.Expected.ZoneName, actual.ZoneName)
+		if actual.DnsZoneName != v.Expected.DnsZoneName {
+			t.Fatalf("Expected %q but got %q for ZoneName", v.Expected.DnsZoneName, actual.DnsZoneName)
 		}
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
