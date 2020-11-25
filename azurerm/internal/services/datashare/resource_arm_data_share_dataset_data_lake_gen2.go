@@ -32,7 +32,7 @@ func resourceArmDataShareDataSetDataLakeGen2() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DataShareDataSetID(id)
+			_, err := parse.DataSetID(id)
 			return err
 		}),
 
@@ -95,7 +95,7 @@ func resourceArmDataShareDataSetDataLakeGen2Create(d *schema.ResourceData, meta 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	shareId, err := parse.DataShareID(d.Get("share_id").(string))
+	shareId, err := parse.ShareID(d.Get("share_id").(string))
 	if err != nil {
 		return err
 	}
@@ -176,7 +176,7 @@ func resourceArmDataShareDataSetDataLakeGen2Read(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -236,7 +236,7 @@ func resourceArmDataShareDataSetDataLakeGen2Delete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}

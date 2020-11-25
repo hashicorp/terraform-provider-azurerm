@@ -6,20 +6,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DataShareDataSetId struct {
+type DataSetId struct {
 	ResourceGroup string
 	AccountName   string
 	ShareName     string
 	Name          string
 }
 
-func DataShareDataSetID(input string) (*DataShareDataSetId, error) {
+func DataSetID(input string) (*DataSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse DataShareDataSet ID %q: %+v", input, err)
 	}
 
-	dataShareDataSet := DataShareDataSetId{
+	dataShareDataSet := DataSetId{
 		ResourceGroup: id.ResourceGroup,
 	}
 	if dataShareDataSet.AccountName, err = id.PopSegment("accounts"); err != nil {

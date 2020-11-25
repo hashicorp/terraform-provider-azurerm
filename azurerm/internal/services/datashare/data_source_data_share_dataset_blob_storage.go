@@ -87,7 +87,7 @@ func dataSourceArmDataShareDatasetBlobStorageRead(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	shareID := d.Get("data_share_id").(string)
-	shareId, err := parse.DataShareID(shareID)
+	shareId, err := parse.ShareID(shareID)
 	if err != nil {
 		return err
 	}

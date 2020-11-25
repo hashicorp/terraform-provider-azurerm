@@ -6,32 +6,32 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DataShareId struct {
+type ShareId struct {
 	ResourceGroup string
 	AccountName   string
 	Name          string
 }
 
-func (id DataShareId) ID(subscriptionId string) string {
+func (id ShareId) ID(subscriptionId string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s"
 	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.AccountName, id.Name)
 }
 
-func NewDataShareId(resourceGroup, accountName, name string) DataShareId {
-	return DataShareId{
+func NewShareId(resourceGroup, accountName, name string) ShareId {
+	return ShareId{
 		ResourceGroup: resourceGroup,
 		AccountName:   accountName,
 		Name:          name,
 	}
 }
 
-func DataShareID(input string) (*DataShareId, error) {
+func ShareID(input string) (*ShareId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse DataShare ID %q: %+v", input, err)
 	}
 
-	DataShare := DataShareId{
+	DataShare := ShareId{
 		ResourceGroup: id.ResourceGroup,
 	}
 	if DataShare.AccountName, err = id.PopSegment("accounts"); err != nil {

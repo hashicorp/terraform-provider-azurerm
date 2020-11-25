@@ -8,7 +8,7 @@ func TestDataShareAccountID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DataShareAccountId
+		Expected *AccountId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestDataShareAccountID(t *testing.T) {
 		{
 			Name:  "Datashare account ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1",
-			Expected: &DataShareAccountId{
+			Expected: &AccountId{
 				Name:          "account1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestDataShareAccountID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := DataShareAccountID(v.Input)
+		actual, err := AccountID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -75,7 +75,7 @@ func TestDataShareID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DataShareId
+		Expected *ShareId
 	}{
 		{
 			Name:     "Empty",
@@ -115,7 +115,7 @@ func TestDataShareID(t *testing.T) {
 		{
 			Name:  "Data Share ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1/shares/share1",
-			Expected: &DataShareId{
+			Expected: &ShareId{
 				Name:          "share1",
 				AccountName:   "account1",
 				ResourceGroup: "resGroup1",
@@ -131,7 +131,7 @@ func TestDataShareID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := DataShareID(v.Input)
+		actual, err := ShareID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -157,7 +157,7 @@ func TestDataShareDataSetID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DataShareDataSetId
+		Expected *DataSetId
 	}{
 		{
 			Name:     "Empty",
@@ -207,7 +207,7 @@ func TestDataShareDataSetID(t *testing.T) {
 		{
 			Name:  "DataSet ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataShare/accounts/account1/shares/share1/dataSets/dataSet1",
-			Expected: &DataShareDataSetId{
+			Expected: &DataSetId{
 				Name:          "dataSet1",
 				AccountName:   "account1",
 				ResourceGroup: "resGroup1",
@@ -224,7 +224,7 @@ func TestDataShareDataSetID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := DataShareDataSetID(v.Input)
+		actual, err := DataSetID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

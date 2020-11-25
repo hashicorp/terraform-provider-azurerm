@@ -83,7 +83,7 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 	defer cancel()
 
 	name := d.Get("name").(string)
-	accountId, err := parse.DataShareAccountID(d.Get("account_id").(string))
+	accountId, err := parse.AccountID(d.Get("account_id").(string))
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving DataShare %q (Account %q / Resource Group %q): %+v", name, accountId.Name, accountId.ResourceGroup, err)
 	}
 
-	dataShareId := parse.NewDataShareId(accountId.ResourceGroup, accountId.Name, name).ID(subscriptionId)
+	dataShareId := parse.NewShareId(accountId.ResourceGroup, accountId.Name, name).ID(subscriptionId)
 	d.SetId(dataShareId)
 
 	d.Set("name", name)
