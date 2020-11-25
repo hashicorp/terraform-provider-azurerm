@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,41 @@ import (
 )
 
 type SrvRecordId struct {
-	ResourceGroup string
-	DnszoneName   string
-	SRVName       string
+	SubscriptionId string
+	ResourceGroup  string
+	DnszoneName    string
+	SRVName        string
+}
+
+func NewSrvRecordID(subscriptionId, resourceGroup, dnszoneName, sRVName string) SrvRecordId {
+	return SrvRecordId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		DnszoneName:    dnszoneName,
+		SRVName:        sRVName,
+	}
+}
+
+func (id SrvRecordId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s/SRV/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.SRVName)
 }
 
 func SrvRecordID(input string) (*SrvRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse DNS SRV Record ID %q: %+v", input, err)
-	}
-
-	record := SrvRecordId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if record.DnszoneName, err = id.PopSegment("dnszones"); err != nil {
 		return nil, err
 	}
 
-	if record.SRVName, err = id.PopSegment("SRV"); err != nil {
+	resourceId := SrvRecordId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.DnszoneName, err = id.PopSegment("dnszones"); err != nil {
+		return nil, err
+	}
+	if resourceId.SRVName, err = id.PopSegment("SRV"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +51,5 @@ func SrvRecordID(input string) (*SrvRecordId, error) {
 		return nil, err
 	}
 
-	return &record, nil
+	return &resourceId, nil
 }
