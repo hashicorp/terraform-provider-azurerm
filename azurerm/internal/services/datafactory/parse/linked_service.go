@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,28 +9,47 @@ import (
 )
 
 type LinkedServiceId struct {
-	ResourceGroup string
-	FactoryName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	FactoryName    string
+	Name           string
+}
+
+func NewLinkedServiceID(subscriptionId, resourceGroup, factoryName, name string) LinkedServiceId {
+	return LinkedServiceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		FactoryName:    factoryName,
+		Name:           name,
+	}
+}
+
+func (id LinkedServiceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataFactory/factories/%s/linkedservices/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
 }
 
 func LinkedServiceID(input string) (*LinkedServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Data Factory Linked Service ID %q: %+v", input, err)
-	}
-
-	dataFactoryIntegrationRuntime := LinkedServiceId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if dataFactoryIntegrationRuntime.FactoryName, err = id.PopSegment("factories"); err != nil {
 		return nil, err
 	}
 
-	if dataFactoryIntegrationRuntime.Name, err = id.PopSegment("linkedservices"); err != nil {
+	resourceId := LinkedServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.FactoryName, err = id.PopSegment("factories"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("linkedservices"); err != nil {
 		return nil, err
 	}
 
-	return &dataFactoryIntegrationRuntime, nil
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }
