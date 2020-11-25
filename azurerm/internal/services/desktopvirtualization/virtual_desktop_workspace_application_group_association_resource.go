@@ -93,7 +93,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 
 	applicationGroupIdStr := applicationGroupId.ID(subscriptionId)
 	if associationExists(workspace.WorkspaceProperties, applicationGroupIdStr) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId.ID(subscriptionId))
+		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId.ID(""))
 	}
 	applicationGroupAssociations = append(applicationGroupAssociations, applicationGroupIdStr)
 
@@ -103,7 +103,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 		return fmt.Errorf("creating association between Virtual Desktop Workspace %q (Resource Group %q) and Application Group %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, applicationGroupId.Name, applicationGroupId.ResourceGroup, err)
 	}
 
-	d.SetId(associationId.ID(subscriptionId))
+	d.SetId(associationId.ID(""))
 	return resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d, meta)
 }
 
