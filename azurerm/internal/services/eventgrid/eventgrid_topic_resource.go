@@ -35,7 +35,7 @@ func resourceArmEventGridTopic() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.EventGridTopicID(id)
+			_, err := parse.TopicID(id)
 			return err
 		}),
 
@@ -222,7 +222,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridTopicID(d.Id())
+	id, err := parse.TopicID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -285,7 +285,7 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.EventGridTopicID(d.Id())
+	id, err := parse.TopicID(d.Id())
 	if err != nil {
 		return err
 	}
