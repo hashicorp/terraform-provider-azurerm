@@ -56,9 +56,10 @@ func TestMaintenanceAssignmentDedicatedHostID(t *testing.T) {
 			Expect: &MaintenanceAssignmentDedicatedHostId{
 				DedicatedHostIdRaw: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/hostGroups/group1/hosts/host1",
 				DedicatedHostId: &parseCompute.DedicatedHostId{
-					ResourceGroup: "resGroup1",
-					HostGroupName: "group1",
-					HostName:      "host1",
+					SubscriptionId: "00000000-0000-0000-0000-000000000000",
+					ResourceGroup:  "resGroup1",
+					HostGroupName:  "group1",
+					HostName:       "host1",
 				},
 				Name: "assign1",
 			},
