@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type ScheduleId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewScheduleID(subscriptionId, resourceGroup, name string) ScheduleId {
+	return ScheduleId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ScheduleId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/schedules/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ScheduleID(input string) (*ScheduleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Global Schedule ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	service := ScheduleId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ScheduleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if service.Name, err = id.PopSegment("schedules"); err != nil {
+	if resourceId.Name, err = id.PopSegment("schedules"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func ScheduleID(input string) (*ScheduleId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }
