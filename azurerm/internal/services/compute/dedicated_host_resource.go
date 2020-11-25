@@ -115,7 +115,7 @@ func resourceArmDedicatedHostCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	resourceGroupName := dedicatedHostGroupId.ResourceGroup
-	hostGroupName := dedicatedHostGroupId.Name
+	hostGroupName := dedicatedHostGroupId.HostGroupName
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, hostGroupName, name, "")
