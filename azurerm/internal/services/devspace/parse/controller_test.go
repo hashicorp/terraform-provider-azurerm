@@ -8,7 +8,7 @@ func TestDevSpaceControllerId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DevSpaceControllerId
+		Expected *ControllerId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestDevSpaceControllerId(t *testing.T) {
 		{
 			Name:  "DevSpace Controller ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DevSpaces/controllers/Controller1",
-			Expected: &DevSpaceControllerId{
+			Expected: &ControllerId{
 				Name:          "Controller1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestDevSpaceControllerId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := DevSpaceControllerID(v.Input)
+		actual, err := ControllerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
