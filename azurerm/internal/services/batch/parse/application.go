@@ -12,21 +12,21 @@ type ApplicationId struct {
 	SubscriptionId   string
 	ResourceGroup    string
 	BatchAccountName string
-	ApplicationName  string
+	Name             string
 }
 
-func NewApplicationID(subscriptionId, resourceGroup, batchAccountName, applicationName string) ApplicationId {
+func NewApplicationID(subscriptionId, resourceGroup, batchAccountName, name string) ApplicationId {
 	return ApplicationId{
 		SubscriptionId:   subscriptionId,
 		ResourceGroup:    resourceGroup,
 		BatchAccountName: batchAccountName,
-		ApplicationName:  applicationName,
+		Name:             name,
 	}
 }
 
 func (id ApplicationId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Batch/batchAccounts/%s/applications/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.ApplicationName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }
 
 func ApplicationID(input string) (*ApplicationId, error) {
@@ -43,7 +43,7 @@ func ApplicationID(input string) (*ApplicationId, error) {
 	if resourceId.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
-	if resourceId.ApplicationName, err = id.PopSegment("applications"); err != nil {
+	if resourceId.Name, err = id.PopSegment("applications"); err != nil {
 		return nil, err
 	}
 

@@ -56,13 +56,13 @@ func TestConfigurationStoreID(t *testing.T) {
 		},
 
 		{
-			// missing ConfigurationStoreName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AppConfiguration/",
 			Error: true,
 		},
 
 		{
-			// missing value for ConfigurationStoreName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AppConfiguration/configurationStores/",
 			Error: true,
 		},
@@ -71,9 +71,9 @@ func TestConfigurationStoreID(t *testing.T) {
 			// valid
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.AppConfiguration/configurationStores/store1",
 			Expected: &ConfigurationStoreId{
-				SubscriptionId:         "12345678-1234-9876-4563-123456789012",
-				ResourceGroup:          "group1",
-				ConfigurationStoreName: "store1",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "group1",
+				Name:           "store1",
 			},
 		},
 
@@ -105,8 +105,8 @@ func TestConfigurationStoreID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.ConfigurationStoreName != v.Expected.ConfigurationStoreName {
-			t.Fatalf("Expected %q but got %q for ConfigurationStoreName", v.Expected.ConfigurationStoreName, actual.ConfigurationStoreName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

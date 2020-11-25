@@ -103,9 +103,9 @@ func (t AppInsightsWebTestsResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	resp, err := clients.AppInsights.WebTestsClient.Get(ctx, id.ResourceGroup, id.WebtestName)
+	resp, err := clients.AppInsights.WebTestsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights '%q' (resource group: '%q') does not exist", id.ResourceGroup, id.WebtestName)
+		return nil, fmt.Errorf("retrieving Application Insights '%q' (resource group: '%q') does not exist", id.ResourceGroup, id.Name)
 	}
 
 	return utils.Bool(resp.WebTestProperties != nil), nil

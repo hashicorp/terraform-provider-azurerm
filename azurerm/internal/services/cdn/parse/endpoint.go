@@ -12,21 +12,21 @@ type EndpointId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	ProfileName    string
-	EndpointName   string
+	Name           string
 }
 
-func NewEndpointID(subscriptionId, resourceGroup, profileName, endpointName string) EndpointId {
+func NewEndpointID(subscriptionId, resourceGroup, profileName, name string) EndpointId {
 	return EndpointId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		ProfileName:    profileName,
-		EndpointName:   endpointName,
+		Name:           name,
 	}
 }
 
 func (id EndpointId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s/endpoints/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.EndpointName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.Name)
 }
 
 func EndpointID(input string) (*EndpointId, error) {
@@ -43,7 +43,7 @@ func EndpointID(input string) (*EndpointId, error) {
 	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
 		return nil, err
 	}
-	if resourceId.EndpointName, err = id.PopSegment("endpoints"); err != nil {
+	if resourceId.Name, err = id.PopSegment("endpoints"); err != nil {
 		return nil, err
 	}
 

@@ -232,7 +232,7 @@ func testCheckBatchCertificateDestroy(s *terraform.State) error {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.CertificateName)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

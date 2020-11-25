@@ -9,22 +9,22 @@ import (
 )
 
 type ConfigurationStoreId struct {
-	SubscriptionId         string
-	ResourceGroup          string
-	ConfigurationStoreName string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewConfigurationStoreID(subscriptionId, resourceGroup, configurationStoreName string) ConfigurationStoreId {
+func NewConfigurationStoreID(subscriptionId, resourceGroup, name string) ConfigurationStoreId {
 	return ConfigurationStoreId{
-		SubscriptionId:         subscriptionId,
-		ResourceGroup:          resourceGroup,
-		ConfigurationStoreName: configurationStoreName,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
 func (id ConfigurationStoreId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AppConfiguration/configurationStores/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ConfigurationStoreName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
@@ -38,7 +38,7 @@ func ConfigurationStoreID(input string) (*ConfigurationStoreId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.ConfigurationStoreName, err = id.PopSegment("configurationStores"); err != nil {
+	if resourceId.Name, err = id.PopSegment("configurationStores"); err != nil {
 		return nil, err
 	}
 

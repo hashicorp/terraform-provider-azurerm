@@ -151,9 +151,9 @@ func (t AppConfigurationResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.AppConfiguration.AppConfigurationsClient.Get(ctx, id.ResourceGroup, id.ConfigurationStoreName)
+	resp, err := clients.AppConfiguration.AppConfigurationsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving App Configuration %q (resource group: %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving App Configuration %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ConfigurationStoreProperties != nil), nil
