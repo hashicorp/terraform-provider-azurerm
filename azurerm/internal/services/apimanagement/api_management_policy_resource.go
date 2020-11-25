@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -73,18 +72,11 @@ func resourceArmApiManagementPolicyCreateUpdate(d *schema.ResourceData, meta int
 	resourceGroup := id.ResourceGroup
 	serviceName := id.ServiceName
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.PolicyExportFormatXML)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Policy (API Management Service %q / Resource Group %q): %s", serviceName, resourceGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_api_management_policy", *existing.ID)
-		}
-	}
+	/*
+		Other resources would have a check for d.IsNewResource() at this location, and would error out using `tf.ImportAsExistsError` if the resource already existed.
+		However, this is a sub-resource, and the API always returns a policy when queried, either a default policy or one configured by the user or by this resource.
+		Instead of the usual check, the resource documentation clearly states that any existing policy will be overwritten if the resource is used.
+	*/
 
 	parameters := apimanagement.PolicyContract{}
 
