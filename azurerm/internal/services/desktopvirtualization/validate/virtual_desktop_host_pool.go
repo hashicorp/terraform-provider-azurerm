@@ -13,7 +13,7 @@ func VirtualDesktopHostPoolID(i interface{}, k string) (warnings []string, error
 		return
 	}
 
-	if _, err := parse.VirtualDesktopHostPoolID(v); err != nil {
+	if _, err := parse.HostPoolID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

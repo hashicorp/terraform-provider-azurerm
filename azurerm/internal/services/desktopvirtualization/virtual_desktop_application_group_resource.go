@@ -38,7 +38,7 @@ func resourceArmVirtualDesktopApplicationGroup() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualDesktopApplicationGroupID(id)
+			_, err := parse.ApplicationGroupID(id)
 			return err
 		}),
 
@@ -108,7 +108,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualDesktopApplicationGroupId(resourceGroup, name)
+	id := parse.NewApplicationGroupID(subscriptionId, resourceGroup, name)
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -118,7 +118,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 		}
 
 		if existing.ApplicationGroupProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", id.ID(subscriptionId))
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", id.ID(""))
 		}
 	}
 
@@ -140,7 +140,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 		return fmt.Errorf("creating Virtual Desktop Application Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id.ID(""))
 
 	return resourceArmVirtualDesktopApplicationGroupRead(d, meta)
 }
@@ -151,7 +151,7 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopApplicationGroupID(d.Id())
+	id, err := parse.ApplicationGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 
 		hostPoolIdStr := ""
 		if props.HostPoolArmPath != nil {
-			hostPoolId, err := parse.VirtualDesktopHostPoolID(*props.HostPoolArmPath)
+			hostPoolId, err := parse.HostPoolID(*props.HostPoolArmPath)
 			if err != nil {
 				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)
 			}
@@ -197,7 +197,7 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 func resourceArmVirtualDesktopApplicationGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.ApplicationGroupsClient
 
-	id, err := parse.VirtualDesktopApplicationGroupID(d.Id())
+	id, err := parse.ApplicationGroupID(d.Id())
 	if err != nil {
 		return err
 	}
