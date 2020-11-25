@@ -31,7 +31,7 @@ func resourceArmDnsNsRecord() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsNsRecordID(id)
+			_, err := parse.NsRecordID(id)
 			return err
 		}),
 
@@ -180,7 +180,7 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsNsRecordID(d.Id())
+	id, err := parse.NsRecordID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsNsRecordID(d.Id())
+	id, err := parse.NsRecordID(d.Id())
 	if err != nil {
 		return err
 	}

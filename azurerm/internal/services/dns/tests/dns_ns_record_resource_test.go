@@ -119,7 +119,7 @@ func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DnsNsRecordID(rs.Primary.ID)
+		id, err := parse.NsRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -146,7 +146,7 @@ func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DnsNsRecordID(rs.Primary.ID)
+		id, err := parse.NsRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
