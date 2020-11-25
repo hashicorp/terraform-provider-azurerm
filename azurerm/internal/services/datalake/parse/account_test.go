@@ -6,7 +6,7 @@ func TestDataLakeStoreID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DataLakeStoreId
+		Expected *AccountId
 	}{
 		{
 			Name:     "Empty",
@@ -36,10 +36,10 @@ func TestDataLakeStoreID(t *testing.T) {
 		{
 			Name:  "Data lake account ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DataLakeStore/accounts/account1",
-			Expected: &DataLakeStoreId{
-				Name:          "account1",
-				ResourceGroup: "resGroup1",
-				Subscription:  "00000000-0000-0000-0000-000000000000",
+			Expected: &AccountId{
+				Name:           "account1",
+				ResourceGroup:  "resGroup1",
+				SubscriptionId: "00000000-0000-0000-0000-000000000000",
 			},
 		},
 		{
@@ -52,7 +52,7 @@ func TestDataLakeStoreID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := DataLakeStoreID(v.Input)
+		actual, err := AccountID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -60,8 +60,8 @@ func TestDataLakeStoreID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Subscription != v.Expected.Subscription {
-			t.Fatalf("Expected %q but got %q for Subscription", v.Expected.Subscription, actual.Subscription)
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for Subscription", v.Expected.SubscriptionId, actual.SubscriptionId)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

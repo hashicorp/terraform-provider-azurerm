@@ -70,7 +70,7 @@ func DatalakeStoreID(i interface{}, k string) (warnings []string, errors []error
 		return warnings, errors
 	}
 
-	if _, err := dataLakeParse.DataLakeStoreID(v); err != nil {
+	if _, err := dataLakeParse.AccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Data Lake Store id: %v", k, err))
 	}
 

@@ -102,7 +102,7 @@ func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen1", *existingId)
 	}
 
-	dataLakeStoreId, err := dataLakeParse.DataLakeStoreID(d.Get("data_lake_store_id").(string))
+	dataLakeStoreId, err := dataLakeParse.AccountID(d.Get("data_lake_store_id").(string))
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta 
 			ADLSGen1FileProperties: &datashare.ADLSGen1FileProperties{
 				AccountName:    utils.String(dataLakeStoreId.Name),
 				ResourceGroup:  utils.String(dataLakeStoreId.ResourceGroup),
-				SubscriptionID: utils.String(dataLakeStoreId.Subscription),
+				SubscriptionID: utils.String(dataLakeStoreId.SubscriptionId),
 				FolderPath:     utils.String(d.Get("folder_path").(string)),
 				FileName:       utils.String(fileName.(string)),
 			},
@@ -126,7 +126,7 @@ func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta 
 			ADLSGen1FolderProperties: &datashare.ADLSGen1FolderProperties{
 				AccountName:    utils.String(dataLakeStoreId.Name),
 				ResourceGroup:  utils.String(dataLakeStoreId.ResourceGroup),
-				SubscriptionID: utils.String(dataLakeStoreId.Subscription),
+				SubscriptionID: utils.String(dataLakeStoreId.SubscriptionId),
 				FolderPath:     utils.String(d.Get("folder_path").(string)),
 			},
 		}
