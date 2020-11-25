@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,33 +9,36 @@ import (
 )
 
 type ApplicationGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewApplicationGroupId(resourceGroup, name string) ApplicationGroupId {
+func NewApplicationGroupID(subscriptionId, resourceGroup, name string) ApplicationGroupId {
 	return ApplicationGroupId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id ApplicationGroupId) ID(subscriptionId string) string {
+func (id ApplicationGroupId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/applicationgroups/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ApplicationGroupID(input string) (*ApplicationGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Desktop Application Group ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	applicationGroup := ApplicationGroupId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ApplicationGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if applicationGroup.Name, err = id.PopSegment("applicationgroups"); err != nil {
+	if resourceId.Name, err = id.PopSegment("applicationgroups"); err != nil {
 		return nil, err
 	}
 
@@ -41,5 +46,5 @@ func ApplicationGroupID(input string) (*ApplicationGroupId, error) {
 		return nil, err
 	}
 
-	return &applicationGroup, nil
+	return &resourceId, nil
 }

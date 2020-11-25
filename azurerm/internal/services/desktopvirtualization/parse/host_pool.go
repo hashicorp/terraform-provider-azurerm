@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,33 +9,36 @@ import (
 )
 
 type HostPoolId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id HostPoolId) ID(subscriptionId string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/hostpools/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewHostPoolId(resourceGroup, name string) HostPoolId {
+func NewHostPoolID(subscriptionId, resourceGroup, name string) HostPoolId {
 	return HostPoolId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
+}
+
+func (id HostPoolId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/hostpools/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func HostPoolID(input string) (*HostPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Desktop Host Pool ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	hostPool := HostPoolId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := HostPoolId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if hostPool.Name, err = id.PopSegment("hostpools"); err != nil {
+	if resourceId.Name, err = id.PopSegment("hostpools"); err != nil {
 		return nil, err
 	}
 
@@ -41,5 +46,5 @@ func HostPoolID(input string) (*HostPoolId, error) {
 		return nil, err
 	}
 
-	return &hostPool, nil
+	return &resourceId, nil
 }
