@@ -151,11 +151,11 @@ A `ipsec_policy` block supports the following:
 
 ---
 
-A `radius_server` (**Deprecated) Use it to configure single Radius Server. The block supports the following:
+A `radius_server` (**Deprecated**) block is Used to configure single Radius Server. The block supports the following:
 
 * `address` - (Required) The Address of the Radius Server.
 
-* `secret` - (Required) The Secret used to communicate with the Radius Server. Us
+* `secret` - (Required) The Secret used to communicate with the Radius Server.
 
 * `client_root_certificate` - (Optional) One or more `client_root_certificate` blocks as defined above.
 
@@ -163,7 +163,7 @@ A `radius_server` (**Deprecated) Use it to configure single Radius Server. The b
 
 ---
 
-A `radius` The block is used to configure single Radius Server. The block supports the following:
+A `radius` block supports the following:
 
 * `server` - (Required) One or more `server` blocks as defined below.
 
@@ -173,13 +173,13 @@ A `radius` The block is used to configure single Radius Server. The block suppor
 
 ---
 
-A `server` block supports the following:
+A `server` nested within the `radius` block supports the following::
 
 * `address` - (Required) The Address of the Radius Server.
 
 * `secret` - (Required) The Secret used to communicate with the Radius Server.
 
-* `score` - (Required) The score of the Radius Server determines the priority of the server. Ranges from 1 to 30.
+* `score` - (Required) The Score of the Radius Server determines the priority of the server. Ranges from 1 to 30.
 
 ---
 

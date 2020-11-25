@@ -311,13 +311,13 @@ func resourceArmVPNServerConfiguration() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"address": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"secret": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
 						},
@@ -416,7 +416,7 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 	if len(radiusRaw) == 0 {
 		radiusRaw = d.Get("radius_server").([]interface{})
 	}
-	radiusServer := expandVpnServerConfigurationRadius(radiusRaw)
+	radius := expandVpnServerConfigurationRadius(radiusRaw)
 
 	vpnProtocolsRaw := d.Get("vpn_protocols").(*schema.Set).List()
 	vpnProtocols := expandVpnServerConfigurationVPNProtocols(vpnProtocolsRaw)
@@ -466,19 +466,19 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	if supportsRadius {
-		if radiusServer == nil {
-			return fmt.Errorf("`radius_server` must be specified when `vpn_authentication_type` is set to `Radius`")
+		if radius == nil {
+			return fmt.Errorf("`radius` must be specified when `vpn_authentication_type` is set to `Radius`")
 		}
 
-		if radiusServer.servers != nil && len(*radiusServer.servers) != 0 {
-			props.RadiusServers = radiusServer.servers
+		if radius.servers != nil && len(*radius.servers) != 0 {
+			props.RadiusServers = radius.servers
 		}
 
-		props.RadiusServerAddress = utils.String(radiusServer.address)
-		props.RadiusServerSecret = utils.String(radiusServer.secret)
+		props.RadiusServerAddress = utils.String(radius.address)
+		props.RadiusServerSecret = utils.String(radius.secret)
 
-		props.RadiusClientRootCertificates = radiusServer.clientRootCertificates
-		props.RadiusServerRootCertificates = radiusServer.serverRootCertificates
+		props.RadiusClientRootCertificates = radius.clientRootCertificates
+		props.RadiusServerRootCertificates = radius.serverRootCertificates
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -557,14 +557,14 @@ func resourceArmVPNServerConfigurationRead(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
 		}
 
-		flattenedRadiusServer := flattenVpnServerConfigurationRadius(props)
-		if len(flattenedRadiusServer) > 0 {
-			if flattenedRadiusServer[0].(map[string]interface{})["server"] != nil {
-				if err := d.Set("radius", flattenedRadiusServer); err != nil {
+		flattenedRadius := flattenVpnServerConfigurationRadius(props)
+		if len(flattenedRadius) > 0 {
+			if flattenedRadius[0].(map[string]interface{})["server"] != nil {
+				if err := d.Set("radius", flattenedRadius); err != nil {
 					return fmt.Errorf("Error setting `radius`: %+v", err)
 				}
 			} else {
-				if err := d.Set("radius_server", flattenedRadiusServer); err != nil {
+				if err := d.Set("radius_server", flattenedRadius); err != nil {
 					return fmt.Errorf("Error setting `radius_server`: %+v", err)
 				}
 			}
@@ -784,7 +784,7 @@ func flattenVpnServerConfigurationIPSecPolicies(input *[]network.IpsecPolicy) []
 	return output
 }
 
-type vpnServerConfigurationRadiusServer struct {
+type vpnServerConfigurationRadius struct {
 	address                string
 	secret                 string
 	servers                *[]network.RadiusServer
@@ -792,7 +792,7 @@ type vpnServerConfigurationRadiusServer struct {
 	serverRootCertificates *[]network.VpnServerConfigRadiusServerRootCertificate
 }
 
-func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigurationRadiusServer {
+func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigurationRadius {
 	if len(input) == 0 {
 		return nil
 	}
@@ -838,7 +838,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 		secret = val["secret"].(string)
 	}
 
-	return &vpnServerConfigurationRadiusServer{
+	return &vpnServerConfigurationRadius{
 		address:                address,
 		secret:                 secret,
 		servers:                &radiusServers,
@@ -936,11 +936,6 @@ func flattenVpnServerConfigurationRadius(input *network.VpnServerConfigurationPr
 
 	return []interface{}{
 		schema,
-		//map[string]interface{}{
-		//	"client_root_certificate": clientRootCertificates,
-		//	"server_root_certificate": serverRootCertificates,
-		//	"server":                  servers,
-		//},
 	}
 }
 
