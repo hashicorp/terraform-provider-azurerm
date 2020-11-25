@@ -56,13 +56,13 @@ func TestSharedImageVersionID(t *testing.T) {
 		},
 
 		{
-			// missing GalleriesName
+			// missing GalleryName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/",
 			Error: true,
 		},
 
 		{
-			// missing value for GalleriesName
+			// missing value for GalleryName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/",
 			Error: true,
 		},
@@ -97,7 +97,7 @@ func TestSharedImageVersionID(t *testing.T) {
 			Expected: &SharedImageVersionId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				GalleriesName:  "gallery1",
+				GalleryName:    "gallery1",
 				ImageName:      "image1",
 				VersionName:    "version1",
 			},
@@ -131,8 +131,8 @@ func TestSharedImageVersionID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.GalleriesName != v.Expected.GalleriesName {
-			t.Fatalf("Expected %q but got %q for GalleriesName", v.Expected.GalleriesName, actual.GalleriesName)
+		if actual.GalleryName != v.Expected.GalleryName {
+			t.Fatalf("Expected %q but got %q for GalleryName", v.Expected.GalleryName, actual.GalleryName)
 		}
 		if actual.ImageName != v.Expected.ImageName {
 			t.Fatalf("Expected %q but got %q for ImageName", v.Expected.ImageName, actual.ImageName)

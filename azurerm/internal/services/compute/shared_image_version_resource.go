@@ -209,19 +209,19 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleriesName, id.ImageName, id.VersionName, compute.ReplicationStatusTypesReplicationStatus)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName, compute.ReplicationStatusTypesReplicationStatus)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Shared Image Version %q (Image %q / Gallery %q / Resource Group %q) was not found - removing from state", id.VersionName, id.ImageName, id.GalleriesName, id.ResourceGroup)
+			log.Printf("[DEBUG] Shared Image Version %q (Image %q / Gallery %q / Resource Group %q) was not found - removing from state", id.VersionName, id.ImageName, id.GalleryName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleriesName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("image_name", id.ImageName)
-	d.Set("gallery_name", id.GalleriesName)
+	d.Set("gallery_name", id.GalleryName)
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
@@ -263,18 +263,18 @@ func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleriesName, id.ImageName, id.VersionName)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleriesName, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleryName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleriesName, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", id.VersionName, id.ImageName, id.GalleryName, id.ResourceGroup, err)
 		}
 	}
 

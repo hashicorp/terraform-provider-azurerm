@@ -11,16 +11,16 @@ import (
 type SharedImageVersionId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	GalleriesName  string
+	GalleryName    string
 	ImageName      string
 	VersionName    string
 }
 
-func NewSharedImageVersionID(subscriptionId, resourceGroup, galleriesName, imageName, versionName string) SharedImageVersionId {
+func NewSharedImageVersionID(subscriptionId, resourceGroup, galleryName, imageName, versionName string) SharedImageVersionId {
 	return SharedImageVersionId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		GalleriesName:  galleriesName,
+		GalleryName:    galleryName,
 		ImageName:      imageName,
 		VersionName:    versionName,
 	}
@@ -28,7 +28,7 @@ func NewSharedImageVersionID(subscriptionId, resourceGroup, galleriesName, image
 
 func (id SharedImageVersionId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/galleries/%s/images/%s/versions/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleriesName, id.ImageName, id.VersionName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleryName, id.ImageName, id.VersionName)
 }
 
 func SharedImageVersionID(input string) (*SharedImageVersionId, error) {
@@ -42,7 +42,7 @@ func SharedImageVersionID(input string) (*SharedImageVersionId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.GalleriesName, err = id.PopSegment("galleries"); err != nil {
+	if resourceId.GalleryName, err = id.PopSegment("galleries"); err != nil {
 		return nil, err
 	}
 	if resourceId.ImageName, err = id.PopSegment("images"); err != nil {
