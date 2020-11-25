@@ -154,9 +154,9 @@ func (t AppInsightsResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, err
 	}
 
-	resp, err := clients.AppInsights.ComponentsClient.Get(ctx, id.ResourceGroup, id.ComponentName)
+	resp, err := clients.AppInsights.ComponentsClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Application Insights %q (resource group: %q) does not exist", id.ComponentName, id.ResourceGroup)
+		return nil, fmt.Errorf("retrieving Application Insights %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.ApplicationInsightsComponentProperties != nil), nil

@@ -56,13 +56,13 @@ func TestWebTestID(t *testing.T) {
 		},
 
 		{
-			// missing WebtestName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/",
 			Error: true,
 		},
 
 		{
-			// missing value for WebtestName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/webtests/",
 			Error: true,
 		},
@@ -73,7 +73,7 @@ func TestWebTestID(t *testing.T) {
 			Expected: &WebTestId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
-				WebtestName:    "test1",
+				Name:           "test1",
 			},
 		},
 
@@ -105,8 +105,8 @@ func TestWebTestID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.WebtestName != v.Expected.WebtestName {
-			t.Fatalf("Expected %q but got %q for WebtestName", v.Expected.WebtestName, actual.WebtestName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

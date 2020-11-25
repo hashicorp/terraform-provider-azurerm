@@ -233,21 +233,21 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights '%s'", id)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ComponentName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", id.ComponentName, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", id.Name, err)
 	}
 
-	billingResp, err := billingClient.Get(ctx, id.ResourceGroup, id.ComponentName)
+	billingResp, err := billingClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.ComponentName, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights Billing Feature '%s': %+v", id.Name, err)
 	}
 
-	d.Set("name", id.ComponentName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -283,14 +283,14 @@ func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights %q (resource group %q)", id.ComponentName, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting AzureRM Application Insights %q (resource group %q)", id.Name, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ComponentName)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights %q: %+v", id.ComponentName, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights %q: %+v", id.Name, err)
 	}
 
 	return err

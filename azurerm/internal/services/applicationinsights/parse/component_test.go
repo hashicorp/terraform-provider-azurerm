@@ -56,13 +56,13 @@ func TestComponentID(t *testing.T) {
 		},
 
 		{
-			// missing ComponentName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/",
 			Error: true,
 		},
 
 		{
-			// missing value for ComponentName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/microsoft.insights/components/",
 			Error: true,
 		},
@@ -73,7 +73,7 @@ func TestComponentID(t *testing.T) {
 			Expected: &ComponentId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
-				ComponentName:  "component1",
+				Name:           "component1",
 			},
 		},
 
@@ -105,8 +105,8 @@ func TestComponentID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.ComponentName != v.Expected.ComponentName {
-			t.Fatalf("Expected %q but got %q for ComponentName", v.Expected.ComponentName, actual.ComponentName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

@@ -218,14 +218,14 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 
 	log.Printf("[DEBUG] Reading AzureRM Application Insights WebTests %q", id)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WebtestName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Application Insights WebTest %q was not found in Resource Group %q - removing from state!", id.WebtestName, id.ResourceGroup)
+			log.Printf("[DEBUG] Application Insights WebTest %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Application Insights WebTests %q (Resource Group %q): %+v", id.WebtestName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Application Insights WebTests %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	appInsightsId := ""
@@ -235,7 +235,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		}
 	}
 	d.Set("application_insights_id", appInsightsId)
-	d.Set("name", id.WebtestName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("kind", resp.Kind)
 
@@ -277,14 +277,14 @@ func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta i
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting AzureRM Application Insights WebTest '%s' (resource group '%s')", id.WebtestName, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting AzureRM Application Insights WebTest '%s' (resource group '%s')", id.Name, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.WebtestName)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights WebTest '%s': %+v", id.WebtestName, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights WebTest '%s': %+v", id.Name, err)
 	}
 
 	return err
