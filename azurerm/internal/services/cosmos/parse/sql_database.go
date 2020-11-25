@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,28 +9,47 @@ import (
 )
 
 type SqlDatabaseId struct {
+	SubscriptionId      string
 	ResourceGroup       string
 	DatabaseAccountName string
 	Name                string
 }
 
+func NewSqlDatabaseID(subscriptionId, resourceGroup, databaseAccountName, name string) SqlDatabaseId {
+	return SqlDatabaseId{
+		SubscriptionId:      subscriptionId,
+		ResourceGroup:       resourceGroup,
+		DatabaseAccountName: databaseAccountName,
+		Name:                name,
+	}
+}
+
+func (id SqlDatabaseId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/sqlDatabases/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
+}
+
 func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse SQL Database ID %q: %+v", input, err)
-	}
-
-	sqlDatabase := SqlDatabaseId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if sqlDatabase.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
-	if sqlDatabase.Name, err = id.PopSegment("sqlDatabases"); err != nil {
+	resourceId := SqlDatabaseId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("sqlDatabases"); err != nil {
 		return nil, err
 	}
 
-	return &sqlDatabase, nil
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }
