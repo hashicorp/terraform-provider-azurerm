@@ -27,7 +27,7 @@ func TestAccAzureRMIoTTimeSeriesInsightsGen2Environment_basic(t *testing.T) {
 					testCheckAzureRMIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage.0.key"),
 		},
 	})
 }
@@ -46,21 +46,20 @@ func TestAccAzureRMIoTTimeSeriesInsightsGen2Environment_update(t *testing.T) {
 					testCheckAzureRMIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage.0.key"),
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsGen2Environment_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage.0.key"),
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsGen2Environment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
 		},
 	})
 }
@@ -79,7 +78,7 @@ func TestAccAzureRMIoTTimeSeriesInsightsGen2Environment_multiple_property_ids(t 
 					testCheckAzureRMIoTTimeSeriesInsightsGen2EnvironmentExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("storage.0.key"),
 		},
 	})
 }
@@ -162,10 +161,8 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "L1"
-  data_retention_time = "P30D"
-  property {
-    ids = ["id"]
-  }
+  id_properties       = ["id"]
+
   storage {
     name = azurerm_storage_account.storage.name
     key  = azurerm_storage_account.storage.primary_access_key
@@ -196,10 +193,10 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "L1"
-  data_retention_time = "P30D"
-  property {
-    ids = ["newid"]
-  }
+  id_properties       = ["id"]
+
+  warm_store_data_retention_time = "P30D"
+
   storage {
     name = azurerm_storage_account.storage.name
     key  = azurerm_storage_account.storage.primary_access_key
@@ -230,10 +227,8 @@ resource "azurerm_iot_time_series_insights_gen2_environment" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "L1"
-  data_retention_time = "P30D"
-  property {
-    ids = ["id", "secondId"]
-  }
+  id_properties       = ["id", "secondId"]
+
   storage {
     name = azurerm_storage_account.storage.name
     key  = azurerm_storage_account.storage.primary_access_key

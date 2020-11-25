@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/timeseriesinsights/mgmt/2018-08-15-preview/timeseriesinsights"
+	"github.com/Azure/azure-sdk-for-go/services/timeseriesinsights/mgmt/2020-05-15/timeseriesinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -61,28 +61,18 @@ func resourceArmIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 				}, false),
 			},
 
-			"data_retention_time": {
+			"warm_store_data_retention_time": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Optional:     true,
 				ValidateFunc: azValidate.ISO8601Duration,
 			},
-			"property": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
+			"id_properties": {
+				Type:     schema.TypeSet,
 				Required: true,
 				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"ids": {
-							Type: schema.TypeList,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							Required: true,
-						},
-					},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 			"storage": {
@@ -94,6 +84,7 @@ func resourceArmIoTTimeSeriesInsightsGen2Environment() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"key": {
@@ -133,28 +124,31 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.Resou
 		}
 
 		if existing.Value != nil {
-			environment, ok := existing.Value.AsLongTermEnvironmentResource()
+			environment, ok := existing.Value.AsGen2EnvironmentResource()
 			if !ok {
 				return fmt.Errorf("exisiting resource was not IoT Time Series Insights Gen2 Environment %q (Resource Group %q)", name, resourceGroup)
 			}
 
 			if environment.ID != nil && *environment.ID != "" {
-				return tf.ImportAsExistsError("azurerm_iot_time_series_insights_environment", *environment.ID)
+				return tf.ImportAsExistsError("azurerm_iot_time_series_insights_gen2_environment", *environment.ID)
 			}
 		}
 	}
 
-	environment := timeseriesinsights.LongTermEnvironmentCreateOrUpdateParameters{
+	environment := timeseriesinsights.Gen2EnvironmentCreateOrUpdateParameters{
 		Location: &location,
 		Tags:     tags.Expand(t),
 		Sku:      sku,
-		LongTermEnvironmentCreationProperties: &timeseriesinsights.LongTermEnvironmentCreationProperties{
-			TimeSeriesIDProperties: expandIdProperties(d.Get("property").([]interface{})),
-			WarmStoreConfiguration: &timeseriesinsights.WarmStoreConfigurationProperties{
-				DataRetention: utils.String(d.Get("data_retention_time").(string)),
-			},
-			StorageConfiguration: expandStorage(d.Get("storage").([]interface{})),
+		Gen2EnvironmentCreationProperties: &timeseriesinsights.Gen2EnvironmentCreationProperties{
+			TimeSeriesIDProperties: expandIdProperties(d.Get("id_properties").(*schema.Set).List()),
+			StorageConfiguration:   expandStorage(d.Get("storage").([]interface{})),
 		},
+	}
+
+	if v, ok := d.GetOk("warm_store_data_retention_time"); ok {
+		environment.WarmStoreConfiguration = &timeseriesinsights.WarmStoreConfigurationProperties{
+			DataRetention: utils.String(v.(string)),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, environment)
@@ -171,7 +165,7 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentCreateUpdate(d *schema.Resou
 		return fmt.Errorf("retrieving IoT Time Series Insights Gen2 Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resource, ok := resp.Value.AsLongTermEnvironmentResource()
+	resource, ok := resp.Value.AsGen2EnvironmentResource()
 	if !ok {
 		return fmt.Errorf("resource was not IoT Time Series Insights Gen2 Environment %q (Resource Group %q)", name, resourceGroup)
 	}
@@ -205,7 +199,7 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData,
 		return fmt.Errorf("retrieving IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	environment, ok := resp.Value.AsLongTermEnvironmentResource()
+	environment, ok := resp.Value.AsGen2EnvironmentResource()
 	if !ok {
 		return fmt.Errorf("exisiting resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", id.Name, id.ResourceGroup)
 	}
@@ -215,6 +209,15 @@ func resourceArmIoTTimeSeriesInsightsGen2EnvironmentRead(d *schema.ResourceData,
 	d.Set("sku_name", environment.Sku.Name)
 	if location := environment.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+	if err := d.Set("id_properties", flattenIdProperties(environment.TimeSeriesIDProperties)); err != nil {
+		return fmt.Errorf("setting `id_properites`: %+v", err)
+	}
+	if props := environment.WarmStoreConfiguration; props != nil {
+		d.Set("warm_store_data_retention_time", props.DataRetention)
+	}
+	if err := d.Set("storage", flattenIoTTimeSeriesGen2EnvironmentStorage(environment.StorageConfiguration, d.Get("storage.0.key").(string))); err != nil {
+		return fmt.Errorf("setting `storage`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, environment.Tags)
@@ -258,25 +261,60 @@ func convertEnvironmentSkuName(skuName string) (*timeseriesinsights.Sku, error) 
 	}, nil
 }
 
-func expandStorage(input []interface{}) *timeseriesinsights.LongTermStorageConfigurationInput {
+func expandStorage(input []interface{}) *timeseriesinsights.Gen2StorageConfigurationInput {
+	if input == nil || input[0] == nil {
+		return nil
+	}
 	storageMap := input[0].(map[string]interface{})
 	accountName := storageMap["name"].(string)
 	managementKey := storageMap["key"].(string)
 
-	return &timeseriesinsights.LongTermStorageConfigurationInput{
+	return &timeseriesinsights.Gen2StorageConfigurationInput{
 		AccountName:   &accountName,
 		ManagementKey: &managementKey,
 	}
 }
 
 func expandIdProperties(input []interface{}) *[]timeseriesinsights.TimeSeriesIDProperty {
+	if input == nil || input[0] == nil {
+		return nil
+	}
 	result := make([]timeseriesinsights.TimeSeriesIDProperty, 0)
-	propertiesMap := input[0].(map[string]interface{})["ids"].([]interface{})
-	for _, item := range propertiesMap {
+	for _, item := range input {
 		result = append(result, timeseriesinsights.TimeSeriesIDProperty{
 			Name: utils.String(item.(string)),
 			Type: "String",
 		})
 	}
 	return &result
+}
+
+func flattenIdProperties(input *[]timeseriesinsights.TimeSeriesIDProperty) []string {
+	output := make([]string, 0)
+	if input == nil {
+		return output
+	}
+
+	for _, v := range *input {
+		if v.Name != nil {
+			output = append(output, *v.Name)
+		}
+	}
+
+	return output
+}
+
+func flattenIoTTimeSeriesGen2EnvironmentStorage(input *timeseriesinsights.Gen2StorageConfigurationOutput, key string) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	attr := make(map[string]interface{})
+	if input.AccountName != nil {
+		attr["name"] = *input.AccountName
+	}
+	// Key is not returned by the api so we'll set it to the key from config to help with diffs
+	attr["key"] = key
+
+	return []interface{}{attr}
 }
