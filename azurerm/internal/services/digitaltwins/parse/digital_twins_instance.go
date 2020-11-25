@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -28,15 +30,15 @@ func (id DigitalTwinsInstanceId) ID(_ string) string {
 func DigitalTwinsInstanceID(input string) (*DigitalTwinsInstanceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing DigitalTwins ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	digitalTwinsInstance := DigitalTwinsInstanceId{
+	resourceId := DigitalTwinsInstanceId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if digitalTwinsInstance.Name, err = id.PopSegment("digitalTwinsInstances"); err != nil {
+	if resourceId.Name, err = id.PopSegment("digitalTwinsInstances"); err != nil {
 		return nil, err
 	}
 
@@ -44,5 +46,5 @@ func DigitalTwinsInstanceID(input string) (*DigitalTwinsInstanceId, error) {
 		return nil, err
 	}
 
-	return &digitalTwinsInstance, nil
+	return &resourceId, nil
 }

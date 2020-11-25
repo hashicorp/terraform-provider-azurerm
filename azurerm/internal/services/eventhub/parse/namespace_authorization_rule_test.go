@@ -51,9 +51,9 @@ func TestNamespaceAuthorizationRuleID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/authorizationRules/rule1",
 			Error: false,
 			Expect: &NamespaceAuthorizationRuleId{
-				ResourceGroup: "group1",
-				NamespaceName: "namespace1",
-				Name:          "rule1",
+				ResourceGroup:         "group1",
+				NamespaceName:         "namespace1",
+				AuthorizationRuleName: "rule1",
 			},
 		},
 		{
@@ -75,8 +75,8 @@ func TestNamespaceAuthorizationRuleID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.AuthorizationRuleName != v.Expect.AuthorizationRuleName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.AuthorizationRuleName, actual.AuthorizationRuleName)
 		}
 
 		if actual.NamespaceName != v.Expect.NamespaceName {

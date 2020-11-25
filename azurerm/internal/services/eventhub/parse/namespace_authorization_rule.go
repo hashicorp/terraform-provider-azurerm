@@ -3,9 +3,9 @@ package parse
 import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 type NamespaceAuthorizationRuleId struct {
-	ResourceGroup string
-	NamespaceName string
-	Name          string
+	ResourceGroup         string
+	NamespaceName         string
+	AuthorizationRuleName string
 }
 
 func NamespaceAuthorizationRuleID(input string) (*NamespaceAuthorizationRuleId, error) {
@@ -22,7 +22,7 @@ func NamespaceAuthorizationRuleID(input string) (*NamespaceAuthorizationRuleId, 
 		return nil, err
 	}
 
-	if rule.Name, err = id.PopSegment("authorizationRules"); err != nil {
+	if rule.AuthorizationRuleName, err = id.PopSegment("authorizationRules"); err != nil {
 		return nil, err
 	}
 
