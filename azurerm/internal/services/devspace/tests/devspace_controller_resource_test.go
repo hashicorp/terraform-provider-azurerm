@@ -70,7 +70,7 @@ func testCheckAzureRMDevSpaceControllerExists(resourceName string) resource.Test
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DevSpaceControllerID(rs.Primary.ID)
+		id, err := parse.ControllerID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -100,7 +100,7 @@ func testCheckAzureRMDevSpaceControllerDestroy(s *terraform.State) error {
 
 		log.Printf("[WARN] azurerm_devspace_controller still exists in state file.")
 
-		id, err := parse.DevSpaceControllerID(rs.Primary.ID)
+		id, err := parse.ControllerID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
