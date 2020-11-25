@@ -1097,7 +1097,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		if props.AllowBlobPublicAccess == nil {
-			d.Set("allow_blob_public_access", true)
+			d.Set("allow_blob_public_access", false)
 		} else {
 			d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 		}
