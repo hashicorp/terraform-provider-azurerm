@@ -239,19 +239,19 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Gallery, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.GalleriesName, id.ImageName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", id.Name, id.Gallery, id.ResourceGroup)
+			log.Printf("[DEBUG] Shared Image %q (Gallery %q / Resource Group %q) was not found - removing from state", id.ImageName, id.GalleriesName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleriesName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("gallery_name", id.Gallery)
+	d.Set("name", id.ImageName)
+	d.Set("gallery_name", id.GalleriesName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -288,27 +288,27 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Gallery, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.GalleriesName, id.ImageName)
 	if err != nil {
-		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleriesName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.ImageName, id.GalleriesName, id.ResourceGroup, err)
 	}
 
-	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", id.Name, id.Gallery, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", id.ImageName, id.GalleriesName, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
-		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.Gallery, id.Name),
+		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.GalleriesName, id.ImageName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", id.Name, id.Gallery, id.ResourceGroup, err)
+		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", id.ImageName, id.GalleriesName, id.ResourceGroup, err)
 	}
 
 	return nil
