@@ -151,7 +151,12 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 			}
 
 			if strings.HasSuffix(key, "s") {
-				key = strings.TrimSuffix(key, "s")
+				// TODO: in time this could be worth a series of overrides
+
+				// handles "GallerieName"
+				if !strings.HasSuffix(key, "ies") {
+					key = strings.TrimSuffix(key, "s")
+				}
 
 				if strings.EqualFold(key, typeName) {
 					segment.FieldName = "Name"

@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,46 +9,46 @@ import (
 )
 
 type SharedImageVersionId struct {
-	ResourceGroup string
-	Gallery       string
-	ImageName     string
-	Version       string
+	SubscriptionId string
+	ResourceGroup  string
+	GalleriesName  string
+	ImageName      string
+	VersionName    string
 }
 
-func NewSharedImageVersionId(id SharedImageId, name string) SharedImageVersionId {
+func NewSharedImageVersionID(subscriptionId, resourceGroup, galleriesName, imageName, versionName string) SharedImageVersionId {
 	return SharedImageVersionId{
-		ResourceGroup: id.ResourceGroup,
-		Gallery:       id.Gallery,
-		ImageName:     id.Name,
-		Version:       name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		GalleriesName:  galleriesName,
+		ImageName:      imageName,
+		VersionName:    versionName,
 	}
 }
 
-func (id SharedImageVersionId) ID(subscriptionId string) string {
-	galleryId := NewSharedImageGalleryId(id.ResourceGroup, id.Gallery)
-	base := NewSharedImageId(galleryId, id.ImageName).ID(subscriptionId)
-	return fmt.Sprintf("%s/versions/%s", base, id.Version)
+func (id SharedImageVersionId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/galleries/%s/images/%s/versions/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.GalleriesName, id.ImageName, id.VersionName)
 }
 
 func SharedImageVersionID(input string) (*SharedImageVersionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Shared Image Version ID %q: %+v", input, err)
-	}
-
-	set := SharedImageVersionId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if set.Gallery, err = id.PopSegment("galleries"); err != nil {
 		return nil, err
 	}
 
-	if set.ImageName, err = id.PopSegment("images"); err != nil {
-		return nil, err
+	resourceId := SharedImageVersionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if set.Version, err = id.PopSegment("versions"); err != nil {
+	if resourceId.GalleriesName, err = id.PopSegment("galleries"); err != nil {
+		return nil, err
+	}
+	if resourceId.ImageName, err = id.PopSegment("images"); err != nil {
+		return nil, err
+	}
+	if resourceId.VersionName, err = id.PopSegment("versions"); err != nil {
 		return nil, err
 	}
 
@@ -54,5 +56,5 @@ func SharedImageVersionID(input string) (*SharedImageVersionId, error) {
 		return nil, err
 	}
 
-	return &set, nil
+	return &resourceId, nil
 }

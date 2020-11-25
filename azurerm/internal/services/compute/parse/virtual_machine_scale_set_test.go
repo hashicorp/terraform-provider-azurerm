@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = SharedImageGalleryId{}
+var _ resourceid.Formatter = VirtualMachineScaleSetId{}
 
-func TestSharedImageGalleryIDFormatter(t *testing.T) {
-	actual := NewSharedImageGalleryID("12345678-1234-9876-4563-123456789012", "resGroup1", "gallery1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1"
+func TestVirtualMachineScaleSetIDFormatter(t *testing.T) {
+	actual := NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "resGroup1", "scaleSet1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestSharedImageGalleryID(t *testing.T) {
+func TestVirtualMachineScaleSetID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *SharedImageGalleryId
+		Expected *VirtualMachineScaleSetId
 	}{
 
 		{
@@ -56,30 +56,30 @@ func TestSharedImageGalleryID(t *testing.T) {
 		},
 
 		{
-			// missing GalleriesName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/",
 			Error: true,
 		},
 
 		{
-			// missing value for GalleriesName
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/",
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1",
-			Expected: &SharedImageGalleryId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleSet1",
+			Expected: &VirtualMachineScaleSetId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				GalleriesName:  "gallery1",
+				Name:           "scaleSet1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.COMPUTE/GALLERIES/GALLERY1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.COMPUTE/VIRTUALMACHINESCALESETS/SCALESET1",
 			Error: true,
 		},
 	}
@@ -87,7 +87,7 @@ func TestSharedImageGalleryID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := SharedImageGalleryID(v.Input)
+		actual, err := VirtualMachineScaleSetID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -105,8 +105,8 @@ func TestSharedImageGalleryID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.GalleriesName != v.Expected.GalleriesName {
-			t.Fatalf("Expected %q but got %q for GalleriesName", v.Expected.GalleriesName, actual.GalleriesName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }
