@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type WorkspaceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewWorkspaceID(subscriptionId, resourceGroup, name string) WorkspaceId {
+	return WorkspaceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id WorkspaceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Databricks/workspaces/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func WorkspaceID(input string) (*WorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Databricks Workspace ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	workspace := WorkspaceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := WorkspaceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if workspace.Name, err = id.PopSegment("workspaces"); err != nil {
+	if resourceId.Name, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func WorkspaceID(input string) (*WorkspaceId, error) {
 		return nil, err
 	}
 
-	return &workspace, nil
+	return &resourceId, nil
 }
