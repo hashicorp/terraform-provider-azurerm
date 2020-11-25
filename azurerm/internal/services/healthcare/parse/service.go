@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type ServiceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewServiceID(subscriptionId, resourceGroup, name string) ServiceId {
+	return ServiceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ServiceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HealthcareApis/services/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ServiceID(input string) (*ServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Healthcare Service ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	service := ServiceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if service.Name, err = id.PopSegment("services"); err != nil {
+	if resourceId.Name, err = id.PopSegment("services"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func ServiceID(input string) (*ServiceId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }
