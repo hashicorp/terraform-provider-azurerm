@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,33 +9,52 @@ import (
 )
 
 type DataSetId struct {
-	ResourceGroup string
-	AccountName   string
-	ShareName     string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	AccountName    string
+	ShareName      string
+	Name           string
+}
+
+func NewDataSetID(subscriptionId, resourceGroup, accountName, shareName, name string) DataSetId {
+	return DataSetId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		AccountName:    accountName,
+		ShareName:      shareName,
+		Name:           name,
+	}
+}
+
+func (id DataSetId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s/dataSets/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 }
 
 func DataSetID(input string) (*DataSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse DataShareDataSet ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	dataShareDataSet := DataSetId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DataSetId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
-	if dataShareDataSet.AccountName, err = id.PopSegment("accounts"); err != nil {
+
+	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {
 		return nil, err
 	}
-	if dataShareDataSet.ShareName, err = id.PopSegment("shares"); err != nil {
+	if resourceId.ShareName, err = id.PopSegment("shares"); err != nil {
 		return nil, err
 	}
-	if dataShareDataSet.Name, err = id.PopSegment("dataSets"); err != nil {
+	if resourceId.Name, err = id.PopSegment("dataSets"); err != nil {
 		return nil, err
 	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &dataShareDataSet, nil
+	return &resourceId, nil
 }
