@@ -219,7 +219,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if maxReturn, ok := d.GetOk("max_return"); ok {
-		maxReturnInt := maxReturn.(int64)
+		maxReturnInt := int64(maxReturn.(int))
 		profile.ProfileProperties.MaxReturn = &maxReturnInt
 	}
 
@@ -228,7 +228,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if profile.ProfileProperties.TrafficRoutingMethod == trafficmanager.MultiValue &&
-		profile.ProfileProperties.MaxReturn != nil {
+		profile.ProfileProperties.MaxReturn == nil {
 		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
@@ -319,6 +319,15 @@ func resourceArmTrafficManagerProfileUpdate(d *schema.ResourceData, meta interfa
 
 	if d.HasChange("traffic_routing_method") {
 		update.ProfileProperties.TrafficRoutingMethod = trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
+	}
+
+	if d.HasChange("max_return") {
+		if maxReturn, ok := d.GetOk("max_return"); ok {
+			maxReturnInt := int64(maxReturn.(int))
+			update.ProfileProperties.MaxReturn = &maxReturnInt
+		} else {
+			update.ProfileProperties.MaxReturn = nil
+		}
 	}
 
 	if d.HasChange("dns_config") {
