@@ -56,11 +56,11 @@ func TestStoredProcedureID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1/storedProcedures/sproc1",
 			Error: false,
 			Expect: &StoredProcedureId{
-				ResourceGroup: "resGroup1",
-				Account:       "acc1",
-				Database:      "db1",
-				Container:     "container1",
-				Name:          "sproc1",
+				ResourceGroup:       "resGroup1",
+				DatabaseAccountName: "acc1",
+				SqlDatabaseName:     "db1",
+				ContainerName:       "container1",
+				StoredProcedureName: "sproc1",
 			},
 		},
 		{
@@ -82,20 +82,20 @@ func TestStoredProcedureID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.StoredProcedureName != v.Expect.StoredProcedureName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.StoredProcedureName, actual.StoredProcedureName)
 		}
 
-		if actual.Container != v.Expect.Container {
-			t.Fatalf("Expected %q but got %q for Container", v.Expect.Container, actual.Container)
+		if actual.ContainerName != v.Expect.ContainerName {
+			t.Fatalf("Expected %q but got %q for Container", v.Expect.ContainerName, actual.ContainerName)
 		}
 
-		if actual.Database != v.Expect.Database {
-			t.Fatalf("Expected %q but got %q for Database", v.Expect.Database, actual.Database)
+		if actual.SqlDatabaseName != v.Expect.SqlDatabaseName {
+			t.Fatalf("Expected %q but got %q for Database", v.Expect.SqlDatabaseName, actual.SqlDatabaseName)
 		}
 
-		if actual.Account != v.Expect.Account {
-			t.Fatalf("Expected %q but got %q for Account", v.Expect.Account, actual.Account)
+		if actual.DatabaseAccountName != v.Expect.DatabaseAccountName {
+			t.Fatalf("Expected %q but got %q for Account", v.Expect.DatabaseAccountName, actual.DatabaseAccountName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

@@ -7,11 +7,11 @@ import (
 )
 
 type StoredProcedureId struct {
-	ResourceGroup string
-	Account       string
-	Database      string
-	Container     string
-	Name          string
+	ResourceGroup       string
+	DatabaseAccountName string
+	SqlDatabaseName     string
+	ContainerName       string
+	StoredProcedureName string
 }
 
 func StoredProcedureID(input string) (*StoredProcedureId, error) {
@@ -24,19 +24,19 @@ func StoredProcedureID(input string) (*StoredProcedureId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if storedProcedure.Account, err = id.PopSegment("databaseAccounts"); err != nil {
+	if storedProcedure.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
-	if storedProcedure.Database, err = id.PopSegment("sqlDatabases"); err != nil {
+	if storedProcedure.SqlDatabaseName, err = id.PopSegment("sqlDatabases"); err != nil {
 		return nil, err
 	}
 
-	if storedProcedure.Container, err = id.PopSegment("containers"); err != nil {
+	if storedProcedure.ContainerName, err = id.PopSegment("containers"); err != nil {
 		return nil, err
 	}
 
-	if storedProcedure.Name, err = id.PopSegment("storedProcedures"); err != nil {
+	if storedProcedure.StoredProcedureName, err = id.PopSegment("storedProcedures"); err != nil {
 		return nil, err
 	}
 
