@@ -138,7 +138,7 @@ func resourceArmCosmosDbSQLStoredProcedureUpdate(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StoredProcedureID(d.Id())
+	id, err := parse.SqlStoredProcedureID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func resourceArmCosmosDbSQLStoredProcedureRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StoredProcedureID(d.Id())
+	id, err := parse.SqlStoredProcedureID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -211,7 +211,7 @@ func resourceArmCosmosDbSQLStoredProcedureDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.StoredProcedureID(d.Id())
+	id, err := parse.SqlStoredProcedureID(d.Id())
 	if err != nil {
 		return err
 	}

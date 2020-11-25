@@ -144,7 +144,7 @@ func resourceArmCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MongoDbDatabaseID(d.Id())
+	id, err := parse.MongodbDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MongoDbDatabaseID(d.Id())
+	id, err := parse.MongodbDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -266,7 +266,7 @@ func resourceArmCosmosDbMongoDatabaseDelete(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MongoDbDatabaseID(d.Id())
+	id, err := parse.MongodbDatabaseID(d.Id())
 	if err != nil {
 		return err
 	}
