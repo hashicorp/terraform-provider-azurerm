@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type DedicatedHardwareSecurityModuleId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId   string
+	ResourceGroup    string
+	DedicatedHSMName string
+}
+
+func NewDedicatedHardwareSecurityModuleID(subscriptionId, resourceGroup, dedicatedHSMName string) DedicatedHardwareSecurityModuleId {
+	return DedicatedHardwareSecurityModuleId{
+		SubscriptionId:   subscriptionId,
+		ResourceGroup:    resourceGroup,
+		DedicatedHSMName: dedicatedHSMName,
+	}
+}
+
+func (id DedicatedHardwareSecurityModuleId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DedicatedHSMName)
 }
 
 func DedicatedHardwareSecurityModuleID(input string) (*DedicatedHardwareSecurityModuleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing DedicatedHardwareSecurityModule ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	dedicatedHardwareSecurityModule := DedicatedHardwareSecurityModuleId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DedicatedHardwareSecurityModuleId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if dedicatedHardwareSecurityModule.Name, err = id.PopSegment("dedicatedHSMs"); err != nil {
+	if resourceId.DedicatedHSMName, err = id.PopSegment("dedicatedHSMs"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func DedicatedHardwareSecurityModuleID(input string) (*DedicatedHardwareSecurity
 		return nil, err
 	}
 
-	return &dedicatedHardwareSecurityModule, nil
+	return &resourceId, nil
 }
