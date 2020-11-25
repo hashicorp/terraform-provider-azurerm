@@ -147,14 +147,14 @@ func resourceArmAutomationConnectionClassicCertificateRead(d *schema.ResourceDat
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.ConnectionName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Read request on AzureRM Automation Connection '%s': %+v", id.ConnectionName, err)
+		return fmt.Errorf("Read request on AzureRM Automation Connection '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -187,13 +187,13 @@ func resourceArmAutomationConnectionClassicCertificateDelete(d *schema.ResourceD
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.ConnectionName)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
 		}
 
-		return fmt.Errorf("deleting Automation Connection '%s': %+v", id.ConnectionName, err)
+		return fmt.Errorf("deleting Automation Connection '%s': %+v", id.Name, err)
 	}
 
 	return nil

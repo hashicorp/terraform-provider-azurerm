@@ -68,13 +68,13 @@ func TestConnectionID(t *testing.T) {
 		},
 
 		{
-			// missing ConnectionName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/",
 			Error: true,
 		},
 
 		{
-			// missing value for ConnectionName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/connections/",
 			Error: true,
 		},
@@ -86,7 +86,7 @@ func TestConnectionID(t *testing.T) {
 				SubscriptionId:        "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:         "group1",
 				AutomationAccountName: "account1",
-				ConnectionName:        "connection1",
+				Name:                  "connection1",
 			},
 		},
 
@@ -121,8 +121,8 @@ func TestConnectionID(t *testing.T) {
 		if actual.AutomationAccountName != v.Expected.AutomationAccountName {
 			t.Fatalf("Expected %q but got %q for AutomationAccountName", v.Expected.AutomationAccountName, actual.AutomationAccountName)
 		}
-		if actual.ConnectionName != v.Expected.ConnectionName {
-			t.Fatalf("Expected %q but got %q for ConnectionName", v.Expected.ConnectionName, actual.ConnectionName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

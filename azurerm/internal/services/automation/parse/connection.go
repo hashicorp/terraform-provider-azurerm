@@ -12,21 +12,21 @@ type ConnectionId struct {
 	SubscriptionId        string
 	ResourceGroup         string
 	AutomationAccountName string
-	ConnectionName        string
+	Name                  string
 }
 
-func NewConnectionID(subscriptionId, resourceGroup, automationAccountName, connectionName string) ConnectionId {
+func NewConnectionID(subscriptionId, resourceGroup, automationAccountName, name string) ConnectionId {
 	return ConnectionId{
 		SubscriptionId:        subscriptionId,
 		ResourceGroup:         resourceGroup,
 		AutomationAccountName: automationAccountName,
-		ConnectionName:        connectionName,
+		Name:                  name,
 	}
 }
 
 func (id ConnectionId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/automationAccounts/%s/connections/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName, id.ConnectionName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName, id.Name)
 }
 
 func ConnectionID(input string) (*ConnectionId, error) {
@@ -43,7 +43,7 @@ func ConnectionID(input string) (*ConnectionId, error) {
 	if resourceId.AutomationAccountName, err = id.PopSegment("automationAccounts"); err != nil {
 		return nil, err
 	}
-	if resourceId.ConnectionName, err = id.PopSegment("connections"); err != nil {
+	if resourceId.Name, err = id.PopSegment("connections"); err != nil {
 		return nil, err
 	}
 
