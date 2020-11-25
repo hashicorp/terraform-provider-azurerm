@@ -119,18 +119,18 @@ func testCheckAzureRMDnsSrvRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DnsSrvRecordID(rs.Primary.ID)
+		id, err := parse.SrvRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.SRV)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.SRVName, dns.SRV)
 		if err != nil {
 			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS SRV record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS SRV record %s (resource group: %s) does not exist", id.SRVName, id.ResourceGroup)
 		}
 
 		return nil
@@ -146,12 +146,12 @@ func testCheckAzureRMDnsSrvRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DnsSrvRecordID(rs.Primary.ID)
+		id, err := parse.SrvRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.SRV)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.SRVName, dns.SRV)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil
