@@ -12,6 +12,10 @@ IMPROVEMENTS:
 * `azurerm_application_insights_web_test` - validating the ID is correct at import time [GH-9446]
 * `azurerm_express_route_circuit_peering` - support for the `ipv6` block  [GH-9235]
 
+BUG FIXES:
+
+* `azurerm_api_management` - fixing an issue where developer portal certificates are updated on every apply [GH-7299]
+
 ## 2.37.0 (November 20, 2020)
 
 FEATURES:
