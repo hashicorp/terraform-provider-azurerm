@@ -505,9 +505,9 @@ func (t AnalysisServicesServerResource) Exists(ctx context.Context, clients *cli
 		return nil, err
 	}
 
-	resp, err := clients.AnalysisServices.ServerClient.GetDetails(ctx, id.ResourceGroup, id.ServerName)
+	resp, err := clients.AnalysisServices.ServerClient.GetDetails(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return utils.Bool(resp.ServerProperties != nil), nil
@@ -521,14 +521,14 @@ func (t AnalysisServicesServerResource) suspend(ctx context.Context, clients *cl
 		return err
 	}
 
-	suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.ServerName)
+	suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("suspending Analysis Services Server %q (resource group: %q): %+v", id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("suspending Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	err = suspendFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Wait for Suspend on Analysis Services Server %q (resource group: %q): %+v", id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("Wait for Suspend on Analysis Services Server %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -543,7 +543,7 @@ func (t AnalysisServicesServerResource) checkState(serverState analysisservices.
 			return err
 		}
 
-		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.ServerName)
+		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on analysisServicesServerClient: %+v", err)
 		}

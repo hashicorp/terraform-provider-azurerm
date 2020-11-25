@@ -11,20 +11,20 @@ import (
 type ServerId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	ServerName     string
+	Name           string
 }
 
-func NewServerID(subscriptionId, resourceGroup, serverName string) ServerId {
+func NewServerID(subscriptionId, resourceGroup, name string) ServerId {
 	return ServerId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		ServerName:     serverName,
+		Name:           name,
 	}
 }
 
 func (id ServerId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.AnalysisServices/servers/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ServerID(input string) (*ServerId, error) {
@@ -38,7 +38,7 @@ func ServerID(input string) (*ServerId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
+	if resourceId.Name, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
