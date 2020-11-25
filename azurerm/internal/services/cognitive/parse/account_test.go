@@ -56,13 +56,13 @@ func TestAccountID(t *testing.T) {
 		},
 
 		{
-			// missing AccountName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CognitiveServices/",
 			Error: true,
 		},
 
 		{
-			// missing value for AccountName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CognitiveServices/accounts/",
 			Error: true,
 		},
@@ -73,7 +73,7 @@ func TestAccountID(t *testing.T) {
 			Expected: &AccountId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
-				AccountName:    "account1",
+				Name:           "account1",
 			},
 		},
 
@@ -105,8 +105,8 @@ func TestAccountID(t *testing.T) {
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
-		if actual.AccountName != v.Expected.AccountName {
-			t.Fatalf("Expected %q but got %q for AccountName", v.Expected.AccountName, actual.AccountName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

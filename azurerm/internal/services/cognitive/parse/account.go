@@ -11,20 +11,20 @@ import (
 type AccountId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	AccountName    string
+	Name           string
 }
 
-func NewAccountID(subscriptionId, resourceGroup, accountName string) AccountId {
+func NewAccountID(subscriptionId, resourceGroup, name string) AccountId {
 	return AccountId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		AccountName:    accountName,
+		Name:           name,
 	}
 }
 
 func (id AccountId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.CognitiveServices/accounts/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func AccountID(input string) (*AccountId, error) {
@@ -38,7 +38,7 @@ func AccountID(input string) (*AccountId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {
+	if resourceId.Name, err = id.PopSegment("accounts"); err != nil {
 		return nil, err
 	}
 
