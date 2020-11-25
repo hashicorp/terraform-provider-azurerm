@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,37 +9,42 @@ import (
 )
 
 type AccountId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func (id AccountId) ID(subscriptionId string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
-}
-
-func NewAccountId(resourceGroup, name string) AccountId {
+func NewAccountID(subscriptionId, resourceGroup, name string) AccountId {
 	return AccountId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
+}
+
+func (id AccountId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing DataShareAccount ID %q: %+v", input, err)
-	}
-
-	dataShareAccount := AccountId{
-		ResourceGroup: id.ResourceGroup,
-	}
-	if dataShareAccount.Name, err = id.PopSegment("accounts"); err != nil {
 		return nil, err
 	}
+
+	resourceId := AccountId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.Name, err = id.PopSegment("accounts"); err != nil {
+		return nil, err
+	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &dataShareAccount, nil
+	return &resourceId, nil
 }
