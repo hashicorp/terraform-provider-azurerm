@@ -51,10 +51,10 @@ func TestGremlinGraphID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/gremlinDatabases/database1/graphs/graph1",
 			Error: false,
 			Expect: &GremlinGraphId{
-				ResourceGroup: "resGroup1",
-				Account:       "acc1",
-				Database:      "database1",
-				Name:          "graph1",
+				ResourceGroup:       "resGroup1",
+				DatabaseAccountName: "acc1",
+				GremlinDatabaseName: "database1",
+				GraphName:           "graph1",
 			},
 		},
 		{
@@ -76,16 +76,16 @@ func TestGremlinGraphID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.GraphName != v.Expect.GraphName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.GraphName, actual.GraphName)
 		}
 
-		if actual.Database != v.Expect.Database {
-			t.Fatalf("Expected %q but got %q for Database", v.Expect.Database, actual.Database)
+		if actual.GremlinDatabaseName != v.Expect.GremlinDatabaseName {
+			t.Fatalf("Expected %q but got %q for Database", v.Expect.GremlinDatabaseName, actual.GremlinDatabaseName)
 		}
 
-		if actual.Account != v.Expect.Account {
-			t.Fatalf("Expected %q but got %q for Account", v.Expect.Account, actual.Account)
+		if actual.DatabaseAccountName != v.Expect.DatabaseAccountName {
+			t.Fatalf("Expected %q but got %q for Account", v.Expect.DatabaseAccountName, actual.DatabaseAccountName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

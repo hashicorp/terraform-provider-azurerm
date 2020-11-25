@@ -7,10 +7,10 @@ import (
 )
 
 type GremlinGraphId struct {
-	ResourceGroup string
-	Account       string
-	Database      string
-	Name          string
+	ResourceGroup       string
+	DatabaseAccountName string
+	GremlinDatabaseName string
+	GraphName           string
 }
 
 func GremlinGraphID(input string) (*GremlinGraphId, error) {
@@ -23,15 +23,15 @@ func GremlinGraphID(input string) (*GremlinGraphId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if gremlinGraph.Account, err = id.PopSegment("databaseAccounts"); err != nil {
+	if gremlinGraph.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
-	if gremlinGraph.Database, err = id.PopSegment("gremlinDatabases"); err != nil {
+	if gremlinGraph.GremlinDatabaseName, err = id.PopSegment("gremlinDatabases"); err != nil {
 		return nil, err
 	}
 
-	if gremlinGraph.Name, err = id.PopSegment("graphs"); err != nil {
+	if gremlinGraph.GraphName, err = id.PopSegment("graphs"); err != nil {
 		return nil, err
 	}
 
