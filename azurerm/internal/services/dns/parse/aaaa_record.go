@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,41 @@ import (
 )
 
 type AaaaRecordId struct {
-	ResourceGroup string
-	DnszoneName   string
-	AAAAName      string
+	SubscriptionId string
+	ResourceGroup  string
+	DnszoneName    string
+	AAAAName       string
+}
+
+func NewAaaaRecordID(subscriptionId, resourceGroup, dnszoneName, aAAAName string) AaaaRecordId {
+	return AaaaRecordId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		DnszoneName:    dnszoneName,
+		AAAAName:       aAAAName,
+	}
+}
+
+func (id AaaaRecordId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s/AAAA/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.AAAAName)
 }
 
 func AaaaRecordID(input string) (*AaaaRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse DNS AAAA Record ID %q: %+v", input, err)
-	}
-
-	record := AaaaRecordId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if record.DnszoneName, err = id.PopSegment("dnszones"); err != nil {
 		return nil, err
 	}
 
-	if record.AAAAName, err = id.PopSegment("AAAA"); err != nil {
+	resourceId := AaaaRecordId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.DnszoneName, err = id.PopSegment("dnszones"); err != nil {
+		return nil, err
+	}
+	if resourceId.AAAAName, err = id.PopSegment("AAAA"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +51,5 @@ func AaaaRecordID(input string) (*AaaaRecordId, error) {
 		return nil, err
 	}
 
-	return &record, nil
+	return &resourceId, nil
 }
