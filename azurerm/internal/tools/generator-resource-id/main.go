@@ -153,8 +153,13 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 			if strings.HasSuffix(key, "s") {
 				// TODO: in time this could be worth a series of overrides
 
-				// handles "GallerieName"
-				if !strings.HasSuffix(key, "ies") {
+				// handles "GallerieName" and `DataFactoriesName`
+				if strings.HasSuffix(key, "ies") {
+					key = strings.TrimSuffix(key, "ies")
+					key = fmt.Sprintf("%sy", key)
+				}
+
+				if strings.HasSuffix(key, "s") {
 					key = strings.TrimSuffix(key, "s")
 				}
 
