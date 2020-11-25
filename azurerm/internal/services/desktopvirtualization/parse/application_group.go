@@ -6,30 +6,30 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VirtualDesktopApplicationGroupId struct {
+type ApplicationGroupId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func NewVirtualDesktopApplicationGroupId(resourceGroup, name string) VirtualDesktopApplicationGroupId {
-	return VirtualDesktopApplicationGroupId{
+func NewApplicationGroupId(resourceGroup, name string) ApplicationGroupId {
+	return ApplicationGroupId{
 		ResourceGroup: resourceGroup,
 		Name:          name,
 	}
 }
 
-func (id VirtualDesktopApplicationGroupId) ID(subscriptionId string) string {
+func (id ApplicationGroupId) ID(subscriptionId string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/applicationgroups/%s"
 	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
 }
 
-func VirtualDesktopApplicationGroupID(input string) (*VirtualDesktopApplicationGroupId, error) {
+func ApplicationGroupID(input string) (*ApplicationGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Desktop Application Group ID %q: %+v", input, err)
 	}
 
-	applicationGroup := VirtualDesktopApplicationGroupId{
+	applicationGroup := ApplicationGroupId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

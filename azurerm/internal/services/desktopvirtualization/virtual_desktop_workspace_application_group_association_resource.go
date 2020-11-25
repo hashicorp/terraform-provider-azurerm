@@ -32,7 +32,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Res
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualDesktopWorkspaceApplicationGroupAssociationID(id)
+			_, err := parse.WorkspaceApplicationGroupAssociationID(id)
 			return err
 		}),
 
@@ -61,15 +61,15 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *sche
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace <-> Application Group Association creation.")
-	workspaceId, err := parse.VirtualDesktopWorkspaceID(d.Get("workspace_id").(string))
+	workspaceId, err := parse.WorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err
 	}
-	applicationGroupId, err := parse.VirtualDesktopApplicationGroupID(d.Get("application_group_id").(string))
+	applicationGroupId, err := parse.ApplicationGroupID(d.Get("application_group_id").(string))
 	if err != nil {
 		return err
 	}
-	associationId := parse.NewVirtualDesktopWorkspaceApplicationGroupAssociationId(*workspaceId, *applicationGroupId)
+	associationId := parse.NewWorkspaceApplicationGroupAssociationId(*workspaceId, *applicationGroupId)
 
 	locks.ByName(workspaceId.Name, workspaceResourceType)
 	defer locks.UnlockByName(workspaceId.Name, workspaceResourceType)
@@ -113,7 +113,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopWorkspaceApplicationGroupAssociationID(d.Id())
+	id, err := parse.WorkspaceApplicationGroupAssociationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *sche
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopWorkspaceApplicationGroupAssociationID(d.Id())
+	id, err := parse.WorkspaceApplicationGroupAssociationID(d.Id())
 	if err != nil {
 		return err
 	}

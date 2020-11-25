@@ -36,7 +36,7 @@ func resourceArmDesktopVirtualizationWorkspace() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.VirtualDesktopWorkspaceID(id)
+			_, err := parse.WorkspaceID(id)
 			return err
 		}),
 
@@ -80,7 +80,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewVirtualDesktopWorkspaceId(resourceGroup, name)
+	id := parse.NewWorkspaceId(resourceGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -121,7 +121,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualDesktopWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *schema.ResourceData, meta 
 func resourceArmDesktopVirtualizationWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
 
-	id, err := parse.VirtualDesktopWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -6,30 +6,30 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VirtualDesktopWorkspaceId struct {
+type WorkspaceId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func (id VirtualDesktopWorkspaceId) ID(subscriptionId string) string {
+func (id WorkspaceId) ID(subscriptionId string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/workspaces/%s"
 	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
 }
 
-func NewVirtualDesktopWorkspaceId(resourceGroup, name string) VirtualDesktopWorkspaceId {
-	return VirtualDesktopWorkspaceId{
+func NewWorkspaceId(resourceGroup, name string) WorkspaceId {
+	return WorkspaceId{
 		ResourceGroup: resourceGroup,
 		Name:          name,
 	}
 }
 
-func VirtualDesktopWorkspaceID(input string) (*VirtualDesktopWorkspaceId, error) {
+func WorkspaceID(input string) (*WorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Desktop Workspace ID %q: %+v", input, err)
 	}
 
-	workspace := VirtualDesktopWorkspaceId{
+	workspace := WorkspaceId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
