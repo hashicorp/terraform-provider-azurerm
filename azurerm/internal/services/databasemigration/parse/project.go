@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,41 @@ import (
 )
 
 type ProjectId struct {
-	ResourceGroup string
-	ServiceName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	ServiceName    string
+	Name           string
+}
+
+func NewProjectID(subscriptionId, resourceGroup, serviceName, name string) ProjectId {
+	return ProjectId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ServiceName:    serviceName,
+		Name:           name,
+	}
+}
+
+func (id ProjectId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataMigration/services/%s/projects/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.Name)
 }
 
 func ProjectID(input string) (*ProjectId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Database Migration Project ID %q: %+v", input, err)
-	}
-
-	project := ProjectId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if project.ServiceName, err = id.PopSegment("services"); err != nil {
 		return nil, err
 	}
 
-	if project.Name, err = id.PopSegment("projects"); err != nil {
+	resourceId := ProjectId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ServiceName, err = id.PopSegment("services"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("projects"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +51,5 @@ func ProjectID(input string) (*ProjectId, error) {
 		return nil, err
 	}
 
-	return &project, nil
+	return &resourceId, nil
 }
