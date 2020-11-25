@@ -8,7 +8,7 @@ func TestEventGridDomainTopicId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *EventGridDomainTopicId
+		Expected *DomainTopicId
 	}{
 		{
 			Name:     "Empty",
@@ -23,8 +23,8 @@ func TestEventGridDomainTopicId(t *testing.T) {
 		{
 			Name:  "Domain Topic ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/domains/domain1/topics/topic1",
-			Expected: &EventGridDomainTopicId{
-				Name:          "topic1",
+			Expected: &DomainTopicId{
+				TopicName:     "topic1",
 				ResourceGroup: "resGroup1",
 			},
 		},
@@ -33,7 +33,7 @@ func TestEventGridDomainTopicId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := EventGridDomainTopicID(v.Input)
+		actual, err := DomainTopicID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -42,8 +42,8 @@ func TestEventGridDomainTopicId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.TopicName != v.Expected.TopicName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.TopicName, actual.TopicName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

@@ -8,7 +8,7 @@ func TestEventGridSystemTopicId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *EventGridSystemTopicId
+		Expected *SystemTopicId
 	}{
 		{
 			Name:     "Empty",
@@ -23,7 +23,7 @@ func TestEventGridSystemTopicId(t *testing.T) {
 		{
 			Name:  "EventGrid System Topic ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/systemTopics/systemTopic1",
-			Expected: &EventGridSystemTopicId{
+			Expected: &SystemTopicId{
 				Name:          "systemTopic1",
 				ResourceGroup: "resGroup1",
 			},
@@ -33,7 +33,7 @@ func TestEventGridSystemTopicId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := EventGridSystemTopicID(v.Input)
+		actual, err := SystemTopicID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

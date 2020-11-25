@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type EventGridTopicId struct {
+type TopicId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func EventGridTopicID(input string) (*EventGridTopicId, error) {
+func TopicID(input string) (*TopicId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse EventGrid Topic ID %q: %+v", input, err)
 	}
 
-	topic := EventGridTopicId{
+	topic := TopicId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

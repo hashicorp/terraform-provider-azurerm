@@ -8,7 +8,7 @@ func TestEventGridEventSubscriptionId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *EventGridEventSubscriptionId
+		Expected *EventSubscriptionId
 	}{
 		{
 			Name:     "Empty",
@@ -23,7 +23,7 @@ func TestEventGridEventSubscriptionId(t *testing.T) {
 		{
 			Name:  "Subscription Scope",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.EventGrid/eventSubscriptions/subscription1",
-			Expected: &EventGridEventSubscriptionId{
+			Expected: &EventSubscriptionId{
 				Name:  "subscription1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000",
 			},
@@ -31,7 +31,7 @@ func TestEventGridEventSubscriptionId(t *testing.T) {
 		{
 			Name:  "Resource Group",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/eventSubscriptions/subscription1",
-			Expected: &EventGridEventSubscriptionId{
+			Expected: &EventSubscriptionId{
 				Name:  "subscription1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1",
 			},
@@ -39,7 +39,7 @@ func TestEventGridEventSubscriptionId(t *testing.T) {
 		{
 			Name:  "Storage Account Scope",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storage1/providers/Microsoft.EventGrid/eventSubscriptions/subscription1",
-			Expected: &EventGridEventSubscriptionId{
+			Expected: &EventSubscriptionId{
 				Name:  "subscription1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Storage/storageAccounts/storage1",
 			},
@@ -47,7 +47,7 @@ func TestEventGridEventSubscriptionId(t *testing.T) {
 		{
 			Name:  "Event Grid Domain Scope",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/domains/domain1/providers/Microsoft.EventGrid/eventSubscriptions/subscription1",
-			Expected: &EventGridEventSubscriptionId{
+			Expected: &EventSubscriptionId{
 				Name:  "subscription1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/domains/domain1",
 			},
@@ -55,7 +55,7 @@ func TestEventGridEventSubscriptionId(t *testing.T) {
 		{
 			Name:  "Event Grid Topic Scope",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/topics/topic1/providers/Microsoft.EventGrid/eventSubscriptions/subscription1",
-			Expected: &EventGridEventSubscriptionId{
+			Expected: &EventSubscriptionId{
 				Name:  "subscription1",
 				Scope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/topics/topic1",
 			},
@@ -65,7 +65,7 @@ func TestEventGridEventSubscriptionId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := EventGridEventSubscriptionID(v.Input)
+		actual, err := EventSubscriptionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

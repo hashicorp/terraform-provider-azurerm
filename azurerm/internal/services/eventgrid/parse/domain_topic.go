@@ -6,27 +6,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type EventGridDomainTopicId struct {
+type DomainTopicId struct {
 	ResourceGroup string
-	Name          string
-	Domain        string
+	DomainName    string
+	TopicName     string
 }
 
-func EventGridDomainTopicID(input string) (*EventGridDomainTopicId, error) {
+func DomainTopicID(input string) (*DomainTopicId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse EventGrid Domain Topic ID %q: %+v", input, err)
 	}
 
-	domainTopic := EventGridDomainTopicId{
+	domainTopic := DomainTopicId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if domainTopic.Name, err = id.PopSegment("topics"); err != nil {
+	if domainTopic.TopicName, err = id.PopSegment("topics"); err != nil {
 		return nil, err
 	}
 
-	if domainTopic.Domain, err = id.PopSegment("domains"); err != nil {
+	if domainTopic.DomainName, err = id.PopSegment("domains"); err != nil {
 		return nil, err
 	}
 
