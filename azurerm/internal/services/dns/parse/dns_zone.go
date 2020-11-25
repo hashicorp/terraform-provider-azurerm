@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type DnsZoneId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewDnsZoneID(subscriptionId, resourceGroup, name string) DnsZoneId {
+	return DnsZoneId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id DnsZoneId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func DnsZoneID(input string) (*DnsZoneId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse DNS Zone ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	zone := DnsZoneId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DnsZoneId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if zone.Name, err = id.PopSegment("dnszones"); err != nil {
+	if resourceId.Name, err = id.PopSegment("dnszones"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func DnsZoneID(input string) (*DnsZoneId, error) {
 		return nil, err
 	}
 
-	return &zone, nil
+	return &resourceId, nil
 }
