@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -12,22 +14,37 @@ type AccountId struct {
 	Name           string
 }
 
+func NewAccountID(subscriptionId, resourceGroup, name string) AccountId {
+	return AccountId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id AccountId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataLakeStore/accounts/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
 func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Data Lake Store ID %q: %+v", input, err)
-	}
-
-	dataLakeStore := AccountId{
-		ResourceGroup:  id.ResourceGroup,
-		SubscriptionId: id.SubscriptionID,
-	}
-	if dataLakeStore.Name, err = id.PopSegment("accounts"); err != nil {
 		return nil, err
 	}
+
+	resourceId := AccountId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.Name, err = id.PopSegment("accounts"); err != nil {
+		return nil, err
+	}
+
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &dataLakeStore, nil
+	return &resourceId, nil
 }
