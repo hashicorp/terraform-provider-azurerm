@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,7 +26,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 		Read:   resourceArmAppServiceCustomHostnameBindingRead,
 		Delete: resourceArmAppServiceCustomHostnameBindingDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceCustomHostnameBindingID(id)
+			_, err := parse.AppServiceCustomHostnameBindingID(id)
 			return err
 		}),
 
@@ -149,7 +150,7 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceCustomHostnameBindingID(d.Id())
+	id, err := parse.AppServiceCustomHostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -182,7 +183,7 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceCustomHostnameBindingID(d.Id())
+	id, err := parse.AppServiceCustomHostnameBindingID(d.Id())
 	if err != nil {
 		return err
 	}

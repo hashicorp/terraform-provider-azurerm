@@ -7,20 +7,22 @@ import (
 )
 
 type AppServiceManagedCertificateId struct {
-	Name          string
-	ResourceGroup string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewAppServiceManagedCertificateId(name, resourceGroup string) AppServiceManagedCertificateId {
+func NewAppServiceManagedCertificateId(subscriptionId, resourceGroup, name string) AppServiceManagedCertificateId {
 	return AppServiceManagedCertificateId{
-		Name:          name,
-		ResourceGroup: resourceGroup,
+		SubscriptionId: subscriptionId,
+		Name:           name,
+		ResourceGroup:  resourceGroup,
 	}
 }
 
-func (id AppServiceManagedCertificateId) ID(subscriptionId string) string {
+func (id AppServiceManagedCertificateId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/certificates/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func AppServiceManagedCertificateID(input string) (*AppServiceManagedCertificateId, error) {
@@ -30,7 +32,8 @@ func AppServiceManagedCertificateID(input string) (*AppServiceManagedCertificate
 	}
 
 	appServiceManagedCertificateId := AppServiceManagedCertificateId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
 	if appServiceManagedCertificateId.Name, err = id.PopSegment("certificates"); err != nil {

@@ -3,6 +3,7 @@ package tests
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -17,6 +18,11 @@ import (
 type AppServiceManagedCertificate struct{}
 
 func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_app_service_managed_certificate", "test")
 
 	r := AppServiceManagedCertificate{}
@@ -50,19 +56,15 @@ func (t AppServiceManagedCertificate) basicLinux(data acceptance.TestData) strin
 %s
 
 resource "azurerm_app_service_managed_certificate" "test" {
-  name                = "acctest-appMS-%d"
-  canonical_name      = azurerm_app_service_custom_hostname_binding.test.hostname
-  location            = "%s"
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-
-
+  custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
 }
 
-`, template, data.RandomInteger, data.Locations.Primary)
+`, template)
 }
 
 func (AppServiceManagedCertificate) linuxTemplate(data acceptance.TestData) string {
+	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
+	dataResourceGroup := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -94,17 +96,30 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%d.com"
-  resource_group_name = azurerm_resource_group.test.name
+data "azurerm_dns_zone" "test" {
+  name                = "%s"
+  resource_group_name = "%s"
 }
 
 resource "azurerm_dns_cname_record" "test" {
   name                = "%s"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_dns_zone.test.name
+  //resource_group_name = azurerm_resource_group.test.name
+  //zone_name           = azurerm_dns_txt_record.test.zone_name
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   ttl                 = 300
   record              = azurerm_app_service.test.default_site_hostname
+}
+
+resource "azurerm_dns_txt_record" "test" {
+  name                = join(".", ["asuid", "%s"])
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 300
+
+  record {
+    value = azurerm_app_service.test.custom_domain_verification_id
+  }
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "test" {
@@ -113,5 +128,5 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, dnsZone, dataResourceGroup, data.RandomString, data.RandomString)
 }
