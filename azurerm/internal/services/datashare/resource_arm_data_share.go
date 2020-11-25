@@ -120,7 +120,7 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	resourceId := parse.NewShareId(accountId.ResourceGroup, accountId.Name, name).ID(subscriptionId)
+	resourceId := parse.NewShareID(subscriptionId, accountId.ResourceGroup, accountId.Name, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, accountId.ResourceGroup, accountId.Name, name)
 		if err != nil {
@@ -195,10 +195,10 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving DataShare %q (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
 	}
 
-	accountId := parse.NewAccountId(id.ResourceGroup, id.AccountName)
+	accountId := parse.NewAccountID(subscriptionId, id.ResourceGroup, id.AccountName)
 
 	d.Set("name", id.Name)
-	d.Set("account_id", accountId.ID(subscriptionId))
+	d.Set("account_id", accountId.ID(""))
 
 	if props := dataShare.ShareProperties; props != nil {
 		d.Set("kind", props.ShareKind)
