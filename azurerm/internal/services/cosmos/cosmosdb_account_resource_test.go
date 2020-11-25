@@ -282,14 +282,14 @@ func testAccAzureRMCosmosDBAccount_zoneRedundant_updateWith(t *testing.T, kind d
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", documentdb.Eventual),
+				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_zoneRedundantUpdate(data, "GlobalDocumentDB", documentdb.Eventual),
+				Config: testAccAzureRMCosmosDBAccount_zoneRedundantUpdate(data, kind, documentdb.Eventual),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 2),
 				),
@@ -974,7 +974,7 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "%s"
-  
+
   enable_multiple_write_locations = true
   enable_automatic_failover       = true
 
