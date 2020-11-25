@@ -8,15 +8,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SqlDatabaseId struct {
+type MongodbDatabaseId struct {
 	SubscriptionId      string
 	ResourceGroup       string
 	DatabaseAccountName string
 	Name                string
 }
 
-func NewSqlDatabaseID(subscriptionId, resourceGroup, databaseAccountName, name string) SqlDatabaseId {
-	return SqlDatabaseId{
+func NewMongodbDatabaseID(subscriptionId, resourceGroup, databaseAccountName, name string) MongodbDatabaseId {
+	return MongodbDatabaseId{
 		SubscriptionId:      subscriptionId,
 		ResourceGroup:       resourceGroup,
 		DatabaseAccountName: databaseAccountName,
@@ -24,18 +24,18 @@ func NewSqlDatabaseID(subscriptionId, resourceGroup, databaseAccountName, name s
 	}
 }
 
-func (id SqlDatabaseId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/sqlDatabases/%s"
+func (id MongodbDatabaseId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/mongodbDatabases/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }
 
-func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
+func MongodbDatabaseID(input string) (*MongodbDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := SqlDatabaseId{
+	resourceId := MongodbDatabaseId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -43,7 +43,7 @@ func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
 	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
 		return nil, err
 	}
-	if resourceId.Name, err = id.PopSegment("sqlDatabases"); err != nil {
+	if resourceId.Name, err = id.PopSegment("mongodbDatabases"); err != nil {
 		return nil, err
 	}
 

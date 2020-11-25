@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = TableId{}
+var _ resourceid.Formatter = MongodbDatabaseId{}
 
-func TestTableIDFormatter(t *testing.T) {
-	actual := NewTableID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "table1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/table1"
+func TestMongodbDatabaseIDFormatter(t *testing.T) {
+	actual := NewMongodbDatabaseID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "db1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestTableID(t *testing.T) {
+func TestMongodbDatabaseID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *TableId
+		Expected *MongodbDatabaseId
 	}{
 
 		{
@@ -75,24 +75,24 @@ func TestTableID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/table1",
-			Expected: &TableId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1",
+			Expected: &MongodbDatabaseId{
 				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:       "resGroup1",
 				DatabaseAccountName: "acc1",
-				Name:                "table1",
+				Name:                "db1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DOCUMENTDB/DATABASEACCOUNTS/ACC1/TABLES/TABLE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DOCUMENTDB/DATABASEACCOUNTS/ACC1/MONGODBDATABASES/DB1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestTableID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := TableID(v.Input)
+		actual, err := MongodbDatabaseID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

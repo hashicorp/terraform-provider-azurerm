@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = TableId{}
+var _ resourceid.Formatter = MongodbCollectionId{}
 
-func TestTableIDFormatter(t *testing.T) {
-	actual := NewTableID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "table1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/table1"
+func TestMongodbCollectionIDFormatter(t *testing.T) {
+	actual := NewMongodbCollectionID("12345678-1234-9876-4563-123456789012", "resGroup1", "acc1", "db1", "coll1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1/collections/coll1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestTableID(t *testing.T) {
+func TestMongodbCollectionID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *TableId
+		Expected *MongodbCollectionId
 	}{
 
 		{
@@ -68,31 +68,44 @@ func TestTableID(t *testing.T) {
 		},
 
 		{
-			// missing Name
+			// missing MongodbDatabaseName
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/",
 			Error: true,
 		},
 
 		{
-			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/",
+			// missing value for MongodbDatabaseName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/",
+			Error: true,
+		},
+
+		{
+			// missing CollectionName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1/",
+			Error: true,
+		},
+
+		{
+			// missing value for CollectionName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1/collections/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/tables/table1",
-			Expected: &TableId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/DatabaseAccounts/acc1/mongodbDatabases/db1/collections/coll1",
+			Expected: &MongodbCollectionId{
 				SubscriptionId:      "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:       "resGroup1",
 				DatabaseAccountName: "acc1",
-				Name:                "table1",
+				MongodbDatabaseName: "db1",
+				CollectionName:      "coll1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DOCUMENTDB/DATABASEACCOUNTS/ACC1/TABLES/TABLE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DOCUMENTDB/DATABASEACCOUNTS/ACC1/MONGODBDATABASES/DB1/COLLECTIONS/COLL1",
 			Error: true,
 		},
 	}
@@ -100,7 +113,7 @@ func TestTableID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := TableID(v.Input)
+		actual, err := MongodbCollectionID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -121,8 +134,11 @@ func TestTableID(t *testing.T) {
 		if actual.DatabaseAccountName != v.Expected.DatabaseAccountName {
 			t.Fatalf("Expected %q but got %q for DatabaseAccountName", v.Expected.DatabaseAccountName, actual.DatabaseAccountName)
 		}
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.MongodbDatabaseName != v.Expected.MongodbDatabaseName {
+			t.Fatalf("Expected %q but got %q for MongodbDatabaseName", v.Expected.MongodbDatabaseName, actual.MongodbDatabaseName)
+		}
+		if actual.CollectionName != v.Expected.CollectionName {
+			t.Fatalf("Expected %q but got %q for CollectionName", v.Expected.CollectionName, actual.CollectionName)
 		}
 	}
 }
