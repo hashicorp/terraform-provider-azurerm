@@ -7,9 +7,9 @@ import (
 )
 
 type TableId struct {
-	ResourceGroup string
-	Account       string
-	Name          string
+	ResourceGroup       string
+	DatabaseAccountName string
+	Name                string
 }
 
 func TableID(input string) (*TableId, error) {
@@ -22,7 +22,7 @@ func TableID(input string) (*TableId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if table.Account, err = id.PopSegment("databaseAccounts"); err != nil {
+	if table.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
