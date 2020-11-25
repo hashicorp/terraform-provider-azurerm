@@ -8,7 +8,7 @@ func TestHealthcareServiceId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *HealthcareServiceId
+		Expected *ServiceId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestHealthcareServiceId(t *testing.T) {
 		{
 			Name:  "Healthcare Service ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.HealthcareApis/services/Service1",
-			Expected: &HealthcareServiceId{
+			Expected: &ServiceId{
 				Name:          "Service1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestHealthcareServiceId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := HealthcareServiceID(v.Input)
+		actual, err := ServiceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

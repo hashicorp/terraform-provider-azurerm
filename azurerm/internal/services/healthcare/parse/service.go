@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type HealthcareServiceId struct {
+type ServiceId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func HealthcareServiceID(input string) (*HealthcareServiceId, error) {
+func ServiceID(input string) (*ServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Healthcare Service ID %q: %+v", input, err)
 	}
 
-	service := HealthcareServiceId{
+	service := ServiceId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
