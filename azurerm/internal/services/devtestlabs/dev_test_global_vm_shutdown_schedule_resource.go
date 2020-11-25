@@ -12,8 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	computeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/parse"
-	devtestValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -45,7 +46,7 @@ func resourceArmDevTestLabGlobalVMShutdownSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: devtestValidate.GlobalScheduleVirtualMachineID,
+				ValidateFunc: computeValidate.VirtualMachineID,
 			},
 
 			"enabled": {
@@ -104,7 +105,7 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate(d *schema.Resourc
 	defer cancel()
 
 	vmID := d.Get("virtual_machine_id").(string)
-	id, err := parse.GlobalScheduleVirtualMachineID(vmID)
+	id, err := computeParse.VirtualMachineID(vmID)
 	if err != nil {
 		return err
 	}
