@@ -90,7 +90,7 @@ func TestAccAzureRMCustomProvider_action(t *testing.T) {
 }
 
 func (r CustomProviderResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.CustomProviderID(state.ID)
+	id, err := parse.ResourceProviderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
