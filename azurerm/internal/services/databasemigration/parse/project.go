@@ -6,23 +6,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DatabaseMigrationProjectId struct {
+type ProjectId struct {
 	ResourceGroup string
-	Service       string
+	ServiceName   string
 	Name          string
 }
 
-func DatabaseMigrationProjectID(input string) (*DatabaseMigrationProjectId, error) {
+func ProjectID(input string) (*ProjectId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Database Migration Project ID %q: %+v", input, err)
 	}
 
-	project := DatabaseMigrationProjectId{
+	project := ProjectId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if project.Service, err = id.PopSegment("services"); err != nil {
+	if project.ServiceName, err = id.PopSegment("services"); err != nil {
 		return nil, err
 	}
 
