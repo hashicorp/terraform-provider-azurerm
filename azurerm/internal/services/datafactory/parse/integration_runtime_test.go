@@ -6,7 +6,7 @@ func TestParseDataFactoryIntegrationRuntimeID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DataFactoryIntegrationRuntimeId
+		Expected *IntegrationRuntimeId
 	}{
 		{
 			Name:     "Empty",
@@ -31,17 +31,17 @@ func TestParseDataFactoryIntegrationRuntimeID(t *testing.T) {
 		{
 			Name:  "Valid",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DataFactory/factories/factory1/integrationruntimes/integrationRuntimeName",
-			Expected: &DataFactoryIntegrationRuntimeId{
+			Expected: &IntegrationRuntimeId{
 				ResourceGroup: "myGroup1",
 				Name:          "integrationRuntimeName",
-				DataFactory:   "factory1",
+				FactoryName:   "factory1",
 			},
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := DataFactoryIntegrationRuntimeID(v.Input)
+		actual, err := IntegrationRuntimeID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
