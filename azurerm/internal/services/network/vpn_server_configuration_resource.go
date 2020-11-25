@@ -300,6 +300,9 @@ func resourceArmVPNServerConfiguration() *schema.Resource {
 						},
 					},
 				},
+				ConflictsWith: []string{
+					"radius_server",
+				},
 			},
 
 			"radius_server": {
@@ -358,6 +361,9 @@ func resourceArmVPNServerConfiguration() *schema.Resource {
 							},
 						},
 					},
+				},
+				ConflictsWith: []string{
+					"radius",
 				},
 			},
 
