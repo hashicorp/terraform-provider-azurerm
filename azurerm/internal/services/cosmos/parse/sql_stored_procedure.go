@@ -1,12 +1,15 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type StoredProcedureId struct {
+type SqlStoredProcedureId struct {
+	SubscriptionId      string
 	ResourceGroup       string
 	DatabaseAccountName string
 	SqlDatabaseName     string
@@ -14,31 +17,49 @@ type StoredProcedureId struct {
 	StoredProcedureName string
 }
 
-func StoredProcedureID(input string) (*StoredProcedureId, error) {
+func NewSqlStoredProcedureID(subscriptionId, resourceGroup, databaseAccountName, sqlDatabaseName, containerName, storedProcedureName string) SqlStoredProcedureId {
+	return SqlStoredProcedureId{
+		SubscriptionId:      subscriptionId,
+		ResourceGroup:       resourceGroup,
+		DatabaseAccountName: databaseAccountName,
+		SqlDatabaseName:     sqlDatabaseName,
+		ContainerName:       containerName,
+		StoredProcedureName: storedProcedureName,
+	}
+}
+
+func (id SqlStoredProcedureId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/sqlDatabases/%s/containers/%s/storedProcedures/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
+}
+
+func SqlStoredProcedureID(input string) (*SqlStoredProcedureId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Stored Procedure ID %q: %+v", input, err)
-	}
-
-	storedProcedure := StoredProcedureId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if storedProcedure.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
-	if storedProcedure.SqlDatabaseName, err = id.PopSegment("sqlDatabases"); err != nil {
+	resourceId := SqlStoredProcedureId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
+		return nil, err
+	}
+	if resourceId.SqlDatabaseName, err = id.PopSegment("sqlDatabases"); err != nil {
+		return nil, err
+	}
+	if resourceId.ContainerName, err = id.PopSegment("containers"); err != nil {
+		return nil, err
+	}
+	if resourceId.StoredProcedureName, err = id.PopSegment("storedProcedures"); err != nil {
 		return nil, err
 	}
 
-	if storedProcedure.ContainerName, err = id.PopSegment("containers"); err != nil {
+	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	if storedProcedure.StoredProcedureName, err = id.PopSegment("storedProcedures"); err != nil {
-		return nil, err
-	}
-
-	return &storedProcedure, nil
+	return &resourceId, nil
 }
