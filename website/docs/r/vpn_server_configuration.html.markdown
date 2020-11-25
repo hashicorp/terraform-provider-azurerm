@@ -92,7 +92,8 @@ When `vpn_authentication_types` contains `Certificate` the following arguments a
 
 When `vpn_authentication_types` contains `Radius` the following arguments are supported:
 
-* `radius_server` - (Required) A `radius_server` block as defined below.
+* `radius_server` - (Optional / **Deprecated**) A `radius_server` block as defined below.
+* `radius` - (Optional) A `radius` block as defined below.
 
 ---
 
@@ -150,17 +151,25 @@ A `ipsec_policy` block supports the following:
 
 ---
 
-A `radius_server` block supports the following:
+A `radius_server` (**Deprecated) Use it to configure single Radius Server. The block supports the following:
 
-* `address` - (Optional) The Address of the Radius Server. Used to create single Radius Server configuration. Exists for backward compatibility purpose.
+* `address` - (Required) The Address of the Radius Server.
 
-* `secret` - (Optional) The Secret used to communicate with the Radius Server. Used to crate single Radius Server configuration. Exists for backward compatibility purpose.
-
-* `server` - (Optional) One or more `server` blocks as defined below. Used to create multiple Radius Servers configuration.
+* `secret` - (Required) The Secret used to communicate with the Radius Server. Us
 
 * `client_root_certificate` - (Optional) One or more `client_root_certificate` blocks as defined above.
 
-* `server_root_certificate` - (Optional) One or more `server_root_certificate` blocks as defined below.
+* `server_root_certificate` - (Required) One or more `server_root_certificate` blocks as defined below.
+
+---
+
+A `radius` The block is used to configure single Radius Server. The block supports the following:
+
+* `server` - (Required) One or more `server` blocks as defined below.
+
+* `client_root_certificate` - (Optional) One or more `client_root_certificate` blocks as defined above.
+
+* `server_root_certificate` - (Required) One or more `server_root_certificate` blocks as defined below.
 
 ---
 

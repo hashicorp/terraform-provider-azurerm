@@ -381,7 +381,7 @@ resource "azurerm_vpn_server_configuration" "test" {
   location                 = azurerm_resource_group.test.location
   vpn_authentication_types = ["Radius"]
 
-  radius_server {
+  radius {
 
     server {
       address = "10.104.1.1"
