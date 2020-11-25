@@ -8,7 +8,7 @@ func TestDatabricksWorkspaceId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DatabricksWorkspaceId
+		Expected *WorkspaceId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestDatabricksWorkspaceId(t *testing.T) {
 		{
 			Name:  "Databricks Workspace ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Databricks/workspaces/Workspace1",
-			Expected: &DatabricksWorkspaceId{
+			Expected: &WorkspaceId{
 				Name:          "Workspace1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestDatabricksWorkspaceId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := DatabricksWorkspaceID(v.Input)
+		actual, err := WorkspaceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

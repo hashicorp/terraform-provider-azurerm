@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DatabricksWorkspaceId struct {
+type WorkspaceId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func DatabricksWorkspaceID(input string) (*DatabricksWorkspaceId, error) {
+func WorkspaceID(input string) (*WorkspaceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Databricks Workspace ID %q: %+v", input, err)
 	}
 
-	workspace := DatabricksWorkspaceId{
+	workspace := WorkspaceId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
