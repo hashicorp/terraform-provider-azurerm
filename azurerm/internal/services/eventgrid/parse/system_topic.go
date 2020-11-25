@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type SystemTopicId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewSystemTopicID(subscriptionId, resourceGroup, name string) SystemTopicId {
+	return SystemTopicId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id SystemTopicId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventGrid/systemTopics/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func SystemTopicID(input string) (*SystemTopicId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse EventGrid System Topic ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	topic := SystemTopicId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := SystemTopicId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if topic.Name, err = id.PopSegment("systemTopics"); err != nil {
+	if resourceId.Name, err = id.PopSegment("systemTopics"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func SystemTopicID(input string) (*SystemTopicId, error) {
 		return nil, err
 	}
 
-	return &topic, nil
+	return &resourceId, nil
 }

@@ -1,53 +1,112 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestEventGridSystemTopicId(t *testing.T) {
+var _ resourceid.Formatter = SystemTopicId{}
+
+func TestSystemTopicIDFormatter(t *testing.T) {
+	actual := NewSystemTopicID("12345678-1234-9876-4563-123456789012", "resGroup1", "systemTopic1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.EventGrid/systemTopics/systemTopic1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestSystemTopicID(t *testing.T) {
 	testData := []struct {
-		Name     string
 		Input    string
+		Error    bool
 		Expected *SystemTopicId
 	}{
+
 		{
-			Name:     "Empty",
-			Input:    "",
-			Expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			Name:     "No System Topic",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/providers/Microsoft.EventGrid",
-			Expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			Name:  "EventGrid System Topic ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.EventGrid/systemTopics/systemTopic1",
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
+		},
+
+		{
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
+		},
+
+		{
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
+		},
+
+		{
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.EventGrid/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.EventGrid/systemTopics/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.EventGrid/systemTopics/systemTopic1",
 			Expected: &SystemTopicId{
-				Name:          "systemTopic1",
-				ResourceGroup: "resGroup1",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				Name:           "systemTopic1",
 			},
+		},
+
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.EVENTGRID/SYSTEMTOPICS/SYSTEMTOPIC1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := SystemTopicID(v.Input)
 		if err != nil {
-			if v.Expected == nil {
+			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
-
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

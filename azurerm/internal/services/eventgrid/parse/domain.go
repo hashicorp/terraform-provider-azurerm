@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type DomainId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewDomainID(subscriptionId, resourceGroup, name string) DomainId {
+	return DomainId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id DomainId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventGrid/domains/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func DomainID(input string) (*DomainId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse EventGrid Domain ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	domain := DomainId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := DomainId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if domain.Name, err = id.PopSegment("domains"); err != nil {
+	if resourceId.Name, err = id.PopSegment("domains"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func DomainID(input string) (*DomainId, error) {
 		return nil, err
 	}
 
-	return &domain, nil
+	return &resourceId, nil
 }
