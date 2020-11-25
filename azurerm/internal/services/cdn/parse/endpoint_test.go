@@ -68,13 +68,13 @@ func TestEndpointID(t *testing.T) {
 		},
 
 		{
-			// missing EndpointName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/",
 			Error: true,
 		},
 
 		{
-			// missing value for EndpointName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Cdn/profiles/profile1/endpoints/",
 			Error: true,
 		},
@@ -86,7 +86,7 @@ func TestEndpointID(t *testing.T) {
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "resGroup1",
 				ProfileName:    "profile1",
-				EndpointName:   "endpoint1",
+				Name:           "endpoint1",
 			},
 		},
 
@@ -121,8 +121,8 @@ func TestEndpointID(t *testing.T) {
 		if actual.ProfileName != v.Expected.ProfileName {
 			t.Fatalf("Expected %q but got %q for ProfileName", v.Expected.ProfileName, actual.ProfileName)
 		}
-		if actual.EndpointName != v.Expected.EndpointName {
-			t.Fatalf("Expected %q but got %q for EndpointName", v.Expected.EndpointName, actual.EndpointName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }
