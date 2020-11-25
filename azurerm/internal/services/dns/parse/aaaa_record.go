@@ -6,27 +6,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DnsAaaaRecordId struct {
+type AaaaRecordId struct {
 	ResourceGroup string
-	ZoneName      string
-	Name          string
+	DnszoneName   string
+	AAAAName      string
 }
 
-func DnsAaaaRecordID(input string) (*DnsAaaaRecordId, error) {
+func AaaaRecordID(input string) (*AaaaRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse DNS AAAA Record ID %q: %+v", input, err)
 	}
 
-	record := DnsAaaaRecordId{
+	record := AaaaRecordId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if record.ZoneName, err = id.PopSegment("dnszones"); err != nil {
+	if record.DnszoneName, err = id.PopSegment("dnszones"); err != nil {
 		return nil, err
 	}
 
-	if record.Name, err = id.PopSegment("AAAA"); err != nil {
+	if record.AAAAName, err = id.PopSegment("AAAA"); err != nil {
 		return nil, err
 	}
 
