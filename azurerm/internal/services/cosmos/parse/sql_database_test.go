@@ -46,9 +46,9 @@ func TestSqlDatabaseID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1",
 			Error: false,
 			Expect: &SqlDatabaseId{
-				ResourceGroup: "resGroup1",
-				Account:       "acc1",
-				Name:          "db1",
+				ResourceGroup:       "resGroup1",
+				DatabaseAccountName: "acc1",
+				Name:                "db1",
 			},
 		},
 		{
@@ -74,8 +74,8 @@ func TestSqlDatabaseID(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
 		}
 
-		if actual.Account != v.Expect.Account {
-			t.Fatalf("Expected %q but got %q for Account", v.Expect.Account, actual.Account)
+		if actual.DatabaseAccountName != v.Expect.DatabaseAccountName {
+			t.Fatalf("Expected %q but got %q for Account", v.Expect.DatabaseAccountName, actual.DatabaseAccountName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

@@ -51,10 +51,10 @@ func TestSqlContainerID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/sqlDatabases/db1/containers/container1",
 			Error: false,
 			Expect: &SqlContainerId{
-				ResourceGroup: "resGroup1",
-				Account:       "acc1",
-				Database:      "db1",
-				Name:          "container1",
+				ResourceGroup:       "resGroup1",
+				DatabaseAccountName: "acc1",
+				SqlDatabaseName:     "db1",
+				ContainerName:       "container1",
 			},
 		},
 		{
@@ -76,16 +76,16 @@ func TestSqlContainerID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.ContainerName != v.Expect.ContainerName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.ContainerName, actual.ContainerName)
 		}
 
-		if actual.Database != v.Expect.Database {
-			t.Fatalf("Expected %q but got %q for Database", v.Expect.Database, actual.Database)
+		if actual.SqlDatabaseName != v.Expect.SqlDatabaseName {
+			t.Fatalf("Expected %q but got %q for Database", v.Expect.SqlDatabaseName, actual.SqlDatabaseName)
 		}
 
-		if actual.Account != v.Expect.Account {
-			t.Fatalf("Expected %q but got %q for Account", v.Expect.Account, actual.Account)
+		if actual.DatabaseAccountName != v.Expect.DatabaseAccountName {
+			t.Fatalf("Expected %q but got %q for Account", v.Expect.DatabaseAccountName, actual.DatabaseAccountName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

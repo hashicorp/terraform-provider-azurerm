@@ -7,9 +7,9 @@ import (
 )
 
 type SqlDatabaseId struct {
-	ResourceGroup string
-	Account       string
-	Name          string
+	ResourceGroup       string
+	DatabaseAccountName string
+	Name                string
 }
 
 func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
@@ -22,7 +22,7 @@ func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if sqlDatabase.Account, err = id.PopSegment("databaseAccounts"); err != nil {
+	if sqlDatabase.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 

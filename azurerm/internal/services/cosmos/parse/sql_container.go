@@ -7,10 +7,10 @@ import (
 )
 
 type SqlContainerId struct {
-	ResourceGroup string
-	Account       string
-	Database      string
-	Name          string
+	ResourceGroup       string
+	DatabaseAccountName string
+	SqlDatabaseName     string
+	ContainerName       string
 }
 
 func SqlContainerID(input string) (*SqlContainerId, error) {
@@ -23,15 +23,15 @@ func SqlContainerID(input string) (*SqlContainerId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if sqlContainer.Account, err = id.PopSegment("databaseAccounts"); err != nil {
+	if sqlContainer.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
-	if sqlContainer.Database, err = id.PopSegment("sqlDatabases"); err != nil {
+	if sqlContainer.SqlDatabaseName, err = id.PopSegment("sqlDatabases"); err != nil {
 		return nil, err
 	}
 
-	if sqlContainer.Name, err = id.PopSegment("containers"); err != nil {
+	if sqlContainer.ContainerName, err = id.PopSegment("containers"); err != nil {
 		return nil, err
 	}
 
