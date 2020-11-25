@@ -6,23 +6,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DataFactoryLinkedServiceId struct {
+type LinkedServiceId struct {
 	ResourceGroup string
+	FactoryName   string
 	Name          string
-	DataFactory   string
 }
 
-func DataFactoryLinkedServiceID(input string) (*DataFactoryLinkedServiceId, error) {
+func LinkedServiceID(input string) (*LinkedServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Data Factory Linked Service ID %q: %+v", input, err)
 	}
 
-	dataFactoryIntegrationRuntime := DataFactoryLinkedServiceId{
+	dataFactoryIntegrationRuntime := LinkedServiceId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if dataFactoryIntegrationRuntime.DataFactory, err = id.PopSegment("factories"); err != nil {
+	if dataFactoryIntegrationRuntime.FactoryName, err = id.PopSegment("factories"); err != nil {
 		return nil, err
 	}
 

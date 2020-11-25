@@ -6,7 +6,7 @@ func TestParseDataFactoryLinkedServiceID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *DataFactoryLinkedServiceId
+		Expected *LinkedServiceId
 	}{
 		{
 			Name:     "Empty",
@@ -31,17 +31,17 @@ func TestParseDataFactoryLinkedServiceID(t *testing.T) {
 		{
 			Name:  "Valid",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DataFactory/factories/factory1/linkedservices/linkedService1",
-			Expected: &DataFactoryLinkedServiceId{
+			Expected: &LinkedServiceId{
 				ResourceGroup: "myGroup1",
 				Name:          "linkedService1",
-				DataFactory:   "factory1",
+				FactoryName:   "factory1",
 			},
 		},
 	}
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := DataFactoryLinkedServiceID(v.Input)
+		actual, err := LinkedServiceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
