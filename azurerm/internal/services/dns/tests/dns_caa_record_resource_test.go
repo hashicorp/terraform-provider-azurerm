@@ -119,18 +119,18 @@ func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DnsCaaRecordID(rs.Primary.ID)
+		id, err := parse.CaaRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CAA)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CAA RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS CAA record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS CAA record %s (resource group: %s) does not exist", id.CAAName, id.ResourceGroup)
 		}
 
 		return nil
@@ -146,11 +146,11 @@ func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DnsCaaRecordID(rs.Primary.ID)
+		id, err := parse.CaaRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CAA)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil

@@ -33,7 +33,7 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsTxtRecordID(id)
+			_, err := parse.TxtRecordID(id)
 			return err
 		}),
 		Schema: map[string]*schema.Schema{
@@ -138,23 +138,23 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsTxtRecordID(d.Id())
+	id, err := parse.TxtRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.TXT)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS TXT record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error reading DNS TXT record %s: %+v", id.TXTName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.TXTName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
@@ -169,14 +169,14 @@ func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsTxtRecordID(d.Id())
+	id, err := parse.TxtRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.TXT, "")
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.TXTName, dns.TXT, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", id.TXTName, err)
 	}
 
 	return nil
