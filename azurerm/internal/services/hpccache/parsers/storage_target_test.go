@@ -9,7 +9,7 @@ func TestHPCCacheTargetID(t *testing.T) {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *HPCCacheTargetId
+		Expect *StorageTargetId
 	}{
 		{
 			Name:  "Empty",
@@ -49,7 +49,7 @@ func TestHPCCacheTargetID(t *testing.T) {
 		{
 			Name:  "With Storage Target Value",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StorageCache/caches/cache1/storageTargets/target1",
-			Expect: &HPCCacheTargetId{
+			Expect: &StorageTargetId{
 				ResourceGroup: "resGroup1",
 				Cache:         "cache1",
 				Name:          "target1",
@@ -65,7 +65,7 @@ func TestHPCCacheTargetID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := HPCCacheTargetID(v.Input)
+		actual, err := StorageTargetID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

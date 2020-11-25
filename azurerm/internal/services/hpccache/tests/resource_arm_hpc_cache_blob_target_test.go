@@ -83,7 +83,7 @@ func testCheckAzureRMHPCCacheBlobTargetExists(resourceName string) resource.Test
 			return fmt.Errorf("HPC Cache Blob Target not found: %s", resourceName)
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers.StorageTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -111,7 +111,7 @@ func testCheckAzureRMHPCCacheBlobTargetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers.StorageTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

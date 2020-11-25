@@ -8,7 +8,7 @@ func TestParseHPCCacheID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *HPCCacheID
+		Expected *CacheId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestParseHPCCacheID(t *testing.T) {
 		{
 			Name:  "Cache ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StorageCache/caches/mycache1",
-			Expected: &HPCCacheID{
+			Expected: &CacheId{
 				ResourceGroup: "resGroup1",
 				Name:          "mycache1",
 			},
@@ -53,7 +53,7 @@ func TestParseHPCCacheID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseHPCCacheID(v.Input)
+		actual, err := ParseCacheID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

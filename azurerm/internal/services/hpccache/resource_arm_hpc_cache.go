@@ -31,7 +31,7 @@ func resourceArmHPCCache() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parsers.ParseHPCCacheID(id)
+			_, err := parsers.ParseCacheID(id)
 			return err
 		}),
 
@@ -177,7 +177,7 @@ func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.ParseHPCCacheID(d.Id())
+	id, err := parsers.ParseCacheID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func resourceArmHPCCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.ParseHPCCacheID(d.Id())
+	id, err := parsers.ParseCacheID(d.Id())
 	if err != nil {
 		return err
 	}

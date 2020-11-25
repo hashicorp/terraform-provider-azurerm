@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type HPCCacheTargetId struct {
+type StorageTargetId struct {
 	ResourceGroup string
 	Cache         string
 	Name          string
 }
 
-func HPCCacheTargetID(input string) (*HPCCacheTargetId, error) {
+func StorageTargetID(input string) (*StorageTargetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse HPC Cache Target ID %q: %+v", input, err)
 	}
 
-	target := HPCCacheTargetId{
+	target := StorageTargetId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

@@ -26,7 +26,7 @@ func resourceArmHPCCacheNFSTarget() *schema.Resource {
 		Delete: resourceArmHPCCacheNFSTargetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parsers.HPCCacheTargetID(id)
+			_, err := parsers.StorageTargetID(id)
 			return err
 		}),
 
@@ -165,7 +165,7 @@ func resourceArmHPCCacheNFSTargetRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.HPCCacheTargetID(d.Id())
+	id, err := parsers.StorageTargetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func resourceArmHPCCacheNFSTargetDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parsers.HPCCacheTargetID(d.Id())
+	id, err := parsers.StorageTargetID(d.Id())
 	if err != nil {
 		return err
 	}

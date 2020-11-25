@@ -126,7 +126,7 @@ func testCheckAzureRMHPCCacheNFSTargetExists(resourceName string) resource.TestC
 			return fmt.Errorf("HPC Cache NFS Target not found: %s", resourceName)
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers.StorageTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -151,7 +151,7 @@ func testCheckAzureRMHPCCacheNFSTargetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parsers.StorageTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

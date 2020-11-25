@@ -4,18 +4,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type HPCCacheID struct {
-	Name          string
+type CacheId struct {
 	ResourceGroup string
+	Name          string
 }
 
-func ParseHPCCacheID(input string) (*HPCCacheID, error) {
+func ParseCacheID(input string) (*CacheId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	cache := HPCCacheID{
+	cache := CacheId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
