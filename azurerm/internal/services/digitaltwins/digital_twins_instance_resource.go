@@ -68,7 +68,7 @@ func resourceArmDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewDigitalTwinsInstanceID(subscriptionId, resourceGroup, name)
+	id := parse.NewDigitalTwinsInstanceID(subscriptionId, resourceGroup, name).ID("")
 
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -76,8 +76,8 @@ func resourceArmDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("checking for existing Digital Twins Instance %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_digital_twins_instance", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_digital_twins_instance", id)
 	}
 
 	properties := digitaltwins.Description{
@@ -99,7 +99,7 @@ func resourceArmDigitalTwinsInstanceCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("retrieving Digital Twins Instance %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id)
 
 	return resourceArmDigitalTwinsInstanceRead(d, meta)
 }

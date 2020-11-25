@@ -53,7 +53,7 @@ func dataSourceArmDigitalTwinsInstanceRead(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewDigitalTwinsInstanceID(subscriptionId, resourceGroup, name)
+	id := parse.NewDigitalTwinsInstanceID(subscriptionId, resourceGroup, name).ID("")
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -70,7 +70,7 @@ func dataSourceArmDigitalTwinsInstanceRead(d *schema.ResourceData, meta interfac
 		d.Set("host_name", props.HostName)
 	}
 
-	d.SetId(id.ID(subscriptionId))
+	d.SetId(id)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

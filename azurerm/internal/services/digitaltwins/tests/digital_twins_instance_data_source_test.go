@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMDigitalTwins_basic(t *testing.T) {
+func TestAccDataSourceAzureRMDigitalTwinsInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_digital_twins_instance", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
