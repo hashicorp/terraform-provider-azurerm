@@ -273,6 +273,36 @@ func testAccAzureRMCosmosDBAccount_zoneRedundantWith(t *testing.T, kind document
 	})
 }
 
+func testAccAzureRMCosmosDBAccount_zoneRedundant_updateWith(t *testing.T, kind documentdb.DatabaseAccountKind) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", documentdb.Eventual),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDBAccount_zoneRedundantUpdate(data, "GlobalDocumentDB", documentdb.Eventual),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 2),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_zoneRedundant_update_mongo(t *testing.T) {
+	testAccAzureRMCosmosDBAccount_zoneRedundant_updateWith(t, documentdb.MongoDB)
+}
+
 func TestAccAzureRMCosmosDBAccount_update_mongo(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_updateWith(t, documentdb.MongoDB)
 }
@@ -284,7 +314,6 @@ func TestAccAzureRMCosmosDBAccount_update_global(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_update_parse(t *testing.T) {
 	testAccAzureRMCosmosDBAccount_updateWith(t, documentdb.Parse)
 }
-
 func testAccAzureRMCosmosDBAccount_updateWith(t *testing.T, kind documentdb.DatabaseAccountKind) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
@@ -906,6 +935,63 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency), data.Locations.Secondary)
+}
+
+func testAccAzureRMCosmosDBAccount_zoneRedundantUpdate(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+variable "geo_location" {
+  type = list(object({
+    location          = string
+    failover_priority = string
+    zone_redundant    = bool
+  }))
+  default = [
+    {
+      location          = "%s"
+      failover_priority = 0
+      zone_redundant    = false
+    },
+    {
+      location          = "%s"
+      failover_priority = 1
+      zone_redundant    = true
+    }
+  ]
+}
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+  
+  enable_multiple_write_locations = true
+  enable_automatic_failover       = true
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  dynamic "geo_location" {
+    for_each = var.geo_location
+    content {
+      location          = geo_location.value.location
+      failover_priority = geo_location.value.failover_priority
+      zone_redundant    = geo_location.value.zone_redundant
+    }
+  }
+}
+`, data.Locations.Primary, data.Locations.Secondary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
 func testAccAzureRMCosmosDBAccount_vNetFiltersPreReqs(data acceptance.TestData) string {
