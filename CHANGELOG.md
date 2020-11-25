@@ -1,5 +1,10 @@
 ## 2.38.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_digital_twins_instance` [GH-9430]
+* **New Resource:** `azurerm_digital_twins_instance` [GH-9430]
+
 IMPROVEMENTS: 
 
 * dependencies: updating App Service to API version `2020-06-01` [GH-9409]
