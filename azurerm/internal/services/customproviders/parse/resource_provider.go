@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type ResourceProviderId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewResourceProviderID(subscriptionId, resourceGroup, name string) ResourceProviderId {
+	return ResourceProviderId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ResourceProviderId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.CustomProviders/resourceproviders/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ResourceProviderID(input string) (*ResourceProviderId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Custom Resource Provider ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	service := ResourceProviderId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ResourceProviderId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if service.Name, err = id.PopSegment("resourceproviders"); err != nil {
+	if resourceId.Name, err = id.PopSegment("resourceproviders"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func ResourceProviderID(input string) (*ResourceProviderId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }
