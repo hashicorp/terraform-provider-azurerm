@@ -6,7 +6,7 @@ func TestGlobalSchedule(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *GlobalScheduleId
+		Expected *ScheduleId
 	}{
 		{
 			Name:     "Empty",
@@ -31,7 +31,7 @@ func TestGlobalSchedule(t *testing.T) {
 		{
 			Name:  "Valid",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DevTestLab/schedules/schedule1",
-			Expected: &GlobalScheduleId{
+			Expected: &ScheduleId{
 				ResourceGroup: "myGroup1",
 				Name:          "schedule1",
 			},
@@ -41,7 +41,7 @@ func TestGlobalSchedule(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := GlobalScheduleID(v.Input)
+		actual, err := ScheduleID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

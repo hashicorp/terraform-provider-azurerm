@@ -30,7 +30,7 @@ func TestGlobalScheduleID(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.ID)
-		_, errors := GlobalScheduleID(tc.ID, "test")
+		_, errors := ScheduleID(tc.ID, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {

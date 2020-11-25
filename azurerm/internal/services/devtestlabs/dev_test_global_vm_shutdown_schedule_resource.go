@@ -28,7 +28,7 @@ func resourceArmDevTestLabGlobalVMShutdownSchedule() *schema.Resource {
 		Update: resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate,
 		Delete: resourceArmDevTestLabGlobalVMShutdownScheduleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.GlobalScheduleID(id)
+			_, err := parse.ScheduleID(id)
 			return err
 		}),
 
@@ -182,7 +182,7 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleRead(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GlobalScheduleID(d.Id())
+	id, err := parse.ScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func resourceArmDevTestLabGlobalVMShutdownScheduleDelete(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.GlobalScheduleID(d.Id())
+	id, err := parse.ScheduleID(d.Id())
 	if err != nil {
 		return err
 	}

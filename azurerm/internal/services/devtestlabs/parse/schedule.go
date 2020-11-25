@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type GlobalScheduleId struct {
+type ScheduleId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func GlobalScheduleID(input string) (*GlobalScheduleId, error) {
+func ScheduleID(input string) (*ScheduleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Global Schedule ID %q: %+v", input, err)
 	}
 
-	service := GlobalScheduleId{
+	service := ScheduleId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
