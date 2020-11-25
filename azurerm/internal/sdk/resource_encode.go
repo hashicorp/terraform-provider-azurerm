@@ -23,6 +23,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	}
 
 	for k, v := range serialized {
+		// lintignore:R001
 		if err := rmd.ResourceData.Set(k, v); err != nil {
 			return fmt.Errorf("setting %q: %+v", k, err)
 		}
