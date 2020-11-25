@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,36 @@ import (
 )
 
 type ControllerId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewControllerID(subscriptionId, resourceGroup, name string) ControllerId {
+	return ControllerId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ControllerId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevSpaces/controllers/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ControllerID(input string) (*ControllerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse DevSpace Controller ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	controller := ControllerId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ControllerId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if controller.Name, err = id.PopSegment("controllers"); err != nil {
+	if resourceId.Name, err = id.PopSegment("controllers"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +46,5 @@ func ControllerID(input string) (*ControllerId, error) {
 		return nil, err
 	}
 
-	return &controller, nil
+	return &resourceId, nil
 }
