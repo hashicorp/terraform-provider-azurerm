@@ -101,7 +101,7 @@ The following arguments are supported:
 
 -> **NOTE:** At this time `min_tls_version` is only supported in the Public Cloud.
 
-* `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `true`.
+* `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `false`.
 
 -> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud.
 
