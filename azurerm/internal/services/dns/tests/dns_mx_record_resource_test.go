@@ -139,18 +139,18 @@ func testCheckAzureRMDnsMxRecordExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DnsMxRecordID(rs.Primary.ID)
+		id, err := parse.MxRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.MX)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.MXName, dns.MX)
 		if err != nil {
 			return fmt.Errorf("Bad: Get MX RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS MX record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS MX record %s (resource group: %s) does not exist", id.MXName, id.ResourceGroup)
 		}
 
 		return nil
@@ -166,12 +166,12 @@ func testCheckAzureRMDnsMxRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DnsMxRecordID(rs.Primary.ID)
+		id, err := parse.MxRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.MX)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.MXName, dns.MX)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil
