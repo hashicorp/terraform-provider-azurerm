@@ -7,9 +7,9 @@ import (
 )
 
 type MongoDbDatabaseId struct {
-	ResourceGroup string
-	Account       string
-	Name          string
+	ResourceGroup       string
+	DatabaseAccountName string
+	Name                string
 }
 
 func MongoDbDatabaseID(input string) (*MongoDbDatabaseId, error) {
@@ -22,7 +22,7 @@ func MongoDbDatabaseID(input string) (*MongoDbDatabaseId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if mongodbDatabase.Account, err = id.PopSegment("databaseAccounts"); err != nil {
+	if mongodbDatabase.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
