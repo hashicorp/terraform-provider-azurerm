@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type CustomProviderId struct {
+type ResourceProviderId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func CustomProviderID(input string) (*CustomProviderId, error) {
+func ResourceProviderID(input string) (*ResourceProviderId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Custom Resource Provider ID %q: %+v", input, err)
 	}
 
-	service := CustomProviderId{
+	service := ResourceProviderId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

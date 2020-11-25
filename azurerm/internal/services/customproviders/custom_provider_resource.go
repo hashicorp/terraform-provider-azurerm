@@ -25,7 +25,7 @@ func resourceArmCustomProvider() *schema.Resource {
 		Update: resourceArmCustomProviderCreateUpdate,
 		Delete: resourceArmCustomProviderDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CustomProviderID(id)
+			_, err := parse.ResourceProviderID(id)
 			return err
 		}),
 
@@ -175,7 +175,7 @@ func resourceArmCustomProviderRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomProviderID(d.Id())
+	id, err := parse.ResourceProviderID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func resourceArmCustomProviderDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CustomProviderID(d.Id())
+	id, err := parse.ResourceProviderID(d.Id())
 	if err != nil {
 		return err
 	}
