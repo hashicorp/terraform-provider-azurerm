@@ -124,13 +124,13 @@ func testCheckAzureRMDnsNsRecordExists(resourceName string) resource.TestCheckFu
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.NS)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS NS Record: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS NS record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS NS record %s (resource group: %s) does not exist", id.NSName, id.ResourceGroup)
 		}
 
 		return nil
@@ -151,7 +151,7 @@ func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.NS)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS)
 		if err != nil {
 			return nil
 		}
