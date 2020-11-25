@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,41 @@ import (
 )
 
 type NsRecordId struct {
-	ResourceGroup string
-	DnszoneName   string
-	NSName        string
+	SubscriptionId string
+	ResourceGroup  string
+	DnszoneName    string
+	NSName         string
 }
 
-func DnsNsRecordID(input string) (*NsRecordId, error) {
+func NewNsRecordID(subscriptionId, resourceGroup, dnszoneName, nSName string) NsRecordId {
+	return NsRecordId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		DnszoneName:    dnszoneName,
+		NSName:         nSName,
+	}
+}
+
+func (id NsRecordId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/dnszones/%s/NS/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.NSName)
+}
+
+func NsRecordID(input string) (*NsRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse DNS NS Record ID %q: %+v", input, err)
-	}
-
-	record := NsRecordId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if record.DnszoneName, err = id.PopSegment("dnszones"); err != nil {
 		return nil, err
 	}
 
-	if record.NSName, err = id.PopSegment("NS"); err != nil {
+	resourceId := NsRecordId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.DnszoneName, err = id.PopSegment("dnszones"); err != nil {
+		return nil, err
+	}
+	if resourceId.NSName, err = id.PopSegment("NS"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +51,5 @@ func DnsNsRecordID(input string) (*NsRecordId, error) {
 		return nil, err
 	}
 
-	return &record, nil
+	return &resourceId, nil
 }
