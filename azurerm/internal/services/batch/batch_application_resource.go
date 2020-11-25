@@ -131,17 +131,17 @@ func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.ApplicationName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Batch Application %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Batch Application %q (Account Name %q / Resource Group %q): %+v", id.ApplicationName, id.BatchAccountName, id.ResourceGroup, err)
+		return fmt.Errorf("Error reading Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.ApplicationName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("account_name", id.BatchAccountName)
 	if applicationProperties := resp.ApplicationProperties; applicationProperties != nil {
@@ -175,8 +175,8 @@ func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{})
 		},
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.ApplicationName, parameters); err != nil {
-		return fmt.Errorf("Error updating Batch Application %q (Account Name %q / Resource Group %q): %+v", id.ApplicationName, id.BatchAccountName, id.ResourceGroup, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BatchAccountName, id.Name, parameters); err != nil {
+		return fmt.Errorf("Error updating Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	return resourceArmBatchApplicationRead(d, meta)
@@ -192,8 +192,8 @@ func resourceArmBatchApplicationDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName, id.ApplicationName); err != nil {
-		return fmt.Errorf("Error deleting Batch Application %q (Account Name %q / Resource Group %q): %+v", id.ApplicationName, id.BatchAccountName, id.ResourceGroup, err)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
+		return fmt.Errorf("Error deleting Batch Application %q (Account Name %q / Resource Group %q): %+v", id.Name, id.BatchAccountName, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -68,13 +68,13 @@ func TestPoolID(t *testing.T) {
 		},
 
 		{
-			// missing PoolName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/",
 			Error: true,
 		},
 
 		{
-			// missing value for PoolName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/pools/",
 			Error: true,
 		},
@@ -86,7 +86,7 @@ func TestPoolID(t *testing.T) {
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
 				BatchAccountName: "account1",
-				PoolName:         "pool1",
+				Name:             "pool1",
 			},
 		},
 
@@ -121,8 +121,8 @@ func TestPoolID(t *testing.T) {
 		if actual.BatchAccountName != v.Expected.BatchAccountName {
 			t.Fatalf("Expected %q but got %q for BatchAccountName", v.Expected.BatchAccountName, actual.BatchAccountName)
 		}
-		if actual.PoolName != v.Expected.PoolName {
-			t.Fatalf("Expected %q but got %q for PoolName", v.Expected.PoolName, actual.PoolName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }
