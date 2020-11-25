@@ -52,13 +52,11 @@ func recurse(objType reflect.Type, objVal reflect.Value, fieldName string, debug
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 				iv := fieldVal.Int()
 				debugLogger.Infof("Setting %q to %d", tfschemaTag, iv)
-
 				output[tfschemaTag] = iv
 
 			case reflect.Float32, reflect.Float64:
 				fv := fieldVal.Float()
 				debugLogger.Infof("Setting %q to %f", tfschemaTag, fv)
-
 				output[tfschemaTag] = fv
 
 			case reflect.String:
