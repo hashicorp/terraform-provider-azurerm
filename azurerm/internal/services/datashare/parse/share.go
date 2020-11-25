@@ -8,36 +8,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type DataSetId struct {
+type ShareId struct {
 	SubscriptionId string
 	ResourceGroup  string
 	AccountName    string
-	ShareName      string
 	Name           string
 }
 
-func NewDataSetID(subscriptionId, resourceGroup, accountName, shareName, name string) DataSetId {
-	return DataSetId{
+func NewShareID(subscriptionId, resourceGroup, accountName, name string) ShareId {
+	return ShareId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
 		AccountName:    accountName,
-		ShareName:      shareName,
 		Name:           name,
 	}
 }
 
-func (id DataSetId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s/dataSets/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+func (id ShareId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataShare/accounts/%s/shares/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.Name)
 }
 
-func DataSetID(input string) (*DataSetId, error) {
+func ShareID(input string) (*ShareId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	resourceId := DataSetId{
+	resourceId := ShareId{
 		SubscriptionId: id.SubscriptionID,
 		ResourceGroup:  id.ResourceGroup,
 	}
@@ -45,10 +43,7 @@ func DataSetID(input string) (*DataSetId, error) {
 	if resourceId.AccountName, err = id.PopSegment("accounts"); err != nil {
 		return nil, err
 	}
-	if resourceId.ShareName, err = id.PopSegment("shares"); err != nil {
-		return nil, err
-	}
-	if resourceId.Name, err = id.PopSegment("dataSets"); err != nil {
+	if resourceId.Name, err = id.PopSegment("shares"); err != nil {
 		return nil, err
 	}
 

@@ -152,7 +152,7 @@ func testCheckAzureRMDataShareExists(resourceName string) resource.TestCheckFunc
 		if !ok {
 			return fmt.Errorf("dataShare not found: %s", resourceName)
 		}
-		id, err := parse.DataShareID(rs.Primary.ID)
+		id, err := parse.ShareID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,7 @@ func testCheckAzureRMDataShareDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_data_share" {
 			continue
 		}
-		id, err := parse.DataShareID(rs.Primary.ID)
+		id, err := parse.ShareID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

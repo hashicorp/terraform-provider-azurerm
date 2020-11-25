@@ -30,7 +30,7 @@ func DatashareAccountID(i interface{}, k string) (warnings []string, errors []er
 		return warnings, errors
 	}
 
-	if _, err := parse.DataShareAccountID(v); err != nil {
+	if _, err := parse.AccountID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a Datashare account id: %v", k, err))
 	}
 
@@ -50,7 +50,7 @@ func DataShareID(i interface{}, k string) (warnings []string, errors []error) {
 		return warnings, errors
 	}
 
-	if _, err := parse.DataShareID(v); err != nil {
+	if _, err := parse.ShareID(v); err != nil {
 		errors = append(errors, fmt.Errorf("can not parse %q as a data share id: %v", k, err))
 	}
 
