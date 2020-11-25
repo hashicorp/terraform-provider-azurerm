@@ -51,10 +51,10 @@ func TestMongoDbCollectionId(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DocumentDB/databaseAccounts/acc1/mongodbDatabases/db1/collections/coll1",
 			Error: false,
 			Expect: &MongoDbCollectionId{
-				ResourceGroup: "resGroup1",
-				Account:       "acc1",
-				Database:      "db1",
-				Name:          "coll1",
+				ResourceGroup:       "resGroup1",
+				DatabaseAccountName: "acc1",
+				MongodbDatabaseName: "db1",
+				CollectionName:      "coll1",
 			},
 		},
 		{
@@ -76,16 +76,16 @@ func TestMongoDbCollectionId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expect.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		if actual.CollectionName != v.Expect.CollectionName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expect.CollectionName, actual.CollectionName)
 		}
 
-		if actual.Database != v.Expect.Database {
-			t.Fatalf("Expected %q but got %q for Database", v.Expect.Database, actual.Database)
+		if actual.MongodbDatabaseName != v.Expect.MongodbDatabaseName {
+			t.Fatalf("Expected %q but got %q for Database", v.Expect.MongodbDatabaseName, actual.MongodbDatabaseName)
 		}
 
-		if actual.Account != v.Expect.Account {
-			t.Fatalf("Expected %q but got %q for Account", v.Expect.Account, actual.Account)
+		if actual.DatabaseAccountName != v.Expect.DatabaseAccountName {
+			t.Fatalf("Expected %q but got %q for Account", v.Expect.DatabaseAccountName, actual.DatabaseAccountName)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {

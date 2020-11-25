@@ -7,10 +7,10 @@ import (
 )
 
 type MongoDbCollectionId struct {
-	ResourceGroup string
-	Account       string
-	Database      string
-	Name          string
+	ResourceGroup       string
+	DatabaseAccountName string
+	MongodbDatabaseName string
+	CollectionName      string
 }
 
 func MongoDbCollectionID(input string) (*MongoDbCollectionId, error) {
@@ -23,15 +23,15 @@ func MongoDbCollectionID(input string) (*MongoDbCollectionId, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if mongodbCollection.Account, err = id.PopSegment("databaseAccounts"); err != nil {
+	if mongodbCollection.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 
-	if mongodbCollection.Database, err = id.PopSegment("mongodbDatabases"); err != nil {
+	if mongodbCollection.MongodbDatabaseName, err = id.PopSegment("mongodbDatabases"); err != nil {
 		return nil, err
 	}
 
-	if mongodbCollection.Name, err = id.PopSegment("collections"); err != nil {
+	if mongodbCollection.CollectionName, err = id.PopSegment("collections"); err != nil {
 		return nil, err
 	}
 
