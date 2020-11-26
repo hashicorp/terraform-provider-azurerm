@@ -28,6 +28,7 @@ func (id ApplicationGroupId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ApplicationGroupID parses a ApplicationGroup ID into an ApplicationGroupId struct
 func ApplicationGroupID(input string) (*ApplicationGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
@@ -39,8 +40,36 @@ func ApplicationGroupID(input string) (*ApplicationGroupId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
+	if resourceId.Name, err = id.PopSegment("applicationGroups"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+
+// ApplicationGroupIDInsensitively parses an ApplicationGroup ID into an ApplicationGroupId struct, insensitively
+// This should only be used to parse an ID for rewriting, the ApplicationGroupID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func ApplicationGroupIDInsensitively(input string) (*ApplicationGroupId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := ApplicationGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	// find the correct casing for the 'applicationGroups' segment
 	applicationGroupsKey := "applicationGroups"
-	// find the correct casing for the `applicationGroups` segment
 	for key := range id.Path {
 		if strings.EqualFold(key, applicationGroupsKey) {
 			applicationGroupsKey = key
