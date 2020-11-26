@@ -48,7 +48,7 @@ func resourceArmDigitalTwinsEndpointEventGrid() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DigitaltwinsID,
+				ValidateFunc: validate.DigitaltwinsInstanceID,
 			},
 
 			"eventgrid_topic_endpoint": {

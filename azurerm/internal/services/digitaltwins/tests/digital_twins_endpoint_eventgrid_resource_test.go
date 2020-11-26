@@ -100,7 +100,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetter(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
+		data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key", "dead_letter_storage_secret"),
 	})
 }
 
@@ -121,7 +121,7 @@ func (r DigitalTwinsEndpointEventGrid) Exists(ctx context.Context, client *clien
 }
 
 func (r DigitalTwinsEndpointEventGrid) template(data acceptance.TestData) string {
-	digitalTwins := testAccAzureRMDigitalTwinsInstance_basic(data)
+	digitalTwinsInstance := testAccAzureRMDigitalTwinsInstance_basic(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -130,7 +130,7 @@ resource "azurerm_eventgrid_topic" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
-`, digitalTwins, data.RandomInteger)
+`, digitalTwinsInstance, data.RandomInteger)
 }
 
 func (r DigitalTwinsEndpointEventGrid) basic(data acceptance.TestData) string {
