@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_digital_twins_instance` [GH-9430]
+* **New Data Source:** `azurerm_virtual_wan` [GH-9382]
 * **New Resource:** `azurerm_digital_twins_instance` [GH-9430]
 
 IMPROVEMENTS: 
