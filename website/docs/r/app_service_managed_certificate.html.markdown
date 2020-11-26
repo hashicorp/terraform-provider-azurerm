@@ -39,7 +39,7 @@ resource "azurerm_app_service" "example" {
 }
 
 resource "azurerm_dns_txt_record" "test" {
-  name                = "asuid.mycustomhost.contoso.com""
+  name                = "asuid.mycustomhost.contoso.com"
   zone_name           = data.azurerm_dns_zone.test.name
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   ttl                 = 300
