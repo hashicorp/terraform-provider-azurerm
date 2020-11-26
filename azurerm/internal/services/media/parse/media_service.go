@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type MediaServiceId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewMediaServiceID(subscriptionId, resourceGroup, name string) MediaServiceId {
+	return MediaServiceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id MediaServiceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Media/mediaservices/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// MediaServiceID parses a MediaService ID into an MediaServiceId struct
 func MediaServiceID(input string) (*MediaServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Media Services Account ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	service := MediaServiceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := MediaServiceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if service.Name, err = id.PopSegment("mediaservices"); err != nil {
+	if resourceId.Name, err = id.PopSegment("mediaservices"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func MediaServiceID(input string) (*MediaServiceId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }
