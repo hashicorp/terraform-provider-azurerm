@@ -8,7 +8,7 @@ func TestKustoDatabasePrincipalId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *KustoDatabasePrincipalId
+		Expected *DatabasePrincipalId
 	}{
 		{
 			Name:     "Empty",
@@ -28,11 +28,11 @@ func TestKustoDatabasePrincipalId(t *testing.T) {
 		{
 			Name:  "Database Principal ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/Role/Viewer/FQN/aaduser=00000000-0000-0000-0000-000000000000;00000000-0000-0000-0000-000000000000",
-			Expected: &KustoDatabasePrincipalId{
-				Name:          "aaduser=00000000-0000-0000-0000-000000000000;00000000-0000-0000-0000-000000000000",
-				Role:          "Viewer",
-				Database:      "database1",
-				Cluster:       "cluster1",
+			Expected: &DatabasePrincipalId{
+				FQNName:       "aaduser=00000000-0000-0000-0000-000000000000;00000000-0000-0000-0000-000000000000",
+				RoleName:      "Viewer",
+				DatabaseName:  "database1",
+				ClusterName:   "cluster1",
 				ResourceGroup: "group1",
 			},
 		},
@@ -41,7 +41,7 @@ func TestKustoDatabasePrincipalId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := KustoDatabasePrincipalID(v.Input)
+		actual, err := DatabasePrincipalID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -50,20 +50,20 @@ func TestKustoDatabasePrincipalId(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.Name != v.Expected.Name {
-			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		if actual.FQNName != v.Expected.FQNName {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.FQNName, actual.FQNName)
 		}
 
-		if actual.Role != v.Expected.Role {
-			t.Fatalf("Expected %q but got %q for Role", v.Expected.Role, actual.Role)
+		if actual.RoleName != v.Expected.RoleName {
+			t.Fatalf("Expected %q but got %q for Role", v.Expected.RoleName, actual.RoleName)
 		}
 
-		if actual.Database != v.Expected.Database {
-			t.Fatalf("Expected %q but got %q for Database", v.Expected.Database, actual.Database)
+		if actual.DatabaseName != v.Expected.DatabaseName {
+			t.Fatalf("Expected %q but got %q for Database", v.Expected.DatabaseName, actual.DatabaseName)
 		}
 
-		if actual.Cluster != v.Expected.Cluster {
-			t.Fatalf("Expected %q but got %q for Cluster", v.Expected.Cluster, actual.Cluster)
+		if actual.ClusterName != v.Expected.ClusterName {
+			t.Fatalf("Expected %q but got %q for Cluster", v.Expected.ClusterName, actual.ClusterName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
