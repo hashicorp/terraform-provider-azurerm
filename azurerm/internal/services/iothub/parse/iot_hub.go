@@ -5,8 +5,8 @@ import (
 )
 
 type IotHubId struct {
-	Name          string
 	ResourceGroup string
+	Name          string
 }
 
 func IotHubID(input string) (*IotHubId, error) {
