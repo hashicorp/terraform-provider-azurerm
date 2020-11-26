@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type ApplicationId struct {
-	ResourceGroup string
-	IoTAppName    string
+	SubscriptionId string
+	ResourceGroup  string
+	IoTAppName     string
 }
 
+func NewApplicationID(subscriptionId, resourceGroup, ioTAppName string) ApplicationId {
+	return ApplicationId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		IoTAppName:     ioTAppName,
+	}
+}
+
+func (id ApplicationId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.IoTCentral/IoTApps/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.IoTAppName)
+}
+
+// ApplicationID parses a Application ID into an ApplicationId struct
 func ApplicationID(input string) (*ApplicationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse IoT Central Application ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	server := ApplicationId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ApplicationId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if server.IoTAppName, err = id.PopSegment("IoTApps"); err != nil {
+	if resourceId.IoTAppName, err = id.PopSegment("IoTApps"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func ApplicationID(input string) (*ApplicationId, error) {
 		return nil, err
 	}
 
-	return &server, nil
+	return &resourceId, nil
 }
