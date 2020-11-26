@@ -1,68 +1,112 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-func TestMySQLServerID(t *testing.T) {
+var _ resourceid.Formatter = ServerId{}
+
+func TestServerIDFormatter(t *testing.T) {
+	actual := NewServerID("12345678-1234-9876-4563-123456789012", "resGroup1", "server1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforMySQL/servers/server1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestServerID(t *testing.T) {
 	testData := []struct {
-		Name     string
 		Input    string
+		Error    bool
 		Expected *ServerId
 	}{
+
 		{
-			Name:     "Empty resource ID",
-			Input:    "",
-			Expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			Name:     "No resourceGroups segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			Name:     "No resource group name",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
-			Expected: nil,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
 		},
+
 		{
-			Name:     "Resource group",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/",
-			Expected: nil,
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing server name",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/",
-			Expected: nil,
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
 		},
+
 		{
-			Name:  "Valid",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/test-mysql",
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforMySQL/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforMySQL/servers/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DBforMySQL/servers/server1",
 			Expected: &ServerId{
-				Name:          "test-mysql",
-				ResourceGroup: "test-rg",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "resGroup1",
+				Name:           "server1",
 			},
+		},
+
+		{
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/RESGROUP1/PROVIDERS/MICROSOFT.DBFORMYSQL/SERVERS/SERVER1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
 		actual, err := ServerID(v.Input)
 		if err != nil {
-			if v.Expected == nil {
+			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
-
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

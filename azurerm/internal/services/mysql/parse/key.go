@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,25 +9,42 @@ import (
 )
 
 type KeyId struct {
-	ResourceGroup string
-	ServerName    string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	ServerName     string
+	Name           string
 }
 
+func NewKeyID(subscriptionId, resourceGroup, serverName, name string) KeyId {
+	return KeyId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ServerName:     serverName,
+		Name:           name,
+	}
+}
+
+func (id KeyId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforMySQL/servers/%s/keys/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
+}
+
+// KeyID parses a Key ID into an KeyId struct
 func KeyID(input string) (*KeyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse MySQL Server Key ID %q: %+v", input, err)
-	}
-
-	key := KeyId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if key.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
-	if key.Name, err = id.PopSegment("keys"); err != nil {
+
+	resourceId := KeyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("keys"); err != nil {
 		return nil, err
 	}
 
@@ -33,5 +52,5 @@ func KeyID(input string) (*KeyId, error) {
 		return nil, err
 	}
 
-	return &key, nil
+	return &resourceId, nil
 }
