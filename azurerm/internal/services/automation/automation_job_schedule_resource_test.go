@@ -9,6 +9,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,7 +24,9 @@ func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationJobSchedule_basic(data),
-				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -40,7 +43,9 @@ func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationJobSchedule_complete(data),
-				Check:  checkAccAzureRMAutomationJobSchedule_complete(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -57,15 +62,21 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationJobSchedule_basic(data),
-				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			{
 				Config: testAccAzureRMAutomationJobSchedule_complete(data),
-				Check:  checkAccAzureRMAutomationJobSchedule_complete(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			{
 				Config: testAccAzureRMAutomationJobSchedule_basic(data),
-				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			data.ImportStep(),
 		},
@@ -82,7 +93,9 @@ func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAutomationJobSchedule_basic(data),
-				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
+				Check: resource.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+				),
 			},
 			{
 				Config:      testAccAzureRMAutomationJobSchedule_requiresImport(data),
@@ -238,16 +251,6 @@ resource "azurerm_automation_job_schedule" "test" {
 `, template)
 }
 
-func checkAccAzureRMAutomationJobSchedule_basic(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationJobScheduleExists(resourceName),
-		resource.TestCheckResourceAttrSet(resourceName, "job_schedule_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "schedule_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "runbook_name"),
-	)
-}
 
 func testAccAzureRMAutomationJobSchedule_complete(data acceptance.TestData) string {
 	template := testAccAzureRMAutomationJobSchedulePrerequisites(data)
@@ -271,22 +274,6 @@ resource "azurerm_automation_job_schedule" "test" {
 `, template)
 }
 
-func checkAccAzureRMAutomationJobSchedule_complete(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMAutomationJobScheduleExists(resourceName),
-		resource.TestCheckResourceAttrSet(resourceName, "job_schedule_id"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "schedule_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "runbook_name"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.%", "5"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.output", "Earth"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.case", "MATTERS"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.keepcount", "20"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.webhookuri", "http://www.example.com/hook"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.url", "https://www.Example.com"),
-	)
-}
 
 func testAccAzureRMAutomationJobSchedule_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMAutomationJobSchedule_basic(data)

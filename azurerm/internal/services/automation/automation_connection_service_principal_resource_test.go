@@ -1,110 +1,112 @@
 package automation_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients`
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/parse`
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
+
+type AutomationConnectionServicePrincipal struct {
+}
 
 func TestAccAzureRMAutomationConnectionServicePrincipal_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
+	r := AutomationConnectionServicePrincipal{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionServicePrincipalDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationConnectionServicePrincipal_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationConnectionServicePrincipal_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
+	r := AutomationConnectionServicePrincipal{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationConnectionServicePrincipal_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMAutomationConnectionServicePrincipal_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMAutomationConnectionServicePrincipal_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
+	r := AutomationConnectionServicePrincipal{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionServicePrincipalDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationConnectionServicePrincipal_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationConnectionServicePrincipal_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
+	r := AutomationConnectionServicePrincipal{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionServicePrincipalDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationConnectionServicePrincipal_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAutomationConnectionServicePrincipal_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAutomationConnectionServicePrincipal_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMAutomationConnectionServicePrincipalDestroy(s *terraform.State) error {
-	return testCheckAzureRMAutomationConnectionDestroy(s, "service_principal")
+func (t AutomationConnectionServicePrincipal) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ConnectionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Automation.ConnectionClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Automation Connection (Service Pricipal) %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.ConnectionProperties != nil), nil
 }
 
-func testAccAzureRMAutomationConnectionServicePrincipal_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationConnectionServicePrincipal_template(data)
+func (AutomationConnectionServicePrincipal) basic(data acceptance.TestData) string {
+	template := AutomationConnectionServicePrincipal{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -120,8 +122,8 @@ resource "azurerm_automation_connection_service_principal" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationConnectionServicePrincipal_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationConnectionServicePrincipal_basic(data)
+func (AutomationConnectionServicePrincipal) requiresImport(data acceptance.TestData) string {
+	template := AutomationConnectionServicePrincipal{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -137,8 +139,8 @@ resource "azurerm_automation_connection_service_principal" "import" {
 `, template)
 }
 
-func testAccAzureRMAutomationConnectionServicePrincipal_complete(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationConnectionServicePrincipal_template(data)
+func (AutomationConnectionServicePrincipal) complete(data acceptance.TestData) string {
+	template := AutomationConnectionServicePrincipal{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -155,7 +157,7 @@ resource "azurerm_automation_connection_service_principal" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationConnectionServicePrincipal_template(data acceptance.TestData) string {
+func (AutomationConnectionServicePrincipal) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

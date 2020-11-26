@@ -1,125 +1,76 @@
 package automation_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AutomationDscConfiguration struct {
+}
+
 func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationDscConfiguration_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDscConfigurationExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "log_verbose"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "state"),
-					resource.TestCheckResourceAttr(data.ResourceName, "content_embedded", "configuration acctest {}"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
-				),
-			},
-			data.ImportStep(),
+	r := AutomationDscConfiguration{}
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("description").HasValue("test"),
+				check.That(data.ResourceName).Key("log_verbose").Exists(),
+				check.That(data.ResourceName).Key("state").Exists(),
+				check.That(data.ResourceName).Key("content_embedded").HasValue("configuration acctest {}"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
+	r := AutomationDscConfiguration{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationDscConfigurationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationDscConfiguration_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationDscConfigurationExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMAutomationDscConfiguration_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.DscConfigurationClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t AutomationDscConfiguration) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	accName := id.Path["automationAccounts"]
+	name := id.Path["configurations"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_automation_dsc_configuration" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["automation_account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Configuration: '%s'", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Automation Dsc Configuration still exists:\n%#v", resp)
+	resp, err := clients.Automation.DscConfigurationClient.Get(ctx, resGroup, accName, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Automation Dsc Configuration %q (resource group: %q): %+v", name, id.ResourceGroup, err)
 	}
 
-	return nil
+	return utils.Bool(resp.DscConfigurationProperties != nil), nil
 }
 
-func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.DscConfigurationClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["automation_account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Configuration: '%s'", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Automation Dsc Configuration '%s' (resource group: '%s') does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on automationDscConfigurationClient: %s\nName: %s, Account name: %s, Resource group: %s OBJECT: %+v", err, name, accName, resourceGroup, rs.Primary)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMAutomationDscConfiguration_basic(data acceptance.TestData) string {
+func (AutomationDscConfiguration) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -152,8 +103,8 @@ resource "azurerm_automation_dsc_configuration" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationDscConfiguration_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationDscConfiguration_basic(data)
+func (AutomationDscConfiguration) requiresImport(data acceptance.TestData) string {
+	template := AutomationDscConfiguration{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

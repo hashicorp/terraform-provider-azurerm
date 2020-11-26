@@ -1,12 +1,17 @@
 package automation_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	`github.com/hashicorp/terraform-plugin-sdk/terraform`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients`
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/parse`
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
 
 type AutomationConnectionCertificateResource struct {
@@ -84,6 +89,20 @@ func TestAccAzureRMAutomationConnectionCertificate_update(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func (t AutomationConnectionCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ConnectionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Automation.ConnectionClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Automation Connection (Certificate) %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.ConnectionProperties != nil), nil
 }
 
 func (AutomationConnectionCertificateResource) basic(data acceptance.TestData) string {

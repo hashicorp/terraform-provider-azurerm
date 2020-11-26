@@ -1,110 +1,112 @@
 package automation_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients`
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/parse`
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
+
+type AutomationConnectionClassicCertificate struct {
+}
 
 func TestAccAzureRMAutomationConnectionClassicCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_classic_certificate", "test")
+	r := AutomationConnectionClassicCertificate{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionClassicCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationConnectionClassicCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationConnectionClassicCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_classic_certificate", "test")
+	r := AutomationConnectionClassicCertificate{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationConnectionClassicCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMAutomationConnectionClassicCertificate_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMAutomationConnectionClassicCertificate_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_classic_certificate", "test")
+	r := AutomationConnectionClassicCertificate{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionClassicCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationConnectionClassicCertificate_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationConnectionClassicCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_classic_certificate", "test")
+	r := AutomationConnectionClassicCertificate{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationConnectionClassicCertificateDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationConnectionClassicCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAutomationConnectionClassicCertificate_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMAutomationConnectionClassicCertificate_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationConnectionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
-func testCheckAzureRMAutomationConnectionClassicCertificateDestroy(s *terraform.State) error {
-	return testCheckAzureRMAutomationConnectionDestroy(s, "classic_certificate")
+func (t AutomationConnectionClassicCertificate) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := parse.ConnectionID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Automation.ConnectionClient.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Automation Connection (Classic Certificate) %q (resource group: %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	return utils.Bool(resp.ConnectionProperties != nil), nil
 }
 
-func testAccAzureRMAutomationConnectionClassicCertificate_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationConnectionClassicCertificate_template(data)
+func (AutomationConnectionClassicCertificate) basic(data acceptance.TestData) string {
+	template := AutomationConnectionClassicCertificate{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -119,8 +121,8 @@ resource "azurerm_automation_connection_classic_certificate" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationConnectionClassicCertificate_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationConnectionClassicCertificate_basic(data)
+func (AutomationConnectionClassicCertificate) requiresImport(data acceptance.TestData) string {
+	template := AutomationConnectionClassicCertificate{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -135,8 +137,8 @@ resource "azurerm_automation_connection_classic_certificate" "import" {
 `, template)
 }
 
-func testAccAzureRMAutomationConnectionClassicCertificate_complete(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationConnectionClassicCertificate_template(data)
+func (AutomationConnectionClassicCertificate) complete(data acceptance.TestData) string {
+	template := AutomationConnectionClassicCertificate{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -152,7 +154,7 @@ resource "azurerm_automation_connection_classic_certificate" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationConnectionClassicCertificate_template(data acceptance.TestData) string {
+func (AutomationConnectionClassicCertificate) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
