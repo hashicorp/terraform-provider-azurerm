@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource** `azurerm_app_service_managed_certificate` [GH-9378]
 * **New Data Source:** `azurerm_digital_twins_instance` [GH-9430]
 * **New Data Source:** `azurerm_virtual_wan` [GH-9382]
 * **New Resource:** `azurerm_digital_twins_instance` [GH-9430]
@@ -9,10 +10,14 @@ FEATURES:
 IMPROVEMENTS: 
 
 * dependencies: updating App Service to API version `2020-06-01` [GH-9409]
+* Data Source `azurerm_app_service` now exports `custom_domain_verification_id` [GH-9378]
+* Data Source`azurerm_function_app` now exports `custom_domain_verification_id` [GH-9378]
 * Data Source: `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
+* `azurerm_app_service` now exports `custom_domain_verification_id` [GH-9378]
 * `azurerm_application_insights` - validating the ID is correct at import time [GH-9446]
 * `azurerm_application_insights_web_test` - validating the ID is correct at import time [GH-9446]
 * `azurerm_express_route_circuit_peering` - support for the `ipv6` block  [GH-9235]
+* `azurerm_function_app` now exports `custom_domain_verification_id` [GH-9378]
 * `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
 * `azurerm_virtual_network_gateway` - support for the `dpd_timeout_seconds` and `local_azure_ip_address_enabled` properties [GH-9330]
 * `azurerm_virtual_network_gateway_connection` - support for the `private_ip_address_enabled` propeties and the `custom_route` block [GH-9330]
