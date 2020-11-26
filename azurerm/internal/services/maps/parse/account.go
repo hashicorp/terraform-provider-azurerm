@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type AccountId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewAccountID(subscriptionId, resourceGroup, name string) AccountId {
+	return AccountId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id AccountId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Maps/accounts/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// AccountID parses a Account ID into an AccountId struct
 func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Maps Account ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	account := AccountId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := AccountId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if account.Name, err = id.PopSegment("accounts"); err != nil {
+	if resourceId.Name, err = id.PopSegment("accounts"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func AccountID(input string) (*AccountId, error) {
 		return nil, err
 	}
 
-	return &account, nil
+	return &resourceId, nil
 }
