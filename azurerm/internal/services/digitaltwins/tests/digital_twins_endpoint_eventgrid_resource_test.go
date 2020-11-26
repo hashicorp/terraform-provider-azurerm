@@ -93,7 +93,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetter(t *testing.T) 
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key"),
+		data.ImportStep("eventgrid_topic_endpoint", "eventgrid_topic_primary_access_key", "eventgrid_topic_secondary_access_key", "dead_letter_storage_secret"),
 		{
 			Config: r.updateDeadLetterRestore(data),
 			Check: resource.ComposeTestCheckFunc(
