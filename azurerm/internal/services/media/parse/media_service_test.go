@@ -8,7 +8,7 @@ func TestMediaServicesAccountId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MediaServicesAccountId
+		Expected *MediaServiceId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestMediaServicesAccountId(t *testing.T) {
 		{
 			Name:  "Media Services Account ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Media/mediaservices/Service1",
-			Expected: &MediaServicesAccountId{
+			Expected: &MediaServiceId{
 				Name:          "Service1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestMediaServicesAccountId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MediaServicesAccountID(v.Input)
+		actual, err := MediaServiceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
