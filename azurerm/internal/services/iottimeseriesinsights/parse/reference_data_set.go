@@ -6,19 +6,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type TimeSeriesInsightsReferenceDataSetId struct {
+type ReferenceDataSetId struct {
 	ResourceGroup   string
 	EnvironmentName string
 	Name            string
 }
 
-func TimeSeriesInsightsReferenceDataSetID(input string) (*TimeSeriesInsightsReferenceDataSetId, error) {
+func ReferenceDataSetID(input string) (*ReferenceDataSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Time Series Insights Reference Dataset ID %q: %+v", input, err)
 	}
 
-	service := TimeSeriesInsightsReferenceDataSetId{
+	service := ReferenceDataSetId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
