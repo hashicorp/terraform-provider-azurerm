@@ -43,7 +43,7 @@ output "app_service_id" {
 
 * `client_affinity_enabled` - Does the App Service send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via TXT record.
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `enabled` - Is the App Service Enabled?
 

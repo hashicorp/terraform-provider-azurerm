@@ -369,7 +369,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Function App
 
-* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification. 
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record. 
 
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 

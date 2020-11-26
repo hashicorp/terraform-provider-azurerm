@@ -216,7 +216,11 @@ func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta in
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
 		d.Set("issue_date", props.IssueDate.Format(time.RFC3339))
-		d.Set("expiration_date", props.ExpirationDate.Format(time.RFC3339))
+		expirationDate := ""
+		if props.ExpirationDate != nil {
+			expirationDate = props.ExpirationDate.Format(time.RFC3339)
+		}
+		d.Set("expiration_date", expirationDate)
 		d.Set("thumbprint", props.Thumbprint)
 	}
 

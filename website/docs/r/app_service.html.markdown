@@ -405,7 +405,7 @@ The following attributes are exported:
 
 * `id` - The ID of the App Service.
 
-* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via TXT record.
+* `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
 * `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
 

@@ -14,12 +14,12 @@ Manages a App Service Managed Certificate.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "exampleRG"
+  name     = "example-resources"
   location = "West Europe"
 }
 
 resource "azurerm_app_service_plan" "example" {
-  name                = "examplePlan"
+  name                = "example-plan"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   kind                = "Linux"
@@ -32,14 +32,14 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_app_service" "example" {
-  name                = "exampleApp"
+  name                = "example-app"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   app_service_plan_id = azurerm_app_service_plan.example.id
 }
 
 resource "azurerm_dns_txt_record" "test" {
-  name                = join(".", ["asuid", "%s"])
+  name                = "asuid.mycustomhost.contoso.com""
   zone_name           = data.azurerm_dns_zone.test.name
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   ttl                 = 300
@@ -50,14 +50,13 @@ resource "azurerm_dns_txt_record" "test" {
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "example" {
-  hostname            = "mycustomhost.contoso.com"
+  hostname            = join(".", [azurerm_dns_cname_record.example.name, azurerm_dns_cname_record.example.zone_name])
   app_service_name    = azurerm_app_service.example.name
   resource_group_name = azurerm_resource_group.example.name
 }
 
-
 resource "azurerm_app_service_managed_certificate" "example" {
-  custom_hostname_binding_id = "TODO"
+  custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.example.id
 }
 ```
 
