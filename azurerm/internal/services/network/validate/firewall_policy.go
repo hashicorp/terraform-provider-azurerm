@@ -62,8 +62,8 @@ func FirewallPolicyRulePort(i interface{}, k string) (warnings []string, errors 
 	}
 
 	assertWithinRnage := func(n int) error {
-		if n < 1 || n > 65535 {
-			return fmt.Errorf("port %d is out of range (1-65535)", n)
+		if n < 1 || n > 64000 {
+			return fmt.Errorf("port %d is out of range (1-64000)", n)
 		}
 		return nil
 	}
