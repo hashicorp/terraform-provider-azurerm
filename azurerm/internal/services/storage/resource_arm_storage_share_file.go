@@ -91,12 +91,6 @@ func resourceArmStorageShareFile() *schema.Resource {
 				ForceNew:     true,
 			},
 
-			"parallelism": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  4,
-			},
-
 			"metadata": MetaDataSchema(),
 		},
 	}

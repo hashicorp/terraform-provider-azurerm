@@ -26,7 +26,7 @@ func TestAccAzureRMStorageShareFile_basic(t *testing.T) {
 					testCheckAzureRMStorageShareFileExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("parallelism"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -64,7 +64,7 @@ func TestAccAzureRMStorageShareFile_complete(t *testing.T) {
 					testCheckAzureRMStorageShareFileExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("parallelism"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -83,21 +83,21 @@ func TestAccAzureRMStorageShareFile_update(t *testing.T) {
 					testCheckAzureRMStorageShareFileExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("parallelism"),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMStorageShareFile_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageShareFileExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("parallelism"),
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMStorageShareFile_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageShareFileExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("parallelism"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -124,7 +124,7 @@ func TestAccAzureRMStorageShareFile_withFile(t *testing.T) {
 					testCheckAzureRMStorageShareFileExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("source", "parallelism"),
+			data.ImportStep("source"),
 		},
 	})
 }
