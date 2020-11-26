@@ -1172,20 +1172,20 @@ func expandApiManagementCustomProperties(d *schema.ResourceData, skuIsConsumptio
 
 	if vs := d.Get("security").([]interface{}); len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
+		backendProtocolSsl3 = v["enable_backend_ssl30"].(bool)
 		backendProtocolTls10 = v["enable_backend_tls10"].(bool)
 		backendProtocolTls11 = v["enable_backend_tls11"].(bool)
 		frontendProtocolSsl3 = v["enable_frontend_ssl30"].(bool)
 		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
 		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
-		if skuIsConsumption && v["enable_backend_ssl30"].(bool) {
-			return nil, fmt.Errorf("`enable_backend_ssl30` is not support for Sku Tier `Consumption`")
+		tripleDesCiphers = v["enable_triple_des_ciphers"].(bool)
+		if skuIsConsumption && frontendProtocolSsl3 {
+			return nil, fmt.Errorf("`enable_frontend_ssl30` is not support for Sku Tier `Consumption`")
 		}
 
-		if skuIsConsumption && v["enable_triple_des_ciphers"].(bool) {
+		if skuIsConsumption && tripleDesCiphers {
 			return nil, fmt.Errorf("`enable_triple_des_ciphers` is not support for Sku Tier `Consumption`")
 		}
-
-		backendProtocolSsl3 = v["enable_backend_ssl30"].(bool)
 	}
 
 	customProperties := map[string]*string{
@@ -1227,13 +1227,14 @@ func expandAzureRmApiManagementVirtualNetworkConfigurations(d *schema.ResourceDa
 func flattenApiManagementSecurityCustomProperties(input map[string]*string, skuIsConsumption bool) []interface{} {
 	output := make(map[string]interface{})
 
+	output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
 	output["enable_backend_tls10"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
 	output["enable_backend_tls11"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
 	output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
 
 	if !skuIsConsumption {
-		output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
+		output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 		output["enable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 	}
 
