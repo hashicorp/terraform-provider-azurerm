@@ -171,7 +171,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewHostPoolID(subscriptionId, resourceGroup, name)
+	resourceId := parse.NewHostPoolID(subscriptionId, resourceGroup, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -181,7 +181,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.HostPoolProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", resourceId)
 		}
 	}
 
@@ -208,7 +208,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(resourceId)
 
 	return resourceArmVirtualDesktopHostPoolRead(d, meta)
 }

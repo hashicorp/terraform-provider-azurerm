@@ -90,8 +90,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewWorkspaceID(subscriptionId, resourceGroup, name)
-
+	resourceId := parse.NewWorkspaceID(subscriptionId, resourceGroup, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -101,7 +100,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 		}
 
 		if existing.WorkspaceProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace", resourceId)
 		}
 	}
 
@@ -121,7 +120,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *schema.ResourceDat
 		return fmt.Errorf("creating Virtual Desktop Workspace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(resourceId)
 
 	return resourceArmDesktopVirtualizationWorkspaceRead(d, meta)
 }

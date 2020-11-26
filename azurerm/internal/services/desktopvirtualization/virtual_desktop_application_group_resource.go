@@ -118,7 +118,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewApplicationGroupID(subscriptionId, resourceGroup, name)
+	resourceId := parse.NewApplicationGroupID(subscriptionId, resourceGroup, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -128,7 +128,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 		}
 
 		if existing.ApplicationGroupProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_application_group", resourceId)
 		}
 	}
 
@@ -150,8 +150,7 @@ func resourceArmVirtualDesktopApplicationGroupCreateUpdate(d *schema.ResourceDat
 		return fmt.Errorf("creating Virtual Desktop Application Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
-
+	d.SetId(resourceId)
 	return resourceArmVirtualDesktopApplicationGroupRead(d, meta)
 }
 
