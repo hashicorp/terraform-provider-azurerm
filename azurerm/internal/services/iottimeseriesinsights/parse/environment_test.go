@@ -8,7 +8,7 @@ func TestTimeSeriesInsightsEnvironmentId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *TimeSeriesInsightsEnvironmentId
+		Expected *EnvironmentId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestTimeSeriesInsightsEnvironmentId(t *testing.T) {
 		{
 			Name:  "Time Series Insight Environment ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/Environment1",
-			Expected: &TimeSeriesInsightsEnvironmentId{
+			Expected: &EnvironmentId{
 				Name:          "Environment1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestTimeSeriesInsightsEnvironmentId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := TimeSeriesInsightsEnvironmentID(v.Input)
+		actual, err := EnvironmentID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

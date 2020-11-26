@@ -104,7 +104,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.Reso
 
 	name := d.Get("name").(string)
 	environmentID := d.Get("time_series_insights_environment_id").(string)
-	id, err := parse.TimeSeriesInsightsEnvironmentID(environmentID)
+	id, err := parse.EnvironmentID(environmentID)
 	if err != nil {
 		return err
 	}

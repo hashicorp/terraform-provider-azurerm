@@ -6,30 +6,30 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type TimeSeriesInsightsEnvironmentId struct {
+type EnvironmentId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func NewTimeSeriesInsightsEnvironmentID(resourceGroup, name string) TimeSeriesInsightsEnvironmentId {
-	return TimeSeriesInsightsEnvironmentId{
+func NewEnvironmentID(resourceGroup, name string) EnvironmentId {
+	return EnvironmentId{
 		ResourceGroup: resourceGroup,
 		Name:          name,
 	}
 }
 
-func (id TimeSeriesInsightsEnvironmentId) ID(subscriptionId string) string {
+func (id EnvironmentId) ID(subscriptionId string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s"
 	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
 }
 
-func TimeSeriesInsightsEnvironmentID(input string) (*TimeSeriesInsightsEnvironmentId, error) {
+func EnvironmentID(input string) (*EnvironmentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Time Series Insights Environment ID %q: %+v", input, err)
 	}
 
-	service := TimeSeriesInsightsEnvironmentId{
+	service := EnvironmentId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
