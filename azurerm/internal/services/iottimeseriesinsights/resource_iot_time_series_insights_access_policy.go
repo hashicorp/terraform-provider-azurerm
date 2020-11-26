@@ -99,7 +99,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.Resource
 		return err
 	}
 
-	id := parse.NewAccessPolicyID(environmentId.ResourceGroup, environmentId.Name, name)
+	resourceId := parse.NewAccessPolicyID(subscriptionId, environmentId.ResourceGroup, environmentId.Name, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, environmentId.ResourceGroup, environmentId.Name, name)
 		if err != nil {
@@ -109,7 +109,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.Resource
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_access_policy", id.ID(subscriptionId))
+			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_access_policy", resourceId)
 		}
 	}
 
@@ -125,23 +125,12 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.Resource
 		return fmt.Errorf("creating/updating IoT Time Series Insights Access Policy %q (Resource Group %q): %+v", name, environmentId.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, environmentId.ResourceGroup, environmentId.Name, name)
-	if err != nil {
-		return fmt.Errorf("retrieving IoT Time Series Insights Access Policy %q (Resource Group %q): %+v", name, environmentId.ResourceGroup, err)
-	}
-
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read IoT Time Series Insights Access Policy %q (Resource Group %q) ID", name, environmentId.ResourceGroup)
-	}
-
-	d.SetId(id.ID(subscriptionId))
-
+	d.SetId(resourceId)
 	return resourceArmIoTTimeSeriesInsightsAccessPolicyRead(d, meta)
 }
 
 func resourceArmIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -160,10 +149,10 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyRead(d *schema.ResourceData, me
 		return fmt.Errorf("retrieving IoT Time Series Insights Access Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	environmentId := parse.NewEnvironmentID(id.ResourceGroup, id.EnvironmentName)
+	environmentId := parse.NewEnvironmentID(id.SubscriptionId, id.ResourceGroup, id.EnvironmentName).ID("")
 
 	d.Set("name", resp.Name)
-	d.Set("time_series_insights_environment_id", environmentId.ID(subscriptionId))
+	d.Set("time_series_insights_environment_id", environmentId)
 
 	if props := resp.AccessPolicyResourceProperties; props != nil {
 		d.Set("description", props.Description)
