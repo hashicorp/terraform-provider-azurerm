@@ -27,7 +27,7 @@ func NewSqlContainerID(subscriptionId, resourceGroup, databaseAccountName, sqlDa
 }
 
 func (id SqlContainerId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/sqlDatabases/%s/containers/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/sqlDatabases/%s/containers/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName)
 }
 
@@ -42,7 +42,7 @@ func SqlContainerID(input string) (*SqlContainerId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
+	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 	if resourceId.SqlDatabaseName, err = id.PopSegment("sqlDatabases"); err != nil {

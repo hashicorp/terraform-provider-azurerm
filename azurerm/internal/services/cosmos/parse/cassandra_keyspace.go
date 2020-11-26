@@ -25,7 +25,7 @@ func NewCassandraKeyspaceID(subscriptionId, resourceGroup, databaseAccountName, 
 }
 
 func (id CassandraKeyspaceId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/DatabaseAccounts/%s/cassandraKeyspaces/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DocumentDB/databaseAccounts/%s/cassandraKeyspaces/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }
 
@@ -40,7 +40,7 @@ func CassandraKeyspaceID(input string) (*CassandraKeyspaceId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.DatabaseAccountName, err = id.PopSegment("DatabaseAccounts"); err != nil {
+	if resourceId.DatabaseAccountName, err = id.PopSegment("databaseAccounts"); err != nil {
 		return nil, err
 	}
 	if resourceId.Name, err = id.PopSegment("cassandraKeyspaces"); err != nil {
