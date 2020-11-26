@@ -419,7 +419,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       protocols             = ["TCP"]
       source_ip_groups      = [azurerm_ip_group.test_source.id]
       destination_ip_groups = [azurerm_ip_group.test_destination.id]
-      destination_ports     = ["80", "1000-2000"]
+      destination_ports     = ["80", "1-65535"]
     }
   }
 
@@ -432,7 +432,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "test" {
       protocols           = ["TCP", "UDP"]
       source_addresses    = ["10.0.0.1", "10.0.0.2"]
       destination_address = "192.168.1.1"
-      destination_ports   = ["80", "1000-2000"]
+      destination_ports   = ["80", "1-65535"]
       translated_address  = "192.168.0.1"
       translated_port     = "8080"
     }
