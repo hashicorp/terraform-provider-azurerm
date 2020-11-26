@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,39 +9,42 @@ import (
 )
 
 type AccessPolicyId struct {
+	SubscriptionId  string
 	ResourceGroup   string
 	EnvironmentName string
 	Name            string
 }
 
-func NewAccessPolicyID(resourceGroup, environmentName, name string) AccessPolicyId {
+func NewAccessPolicyID(subscriptionId, resourceGroup, environmentName, name string) AccessPolicyId {
 	return AccessPolicyId{
+		SubscriptionId:  subscriptionId,
 		ResourceGroup:   resourceGroup,
 		EnvironmentName: environmentName,
 		Name:            name,
 	}
 }
 
-func (id AccessPolicyId) ID(subscriptionId string) string {
+func (id AccessPolicyId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s/accessPolicies/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.EnvironmentName, id.Name)
 }
 
+// AccessPolicyID parses a AccessPolicy ID into an AccessPolicyId struct
 func AccessPolicyID(input string) (*AccessPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Time Series Insights Access Policy ID %q: %+v", input, err)
-	}
-
-	service := AccessPolicyId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if service.EnvironmentName, err = id.PopSegment("environments"); err != nil {
 		return nil, err
 	}
 
-	if service.Name, err = id.PopSegment("accessPolicies"); err != nil {
+	resourceId := AccessPolicyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.EnvironmentName, err = id.PopSegment("environments"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("accessPolicies"); err != nil {
 		return nil, err
 	}
 
@@ -47,5 +52,5 @@ func AccessPolicyID(input string) (*AccessPolicyId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }

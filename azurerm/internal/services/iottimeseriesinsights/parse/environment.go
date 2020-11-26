@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,33 +9,37 @@ import (
 )
 
 type EnvironmentId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewEnvironmentID(resourceGroup, name string) EnvironmentId {
+func NewEnvironmentID(subscriptionId, resourceGroup, name string) EnvironmentId {
 	return EnvironmentId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id EnvironmentId) ID(subscriptionId string) string {
+func (id EnvironmentId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.TimeSeriesInsights/environments/%s"
-	return fmt.Sprintf(fmtString, subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// EnvironmentID parses a Environment ID into an EnvironmentId struct
 func EnvironmentID(input string) (*EnvironmentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Time Series Insights Environment ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	service := EnvironmentId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := EnvironmentId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if service.Name, err = id.PopSegment("environments"); err != nil {
+	if resourceId.Name, err = id.PopSegment("environments"); err != nil {
 		return nil, err
 	}
 
@@ -41,5 +47,5 @@ func EnvironmentID(input string) (*EnvironmentId, error) {
 		return nil, err
 	}
 
-	return &service, nil
+	return &resourceId, nil
 }
