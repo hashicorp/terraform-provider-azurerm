@@ -488,17 +488,19 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 
 	// get existing locations (if exists)
 	resp, err := client.Get(ctx, resourceGroup, name)
+
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
 	}
 
 	oldLocations := make([]documentdb.Location, 0)
 	oldLocationsMap := map[string]documentdb.Location{}
-	for _, l := range *resp.FailoverPolicies {
+	for _, l := range *resp.Locations {
 		location := documentdb.Location{
 			ID:               l.ID,
 			LocationName:     l.LocationName,
 			FailoverPriority: l.FailoverPriority,
+			IsZoneRedundant:  l.IsZoneRedundant,
 		}
 
 		oldLocations = append(oldLocations, location)
