@@ -8,21 +8,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = RecoverableDatabaseId{}
+var _ resourceid.Formatter = ElasticPoolId{}
 
-func TestRecoverableDatabaseIDFormatter(t *testing.T) {
-	actual := NewRecoverableDatabaseID("12345678-1234-9876-4563-123456789012", "group1", "server1", "database1").ID("")
-	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/recoverabledatabases/database1"
+func TestElasticPoolIDFormatter(t *testing.T) {
+	actual := NewElasticPoolID("12345678-1234-9876-4563-123456789012", "group1", "server1", "pool1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/elasticPools/pool1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestRecoverableDatabaseID(t *testing.T) {
+func TestElasticPoolID(t *testing.T) {
 	testData := []struct {
 		Input    string
 		Error    bool
-		Expected *RecoverableDatabaseId
+		Expected *ElasticPoolId
 	}{
 
 		{
@@ -75,24 +75,24 @@ func TestRecoverableDatabaseID(t *testing.T) {
 
 		{
 			// missing value for Name
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/recoverabledatabases/",
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/elasticPools/",
 			Error: true,
 		},
 
 		{
 			// valid
-			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/recoverabledatabases/database1",
-			Expected: &RecoverableDatabaseId{
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/elasticPools/pool1",
+			Expected: &ElasticPoolId{
 				SubscriptionId: "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:  "group1",
 				ServerName:     "server1",
-				Name:           "database1",
+				Name:           "pool1",
 			},
 		},
 
 		{
 			// upper-cased
-			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.SQL/SERVERS/SERVER1/RECOVERABLEDATABASES/DATABASE1",
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.SQL/SERVERS/SERVER1/ELASTICPOOLS/POOL1",
 			Error: true,
 		},
 	}
@@ -100,7 +100,7 @@ func TestRecoverableDatabaseID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := RecoverableDatabaseID(v.Input)
+		actual, err := ElasticPoolID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

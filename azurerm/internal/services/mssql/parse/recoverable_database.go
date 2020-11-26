@@ -1,32 +1,50 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type RecoverableDBId struct {
-	Name          string
-	ServerName    string
-	ResourceGroup string
+type RecoverableDatabaseId struct {
+	SubscriptionId string
+	ResourceGroup  string
+	ServerName     string
+	Name           string
 }
 
-func RecoverableDBID(input string) (*RecoverableDBId, error) {
+func NewRecoverableDatabaseID(subscriptionId, resourceGroup, serverName, name string) RecoverableDatabaseId {
+	return RecoverableDatabaseId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ServerName:     serverName,
+		Name:           name,
+	}
+}
+
+func (id RecoverableDatabaseId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/recoverabledatabases/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
+}
+
+// RecoverableDatabaseID parses a RecoverableDatabase ID into an RecoverableDatabaseId struct
+func RecoverableDatabaseID(input string) (*RecoverableDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql Recoverable DB ID %q: %+v", input, err)
-	}
-
-	recoverableDBId := RecoverableDBId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if recoverableDBId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
-	if recoverableDBId.Name, err = id.PopSegment("recoverabledatabases"); err != nil {
+	resourceId := RecoverableDatabaseId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("recoverabledatabases"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +52,5 @@ func RecoverableDBID(input string) (*RecoverableDBId, error) {
 		return nil, err
 	}
 
-	return &recoverableDBId, nil
+	return &resourceId, nil
 }

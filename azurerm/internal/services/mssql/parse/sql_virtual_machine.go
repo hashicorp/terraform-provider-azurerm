@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type SqlVirtualMachineId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewSqlVirtualMachineID(subscriptionId, resourceGroup, name string) SqlVirtualMachineId {
+	return SqlVirtualMachineId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id SqlVirtualMachineId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// SqlVirtualMachineID parses a SqlVirtualMachine ID into an SqlVirtualMachineId struct
 func SqlVirtualMachineID(input string) (*SqlVirtualMachineId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql VM ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	sqlvm := SqlVirtualMachineId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := SqlVirtualMachineId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if sqlvm.Name, err = id.PopSegment("sqlVirtualMachines"); err != nil {
+	if resourceId.Name, err = id.PopSegment("sqlVirtualMachines"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func SqlVirtualMachineID(input string) (*SqlVirtualMachineId, error) {
 		return nil, err
 	}
 
-	return &sqlvm, nil
+	return &resourceId, nil
 }

@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,30 +9,47 @@ import (
 )
 
 type DatabaseExtendedAuditingPolicyId struct {
-	DatabaseName  string
-	ServerName    string
-	ResourceGroup string
+	SubscriptionId              string
+	ResourceGroup               string
+	ServerName                  string
+	DatabaseName                string
+	ExtendedAuditingSettingName string
 }
 
+func NewDatabaseExtendedAuditingPolicyID(subscriptionId, resourceGroup, serverName, databaseName, extendedAuditingSettingName string) DatabaseExtendedAuditingPolicyId {
+	return DatabaseExtendedAuditingPolicyId{
+		SubscriptionId:              subscriptionId,
+		ResourceGroup:               resourceGroup,
+		ServerName:                  serverName,
+		DatabaseName:                databaseName,
+		ExtendedAuditingSettingName: extendedAuditingSettingName,
+	}
+}
+
+func (id DatabaseExtendedAuditingPolicyId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/databases/%s/extendedAuditingSettings/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName, id.ExtendedAuditingSettingName)
+}
+
+// DatabaseExtendedAuditingPolicyID parses a DatabaseExtendedAuditingPolicy ID into an DatabaseExtendedAuditingPolicyId struct
 func DatabaseExtendedAuditingPolicyID(input string) (*DatabaseExtendedAuditingPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql Database Extended Auditing Policy %q: %+v", input, err)
-	}
-
-	sqlDatabaseExtendedAuditingPolicyId := DatabaseExtendedAuditingPolicyId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if sqlDatabaseExtendedAuditingPolicyId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
-	if sqlDatabaseExtendedAuditingPolicyId.DatabaseName, err = id.PopSegment("databases"); err != nil {
-		return nil, err
+	resourceId := DatabaseExtendedAuditingPolicyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if _, err = id.PopSegment("extendedAuditingSettings"); err != nil {
+	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+	if resourceId.DatabaseName, err = id.PopSegment("databases"); err != nil {
+		return nil, err
+	}
+	if resourceId.ExtendedAuditingSettingName, err = id.PopSegment("extendedAuditingSettings"); err != nil {
 		return nil, err
 	}
 
@@ -38,5 +57,5 @@ func DatabaseExtendedAuditingPolicyID(input string) (*DatabaseExtendedAuditingPo
 		return nil, err
 	}
 
-	return &sqlDatabaseExtendedAuditingPolicyId, nil
+	return &resourceId, nil
 }

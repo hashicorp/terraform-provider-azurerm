@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"testing"
 
@@ -8,85 +10,119 @@ import (
 
 var _ resourceid.Formatter = DatabaseId{}
 
-func TestMsSqlDatabaseID(t *testing.T) {
+func TestDatabaseIDFormatter(t *testing.T) {
+	actual := NewDatabaseID("12345678-1234-9876-4563-123456789012", "group1", "server1", "database1").ID("")
+	expected := "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/databases/database1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
+
+func TestDatabaseID(t *testing.T) {
 	testData := []struct {
-		Name     string
 		Input    string
+		Error    bool
 		Expected *DatabaseId
 	}{
+
 		{
-			Name:     "Empty",
-			Input:    "",
-			Expected: nil,
+			// empty
+			Input: "",
+			Error: true,
 		},
+
 		{
-			Name:     "No Resource Groups Segment",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Expected: nil,
+			// missing SubscriptionId
+			Input: "/",
+			Error: true,
 		},
+
 		{
-			Name:     "No Resource Groups Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
-			Expected: nil,
+			// missing value for SubscriptionId
+			Input: "/subscriptions/",
+			Error: true,
 		},
+
 		{
-			Name:     "Resource Group ID",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
-			Expected: nil,
+			// missing ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing Sql Server Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/",
-			Expected: nil,
+			// missing value for ResourceGroup
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing Sql Database",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1",
-			Expected: nil,
+			// missing ServerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/",
+			Error: true,
 		},
+
 		{
-			Name:     "Missing Sql Database Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/databases",
-			Expected: nil,
+			// missing value for ServerName
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/",
+			Error: true,
 		},
+
 		{
-			Name:  "Sql Database ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/databases/sqlDB1",
+			// missing Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/",
+			Error: true,
+		},
+
+		{
+			// missing value for Name
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/databases/",
+			Error: true,
+		},
+
+		{
+			// valid
+			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Sql/servers/server1/databases/database1",
 			Expected: &DatabaseId{
-				Name:          "sqlDB1",
-				ServerName:    "sqlServer1",
-				ResourceGroup: "resGroup1",
+				SubscriptionId: "12345678-1234-9876-4563-123456789012",
+				ResourceGroup:  "group1",
+				ServerName:     "server1",
+				Name:           "database1",
 			},
 		},
+
 		{
-			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/Databases/sqlDB1",
-			Expected: nil,
+			// upper-cased
+			Input: "/SUBSCRIPTIONS/12345678-1234-9876-4563-123456789012/RESOURCEGROUPS/GROUP1/PROVIDERS/MICROSOFT.SQL/SERVERS/SERVER1/DATABASES/DATABASE1",
+			Error: true,
 		},
 	}
 
 	for _, v := range testData {
-		t.Logf("[DEBUG] Testing %q", v.Name)
+		t.Logf("[DEBUG] Testing %q", v.Input)
 
-		actual, err := MsSqlDatabaseID(v.Input)
+		actual, err := DatabaseID(v.Input)
 		if err != nil {
-			if v.Expected == nil {
+			if v.Error {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
 		}
 
+		if actual.SubscriptionId != v.Expected.SubscriptionId {
+			t.Fatalf("Expected %q but got %q for SubscriptionId", v.Expected.SubscriptionId, actual.SubscriptionId)
+		}
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
+		}
+		if actual.ServerName != v.Expected.ServerName {
+			t.Fatalf("Expected %q but got %q for ServerName", v.Expected.ServerName, actual.ServerName)
+		}
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
-		}
-
-		if actual.ServerName != v.Expected.ServerName {
-			t.Fatalf("Expected %q but got %q for Sql Server", v.Expected.Name, actual.Name)
-		}
-
-		if actual.ResourceGroup != v.Expected.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

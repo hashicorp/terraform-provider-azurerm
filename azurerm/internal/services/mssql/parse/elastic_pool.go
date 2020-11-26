@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,42 @@ import (
 )
 
 type ElasticPoolId struct {
-	Name          string
-	ServerName    string
-	ResourceGroup string
+	SubscriptionId string
+	ResourceGroup  string
+	ServerName     string
+	Name           string
 }
 
+func NewElasticPoolID(subscriptionId, resourceGroup, serverName, name string) ElasticPoolId {
+	return ElasticPoolId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ServerName:     serverName,
+		Name:           name,
+	}
+}
+
+func (id ElasticPoolId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/elasticPools/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.Name)
+}
+
+// ElasticPoolID parses a ElasticPool ID into an ElasticPoolId struct
 func ElasticPoolID(input string) (*ElasticPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse MsSql Elastic Pool ID %q: %+v", input, err)
-	}
-
-	elasticPool := ElasticPoolId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if elasticPool.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
-	if elasticPool.Name, err = id.PopSegment("elasticPools"); err != nil {
+	resourceId := ElasticPoolId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("elasticPools"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +52,5 @@ func ElasticPoolID(input string) (*ElasticPoolId, error) {
 		return nil, err
 	}
 
-	return &elasticPool, nil
+	return &resourceId, nil
 }

@@ -1,31 +1,50 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MsSqlServerExtendedAuditingPolicyId struct {
-	ServerName    string
-	ResourceGroup string
+type ServerExtendedAuditingPolicyId struct {
+	SubscriptionId              string
+	ResourceGroup               string
+	ServerName                  string
+	ExtendedAuditingSettingName string
 }
 
-func MssqlServerExtendedAuditingPolicyID(input string) (*MsSqlServerExtendedAuditingPolicyId, error) {
+func NewServerExtendedAuditingPolicyID(subscriptionId, resourceGroup, serverName, extendedAuditingSettingName string) ServerExtendedAuditingPolicyId {
+	return ServerExtendedAuditingPolicyId{
+		SubscriptionId:              subscriptionId,
+		ResourceGroup:               resourceGroup,
+		ServerName:                  serverName,
+		ExtendedAuditingSettingName: extendedAuditingSettingName,
+	}
+}
+
+func (id ServerExtendedAuditingPolicyId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/extendedAuditingSettings/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServerName, id.ExtendedAuditingSettingName)
+}
+
+// ServerExtendedAuditingPolicyID parses a ServerExtendedAuditingPolicy ID into an ServerExtendedAuditingPolicyId struct
+func ServerExtendedAuditingPolicyID(input string) (*ServerExtendedAuditingPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql Server Extended Auditing Policy %q: %+v", input, err)
-	}
-
-	sqlServerExtendedAuditingPolicyId := MsSqlServerExtendedAuditingPolicyId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if sqlServerExtendedAuditingPolicyId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
-	if _, err = id.PopSegment("extendedAuditingSettings"); err != nil {
+	resourceId := ServerExtendedAuditingPolicyId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ServerName, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+	if resourceId.ExtendedAuditingSettingName, err = id.PopSegment("extendedAuditingSettings"); err != nil {
 		return nil, err
 	}
 
@@ -33,5 +52,5 @@ func MssqlServerExtendedAuditingPolicyID(input string) (*MsSqlServerExtendedAudi
 		return nil, err
 	}
 
-	return &sqlServerExtendedAuditingPolicyId, nil
+	return &resourceId, nil
 }
