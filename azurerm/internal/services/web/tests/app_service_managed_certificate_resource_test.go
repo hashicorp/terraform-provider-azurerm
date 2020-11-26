@@ -37,14 +37,14 @@ func TestAccAzureRMAppServiceManagedCertificate_basicLinux(t *testing.T) {
 }
 
 func (t AppServiceManagedCertificate) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.AppServiceManagedCertificateID(state.ID)
+	id, err := parse.ManagedCertificateID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.CertificateName)
 	if err != nil {
-		return nil, fmt.Errorf("App Service Managed Certificate %q (resource group %q) does not exist", id.Name, id.ResourceGroup)
+		return nil, fmt.Errorf("App Service Managed Certificate %q (resource group %q) does not exist", id.CertificateName, id.ResourceGroup)
 	}
 
 	return utils.Bool(resp.CertificateProperties != nil), nil

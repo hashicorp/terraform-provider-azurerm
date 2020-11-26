@@ -26,7 +26,7 @@ func resourceArmAppServiceManagedCertificate() *schema.Resource {
 		Update: resourceArmAppServiceManagedCertificateCreateUpdate,
 		Delete: resourceArmAppServiceManagedCertificateDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.AppServiceManagedCertificateID(id)
+			_, err := parse.ManagedCertificateID(id)
 			return err
 		}),
 
@@ -124,13 +124,13 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 
 	t := d.Get("tags").(map[string]interface{})
 
-	id := parse.NewAppServiceManagedCertificateId(subscriptionId, customHostnameBindingId.ResourceGroup, name)
+	id := parse.NewManagedCertificateID(subscriptionId, customHostnameBindingId.ResourceGroup, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.CertificateName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing App Service Certificate %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("checking for presence of existing App Service Certificate %q (Resource Group %q): %s", id.CertificateName, id.ResourceGroup, err)
 			}
 		}
 
@@ -149,10 +149,10 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 		Tags:     tags.Expand(t),
 	}
 
-	if resp, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificate); err != nil {
+	if resp, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.CertificateName, certificate); err != nil {
 		// API returns 202 where 200 is expected - https://github.com/Azure/azure-sdk-for-go/issues/13665
 		if !utils.ResponseWasStatusCode(resp.Response, 202) {
-			return fmt.Errorf("Error creating/updating App Service Managed Certificate %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error creating/updating App Service Managed Certificate %q (Resource Group %q): %s", id.CertificateName, id.ResourceGroup, err)
 		}
 	}
 
@@ -162,7 +162,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 		MinTimeout: 1 * time.Minute,
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+			resp, err := client.Get(ctx, id.ResourceGroup, id.CertificateName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
 					return "NotFound", "NotFound", nil
@@ -181,7 +181,7 @@ func resourceArmAppServiceManagedCertificateCreateUpdate(d *schema.ResourceData,
 	}
 
 	if _, err := certificateWait.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for App Service Managed Certificate %q: %+v", id.Name, err)
+		return fmt.Errorf("waiting for App Service Managed Certificate %q: %+v", id.CertificateName, err)
 	}
 
 	d.SetId(id.ID(""))
@@ -194,19 +194,19 @@ func resourceArmAppServiceManagedCertificateRead(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServiceManagedCertificateID(d.Id())
+	id, err := parse.ManagedCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.CertificateName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Managed Certificate %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] App Service Managed Certificate %q (Resource Group %q) was not found - removing from state", id.CertificateName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Managed Certificate %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on App Service Managed Certificate %q (Resource Group %q): %+v", id.CertificateName, id.ResourceGroup, err)
 	}
 
 	if props := resp.CertificateProperties; props != nil {
@@ -228,17 +228,17 @@ func resourceArmAppServiceManagedCertificateDelete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServiceManagedCertificateID(d.Id())
+	id, err := parse.ManagedCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", id.CertificateName, id.ResourceGroup)
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.CertificateName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", id.CertificateName, id.ResourceGroup, err)
 		}
 	}
 
