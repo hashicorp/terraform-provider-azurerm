@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type AutomationDscNodeConfiguration struct {
+type AutomationDscNodeConfigurationResource struct {
 }
 
 func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_nodeconfiguration", "test")
-	r := AutomationDscNodeConfiguration{}
+	r := AutomationDscNodeConfigurationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 
 func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_nodeconfiguration", "test")
-	r := AutomationDscNodeConfiguration{}
+	r := AutomationDscNodeConfigurationResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
 	})
 }
 
-func (t AutomationDscNodeConfiguration) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AutomationDscNodeConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (t AutomationDscNodeConfiguration) Exists(ctx context.Context, clients *cli
 	return utils.Bool(resp.DscNodeConfigurationProperties != nil), nil
 }
 
-func (AutomationDscNodeConfiguration) basic(data acceptance.TestData) string {
+func (AutomationDscNodeConfigurationResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -125,8 +125,8 @@ mofcontent
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AutomationDscNodeConfiguration) requiresImport(data acceptance.TestData) string {
-	template := AutomationDscNodeConfiguration{}.basic(data)
+func (AutomationDscNodeConfigurationResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationDscNodeConfigurationResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 

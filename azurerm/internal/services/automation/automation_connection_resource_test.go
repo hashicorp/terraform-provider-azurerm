@@ -14,12 +14,12 @@ import (
 	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
 
-type AutomationConnection struct {
+type AutomationConnectionResource struct {
 }
 
 func TestAccAzureRMAutomationConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
-	r := AutomationConnection{}
+	r := AutomationConnectionResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccAzureRMAutomationConnection_basic(t *testing.T) {
 
 func TestAccAzureRMAutomationConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
-	r := AutomationConnection{}
+	r := AutomationConnectionResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccAzureRMAutomationConnection_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAutomationConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
-	r := AutomationConnection{}
+	r := AutomationConnectionResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccAzureRMAutomationConnection_complete(t *testing.T) {
 
 func TestAccAzureRMAutomationConnection_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection", "test")
-	r := AutomationConnection{}
+	r := AutomationConnectionResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccAzureRMAutomationConnection_update(t *testing.T) {
 	})
 }
 
-func (t AutomationConnection) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AutomationConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -105,8 +105,8 @@ func (t AutomationConnection) Exists(ctx context.Context, clients *clients.Clien
 	return utils.Bool(resp.ConnectionProperties != nil), nil
 }
 
-func (AutomationConnection) basic(data acceptance.TestData) string {
-	template := AutomationConnection{}.template(data)
+func (AutomationConnectionResource) basic(data acceptance.TestData) string {
+	template := AutomationConnectionResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -126,8 +126,8 @@ resource "azurerm_automation_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (AutomationConnection) requiresImport(data acceptance.TestData) string {
-	template := AutomationConnection{}.basic(data)
+func (AutomationConnectionResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationConnectionResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -141,8 +141,8 @@ resource "azurerm_automation_connection" "import" {
 `, template)
 }
 
-func (AutomationConnection) complete(data acceptance.TestData) string {
-	template := AutomationConnection{}.template(data)
+func (AutomationConnectionResource) complete(data acceptance.TestData) string {
+	template := AutomationConnectionResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -163,7 +163,7 @@ resource "azurerm_automation_connection" "test" {
 `, template, data.RandomInteger)
 }
 
-func (AutomationConnection) template(data acceptance.TestData) string {
+func (AutomationConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

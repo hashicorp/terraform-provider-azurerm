@@ -1,219 +1,154 @@
 package automation_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure`
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AutomationRunbookResource struct {
+}
+
 func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflow(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("publish_content_link"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.PSWorkflow(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("publish_content_link"),
 	})
 }
 
 func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflow(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMAutomationRunbook_requiresImport),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.PSWorkflow(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
 func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflowWithHash(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "runbook_type", "PowerShellWorkflow"),
-				),
-			},
-			data.ImportStep("publish_content_link"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.PSWorkflowWithHash(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("runbook_type").HasValue("PowerShellWorkflow"),
+			),
 		},
+		data.ImportStep("publish_content_link"),
 	})
 }
 
 func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationRunbook_PSWithContent(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "runbook_type", "PowerShell"),
-					resource.TestCheckResourceAttr(data.ResourceName, "content", "# Some test content\n# for Terraform acceptance test\n"),
-				),
-			},
-			data.ImportStep("publish_content_link"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.PSWithContent(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("runbook_type").HasValue("PowerShell"),
+				check.That(data.ResourceName).Key("content").HasValue("# Some test content\n# for Terraform acceptance test\n"),
+			),
 		},
+		data.ImportStep("publish_content_link"),
 	})
 }
 
 func TestAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("publish_content_link"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.PSWorkflowWithoutUri(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("publish_content_link"),
 	})
 }
 
 func TestAccAzureRMAutomationRunbook_withJobSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+	r := AutomationRunbookResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationRunbook_PSWorkflow(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("publish_content_link"),
-			{
-				Config: testAccAzureRMAutomationRunbook_withJobSchedule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("publish_content_link"),
-			{
-				Config: testAccAzureRMAutomationRunbook_withJobScheduleUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("publish_content_link"),
-			{
-				Config: testAccAzureRMAutomationRunbook_withoutJobSchedule(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("publish_content_link"),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.PSWorkflow(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep("publish_content_link"),
+		{
+			Config: r.withJobSchedule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("publish_content_link"),
+		{
+			Config: r.withJobScheduleUpdated(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("publish_content_link"),
+		{
+			Config: r.withoutJobSchedule(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("publish_content_link"),
 	})
 }
 
-func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.RunbookClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func (t AutomationRunbookResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resGroup := id.ResourceGroup
+	accName := id.Path["automationAccounts"]
+	name := id.Path["runbooks"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_automation_runbook" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["automation_account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Runbook: '%s'", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Automation Runbook still exists:\n%#v", resp)
+	resp, err := clients.Automation.RunbookClient.Get(ctx, resGroup, accName, name)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Automation Runbook '%s' (resource group: '%s') does not exist", name, id.ResourceGroup)
 	}
 
-	return nil
+	return utils.Bool(resp.RunbookProperties != nil), nil
 }
 
-func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.RunbookClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["automation_account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Runbook: '%s'", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Automation Runbook '%s' (resource group: '%s') does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on automationRunbookClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testAccAzureRMAutomationRunbook_PSWorkflow(data acceptance.TestData) string {
+func (AutomationRunbookResource) PSWorkflow(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -250,8 +185,8 @@ CONTENT
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationRunbook_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationRunbook_PSWorkflow(data)
+func (AutomationRunbookResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationRunbookResource{}.PSWorkflow(data)
 	return fmt.Sprintf(`
 %s
 
@@ -274,7 +209,7 @@ CONTENT
 `, template)
 }
 
-func testAccAzureRMAutomationRunbook_PSWorkflowWithHash(data acceptance.TestData) string {
+func (AutomationRunbookResource) PSWorkflowWithHash(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -316,7 +251,7 @@ resource "azurerm_automation_runbook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationRunbook_PSWithContent(data acceptance.TestData) string {
+func (AutomationRunbookResource) PSWithContent(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -358,7 +293,7 @@ CONTENT
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(data acceptance.TestData) string {
+func (AutomationRunbookResource) PSWorkflowWithoutUri(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -394,7 +329,7 @@ resource "azurerm_automation_runbook" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationRunbook_withJobSchedule(data acceptance.TestData) string {
+func (AutomationRunbookResource) withJobSchedule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -442,7 +377,7 @@ CONTENT
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMAutomationRunbook_withJobScheduleUpdated(data acceptance.TestData) string {
+func (AutomationRunbookResource) withJobScheduleUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -499,7 +434,7 @@ CONTENT
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func testAccAzureRMAutomationRunbook_withoutJobSchedule(data acceptance.TestData) string {
+func (AutomationRunbookResource) withoutJobSchedule(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

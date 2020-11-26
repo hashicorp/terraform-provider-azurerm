@@ -1,6 +1,7 @@
 package automation_test
 
 import (
+	`context`
 	"fmt"
 	"testing"
 
@@ -9,177 +10,109 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check`
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance/check"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+type AutomationJobScheduleResource struct {
+}
+
 func TestAccAzureRMAutomationJobSchedule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
+	r := AutomationJobScheduleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationJobSchedule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
+	r := AutomationJobScheduleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationJobSchedule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
+	r := AutomationJobScheduleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			{
-				Config: testAccAzureRMAutomationJobSchedule_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		{
+			Config: r.complete(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
 func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
+	r := AutomationJobScheduleResource{}
 
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAutomationJobScheduleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAutomationJobSchedule_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			{
-				Config:      testAccAzureRMAutomationJobSchedule_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_automation_job_schedule"),
-			},
+	data.ResourceTest(t, r, []resource.TestStep{
+		{
+			Config: r.basic(data),
+			Check: resource.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImport(data),
+			ExpectError: acceptance.RequiresImportError("azurerm_automation_job_schedule"),
 		},
 	})
 }
 
-func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
-	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.JobScheduleClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_automation_job_schedule" {
-			continue
-		}
-
-		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["id"])
-		if err != nil {
-			return err
-		}
-		jobScheduleID := id.Path["jobSchedules"]
-		jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
-		accName := rs.Primary.Attributes["automation_account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Job Schedule: '%s'", jobScheduleUUID)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, accName, jobScheduleUUID)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-
-			return err
-		}
-
-		return fmt.Errorf("Automation Job Schedule still exists:\n%#v", resp)
+func (t AutomationJobScheduleResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+	id, err := azure.ParseAzureResourceID(state.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
-}
+	jobScheduleID := id.Path["jobSchedules"]
+	jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
+	resourceGroup := id.ResourceGroup
+	accountName := id.Path["automationAccounts"]
 
-func testCheckAzureRMAutomationJobScheduleExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.JobScheduleClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["id"])
-		if err != nil {
-			return err
-		}
-		jobScheduleID := id.Path["jobSchedules"]
-		jobScheduleUUID := uuid.FromStringOrNil(jobScheduleID)
-		accName := rs.Primary.Attributes["automation_account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Job Schedule: '%s'", jobScheduleUUID)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, accName, jobScheduleUUID)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Automation Job Schedule '%s' (Account %q / Resource Group %q) does not exist", jobScheduleUUID, accName, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on automationJobScheduleClient: %+v", err)
-		}
-
-		return nil
+	resp, err := clients.Automation.JobScheduleClient.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving Automation Job Schedule '%s' (Account %q / Resource Group %q) does not exist", jobScheduleUUID, accountName, resourceGroup)
 	}
+
+	return utils.Bool(resp.JobScheduleProperties != nil), nil
 }
 
-func testAccAzureRMAutomationJobSchedulePrerequisites(data acceptance.TestData) string {
+func (AutomationJobScheduleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -237,8 +170,7 @@ resource "azurerm_automation_schedule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAutomationJobSchedule_basic(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationJobSchedulePrerequisites(data)
+func (AutomationJobScheduleResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -248,12 +180,10 @@ resource "azurerm_automation_job_schedule" "test" {
   schedule_name           = azurerm_automation_schedule.test.name
   runbook_name            = azurerm_automation_runbook.test.name
 }
-`, template)
+`, AutomationJobScheduleResource{}.template(data))
 }
 
-
-func testAccAzureRMAutomationJobSchedule_complete(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationJobSchedulePrerequisites(data)
+func (AutomationJobScheduleResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -271,12 +201,11 @@ resource "azurerm_automation_job_schedule" "test" {
     url        = "https://www.Example.com"
   }
 }
-`, template)
+`, AutomationJobScheduleResource{}.template(data))
 }
 
-
-func testAccAzureRMAutomationJobSchedule_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAutomationJobSchedule_basic(data)
+func (AutomationJobScheduleResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationJobScheduleResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -287,5 +216,5 @@ resource "azurerm_automation_job_schedule" "import" {
   runbook_name            = azurerm_automation_job_schedule.test.runbook_name
   job_schedule_id         = azurerm_automation_job_schedule.test.job_schedule_id
 }
-`, template)
+`, AutomationJobScheduleResource{}.basic(data))
 }

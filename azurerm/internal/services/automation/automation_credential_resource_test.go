@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type AutomationCredential struct {
+type AutomationCredentialResource struct {
 }
 
 func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
-	r := AutomationCredential{}
+	r := AutomationCredentialResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 
 func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
-	r := AutomationCredential{}
+	r := AutomationCredentialResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
-	r := AutomationCredential{}
+	r := AutomationCredentialResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	})
 }
 
-func (t AutomationCredential) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AutomationCredentialResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := azure.ParseAzureResourceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (t AutomationCredential) Exists(ctx context.Context, clients *clients.Clien
 	return utils.Bool(resp.CredentialProperties != nil), nil
 }
 
-func (AutomationCredential) basic(data acceptance.TestData) string {
+func (AutomationCredentialResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -110,8 +110,8 @@ resource "azurerm_automation_credential" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (AutomationCredential) requiresImport(data acceptance.TestData) string {
-	template := AutomationCredential{}.basic(data)
+func (AutomationCredentialResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationCredentialResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -125,7 +125,7 @@ resource "azurerm_automation_credential" "import" {
 `, template)
 }
 
-func (AutomationCredential) complete(data acceptance.TestData) string {
+func (AutomationCredentialResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

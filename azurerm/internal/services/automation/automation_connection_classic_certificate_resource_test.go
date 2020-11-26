@@ -14,12 +14,12 @@ import (
 	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
 
-type AutomationConnectionClassicCertificate struct {
+type AutomationConnectionClassicCertificateResource struct {
 }
 
 func TestAccAzureRMAutomationConnectionClassicCertificate_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_classic_certificate", "test")
-	r := AutomationConnectionClassicCertificate{}
+	r := AutomationConnectionClassicCertificateResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccAzureRMAutomationConnectionClassicCertificate_basic(t *testing.T) {
 
 func TestAccAzureRMAutomationConnectionClassicCertificate_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_classic_certificate", "test")
-	r := AutomationConnectionClassicCertificate{}
+	r := AutomationConnectionClassicCertificateResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccAzureRMAutomationConnectionClassicCertificate_requiresImport(t *test
 
 func TestAccAzureRMAutomationConnectionClassicCertificate_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_classic_certificate", "test")
-	r := AutomationConnectionClassicCertificate{}
+	r := AutomationConnectionClassicCertificateResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccAzureRMAutomationConnectionClassicCertificate_complete(t *testing.T)
 
 func TestAccAzureRMAutomationConnectionClassicCertificate_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_classic_certificate", "test")
-	r := AutomationConnectionClassicCertificate{}
+	r := AutomationConnectionClassicCertificateResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccAzureRMAutomationConnectionClassicCertificate_update(t *testing.T) {
 	})
 }
 
-func (t AutomationConnectionClassicCertificate) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AutomationConnectionClassicCertificateResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -105,8 +105,8 @@ func (t AutomationConnectionClassicCertificate) Exists(ctx context.Context, clie
 	return utils.Bool(resp.ConnectionProperties != nil), nil
 }
 
-func (AutomationConnectionClassicCertificate) basic(data acceptance.TestData) string {
-	template := AutomationConnectionClassicCertificate{}.template(data)
+func (AutomationConnectionClassicCertificateResource) basic(data acceptance.TestData) string {
+	template := AutomationConnectionClassicCertificateResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -121,8 +121,8 @@ resource "azurerm_automation_connection_classic_certificate" "test" {
 `, template, data.RandomInteger)
 }
 
-func (AutomationConnectionClassicCertificate) requiresImport(data acceptance.TestData) string {
-	template := AutomationConnectionClassicCertificate{}.basic(data)
+func (AutomationConnectionClassicCertificateResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationConnectionClassicCertificateResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -137,8 +137,8 @@ resource "azurerm_automation_connection_classic_certificate" "import" {
 `, template)
 }
 
-func (AutomationConnectionClassicCertificate) complete(data acceptance.TestData) string {
-	template := AutomationConnectionClassicCertificate{}.template(data)
+func (AutomationConnectionClassicCertificateResource) complete(data acceptance.TestData) string {
+	template := AutomationConnectionClassicCertificateResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -154,7 +154,7 @@ resource "azurerm_automation_connection_classic_certificate" "test" {
 `, template, data.RandomInteger)
 }
 
-func (AutomationConnectionClassicCertificate) template(data acceptance.TestData) string {
+func (AutomationConnectionClassicCertificateResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

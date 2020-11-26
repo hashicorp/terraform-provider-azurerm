@@ -14,12 +14,12 @@ import (
 	`github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils`
 )
 
-type AutomationConnectionServicePrincipal struct {
+type AutomationConnectionServicePrincipalResource struct {
 }
 
 func TestAccAzureRMAutomationConnectionServicePrincipal_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
-	r := AutomationConnectionServicePrincipal{}
+	r := AutomationConnectionServicePrincipalResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -34,7 +34,7 @@ func TestAccAzureRMAutomationConnectionServicePrincipal_basic(t *testing.T) {
 
 func TestAccAzureRMAutomationConnectionServicePrincipal_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
-	r := AutomationConnectionServicePrincipal{}
+	r := AutomationConnectionServicePrincipalResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -49,7 +49,7 @@ func TestAccAzureRMAutomationConnectionServicePrincipal_requiresImport(t *testin
 
 func TestAccAzureRMAutomationConnectionServicePrincipal_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
-	r := AutomationConnectionServicePrincipal{}
+	r := AutomationConnectionServicePrincipalResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -64,7 +64,7 @@ func TestAccAzureRMAutomationConnectionServicePrincipal_complete(t *testing.T) {
 
 func TestAccAzureRMAutomationConnectionServicePrincipal_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_connection_service_principal", "test")
-	r := AutomationConnectionServicePrincipal{}
+	r := AutomationConnectionServicePrincipalResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccAzureRMAutomationConnectionServicePrincipal_update(t *testing.T) {
 	})
 }
 
-func (t AutomationConnectionServicePrincipal) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (t AutomationConnectionServicePrincipalResource) Exists(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.ConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -105,8 +105,8 @@ func (t AutomationConnectionServicePrincipal) Exists(ctx context.Context, client
 	return utils.Bool(resp.ConnectionProperties != nil), nil
 }
 
-func (AutomationConnectionServicePrincipal) basic(data acceptance.TestData) string {
-	template := AutomationConnectionServicePrincipal{}.template(data)
+func (AutomationConnectionServicePrincipalResource) basic(data acceptance.TestData) string {
+	template := AutomationConnectionServicePrincipalResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -122,8 +122,8 @@ resource "azurerm_automation_connection_service_principal" "test" {
 `, template, data.RandomInteger)
 }
 
-func (AutomationConnectionServicePrincipal) requiresImport(data acceptance.TestData) string {
-	template := AutomationConnectionServicePrincipal{}.basic(data)
+func (AutomationConnectionServicePrincipalResource) requiresImport(data acceptance.TestData) string {
+	template := AutomationConnectionServicePrincipalResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -139,8 +139,8 @@ resource "azurerm_automation_connection_service_principal" "import" {
 `, template)
 }
 
-func (AutomationConnectionServicePrincipal) complete(data acceptance.TestData) string {
-	template := AutomationConnectionServicePrincipal{}.template(data)
+func (AutomationConnectionServicePrincipalResource) complete(data acceptance.TestData) string {
+	template := AutomationConnectionServicePrincipalResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +157,7 @@ resource "azurerm_automation_connection_service_principal" "test" {
 `, template, data.RandomInteger)
 }
 
-func (AutomationConnectionServicePrincipal) template(data acceptance.TestData) string {
+func (AutomationConnectionServicePrincipalResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
