@@ -22,6 +22,10 @@ BUG FIXES:
 * `azurerm_api_management` - fixing an issue where developer portal certificates are updated on every apply [GH-7299]
 * `azurerm_cosmosdb_account` - Fix Cosmos zone redundant update [GH-9485]
 * `azurerm_search_service` - `allowed_ips` now supports specifying a CIDR Block in addition to an IPv4 address [GH-9493]
+* `azurerm_virtual_desktop_application_group` - adding a state migration to avoid a breaking diff when upgrading from v2.35.0 or later [GH-9495]
+* `azurerm_virtual_desktop_host_pool` - adding a state migration to avoid a breaking diff when upgrading from v2.35.0 or later [GH-9495]
+* `azurerm_virtual_desktop_workspace` - adding a state migration to avoid a breaking diff when upgrading from v2.35.0 or later [GH-9495]
+* `azurerm_virtual_desktop_workspace_application_group_association` - adding a state migration to avoid a breaking diff when upgrading from v2.35.0 or later [GH-9495]
 * `azurerm_windows_virtual_machine` - no longer sets `patch_mode` on creation if it is the default value [GH-[9432]
 
 ## 2.37.0 (November 20, 2020)
