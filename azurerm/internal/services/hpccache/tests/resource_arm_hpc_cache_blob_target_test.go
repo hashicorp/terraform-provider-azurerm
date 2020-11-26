@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hpccache/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -83,7 +83,7 @@ func testCheckAzureRMHPCCacheBlobTargetExists(resourceName string) resource.Test
 			return fmt.Errorf("HPC Cache Blob Target not found: %s", resourceName)
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parse.StorageTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func testCheckAzureRMHPCCacheBlobTargetExists(resourceName string) resource.Test
 		client := acceptance.AzureProvider.Meta().(*clients.Client).HPCCache.StorageTargetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Cache, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: HPC Cache Blob Target %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 			}
@@ -111,12 +111,12 @@ func testCheckAzureRMHPCCacheBlobTargetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parsers.HPCCacheTargetID(rs.Primary.ID)
+		id, err := parse.StorageTargetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Cache, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.CacheName, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Storage.StorageTargetsClient: %+v", err)
 			}
