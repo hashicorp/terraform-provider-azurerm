@@ -27,6 +27,7 @@ func (id ServiceId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ServiceID parses a Service ID into an ServiceId struct
 func ServiceID(input string) (*ServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

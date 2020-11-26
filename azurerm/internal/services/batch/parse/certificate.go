@@ -29,6 +29,7 @@ func (id CertificateId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }
 
+// CertificateID parses a Certificate ID into an CertificateId struct
 func CertificateID(input string) (*CertificateId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

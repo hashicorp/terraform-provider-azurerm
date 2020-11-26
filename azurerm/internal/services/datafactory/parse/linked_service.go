@@ -29,6 +29,7 @@ func (id LinkedServiceId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
 }
 
+// LinkedServiceID parses a LinkedService ID into an LinkedServiceId struct
 func LinkedServiceID(input string) (*LinkedServiceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

@@ -27,6 +27,7 @@ func (id DnsZoneId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// DnsZoneID parses a DnsZone ID into an DnsZoneId struct
 func DnsZoneID(input string) (*DnsZoneId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

@@ -29,6 +29,7 @@ func (id EndpointId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.Name)
 }
 
+// EndpointID parses a Endpoint ID into an EndpointId struct
 func EndpointID(input string) (*EndpointId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

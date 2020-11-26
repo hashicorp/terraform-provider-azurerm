@@ -27,6 +27,7 @@ func (id ImageId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ImageID parses a Image ID into an ImageId struct
 func ImageID(input string) (*ImageId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

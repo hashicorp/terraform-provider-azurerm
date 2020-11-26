@@ -27,6 +27,7 @@ func (id AvailabilitySetId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// AvailabilitySetID parses a AvailabilitySet ID into an AvailabilitySetId struct
 func AvailabilitySetID(input string) (*AvailabilitySetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

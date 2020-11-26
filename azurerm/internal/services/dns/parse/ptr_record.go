@@ -29,6 +29,7 @@ func (id PtrRecordId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.PTRName)
 }
 
+// PtrRecordID parses a PtrRecord ID into an PtrRecordId struct
 func PtrRecordID(input string) (*PtrRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

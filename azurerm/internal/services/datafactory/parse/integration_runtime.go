@@ -29,6 +29,7 @@ func (id IntegrationRuntimeId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.FactoryName, id.Name)
 }
 
+// IntegrationRuntimeID parses a IntegrationRuntime ID into an IntegrationRuntimeId struct
 func IntegrationRuntimeID(input string) (*IntegrationRuntimeId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

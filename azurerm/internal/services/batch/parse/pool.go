@@ -29,6 +29,7 @@ func (id PoolId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }
 
+// PoolID parses a Pool ID into an PoolId struct
 func PoolID(input string) (*PoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

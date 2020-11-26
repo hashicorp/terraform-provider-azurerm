@@ -29,6 +29,7 @@ func (id MongodbDatabaseId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }
 
+// MongodbDatabaseID parses a MongodbDatabase ID into an MongodbDatabaseId struct
 func MongodbDatabaseID(input string) (*MongodbDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

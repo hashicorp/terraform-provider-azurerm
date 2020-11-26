@@ -29,6 +29,7 @@ func (id ConnectionId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AutomationAccountName, id.Name)
 }
 
+// ConnectionID parses a Connection ID into an ConnectionId struct
 func ConnectionID(input string) (*ConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

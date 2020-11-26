@@ -27,6 +27,7 @@ func (id ScheduleId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ScheduleID parses a Schedule ID into an ScheduleId struct
 func ScheduleID(input string) (*ScheduleId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

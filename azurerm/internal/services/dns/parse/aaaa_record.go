@@ -29,6 +29,7 @@ func (id AaaaRecordId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DnszoneName, id.AAAAName)
 }
 
+// AaaaRecordID parses a AaaaRecord ID into an AaaaRecordId struct
 func AaaaRecordID(input string) (*AaaaRecordId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

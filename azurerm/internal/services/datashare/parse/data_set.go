@@ -31,6 +31,7 @@ func (id DataSetId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
 }
 
+// DataSetID parses a DataSet ID into an DataSetId struct
 func DataSetID(input string) (*DataSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

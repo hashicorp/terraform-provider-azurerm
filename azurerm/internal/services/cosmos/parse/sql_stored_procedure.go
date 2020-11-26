@@ -33,6 +33,7 @@ func (id SqlStoredProcedureId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.SqlDatabaseName, id.ContainerName, id.StoredProcedureName)
 }
 
+// SqlStoredProcedureID parses a SqlStoredProcedure ID into an SqlStoredProcedureId struct
 func SqlStoredProcedureID(input string) (*SqlStoredProcedureId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

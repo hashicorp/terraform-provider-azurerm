@@ -27,6 +27,7 @@ func (id WebTestId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// WebTestID parses a WebTest ID into an WebTestId struct
 func WebTestID(input string) (*WebTestId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

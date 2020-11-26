@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -37,6 +38,15 @@ func resourceArmVirtualDesktopHostPool() *schema.Resource {
 			_, err := parse.HostPoolID(id)
 			return err
 		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.HostPoolUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.HostPoolUpgradeV0ToV1,
+				Version: 0,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -161,7 +171,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := parse.NewHostPoolID(subscriptionId, resourceGroup, name)
+	resourceId := parse.NewHostPoolID(subscriptionId, resourceGroup, name).ID("")
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -171,7 +181,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.HostPoolProperties != nil {
-			return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", id.ID(""))
+			return tf.ImportAsExistsError("azurerm_virtual_desktop_host_pool", resourceId)
 		}
 	}
 
@@ -198,7 +208,7 @@ func resourceArmVirtualDesktopHostPoolCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Creating Virtual Desktop Host Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.SetId(id.ID(""))
+	d.SetId(resourceId)
 
 	return resourceArmVirtualDesktopHostPoolRead(d, meta)
 }

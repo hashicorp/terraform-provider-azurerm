@@ -29,6 +29,7 @@ func (id ApplicationId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }
 
+// ApplicationID parses a Application ID into an ApplicationId struct
 func ApplicationID(input string) (*ApplicationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

@@ -15,6 +15,7 @@ func main() {
 	servicePackagePath := flag.String("path", "", "The relative path to the service package")
 	name := flag.String("name", "", "The name of this Resource Type")
 	id := flag.String("id", "", "An example of this Resource ID")
+	rewrite := flag.Bool("rewrite", false, "Should this Resource ID be parsed insensitively, to workaround an API bug?")
 	showHelp := flag.Bool("help", false, "Display this message")
 
 	flag.Parse()
@@ -24,12 +25,12 @@ func main() {
 		return
 	}
 
-	if err := run(*servicePackagePath, *name, *id); err != nil {
+	if err := run(*servicePackagePath, *name, *id, *rewrite); err != nil {
 		panic(err)
 	}
 }
 
-func run(servicePackagePath, name, id string) error {
+func run(servicePackagePath, name, id string, shouldRewrite bool) error {
 	parsersPath := fmt.Sprintf("%s/parse", servicePackagePath)
 	if err := os.Mkdir(parsersPath, 0644); !os.IsExist(err) {
 		return fmt.Errorf("creating parse directory at %q: %+v", parsersPath, err)
@@ -47,7 +48,8 @@ func run(servicePackagePath, name, id string) error {
 	}
 
 	generator := ResourceIdGenerator{
-		ResourceId: *resourceId,
+		ResourceId:    *resourceId,
+		ShouldRewrite: shouldRewrite,
 	}
 	if err := goFmtAndWriteToFile(parserFilePath, generator.Code()); err != nil {
 		return err
@@ -208,6 +210,8 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 
 type ResourceIdGenerator struct {
 	ResourceId
+
+	ShouldRewrite bool
 }
 
 func (id ResourceIdGenerator) Code() string {
@@ -226,7 +230,8 @@ import (
 %s
 %s
 %s
-`, id.codeForType(), id.codeForConstructor(), id.codeForFormatter(), id.codeForParser())
+%s
+`, id.codeForType(), id.codeForConstructor(), id.codeForFormatter(), id.codeForParser(), id.codeForParserInsensitive())
 }
 
 func (id ResourceIdGenerator) codeForType() string {
@@ -301,9 +306,81 @@ func (id ResourceIdGenerator) codeForParser() string {
 		parserStatements = append(parserStatements, fmt.Sprintf(fmtString, segment.FieldName, segment.SegmentKey))
 	}
 	parserStatementsStr := strings.Join(parserStatements, "\n")
-
 	return fmt.Sprintf(`
+// %[1]sID parses a %[1]s ID into an %[1]sId struct 
 func %[1]sID(input string) (*%[1]sId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, err
+	}
+
+	resourceId := %[1]sId{
+%[2]s
+	}
+
+%[3]s
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
+}
+`, id.TypeName, directAssignmentsStr, parserStatementsStr)
+}
+
+func (id ResourceIdGenerator) codeForParserInsensitive() string {
+	if !id.ShouldRewrite {
+		// this only exists to workaround broken API's to patch those ID's, so shouldn't be used in most circumstances
+		return ""
+	}
+
+	directAssignments := make([]string, 0)
+	if id.HasSubscriptionId {
+		directAssignments = append(directAssignments, "\t\tSubscriptionId: id.SubscriptionID,")
+	}
+	if id.HasResourceGroup {
+		directAssignments = append(directAssignments, "\t\tResourceGroup: id.ResourceGroup,")
+	}
+	directAssignmentsStr := strings.Join(directAssignments, "\n")
+
+	parserStatements := make([]string, 0)
+	for _, segment := range id.Segments {
+		if strings.EqualFold(segment.SegmentKey, "subscriptions") && id.HasSubscriptionId {
+			// direct assigned above
+			continue
+		}
+		if strings.EqualFold(segment.SegmentKey, "resourceGroups") && id.HasResourceGroup {
+			// direct assigned above
+			continue
+		}
+
+		// NOTE: This becomes dramatically simpler long-term - but for now has to be long-winded
+		// to avoid subtle changes to resources until this is threaded through everywhere
+		fmtString := `
+  // find the correct casing for the '%[2]s' segment
+  %[2]sKey := "%[2]s"
+  for key := range id.Path {
+  	if strings.EqualFold(key, %[2]sKey) {
+  		%[2]sKey = key
+  		break
+  	}
+  }
+  if resourceId.%[1]s, err = id.PopSegment(%[2]sKey); err != nil {
+    return nil, err
+  }
+`
+		parserStatements = append(parserStatements, fmt.Sprintf(fmtString, segment.FieldName, segment.SegmentKey))
+	}
+	parserStatementsStr := strings.Join(parserStatements, "\n")
+	return fmt.Sprintf(`
+// %[1]sIDInsensitively parses an %[1]s ID into an %[1]sId struct, insensitively
+// This should only be used to parse an ID for rewriting, the %[1]sID
+// method should be used instead for validation etc.
+//
+// Whilst this may seem strange, this enables Terraform have consistent casing
+// which works around issues in Core, whilst handling broken API responses.
+func %[1]sIDInsensitively(input string) (*%[1]sId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
@@ -338,7 +415,8 @@ import (
 
 %s
 %s
-`, id.testCodeForFormatter(), id.testCodeForParser())
+%s
+`, id.testCodeForFormatter(), id.testCodeForParser(), id.testCodeForParserInsensitive())
 }
 
 func (id ResourceIdGenerator) testCodeForFormatter() string {
@@ -430,6 +508,125 @@ func Test%[1]sID(t *testing.T) {
 		t.Logf("[DEBUG] Testing %%q", v.Input)
 
 		actual, err := %[1]sID(v.Input)
+		if err != nil {
+			if v.Error {
+				continue
+			}
+
+			t.Fatalf("Expect a value but got an error: %%s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get one")
+		}
+
+%[3]s
+	}
+}
+`, id.TypeName, testCasesStr, assignmentCheckStr)
+}
+
+func (id ResourceIdGenerator) testCodeForParserInsensitive() string {
+	if !id.ShouldRewrite {
+		// this functionality isn't enabled by default
+		return ""
+	}
+
+	testCases := make([]string, 0)
+	testCases = append(testCases, `
+		{
+			// empty
+			Input: "",
+			Error: true,
+		},
+`)
+	assignmentChecks := make([]string, 0)
+	for _, segment := range id.Segments {
+		testCaseFmt := `
+		{
+			// missing %s
+			Input: %q,
+			Error: true,
+		},`
+		// missing the key
+		resourceIdToThisPointIndex := strings.Index(id.IDRaw, segment.SegmentKey)
+		resourceIdToThisPoint := id.IDRaw[0:resourceIdToThisPointIndex]
+		testCases = append(testCases, fmt.Sprintf(testCaseFmt, segment.FieldName, resourceIdToThisPoint))
+
+		// missing the value
+		resourceIdToThisPointIndex = strings.Index(id.IDRaw, segment.SegmentValue)
+		resourceIdToThisPoint = id.IDRaw[0:resourceIdToThisPointIndex]
+		testCases = append(testCases, fmt.Sprintf(testCaseFmt, fmt.Sprintf("value for %s", segment.FieldName), resourceIdToThisPoint))
+
+		assignmentsFmt := "\t\tif actual.%[1]s != v.Expected.%[1]s {\n\t\t\tt.Fatalf(\"Expected %%q but got %%q for %[1]s\", v.Expected.%[1]s, actual.%[1]s)\n\t\t}"
+		assignmentChecks = append(assignmentChecks, fmt.Sprintf(assignmentsFmt, segment.FieldName))
+	}
+
+	// add a successful test case
+	expectAssignments := make([]string, 0)
+	for _, segment := range id.Segments {
+		expectAssignments = append(expectAssignments, fmt.Sprintf("\t\t\t\t%s:\t%q,", segment.FieldName, segment.SegmentValue))
+	}
+	testCases = append(testCases, fmt.Sprintf(`
+		{
+			// valid
+			Input: "%[1]s",
+			Expected: &%[2]sId{
+%[3]s
+			},
+		},
+`, id.IDRaw, id.TypeName, strings.Join(expectAssignments, "\n")))
+
+	var testCaseWithTransformation = func(testCaseName string, transform func(in string) string) string {
+		resourceIdWithTransform := id.IDRaw
+		for _, segment := range id.Segments {
+			// we're not as concerned with these two for now
+			if segment.FieldName == "SubscriptionId" || segment.FieldName == "ResourceGroup" {
+				continue
+			}
+
+			transformedKey := transform(segment.SegmentKey)
+			resourceIdWithTransform = strings.Replace(resourceIdWithTransform, segment.SegmentKey, transformedKey, 1)
+		}
+		return fmt.Sprintf(`
+		{
+			// %[4]s
+			Input: "%[1]s",
+			Expected: &%[2]sId{
+%[3]s
+			},
+		},`, resourceIdWithTransform, id.TypeName, strings.Join(expectAssignments, "\n"), testCaseName)
+	}
+
+	testCases = append(testCases, testCaseWithTransformation("lower-cased segment names", strings.ToLower))
+	testCases = append(testCases, testCaseWithTransformation("upper-cased segment names", strings.ToUpper))
+	testCases = append(testCases, testCaseWithTransformation("mixed-cased segment names", func(in string) string {
+		out := make([]rune, 0)
+		for i, c := range in {
+			if i%2 == 0 {
+				out = append(out, unicode.ToUpper(c))
+			} else {
+				out = append(out, unicode.ToLower(c))
+			}
+		}
+		return string(out)
+	}))
+
+	testCasesStr := strings.Join(testCases, "\n")
+	assignmentCheckStr := strings.Join(assignmentChecks, "\n")
+	return fmt.Sprintf(`
+func Test%[1]sIDInsensitively(t *testing.T) {
+	testData := []struct {
+		Input  string
+		Error  bool
+		Expected *%[1]sId
+	}{
+%[2]s
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %%q", v.Input)
+
+		actual, err := %[1]sIDInsensitively(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

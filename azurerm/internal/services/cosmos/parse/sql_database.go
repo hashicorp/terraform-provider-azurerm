@@ -29,6 +29,7 @@ func (id SqlDatabaseId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }
 
+// SqlDatabaseID parses a SqlDatabase ID into an SqlDatabaseId struct
 func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

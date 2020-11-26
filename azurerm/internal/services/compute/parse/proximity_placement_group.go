@@ -27,6 +27,7 @@ func (id ProximityPlacementGroupId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// ProximityPlacementGroupID parses a ProximityPlacementGroup ID into an ProximityPlacementGroupId struct
 func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

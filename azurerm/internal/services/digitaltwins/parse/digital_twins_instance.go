@@ -27,6 +27,7 @@ func (id DigitalTwinsInstanceId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// DigitalTwinsInstanceID parses a DigitalTwinsInstance ID into an DigitalTwinsInstanceId struct
 func DigitalTwinsInstanceID(input string) (*DigitalTwinsInstanceId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

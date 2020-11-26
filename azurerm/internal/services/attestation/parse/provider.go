@@ -27,6 +27,7 @@ func (id ProviderId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.AttestationProviderName)
 }
 
+// ProviderID parses a Provider ID into an ProviderId struct
 func ProviderID(input string) (*ProviderId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

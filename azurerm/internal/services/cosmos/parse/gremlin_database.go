@@ -29,6 +29,7 @@ func (id GremlinDatabaseId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.DatabaseAccountName, id.Name)
 }
 
+// GremlinDatabaseID parses a GremlinDatabase ID into an GremlinDatabaseId struct
 func GremlinDatabaseID(input string) (*GremlinDatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

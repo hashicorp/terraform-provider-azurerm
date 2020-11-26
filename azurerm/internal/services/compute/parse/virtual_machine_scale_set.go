@@ -27,6 +27,7 @@ func (id VirtualMachineScaleSetId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
+// VirtualMachineScaleSetID parses a VirtualMachineScaleSet ID into an VirtualMachineScaleSetId struct
 func VirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

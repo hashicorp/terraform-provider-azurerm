@@ -27,6 +27,7 @@ func (id AccountId) ID(_ string) string {
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
 }
 
+// AccountID parses a Account ID into an AccountId struct
 func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
