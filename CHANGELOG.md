@@ -9,9 +9,11 @@ FEATURES:
 IMPROVEMENTS: 
 
 * dependencies: updating App Service to API version `2020-06-01` [GH-9409]
+* Data Source: `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
 * `azurerm_application_insights` - validating the ID is correct at import time [GH-9446]
 * `azurerm_application_insights_web_test` - validating the ID is correct at import time [GH-9446]
 * `azurerm_express_route_circuit_peering` - support for the `ipv6` block  [GH-9235]
+* `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
 * `azurerm_virtual_network_gateway` - support for the `dpd_timeout_seconds` and `local_azure_ip_address_enabled` properties [GH-9330]
 * `azurerm_virtual_network_gateway_connection` - support for the `private_ip_address_enabled` propeties and the `custom_route` block [GH-9330]
 
