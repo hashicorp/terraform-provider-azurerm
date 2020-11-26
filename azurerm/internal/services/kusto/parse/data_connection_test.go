@@ -8,7 +8,7 @@ func TestKustoEventHubDataConnectionId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *KustoEventHubDataConnectionId
+		Expected *DataConnectionId
 	}{
 		{
 			Name:     "Empty",
@@ -33,10 +33,10 @@ func TestKustoEventHubDataConnectionId(t *testing.T) {
 		{
 			Name:  "Data Connection ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/Databases/database1/DataConnections/connection1",
-			Expected: &KustoEventHubDataConnectionId{
+			Expected: &DataConnectionId{
 				Name:          "connection1",
-				Database:      "database1",
-				Cluster:       "cluster1",
+				DatabaseName:  "database1",
+				ClusterName:   "cluster1",
 				ResourceGroup: "group1",
 			},
 		},
@@ -45,7 +45,7 @@ func TestKustoEventHubDataConnectionId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := KustoEventHubDataConnectionID(v.Input)
+		actual, err := DataConnectionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -58,12 +58,12 @@ func TestKustoEventHubDataConnectionId(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.Database != v.Expected.Database {
-			t.Fatalf("Expected %q but got %q for Database", v.Expected.Database, actual.Database)
+		if actual.DatabaseName != v.Expected.DatabaseName {
+			t.Fatalf("Expected %q but got %q for Database", v.Expected.DatabaseName, actual.DatabaseName)
 		}
 
-		if actual.Cluster != v.Expected.Cluster {
-			t.Fatalf("Expected %q but got %q for Cluster", v.Expected.Cluster, actual.Cluster)
+		if actual.ClusterName != v.Expected.ClusterName {
+			t.Fatalf("Expected %q but got %q for Cluster", v.Expected.ClusterName, actual.ClusterName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

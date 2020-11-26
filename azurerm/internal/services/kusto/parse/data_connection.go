@@ -6,28 +6,28 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type KustoEventHubDataConnectionId struct {
+type DataConnectionId struct {
 	ResourceGroup string
-	Cluster       string
-	Database      string
+	ClusterName   string
+	DatabaseName  string
 	Name          string
 }
 
-func KustoEventHubDataConnectionID(input string) (*KustoEventHubDataConnectionId, error) {
+func DataConnectionID(input string) (*DataConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Kusto Event Hub Data Connection ID %q: %+v", input, err)
 	}
 
-	dataConnection := KustoEventHubDataConnectionId{
+	dataConnection := DataConnectionId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if dataConnection.Cluster, err = id.PopSegment("Clusters"); err != nil {
+	if dataConnection.ClusterName, err = id.PopSegment("Clusters"); err != nil {
 		return nil, err
 	}
 
-	if dataConnection.Database, err = id.PopSegment("Databases"); err != nil {
+	if dataConnection.DatabaseName, err = id.PopSegment("Databases"); err != nil {
 		return nil, err
 	}
 
