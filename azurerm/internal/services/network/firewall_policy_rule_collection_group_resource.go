@@ -259,7 +259,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Required: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.FirewallPolicyRulePort,
+											ValidateFunc: validate.FirewallPolicyNetworkRulePort,
 										},
 									},
 								},
@@ -351,7 +351,7 @@ func resourceArmFirewallPolicyRuleCollectionGroup() *schema.Resource {
 										Optional: true,
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validate.FirewallPolicyRulePort,
+											ValidateFunc: validate.FirewallPolicyNATRulePort,
 										},
 									},
 									"translated_address": {
