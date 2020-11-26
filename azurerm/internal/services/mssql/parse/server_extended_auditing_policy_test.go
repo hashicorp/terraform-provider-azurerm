@@ -48,7 +48,7 @@ func TestMssqlServerExtendedAuditingPolicy(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/extendedAuditingSettings/default",
 			Expected: &MsSqlServerExtendedAuditingPolicyId{
 				ResourceGroup: "resGroup1",
-				MsSqlServer:   "sqlServer1",
+				ServerName:    "sqlServer1",
 			},
 		},
 		{
@@ -70,8 +70,8 @@ func TestMssqlServerExtendedAuditingPolicy(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.MsSqlServer != v.Expected.MsSqlServer {
-			t.Fatalf("Expected %q but got %q for Server Name", v.Expected.MsSqlServer, actual.MsSqlServer)
+		if actual.ServerName != v.Expected.ServerName {
+			t.Fatalf("Expected %q but got %q for Server Name", v.Expected.ServerName, actual.ServerName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

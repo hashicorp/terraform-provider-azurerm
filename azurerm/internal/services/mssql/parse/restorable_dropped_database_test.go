@@ -6,7 +6,7 @@ func TestMsSqlRestoreDBID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MsSqlRestorableDBId
+		Expected *RestorableDroppedDatabaseId
 	}{
 		{
 			Name:     "Empty",
@@ -51,7 +51,7 @@ func TestMsSqlRestoreDBID(t *testing.T) {
 		{
 			Name:  "Sql Restorable Database ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/restorableDroppedDatabases/sqlDB1,000000000000000000",
-			Expected: &MsSqlRestorableDBId{
+			Expected: &RestorableDroppedDatabaseId{
 				Name:          "sqlDB1",
 				MsSqlServer:   "sqlServer1",
 				ResourceGroup: "resGroup1",
@@ -68,7 +68,7 @@ func TestMsSqlRestoreDBID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MssqlRestorableDBID(v.Input)
+		actual, err := RestorableDroppedDatabaseID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

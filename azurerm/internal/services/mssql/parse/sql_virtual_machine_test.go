@@ -6,7 +6,7 @@ func TestMsSqlVmID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MssqlVmId
+		Expected *SqlVirtualMachineId
 	}{
 		{
 			Name:     "Empty",
@@ -36,7 +36,7 @@ func TestMsSqlVmID(t *testing.T) {
 		{
 			Name:  "Mssql VM ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.SqlVirtualMachine/sqlVirtualMachines/mssqlvm1",
-			Expected: &MssqlVmId{
+			Expected: &SqlVirtualMachineId{
 				Name:          "mssqlvm1",
 				ResourceGroup: "resGroup1",
 			},
@@ -51,7 +51,7 @@ func TestMsSqlVmID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MssqlVmID(v.Input)
+		actual, err := SqlVirtualMachineID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

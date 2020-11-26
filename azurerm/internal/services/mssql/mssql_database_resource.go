@@ -305,7 +305,7 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 
 	name := d.Get("name").(string)
 	sqlServerId := d.Get("server_id").(string)
-	serverId, _ := parse.MsSqlServerID(sqlServerId)
+	serverId, _ := parse.ServerID(sqlServerId)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, serverId.ResourceGroup, serverId.Name, name)

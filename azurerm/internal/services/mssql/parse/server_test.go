@@ -6,7 +6,7 @@ func TestMsSqlServerID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MsSqlServerId
+		Expected *ServerId
 	}{
 		{
 			Name:     "Empty",
@@ -36,7 +36,7 @@ func TestMsSqlServerID(t *testing.T) {
 		{
 			Name:  "Sql Server",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1",
-			Expected: &MsSqlServerId{
+			Expected: &ServerId{
 				Name:          "sqlServer1",
 				ResourceGroup: "resGroup1",
 			},
@@ -51,7 +51,7 @@ func TestMsSqlServerID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MsSqlServerID(v.Input)
+		actual, err := ServerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

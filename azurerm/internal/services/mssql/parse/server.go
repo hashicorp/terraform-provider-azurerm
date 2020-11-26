@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MsSqlServerId struct {
-	Name          string
+type ServerId struct {
 	ResourceGroup string
+	Name          string
 }
 
-func MsSqlServerID(input string) (*MsSqlServerId, error) {
+func ServerID(input string) (*ServerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse MsSql Server ID %q: %+v", input, err)
 	}
 
-	server := MsSqlServerId{
+	server := ServerId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

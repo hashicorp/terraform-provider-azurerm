@@ -62,7 +62,7 @@ func MsSqlRestorableDatabaseID(i interface{}, k string) (warnings []string, erro
 		return warnings, errors
 	}
 
-	if _, err := parse.MssqlRestorableDBID(v); err != nil {
+	if _, err := parse.RestorableDroppedDatabaseID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Restorable Database resource id: %v", k, err))
 	}
 

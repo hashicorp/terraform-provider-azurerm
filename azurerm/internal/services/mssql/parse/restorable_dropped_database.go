@@ -7,21 +7,21 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MsSqlRestorableDBId struct {
+type RestorableDroppedDatabaseId struct {
 	Name          string
 	MsSqlServer   string
 	ResourceGroup string
 	RestoreName   string
 }
 
-func MssqlRestorableDBID(input string) (*MsSqlRestorableDBId, error) {
+func RestorableDroppedDatabaseID(input string) (*RestorableDroppedDatabaseId, error) {
 	inputList := strings.Split(input, ",")
 
 	if len(inputList) != 2 {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql Restorable DB ID %q, please refer to '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/restorableDroppedDatabases/sqlDB1,000000000000000000'", input)
 	}
 
-	restorableDBId := MsSqlRestorableDBId{
+	restorableDBId := RestorableDroppedDatabaseId{
 		RestoreName: inputList[1],
 	}
 

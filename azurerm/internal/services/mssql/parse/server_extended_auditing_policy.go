@@ -7,7 +7,7 @@ import (
 )
 
 type MsSqlServerExtendedAuditingPolicyId struct {
-	MsSqlServer   string
+	ServerName    string
 	ResourceGroup string
 }
 
@@ -21,7 +21,7 @@ func MssqlServerExtendedAuditingPolicyID(input string) (*MsSqlServerExtendedAudi
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if sqlServerExtendedAuditingPolicyId.MsSqlServer, err = id.PopSegment("servers"); err != nil {
+	if sqlServerExtendedAuditingPolicyId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 

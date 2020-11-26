@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MssqlVmId struct {
+type SqlVirtualMachineId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func MssqlVmID(input string) (*MssqlVmId, error) {
+func SqlVirtualMachineID(input string) (*SqlVirtualMachineId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql VM ID %q: %+v", input, err)
 	}
 
-	sqlvm := MssqlVmId{
+	sqlvm := SqlVirtualMachineId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
