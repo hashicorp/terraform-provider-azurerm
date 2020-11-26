@@ -50,7 +50,7 @@ func ApplicationGroupUpgradeV0Schema() *schema.Resource {
 
 func ApplicationGroupUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
-	id, err := parse.ApplicationGroupID(oldId)
+	id, err := parse.ApplicationGroupIDInsensitively(oldId)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func ApplicationGroupUpgradeV0ToV1(rawState map[string]interface{}, _ interface{
 	rawState["id"] = newId
 
 	oldHostPoolId := rawState["host_pool_id"].(string)
-	hostPoolId, err := parse.HostPoolID(oldHostPoolId)
+	hostPoolId, err := parse.HostPoolIDInsensitively(oldHostPoolId)
 	if err != nil {
 		return nil, err
 	}

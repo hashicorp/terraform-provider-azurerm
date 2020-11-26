@@ -190,7 +190,8 @@ func resourceArmVirtualDesktopApplicationGroupRead(d *schema.ResourceData, meta 
 
 		hostPoolIdStr := ""
 		if props.HostPoolArmPath != nil {
-			hostPoolId, err := parse.HostPoolID(*props.HostPoolArmPath)
+			// TODO: raise an API bug
+			hostPoolId, err := parse.HostPoolIDInsensitively(*props.HostPoolArmPath)
 			if err != nil {
 				return fmt.Errorf("parsing Host Pool ID %q: %+v", *props.HostPoolArmPath, err)
 			}

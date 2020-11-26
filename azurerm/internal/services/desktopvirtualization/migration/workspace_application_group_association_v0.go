@@ -28,7 +28,7 @@ func WorkspaceApplicationGroupAssociationUpgradeV0Schema() *schema.Resource {
 func WorkspaceApplicationGroupAssociationUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
 
-	id, err := parse.WorkspaceApplicationGroupAssociationID(oldId)
+	id, err := parse.WorkspaceApplicationGroupAssociationIDInsensitively(oldId)
 	if err != nil {
 		return nil, err
 	}

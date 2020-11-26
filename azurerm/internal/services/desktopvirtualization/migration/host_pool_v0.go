@@ -102,7 +102,7 @@ func HostPoolUpgradeV0Schema() *schema.Resource {
 func HostPoolUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
 
-	id, err := parse.HostPoolID(oldId)
+	id, err := parse.HostPoolIDInsensitively(oldId)
 	if err != nil {
 		return nil, err
 	}
