@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,21 +9,37 @@ import (
 )
 
 type ServerId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
+func NewServerID(subscriptionId, resourceGroup, name string) ServerId {
+	return ServerId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id ServerId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DBforMariaDB/servers/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// ServerID parses a Server ID into an ServerId struct
 func ServerID(input string) (*ServerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse MariaDB Server ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	server := ServerId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ServerId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if server.Name, err = id.PopSegment("servers"); err != nil {
+	if resourceId.Name, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +47,5 @@ func ServerID(input string) (*ServerId, error) {
 		return nil, err
 	}
 
-	return &server, nil
+	return &resourceId, nil
 }
