@@ -7,9 +7,9 @@ import (
 )
 
 type ClusterPrincipalAssignmentId struct {
-	ResourceGroup string
-	Cluster       string
-	Name          string
+	ResourceGroup           string
+	ClusterName             string
+	PrincipalAssignmentName string
 }
 
 func ClusterPrincipalAssignmentID(input string) (*ClusterPrincipalAssignmentId, error) {
@@ -22,11 +22,11 @@ func ClusterPrincipalAssignmentID(input string) (*ClusterPrincipalAssignmentId, 
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if principal.Cluster, err = id.PopSegment("Clusters"); err != nil {
+	if principal.ClusterName, err = id.PopSegment("Clusters"); err != nil {
 		return nil, err
 	}
 
-	if principal.Name, err = id.PopSegment("PrincipalAssignments"); err != nil {
+	if principal.PrincipalAssignmentName, err = id.PopSegment("PrincipalAssignments"); err != nil {
 		return nil, err
 	}
 

@@ -170,18 +170,18 @@ func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Cluster, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error retrieving Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("cluster_name", id.Cluster)
-	d.Set("name", id.Name)
+	d.Set("cluster_name", id.ClusterName)
+	d.Set("name", id.PrincipalAssignmentName)
 
 	tenantID := ""
 	if resp.TenantID != nil {
@@ -226,13 +226,13 @@ func resourceArmKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Cluster, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.ClusterName, id.PrincipalAssignmentName)
 	if err != nil {
-		return fmt.Errorf("Error deleting Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error deleting Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.Name, id.ResourceGroup, id.Cluster, err)
+		return fmt.Errorf("Error waiting for deletion of Kusto Cluster Principal Assignment %q (Resource Group %q, Cluster %q): %+v", id.PrincipalAssignmentName, id.ResourceGroup, id.ClusterName, err)
 	}
 
 	return nil
