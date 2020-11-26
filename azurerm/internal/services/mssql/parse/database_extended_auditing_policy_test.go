@@ -6,7 +6,7 @@ func TestMssqlDatabaseExtendedAuditingPolicy(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MsSqlDatabaseExtendedAuditingPolicyId
+		Expected *DatabaseExtendedAuditingPolicyId
 	}{
 		{
 			Name:     "Empty",
@@ -56,10 +56,10 @@ func TestMssqlDatabaseExtendedAuditingPolicy(t *testing.T) {
 		{
 			Name:  "Extended Auditing Policy",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Sql/servers/sqlServer1/databases/db1/extendedAuditingSettings/default",
-			Expected: &MsSqlDatabaseExtendedAuditingPolicyId{
+			Expected: &DatabaseExtendedAuditingPolicyId{
 				ResourceGroup: "resGroup1",
-				MsSqlServer:   "sqlServer1",
-				MsDBName:      "db1",
+				ServerName:    "sqlServer1",
+				DatabaseName:  "db1",
 			},
 		},
 		{
@@ -72,7 +72,7 @@ func TestMssqlDatabaseExtendedAuditingPolicy(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MssqlDatabaseExtendedAuditingPolicyID(v.Input)
+		actual, err := DatabaseExtendedAuditingPolicyID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -81,12 +81,12 @@ func TestMssqlDatabaseExtendedAuditingPolicy(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.MsDBName != v.Expected.MsDBName {
-			t.Fatalf("Expected %q but got %q for DB Name", v.Expected.MsDBName, actual.MsDBName)
+		if actual.DatabaseName != v.Expected.DatabaseName {
+			t.Fatalf("Expected %q but got %q for DB Name", v.Expected.DatabaseName, actual.DatabaseName)
 		}
 
-		if actual.MsSqlServer != v.Expected.MsSqlServer {
-			t.Fatalf("Expected %q but got %q for Server Name", v.Expected.MsSqlServer, actual.MsSqlServer)
+		if actual.ServerName != v.Expected.ServerName {
+			t.Fatalf("Expected %q but got %q for Server Name", v.Expected.ServerName, actual.ServerName)
 		}
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {

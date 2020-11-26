@@ -6,27 +6,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MsSqlDatabaseExtendedAuditingPolicyId struct {
-	MsDBName      string
-	MsSqlServer   string
+type DatabaseExtendedAuditingPolicyId struct {
+	DatabaseName  string
+	ServerName    string
 	ResourceGroup string
 }
 
-func MssqlDatabaseExtendedAuditingPolicyID(input string) (*MsSqlDatabaseExtendedAuditingPolicyId, error) {
+func DatabaseExtendedAuditingPolicyID(input string) (*DatabaseExtendedAuditingPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Microsoft Sql Database Extended Auditing Policy %q: %+v", input, err)
 	}
 
-	sqlDatabaseExtendedAuditingPolicyId := MsSqlDatabaseExtendedAuditingPolicyId{
+	sqlDatabaseExtendedAuditingPolicyId := DatabaseExtendedAuditingPolicyId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if sqlDatabaseExtendedAuditingPolicyId.MsSqlServer, err = id.PopSegment("servers"); err != nil {
+	if sqlDatabaseExtendedAuditingPolicyId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
 	}
 
-	if sqlDatabaseExtendedAuditingPolicyId.MsDBName, err = id.PopSegment("databases"); err != nil {
+	if sqlDatabaseExtendedAuditingPolicyId.DatabaseName, err = id.PopSegment("databases"); err != nil {
 		return nil, err
 	}
 
