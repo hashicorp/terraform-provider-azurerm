@@ -208,19 +208,11 @@ func resourceArmSpringCloudService() *schema.Resource {
 				},
 			},
 
-			"outbound_ip": {
+			"outbound_public_ip_addresses": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"public_ips": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
@@ -388,24 +380,20 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
-	if resp.Properties != nil {
-		if err := d.Set("trace", flattenArmSpringCloudTrace(resp.Properties.Trace)); err != nil {
+	if props := resp.Properties; props != nil {
+		if err := d.Set("trace", flattenArmSpringCloudTrace(props.Trace)); err != nil {
 			return fmt.Errorf("failure setting `trace`: %+v", err)
 		}
-		if err := d.Set("network", flattenArmSpringCloudNetwork(resp.Properties.NetworkProfile)); err != nil {
+		if err := d.Set("network", flattenArmSpringCloudNetwork(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `network`: %+v", err)
 		}
-		if resp.Properties.NetworkProfile != nil {
-			if err := d.Set("outbound_ip", flattenArmSpringCloudNetworkOutboundIPs(resp.Properties.NetworkProfile.OutboundIPs)); err != nil {
-				return fmt.Errorf("setting `outbound_ip`: %+v", err)
-			}
+
+		outboundPublicIPAddresses := flattenOutboundPublicIPAddresses(props.NetworkProfile)
+		if err := d.Set("outbound_public_ip_addresses", outboundPublicIPAddresses); err != nil {
+			return fmt.Errorf("setting `outbound_public_ip_addresses`: %+v", err)
 		}
-		if resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
-			if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
-				if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
-					return fmt.Errorf("failure setting AzureRM Spring Cloud Service error: %+v", err)
-				}
-			}
+		if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props.ConfigServerProperties, d)); err != nil {
+			return fmt.Errorf("setting `config_server_git_setting`: %+v", err)
 		}
 	}
 
@@ -572,10 +560,12 @@ func expandArmSpringCloudTrace(input []interface{}) *appplatform.TraceProperties
 	}
 }
 
-func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerGitProperty, d *schema.ResourceData) []interface{} {
-	if input == nil {
+func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerProperties, d *schema.ResourceData) []interface{} {
+	if input == nil || input.ConfigServer == nil || input.ConfigServer.GitProperty == nil {
 		return []interface{}{}
 	}
+
+	gitProperty := input.ConfigServer.GitProperty
 
 	// prepare old state to find sensitive props not returned by API.
 	oldGitSetting := make(map[string]interface{})
@@ -584,19 +574,19 @@ func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServe
 	}
 
 	uri := ""
-	if input.URI != nil {
-		uri = *input.URI
+	if gitProperty.URI != nil {
+		uri = *gitProperty.URI
 	}
 
 	label := ""
-	if input.Label != nil {
-		label = *input.Label
+	if gitProperty.Label != nil {
+		label = *gitProperty.Label
 	}
 
-	searchPaths := utils.FlattenStringSlice(input.SearchPaths)
+	searchPaths := utils.FlattenStringSlice(gitProperty.SearchPaths)
 
-	httpBasicAuth := []interface{}{}
-	if input.Username != nil && input.Password != nil {
+	httpBasicAuth := make([]interface{}, 0)
+	if gitProperty.Username != nil && gitProperty.Password != nil {
 		// username and password returned by API are *
 		// to avoid state diff, we get the props from old state
 		username := ""
@@ -619,7 +609,7 @@ func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServe
 	}
 
 	sshAuth := []interface{}{}
-	if input.PrivateKey != nil {
+	if gitProperty.PrivateKey != nil {
 		// private_key, host_key and host_key_algorithm returned by API are *
 		// to avoid state diff, we get the props from old state
 		privateKey := ""
@@ -636,8 +626,8 @@ func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServe
 		}
 
 		strictHostKeyChecking := false
-		if input.StrictHostKeyChecking != nil {
-			strictHostKeyChecking = *input.StrictHostKeyChecking
+		if gitProperty.StrictHostKeyChecking != nil {
+			strictHostKeyChecking = *gitProperty.StrictHostKeyChecking
 		}
 
 		sshAuth = []interface{}{
@@ -657,7 +647,7 @@ func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServe
 			"search_paths":    searchPaths,
 			"http_basic_auth": httpBasicAuth,
 			"ssh_auth":        sshAuth,
-			"repository":      flattenArmSpringCloudGitPatternRepository(input.Repositories, d),
+			"repository":      flattenArmSpringCloudGitPatternRepository(gitProperty.Repositories, d),
 		},
 	}
 }
@@ -833,13 +823,10 @@ func flattenArmSpringCloudNetwork(input *appplatform.NetworkProfile) []interface
 	}
 }
 
-func flattenArmSpringCloudNetworkOutboundIPs(input *appplatform.NetworkProfileOutboundIPs) []interface{} {
-	if input == nil {
+func flattenOutboundPublicIPAddresses(input *appplatform.NetworkProfile) []interface{} {
+	if input == nil || input.OutboundIPs == nil {
 		return []interface{}{}
 	}
-	return []interface{}{
-		map[string]interface{}{
-			"public_ips": utils.FlattenStringSlice(input.PublicIPs),
-		},
-	}
+
+	return utils.FlattenStringSlice(input.OutboundIPs.PublicIPs)
 }
