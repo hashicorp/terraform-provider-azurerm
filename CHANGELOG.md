@@ -10,28 +10,28 @@ FEATURES:
 IMPROVEMENTS: 
 
 * dependencies: updating App Service to API version `2020-06-01` [GH-9409]
-* Data Source `azurerm_app_service` now exports `custom_domain_verification_id` [GH-9378]
-* Data Source`azurerm_function_app` now exports `custom_domain_verification_id` [GH-9378]
-* Data Source: `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
+* Data Source `azurerm_app_service` now exports the `custom_domain_verification_id` attribute [GH-9378]
+* Data Source`azurerm_function_app` now exports the `custom_domain_verification_id` attribute [GH-9378]
+* Data Source: `azurerm_spring_cloud_service` - now exports the `outbound_public_ip_addresses` attribute [GH-9261]
 * `azurerm_app_service` now exports `custom_domain_verification_id` [GH-9378]
-* `azurerm_application_insights` - validating the ID is correct at import time [GH-9446]
-* `azurerm_application_insights_web_test` - validating the ID is correct at import time [GH-9446]
+* `azurerm_application_insights` - validating the resource ID is correct during import [GH-9446]
+* `azurerm_application_insights_web_test` - validating the resource ID is correct during import [GH-9446]
 * `azurerm_express_route_circuit_peering` - support for the `ipv6` block  [GH-9235]
-* `azurerm_function_app` now exports `custom_domain_verification_id` [GH-9378]
+* `azurerm_function_app` now exports the `custom_domain_verification_id` attribute [GH-9378]
 * `azurerm_vpn_server_configuration` - deprecate the `radius_server` block in favour of the `radius` block which supports multiple servers [GH-9308]
-* `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
+* `azurerm_spring_cloud_service` - now exports the `outbound_public_ip_addresses` attribute [GH-9261]
 * `azurerm_virtual_network_gateway` - support for the `dpd_timeout_seconds` and `local_azure_ip_address_enabled` properties [GH-9330]
 * `azurerm_virtual_network_gateway_connection` - support for the `private_ip_address_enabled` propeties and the `custom_route` block [GH-9330]
 
 BUG FIXES:
 
 * `azurerm_api_management` - fixing an issue where developer portal certificates are updated on every apply [GH-7299]
-* `azurerm_cosmosdb_account` - Fix Cosmos zone redundant update [GH-9485]
+* `azurerm_cosmosdb_account` - corrently updates the `zone_redundant` property during updates [GH-9485]
 * `azurerm_search_service` - `allowed_ips` now supports specifying a CIDR Block in addition to an IPv4 address [GH-9493]
-* `azurerm_virtual_desktop_application_group` - adding a state migration to avoid a breaking diff when upgrading from v2.35.0 or later [GH-9495]
-* `azurerm_virtual_desktop_host_pool` - adding a state migration to avoid a breaking diff when upgrading from v2.35.0 or later [GH-9495]
-* `azurerm_virtual_desktop_workspace` - adding a state migration to avoid a breaking diff when upgrading from v2.35.0 or later [GH-9495]
-* `azurerm_virtual_desktop_workspace_application_group_association` - adding a state migration to avoid a breaking diff when upgrading from v2.35.0 or later [GH-9495]
+* `azurerm_virtual_desktop_application_group` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later [GH-9495]
+* `azurerm_virtual_desktop_host_pool` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later [GH-9495]
+* `azurerm_virtual_desktop_workspace` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later [GH-9495]
+* `azurerm_virtual_desktop_workspace_application_group_association` - adding a state migration to avoid a breaking change when upgrading from `v2.35.0` or later [GH-9495]
 * `azurerm_windows_virtual_machine` - no longer sets `patch_mode` on creation if it is the default value [GH-[9432]
 
 ## 2.37.0 (November 20, 2020)
