@@ -14,11 +14,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type DigitalTwinsEndpointEventGrid struct{}
+type DigitalTwinsEndpointEventGridResource struct{}
 
 func TestAccAzureRMDigitalTwinsEndpointEventGrid_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
-	r := DigitalTwinsEndpointEventGrid{}
+	r := DigitalTwinsEndpointEventGridResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_basic(t *testing.T) {
 
 func TestAccAzureRMDigitalTwinsEndpointEventGrid_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
-	r := DigitalTwinsEndpointEventGrid{}
+	r := DigitalTwinsEndpointEventGridResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_requiresImport(t *testing.T) {
 
 func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGrid(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
-	r := DigitalTwinsEndpointEventGrid{}
+	r := DigitalTwinsEndpointEventGridResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -77,7 +77,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateEventGrid(t *testing.T) {
 
 func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_digital_twins_endpoint_eventgrid", "test")
-	r := DigitalTwinsEndpointEventGrid{}
+	r := DigitalTwinsEndpointEventGridResource{}
 
 	data.ResourceTest(t, r, []resource.TestStep{
 		{
@@ -104,7 +104,7 @@ func TestAccAzureRMDigitalTwinsEndpointEventGrid_updateDeadLetter(t *testing.T) 
 	})
 }
 
-func (r DigitalTwinsEndpointEventGrid) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
+func (r DigitalTwinsEndpointEventGridResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
 	id, err := parse.DigitalTwinsEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (r DigitalTwinsEndpointEventGrid) Exists(ctx context.Context, client *clien
 	return utils.Bool(true), nil
 }
 
-func (r DigitalTwinsEndpointEventGrid) template(data acceptance.TestData) string {
+func (r DigitalTwinsEndpointEventGridResource) template(data acceptance.TestData) string {
 	digitalTwinsInstance := testAccAzureRMDigitalTwinsInstance_basic(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -133,7 +133,7 @@ resource "azurerm_eventgrid_topic" "test" {
 `, digitalTwinsInstance, data.RandomInteger)
 }
 
-func (r DigitalTwinsEndpointEventGrid) basic(data acceptance.TestData) string {
+func (r DigitalTwinsEndpointEventGridResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -147,7 +147,7 @@ resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DigitalTwinsEndpointEventGrid) requiresImport(data acceptance.TestData) string {
+func (r DigitalTwinsEndpointEventGridResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -161,7 +161,7 @@ resource "azurerm_digital_twins_endpoint_eventgrid" "import" {
 `, r.basic(data))
 }
 
-func (r DigitalTwinsEndpointEventGrid) updateEventGrid(data acceptance.TestData) string {
+func (r DigitalTwinsEndpointEventGridResource) updateEventGrid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -181,7 +181,7 @@ resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DigitalTwinsEndpointEventGrid) updateEventGridRestore(data acceptance.TestData) string {
+func (r DigitalTwinsEndpointEventGridResource) updateEventGridRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -201,7 +201,7 @@ resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DigitalTwinsEndpointEventGrid) updateDeadLetter(data acceptance.TestData) string {
+func (r DigitalTwinsEndpointEventGridResource) updateDeadLetter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -231,7 +231,7 @@ resource "azurerm_digital_twins_endpoint_eventgrid" "test" {
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
 
-func (r DigitalTwinsEndpointEventGrid) updateDeadLetterRestore(data acceptance.TestData) string {
+func (r DigitalTwinsEndpointEventGridResource) updateDeadLetterRestore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
