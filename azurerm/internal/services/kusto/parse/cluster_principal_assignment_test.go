@@ -8,7 +8,7 @@ func TestKustoClusterPrincipalAssignmentId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *KustoClusterPrincipalAssignmentId
+		Expected *ClusterPrincipalAssignmentId
 	}{
 		{
 			Name:     "Empty",
@@ -28,7 +28,7 @@ func TestKustoClusterPrincipalAssignmentId(t *testing.T) {
 		{
 			Name:  "Cluster Principal Assignment ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1/PrincipalAssignments/assignment1",
-			Expected: &KustoClusterPrincipalAssignmentId{
+			Expected: &ClusterPrincipalAssignmentId{
 				Name:          "assignment1",
 				Cluster:       "cluster1",
 				ResourceGroup: "group1",
@@ -39,7 +39,7 @@ func TestKustoClusterPrincipalAssignmentId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := KustoClusterPrincipalAssignmentID(v.Input)
+		actual, err := ClusterPrincipalAssignmentID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

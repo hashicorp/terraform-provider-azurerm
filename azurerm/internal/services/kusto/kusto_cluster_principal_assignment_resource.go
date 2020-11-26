@@ -165,7 +165,7 @@ func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterPrincipalAssignmentID(d.Id())
+	id, err := parse.ClusterPrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -221,7 +221,7 @@ func resourceArmKustoClusterPrincipalAssignmentDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.KustoClusterPrincipalAssignmentID(d.Id())
+	id, err := parse.ClusterPrincipalAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
