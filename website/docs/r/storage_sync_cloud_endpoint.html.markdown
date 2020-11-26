@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account where the Storage Share exists. Changing this forces a new Storage Sync Cloud Endpoint to be created.
 
+* `storage_account_tenant_id` - (Optional) The tenant ID of the Storage Account where the Storage Share exists. Changing this forces a new Storage Sync Cloud Endpoint to be created. Defaults to the current tenant id.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 

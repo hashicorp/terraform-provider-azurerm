@@ -66,7 +66,7 @@ func resourceArmStorageSyncCloudEndpoint() *schema.Resource {
 
 			"storage_account_tenant_id": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
 			},
@@ -99,6 +99,12 @@ func resourceArmStorageSyncCloudEndpointCreate(d *schema.ResourceData, meta inte
 			StorageAccountTenantID:   utils.String(d.Get("storage_account_tenant_id").(string)),
 		},
 	}
+
+	storageAccountTenantId := meta.(*clients.Client).Account.TenantId
+	if v, ok := d.GetOk("storage_account_tenant_id"); ok {
+		storageAccountTenantId = v.(string)
+	}
+	parameters.CloudEndpointCreateParametersProperties.StorageAccountTenantID = utils.String(storageAccountTenantId)
 
 	future, err := client.Create(ctx, storagesyncGroupId.ResourceGroup, storagesyncGroupId.StorageSyncName, storagesyncGroupId.Name, name, parameters)
 	if err != nil {

@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -144,10 +143,9 @@ resource "azurerm_storage_sync_cloud_endpoint" "test" {
   name                      = "acctest-CEP-%[1]d"
   storage_sync_group_id     = azurerm_storage_sync_group.test.id
   storage_account_id        = azurerm_storage_account.test.id
-  storage_account_tenant_id = "%[4]s"
   file_share_name           = azurerm_storage_share.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, os.Getenv("ARM_TENANT_ID"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMCloudEndpoint_requiresImport(data acceptance.TestData) string {
@@ -159,7 +157,6 @@ resource "azurerm_storage_sync_cloud_endpoint" "import" {
   name                      = azurerm_storage_sync_cloud_endpoint.test.name
   storage_sync_group_id     = azurerm_storage_sync_cloud_endpoint.test.storage_sync_group_id
   storage_account_id        = azurerm_storage_sync_cloud_endpoint.test.storage_account_id
-  storage_account_tenant_id = azurerm_storage_sync_cloud_endpoint.test.storage_account_tenant_id
   file_share_name           = azurerm_storage_sync_cloud_endpoint.test.file_share_name
 }
 `, template)
