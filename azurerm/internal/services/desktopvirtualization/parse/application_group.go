@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -23,7 +24,7 @@ func NewApplicationGroupID(subscriptionId, resourceGroup, name string) Applicati
 }
 
 func (id ApplicationGroupId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/applicationgroups/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/applicationGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
@@ -38,7 +39,15 @@ func ApplicationGroupID(input string) (*ApplicationGroupId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.Name, err = id.PopSegment("applicationgroups"); err != nil {
+	applicationGroupsKey := "applicationGroups"
+	// find the correct casing for the `applicationGroups` segment
+	for key := range id.Path {
+		if strings.EqualFold(key, applicationGroupsKey) {
+			applicationGroupsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(applicationGroupsKey); err != nil {
 		return nil, err
 	}
 

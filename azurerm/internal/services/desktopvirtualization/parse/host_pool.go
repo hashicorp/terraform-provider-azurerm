@@ -4,6 +4,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -23,7 +24,7 @@ func NewHostPoolID(subscriptionId, resourceGroup, name string) HostPoolId {
 }
 
 func (id HostPoolId) ID(_ string) string {
-	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/hostpools/%s"
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DesktopVirtualization/hostPools/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
@@ -38,7 +39,15 @@ func HostPoolID(input string) (*HostPoolId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.Name, err = id.PopSegment("hostpools"); err != nil {
+	// find the correct casing for the `hostPools` segment
+	hostPoolsKey := "hostPools"
+	for key := range id.Path {
+		if strings.EqualFold(key, hostPoolsKey) {
+			hostPoolsKey = key
+			break
+		}
+	}
+	if resourceId.Name, err = id.PopSegment(hostPoolsKey); err != nil {
 		return nil, err
 	}
 
