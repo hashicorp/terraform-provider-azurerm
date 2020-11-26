@@ -463,13 +463,13 @@ func testCheckBatchPoolExists(name string) resource.TestCheckFunc {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.PoolName)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on batchPoolClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Batch pool %q (account: %q, resource group: %q) does not exist", id.PoolName, id.BatchAccountName, id.ResourceGroup)
+			return fmt.Errorf("Bad: Batch pool %q (account: %q, resource group: %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
 		}
 
 		return nil
@@ -489,7 +489,7 @@ func testCheckBatchPoolDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.PoolName)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

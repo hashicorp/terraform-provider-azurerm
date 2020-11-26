@@ -19,6 +19,9 @@ var runNightly = mapOf(
 
 // specifies a list of services which should be run with a custom test configuration
 var serviceTestConfigurationOverrides = mapOf(
+        // Spring Cloud only allows a max of 10 provisioned
+        "appplatform" to testConfiguration(5, defaultStartHour),
+
         // The AKS API has a low rate limit
         "containers" to testConfiguration(5, defaultStartHour),
 

@@ -11,20 +11,20 @@ import (
 type ProfileId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	ProfileName    string
+	Name           string
 }
 
-func NewProfileID(subscriptionId, resourceGroup, profileName string) ProfileId {
+func NewProfileID(subscriptionId, resourceGroup, name string) ProfileId {
 	return ProfileId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		ProfileName:    profileName,
+		Name:           name,
 	}
 }
 
 func (id ProfileId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ProfileName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ProfileID(input string) (*ProfileId, error) {
@@ -38,7 +38,7 @@ func ProfileID(input string) (*ProfileId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.ProfileName, err = id.PopSegment("profiles"); err != nil {
+	if resourceId.Name, err = id.PopSegment("profiles"); err != nil {
 		return nil, err
 	}
 

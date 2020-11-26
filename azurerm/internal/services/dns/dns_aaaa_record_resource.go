@@ -34,7 +34,7 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsAaaaRecordID(id)
+			_, err := parse.AaaaRecordID(id)
 			return err
 		}),
 
@@ -156,23 +156,23 @@ func resourceArmDnsAaaaRecordRead(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsAaaaRecordID(d.Id())
+	id, err := parse.AaaaRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.AAAA)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.AAAAName, dns.AAAA)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS AAAA record %s: %v", id.Name, err)
+		return fmt.Errorf("Error reading DNS AAAA record %s: %v", id.AAAAName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.AAAAName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 
 	d.Set("fqdn", resp.Fqdn)
 	d.Set("ttl", resp.TTL)
@@ -195,14 +195,14 @@ func resourceArmDnsAaaaRecordDelete(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsAaaaRecordID(d.Id())
+	id, err := parse.AaaaRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.AAAA, "")
+	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.AAAAName, dns.AAAA, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS AAAA Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS AAAA Record %s: %+v", id.AAAAName, err)
 	}
 
 	return nil

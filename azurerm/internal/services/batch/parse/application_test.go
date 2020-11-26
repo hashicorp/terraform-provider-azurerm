@@ -68,13 +68,13 @@ func TestApplicationID(t *testing.T) {
 		},
 
 		{
-			// missing ApplicationName
+			// missing Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/",
 			Error: true,
 		},
 
 		{
-			// missing value for ApplicationName
+			// missing value for Name
 			Input: "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Batch/batchAccounts/account1/applications/",
 			Error: true,
 		},
@@ -86,7 +86,7 @@ func TestApplicationID(t *testing.T) {
 				SubscriptionId:   "12345678-1234-9876-4563-123456789012",
 				ResourceGroup:    "resGroup1",
 				BatchAccountName: "account1",
-				ApplicationName:  "application1",
+				Name:             "application1",
 			},
 		},
 
@@ -121,8 +121,8 @@ func TestApplicationID(t *testing.T) {
 		if actual.BatchAccountName != v.Expected.BatchAccountName {
 			t.Fatalf("Expected %q but got %q for BatchAccountName", v.Expected.BatchAccountName, actual.BatchAccountName)
 		}
-		if actual.ApplicationName != v.Expected.ApplicationName {
-			t.Fatalf("Expected %q but got %q for ApplicationName", v.Expected.ApplicationName, actual.ApplicationName)
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 	}
 }

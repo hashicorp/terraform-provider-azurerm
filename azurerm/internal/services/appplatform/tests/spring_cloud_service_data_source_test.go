@@ -19,6 +19,7 @@ func TestAccDataSourceAzureRMSpringCloudService_basic(t *testing.T) {
 				Config: testAccDataSourceSpringCloudService_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "outbound_public_ip_addresses.0"),
 				),
 			},
 		},

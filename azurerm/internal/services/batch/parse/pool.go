@@ -12,21 +12,21 @@ type PoolId struct {
 	SubscriptionId   string
 	ResourceGroup    string
 	BatchAccountName string
-	PoolName         string
+	Name             string
 }
 
-func NewPoolID(subscriptionId, resourceGroup, batchAccountName, poolName string) PoolId {
+func NewPoolID(subscriptionId, resourceGroup, batchAccountName, name string) PoolId {
 	return PoolId{
 		SubscriptionId:   subscriptionId,
 		ResourceGroup:    resourceGroup,
 		BatchAccountName: batchAccountName,
-		PoolName:         poolName,
+		Name:             name,
 	}
 }
 
 func (id PoolId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Batch/batchAccounts/%s/pools/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }
 
 func PoolID(input string) (*PoolId, error) {
@@ -43,7 +43,7 @@ func PoolID(input string) (*PoolId, error) {
 	if resourceId.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
-	if resourceId.PoolName, err = id.PopSegment("pools"); err != nil {
+	if resourceId.Name, err = id.PopSegment("pools"); err != nil {
 		return nil, err
 	}
 

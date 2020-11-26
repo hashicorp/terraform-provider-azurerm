@@ -20,13 +20,13 @@ func importAutomationConnection(connectionType string) func(d *schema.ResourceDa
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.ConnectionName)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.AutomationAccountName, id.Name)
 		if err != nil {
-			return []*schema.ResourceData{}, fmt.Errorf("retrieving automation connection %q (Account %q / Resource Group %q): %+v", id.ConnectionName, id.AutomationAccountName, id.ResourceGroup, err)
+			return []*schema.ResourceData{}, fmt.Errorf("retrieving automation connection %q (Account %q / Resource Group %q): %+v", id.Name, id.AutomationAccountName, id.ResourceGroup, err)
 		}
 
 		if resp.ConnectionProperties == nil || resp.ConnectionProperties.ConnectionType == nil || resp.ConnectionProperties.ConnectionType.Name == nil {
-			return []*schema.ResourceData{}, fmt.Errorf("retrieving automation connection %q (Account %q / Resource Group %q): `properties`, `properties.connectionType` or `properties.connectionType.name` was nil", id.ConnectionName, id.AutomationAccountName, id.ResourceGroup)
+			return []*schema.ResourceData{}, fmt.Errorf("retrieving automation connection %q (Account %q / Resource Group %q): `properties`, `properties.connectionType` or `properties.connectionType.name` was nil", id.Name, id.AutomationAccountName, id.ResourceGroup)
 		}
 
 		if *resp.ConnectionProperties.ConnectionType.Name != connectionType {

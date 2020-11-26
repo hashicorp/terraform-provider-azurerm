@@ -31,7 +31,7 @@ func resourceArmDnsNsRecord() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsNsRecordID(id)
+			_, err := parse.NsRecordID(id)
 			return err
 		}),
 
@@ -180,23 +180,23 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsNsRecordID(d.Id())
+	id, err := parse.NsRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.NS)
+	resp, err := dnsClient.Get(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS NS record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error reading DNS NS record %s: %+v", id.NSName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.NSName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
@@ -215,14 +215,14 @@ func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsNsRecordID(d.Id())
+	id, err := parse.NsRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.NS, "")
+	resp, err := dnsClient.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.NSName, dns.NS, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS NS Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS NS Record %s: %+v", id.NSName, err)
 	}
 
 	return nil

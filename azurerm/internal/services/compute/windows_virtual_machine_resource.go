@@ -419,9 +419,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 					ProvisionVMAgent:       utils.Bool(provisionVMAgent),
 					EnableAutomaticUpdates: utils.Bool(enableAutomaticUpdates),
 					WinRM:                  winRmListeners,
-					PatchSettings: &compute.PatchSettings{
-						PatchMode: compute.InGuestPatchMode(d.Get("patch_mode").(string)),
-					},
 				},
 				Secrets: secrets,
 			},
@@ -452,6 +449,13 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	if len(additionalUnattendContentRaw) > 0 {
 		params.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+	}
+
+	patchMode := d.Get("patch_mode").(string)
+	if patchMode != string(compute.AutomaticByOS) {
+		params.OsProfile.WindowsConfiguration.PatchSettings = &compute.PatchSettings{
+			PatchMode: compute.InGuestPatchMode(patchMode),
+		}
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
@@ -1208,19 +1212,19 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 				return err
 			}
 
-			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.Name)
+			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.DiskName)
 			if err != nil {
 				if !response.WasNotFound(diskDeleteFuture.Response()) {
-					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 			if !response.WasNotFound(diskDeleteFuture.Response()) {
 				if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.DiskName, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 
-			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.Name, diskId.ResourceGroup)
+			log.Printf("[DEBUG] Deleted OS Disk from Windows Virtual Machine %q (Resource Group %q).", diskId.DiskName, diskId.ResourceGroup)
 		} else {
 			log.Printf("[DEBUG] Skipping Deleting OS Disk from Windows Virtual Machine %q (Resource Group %q) - cannot determine OS Disk ID.", id.Name, id.ResourceGroup)
 		}

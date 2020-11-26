@@ -13,7 +13,7 @@ func VirtualDesktopWorkspaceID(i interface{}, k string) (warnings []string, erro
 		return
 	}
 
-	if _, err := parse.VirtualDesktopWorkspaceID(v); err != nil {
+	if _, err := parse.WorkspaceID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

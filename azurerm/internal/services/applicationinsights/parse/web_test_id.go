@@ -11,20 +11,20 @@ import (
 type WebTestId struct {
 	SubscriptionId string
 	ResourceGroup  string
-	WebtestName    string
+	Name           string
 }
 
-func NewWebTestID(subscriptionId, resourceGroup, webtestName string) WebTestId {
+func NewWebTestID(subscriptionId, resourceGroup, name string) WebTestId {
 	return WebTestId{
 		SubscriptionId: subscriptionId,
 		ResourceGroup:  resourceGroup,
-		WebtestName:    webtestName,
+		Name:           name,
 	}
 }
 
 func (id WebTestId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/webtests/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.WebtestName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func WebTestID(input string) (*WebTestId, error) {
@@ -38,7 +38,7 @@ func WebTestID(input string) (*WebTestId, error) {
 		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if resourceId.WebtestName, err = id.PopSegment("webtests"); err != nil {
+	if resourceId.Name, err = id.PopSegment("webtests"); err != nil {
 		return nil, err
 	}
 

@@ -128,7 +128,7 @@ func testCheckAzureRMDataShareAccountExists(resourceName string) resource.TestCh
 		if !ok {
 			return fmt.Errorf("dataShare Account not found: %s", resourceName)
 		}
-		id, err := parse.DataShareAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -150,7 +150,7 @@ func testCheckAzureRMDataShareAccountDestroy(s *terraform.State) error {
 		if rs.Type != "azurerm_data_share_account" {
 			continue
 		}
-		id, err := parse.DataShareAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

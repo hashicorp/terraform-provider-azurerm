@@ -58,7 +58,7 @@ func dataSourceArmDataShareDatasetKustoDatabaseRead(d *schema.ResourceData, meta
 
 	name := d.Get("name").(string)
 	shareID := d.Get("share_id").(string)
-	shareId, err := parse.DataShareID(shareID)
+	shareId, err := parse.ShareID(shareID)
 	if err != nil {
 		return err
 	}

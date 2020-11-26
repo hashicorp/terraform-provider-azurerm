@@ -72,9 +72,9 @@ func testCheckBatchApplicationExists(resourceName string) resource.TestCheckFunc
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.ApplicationName); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Batch Application %q (Account Name %q / Resource Group %q) does not exist", id.ApplicationName, id.BatchAccountName, id.ResourceGroup)
+				return fmt.Errorf("Bad: Batch Application %q (Account Name %q / Resource Group %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on batchApplicationClient: %+v", err)
 		}
@@ -97,7 +97,7 @@ func testCheckBatchApplicationDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.ApplicationName); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on batchApplicationClient: %+v", err)
 			}

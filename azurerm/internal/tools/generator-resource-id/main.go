@@ -151,10 +151,27 @@ func NewResourceID(typeName, resourceId string) (*ResourceId, error) {
 			}
 
 			if strings.HasSuffix(key, "s") {
-				// remove {Thing}s and make that {Thing}Name
-				rewritten = fmt.Sprintf("%sName", strings.TrimSuffix(key, "s"))
-				segment.FieldName = strings.Title(rewritten)
-				segment.ArgumentName = toCamelCase(rewritten)
+				// TODO: in time this could be worth a series of overrides
+
+				// handles "GallerieName" and `DataFactoriesName`
+				if strings.HasSuffix(key, "ies") {
+					key = strings.TrimSuffix(key, "ies")
+					key = fmt.Sprintf("%sy", key)
+				}
+
+				if strings.HasSuffix(key, "s") {
+					key = strings.TrimSuffix(key, "s")
+				}
+
+				if strings.EqualFold(key, typeName) {
+					segment.FieldName = "Name"
+					segment.ArgumentName = "name"
+				} else {
+					// remove {Thing}s and make that {Thing}Name
+					rewritten = fmt.Sprintf("%sName", key)
+					segment.FieldName = strings.Title(rewritten)
+					segment.ArgumentName = toCamelCase(rewritten)
+				}
 			}
 
 			return segment

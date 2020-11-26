@@ -261,21 +261,21 @@ func resourceArmAppConfigurationUpdate(d *schema.ResourceData, meta interface{})
 		parameters.Identity = expandAppConfigurationIdentity(d.Get("identity").([]interface{}))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.ConfigurationStoreName, parameters)
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating App Configuration %q (Resource Group %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
+		return fmt.Errorf("Error updating App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of App Configuration %q (Resource Group %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for update of App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.ConfigurationStoreName)
+	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Configuration %s (resource Group %q) ID", id.ConfigurationStoreName, id.ResourceGroup)
+		return fmt.Errorf("Cannot read App Configuration %s (resource Group %q) ID", id.Name, id.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -293,22 +293,22 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ConfigurationStoreName)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Configuration %q was not found in Resource Group %q - removing from state!", id.ConfigurationStoreName, id.ResourceGroup)
+			log.Printf("[DEBUG] App Configuration %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Configuration %q (Resource Group %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	resultPage, err := client.ListKeys(ctx, id.ResourceGroup, id.ConfigurationStoreName, "")
+	resultPage, err := client.ListKeys(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
-		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
+		return fmt.Errorf("Failed to receive access keys for App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", id.ConfigurationStoreName)
+	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -347,19 +347,19 @@ func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	fut, err := client.Delete(ctx, id.ResourceGroup, id.ConfigurationStoreName)
+	fut, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(fut.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = fut.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(fut.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", id.ConfigurationStoreName, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

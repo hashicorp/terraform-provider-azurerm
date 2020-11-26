@@ -1,11 +1,28 @@
 ## 2.38.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_digital_twins_instance` [GH-9430]
+* **New Data Source:** `azurerm_virtual_wan` [GH-9382]
+* **New Resource:** `azurerm_digital_twins_instance` [GH-9430]
+
 IMPROVEMENTS: 
 
 * dependencies: updating App Service to API version `2020-06-01` [GH-9409]
+* Data Source: `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
 * `azurerm_application_insights` - validating the ID is correct at import time [GH-9446]
 * `azurerm_application_insights_web_test` - validating the ID is correct at import time [GH-9446]
 * `azurerm_express_route_circuit_peering` - support for the `ipv6` block  [GH-9235]
+* `azurerm_spring_cloud_service` - exporting `outbound_public_ip_addresses` [GH-9261]
+* `azurerm_virtual_network_gateway` - support for the `dpd_timeout_seconds` and `local_azure_ip_address_enabled` properties [GH-9330]
+* `azurerm_virtual_network_gateway_connection` - support for the `private_ip_address_enabled` propeties and the `custom_route` block [GH-9330]
+
+BUG FIXES:
+
+* `azurerm_api_management` - fixing an issue where developer portal certificates are updated on every apply [GH-7299]
+* `azurerm_cosmosdb_account` - Fix Cosmos zone redundant update [GH-9485]
+* `azurerm_search_service` - `allowed_ips` now supports specifying a CIDR Block in addition to an IPv4 address [GH-9493]
+* `azurerm_windows_virtual_machine` - no longer sets `patch_mode` on creation if it is the default value [GH-[9432]
 
 ## 2.37.0 (November 20, 2020)
 

@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	resourcesParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -227,7 +227,7 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 	if props := resp.ApplicationProperties; props != nil {
-		id, err := resource.ParseResourceGroupID(*props.ManagedResourceGroupID)
+		id, err := resourcesParse.ResourceGroupID(*props.ManagedResourceGroupID)
 		if err != nil {
 			return err
 		}

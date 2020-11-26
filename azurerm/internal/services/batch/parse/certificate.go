@@ -12,21 +12,21 @@ type CertificateId struct {
 	SubscriptionId   string
 	ResourceGroup    string
 	BatchAccountName string
-	CertificateName  string
+	Name             string
 }
 
-func NewCertificateID(subscriptionId, resourceGroup, batchAccountName, certificateName string) CertificateId {
+func NewCertificateID(subscriptionId, resourceGroup, batchAccountName, name string) CertificateId {
 	return CertificateId{
 		SubscriptionId:   subscriptionId,
 		ResourceGroup:    resourceGroup,
 		BatchAccountName: batchAccountName,
-		CertificateName:  certificateName,
+		Name:             name,
 	}
 }
 
 func (id CertificateId) ID(_ string) string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Batch/batchAccounts/%s/certificates/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.CertificateName)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.Name)
 }
 
 func CertificateID(input string) (*CertificateId, error) {
@@ -43,7 +43,7 @@ func CertificateID(input string) (*CertificateId, error) {
 	if resourceId.BatchAccountName, err = id.PopSegment("batchAccounts"); err != nil {
 		return nil, err
 	}
-	if resourceId.CertificateName, err = id.PopSegment("certificates"); err != nil {
+	if resourceId.Name, err = id.PopSegment("certificates"); err != nil {
 		return nil, err
 	}
 

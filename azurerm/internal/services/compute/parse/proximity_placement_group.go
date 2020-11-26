@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,32 +9,36 @@ import (
 )
 
 type ProximityPlacementGroupId struct {
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func NewProximityPlacementGroupId(resourceGroup, name string) ProximityPlacementGroupId {
+func NewProximityPlacementGroupID(subscriptionId, resourceGroup, name string) ProximityPlacementGroupId {
 	return ProximityPlacementGroupId{
-		ResourceGroup: resourceGroup,
-		Name:          name,
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
 }
 
-func (id ProximityPlacementGroupId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/proximityPlacementGroups/%s", subscriptionId, id.ResourceGroup, id.Name)
+func (id ProximityPlacementGroupId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Compute/proximityPlacementGroups/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse Proximity Placement Group ID %q: %+v", input, err)
+		return nil, err
 	}
 
-	server := ProximityPlacementGroupId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := ProximityPlacementGroupId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if server.Name, err = id.PopSegment("proximityPlacementGroups"); err != nil {
+	if resourceId.Name, err = id.PopSegment("proximityPlacementGroups"); err != nil {
 		return nil, err
 	}
 
@@ -40,5 +46,5 @@ func ProximityPlacementGroupID(input string) (*ProximityPlacementGroupId, error)
 		return nil, err
 	}
 
-	return &server, nil
+	return &resourceId, nil
 }
