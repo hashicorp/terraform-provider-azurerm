@@ -80,7 +80,7 @@ func resourceArmMsSqlDatabaseExtendedAuditingPolicyCreateUpdate(d *schema.Resour
 
 	log.Printf("[INFO] preparing arguments for MsSql Database Extended Auditing Policy creation.")
 
-	dbId, err := parse.MsSqlDatabaseID(d.Get("database_id").(string))
+	dbId, err := parse.DatabaseID(d.Get("database_id").(string))
 	if err != nil {
 		return err
 	}

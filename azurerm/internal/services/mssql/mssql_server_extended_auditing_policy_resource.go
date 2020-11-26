@@ -25,7 +25,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicy() *schema.Resource {
 		Delete: resourceArmMsSqlServerExtendedAuditingPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.MssqlServerExtendedAuditingPolicyID(id)
+			_, err := parse.ServerExtendedAuditingPolicyID(id)
 			return err
 		}),
 
@@ -145,7 +145,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicyRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MssqlServerExtendedAuditingPolicyID(d.Id())
+	id, err := parse.ServerExtendedAuditingPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func resourceArmMsSqlServerExtendedAuditingPolicyDelete(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.MssqlServerExtendedAuditingPolicyID(d.Id())
+	id, err := parse.ServerExtendedAuditingPolicyID(d.Id())
 	if err != nil {
 		return err
 	}

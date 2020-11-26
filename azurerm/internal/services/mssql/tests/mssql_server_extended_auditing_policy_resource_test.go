@@ -132,7 +132,7 @@ func testCheckAzureRMMsSqlServerExtendedAuditingPolicyExists(resourceName string
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.MssqlServerExtendedAuditingPolicyID(rs.Primary.ID)
+		id, err := parse.ServerExtendedAuditingPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -159,7 +159,7 @@ func testCheckAzureRMMsSqlServerExtendedAuditingPolicyDestroy(s *terraform.State
 			continue
 		}
 
-		id, err := parse.MssqlServerExtendedAuditingPolicyID(rs.Primary.ID)
+		id, err := parse.ServerExtendedAuditingPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

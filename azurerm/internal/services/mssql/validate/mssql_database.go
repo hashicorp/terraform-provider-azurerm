@@ -16,7 +16,7 @@ func MsSqlDatabaseID(i interface{}, k string) (warnings []string, errors []error
 		return warnings, errors
 	}
 
-	if _, err := parse.MsSqlDatabaseID(v); err != nil {
+	if _, err := parse.DatabaseID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Database resource id: %v", k, err))
 	}
 
@@ -76,7 +76,7 @@ func MsSqlRecoverableDatabaseID(i interface{}, k string) (warnings []string, err
 		return warnings, errors
 	}
 
-	if _, err := parse.RecoverableDBID(v); err != nil {
+	if _, err := parse.RecoverableDatabaseID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a MsSql Recoverable Database resource id: %v", k, err))
 	}
 

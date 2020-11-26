@@ -549,7 +549,7 @@ func testCheckAzureRMMsSqlDatabaseExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.MsSqlDatabaseID(rs.Primary.ID)
+		id, err := parse.DatabaseID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -576,7 +576,7 @@ func testCheckAzureRMMsSqlDatabaseDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.MsSqlDatabaseID(rs.Primary.ID)
+		id, err := parse.DatabaseID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
