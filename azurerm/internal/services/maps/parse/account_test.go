@@ -8,7 +8,7 @@ func TestMapsAccountID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MapsAccountId
+		Expected *AccountId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestMapsAccountID(t *testing.T) {
 		{
 			Name:  "Maps Account ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Maps/accounts/Account1",
-			Expected: &MapsAccountId{
+			Expected: &AccountId{
 				Name:          "Account1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestMapsAccountID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MapsAccountID(v.Input)
+		actual, err := AccountID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

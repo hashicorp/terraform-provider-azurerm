@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MapsAccountId struct {
+type AccountId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func MapsAccountID(input string) (*MapsAccountId, error) {
+func AccountID(input string) (*AccountId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Maps Account ID %q: %+v", input, err)
 	}
 
-	account := MapsAccountId{
+	account := AccountId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
