@@ -284,7 +284,7 @@ func TestAccAzureRMCdnEndpoint_dnsAlias(t *testing.T) {
 }
 
 func (r CdnEndpointResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.CdnEndpointID(state.ID)
+	id, err := parse.EndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -299,7 +299,7 @@ func (r CdnEndpointResource) Exists(ctx context.Context, client *clients.Client,
 }
 
 func (r CdnEndpointResource) Destroy(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.CdnEndpointID(state.ID)
+	id, err := parse.EndpointID(state.ID)
 	if err != nil {
 		return nil, err
 	}

@@ -142,7 +142,7 @@ func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
 }
 
 func (r CdnProfileResource) Exists(ctx context.Context, client *clients.Client, state *terraform.InstanceState) (*bool, error) {
-	id, err := parse.CdnProfileID(state.ID)
+	id, err := parse.ProfileID(state.ID)
 	if err != nil {
 		return nil, err
 	}
