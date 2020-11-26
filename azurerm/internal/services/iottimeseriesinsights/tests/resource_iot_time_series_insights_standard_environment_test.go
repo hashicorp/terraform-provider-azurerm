@@ -127,7 +127,6 @@ func testCheckAzureRMIoTTimeSeriesInsightsStandardEnvironmentDestroy(s *terrafor
 			return err
 		}
 		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-
 		if err != nil {
 			return nil
 		}

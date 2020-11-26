@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2019-12-12/blob/blobs"
 )
 
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
@@ -319,6 +319,35 @@ func TestAccAzureRMStorageBlob_blockFromLocalFile(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"parallelism", "size", "source", "type"},
 			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_blockFromLocalFileWithContentMd5(t *testing.T) {
+	sourceBlob, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := testAccAzureRMStorageBlob_populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_contentMd5ForLocalFile(data, sourceBlob.Name()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "example.vhd"),
+					resource.TestCheckResourceAttr(data.ResourceName, "source", sourceBlob.Name()),
+				),
+			},
+			data.ImportStep("parallelism", "size", "source", "type"),
 		},
 	})
 }
@@ -984,6 +1013,26 @@ resource "azurerm_storage_blob" "test" {
 `, template, fileName)
 }
 
+func testAccAzureRMStorageBlob_contentMd5ForLocalFile(data acceptance.TestData, fileName string) string {
+	template := testAccAzureRMStorageBlob_template(data, "blob")
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+  type                   = "Block"
+  source                 = "%s"
+  content_md5            = "${filemd5("%s")}"
+}
+`, template, fileName, fileName)
+}
+
 func testAccAzureRMStorageBlob_contentType(data acceptance.TestData) string {
 	template := testAccAzureRMStorageBlob_template(data, "private")
 	return fmt.Sprintf(`
@@ -1260,6 +1309,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  allow_blob_public_access = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -1284,6 +1334,7 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  allow_blob_public_access = true
 }
 
 resource "azurerm_storage_container" "test" {
@@ -1307,6 +1358,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Premium"
   account_replication_type = "LRS"
+  allow_blob_public_access = true
 }
 
 resource "azurerm_storage_container" "test" {

@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -118,6 +118,11 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
+
+				"health_check_path": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -188,6 +193,11 @@ func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
 
 				"scm_use_main_ip_restriction": {
 					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"health_check_path": {
+					Type:     schema.TypeString,
 					Computed: true,
 				},
 			},
@@ -378,6 +388,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.AutoSwapSlotName = utils.String(v.(string))
 	}
 
+	if v, ok := config["health_check_path"]; ok {
+		siteConfig.HealthCheckPath = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -429,6 +443,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.AutoSwapSlotName != nil {
 		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+	}
+
+	if input.HealthCheckPath != nil {
+		result["health_check_path"] = *input.HealthCheckPath
 	}
 
 	results = append(results, result)

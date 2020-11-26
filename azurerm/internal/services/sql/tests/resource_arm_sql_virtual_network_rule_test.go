@@ -521,6 +521,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMSqlVirtualNetworkRule_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

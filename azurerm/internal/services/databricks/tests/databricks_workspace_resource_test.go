@@ -214,7 +214,7 @@ func testCheckAzureRMDatabricksWorkspaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: Not found: %s", resourceName)
 		}
 
-		id, err := parse.DatabricksWorkspaceID(rs.Primary.ID)
+		id, err := parse.WorkspaceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -241,13 +241,12 @@ func testCheckAzureRMDatabricksWorkspaceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DatabricksWorkspaceID(rs.Primary.ID)
+		id, err := parse.WorkspaceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}

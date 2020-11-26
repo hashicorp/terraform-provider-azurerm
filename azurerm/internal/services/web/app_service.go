@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -169,11 +169,13 @@ func schemaAppServiceAuthSettings() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.AzureActiveDirectory),
-						string(web.Facebook),
-						string(web.Google),
-						string(web.MicrosoftAccount),
-						string(web.Twitter),
+						string(web.BuiltInAuthenticationProviderAzureActiveDirectory),
+						string(web.BuiltInAuthenticationProviderFacebook),
+						// TODO: add GitHub Auth when API bump merged
+						// string(web.BuiltInAuthenticationProviderGithub),
+						string(web.BuiltInAuthenticationProviderGoogle),
+						string(web.BuiltInAuthenticationProviderMicrosoftAccount),
+						string(web.BuiltInAuthenticationProviderTwitter),
 					}, false),
 				},
 
@@ -299,6 +301,7 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"v2.0",
 						"v4.0",
+						"v5.0",
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},

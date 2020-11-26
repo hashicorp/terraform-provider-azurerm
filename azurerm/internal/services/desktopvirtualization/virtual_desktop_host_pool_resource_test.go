@@ -117,7 +117,7 @@ func testCheckAzureRMDesktopVirtualizationHostPoolExists(resourceName string) re
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualDesktopHostPoolID(rs.Primary.ID)
+		id, err := parse.HostPoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -147,7 +147,7 @@ func testCheckAzureRMDesktopVirtualizationHostPoolDestroy(s *terraform.State) er
 
 		log.Printf("[WARN] azurerm_virtual_desktop_host_pool still exists in state file.")
 
-		id, err := parse.VirtualDesktopHostPoolID(rs.Primary.ID)
+		id, err := parse.HostPoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -185,7 +185,6 @@ resource "azurerm_virtual_desktop_host_pool" "test" {
   validate_environment = true
   load_balancer_type   = "BreadthFirst"
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
 
@@ -240,7 +239,6 @@ resource "azurerm_virtual_desktop_host_pool" "import" {
   location             = azurerm_virtual_desktop_host_pool.test.location
   resource_group_name  = azurerm_virtual_desktop_host_pool.test.resource_group_name
   validate_environment = azurerm_virtual_desktop_host_pool.test.validate_environment
-  description          = azurerm_virtual_desktop_host_pool.test.description
   type                 = azurerm_virtual_desktop_host_pool.test.type
   load_balancer_type   = azurerm_virtual_desktop_host_pool.test.load_balancer_type
 }

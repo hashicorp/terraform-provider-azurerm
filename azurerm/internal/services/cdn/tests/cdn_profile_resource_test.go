@@ -184,7 +184,7 @@ func testCheckAzureRMCdnProfileExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.CdnProfileID(rs.Primary.ID)
+		id, err := parse.ProfileID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -211,12 +211,11 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.CdnProfileID(rs.Primary.ID)
+		id, err := parse.ProfileID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
-
 		if err != nil {
 			return nil
 		}

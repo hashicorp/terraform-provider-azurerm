@@ -100,7 +100,7 @@ func testCheckAzureRMDataShareDataSetExists(resourceName string) resource.TestCh
 		if !ok {
 			return fmt.Errorf("DataShare DataSet not found: %s", resourceName)
 		}
-		id, err := parse.DataShareDataSetID(rs.Primary.ID)
+		id, err := parse.DataSetID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -124,7 +124,7 @@ func testCheckAzureRMDataShareDataSetDestroy(resourceTypeName string) func(s *te
 			if rs.Type != resourceTypeName {
 				continue
 			}
-			id, err := parse.DataShareDataSetID(rs.Primary.ID)
+			id, err := parse.DataSetID(rs.Primary.ID)
 			if err != nil {
 				return err
 			}

@@ -215,20 +215,22 @@ func resourceArmSpringCloudService() *schema.Resource {
 
 func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.ServicesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	resourceId := parse.NewSpringCloudServiceID(subscriptionId, resourceGroup, name).ID("")
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for present of existing Spring Cloud %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_spring_cloud_service", *existing.ID)
+	if !utils.ResponseWasNotFound(existing.Response) {
+		return tf.ImportAsExistsError("azurerm_spring_cloud_service", resourceId)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -286,10 +288,8 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("failure setting config server of Spring Cloud Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read Spring Cloud Service %q (Resource Group %q) ID", name, resourceGroup)
-	}
-	d.SetId(*resp.ID)
+
+	d.SetId(resourceId)
 
 	return resourceArmSpringCloudServiceRead(d, meta)
 }
@@ -354,14 +354,14 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Spring Cloud Service %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("unable to read Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -401,14 +401,14 @@ func resourceArmSpringCloudServiceDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.SpringName)
 	if err != nil {
-		return fmt.Errorf("failure deleting Spring Cloud Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("failure deleting Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("failure waiting for deleting Spring Cloud Service %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("failure waiting for deleting Spring Cloud Service %q (Resource Group %q): %+v", id.SpringName, id.ResourceGroup, err)
 		}
 	}
 

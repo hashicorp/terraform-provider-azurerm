@@ -238,7 +238,7 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -267,7 +267,7 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		id, err := parse.AccountID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

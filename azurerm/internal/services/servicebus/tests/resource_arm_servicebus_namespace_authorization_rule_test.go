@@ -93,6 +93,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.
 		},
 	})
 }
+
 func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_namespace_authorization_rule", "test")
 

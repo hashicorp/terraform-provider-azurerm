@@ -233,18 +233,18 @@ func testCheckAzureRMDnsAaaaRecordExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DnsAaaaRecordID(rs.Primary.ID)
+		id, err := parse.AaaaRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.AAAA)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.AAAAName, dns.AAAA)
 		if err != nil {
 			return fmt.Errorf("Bad: Get AAAA RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS AAAA record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS AAAA record %s (resource group: %s) does not exist", id.AAAAName, id.ResourceGroup)
 		}
 
 		return nil
@@ -260,12 +260,11 @@ func testCheckAzureRMDnsAaaaRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DnsAaaaRecordID(rs.Primary.ID)
+		id, err := parse.AaaaRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.AAAA)
-
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.AAAAName, dns.AAAA)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil

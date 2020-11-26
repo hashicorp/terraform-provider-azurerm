@@ -34,7 +34,7 @@ func resourceArmDataShareDataSetBlobStorage() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DataShareDataSetID(id)
+			_, err := parse.DataSetID(id)
 			return err
 		}),
 
@@ -110,13 +110,14 @@ func resourceArmDataShareDataSetBlobStorage() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareDataSetBlobStorageCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	shareId, err := parse.DataShareID(d.Get("data_share_id").(string))
+	shareId, err := parse.ShareID(d.Get("data_share_id").(string))
 	if err != nil {
 		return err
 	}
@@ -191,7 +192,7 @@ func resourceArmDataShareDataSetBlobStorageRead(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -259,13 +260,18 @@ func resourceArmDataShareDataSetBlobStorageDelete(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting DataShare Blob Storage DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of DataShare Blob Storage DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
 	}
 	return nil
 }

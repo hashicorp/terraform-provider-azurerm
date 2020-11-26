@@ -131,7 +131,8 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
-			}, data.ImportStep(),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -393,7 +394,7 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		id, err := parse.EndpointID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -451,7 +452,7 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		id, err := parse.EndpointID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

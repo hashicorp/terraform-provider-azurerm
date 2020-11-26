@@ -117,7 +117,7 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationExists(reso
 			return fmt.Errorf("Expected ID to be in the format {workspaceID}/{applicationGroup} but got %q", toBeSplitID)
 		}
 
-		id, err := parse.DesktopVirtualizationWorkspaceID(splitID[0])
+		id, err := parse.WorkspaceID(splitID[0])
 		if err != nil {
 			return err
 		}
@@ -157,7 +157,7 @@ func testAccAzureRMVirtualDesktopWorkspaceApplicationGroupAssociationDestroy(s *
 
 		log.Printf("[WARN] azurerm_virtual_desktop_application_group still exists in state file.")
 
-		id, err := parse.VirtualDesktopApplicationGroupID(rs.Primary.ID)
+		id, err := parse.ApplicationGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

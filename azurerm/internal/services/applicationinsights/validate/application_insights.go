@@ -13,7 +13,7 @@ func ApplicationInsightsID(i interface{}, k string) (warnings []string, errors [
 		return
 	}
 
-	if _, err := parse.ApplicationInsightsID(v); err != nil {
+	if _, err := parse.ComponentID(v); err != nil {
 		errors = append(errors, fmt.Errorf("parsing %q as a resource id: %v", k, err))
 		return
 	}
@@ -28,7 +28,7 @@ func ApplicationInsightsWebTestID(i interface{}, k string) (warnings []string, e
 		return
 	}
 
-	if _, err := parse.ApplicationInsightsWebTestID(v); err != nil {
+	if _, err := parse.WebTestID(v); err != nil {
 		errors = append(errors, fmt.Errorf("parsing %q as a resource id: %v", k, err))
 		return
 	}

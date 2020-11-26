@@ -137,7 +137,8 @@ func resourceArmHealthcareService() *schema.Resource {
 									"MERGE",
 									"POST",
 									"OPTIONS",
-									"PUT"}, false),
+									"PUT",
+								}, false),
 							},
 						},
 						"max_age_in_seconds": {

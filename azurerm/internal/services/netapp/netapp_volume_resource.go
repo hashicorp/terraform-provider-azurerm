@@ -98,12 +98,14 @@ func resourceArmNetAppVolume() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
-				Elem: &schema.Schema{Type: schema.TypeString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
 						"NFSv3",
 						"NFSv4.1",
 						"CIFS",
-					}, false)},
+					}, false),
+				},
 			},
 
 			"storage_quota_in_gb": {
@@ -139,12 +141,14 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Computed: true,
 							MaxItems: 1,
 							MinItems: 1,
-							Elem: &schema.Schema{Type: schema.TypeString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
 									"NFSv3",
 									"NFSv4.1",
 									"CIFS",
-								}, false)},
+								}, false),
+							},
 						},
 
 						"cifs_enabled": {

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2020-06-01/web"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -1069,6 +1069,25 @@ func TestAccAzureRMAppService_windowsDotNet4(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_windowsDotNet5(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_windowsDotNet(data, "v5.0"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v5.0"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1088,6 +1107,13 @@ func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v4.0"),
+				),
+			},
+			{
+				Config: testAccAzureRMAppService_windowsDotNet(data, "v5.0"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.dotnet_framework_version", "v5.0"),
 				),
 			},
 		},
@@ -1135,6 +1161,7 @@ func TestAccAzureRMAppService_windowsJava8Java(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMAppService_windowsJava11Java(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1197,6 +1224,7 @@ func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMAppService_windowsJava11Jetty(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1217,6 +1245,7 @@ func TestAccAzureRMAppService_windowsJava11Jetty(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1258,6 +1287,7 @@ func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMAppService_windowsJava11Tomcat(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1540,7 +1570,8 @@ func TestAccAzureRMAppService_corsSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.0.support_credentials", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.cors.0.allowed_origins.#", "3"),
-				)},
+				),
+			},
 			data.ImportStep(),
 		},
 	})
@@ -1906,7 +1937,6 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -2748,6 +2778,8 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
@@ -2788,6 +2820,8 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
@@ -4933,7 +4967,7 @@ resource "azurerm_app_service" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID, web.AzureActiveDirectory)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, tenantID, web.BuiltInAuthenticationProviderAzureActiveDirectory)
 }
 
 func testAccAzureRMAppService_basicWindowsContainer(data acceptance.TestData) string {

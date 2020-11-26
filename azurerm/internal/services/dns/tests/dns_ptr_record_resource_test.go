@@ -121,18 +121,18 @@ func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.DnsPtrRecordID(rs.Primary.ID)
+		id, err := parse.PtrRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.PTRName, dns.PTR)
 		if err != nil {
 			return fmt.Errorf("Bad: Get PTR RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: DNS PTR record %s (resource group: %s) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: DNS PTR record %s (resource group: %s) does not exist", id.PTRName, id.ResourceGroup)
 		}
 
 		return nil
@@ -148,13 +148,12 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DnsPtrRecordID(rs.Primary.ID)
+		id, err := parse.PtrRecordID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.PTR)
-
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.DnszoneName, id.PTRName, dns.PTR)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil

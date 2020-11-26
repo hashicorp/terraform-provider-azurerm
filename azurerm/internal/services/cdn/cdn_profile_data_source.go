@@ -59,7 +59,7 @@ func dataSourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error making Read request on Azure CDN Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	id, err := parse.CdnProfileID(*resp.ID)
+	id, err := parse.ProfileID(*resp.ID)
 	if err != nil {
 		return err
 	}

@@ -124,7 +124,7 @@ type Client struct {
 	DesktopVirtualization *desktopvirtualization.Client
 	DevSpace              *devspace.Client
 	DevTestLabs           *devtestlabs.Client
-	Digitaltwins          *digitaltwins.Client
+	DigitalTwins          *digitaltwins.Client
 	Dns                   *dns.Client
 	EventGrid             *eventgrid.Client
 	Eventhub              *eventhub.Client
@@ -216,7 +216,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DesktopVirtualization = desktopvirtualization.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
-	client.Digitaltwins = digitaltwins.NewClient(o)
+	client.DigitalTwins = digitaltwins.NewClient(o)
 	client.Dns = dns.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
 	client.Eventhub = eventhub.NewClient(o)

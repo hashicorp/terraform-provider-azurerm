@@ -114,7 +114,7 @@ func testCheckAzureRMDatabaseMigrationServiceExists(resourceName string) resourc
 			return fmt.Errorf("Database Migration Service not found: %s", resourceName)
 		}
 
-		id, err := parse.DatabaseMigrationServiceID(rs.Primary.ID)
+		id, err := parse.ServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -142,7 +142,7 @@ func testCheckAzureRMDatabaseMigrationServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.DatabaseMigrationServiceID(rs.Primary.ID)
+		id, err := parse.ServiceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

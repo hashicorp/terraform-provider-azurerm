@@ -37,7 +37,7 @@ func resourceArmCdnProfile() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnProfileID(id)
+			_, err := parse.ProfileID(id)
 			return err
 		}),
 
@@ -133,7 +133,7 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read CDN Profile %s (resource group %s) ID", name, resGroup)
 	}
 
-	id, err := parse.CdnProfileID(*read.ID)
+	id, err := parse.ProfileID(*read.ID)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -182,7 +182,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnProfileID(d.Id())
+	id, err := parse.ProfileID(d.Id())
 	if err != nil {
 		return err
 	}

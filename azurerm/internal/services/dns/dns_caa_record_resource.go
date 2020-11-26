@@ -36,7 +36,7 @@ func resourceArmDnsCaaRecord() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DnsCaaRecordID(id)
+			_, err := parse.CaaRecordID(id)
 			return err
 		}),
 
@@ -158,23 +158,23 @@ func resourceArmDnsCaaRecordRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsCaaRecordID(d.Id())
+	id, err := parse.CaaRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CAA)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS CAA record %s: %v", id.Name, err)
+		return fmt.Errorf("Error reading DNS CAA record %s: %v", id.CAAName, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.CAAName)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.ZoneName)
+	d.Set("zone_name", id.DnszoneName)
 
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
@@ -190,14 +190,14 @@ func resourceArmDnsCaaRecordDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DnsCaaRecordID(d.Id())
+	id, err := parse.CaaRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.CAA, "")
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.DnszoneName, id.CAAName, dns.CAA, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS CAA Record %s: %+v", id.Name, err)
+		return fmt.Errorf("Error deleting DNS CAA Record %s: %+v", id.CAAName, err)
 	}
 
 	return nil

@@ -28,7 +28,7 @@ func resourceArmDatabaseMigrationService() *schema.Resource {
 		Delete: resourceArmDatabaseMigrationServiceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DatabaseMigrationServiceID(id)
+			_, err := parse.ServiceID(id)
 			return err
 		}),
 
@@ -140,7 +140,7 @@ func resourceArmDatabaseMigrationServiceRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseMigrationServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,7 +180,7 @@ func resourceArmDatabaseMigrationServiceUpdate(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseMigrationServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func resourceArmDatabaseMigrationServiceDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabaseMigrationServiceID(d.Id())
+	id, err := parse.ServiceID(d.Id())
 	if err != nil {
 		return err
 	}

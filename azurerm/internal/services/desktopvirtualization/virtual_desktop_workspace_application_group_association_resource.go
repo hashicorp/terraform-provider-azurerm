@@ -6,12 +6,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/desktopvirtualization/mgmt/2019-12-10-preview/desktopvirtualization"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/desktopvirtualization/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -31,7 +32,7 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Res
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DesktopVirtualizationWorkspaceID(id)
+			_, err := parse.WorkspaceApplicationGroupAssociationID(id)
 			return err
 		}),
 
@@ -40,14 +41,14 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Res
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VirtualDesktopWorkspaceID,
 			},
 
 			"application_group_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.VirtualDesktopApplicationGroupID,
 			},
 		},
 	}
@@ -55,156 +56,150 @@ func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociation() *schema.Res
 
 func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Virtual Desktop Workspace <-> Application Group Association creation.")
-
-	workspaceID := d.Get("workspace_id").(string)
-	applicationGroupReferenceID := d.Get("application_group_id").(string)
-
-	wsID, err := azure.ParseAzureResourceID(workspaceID)
+	workspaceId, err := parse.WorkspaceID(d.Get("workspace_id").(string))
 	if err != nil {
 		return err
 	}
-
-	agID, err := azure.ParseAzureResourceID(applicationGroupReferenceID)
+	applicationGroupId, err := parse.ApplicationGroupID(d.Get("application_group_id").(string))
 	if err != nil {
 		return err
 	}
+	associationId := parse.NewWorkspaceApplicationGroupAssociationId(*workspaceId, *applicationGroupId)
 
-	workspaceName := wsID.Path["workspaces"]
-	resourceGroup := wsID.ResourceGroup
-	agName := agID.Path["applicationgroups"]
+	locks.ByName(workspaceId.Name, workspaceResourceType)
+	defer locks.UnlockByName(workspaceId.Name, workspaceResourceType)
 
-	resourceID := fmt.Sprintf("%s|%s", workspaceID, applicationGroupReferenceID)
+	locks.ByName(applicationGroupId.Name, applicationGroupType)
+	defer locks.UnlockByName(applicationGroupId.Name, applicationGroupType)
 
-	locks.ByName(workspaceName, "Microsoft.DesktopVirtualization/workspaces")
-	defer locks.UnlockByName(workspaceName, "Microsoft.DesktopVirtualization/workspaces")
-
-	locks.ByName(agName, "Microsoft.DesktopVirtualization/applicationgroups")
-	defer locks.UnlockByName(agName, "Microsoft.DesktopVirtualization/applicationgroups")
-
-	read, err := client.Get(ctx, resourceGroup, workspaceName)
+	workspace, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Retrieving Virtual Desktop Workspace %q (Resource Group %q) was not found", workspaceName, resourceGroup)
+		if utils.ResponseWasNotFound(workspace.Response) {
+			return fmt.Errorf("Virtual Desktop Workspace %q (Resource Group %q) was not found", workspaceId.Name, workspaceId.ResourceGroup)
 		}
 
-		return fmt.Errorf("Retrieving Virtual Desktop Workspace for Association %q (Resource Group %q): %+v", workspaceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Desktop Workspace for Association %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
 
-	refs := read.ApplicationGroupReferences
-
-	output := make([]string, 0)
-	output = append(output, *refs...)
-	if utils.SliceContainsValue(output, applicationGroupReferenceID) {
-		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", resourceID)
-	}
-	output = append(output, applicationGroupReferenceID)
-
-	read.ApplicationGroupReferences = &output
-
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, workspaceName, read); err != nil {
-		return fmt.Errorf("Updating Virtual Desktop Workspace Association for Application Group %q (Resource Group %q): %+v", workspaceName, resourceGroup, err)
+	applicationGroupAssociations := []string{}
+	if props := workspace.WorkspaceProperties; props != nil && props.ApplicationGroupReferences != nil {
+		applicationGroupAssociations = *props.ApplicationGroupReferences
 	}
 
-	d.SetId(resourceID)
+	applicationGroupIdStr := applicationGroupId.ID(subscriptionId)
+	if associationExists(workspace.WorkspaceProperties, applicationGroupIdStr) {
+		return tf.ImportAsExistsError("azurerm_virtual_desktop_workspace_application_group_association", associationId.ID(""))
+	}
+	applicationGroupAssociations = append(applicationGroupAssociations, applicationGroupIdStr)
 
+	workspace.WorkspaceProperties.ApplicationGroupReferences = &applicationGroupAssociations
+
+	if _, err = client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, workspace); err != nil {
+		return fmt.Errorf("creating association between Virtual Desktop Workspace %q (Resource Group %q) and Application Group %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, applicationGroupId.Name, applicationGroupId.ResourceGroup, err)
+	}
+
+	d.SetId(associationId.ID(""))
 	return resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d, meta)
 }
 
 func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	splitID := strings.Split(d.Id(), "|")
-	if len(splitID) != 2 {
-		return fmt.Errorf("Expected ID to be in the format {workspaceID}/{networkSecurityGroup} but got %q", d.Id())
-	}
-
-	wsID, err := parse.DesktopVirtualizationWorkspaceID(splitID[0])
+	id, err := parse.WorkspaceApplicationGroupAssociationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, wsID.ResourceGroup, wsID.Name)
+	workspace, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Virtual Desktop Workspace %q was not found in Resource Group %q - removing from state!", wsID.Name, wsID.ResourceGroup)
+		if utils.ResponseWasNotFound(workspace.Response) {
+			log.Printf("[DEBUG] Virtual Desktop Workspace %q was not found in Resource Group %q - removing from state!", id.Workspace.Name, id.Workspace.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Making Read request on Virtual Desktop Desktop Workspace %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Desktop Desktop Workspace %q (Resource Group %q): %+v", id.Workspace.Name, id.Workspace.ResourceGroup, err)
 	}
 
-	output := make([]string, 0)
-	output = append(output, *read.ApplicationGroupReferences...)
-
-	if !utils.SliceContainsValue(output, splitID[1]) {
-		log.Printf("[DEBUG] Association between Virtual Desktop Workspace %q (Resource Group %q) and Virtual Desktop Application Group %q was not found - removing from state!", wsID.Name, wsID.ResourceGroup, splitID[1])
+	applicationGroupId := id.ApplicationGroup.ID(subscriptionId)
+	exists := associationExists(workspace.WorkspaceProperties, applicationGroupId)
+	if !exists {
+		log.Printf("[DEBUG] Association between Virtual Desktop Workspace %q (Resource Group %q) and Application Group %q (Resource Group %q) was not found - removing from state!", id.Workspace.Name, id.Workspace.ResourceGroup, id.ApplicationGroup.Name, id.ApplicationGroup.ResourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("application_group_id", splitID[1])
+	d.Set("workspace_id", id.Workspace.ID(subscriptionId))
+	d.Set("application_group_id", applicationGroupId)
 
 	return nil
 }
 
 func resourceArmVirtualDesktopWorkspaceApplicationGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DesktopVirtualization.WorkspacesClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	splitID := strings.Split(d.Id(), "|")
-	if len(splitID) != 2 {
-		return fmt.Errorf("Expected ID to be in the format {workspaceID}/{networkSecurityGroup} but got %q", d.Id())
-	}
-
-	applicationGroupReferenceID := d.Get("application_group_id").(string)
-
-	wsID, err := parse.DesktopVirtualizationWorkspaceID(splitID[0])
+	id, err := parse.WorkspaceApplicationGroupAssociationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	agID, err := parse.VirtualDesktopApplicationGroupID(splitID[1])
+	locks.ByName(id.Workspace.Name, workspaceResourceType)
+	defer locks.UnlockByName(id.Workspace.Name, workspaceResourceType)
+
+	locks.ByName(id.ApplicationGroup.Name, applicationGroupType)
+	defer locks.UnlockByName(id.ApplicationGroup.Name, applicationGroupType)
+
+	workspace, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name)
 	if err != nil {
-		return err
-	}
-
-	locks.ByName(wsID.Name, "Microsoft.DesktopVirtualization/workspaces")
-	defer locks.UnlockByName(wsID.Name, "Microsoft.DesktopVirtualization/workspaces")
-
-	locks.ByName(agID.Name, "Microsoft.DesktopVirtualization/applicationgroups")
-	defer locks.UnlockByName(agID.Name, "Microsoft.DesktopVirtualization/applicationgroups")
-
-	read, err := client.Get(ctx, wsID.ResourceGroup, wsID.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Virtual Desktop Workspace %q (Resource Group %q) was not found", wsID.Name, wsID.ResourceGroup)
+		if utils.ResponseWasNotFound(workspace.Response) {
+			return fmt.Errorf("Virtual Desktop Workspace %q (Resource Group %q) was not found", id.Workspace.Name, id.Workspace.ResourceGroup)
 		}
 
-		return fmt.Errorf("Retrieving Virtual Desktop Workspace %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Desktop Workspace %q (Resource Group %q): %+v", id.Workspace.Name, id.Workspace.ResourceGroup, err)
 	}
 
-	refs := read.ApplicationGroupReferences
-	if refs == nil {
-		return fmt.Errorf("ApplicationGroupReferences was nil for Virtual Desktop Workspace %q (Resource Group %q)", wsID.Name, wsID.ResourceGroup)
+	applicationGroupReferences := []string{}
+	applicationGroupId := id.ApplicationGroup.ID(subscriptionId)
+	if workspace.WorkspaceProperties != nil && workspace.WorkspaceProperties.ApplicationGroupReferences != nil {
+		for _, referenceId := range *workspace.WorkspaceProperties.ApplicationGroupReferences {
+			if strings.EqualFold(referenceId, applicationGroupId) {
+				continue
+			}
+
+			applicationGroupReferences = append(applicationGroupReferences, referenceId)
+		}
 	}
 
-	output := make([]string, 0)
-	output = append(output, *refs...)
-	output = utils.RemoveFromStringArray(output, applicationGroupReferenceID)
+	workspace.WorkspaceProperties.ApplicationGroupReferences = &applicationGroupReferences
 
-	read.ApplicationGroupReferences = &output
-
-	if _, err = client.CreateOrUpdate(ctx, wsID.ResourceGroup, wsID.Name, read); err != nil {
-		return fmt.Errorf("Updating Virtual Desktop Workspace Association for Application Group %q (Resource Group %q): %+v", wsID.Name, wsID.ResourceGroup, err)
+	if _, err = client.CreateOrUpdate(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, workspace); err != nil {
+		return fmt.Errorf("removing association between Virtual Desktop Workspace %q (Resource Group %q) and Application Group %q (Resource Group %q): %+v", id.Workspace.Name, id.Workspace.ResourceGroup, id.ApplicationGroup.Name, id.ApplicationGroup.ResourceGroup, err)
 	}
 
 	return nil
+}
+
+func associationExists(props *desktopvirtualization.WorkspaceProperties, applicationGroupId string) bool {
+	if props == nil || props.ApplicationGroupReferences == nil {
+		return false
+	}
+
+	for _, id := range *props.ApplicationGroupReferences {
+		if strings.EqualFold(id, applicationGroupId) {
+			return true
+		}
+	}
+
+	return false
 }

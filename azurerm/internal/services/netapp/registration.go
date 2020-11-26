@@ -24,7 +24,8 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_netapp_account":  dataSourceArmNetAppAccount(),
 		"azurerm_netapp_pool":     dataSourceArmNetAppPool(),
 		"azurerm_netapp_volume":   dataSourceArmNetAppVolume(),
-		"azurerm_netapp_snapshot": dataSourceArmNetAppSnapshot()}
+		"azurerm_netapp_snapshot": dataSourceArmNetAppSnapshot(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
@@ -33,5 +34,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_netapp_account":  resourceArmNetAppAccount(),
 		"azurerm_netapp_pool":     resourceArmNetAppPool(),
 		"azurerm_netapp_volume":   resourceArmNetAppVolume(),
-		"azurerm_netapp_snapshot": resourceArmNetAppSnapshot()}
+		"azurerm_netapp_snapshot": resourceArmNetAppSnapshot(),
+	}
 }

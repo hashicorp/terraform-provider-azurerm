@@ -17,6 +17,7 @@ tools:
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
+	GO111MODULE=off go get -u mvdan.cc/gofumpt
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.32.0
 
 build: fmtcheck generate
@@ -31,6 +32,11 @@ fmt:
 	# This logic should match the search logic in scripts/gofmtcheck.sh
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
+fumpt:
+	@echo "==> Fixing source code with gofmt..."
+	# This logic should match the search logic in scripts/gofmtcheck.sh
+	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
+
 # Currently required by tf-deploy compile, duplicated by linters
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
@@ -44,6 +50,7 @@ terrafmt:
 	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 
 generate:
+	go generate ./azurerm/internal/services/...
 	go generate ./azurerm/internal/provider/
 
 goimports:
@@ -52,15 +59,6 @@ goimports:
 
 lint:
 	./scripts/run-lint.sh
-
-# we have split off static check because it causes travis to fail with an OOM error
-lintunused:
-	@echo "==> Checking source code against static check linters..."
-	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=unused; ES=$$?; kill -9 $$PID; exit $$ES
-
-lintrest:
-	./scripts/run-lint-rest.sh
 
 depscheck:
 	@echo "==> Checking source code with go mod tidy..."
@@ -127,5 +125,10 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 	git clone https://$(WEBSITE_REPO) $$(go env GOPATH || $$GOPATH)/src/$(WEBSITE_REPO)
 endif
 	@$(MAKE) -C $$(go env GOPATH || $$GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
+
+teamcity-test:
+	@$(MAKE) -C .teamcity tools
+	@$(MAKE) -C .teamcity test
+
 
 .PHONY: build build-docker test test-docker testacc vet fmt fmtcheck errcheck scaffold-website test-compile website website-test

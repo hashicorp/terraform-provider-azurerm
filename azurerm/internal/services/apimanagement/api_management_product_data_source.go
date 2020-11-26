@@ -64,6 +64,7 @@ func dataSourceApiManagementProduct() *schema.Resource {
 		},
 	}
 }
+
 func dataSourceApiManagementProductRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)

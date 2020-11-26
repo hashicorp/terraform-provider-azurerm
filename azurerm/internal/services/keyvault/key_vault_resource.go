@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	dataPlaneKeyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	KeyVaultMgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -374,7 +374,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("contact"); ok {
-		contacts := dataPlaneKeyVault.Contacts{
+		contacts := KeyVaultMgmt.Contacts{
 			ContactList: expandKeyVaultCertificateContactList(v.(*schema.Set).List()),
 		}
 		if read.Properties == nil || read.Properties.VaultURI == nil {
@@ -390,7 +390,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
-	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
+	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -586,7 +586,7 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("contact") {
-		contacts := dataPlaneKeyVault.Contacts{
+		contacts := KeyVaultMgmt.Contacts{
 			ContactList: expandKeyVaultCertificateContactList(d.Get("contact").(*schema.Set).List()),
 		}
 		if existing.Properties == nil || existing.Properties.VaultURI == nil {
@@ -594,9 +594,9 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 		var err error
 		if len(*contacts.ContactList) == 0 {
-			_, err = dataPlaneClient.DeleteCertificateContacts(ctx, *existing.Properties.VaultURI)
+			_, err = managementClient.DeleteCertificateContacts(ctx, *existing.Properties.VaultURI)
 		} else {
-			_, err = dataPlaneClient.SetCertificateContacts(ctx, *existing.Properties.VaultURI, contacts)
+			_, err = managementClient.SetCertificateContacts(ctx, *existing.Properties.VaultURI, contacts)
 		}
 		if err != nil {
 			return fmt.Errorf("failed to set Contacts for Key Vault %q (Resource Group %q): %s", name, resourceGroup, err)
@@ -610,7 +610,7 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).KeyVault.VaultsClient
-	dataPlaneClient := meta.(*clients.Client).KeyVault.ManagementClient
+	managementClient := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -668,7 +668,8 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting `access_policy` for KeyVault %q: %+v", *resp.Name, err)
 		}
 
-		if resp, err := dataPlaneClient.GetCertificateContacts(ctx, *props.VaultURI); err != nil {
+		log.Printf("[STEBUG] - timing before")
+		if resp, err := managementClient.GetCertificateContacts(ctx, *props.VaultURI); err != nil {
 			if !utils.ResponseWasForbidden(resp.Response) && !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 			}
@@ -677,6 +678,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `contact` for KeyVault: %+v", err)
 			}
 		}
+		log.Printf("[STEBUG] - timing after")
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -795,7 +797,7 @@ func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 
-		var PTransport = &http.Transport{Proxy: http.ProxyFromEnvironment}
+		PTransport := &http.Transport{Proxy: http.ProxyFromEnvironment}
 
 		client := &http.Client{
 			Transport: PTransport,
@@ -855,15 +857,15 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*keyvault.NetworkRuleSet, [
 	return &ruleSet, subnetIds
 }
 
-func expandKeyVaultCertificateContactList(input []interface{}) *[]dataPlaneKeyVault.Contact {
-	results := make([]dataPlaneKeyVault.Contact, 0)
+func expandKeyVaultCertificateContactList(input []interface{}) *[]KeyVaultMgmt.Contact {
+	results := make([]KeyVaultMgmt.Contact, 0)
 	if len(input) == 0 || input[0] == nil {
 		return &results
 	}
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		results = append(results, dataPlaneKeyVault.Contact{
+		results = append(results, KeyVaultMgmt.Contact{
 			Name:         utils.String(v["name"].(string)),
 			EmailAddress: utils.String(v["email"].(string)),
 			Phone:        utils.String(v["phone"].(string)),
@@ -917,7 +919,7 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	return []interface{}{output}
 }
 
-func flattenKeyVaultCertificateContactList(input *[]dataPlaneKeyVault.Contact) []interface{} {
+func flattenKeyVaultCertificateContactList(input *[]KeyVaultMgmt.Contact) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results

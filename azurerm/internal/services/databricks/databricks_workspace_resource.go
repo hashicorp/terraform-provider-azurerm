@@ -35,7 +35,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DatabricksWorkspaceID(id)
+			_, err := parse.WorkspaceID(id)
 			return err
 		}),
 
@@ -208,13 +208,12 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabricksWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Databricks Workspace %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
@@ -260,7 +259,7 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DatabricksWorkspaceID(d.Id())
+	id, err := parse.WorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -360,7 +359,7 @@ func ValidateDatabricksWorkspaceName(i interface{}, k string) (warnings []string
 	// 1) Cannot be empty
 	if len(v) == 0 {
 		errors = append(errors, fmt.Errorf("%q cannot be an empty string: %q", k, v))
-		// Treating this as a special case and returning early to match Azure Portal behavior.
+		// Treating this as a special case and returning early to match Azure Portal behaviour.
 		return warnings, errors
 	}
 

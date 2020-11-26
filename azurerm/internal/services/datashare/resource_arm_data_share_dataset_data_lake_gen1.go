@@ -32,7 +32,7 @@ func resourceArmDataShareDataSetDataLakeGen1() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.DataShareDataSetID(id)
+			_, err := parse.DataSetID(id)
 			return err
 		}),
 
@@ -79,13 +79,14 @@ func resourceArmDataShareDataSetDataLakeGen1() *schema.Resource {
 		},
 	}
 }
+
 func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataShare.DataSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	shareId, err := parse.DataShareID(d.Get("data_share_id").(string))
+	shareId, err := parse.ShareID(d.Get("data_share_id").(string))
 	if err != nil {
 		return err
 	}
@@ -101,7 +102,7 @@ func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen1", *existingId)
 	}
 
-	dataLakeStoreId, err := dataLakeParse.DataLakeStoreID(d.Get("data_lake_store_id").(string))
+	dataLakeStoreId, err := dataLakeParse.AccountID(d.Get("data_lake_store_id").(string))
 	if err != nil {
 		return err
 	}
@@ -114,7 +115,7 @@ func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta 
 			ADLSGen1FileProperties: &datashare.ADLSGen1FileProperties{
 				AccountName:    utils.String(dataLakeStoreId.Name),
 				ResourceGroup:  utils.String(dataLakeStoreId.ResourceGroup),
-				SubscriptionID: utils.String(dataLakeStoreId.Subscription),
+				SubscriptionID: utils.String(dataLakeStoreId.SubscriptionId),
 				FolderPath:     utils.String(d.Get("folder_path").(string)),
 				FileName:       utils.String(fileName.(string)),
 			},
@@ -125,7 +126,7 @@ func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta 
 			ADLSGen1FolderProperties: &datashare.ADLSGen1FolderProperties{
 				AccountName:    utils.String(dataLakeStoreId.Name),
 				ResourceGroup:  utils.String(dataLakeStoreId.ResourceGroup),
-				SubscriptionID: utils.String(dataLakeStoreId.Subscription),
+				SubscriptionID: utils.String(dataLakeStoreId.SubscriptionId),
 				FolderPath:     utils.String(d.Get("folder_path").(string)),
 			},
 		}
@@ -155,7 +156,7 @@ func resourceArmDataShareDataSetDataLakeGen1Read(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -211,13 +212,19 @@ func resourceArmDataShareDataSetDataLakeGen1Delete(d *schema.ResourceData, meta 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.DataShareDataSetID(d.Id())
+	id, err := parse.DataSetID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.ShareName, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting DataShare DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
 	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of DataShare Data Lake Gen1 DataSet  %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
+	}
+
 	return nil
 }

@@ -1,10 +1,30 @@
 package parse
 
-import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
+import (
+	"fmt"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 type NamespaceId struct {
-	Name          string
-	ResourceGroup string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
+}
+
+func NewNamespaceID(subscriptionId, resourceGroup, name string) NamespaceId {
+	return NamespaceId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
+	}
+}
+
+func (id NamespaceId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.EventHub/namespaces/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
 }
 
 func NamespaceID(input string) (*NamespaceId, error) {
@@ -13,11 +33,12 @@ func NamespaceID(input string) (*NamespaceId, error) {
 		return nil, err
 	}
 
-	rule := NamespaceId{
-		ResourceGroup: id.ResourceGroup,
+	resourceId := NamespaceId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if rule.Name, err = id.PopSegment("namespaces"); err != nil {
+	if resourceId.Name, err = id.PopSegment("namespaces"); err != nil {
 		return nil, err
 	}
 
@@ -25,5 +46,5 @@ func NamespaceID(input string) (*NamespaceId, error) {
 		return nil, err
 	}
 
-	return &rule, nil
+	return &resourceId, nil
 }

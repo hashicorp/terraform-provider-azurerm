@@ -458,18 +458,18 @@ func testCheckBatchPoolExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		id, err := parse.BatchPoolID(rs.Primary.ID)
+		id, err := parse.PoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on batchPoolClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Batch pool %q (account: %q, resource group: %q) does not exist", id.Name, id.AccountName, id.ResourceGroup)
+			return fmt.Errorf("Bad: Batch pool %q (account: %q, resource group: %q) does not exist", id.Name, id.BatchAccountName, id.ResourceGroup)
 		}
 
 		return nil
@@ -485,11 +485,11 @@ func testCheckBatchPoolDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.BatchPoolID(rs.Primary.ID)
+		id, err := parse.PoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		resp, err := conn.Get(ctx, id.ResourceGroup, id.AccountName, id.Name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.BatchAccountName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

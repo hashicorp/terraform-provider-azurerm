@@ -117,7 +117,7 @@ func testCheckAzureRMDesktopVirtualizationApplicationGroupExists(resourceName st
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.VirtualDesktopApplicationGroupID(rs.Primary.ID)
+		id, err := parse.ApplicationGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func testCheckAzureRMDesktopVirtualizationApplicationGroupExists(resourceName st
 		}
 
 		if result.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Virtual Desktop Host Pool %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: Virtual Desktop Application Group %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return fmt.Errorf("Bad: Get virtualDesktopApplicationGroupClient: %+v", err)
@@ -146,14 +146,14 @@ func testCheckAzureRMDesktopVirtualizationApplicationGroupDestroy(s *terraform.S
 
 		log.Printf("[WARN] azurerm_virtual_desktop_application_group still exists in state file.")
 
-		id, err := parse.VirtualDesktopApplicationGroupID(rs.Primary.ID)
+		id, err := parse.ApplicationGroupID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		result, err := client.Get(ctx, id.ResourceGroup, id.Name)
 		if err == nil {
-			return fmt.Errorf("Virtual Desktop Host Pool still exists:\n%#v", result)
+			return fmt.Errorf("Virtual Desktop Application Group still exists:\n%#v", result)
 		}
 
 		if result.StatusCode != http.StatusNotFound {
@@ -190,7 +190,6 @@ resource "azurerm_virtual_desktop_application_group" "test" {
   type                = "Desktop"
   host_pool_id        = azurerm_virtual_desktop_host_pool.test.id
 }
-
 `, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
 

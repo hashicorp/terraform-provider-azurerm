@@ -90,7 +90,6 @@ func testCheckAzureRMApiManagementDiagnosticDestroy(s *terraform.State) error {
 			return err
 		}
 		resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name)
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err

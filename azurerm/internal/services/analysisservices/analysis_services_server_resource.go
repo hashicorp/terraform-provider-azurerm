@@ -38,7 +38,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.AnalysisServicesServerID(id)
+			_, err := parse.ServerID(id)
 			return err
 		}),
 
@@ -197,7 +197,7 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AnalysisServicesServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server update.")
 
-	id, err := parse.AnalysisServicesServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -318,7 +318,7 @@ func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AnalysisServicesServerID(d.Id())
+	id, err := parse.ServerID(d.Id())
 	if err != nil {
 		return err
 	}

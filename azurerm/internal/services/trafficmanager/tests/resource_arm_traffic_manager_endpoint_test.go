@@ -34,6 +34,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
@@ -634,6 +635,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMTrafficManagerEndpoint_priority(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

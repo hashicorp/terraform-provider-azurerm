@@ -37,7 +37,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnEndpointID(id)
+			_, err := parse.EndpointID(id)
 			return err
 		}),
 
@@ -316,7 +316,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	id, err := parse.CdnEndpointID(*read.ID)
+	id, err := parse.EndpointID(*read.ID)
 	if err != nil {
 		return err
 	}
@@ -331,7 +331,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -413,7 +413,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -489,7 +489,7 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CdnEndpointID(d.Id())
+	id, err := parse.EndpointID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -33,13 +33,36 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
+* `soa_record` - (Optional) An `soa_record` block as defined below. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+The `soa_record` block supports:
+
+* `email` - (Required) The email contact for the SOA record.
+
+* `expire_time` - (Optional) The expire time for the SOA record. Defaults to `2419200`.
+
+* `minimum_ttl` - (Optional) The minimum Time To Live for the SOA record. By convention, it is used to determine the negative caching duration. Defaults to `10`.
+
+* `refresh_time` - (Optional) The refresh time for the SOA record. Defaults to `3600`.
+
+* `retry_time` - (Optional) The retry time for the SOA record. Defaults to `300`.
+
+* `ttl` - (Optional) The Time To Live of the SOA Record in seconds. Defaults to `3600`.
+
+* `tags` - (Optional) A mapping of tags to assign to the Record Set.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Private DNS Zone ID.
+* `fqdn` - The fully qualified domain name of the Record Set.
+* `host_name` - The domain name of the authoritative name server for the SOA record.
+* `serial_number` - The serial number for the SOA record. 
 * `number_of_record_sets` - The current number of record sets in this Private DNS zone.
 * `max_number_of_record_sets` - The maximum number of record sets that can be created in this Private DNS zone.
 * `max_number_of_virtual_network_links` - The maximum number of virtual networks that can be linked to this Private DNS zone.
