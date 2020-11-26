@@ -8,7 +8,7 @@ func TestKustoClusterId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *KustoClusterId
+		Expected *ClusterId
 	}{
 		{
 			Name:     "Empty",
@@ -23,7 +23,7 @@ func TestKustoClusterId(t *testing.T) {
 		{
 			Name:  "Cluster ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/Clusters/cluster1",
-			Expected: &KustoClusterId{
+			Expected: &ClusterId{
 				Name:          "cluster1",
 				ResourceGroup: "group1",
 			},
@@ -33,7 +33,7 @@ func TestKustoClusterId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := KustoClusterID(v.Input)
+		actual, err := ClusterID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

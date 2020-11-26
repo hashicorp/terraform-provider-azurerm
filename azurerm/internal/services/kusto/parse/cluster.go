@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type KustoClusterId struct {
+type ClusterId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func KustoClusterID(input string) (*KustoClusterId, error) {
+func ClusterID(input string) (*ClusterId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Kusto Cluster ID %q: %+v", input, err)
 	}
 
-	cluster := KustoClusterId{
+	cluster := ClusterId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
