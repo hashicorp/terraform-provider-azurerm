@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,42 @@ import (
 )
 
 type DatabaseId struct {
-	ResourceGroup string
-	ClusterName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	ClusterName    string
+	Name           string
 }
 
+func NewDatabaseID(subscriptionId, resourceGroup, clusterName, name string) DatabaseId {
+	return DatabaseId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ClusterName:    clusterName,
+		Name:           name,
+	}
+}
+
+func (id DatabaseId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/Databases/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.Name)
+}
+
+// DatabaseID parses a Database ID into an DatabaseId struct
 func DatabaseID(input string) (*DatabaseId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Kusto Database ID %q: %+v", input, err)
-	}
-
-	database := DatabaseId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if database.ClusterName, err = id.PopSegment("Clusters"); err != nil {
 		return nil, err
 	}
 
-	if database.Name, err = id.PopSegment("Databases"); err != nil {
+	resourceId := DatabaseId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("Databases"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +52,5 @@ func DatabaseID(input string) (*DatabaseId, error) {
 		return nil, err
 	}
 
-	return &database, nil
+	return &resourceId, nil
 }

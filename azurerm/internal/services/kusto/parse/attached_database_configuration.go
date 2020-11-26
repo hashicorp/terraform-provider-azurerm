@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,26 +9,42 @@ import (
 )
 
 type AttachedDatabaseConfigurationId struct {
-	ResourceGroup string
-	ClusterName   string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	ClusterName    string
+	Name           string
 }
 
+func NewAttachedDatabaseConfigurationID(subscriptionId, resourceGroup, clusterName, name string) AttachedDatabaseConfigurationId {
+	return AttachedDatabaseConfigurationId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ClusterName:    clusterName,
+		Name:           name,
+	}
+}
+
+func (id AttachedDatabaseConfigurationId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/AttachedDatabaseConfigurations/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.Name)
+}
+
+// AttachedDatabaseConfigurationID parses a AttachedDatabaseConfiguration ID into an AttachedDatabaseConfigurationId struct
 func AttachedDatabaseConfigurationID(input string) (*AttachedDatabaseConfigurationId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Kusto Attached Database Configuration ID %q: %+v", input, err)
-	}
-
-	configuration := AttachedDatabaseConfigurationId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if configuration.ClusterName, err = id.PopSegment("Clusters"); err != nil {
 		return nil, err
 	}
 
-	if configuration.Name, err = id.PopSegment("AttachedDatabaseConfigurations"); err != nil {
+	resourceId := AttachedDatabaseConfigurationId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
+	}
+
+	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("AttachedDatabaseConfigurations"); err != nil {
 		return nil, err
 	}
 
@@ -34,5 +52,5 @@ func AttachedDatabaseConfigurationID(input string) (*AttachedDatabaseConfigurati
 		return nil, err
 	}
 
-	return &configuration, nil
+	return &resourceId, nil
 }

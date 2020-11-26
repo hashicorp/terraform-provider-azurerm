@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,31 +9,47 @@ import (
 )
 
 type DataConnectionId struct {
-	ResourceGroup string
-	ClusterName   string
-	DatabaseName  string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	ClusterName    string
+	DatabaseName   string
+	Name           string
 }
 
+func NewDataConnectionID(subscriptionId, resourceGroup, clusterName, databaseName, name string) DataConnectionId {
+	return DataConnectionId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		ClusterName:    clusterName,
+		DatabaseName:   databaseName,
+		Name:           name,
+	}
+}
+
+func (id DataConnectionId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Kusto/Clusters/%s/Databases/%s/DataConnections/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ClusterName, id.DatabaseName, id.Name)
+}
+
+// DataConnectionID parses a DataConnection ID into an DataConnectionId struct
 func DataConnectionID(input string) (*DataConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Kusto Event Hub Data Connection ID %q: %+v", input, err)
-	}
-
-	dataConnection := DataConnectionId{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if dataConnection.ClusterName, err = id.PopSegment("Clusters"); err != nil {
 		return nil, err
 	}
 
-	if dataConnection.DatabaseName, err = id.PopSegment("Databases"); err != nil {
-		return nil, err
+	resourceId := DataConnectionId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if dataConnection.Name, err = id.PopSegment("DataConnections"); err != nil {
+	if resourceId.ClusterName, err = id.PopSegment("Clusters"); err != nil {
+		return nil, err
+	}
+	if resourceId.DatabaseName, err = id.PopSegment("Databases"); err != nil {
+		return nil, err
+	}
+	if resourceId.Name, err = id.PopSegment("DataConnections"); err != nil {
 		return nil, err
 	}
 
@@ -39,5 +57,5 @@ func DataConnectionID(input string) (*DataConnectionId, error) {
 		return nil, err
 	}
 
-	return &dataConnection, nil
+	return &resourceId, nil
 }
