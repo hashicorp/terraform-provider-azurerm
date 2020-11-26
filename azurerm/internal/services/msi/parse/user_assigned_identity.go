@@ -1,5 +1,7 @@
 package parse
 
+// NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
+
 import (
 	"fmt"
 
@@ -7,32 +9,43 @@ import (
 )
 
 type UserAssignedIdentityId struct {
-	// "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/contoso-resource-group/providers/Microsoft.ManagedIdentity/userAssignedIdentities/contoso-identity"
-	Subscription  string
-	ResourceGroup string
-	Name          string
+	SubscriptionId string
+	ResourceGroup  string
+	Name           string
 }
 
-func UserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) {
-	if len(input) == 0 {
-		return nil, fmt.Errorf("Bad: UserAssignedIdentityId cannot be an empty string")
+func NewUserAssignedIdentityID(subscriptionId, resourceGroup, name string) UserAssignedIdentityId {
+	return UserAssignedIdentityId{
+		SubscriptionId: subscriptionId,
+		ResourceGroup:  resourceGroup,
+		Name:           name,
 	}
+}
 
+func (id UserAssignedIdentityId) ID(_ string) string {
+	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ManagedIdentity/userAssignedIdentities/%s"
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.Name)
+}
+
+// UserAssignedIdentityID parses a UserAssignedIdentity ID into an UserAssignedIdentityId struct
+func UserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
 
-	userAssignedIdentityId := UserAssignedIdentityId{
-		Subscription:  id.SubscriptionID,
-		ResourceGroup: id.ResourceGroup,
+	resourceId := UserAssignedIdentityId{
+		SubscriptionId: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 
-	if name, err := id.PopSegment("userAssignedIdentities"); err != nil {
-		return nil, fmt.Errorf("Bad: missing userAssignedIdentities segment in ID (%q)", input)
-	} else {
-		userAssignedIdentityId.Name = name
+	if resourceId.Name, err = id.PopSegment("userAssignedIdentities"); err != nil {
+		return nil, err
 	}
 
-	return &userAssignedIdentityId, nil
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &resourceId, nil
 }
