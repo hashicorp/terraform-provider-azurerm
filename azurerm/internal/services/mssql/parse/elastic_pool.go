@@ -1,0 +1,38 @@
+package parse
+
+import (
+	"fmt"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
+
+type MsSqlElasticPoolId struct {
+	Name          string
+	MsSqlServer   string
+	ResourceGroup string
+}
+
+func MSSqlElasticPoolID(input string) (*MsSqlElasticPoolId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to parse MsSql Elastic Pool ID %q: %+v", input, err)
+	}
+
+	elasticPool := MsSqlElasticPoolId{
+		ResourceGroup: id.ResourceGroup,
+	}
+
+	if elasticPool.MsSqlServer, err = id.PopSegment("servers"); err != nil {
+		return nil, err
+	}
+
+	if elasticPool.Name, err = id.PopSegment("elasticPools"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &elasticPool, nil
+}
